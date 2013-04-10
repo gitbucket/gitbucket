@@ -1,0 +1,37 @@
+@(branch: String, repository: app.RepositoryInfo, commits: Seq[Seq[app.CommitInfo]], page: Int, hasNext: Boolean)
+@main(repository.owner+"/"+repository.name) {
+  @header(branch, repository)
+  @navtab(branch, repository, "commits")
+  <div class="head">
+    <a href="/@repository.owner/@repository.name/tree/@branch">@repository.name</a> / Commit History
+  </div>
+      
+  @commits.map { date =>
+    <table class="table table-bordered">
+      <tr>
+        <th>@view.helpers.date(date.head.time)</th>
+      </tr>
+      @date.map { commit =>
+      <tr>
+        <td>
+          <div class="pull-left">
+            <a href="#"><strong>@view.helpers.cut(commit.message, 100)</strong></a><br>
+            <div class="small">
+              <a href="/@commit.committer">@commit.committer</a>
+              <span class="description">@view.helpers.datetime(commit.time)</span>
+            </div>
+          </div>
+          <div class="pull-right align-right">
+            <a href="" class="btn btn-small monospace">@commit.id.substring(0, 10)@*<i class="icon-circle-arrow-right"></i>*@</a><br>
+            <a href="" class="small">Browse code@*<i class="icon-arrow-right"></i>*@</a>
+          </div>
+        </td>
+      </tr>
+      }
+    </table>
+  }
+  <div class="btn-group">
+    <button class="btn" onclick="location.href='?page=@{page - 1}'"@if(page <= 1){ disabled="true"}>&lt; Newer</button>
+    <button class="btn" onclick="location.href='?page=@{page + 1}'"@if(!hasNext){ disabled="true"}>Order &gt;</button>
+  </div>   
+}

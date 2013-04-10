@@ -1,0 +1,16 @@
+@()
+@main("Create a New Repository"){
+<form method="post" action="/new">
+  <fieldset>
+    <label for="name"><strong>Repository name</strong></label>
+    <input type="text" name="name" id="name" />
+  </fieldset>
+  <fieldset>
+    <label for="description"><strong>Description</strong> (optional)</label>
+    <input type="text" name="description" id="description" style="width: 600px;"/>
+  </fieldset>
+  <fieldset>
+    <input type="submit" class="btn btn-primary" value="Create repository"/>
+  </fieldset>
+</form>
+}

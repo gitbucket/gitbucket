@@ -1,0 +1,58 @@
+div.head {
+  font-size: large;
+  margin-bottom: 10px;
+}
+
+div.head a {
+  font-weight: bold;
+}
+
+div.container {
+  width: 920px;
+}
+
+.small {
+  font-size: small;
+}
+
+.monospace {
+  font-family: monospace;
+}
+
+.align-right {
+  text-align: right;
+}
+
+span.description {
+  color: gray;
+}
+
+table.table th {
+  background-color: #d9edf7;
+}
+
+table.table-file-list td {
+  background-color: #F8F8F8;
+  font-size: small;
+}
+
+div.latest-commit {
+  font-size: small;
+  font-weight: normal;
+}
+
+div.block-header-1 {
+  font-size: x-large;
+  font-weight: bold;
+}
+
+div.block-header-2 {
+  font-size: large;
+  font-weight: bold;
+}
+
+div.block {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid silver;
+}

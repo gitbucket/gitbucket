@@ -1,0 +1,53 @@
+@(branch: String, repository: app.RepositoryInfo, pathList: List[String], latestCommit: app.CommitInfo, files: List[app.FileInfo])
+@main(repository.owner+"/"+repository.name) {
+  @header(branch, repository)
+  @navtab(branch, repository, "files")
+  <div class="head">
+    <a href="/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
+    @pathList.zipWithIndex.map { case (path, i) =>
+      <a href="/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@path</a> /
+    }
+  </div>
+  <table class="table table-file-list">
+    <tr>
+      <th colspan="4" style="font-weight: normal;">
+        <div>
+            <strong><a href="">@latestCommit.committer</a></strong> 
+            @view.helpers.cut(latestCommit.message, 100)
+            <div class="pull-right align-right">
+              @view.helpers.datetime(latestCommit.time)
+              <a href="">@latestCommit.id.substring(0, 10)</a>
+            </div>
+        </div>
+      </th>
+    </tr>
+    @if(pathList.size > 0){
+    <tr>
+      <td width="16"></td>
+      <td><a href="/@repository.owner/@repository.name@if(pathList.size > 1){/tree/@branch/@pathList.init.mkString("/")}">..</a></td>
+      <td></td>
+      <td></td>
+    </tr>
+    }
+    @files.map { file =>
+    <tr>
+      <td width="16">
+        @if(file.isDirectory){
+          <img src="/assets/common/images/folder.png"/>
+        } else {
+          <img src="/assets/common/images/file.png"/>
+        }
+      </td>
+      <td>
+        @if(file.isDirectory){
+          <a href="/@repository.owner/@repository.name/tree@{(branch :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+        } else {
+          <a href="/@repository.owner/@repository.name/blob@{(branch :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+        }
+      </td>
+      <td>@view.helpers.datetime(file.time)</td>
+      <td>@view.helpers.cut(file.message, 60) [<a href="/@file.committer">@file.committer</a>]</td>
+    </tr>
+    }
+  </table>
+}

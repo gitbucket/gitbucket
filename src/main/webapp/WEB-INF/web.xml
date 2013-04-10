@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+      version="3.0">
+
+  <!--
+    This listener loads a class in the default package called Scalatra.
+    That class should implement org.scalatra.LifeCycle.  Your app can be
+    configured in Scala code there.
+  -->
+  <listener>
+    <listener-class>org.scalatra.servlet.ScalatraListener</listener-class>
+  </listener>
+  
+  <servlet>
+    <servlet-name>GitServlet</servlet-name>
+    <servlet-class>org.eclipse.jgit.http.server.GitServlet</servlet-class>
+    <init-param>
+      <param-name>base-path</param-name>
+      <param-value>C:/Users/takez_000/gitbucket/takezoe</param-value>
+    </init-param>
+    <init-param>
+      <param-name>export-all</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>GitServlet</servlet-name>
+    <url-pattern>/git/*</url-pattern>
+  </servlet-mapping>
+  
+</web-app>
