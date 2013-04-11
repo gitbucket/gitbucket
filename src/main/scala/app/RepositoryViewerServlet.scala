@@ -133,18 +133,20 @@ class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
     val git = Git.open(dir)
     
     val branchList = git.branchList.call.toArray.map { ref =>
-      ref.asInstanceOf[Ref].getName.replaceFirst("^refs/heads/", "")
+      ref.asInstanceOf[Ref].getName
     }.toList
     
     branchList.foreach { branch =>
-      val branchdir = getBranchDir(owner, repository, branch)
+      val branchName = branch.replaceFirst("^refs/heads/", "")
+      val branchdir = getBranchDir(owner, repository, branchName)
       if(!branchdir.exists){
         branchdir.mkdirs()
         Git.cloneRepository
           .setURI(dir.toURL.toString)
+          .setBranch(branch)
           .setDirectory(branchdir)
           .call
-        Git.open(branchdir).checkout.setName(branch).call
+        Git.open(branchdir).checkout.setName(branchName).call
       } else {
         Git.open(branchdir).pull.call
       }
