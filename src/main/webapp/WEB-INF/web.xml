@@ -18,7 +18,7 @@
     <servlet-class>org.eclipse.jgit.http.server.GitServlet</servlet-class>
     <init-param>
       <param-name>base-path</param-name>
-      <param-value>C:/Users/takez_000/gitbucket/takezoe</param-value>
+      <param-value>C:/Users/takezoe/gitbucket/repositories</param-value>
     </init-param>
     <init-param>
       <param-name>export-all</param-name>

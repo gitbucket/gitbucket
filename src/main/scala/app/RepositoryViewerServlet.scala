@@ -112,7 +112,7 @@ class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
   def getRepositoryInfo(owner: String, repository: String) = {
     val git = Git.open(getRepositoryDir(owner, repository))
     RepositoryInfo(
-      owner, repository, "https://github.com/takezoe/%s.git".format(repository),
+      owner, repository, "http://localhost:8080/git/%s/%s.git".format(owner, repository),
       // branches
       git.branchList.call.toArray.map { ref =>
         ref.asInstanceOf[Ref].getName.replaceFirst("^refs/heads/", "")
@@ -139,10 +139,15 @@ class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
     branchList.foreach { branch =>
       val branchdir = getBranchDir(owner, repository, branch)
       if(!branchdir.exists){
-        FileUtils.copyDirectory(dir, branchdir)
+        branchdir.mkdirs()
+        Git.cloneRepository
+          .setURI(dir.toURL.toString)
+          .setDirectory(branchdir)
+          .call
         Git.open(branchdir).checkout.setName(branch).call
+      } else {
+        Git.open(branchdir).pull.call
       }
-      // TODO コピー元のリポジトリからpullする？
     }
   }
   
