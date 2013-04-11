@@ -70,8 +70,8 @@ class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
     val page = params.getOrElse("page", "1").toInt
     val dir = getBranchDir(owner, repository, branchName)
     
-    val git = Git.open(dir)
-    val i = git.log.call.iterator
+    // TODO Do recursive without var.
+    val i = Git.open(dir).log.call.iterator
     val listBuffer = scala.collection.mutable.ListBuffer[CommitInfo]()
     var count = 0
     while(i.hasNext && listBuffer.size < 30){
