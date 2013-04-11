@@ -26,11 +26,8 @@ class CreateRepositoryServlet extends ScalatraServlet with ServletBase {
     val repositoryName = params("name")
     val description = params("description")
     
-    val dir = getRepositoryDir(LoginUser, repositoryName)
-    val repository = new RepositoryBuilder()
-          .setGitDir(dir)
-          .setBare
-          .build
+    val gitdir = getRepositoryDir(LoginUser, repositoryName)
+    val repository = new RepositoryBuilder().setGitDir(gitdir).setBare.build
     
     repository.create
     
@@ -38,23 +35,29 @@ class CreateRepositoryServlet extends ScalatraServlet with ServletBase {
     config.setBoolean("http", null, "receivepack", true)
     config.save
     
-    if(description.nonEmpty){
-      val tmpdir = getInitRepositoryDir(LoginUser, repositoryName)
-      Git.cloneRepository.setURI(dir.toURI.toString).setDirectory(tmpdir).call
-      
+    val tmpdir = getInitRepositoryDir(LoginUser, repositoryName)
+    try {
+      // Clone the repository
+      Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
+    
       // Create README.md
       val readme = new File(tmpdir, "README.md")
-      FileUtils.writeStringToFile(readme, 
-          repositoryName + "\n===============\n\n" + description, "UTF-8")
-      
+    
+      FileUtils.writeStringToFile(readme, if(description.nonEmpty){
+          repositoryName + "\n===============\n\n" + description
+        } else {
+          repositoryName + "\n===============\n"
+        }, "UTF-8")
+    
       val git = Git.open(tmpdir)
       git.add.addFilepattern("README.md").call
       git.commit.setMessage("Initial commit").call
       git.push.call
       
+    } finally {
       FileUtils.deleteDirectory(tmpdir)
     }
-    
+      
     // redirect to the repository
     redirect("/%s/%s".format(LoginUser, repositoryName))
   }
