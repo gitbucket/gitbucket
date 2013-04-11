@@ -34,6 +34,9 @@ class CreateRepositoryServlet extends ScalatraServlet with ServletBase {
     
     repository.create
     
+    val config = repository.getConfig
+    config.setBoolean("http", null, "receivepack", true)
+    config.save
     
     if(description.nonEmpty){
       val tmpdir = getInitRepositoryDir(LoginUser, repositoryName)
