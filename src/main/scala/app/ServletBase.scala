@@ -5,6 +5,7 @@ package app
  */
 trait ServletBase {
   
-  val LoginUser = "takezoe"
+  // TODO get from session
+  val LoginUser = System.getProperty("user.name")
 
 }
