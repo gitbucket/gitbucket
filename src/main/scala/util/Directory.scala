@@ -4,7 +4,7 @@ import java.io.File
 
 object Directory {
 
-  val GitBucketHome = "C:/Users/takezoe/gitbucket/"
+  val GitBucketHome = new File(System.getProperty("user.home"), "gitbucket").getAbsolutePath
     
   def getRepositories(owner: String): List[String] =
     new File("%s/repositories/%s".format(GitBucketHome, owner))
