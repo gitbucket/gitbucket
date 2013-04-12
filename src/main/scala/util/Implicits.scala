@@ -1,6 +1,10 @@
 package util
 
+/**
+ * Provides some usable implicit conversions.
+ */
 object Implicits {
+  
   implicit def extendsSeq[A](seq: Seq[A]) = new {
 
     def splitWith(condition: (A, A) => Boolean): Seq[Seq[A]] = split(seq)(condition)

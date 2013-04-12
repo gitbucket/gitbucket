@@ -20,6 +20,9 @@ case class CommitInfo(id: String, time: Date, committer: String, message: String
  */
 class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
   
+  /**
+   * Shows user information.
+   */
   get("/:owner") {
     val owner = params("owner")
     html.user.render(owner, getRepositories(owner).map(getRepositoryInfo(owner, _)))
@@ -109,7 +112,13 @@ class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
       CommitInfo(latestRev.getName, latestRev.getCommitterIdent.getWhen, latestRev.getCommitterIdent.getName, latestRev.getShortMessage))
   }
   
-  def getRepositoryInfo(owner: String, repository: String) = {
+  /**
+   * Returns the repository information. It contains branch names and tag names.
+   * 
+   * @param owner the repository owner
+   * @param repository the repository name
+   */
+  def getRepositoryInfo(owner: String, repository: String): RepositoryInfo = {
     val git = Git.open(getRepositoryDir(owner, repository))
     RepositoryInfo(
       owner, repository, "http://localhost:8080/git/%s/%s.git".format(owner, repository),
@@ -127,8 +136,13 @@ class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
   /**
    * Setup all branches for the repository viewer.
    * This method copies the repository and checkout branches.
+   * 
+   * TODO Should it be a repository update hook?
+   * 
+   * @param owner the repository owner
+   * @param repository the repository name
    */
-  def updateAllBranches(owner: String, repository: String) = {
+  def updateAllBranches(owner: String, repository: String): Unit = {
     val dir = getRepositoryDir(owner, repository)
     val git = Git.open(dir)
     
@@ -154,7 +168,13 @@ class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
   }
   
   /**
-   * Provides the file list of the specified branch and path.
+   * Provides HTML of the file list.
+   * 
+   * @param owner the repository owner
+   * @param repository the repository name
+   * @param branch the branch name (optional)
+   * @param path the directory path (optional)
+   * @return HTML of the file list
    */
   def fileList(owner: String, repository: String, branch: String = "", path: String = ".") = {
     val branchName = if(branch.isEmpty){
