@@ -1,9 +1,10 @@
 @()
 @main("Create a New Repository"){
-<form method="post" action="/new">
+<form id="form" method="post" action="/new" validate="true">
   <fieldset>
     <label for="name"><strong>Repository name</strong></label>
     <input type="text" name="name" id="name" />
+    <span id="error-name" class="error-message"></span>
   </fieldset>
   <fieldset>
     <label for="description"><strong>Description</strong> (optional)</label>

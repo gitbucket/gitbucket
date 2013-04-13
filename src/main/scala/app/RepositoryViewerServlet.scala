@@ -18,7 +18,7 @@ case class CommitInfo(id: String, time: Date, committer: String, message: String
 /**
  * The repository viewer.
  */
-class RepositoryViewerServlet extends ScalatraServlet with ServletBase {
+class RepositoryViewerServlet extends ServletBase {
   
   /**
    * Shows user information.
