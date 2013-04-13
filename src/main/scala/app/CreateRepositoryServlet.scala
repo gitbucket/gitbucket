@@ -1,6 +1,7 @@
 package app
 
 import util.Directory._
+import util.Validations._
 import org.scalatra._
 import java.io.File
 import org.eclipse.jgit.api.Git
@@ -23,11 +24,8 @@ class CreateRepositoryServlet extends ServletBase {
    * Create new repository.
    */
   post("/") {
-    withValidation(validate, params){
-      val repositoryName = params("name")
-      val description = params("description")
-    
-      val gitdir = getRepositoryDir(LoginUser, repositoryName)
+    withValidation(form, params){ form =>
+      val gitdir = getRepositoryDir(LoginUser, form.name)
       val repository = new RepositoryBuilder().setGitDir(gitdir).setBare.build
     
       repository.create
@@ -36,16 +34,16 @@ class CreateRepositoryServlet extends ServletBase {
       config.setBoolean("http", null, "receivepack", true)
       config.save
     
-      val tmpdir = getInitRepositoryDir(LoginUser, repositoryName)
+      val tmpdir = getInitRepositoryDir(LoginUser, form.name)
       try {
         // Clone the repository
         Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
     
         // Create README.md
-        FileUtils.writeStringToFile(new File(tmpdir, "README.md"), if(description.nonEmpty){
-            repositoryName + "\n===============\n\n" + description
+        FileUtils.writeStringToFile(new File(tmpdir, "README.md"), if(form.description.nonEmpty){
+            form.name + "\n===============\n\n" + form.description
           } else {
-            repositoryName + "\n===============\n"
+            form.name + "\n===============\n"
           }, "UTF-8")
     
         val git = Git.open(tmpdir)
@@ -58,25 +56,32 @@ class CreateRepositoryServlet extends ServletBase {
       }
       
       // redirect to the repository
-      redirect("/%s/%s".format(LoginUser, repositoryName))
+      redirect("/%s/%s".format(LoginUser, form.name))
     }
   }
   
   get("/validate") {
     contentType = "application/json"
-    validate(params).toJSON
+    form.validateAsJSON(params)
   }
   
-  def validate(params: Map[String, String]): ValidationResult = {
-    val name = params("name")
-    if(name.isEmpty){
-      ValidationResult(false, Map("name" -> "Repository name is required."))
-    } else if(!name.matches("^[a-z0-6\\-_]+$")){
-      ValidationResult(false, Map("name" -> "Repository name contans invalid character."))
-    } else if(getRepositories(LoginUser).contains(name)){
-      ValidationResult(false, Map("name" -> "Repository already exists."))
-    } else {
-      ValidationResult(true, Map.empty)
+  val form = Form(
+      "name"        -> trim(label("Repository name", text(required, maxlength(40), repository))), 
+      "description" -> trim(label("Description"    , text()))
+  )(RepositoryCreationForm.apply)
+
+  def repository: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] = {
+      if(!value.matches("^[a-z0-9\\-_]+$")){
+        Some("Repository name contains invalid character.")
+      } else if(getRepositories(LoginUser).contains(value)){
+        Some("Repository already exists.")
+      } else {
+        None
+      }
     }
   }
+  
+  case class RepositoryCreationForm(name: String, description: String)
+  
 }

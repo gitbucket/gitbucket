@@ -16,11 +16,11 @@ function validate(e){
 		// clear all error messages
 		$('.error-message').text('');
 		
-		if(data.valid){
+		if($.isEmptyObject(data)){
 			form.data('validated', true);
 			form.submit();
 		} else {
-			$.each(data.errors, function(key, value){
+			$.each(data, function(key, value){
 				$('#error-' + key).text(value);
 			});
 		}
