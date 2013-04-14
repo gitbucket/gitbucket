@@ -122,9 +122,12 @@ object Validations {
       } else None
   }
   
+  // TODO make basic Constraints for Int, Long, Boolean and Option
+  
   /////////////////////////////////////////////////////////////////////////////////////////////
   // ValueType wrappers to provide additional features.
   
+  // TODO make an other trim implementation for MappingValueType which is trim all parameters.
   def trim[T](valueType: SingleValueType[T]): SingleValueType[T] = new SingleValueType[T](){
     def convert(value: String): T = valueType.convert(value.trim)
     override def validate(name: String, value: String): Seq[(String, String)] = valueType.validate(name, value.trim)
