@@ -65,7 +65,7 @@ class CreateRepositoryServlet extends ServletBase {
     form.validateAsJSON(params)
   }
   
-  val form = Form(
+  val form = mapping(
       "name"        -> trim(label("Repository name", text(required, maxlength(40), repository))), 
       "description" -> trim(label("Description"    , text()))
   )(RepositoryCreationForm.apply)
