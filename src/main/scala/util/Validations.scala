@@ -248,28 +248,28 @@ object Validations {
     override def validate(name: String, value: String): Seq[(String, String)] = valueType.validate(name, value.trim)
   }
   
-  /**
-   * ValueType wrapper to trim all parameters.
-   * 
-   * {{{
-   * val form = trim(mapping(
-   *   "name" -> text(required),
-   *   "mail" -> text(required)
-   * ))
-   * }}}
-   */
-  def trim[T](valueType: MappingValueType[T]): MappingValueType[T] = new MappingValueType[T](){
-    def validate(name: String, params: Map[String, String]): Seq[(String, String)] =
-      fields.map { case (name, valueType) => valueType.validate(name, trimMap(params)) }.flatten
-    
-    def validateAsJSON(params: Map[String, String]): JObject = {
-      JObject(validate("form", trimMap(params)).map { case (key, value) =>
-        JField(key, JString(value))
-      }.toList)
-    }
-      
-    private def trimMap(params: Map[String, String]): Map[String, String] = params.map{ x => x._1 -> x._2.trim }
-  }
+//  /**
+//   * ValueType wrapper to trim all parameters.
+//   * 
+//   * {{{
+//   * val form = trim(mapping(
+//   *   "name" -> text(required),
+//   *   "mail" -> text(required)
+//   * ))
+//   * }}}
+//   */
+//  def trim[T](valueType: MappingValueType[T]): MappingValueType[T] = new MappingValueType[T](){
+//    override def validate(name: String, params: Map[String, String]): Seq[(String, String)] =
+//      fields.map { case (name, valueType) => valueType.validate(name, trimMap(params)) }.flatten
+//    
+//    override def validateAsJSON(params: Map[String, String]): JObject = {
+//      JObject(validate("form", trimMap(params)).map { case (key, value) =>
+//        JField(key, JString(value))
+//      }.toList)
+//    }
+//      
+//    private def trimMap(params: Map[String, String]): Map[String, String] = params.map{ x => x._1 -> x._2.trim }
+//  }
   
   /**
    * ValueType wrapper to specified a property name which is used in the error message. 

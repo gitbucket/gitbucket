@@ -12,7 +12,7 @@ function validate(e){
 	}
 	
 	// TODO use $.post() instead of $.getJSON
-	$.getJSON(form.attr('action') + '/validate', $(e.target).serialize(), function(data){
+	$.post(form.attr('action') + '/validate', $(e.target).serialize(), function(data){
 		// clear all error messages
 		$('.error-message').text('');
 		
@@ -24,6 +24,6 @@ function validate(e){
 				$('#error-' + key).text(value);
 			});
 		}
-	});
+	}, 'json');
 	return false;
 }
