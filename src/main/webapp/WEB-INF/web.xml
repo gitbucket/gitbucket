@@ -14,21 +14,23 @@
   </listener>
   
   <servlet>
-    <servlet-name>GitServlet</servlet-name>
-    <servlet-class>org.eclipse.jgit.http.server.GitServlet</servlet-class>
-    <init-param>
-      <param-name>base-path</param-name>
-      <param-value>C:/Users/takezoe/gitbucket/repositories</param-value>
-    </init-param>
-    <init-param>
-      <param-name>export-all</param-name>
-      <param-value>true</param-value>
-    </init-param>
+    <servlet-name>GitRepositoryServlet</servlet-name>
+    <servlet-class>app.GitRepositoryServlet</servlet-class>
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>GitServlet</servlet-name>
+    <servlet-name>GitRepositoryServlet</servlet-name>
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
+  
+  <filter>
+    <filter-name>BasicAuthenticationFilter</filter-name>
+    <filter-class>app.BasicAuthenticationFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>BasicAuthenticationFilter</filter-name>
+    <url-pattern>/git/*</url-pattern>
+  </filter-mapping>
   
 </web-app>
