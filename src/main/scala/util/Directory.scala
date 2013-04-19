@@ -9,11 +9,13 @@ object Directory {
 
   val GitBucketHome = new File(System.getProperty("user.home"), "gitbucket").getAbsolutePath
   
+  val RepositoryHome = "%s/repositories".format(GitBucketHome)
+  
   /**
    * Repository names of the specified user.
    */
   def getRepositories(owner: String): List[String] = {
-    val dir = new File("%s/repositories/%s".format(GitBucketHome, owner))
+    val dir = new File("%s/%s".format(RepositoryHome, owner))
     if(dir.exists){
       dir.listFiles.filter(_.isDirectory).map(_.getName.replaceFirst("\\.git$", "")).toList
     } else {
@@ -25,7 +27,7 @@ object Directory {
    * Substance directory of the repository.
    */
   def getRepositoryDir(owner: String, repository: String): File =
-    new File("%s/repositories/%s/%s.git".format(GitBucketHome, owner, repository))
+    new File("%s/%s/%s.git".format(RepositoryHome, owner, repository))
   
   /**
    * Temporary directory which is used in the repository viewer.
