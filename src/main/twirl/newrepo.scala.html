@@ -1,6 +1,7 @@
-@()
+@()(implicit context: app.Context)
+@import context._
 @main("Create a New Repository"){
-<form id="form" method="post" action="/new" validate="true">
+<form id="form" method="post" action="@path/new" validate="true">
   <fieldset>
     <label for="name"><strong>Repository name</strong></label>
     <input type="text" name="name" id="name" />

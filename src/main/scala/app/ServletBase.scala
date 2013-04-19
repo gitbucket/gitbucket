@@ -14,6 +14,8 @@ abstract class ServletBase extends ScalatraServlet with JacksonJsonSupport {
   
   implicit val jsonFormats = DefaultFormats
   
+  implicit def context: Context = Context(servletContext.getContextPath)
+  
   // TODO get from session
   val LoginUser = System.getProperty("user.name")
   
@@ -43,3 +45,5 @@ abstract class ServletBase extends ScalatraServlet with JacksonJsonSupport {
   }
   
 }
+
+case class Context(path: String)

@@ -1,14 +1,15 @@
-@(branch: String, repository: app.RepositoryInfo, pathList: List[String], content: String, latestCommit: app.CommitInfo)
+@(branch: String, repository: app.RepositoryInfo, pathList: List[String], content: String, latestCommit: app.CommitInfo)(implicit context: app.Context)
+@import context._
 @main(repository.owner+"/"+repository.name) {
   @header(branch, repository)
   @navtab(branch, repository, "files")
   <div class="head">
-    <a href="/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
+    <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
     @pathList.zipWithIndex.map { case (path, i) =>
       @if(i == pathList.length - 1){
         @path
       } else {
-        <a href="/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@path</a> /
+        <a href="@path/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@path</a> /
       }
     }
   </div>
@@ -17,7 +18,7 @@
     <tr>
       <th style="font-weight: normal;">
         <div class="pull-left">
-          <a href="/@latestCommit.committer">@latestCommit.committer</a>
+          <a href="@path/@latestCommit.committer">@latestCommit.committer</a>
           <span class="description">@view.helpers.datetime(latestCommit.time)</span>
           @view.helpers.cut(latestCommit.message, 100)<br>
         </div>
@@ -49,5 +50,5 @@
     padding-left: 20px;
   }
   </style>
-  <script src="/assets/google-code-prettify/run_prettify.js"></script>
+  <script src="@path/assets/google-code-prettify/run_prettify.js"></script>
 }

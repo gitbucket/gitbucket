@@ -24,7 +24,7 @@ class CreateRepositoryServlet extends ServletBase {
    * Show the new repository form.
    */
   get("/") {
-    html.newrepo.render()
+    html.newrepo()
   }
   
   /**

@@ -25,7 +25,7 @@ class RepositoryViewerServlet extends ServletBase {
    */
   get("/:owner") {
     val owner = params("owner")
-    html.user.render(owner, getRepositories(owner).map(getRepositoryInfo(owner, _)))
+    html.user(owner, getRepositories(owner).map(getRepositoryInfo(owner, _)))
   }
   
   /**
@@ -85,7 +85,7 @@ class RepositoryViewerServlet extends ServletBase {
       }
     }
     
-    html.commits.render(branchName, getRepositoryInfo(owner, repository), 
+    html.commits(branchName, getRepositoryInfo(owner, repository), 
       listBuffer.toSeq.splitWith{ (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }, page, i.hasNext)
@@ -108,7 +108,7 @@ class RepositoryViewerServlet extends ServletBase {
     val git = Git.open(dir)
     val latestRev = git.log.addPath(path).call.iterator.next
     
-    html.blob.render(branchName, getRepositoryInfo(owner, repository), path.split("/").toList, content,
+    html.blob(branchName, getRepositoryInfo(owner, repository), path.split("/").toList, content,
       CommitInfo(latestRev.getName, latestRev.getCommitterIdent.getWhen, latestRev.getCommitterIdent.getName, latestRev.getShortMessage))
   }
   
@@ -187,7 +187,7 @@ class RepositoryViewerServlet extends ServletBase {
     val git = Git.open(dir)
     val latestRev = {if(path == ".") git.log else git.log.addPath(path)}.call.iterator.next
     
-    html.files.render(
+    html.files(
       // current branch
       branchName, 
       // repository

@@ -1,6 +1,7 @@
-@(branch: String, repository: app.RepositoryInfo)
+@(branch: String, repository: app.RepositoryInfo)(implicit context: app.Context)
+@import context._
 <div class="head">
-  <a href="/@repository.owner">@repository.owner</a> / <a href="/@repository.owner/@repository.name">@repository.name</a>
+  <a href="@path/@repository.owner">@repository.owner</a> / <a href="@path/@repository.owner/@repository.name">@repository.name</a>
 </div>
 <div class="navbar">
   <div class="navbar-inner">

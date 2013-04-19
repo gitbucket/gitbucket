@@ -1,4 +1,5 @@
-@(title: String)(body: Html)
+@(title: String)(body: Html)(implicit context: app.Context)
+@import context._
 <!DOCTYPE html>
 <html>
   <head>
@@ -6,16 +7,16 @@
     <title>@title - GitBucket</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Le styles -->
-    <link href="/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="/assets/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="@path/assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="@path/assets/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
-      <script src="/assets/bootstrap/js/html5shiv.js"></script>
+      <script src="@path/assets/bootstrap/js/html5shiv.js"></script>
     <![endif]-->
-    <link href="/assets/common/css/gitbucket.css" rel="stylesheet">
-    <script src="/assets/common/js/jquery-1.9.1.js"></script>
-    <script src="/assets/common/js/validation.js"></script>
-    <script src="/assets/bootstrap/js/bootstrap.js"></script>
+    <link href="@path/assets/common/css/gitbucket.css" rel="stylesheet">
+    <script src="@path/assets/common/js/jquery-1.9.1.js"></script>
+    <script src="@path/assets/common/js/validation.js"></script>
+    <script src="@path/assets/bootstrap/js/bootstrap.js"></script>
   </head>
   <body>
     <div class="navbar navbar-inverse">
@@ -29,7 +30,7 @@
           <a class="brand" href="#">GitBucket</a>
           <div class="nav-collapse collapse">
             <ul class="nav pull-right">
-              <li><a href="/new">New repo</a></li>
+              <li><a href="@path/new">New repo</a></li>
               <li><a href="#about">Account</a></li>
               <li><a href="#contact">Sign out</a></li>
             </ul>
