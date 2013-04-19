@@ -1,11 +1,12 @@
 package app
 
-import javax.servlet.ServletConfig
-import javax.servlet.ServletException
-import org.eclipse.jgit.http.server.GitServlet
-import javax.servlet.ServletContext
+import java.io._
+import javax.servlet._
+import javax.servlet.http._
 import util.Directory
-import java.io.File
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Ref
+import org.eclipse.jgit.http.server.GitServlet
 
 /**
  * Provides Git repository via HTTP.
@@ -29,6 +30,25 @@ class GitRepositoryServlet extends GitServlet {
       def getServletContext(): ServletContext = config.getServletContext
       def getServletName(): String = config.getServletName
     });
+  }
+  
+  /**
+   * Override GitServlet#service() to pull pushed changes to cloned repositories for branch exploring.
+   */
+  override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    super.service(request, response)
+    
+    // TODO debug log
+    println(request.getMethod + ": " + request.getRequestURI)
+    
+    // update branches
+    if(request.getMethod == "POST" && request.getRequestURI.endsWith("/git-receive-pack")){
+      request.getRequestURI
+          .replaceFirst("^" + request.getServletContext.getContextPath + "/git/", "")
+          .replaceFirst("\\.git/git-receive-pack$", "").split("/") match {
+        case Array(owner, repository) => Directory.updateAllBranches(owner, repository)
+      }
+    }
   }
   
 }

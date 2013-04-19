@@ -34,7 +34,6 @@ class RepositoryViewerServlet extends ServletBase {
   get("/:owner/:repository") {
     val owner = params("owner")
     val repository = params("repository")
-    updateAllBranches(owner, repository)
     
     fileList(owner, repository)
   }
@@ -45,7 +44,6 @@ class RepositoryViewerServlet extends ServletBase {
   get("/:owner/:repository/tree/:branch") {
     val owner = params("owner")
     val repository = params("repository")
-    updateAllBranches(owner, repository)
     
     fileList(owner, repository, params("branch"))
   }
@@ -56,7 +54,6 @@ class RepositoryViewerServlet extends ServletBase {
   get("/:owner/:repository/tree/:branch/*") {
     val owner = params("owner")
     val repository = params("repository")
-    updateAllBranches(owner, repository)
     
     fileList(owner, repository, params("branch"), multiParams("splat").head)
   }
@@ -67,7 +64,6 @@ class RepositoryViewerServlet extends ServletBase {
   get("/:owner/:repository/commits/:branch"){
     val owner = params("owner")
     val repository = params("repository")
-    updateAllBranches(owner, repository)
     
     val branchName = params("branch")
     val page = params.getOrElse("page", "1").toInt
@@ -97,7 +93,6 @@ class RepositoryViewerServlet extends ServletBase {
   get("/:owner/:repository/blob/:branch/*"){
     val owner = params("owner")
     val repository = params("repository")
-    updateAllBranches(owner, repository)
     
     val branchName = params("branch")
     val path = multiParams("splat").head.replaceFirst("^tree/.+?/", "")
@@ -131,40 +126,6 @@ class RepositoryViewerServlet extends ServletBase {
         ref.asInstanceOf[Ref].getName
       }.toList
     )   
-  }
-  
-  /**
-   * Setup all branches for the repository viewer.
-   * This method copies the repository and checkout branches.
-   * 
-   * TODO Should it be a repository update hook?
-   * 
-   * @param owner the repository owner
-   * @param repository the repository name
-   */
-  def updateAllBranches(owner: String, repository: String): Unit = {
-    val dir = getRepositoryDir(owner, repository)
-    val git = Git.open(dir)
-    
-    val branchList = git.branchList.call.toArray.map { ref =>
-      ref.asInstanceOf[Ref].getName
-    }.toList
-    
-    branchList.foreach { branch =>
-      val branchName = branch.replaceFirst("^refs/heads/", "")
-      val branchdir = getBranchDir(owner, repository, branchName)
-      if(!branchdir.exists){
-        branchdir.mkdirs()
-        Git.cloneRepository
-          .setURI(dir.toURL.toString)
-          .setBranch(branch)
-          .setDirectory(branchdir)
-          .call
-        Git.open(branchdir).checkout.setName(branchName).call
-      } else {
-        Git.open(branchdir).pull.call
-      }
-    }
   }
   
   /**

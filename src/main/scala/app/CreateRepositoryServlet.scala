@@ -61,6 +61,9 @@ class CreateRepositoryServlet extends ServletBase {
       FileUtils.deleteDirectory(tmpdir)
     }
     
+    // update all branches
+    updateAllBranches(LoginUser, form.name)
+    
     // redirect to the repository
     redirect("/%s/%s".format(LoginUser, form.name))
   }
