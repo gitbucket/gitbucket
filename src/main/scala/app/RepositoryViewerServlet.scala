@@ -121,7 +121,7 @@ class RepositoryViewerServlet extends ServletBase {
   def getRepositoryInfo(owner: String, repository: String): RepositoryInfo = {
     val git = Git.open(getRepositoryDir(owner, repository))
     RepositoryInfo(
-      owner, repository, "http://localhost:8080/git/%s/%s.git".format(owner, repository),
+      owner, repository, "http://localhost:8080%s/git/%s/%s.git".format(servletContext.getContextPath, owner, repository),
       // branches
       git.branchList.call.toArray.map { ref =>
         ref.asInstanceOf[Ref].getName.replaceFirst("^refs/heads/", "")
