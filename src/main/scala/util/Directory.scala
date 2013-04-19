@@ -12,9 +12,14 @@ object Directory {
   /**
    * Repository names of the specified user.
    */
-  def getRepositories(owner: String): List[String] =
-    new File("%s/repositories/%s".format(GitBucketHome, owner))
-      .listFiles.filter(_.isDirectory).map(_.getName.replaceFirst("\\.git$", "")).toList
+  def getRepositories(owner: String): List[String] = {
+    val dir = new File("%s/repositories/%s".format(GitBucketHome, owner))
+    if(dir.exists){
+      dir.listFiles.filter(_.isDirectory).map(_.getName.replaceFirst("\\.git$", "")).toList
+    } else {
+      Nil
+    }
+  }
   
   /**
    * Substance directory of the repository.
