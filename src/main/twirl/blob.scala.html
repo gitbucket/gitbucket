@@ -34,6 +34,8 @@
     </tr>
   </table>
   
+  <link  href="@path/assets/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
+  <script src="@path/assets/google-code-prettify/prettify.js"></script>
   <style type="text/css">
   li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9 {
     list-style-type: decimal;
@@ -50,5 +52,7 @@
     padding-left: 20px;
   }
   </style>
-  <script src="@path/assets/google-code-prettify/run_prettify.js"></script>
+  <script>
+  $(function(){ prettyPrint(); });
+  </script>
 }
