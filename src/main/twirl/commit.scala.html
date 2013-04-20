@@ -1,19 +1,19 @@
 @(branch: String, commit: app.CommitInfo, repository: app.RepositoryInfo, diffs: Seq[app.DiffInfo])(implicit context: app.Context)
 @import context._
-@import view.helpers._
-@main(cut(commit.message, 20)){
+@import view.helpers
+@main(helpers.cut(commit.message, 20)){
   @header(branch, repository)
   @navtab(branch, repository, "commits")
   <table class="table table-bordered">
     <tr>
       <th>
-        <div>@text(commit.message)</div>
+        <div>@helpers.format(commit.message)</div>
         <div class="small" style="font-weight: normal;"><span class="description">@branch</span></div>
       </th>
     </tr>
     <tr>
       <td>
-        <a href="@path/@commit.committer">@commit.committer</a> <span class="description">@datetime(commit.time)</span>
+        <a href="@path/@commit.committer">@commit.committer</a> <span class="description">@helpers.datetime(commit.time)</span>
         <div class="pull-right align-right">
           <span class="description">commit</span> @commit.id
         </div>

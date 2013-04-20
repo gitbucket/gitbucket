@@ -15,7 +15,7 @@ object helpers {
   def date(date: Date): String = new SimpleDateFormat("yyyy/MM/dd").format(date)
   
   // TODO escape html tags using HtmlEscapeUtils (Commons Lang)
-  def text(value: String): twirl.api.Html = twirl.api.Html(
+  def format(value: String): twirl.api.Html = twirl.api.Html(
     value.replaceAll(" ", "&nbsp;").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll("\n", "<br>"))
 
   /**
