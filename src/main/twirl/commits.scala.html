@@ -17,7 +17,7 @@
       <tr>
         <td>
           <div class="pull-left">
-            <a href="#"><strong>@helpers.cut(commit.message, 100)</strong></a><br>
+            <a href="@path/@repository.owner/@repository.name/commit/@commit.id"><strong>@helpers.cut(commit.message, 100)</strong></a><br>
             <div class="small">
               <a href="@path/@commit.committer">@commit.committer</a>
               <span class="description">@helpers.datetime(commit.time)</span>

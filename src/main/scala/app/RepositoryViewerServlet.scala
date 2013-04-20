@@ -129,17 +129,21 @@ class RepositoryViewerServlet extends ServletBase {
     
     val dir = getBranchDir(owner, repository, branch)
     val git = Git.open(dir)
-    val rev = git.log.add(ObjectId.fromString(id)).call.iterator.next
+    val ite = git.log.add(ObjectId.fromString(id)).call.iterator
+    val rev = ite.next
+    val old = ite.next
+    
+    println(new String(rev.getRawBuffer()))
     
     // get diff
     val reader = git.getRepository.newObjectReader
     
     val oldTreeIter = new CanonicalTreeParser
-    oldTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
+    oldTreeIter.reset(reader, git.getRepository.resolve(old.name + "^{tree}"))
     
     // TODO specify previous commit
     val newTreeIter = new CanonicalTreeParser
-    newTreeIter.reset(reader, git.getRepository.resolve("HEAD^{tree}"))
+    newTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
     
     import scala.collection.JavaConverters._
     val diffs = git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
