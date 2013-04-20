@@ -1,5 +1,6 @@
 @(branch: String, repository: app.RepositoryInfo, pathList: List[String], latestCommit: app.CommitInfo, files: List[app.FileInfo])(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @main(repository.owner+"/"+repository.name) {
   @header(branch, repository)
   @navtab(branch, repository, "files")
@@ -14,9 +15,9 @@
       <th colspan="4" style="font-weight: normal;">
         <div>
             <strong><a href="">@latestCommit.committer</a></strong> 
-            @view.helpers.cut(latestCommit.message, 100)
+            @cut(latestCommit.message, 100)
             <div class="pull-right align-right">
-              @view.helpers.datetime(latestCommit.time)
+              @datetime(latestCommit.time)
               <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id">@latestCommit.id.substring(0, 10)</a>
             </div>
         </div>
@@ -46,8 +47,8 @@
           <a href="@path/@repository.owner/@repository.name/blob@{(branch :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
         }
       </td>
-      <td>@view.helpers.datetime(file.time)</td>
-      <td>@view.helpers.cut(file.message, 60) [<a href="@path/@file.committer">@file.committer</a>]</td>
+      <td>@datetime(file.time)</td>
+      <td>@cut(file.message, 60) [<a href="@path/@file.committer">@file.committer</a>]</td>
     </tr>
     }
   </table>

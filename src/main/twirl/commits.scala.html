@@ -1,5 +1,6 @@
 @(branch: String, repository: app.RepositoryInfo, commits: Seq[Seq[app.CommitInfo]], page: Int, hasNext: Boolean)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @main(repository.owner+"/"+repository.name) {
   @header(branch, repository)
   @navtab(branch, repository, "commits")
@@ -10,16 +11,16 @@
   @commits.map { date =>
     <table class="table table-bordered">
       <tr>
-        <th>@view.helpers.date(date.head.time)</th>
+        <th>@date(date.head.time)</th>
       </tr>
       @date.map { commit =>
       <tr>
         <td>
           <div class="pull-left">
-            <a href="#"><strong>@view.helpers.cut(commit.message, 100)</strong></a><br>
+            <a href="#"><strong>@cut(commit.message, 100)</strong></a><br>
             <div class="small">
               <a href="@path/@commit.committer">@commit.committer</a>
-              <span class="description">@view.helpers.datetime(commit.time)</span>
+              <span class="description">@datetime(commit.time)</span>
             </div>
           </div>
           <div class="pull-right align-right">

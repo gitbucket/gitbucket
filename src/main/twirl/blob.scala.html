@@ -1,5 +1,6 @@
 @(branch: String, repository: app.RepositoryInfo, pathList: List[String], content: String, latestCommit: app.CommitInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @main(repository.owner+"/"+repository.name) {
   @header(branch, repository)
   @navtab(branch, repository, "files")
@@ -19,8 +20,8 @@
       <th style="font-weight: normal;">
         <div class="pull-left">
           <a href="@path/@latestCommit.committer">@latestCommit.committer</a>
-          <span class="description">@view.helpers.datetime(latestCommit.time)</span>
-          @view.helpers.cut(latestCommit.message, 100)<br>
+          <span class="description">@datetime(latestCommit.time)</span>
+          @cut(latestCommit.message, 100)<br>
         </div>
         <div class="btn-group pull-right">
           <button class="btn btn-mini">Edit</button>
