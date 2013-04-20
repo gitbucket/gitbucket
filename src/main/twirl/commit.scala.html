@@ -1,0 +1,41 @@
+@(branch: String, commit: app.CommitInfo, repository: app.RepositoryInfo, diffs: Seq[app.DiffInfo])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@main(cut(commit.message, 20)){
+  @header(branch, repository)
+  @navtab(branch, repository, "commits")
+  <table class="table table-bordered">
+    <tr>
+      <th>
+        <div>@text(commit.message)</div>
+        <div class="small" style="font-weight: normal;"><span class="description">@branch</span></div>
+      </th>
+    </tr>
+    <tr>
+      <td>
+        <a href="@path/@commit.committer">@commit.committer</a> <span class="description">@datetime(commit.time)</span>
+        <div class="pull-right align-right">
+          <span class="description">commit</span> @commit.id
+        </div>
+      </td>
+    </tr>
+  </table>
+  
+  @diffs.map { diff =>
+    <table class="table table-bordered">
+      <tr>
+        <th style="font-weight: normal;">
+          @diff.newPath
+          <div class="pull-right align-right">
+            <a href="@path/@repository.owner/@repository.name/commit/@commit.id" class="btn btn-small">View file @@ @commit.id.substring(0, 10)</a>
+          </div>
+        </th>
+      </tr>
+      <tr>
+        <td>
+        <pre>@diff.newContent.getOrElse("")</pre>
+        </td>
+      </tr>
+    </table>
+  }
+}

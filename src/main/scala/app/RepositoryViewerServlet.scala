@@ -7,13 +7,20 @@ import java.io.File
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
+import org.eclipse.jgit.revwalk._
 import org.apache.commons.io.FileUtils
+import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import org.eclipse.jgit.diff.DiffEntry.ChangeType
+import org.eclipse.jgit.errors.MissingObjectException
 
 case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
 
 case class FileInfo(isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
 
 case class CommitInfo(id: String, time: Date, committer: String, message: String)
+
+case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
 
 /**
  * The repository viewer.
@@ -32,7 +39,7 @@ class RepositoryViewerServlet extends ServletBase {
    * Shows the file list of the repository root and the default branch.
    */
   get("/:owner/:repository") {
-    val owner = params("owner")
+    val owner      = params("owner")
     val repository = params("repository")
     
     fileList(owner, repository)
@@ -42,7 +49,7 @@ class RepositoryViewerServlet extends ServletBase {
    * Shows the file list of the repository root and the specified branch.
    */
   get("/:owner/:repository/tree/:branch") {
-    val owner = params("owner")
+    val owner      = params("owner")
     val repository = params("repository")
     
     fileList(owner, repository, params("branch"))
@@ -52,7 +59,7 @@ class RepositoryViewerServlet extends ServletBase {
    * Shows the file list of the specified path and branch.
    */
   get("/:owner/:repository/tree/:branch/*") {
-    val owner = params("owner")
+    val owner      = params("owner")
     val repository = params("repository")
     
     fileList(owner, repository, params("branch"), multiParams("splat").head)
@@ -62,12 +69,11 @@ class RepositoryViewerServlet extends ServletBase {
    * Shows the commit list of the specified branch.
    */
   get("/:owner/:repository/commits/:branch"){
-    val owner = params("owner")
+    val owner      = params("owner")
     val repository = params("repository")
-    
     val branchName = params("branch")
-    val page = params.getOrElse("page", "1").toInt
-    val dir = getBranchDir(owner, repository, branchName)
+    val page       = params.getOrElse("page", "1").toInt
+    val dir        = getBranchDir(owner, repository, branchName)
     
     // TODO Do recursive without var.
     val i = Git.open(dir).log.call.iterator
@@ -91,20 +97,66 @@ class RepositoryViewerServlet extends ServletBase {
    * Shows the file content of the specified branch.
    */
   get("/:owner/:repository/blob/:branch/*"){
-    val owner = params("owner")
+    val owner      = params("owner")
     val repository = params("repository")
-    
     val branchName = params("branch")
-    val path = multiParams("splat").head.replaceFirst("^tree/.+?/", "")
-    
-    val dir = getBranchDir(owner, repository, branchName)
-    val content = FileUtils.readFileToString(new File(dir, path), "UTF-8")
+    val path       = multiParams("splat").head.replaceFirst("^tree/.+?/", "")
+    val dir        = getBranchDir(owner, repository, branchName)
+    val content    = FileUtils.readFileToString(new File(dir, path), "UTF-8")
     
     val git = Git.open(dir)
     val latestRev = git.log.addPath(path).call.iterator.next
     
     html.blob(branchName, getRepositoryInfo(owner, repository), path.split("/").toList, content,
       CommitInfo(latestRev.getName, latestRev.getCommitterIdent.getWhen, latestRev.getCommitterIdent.getName, latestRev.getShortMessage))
+  }
+  
+  /**
+   * Shows details of the specified commit.
+   */
+  get("/:owner/:repository/commit/:id"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val id         = params("id")
+    
+    val repositoryInfo = getRepositoryInfo(owner, repository)
+    
+    // get branch by commit id
+    val branch = repositoryInfo.branchList.find { branch =>
+      val git = Git.open(getBranchDir(owner, repository, branch))
+      git.log.add(ObjectId.fromString(id)).call.iterator.hasNext
+    }.get
+    
+    val dir = getBranchDir(owner, repository, branch)
+    val git = Git.open(dir)
+    val rev = git.log.add(ObjectId.fromString(id)).call.iterator.next
+    
+    // get diff
+    val reader = git.getRepository.newObjectReader
+    
+    val oldTreeIter = new CanonicalTreeParser
+    oldTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
+    
+    // TODO specify previous commit
+    val newTreeIter = new CanonicalTreeParser
+    newTreeIter.reset(reader, git.getRepository.resolve("HEAD^{tree}"))
+    
+    import scala.collection.JavaConverters._
+    val diffs = git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
+      DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
+          getContent(git, diff.getOldId.toObjectId), 
+          getContent(git, diff.getNewId.toObjectId))
+    }
+    
+    html.commit(branch, 
+        CommitInfo(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage), 
+        repositoryInfo, diffs)
+  }
+  
+  def getContent(git: Git, id: ObjectId): Option[String] = try {
+    Some(new String(git.getRepository.getObjectDatabase.open(id).getBytes()))
+  } catch {
+    case e: MissingObjectException => None
   }
   
   /**

@@ -17,7 +17,7 @@
             @view.helpers.cut(latestCommit.message, 100)
             <div class="pull-right align-right">
               @view.helpers.datetime(latestCommit.time)
-              <a href="">@latestCommit.id.substring(0, 10)</a>
+              <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id">@latestCommit.id.substring(0, 10)</a>
             </div>
         </div>
       </th>
