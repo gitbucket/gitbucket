@@ -13,6 +13,8 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.MissingObjectException
+import org.eclipse.jgit.treewalk.TreeWalk
+import org.eclipse.jgit.diff.DiffEntry
 
 case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
 
@@ -133,23 +135,31 @@ class RepositoryViewerServlet extends ServletBase {
     val rev = ite.next
     val old = ite.next
     
-    println(new String(rev.getRawBuffer()))
-    
-    // get diff
-    val reader = git.getRepository.newObjectReader
-    
-    val oldTreeIter = new CanonicalTreeParser
-    oldTreeIter.reset(reader, git.getRepository.resolve(old.name + "^{tree}"))
-    
-    // TODO specify previous commit
-    val newTreeIter = new CanonicalTreeParser
-    newTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
-    
-    import scala.collection.JavaConverters._
-    val diffs = git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-      DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-          getContent(git, diff.getOldId.toObjectId), 
-          getContent(git, diff.getNewId.toObjectId))
+    val diffs = if(old != null){
+      // get diff between specified commit and its previous commit
+      val reader = git.getRepository.newObjectReader
+      
+      val oldTreeIter = new CanonicalTreeParser
+      oldTreeIter.reset(reader, git.getRepository.resolve(old.name + "^{tree}"))
+      
+      val newTreeIter = new CanonicalTreeParser
+      newTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
+      
+      import scala.collection.JavaConverters._
+      git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
+        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
+            getContent(git, diff.getOldId.toObjectId), 
+            getContent(git, diff.getNewId.toObjectId))
+      }
+    } else {
+      // initial commit
+      val walk = new TreeWalk(git.getRepository)
+      walk.addTree(rev.getTree)
+      val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
+      while(walk.next){
+        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, getContent(git, walk.getObjectId(0))))
+      }
+      buffer.toList
     }
     
     html.commit(branch, 
@@ -158,7 +168,7 @@ class RepositoryViewerServlet extends ServletBase {
   }
   
   def getContent(git: Git, id: ObjectId): Option[String] = try {
-    Some(new String(git.getRepository.getObjectDatabase.open(id).getBytes()))
+    Some(new String(git.getRepository.getObjectDatabase.open(id).getBytes, "UTF-8"))
   } catch {
     case e: MissingObjectException => None
   }
