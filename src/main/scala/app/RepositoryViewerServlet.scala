@@ -7,14 +7,12 @@ import java.io.File
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.revwalk._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.treewalk.TreeWalk
-import org.eclipse.jgit.diff.DiffEntry
 
 case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
 
@@ -167,6 +165,13 @@ class RepositoryViewerServlet extends ServletBase {
         repositoryInfo, diffs)
   }
   
+  /**
+   * Get object content of the given id as String from the Git repository.
+   * 
+   * @param git the Git object
+   * @param id the object id
+   * @return the object or None if object does not exist
+   */
   def getContent(git: Git, id: ObjectId): Option[String] = try {
     Some(new String(git.getRepository.getObjectDatabase.open(id).getBytes, "UTF-8"))
   } catch {
