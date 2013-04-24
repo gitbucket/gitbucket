@@ -1,12 +1,12 @@
 package app
 
 import util.Directory._
-import util.Validations._
 import org.scalatra._
 import java.io.File
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io._
+import jp.sf.amateras.scalatra.forms._
 
 /**
  * Creates new repository.
