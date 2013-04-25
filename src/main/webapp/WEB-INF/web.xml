@@ -4,11 +4,9 @@
       xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
       version="3.0">
 
-  <!--
-    This listener loads a class in the default package called Scalatra.
-    That class should implement org.scalatra.LifeCycle.  Your app can be
-    configured in Scala code there.
-  -->
+  <!-- ===================================================================== -->
+  <!-- Scalatra configuration -->
+  <!-- ===================================================================== -->
   <listener>
     <listener-class>org.scalatra.servlet.ScalatraListener</listener-class>
   </listener>
@@ -32,5 +30,56 @@
     <filter-name>BasicAuthenticationFilter</filter-name>
     <url-pattern>/git/*</url-pattern>
   </filter-mapping>
+  
+  <!-- ===================================================================== -->
+  <!-- H2 database configuration -->
+  <!-- ===================================================================== -->
+  <listener>
+    <listener-class>org.h2.server.web.DbStarter</listener-class>
+  </listener>
+  
+  <context-param>
+    <param-name>db.url</param-name>
+    <param-value>jdbc:h2:~/gitbucket/data</param-value>
+  </context-param>
+  
+  <context-param>
+    <param-name>db.user</param-name>
+    <param-value>sa</param-value>
+  </context-param>
+  
+  <context-param>
+    <param-name>db.password</param-name>
+    <param-value>sa</param-value>
+  </context-param>
+  
+  <context-param>
+    <param-name>db.tcpServer</param-name>
+    <param-value>-tcpAllowOthers</param-value>
+  </context-param>
+  
+  <!-- ===================================================================== -->
+  <!-- H2 console configuration -->
+  <!-- ===================================================================== -->
+  <servlet>
+    <servlet-name>H2Console</servlet-name>
+    <servlet-class>org.h2.server.web.WebServlet</servlet-class>
+    <!--
+    <init-param>
+        <param-name>webAllowOthers</param-name>
+        <param-value></param-value>
+    </init-param>
+    <init-param>
+        <param-name>trace</param-name>
+        <param-value></param-value>
+    </init-param>
+    -->
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>H2Console</servlet-name>
+    <url-pattern>/console/*</url-pattern>
+  </servlet-mapping>  
   
 </web-app>
