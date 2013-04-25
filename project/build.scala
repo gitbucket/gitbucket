@@ -28,6 +28,7 @@ object MyBuild extends Build {
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
         "org.scalatra" %% "scalatra-json" % ScalatraVersion,
         "org.json4s" %% "json4s-jackson" % "3.2.4",
+        "commons-io" % "commons-io" % "2.4",
         "com.h2database" % "h2" % "1.3.171",
         "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container",
