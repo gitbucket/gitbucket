@@ -7,6 +7,7 @@ import util.Directory
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.http.server.GitServlet
+import org.slf4j.LoggerFactory
 
 /**
  * Provides Git repository via HTTP.
@@ -16,6 +17,9 @@ import org.eclipse.jgit.http.server.GitServlet
  */
 class GitRepositoryServlet extends GitServlet {
 
+  private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
+  
+  // TODO are there any other ways...?
   override def init(config: ServletConfig): Unit = {
     super.init(new ServletConfig(){
       def getInitParameter(name: String): String = name match {
@@ -38,8 +42,7 @@ class GitRepositoryServlet extends GitServlet {
   override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     super.service(request, response)
     
-    // TODO debug log
-    println(request.getMethod + ": " + request.getRequestURI)
+    logger.debug(request.getMethod + ": " + request.getRequestURI)
     
     // update branches
     if(request.getMethod == "POST" && request.getRequestURI.endsWith("/git-receive-pack")){

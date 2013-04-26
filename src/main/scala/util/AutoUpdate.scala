@@ -18,7 +18,7 @@ object AutoUpdate {
    */
   case class Version(majorVersion: Int, minorVersion: Int){
     
-    val logger = LoggerFactory.getLogger(classOf[Version])
+    private val logger = LoggerFactory.getLogger(classOf[Version])
     
     /**
      * Execute update/MAJOR_MINOR.sql to update schema to this version.
@@ -88,7 +88,7 @@ object AutoUpdate {
  */
 class AutoUpdateListener extends org.h2.server.web.DbStarter {
   import AutoUpdate._
-  val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
+  private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
     super.contextInitialized(event)
