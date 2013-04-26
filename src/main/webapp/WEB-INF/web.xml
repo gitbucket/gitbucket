@@ -35,7 +35,7 @@
   <!-- H2 database configuration -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>org.h2.server.web.DbStarter</listener-class>
+    <listener-class>util.AutoUpdateListener</listener-class>
   </listener>
   
   <context-param>
