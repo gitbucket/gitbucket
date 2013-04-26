@@ -68,6 +68,9 @@ class CreateRepositoryServlet extends ServletBase {
     redirect("/%s/%s".format(LoginUser, form.name))
   }
   
+  /**
+   * Constraint for the repository name.
+   */
   def repository: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] = {
       if(!value.matches("^[a-z0-9\\-_]+$")){
