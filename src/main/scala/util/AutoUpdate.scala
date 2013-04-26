@@ -10,12 +10,22 @@ import org.slf4j.LoggerFactory
 
 object AutoUpdate {
   
+  /**
+   * Version of GitBucket
+   * 
+   * @param majorVersion the major version
+   * @param minorVersion the minor version
+   */
   case class Version(majorVersion: Int, minorVersion: Int){
     
     val logger = LoggerFactory.getLogger(classOf[Version])
     
+    /**
+     * Execute update/MAJOR_MINOR.sql to update schema to this version.
+     * If corresponding SQL file does not exist, this method do nothing.
+     */
     def update(conn: Connection): Unit = {
-      val sqlPath = "update/%d.%d.sq".format(majorVersion, minorVersion)
+      val sqlPath = "update/%d_%d.sq".format(majorVersion, minorVersion)
       val in = Thread.currentThread.getContextClassLoader.getResourceAsStream(sqlPath)
       if(in != null){
         val sql = IOUtils.toString(in)
@@ -29,6 +39,9 @@ object AutoUpdate {
       }
     }
     
+    /**
+     * MAJOR.MINOR
+     */
     val versionString = "%d.%d".format(majorVersion, minorVersion)
   }
   
