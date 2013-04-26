@@ -67,7 +67,7 @@ object AutoUpdate {
    */
   def getCurrentVersion(): Version = {
     if(versionFile.exists){
-      FileUtils.readFileToString(versionFile).split(".") match {
+      FileUtils.readFileToString(versionFile).split("\\.") match {
         case Array(majorVersion, minorVersion) => {
           versions.find { v => v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt }.get
         }
@@ -92,24 +92,25 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
     super.contextInitialized(event)
     logger.debug("H2 started")
     
-    logger.debug("Start migration")
+    logger.debug("Start schema update")
     val conn = getConnection()
     try {
       val currentVersion = getCurrentVersion()
-      
-      versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
-      FileUtils.writeStringToFile(versionFile, headVersion.majorVersion + "." + headVersion.minorVersion)
-      
-      logger.debug("Migrate from " + currentVersion.versionString + " to " + headVersion.versionString)
-      
-      conn.commit()
+      if(currentVersion == headVersion){
+        logger.debug("No update")
+      } else {
+        versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
+        FileUtils.writeStringToFile(versionFile, headVersion.majorVersion + "." + headVersion.minorVersion)
+        conn.commit()
+        logger.debug("Updated from " + currentVersion.versionString + " to " + headVersion.versionString)
+      }
     } catch {
       case ex: Throwable => {
-        logger.error("Failed to migrate", ex)
+        logger.error("Failed to schema update", ex)
         conn.rollback()
       }
     }
-    logger.debug("End migration")
+    logger.debug("End schema update")
   }
   
 }
