@@ -1,6 +1,7 @@
 @(branch: String, commit: app.CommitInfo, repository: app.RepositoryInfo, diffs: Seq[app.DiffInfo])(implicit context: app.Context)
 @import context._
 @import view.helpers
+@import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @main(helpers.cut(commit.message, 20)){
   @header(branch, repository)
   @navtab(branch, repository, "commits")
@@ -21,11 +22,16 @@
     </tr>
   </table>
   
-  @diffs.map { diff =>
+  @diffs.zipWithIndex.map { case (diff, i) =>
     <table class="table table-bordered">
       <tr>
         <th style="font-weight: normal;">
-          @diff.newPath
+          @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+            @diff.oldPath -> @diff.newPath
+          }
+          @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.DELETE || diff.changeType == ChangeType.MODIFY){
+            @diff.newPath
+          }
           <div class="pull-right align-right">
             <a href="@path/@repository.owner/@repository.name/commit/@commit.id" class="btn btn-small">View file @@ @commit.id.substring(0, 10)</a>
           </div>
@@ -33,9 +39,71 @@
       </tr>
       <tr>
         <td>
-        <pre>@diff.newContent.getOrElse("")</pre>
+          <div id="diff-@i"></div>
+          <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
+          <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
         </td>
       </tr>
     </table>
   }
 }
+<script type="text/javascript" src="@path/assets/jsdifflib/difflib.js"></script>
+<script type="text/javascript" src="@path/assets/jsdifflib/diffview.js"></script>
+<link href="@path/assets/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<style type="text/css">
+table.inlinediff {
+  width: 100%;
+}
+
+table.inlinediff thead {
+  display: none;
+}
+
+td.insert, td.equal, td.delete {
+  width: 100%;
+}
+</style>
+<script>
+function diffUsingJS(oldTextId, newTextId, outputId) {
+    // get the baseText and newText values from the two textboxes, and split them into lines
+    var oldText = document.getElementById(oldTextId).value;
+    if(oldText == ''){
+      var oldLines = [];
+    } else {
+      var oldLines = difflib.stringAsLines(oldText);
+    }
+    
+    var newText = document.getElementById(newTextId).value
+    if(newText == ''){
+      var newLines = [];
+    } else {
+      var newLines = difflib.stringAsLines(newText);
+    }
+
+    // create a SequenceMatcher instance that diffs the two sets of lines
+    var sm = new difflib.SequenceMatcher(oldLines, newLines);
+
+    // get the opcodes from the SequenceMatcher instance
+    // opcodes is a list of 3-tuples describing what changes should be made to the base text
+    // in order to yield the new text
+    var opcodes = sm.get_opcodes();
+    var diffoutputdiv = document.getElementById(outputId);
+    while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
+
+    // build the diff view and add it to the current DOM
+    diffoutputdiv.appendChild(diffview.buildView({
+        baseTextLines: oldLines,
+        newTextLines: newLines,
+        opcodes: opcodes,
+        // set the display titles for each resource
+        //baseTextName: "Base Text",
+        //newTextName: "New Text",
+        contextSize: 4,
+        viewType: 1
+    }));
+}
+
+@diffs.zipWithIndex.map { case (diff, i) =>
+  diffUsingJS('oldText-@i', 'newText-@i', 'diff-@i');
+}
+</script>
