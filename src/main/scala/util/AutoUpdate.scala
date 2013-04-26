@@ -69,7 +69,9 @@ object AutoUpdate {
     if(versionFile.exists){
       FileUtils.readFileToString(versionFile).split("\\.") match {
         case Array(majorVersion, minorVersion) => {
-          versions.find { v => v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt }.get
+          versions.find { v => 
+            v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt
+          }.getOrElse(Version(0, 0))
         }
         case _ => Version(0, 0)
       }
