@@ -28,7 +28,7 @@ object AutoUpdate {
       val sqlPath = "update/%d_%d.sql".format(majorVersion, minorVersion)
       val in = Thread.currentThread.getContextClassLoader.getResourceAsStream(sqlPath)
       if(in != null){
-        val sql = IOUtils.toString(in)
+        val sql = IOUtils.toString(in, "UTF-8")
         val stmt = conn.createStatement()
         try {
           logger.debug(sqlPath + "=" + sql)
@@ -67,7 +67,7 @@ object AutoUpdate {
    */
   def getCurrentVersion(): Version = {
     if(versionFile.exists){
-      FileUtils.readFileToString(versionFile).split("\\.") match {
+      FileUtils.readFileToString(versionFile, "UTF-8").split("\\.") match {
         case Array(majorVersion, minorVersion) => {
           versions.find { v => 
             v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt
@@ -102,7 +102,7 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
         logger.debug("No update")
       } else {
         versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
-        FileUtils.writeStringToFile(versionFile, headVersion.majorVersion + "." + headVersion.minorVersion)
+        FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
         conn.commit()
         logger.debug("Updated from " + currentVersion.versionString + " to " + headVersion.versionString)
       }
