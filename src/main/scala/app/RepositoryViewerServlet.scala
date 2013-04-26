@@ -8,17 +8,19 @@ import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import org.eclipse.jgit.treewalk._
+import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.MissingObjectException
-import org.eclipse.jgit.treewalk.TreeWalk
 
 case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
 
 case class FileInfo(isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
 
-case class CommitInfo(id: String, time: Date, committer: String, message: String)
+case class CommitInfo(id: String, time: Date, committer: String, message: String){
+  def this(rev: org.eclipse.jgit.revwalk.RevCommit) = 
+    this(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage)
+}
 
 case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
 
@@ -75,40 +77,62 @@ class RepositoryViewerServlet extends ServletBase {
     val page       = params.getOrElse("page", "1").toInt
     val dir        = getBranchDir(owner, repository, branchName)
     
-    // TODO Do recursive without var.
-    val i = Git.open(dir).log.call.iterator
-    val listBuffer = scala.collection.mutable.ListBuffer[CommitInfo]()
-    var count = 0
-    while(i.hasNext && listBuffer.size < 30){
-      count = count + 1
-      val ref = i.next
-      if((page - 1) * 30 < count){
-        listBuffer.append(CommitInfo(ref.getName, ref.getCommitterIdent.getWhen, ref.getCommitterIdent.getName, ref.getShortMessage))
+    @scala.annotation.tailrec
+    def getCommitLog(i: java.util.Iterator[RevCommit], count: Int, logs: List[CommitInfo]): (List[CommitInfo], Boolean)  =
+      i.hasNext match {
+        case true if(logs.size < 30) => getCommitLog(i, count + 1, if((page - 1) * 30 < count) logs :+ new CommitInfo(i.next) else logs)
+        case _ => (logs, i.hasNext)
       }
-    }
+    
+    val (logs, hasNext) = getCommitLog(Git.open(dir).log.call.iterator, 0, Nil)
     
     html.commits(branchName, getRepositoryInfo(owner, repository), 
-      listBuffer.toSeq.splitWith{ (commit1, commit2) =>
+      logs.splitWith{ (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-      }, page, i.hasNext)
+      }, page, hasNext)
   }
   
   /**
-   * Shows the file content of the specified branch.
+   * Shows the file content of the specified branch or commit.
    */
-  get("/:owner/:repository/blob/:branch/*"){
+  get("/:owner/:repository/blob/:id/*"){
     val owner      = params("owner")
     val repository = params("repository")
-    val branchName = params("branch")
+    val id         = params("id") // branch name or commit id
     val path       = multiParams("splat").head.replaceFirst("^tree/.+?/", "")
-    val dir        = getBranchDir(owner, repository, branchName)
-    val content    = FileUtils.readFileToString(new File(dir, path), "UTF-8")
+    val repositoryInfo = getRepositoryInfo(owner, repository)
     
-    val git = Git.open(dir)
-    val latestRev = git.log.addPath(path).call.iterator.next
+    if(repositoryInfo.branchList.contains(id)){
+      // id is branch name
+      val dir     = getBranchDir(owner, repository, id)
+      val content = FileUtils.readFileToString(new File(dir, path), "UTF-8")
+      val git     = Git.open(dir)
+      val rev     = git.log.addPath(path).call.iterator.next
     
-    html.blob(branchName, getRepositoryInfo(owner, repository), path.split("/").toList, content,
-      CommitInfo(latestRev.getName, latestRev.getCommitterIdent.getWhen, latestRev.getCommitterIdent.getName, latestRev.getShortMessage))
+      html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
+        
+    } else {
+      // id is commit id
+      val branch = getBranchNameFromCommitId(id, repositoryInfo)
+      val dir    = getBranchDir(owner, repository, branch)
+      val git    = Git.open(dir)
+      val rev    = git.log.add(ObjectId.fromString(id)).call.iterator.next
+      
+      @scala.annotation.tailrec
+      def getPathContent(path: String, walk: TreeWalk): Option[String] = {
+        walk.next match{
+          case true if(walk.getPathString == path) => getContent(git, walk.getObjectId(0))
+          case true  => getPathContent(path, walk)
+          case false => None
+        }
+      }
+      
+      val walk = new TreeWalk(git.getRepository)
+      walk.addTree(rev.getTree)
+      val content = getPathContent(path, walk).get
+      
+      html.blob(branch, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
+    }
   }
   
   /**
@@ -163,6 +187,16 @@ class RepositoryViewerServlet extends ServletBase {
     html.commit(branch, 
         CommitInfo(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage), 
         repositoryInfo, diffs)
+  }
+  
+  /**
+   * Get the branch name from the commit id.
+   */
+  def getBranchNameFromCommitId(id: String, repositoryInfo: RepositoryInfo): String = {
+      repositoryInfo.branchList.find { branch =>
+        val git = Git.open(getBranchDir(repositoryInfo.owner, repositoryInfo.name, branch))
+        git.log.add(ObjectId.fromString(id)).call.iterator.hasNext
+      }.get
   }
   
   /**
@@ -231,21 +265,17 @@ class RepositoryViewerServlet extends ServletBase {
       // file list
       new File(dir, path).listFiles()
         .filterNot{ file => file.getName == ".git" }
-        .sortWith { (file1, file2) => 
-          if(file1.isDirectory && !file2.isDirectory){
-            true
-          } else if(!file1.isDirectory && file2.isDirectory){
-            false
-          } else {
-            file1.getName.compareTo(file2.getName) < 0
-          }
-        }
+        .sortWith { (file1, file2) => (file1.isDirectory, file2.isDirectory) match {
+          case (true , false) => true
+          case (false, true ) => false
+          case _ => file1.getName.compareTo(file2.getName) < 0
+        }}
         .map { file =>
           val rev = Git.open(dir).log.addPath(if(path == ".") file.getName else path + "/" + file.getName).call.iterator.next
           if(rev == null){
             None
           } else {
-            Some(FileInfo(file.isDirectory, file.getName, latestRev.getCommitterIdent.getWhen, rev.getShortMessage, rev.getCommitterIdent.getName))
+            Some(FileInfo(file.isDirectory, file.getName, rev.getCommitterIdent.getWhen, rev.getShortMessage, rev.getCommitterIdent.getName))
           }
         }
         .flatten.toList
