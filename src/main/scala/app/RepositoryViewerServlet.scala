@@ -252,18 +252,7 @@ class RepositoryViewerServlet extends ServletBase {
     val dir = getBranchDir(owner, repository, branchName)
     val git = Git.open(dir)
     val latestRev = {if(path == ".") git.log else git.log.addPath(path)}.call.iterator.next
-    
-    html.files(
-      // current branch
-      branchName, 
-      // repository
-      getRepositoryInfo(owner, repository),
-      // current path
-      if(path == ".") Nil else path.split("/").toList,
-      // latest commit
-      CommitInfo(latestRev.getName, latestRev.getCommitterIdent.getWhen, latestRev.getCommitterIdent.getName, latestRev.getShortMessage),
-      // file list
-      new File(dir, path).listFiles()
+    val files = new File(dir, path).listFiles()
         .filterNot{ file => file.getName == ".git" }
         .sortWith { (file1, file2) => (file1.isDirectory, file2.isDirectory) match {
           case (true , false) => true
@@ -279,6 +268,26 @@ class RepositoryViewerServlet extends ServletBase {
           }
         }
         .flatten.toList
+    
+    // process README.md
+    val readme = files.find(_.name == "README.md").map { file =>
+      import org.pegdown._
+      new PegDownProcessor().markdownToHtml(FileUtils.readFileToString(new File(dir, path + "/" + file.name), "UTF-8"))
+    }
+    
+    html.files(
+      // current branch
+      branchName, 
+      // repository
+      getRepositoryInfo(owner, repository),
+      // current path
+      if(path == ".") Nil else path.split("/").toList,
+      // latest commit
+      CommitInfo(latestRev.getName, latestRev.getCommitterIdent.getWhen, latestRev.getCommitterIdent.getName, latestRev.getShortMessage),
+      // file list
+      files,
+      // readme
+      readme
     )
   }
   
