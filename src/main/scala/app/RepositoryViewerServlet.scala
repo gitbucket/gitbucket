@@ -12,6 +12,7 @@ import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.MissingObjectException
+import org.apache.commons.io.FilenameUtils
 
 case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
 
@@ -23,6 +24,8 @@ case class CommitInfo(id: String, time: Date, committer: String, message: String
 }
 
 case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
+  
+case class ContentInfo(viewType: String, content: Option[String])
 
 /**
  * The repository viewer.
@@ -30,7 +33,7 @@ case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, ol
 class RepositoryViewerServlet extends ServletBase {
   
   /**
-   * Shows user information.
+   * Displays user information.
    */
   get("/:owner") {
     val owner = params("owner")
@@ -38,7 +41,7 @@ class RepositoryViewerServlet extends ServletBase {
   }
   
   /**
-   * Shows the file list of the repository root and the default branch.
+   * Displays the file list of the repository root and the default branch.
    */
   get("/:owner/:repository") {
     val owner      = params("owner")
@@ -48,7 +51,7 @@ class RepositoryViewerServlet extends ServletBase {
   }
   
   /**
-   * Shows the file list of the repository root and the specified branch.
+   * Displays the file list of the repository root and the specified branch.
    */
   get("/:owner/:repository/tree/:branch") {
     val owner      = params("owner")
@@ -58,7 +61,7 @@ class RepositoryViewerServlet extends ServletBase {
   }
   
   /**
-   * Shows the file list of the specified path and branch.
+   * Displays the file list of the specified path and branch.
    */
   get("/:owner/:repository/tree/:branch/*") {
     val owner      = params("owner")
@@ -68,7 +71,7 @@ class RepositoryViewerServlet extends ServletBase {
   }
   
   /**
-   * Shows the commit list of the specified branch.
+   * Displays the commit list of the specified branch.
    */
   get("/:owner/:repository/commits/:branch"){
     val owner      = params("owner")
@@ -93,24 +96,35 @@ class RepositoryViewerServlet extends ServletBase {
   }
   
   /**
-   * Shows the file content of the specified branch or commit.
+   * Displays the file content of the specified branch or commit.
    */
   get("/:owner/:repository/blob/:id/*"){
     val owner      = params("owner")
     val repository = params("repository")
     val id         = params("id") // branch name or commit id
+    val raw        = params.get("raw").getOrElse("false").toBoolean
     val path       = multiParams("splat").head.replaceFirst("^tree/.+?/", "")
     val repositoryInfo = getRepositoryInfo(owner, repository)
     
     if(repositoryInfo.branchList.contains(id)){
       // id is branch name
-      val dir     = getBranchDir(owner, repository, id)
-      val content = FileUtils.readFileToString(new File(dir, path), "UTF-8")
-      val git     = Git.open(dir)
-      val rev     = git.log.addPath(path).call.iterator.next
-    
-      html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
-        
+      val dir  = getBranchDir(owner, repository, id)
+      val git  = Git.open(dir)
+      val rev  = git.log.addPath(path).call.iterator.next
+      val file = new File(dir, path)
+      
+      if(raw){
+        // Download
+        contentType = "application/octet-stream"
+        file
+      } else {
+        // Viewer
+        val viewer  = if(isImage(file.getName)) "image" else if(isLarge(file.length)) "large" else "text"
+        val content = ContentInfo(
+            viewer, if(viewer == "text") Some(FileUtils.readFileToString(file, "UTF-8")) else None
+        )
+        html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
+      }
     } else {
       // id is commit id
       val branch = getBranchNameFromCommitId(id, repositoryInfo)
@@ -119,24 +133,34 @@ class RepositoryViewerServlet extends ServletBase {
       val rev    = git.log.add(ObjectId.fromString(id)).call.iterator.next
       
       @scala.annotation.tailrec
-      def getPathContent(path: String, walk: TreeWalk): Option[String] = {
-        walk.next match{
-          case true if(walk.getPathString == path) => getContent(git, walk.getObjectId(0))
-          case true  => getPathContent(path, walk)
-          case false => None
-        }
+      def getPathObjectId(path: String, walk: TreeWalk): ObjectId = walk.next match {
+        case true if(walk.getPathString == path) => walk.getObjectId(0)
+        case true => getPathObjectId(path, walk)
       }
       
       val walk = new TreeWalk(git.getRepository)
       walk.addTree(rev.getTree)
-      val content = getPathContent(path, walk).get
+      walk.setRecursive(true)
+      val objectId = getPathObjectId(path, walk)
       
-      html.blob(branch, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
+      if(raw){
+        // Download
+        contentType = "application/octet-stream"
+        getContent(git, objectId)
+        
+      } else {
+        // Viewer
+        val large   = isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+        val viewer  = if(isImage(path)) "image" else if(large) "large" else "text"
+        val content = ContentInfo(viewer, if(viewer == "text") getContent(git, objectId).map(new String(_, "UTF-8")) else None)
+        
+        html.blob(branch, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
+      }
     }
   }
   
   /**
-   * Shows details of the specified commit.
+   * Displays details of the specified commit.
    */
   get("/:owner/:repository/commit/:id"){
     val owner      = params("owner")
@@ -170,8 +194,8 @@ class RepositoryViewerServlet extends ServletBase {
       import scala.collection.JavaConverters._
       git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            getContent(git, diff.getOldId.toObjectId), 
-            getContent(git, diff.getNewId.toObjectId))
+            getContent(git, diff.getOldId.toObjectId).map(new String(_, "UTF-8")), 
+            getContent(git, diff.getNewId.toObjectId).map(new String(_, "UTF-8")))
       }
     } else {
       // initial commit
@@ -179,7 +203,7 @@ class RepositoryViewerServlet extends ServletBase {
       walk.addTree(rev.getTree)
       val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
       while(walk.next){
-        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, getContent(git, walk.getObjectId(0))))
+        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, getContent(git, walk.getObjectId(0)).map(new String(_, "UTF-8"))))
       }
       buffer.toList
     }
@@ -206,8 +230,8 @@ class RepositoryViewerServlet extends ServletBase {
    * @param id the object id
    * @return the object or None if object does not exist
    */
-  def getContent(git: Git, id: ObjectId): Option[String] = try {
-    Some(new String(git.getRepository.getObjectDatabase.open(id).getBytes, "UTF-8"))
+  def getContent(git: Git, id: ObjectId): Option[Array[Byte]] = try {
+    Some(git.getRepository.getObjectDatabase.open(id).getBytes)
   } catch {
     case e: MissingObjectException => None
   }
@@ -290,5 +314,12 @@ class RepositoryViewerServlet extends ServletBase {
       readme
     )
   }
+  
+  def isImage(name: String): Boolean = FilenameUtils.getExtension(name).toLowerCase match {
+    case "jpg"|"jpeg"|"bmp"|"gif"|"png" => true
+    case _ => false
+  }
+  
+  def isLarge(size: Long): Boolean = (size > 1024 * 1000)
   
 }
