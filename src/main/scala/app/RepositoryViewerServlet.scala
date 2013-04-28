@@ -2,6 +2,7 @@ package app
 
 import util.Directory._
 import util.Implicits._
+import util.{JGitUtil, FileTypeUtil}
 import org.scalatra._
 import java.io.File
 import java.util.Date
@@ -11,12 +12,11 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import org.eclipse.jgit.errors.MissingObjectException
-import org.apache.commons.io.FilenameUtils
+import org.eclipse.jgit.revwalk.RevWalk
 
 case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
 
-case class FileInfo(isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
+case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
 
 case class CommitInfo(id: String, time: Date, committer: String, message: String){
   def this(rev: org.eclipse.jgit.revwalk.RevCommit) = 
@@ -37,7 +37,7 @@ class RepositoryViewerServlet extends ServletBase {
    */
   get("/:owner") {
     val owner = params("owner")
-    html.user(owner, getRepositories(owner).map(getRepositoryInfo(owner, _)))
+    html.user(owner, getRepositories(owner).map(JGitUtil.getRepositoryInfo(owner, _, servletContext)))
   }
   
   /**
@@ -53,21 +53,21 @@ class RepositoryViewerServlet extends ServletBase {
   /**
    * Displays the file list of the repository root and the specified branch.
    */
-  get("/:owner/:repository/tree/:branch") {
+  get("/:owner/:repository/tree/:id") {
     val owner      = params("owner")
     val repository = params("repository")
     
-    fileList(owner, repository, params("branch"))
+    fileList(owner, repository, params("id"))
   }
   
   /**
    * Displays the file list of the specified path and branch.
    */
-  get("/:owner/:repository/tree/:branch/*") {
+  get("/:owner/:repository/tree/:id/*") {
     val owner      = params("owner")
     val repository = params("repository")
     
-    fileList(owner, repository, params("branch"), multiParams("splat").head)
+    fileList(owner, repository, params("id"), multiParams("splat").head)
   }
   
   /**
@@ -89,7 +89,7 @@ class RepositoryViewerServlet extends ServletBase {
     
     val (logs, hasNext) = getCommitLog(Git.open(dir).log.call.iterator, 0, Nil)
     
-    html.commits(branchName, getRepositoryInfo(owner, repository), 
+    html.commits(branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
       logs.splitWith{ (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }, page, hasNext)
@@ -104,7 +104,7 @@ class RepositoryViewerServlet extends ServletBase {
     val id         = params("id") // branch name or commit id
     val raw        = params.get("raw").getOrElse("false").toBoolean
     val path       = multiParams("splat").head.replaceFirst("^tree/.+?/", "")
-    val repositoryInfo = getRepositoryInfo(owner, repository)
+    val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
     
     if(repositoryInfo.branchList.contains(id)){
       // id is branch name
@@ -119,7 +119,7 @@ class RepositoryViewerServlet extends ServletBase {
         file
       } else {
         // Viewer
-        val viewer  = if(isImage(file.getName)) "image" else if(isLarge(file.length)) "large" else "text"
+        val viewer  = if(FileTypeUtil.isImage(file.getName)) "image" else if(FileTypeUtil.isLarge(file.length)) "large" else "text"
         val content = ContentInfo(
             viewer, if(viewer == "text") Some(FileUtils.readFileToString(file, "UTF-8")) else None
         )
@@ -127,7 +127,7 @@ class RepositoryViewerServlet extends ServletBase {
       }
     } else {
       // id is commit id
-      val branch = getBranchNameFromCommitId(id, repositoryInfo)
+      val branch = JGitUtil.getBranchNameFromCommitId(id, repositoryInfo)
       val dir    = getBranchDir(owner, repository, branch)
       val git    = Git.open(dir)
       val rev    = git.log.add(ObjectId.fromString(id)).call.iterator.next
@@ -146,13 +146,13 @@ class RepositoryViewerServlet extends ServletBase {
       if(raw){
         // Download
         contentType = "application/octet-stream"
-        getContent(git, objectId, false)
+        JGitUtil.getContent(git, objectId, false)
         
       } else {
         // Viewer
-        val large   = isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-        val viewer  = if(isImage(path)) "image" else if(large) "large" else "text"
-        val content = ContentInfo(viewer, if(viewer == "text") getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
+        val large   = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+        val viewer  = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "text"
+        val content = ContentInfo(viewer, if(viewer == "text") JGitUtil.getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
         
         html.blob(branch, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
       }
@@ -167,7 +167,7 @@ class RepositoryViewerServlet extends ServletBase {
     val repository = params("repository")
     val id         = params("id")
     
-    val repositoryInfo = getRepositoryInfo(owner, repository)
+    val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
     
     // get branch by commit id
     val branch = repositoryInfo.branchList.find { branch =>
@@ -194,8 +194,8 @@ class RepositoryViewerServlet extends ServletBase {
       import scala.collection.JavaConverters._
       git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
-            getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
+            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
+            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
       }
     } else {
       // initial commit
@@ -204,8 +204,9 @@ class RepositoryViewerServlet extends ServletBase {
       val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
       while(walk.next){
         buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
-            getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8"))))
+            JGitUtil.getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8"))))
       }
+      walk.release
       buffer.toList
     }
     
@@ -214,125 +215,52 @@ class RepositoryViewerServlet extends ServletBase {
         repositoryInfo, diffs)
   }
   
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  //
-  // TODO Helper methods should be separated to object?
-  //
-  //////////////////////////////////////////////////////////////////////////////////////////////
-  
-  /**
-   * Get the branch name from the commit id.
-   */
-  def getBranchNameFromCommitId(id: String, repositoryInfo: RepositoryInfo): String = {
-      repositoryInfo.branchList.find { branch =>
-        val git = Git.open(getBranchDir(repositoryInfo.owner, repositoryInfo.name, branch))
-        git.log.add(ObjectId.fromString(id)).call.iterator.hasNext
-      }.get
-  }
-  
-  /**
-   * Get object content of the given id as String from the Git repository.
-   * 
-   * @param git the Git object
-   * @param id the object id
-   * @param large if true then returns None for the large file
-   * @return the object or None if object does not exist
-   */
-  def getContent(git: Git, id: ObjectId, large: Boolean): Option[Array[Byte]] = try {
-    val loader = git.getRepository.getObjectDatabase.open(id)
-    if(large == false && isLarge(loader.getSize)){
-      None
-    } else {
-      Some(git.getRepository.getObjectDatabase.open(id).getBytes)
-    }
-  } catch {
-    case e: MissingObjectException => None
-  }
-  
-  /**
-   * Returns the repository information. It contains branch names and tag names.
-   * 
-   * @param owner the repository owner
-   * @param repository the repository name
-   */
-  def getRepositoryInfo(owner: String, repository: String): RepositoryInfo = {
-    val git = Git.open(getRepositoryDir(owner, repository))
-    RepositoryInfo(
-      owner, repository, "http://localhost:8080%s/git/%s/%s.git".format(servletContext.getContextPath, owner, repository),
-      // branches
-      git.branchList.call.toArray.map { ref =>
-        ref.asInstanceOf[Ref].getName.replaceFirst("^refs/heads/", "")
-      }.toList,
-      // tags
-      git.tagList.call.toArray.map { ref =>
-        ref.asInstanceOf[Ref].getName
-      }.toList
-    )   
-  }
-  
   /**
    * Provides HTML of the file list.
    * 
    * @param owner the repository owner
    * @param repository the repository name
-   * @param branch the branch name (optional)
+   * @param rev the branch name or commit id(optional)
    * @param path the directory path (optional)
    * @return HTML of the file list
    */
-  def fileList(owner: String, repository: String, branch: String = "", path: String = ".") = {
-    val branchName = if(branch.isEmpty){
+  private def fileList(owner: String, repository: String, revstr: String = "", path: String = ".") = {
+    val revision = if(revstr.isEmpty){
       Git.open(getRepositoryDir(owner, repository)).getRepository.getBranch
     } else {
-      branch
+      revstr
     }
+      
+    val git = Git.open(getRepositoryDir(owner, repository))
+
+    // get latest commit
+    val revWalk = new RevWalk(git.getRepository)
+    val objectId = git.getRepository.resolve(revision)
+    val revCommit = revWalk.parseCommit(objectId)
     
-    val dir = getBranchDir(owner, repository, branchName)
-    val git = Git.open(dir)
-    val latestRev = {if(path == ".") git.log else git.log.addPath(path)}.call.iterator.next
-    val files = new File(dir, path).listFiles()
-        .filterNot{ file => file.getName == ".git" }
-        .sortWith { (file1, file2) => (file1.isDirectory, file2.isDirectory) match {
-          case (true , false) => true
-          case (false, true ) => false
-          case _ => file1.getName.compareTo(file2.getName) < 0
-        }}
-        .map { file =>
-          val rev = Git.open(dir).log.addPath(if(path == ".") file.getName else path + "/" + file.getName).call.iterator.next
-          if(rev == null){
-            None
-          } else {
-            Some(FileInfo(file.isDirectory, file.getName, rev.getCommitterIdent.getWhen, rev.getShortMessage, rev.getCommitterIdent.getName))
-          }
-        }
-        .flatten.toList
+    val files = JGitUtil.getFileList(owner, repository, revision, path)
     
     // process README.md
     val readme = files.find(_.name == "README.md").map { file =>
       import org.pegdown._
-      new PegDownProcessor().markdownToHtml(FileUtils.readFileToString(new File(dir, path + "/" + file.name), "UTF-8"))
+      val git = Git.open(getRepositoryDir(owner, repository))
+      new PegDownProcessor().markdownToHtml(new String(git.getRepository.open(file.id).getBytes, "UTF-8"))
     }
     
     html.files(
       // current branch
-      branchName, 
+      revision, 
       // repository
-      getRepositoryInfo(owner, repository),
+      JGitUtil.getRepositoryInfo(owner, repository, servletContext),
       // current path
       if(path == ".") Nil else path.split("/").toList,
       // latest commit
-      CommitInfo(latestRev.getName, latestRev.getCommitterIdent.getWhen, latestRev.getCommitterIdent.getName, latestRev.getShortMessage),
+      CommitInfo(revCommit.getName, revCommit.getCommitterIdent.getWhen, revCommit.getCommitterIdent.getName, revCommit.getShortMessage),
       // file list
       files,
       // readme
       readme
     )
   }
-  
-  def isImage(name: String): Boolean = FilenameUtils.getExtension(name).toLowerCase match {
-    case "jpg"|"jpeg"|"bmp"|"gif"|"png" => true
-    case _ => false
-  }
-  
-  def isLarge(size: Long): Boolean = (size > 1024 * 1000)
   
 }
