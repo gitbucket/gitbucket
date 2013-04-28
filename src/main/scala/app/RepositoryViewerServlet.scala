@@ -163,6 +163,7 @@ class RepositoryViewerServlet extends ServletBase {
     val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
     
     // get branch by commit id
+    // TODO this does not work correctly...
     val branch = repositoryInfo.branchList.find { branch =>
       val git = Git.open(getBranchDir(owner, repository, branch))
       git.log.add(ObjectId.fromString(id)).call.iterator.hasNext
