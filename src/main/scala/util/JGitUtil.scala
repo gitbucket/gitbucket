@@ -20,6 +20,9 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.treewalk.filter.PathFilter
 
+/**
+ * Provides complex JGit operations.
+ */
 object JGitUtil {
   
   /**
