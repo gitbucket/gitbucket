@@ -1,7 +1,7 @@
 package util
 
 import org.eclipse.jgit.api.Git
-import app.{RepositoryInfo, FileInfo}
+import app.{RepositoryInfo, FileInfo, CommitInfo}
 import util.Directory._
 import scala.collection.JavaConverters._
 import javax.servlet.ServletContext
@@ -101,7 +101,37 @@ object JGitUtil {
   }
   
   /**
+   * Returns the commit list of the specified branch.
+   * 
+   * @param repository the repository
+   * @param revision the branch name or commit id
+   * @param page the page number (1-)
+   * @return a tuple of the commit list and whether has next
+   */
+  def getCommitLog(repository: Repository, revision: String, page: Int): (List[CommitInfo], Boolean) = {
+    @scala.annotation.tailrec
+    def getCommitLog(i: java.util.Iterator[RevCommit], count: Int, logs: List[CommitInfo]): (List[CommitInfo], Boolean)  =
+      i.hasNext match {
+        case true if(logs.size < 30) => getCommitLog(i, count + 1, if((page - 1) * 30 < count) logs :+ new CommitInfo(i.next) else logs)
+        case _ => (logs, i.hasNext)
+      }
+    
+    val revWalk = new RevWalk(repository)
+    revWalk.markStart(revWalk.parseCommit(repository.resolve(revision)))
+    
+    val commits = getCommitLog(revWalk.iterator, 0, Nil)
+    revWalk.release
+    
+    commits
+  }
+  
+  /**
    * Returns the latest RevCommit of the specified path.
+   * 
+   * @param repository the repository
+   * @param the path
+   * @param the branch name or commit id
+   * @return the latest commit
    */
   def getLatestCommitFromPath(repository: Repository, path: String, revision: String): RevCommit = {
       val revWalk = new RevWalk(repository)

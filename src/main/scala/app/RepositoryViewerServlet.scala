@@ -78,16 +78,9 @@ class RepositoryViewerServlet extends ServletBase {
     val repository = params("repository")
     val branchName = params("branch")
     val page       = params.getOrElse("page", "1").toInt
-    val dir        = getBranchDir(owner, repository, branchName)
     
-    @scala.annotation.tailrec
-    def getCommitLog(i: java.util.Iterator[RevCommit], count: Int, logs: List[CommitInfo]): (List[CommitInfo], Boolean)  =
-      i.hasNext match {
-        case true if(logs.size < 30) => getCommitLog(i, count + 1, if((page - 1) * 30 < count) logs :+ new CommitInfo(i.next) else logs)
-        case _ => (logs, i.hasNext)
-      }
-    
-    val (logs, hasNext) = getCommitLog(Git.open(dir).log.call.iterator, 0, Nil)
+    val (logs, hasNext) = JGitUtil.getCommitLog(
+        Git.open(getRepositoryDir(owner, repository)).getRepository, branchName, page)
     
     html.commits(branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
       logs.splitWith{ (commit1, commit2) =>
