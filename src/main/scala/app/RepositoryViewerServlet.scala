@@ -146,13 +146,13 @@ class RepositoryViewerServlet extends ServletBase {
       if(raw){
         // Download
         contentType = "application/octet-stream"
-        getContent(git, objectId)
+        getContent(git, objectId, false)
         
       } else {
         // Viewer
         val large   = isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
         val viewer  = if(isImage(path)) "image" else if(large) "large" else "text"
-        val content = ContentInfo(viewer, if(viewer == "text") getContent(git, objectId).map(new String(_, "UTF-8")) else None)
+        val content = ContentInfo(viewer, if(viewer == "text") getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
         
         html.blob(branch, repositoryInfo, path.split("/").toList, content, new CommitInfo(rev))
       }
@@ -194,8 +194,8 @@ class RepositoryViewerServlet extends ServletBase {
       import scala.collection.JavaConverters._
       git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            getContent(git, diff.getOldId.toObjectId).map(new String(_, "UTF-8")), 
-            getContent(git, diff.getNewId.toObjectId).map(new String(_, "UTF-8")))
+            getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
+            getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
       }
     } else {
       // initial commit
@@ -203,7 +203,8 @@ class RepositoryViewerServlet extends ServletBase {
       walk.addTree(rev.getTree)
       val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
       while(walk.next){
-        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, getContent(git, walk.getObjectId(0)).map(new String(_, "UTF-8"))))
+        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
+            getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8"))))
       }
       buffer.toList
     }
@@ -212,6 +213,12 @@ class RepositoryViewerServlet extends ServletBase {
         CommitInfo(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage), 
         repositoryInfo, diffs)
   }
+  
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // TODO Helper methods should be separated to object?
+  //
+  //////////////////////////////////////////////////////////////////////////////////////////////
   
   /**
    * Get the branch name from the commit id.
@@ -228,10 +235,16 @@ class RepositoryViewerServlet extends ServletBase {
    * 
    * @param git the Git object
    * @param id the object id
+   * @param large if true then returns None for the large file
    * @return the object or None if object does not exist
    */
-  def getContent(git: Git, id: ObjectId): Option[Array[Byte]] = try {
-    Some(git.getRepository.getObjectDatabase.open(id).getBytes)
+  def getContent(git: Git, id: ObjectId, large: Boolean): Option[Array[Byte]] = try {
+    val loader = git.getRepository.getObjectDatabase.open(id)
+    if(large == false && isLarge(loader.getSize)){
+      None
+    } else {
+      Some(git.getRepository.getObjectDatabase.open(id).getBytes)
+    }
   } catch {
     case e: MissingObjectException => None
   }

@@ -39,11 +39,16 @@
       </tr>
       <tr>
         <td>
+          @if(diff.newContent != None || diff.oldContent != None){
           <div id="diff-@i"></div>
           <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
           <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
+          } else {
+          Too big file not shown
+          }
         </td>
       </tr>
+      
     </table>
   }
 }
@@ -95,15 +100,16 @@ function diffUsingJS(oldTextId, newTextId, outputId) {
         baseTextLines: oldLines,
         newTextLines: newLines,
         opcodes: opcodes,
-        // set the display titles for each resource
-        //baseTextName: "Base Text",
-        //newTextName: "New Text",
         contextSize: 4,
         viewType: 1
     }));
 }
 
-@diffs.zipWithIndex.map { case (diff, i) =>
-  diffUsingJS('oldText-@i', 'newText-@i', 'diff-@i');
-}
+$(function(){
+  @diffs.zipWithIndex.map { case (diff, i) =>
+    @if(diff.newContent != None || diff.oldContent != None){
+      diffUsingJS('oldText-@i', 'newText-@i', 'diff-@i');
+    }
+  }
+});
 </script>
