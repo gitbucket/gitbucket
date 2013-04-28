@@ -6,8 +6,8 @@
   @navtab(branch, repository, "files")
   <div class="head">
     <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
-    @pathList.zipWithIndex.map { case (path, i) =>
-      <a href="@path/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@path</a> /
+    @pathList.zipWithIndex.map { case (section, i) =>
+      <a href="@path/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
     }
   </div>
   <table class="table table-file-list">
