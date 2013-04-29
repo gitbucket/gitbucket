@@ -158,15 +158,16 @@ class RepositoryViewerServlet extends ServletBase {
     val commits = getCommitLog(revWalk.iterator, Nil)
     revWalk.release
     
-    val rev = commits(0)
-    val old = commits(1)
+    val revCommit = commits(0)
     
-    val diffs = if(old != null){
+    val diffs = if(commits.length >= 2){
+      val oldCommit = commits(1)
+      
       // get diff between specified commit and its previous commit
       val reader = git.getRepository.newObjectReader
       
       val oldTreeIter = new CanonicalTreeParser
-      oldTreeIter.reset(reader, git.getRepository.resolve(old.name + "^{tree}"))
+      oldTreeIter.reset(reader, git.getRepository.resolve(oldCommit.name + "^{tree}"))
       
       val newTreeIter = new CanonicalTreeParser
       newTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
@@ -180,7 +181,7 @@ class RepositoryViewerServlet extends ServletBase {
     } else {
       // initial commit
       val walk = new TreeWalk(git.getRepository)
-      walk.addTree(rev.getTree)
+      walk.addTree(revCommit.getTree)
       val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
       while(walk.next){
         buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
@@ -190,9 +191,7 @@ class RepositoryViewerServlet extends ServletBase {
       buffer.toList
     }
     
-    html.commit(id, 
-        CommitInfo(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage), 
-        repositoryInfo, diffs)
+    html.commit(id, new CommitInfo(revCommit), repositoryInfo, diffs)
   }
   
   /**
