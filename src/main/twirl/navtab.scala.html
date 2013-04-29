@@ -1,9 +1,16 @@
-@(branch: String, repository: app.RepositoryInfo, active: String)(implicit context: app.Context)
+@(id: String, repository: app.RepositoryInfo, active: String)(implicit context: app.Context)
 @import context._
 <ul class="nav nav-tabs">
   <li>
     <div class="btn-group" style="margin-right: 20px;">
-      <button class="btn dropdown-toggle" data-toggle="dropdown">branch: <strong>@branch</strong> <span class="caret"></span></button>
+      <button class="btn dropdown-toggle" data-toggle="dropdown">
+        @if(id.length == 40){
+          tree: <strong>@id.substring(0, 10)</strong>
+        } else {
+          branch: <strong>@id</strong>
+        }
+        <span class="caret"></span>
+      </button>
       <ul class="dropdown-menu">
         @repository.branchList.map { branch =>
           <li><a href="@path/@repository.owner/@repository.name/@if(active=="commits"){commits} else {tree}/@branch">@branch</a></li>
@@ -11,8 +18,8 @@
       </ul>
     </div>
   </li>
-  <li@if(active=="files"){ class="active"}><a href="@path/@repository.owner/@repository.name/tree/@branch">Files</a></li>
-  <li@if(active=="commits"){ class="active"}><a href="@path/@repository.owner/@repository.name/commits/@branch">Commits</a></li>
+  <li@if(active=="files"){ class="active"}><a href="@path/@repository.owner/@repository.name/tree/@id">Files</a></li>
+  <li@if(active=="commits"){ class="active"}><a href="@path/@repository.owner/@repository.name/commits/@id">Commits</a></li>
   <li@if(active=="tags"){ class="active"}><a href="#">Tags</a></li>
   <li class="pull-right">
     <div class="input-prepend">
