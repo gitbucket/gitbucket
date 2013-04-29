@@ -79,8 +79,7 @@ class RepositoryViewerServlet extends ServletBase {
     val branchName = params("branch")
     val page       = params.getOrElse("page", "1").toInt
     
-    val (logs, hasNext) = JGitUtil.getCommitLog(
-        Git.open(getRepositoryDir(owner, repository)).getRepository, branchName, page)
+    val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page)
     
     html.commits(branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
       logs.splitWith{ (commit1, commit2) =>
@@ -141,57 +140,14 @@ class RepositoryViewerServlet extends ServletBase {
     val repository = params("repository")
     val id         = params("id")
     
-    val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
-    
     val git = Git.open(getRepositoryDir(owner, repository))
     
-    @scala.annotation.tailrec
-    def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[RevCommit]): List[RevCommit] =
-      i.hasNext match {
-        case true if(logs.size < 2) => getCommitLog(i, logs :+ i.next)
-        case _ => logs
-      }
-    
     val revWalk = new RevWalk(git.getRepository)
-    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(id)))
+    val objectId = git.getRepository.resolve(id)
+    val revCommit = revWalk.parseCommit(objectId)
+    revWalk.dispose
     
-    val commits = getCommitLog(revWalk.iterator, Nil)
-    revWalk.release
-    
-    val revCommit = commits(0)
-    
-    val diffs = if(commits.length >= 2){
-      val oldCommit = commits(1)
-      
-      // get diff between specified commit and its previous commit
-      val reader = git.getRepository.newObjectReader
-      
-      val oldTreeIter = new CanonicalTreeParser
-      oldTreeIter.reset(reader, git.getRepository.resolve(oldCommit.name + "^{tree}"))
-      
-      val newTreeIter = new CanonicalTreeParser
-      newTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
-      
-      import scala.collection.JavaConverters._
-      git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
-            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
-      }
-    } else {
-      // initial commit
-      val walk = new TreeWalk(git.getRepository)
-      walk.addTree(revCommit.getTree)
-      val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
-      while(walk.next){
-        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
-            JGitUtil.getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8"))))
-      }
-      walk.release
-      buffer.toList
-    }
-    
-    html.commit(id, new CommitInfo(revCommit), repositoryInfo, diffs)
+    html.commit(id, new CommitInfo(revCommit), JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
   }
   
   /**
@@ -218,7 +174,7 @@ class RepositoryViewerServlet extends ServletBase {
     val revCommit = revWalk.parseCommit(objectId)
     revWalk.dispose
     
-    val files = JGitUtil.getFileList(owner, repository, revision, path)
+    val files = JGitUtil.getFileList(git, revision, path)
     
     // process README.md
     val readme = files.find(_.name == "README.md").map { file =>
@@ -235,7 +191,7 @@ class RepositoryViewerServlet extends ServletBase {
       // current path
       if(path == ".") Nil else path.split("/").toList,
       // latest commit
-      CommitInfo(revCommit.getName, revCommit.getCommitterIdent.getWhen, revCommit.getCommitterIdent.getName, revCommit.getShortMessage),
+      new CommitInfo(revCommit),
       // file list
       files,
       // readme

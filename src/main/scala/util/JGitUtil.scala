@@ -1,7 +1,7 @@
 package util
 
 import org.eclipse.jgit.api.Git
-import app.{RepositoryInfo, FileInfo, CommitInfo}
+import app.{RepositoryInfo, FileInfo, CommitInfo, DiffInfo}
 import util.Directory._
 import scala.collection.JavaConverters._
 import javax.servlet.ServletContext
@@ -19,6 +19,7 @@ import org.eclipse.jgit.revwalk.RevSort
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.treewalk.filter.PathFilter
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
 
 /**
  * Provides complex JGit operations.
@@ -46,15 +47,12 @@ object JGitUtil {
   /**
    * Returns the file list of the specified path.
    * 
-   * @param owner the repository owner
-   * @param repository the repository name
-   * @param revstr the branch name or commit id
+   * @param git the Git object
+   * @param revision the branch name or commit id
    * @param path the directory path (optional)
    * @return HTML of the file list
    */
-  def getFileList(owner: String, repository: String, revision: String, path: String = "."): List[FileInfo] = {
-    val git = Git.open(getRepositoryDir(owner, repository))
-      
+  def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
     val revWalk = new RevWalk(git.getRepository)
     val objectId = git.getRepository.resolve(revision)
     val revCommit = revWalk.parseCommit(objectId)
@@ -69,7 +67,7 @@ object JGitUtil {
     val list = new scala.collection.mutable.ListBuffer[FileInfo]
     
     while (treeWalk.next()) {
-      val fileCommit = JGitUtil.getLatestCommitFromPath(git.getRepository, treeWalk.getPathString, revision)
+      val fileCommit = JGitUtil.getLatestCommitFromPath(git, treeWalk.getPathString, revision)
       list.append(FileInfo(
           treeWalk.getObjectId(0),
           treeWalk.getFileMode(0) == FileMode.TREE, 
@@ -93,12 +91,12 @@ object JGitUtil {
   /**
    * Returns the commit list of the specified branch.
    * 
-   * @param repository the repository
+   * @param git the Git object
    * @param revision the branch name or commit id
    * @param page the page number (1-)
    * @return a tuple of the commit list and whether has next
    */
-  def getCommitLog(repository: Repository, revision: String, page: Int): (List[CommitInfo], Boolean) = {
+  def getCommitLog(git: Git, revision: String, page: Int): (List[CommitInfo], Boolean) = {
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], count: Int, logs: List[CommitInfo]): (List[CommitInfo], Boolean)  =
       i.hasNext match {
@@ -106,8 +104,8 @@ object JGitUtil {
         case _ => (logs, i.hasNext)
       }
     
-    val revWalk = new RevWalk(repository)
-    revWalk.markStart(revWalk.parseCommit(repository.resolve(revision)))
+    val revWalk = new RevWalk(git.getRepository)
+    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
     
     val commits = getCommitLog(revWalk.iterator, 0, Nil)
     revWalk.release
@@ -118,14 +116,14 @@ object JGitUtil {
   /**
    * Returns the latest RevCommit of the specified path.
    * 
-   * @param repository the repository
-   * @param the path
-   * @param the branch name or commit id
+   * @param git the Git object
+   * @param path the path
+   * @param revision the branch name or commit id
    * @return the latest commit
    */
-  def getLatestCommitFromPath(repository: Repository, path: String, revision: String): RevCommit = {
-      val revWalk = new RevWalk(repository)
-      revWalk.markStart(revWalk.parseCommit(repository.resolve(revision)))
+  def getLatestCommitFromPath(git: Git, path: String, revision: String): RevCommit = {
+      val revWalk = new RevWalk(git.getRepository)
+      revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
       revWalk.sort(RevSort.REVERSE);
       val i = revWalk.iterator
       
@@ -136,7 +134,7 @@ object JGitUtil {
         val commit = i.next
         if(commit.getParentCount == 0){
           // Initial commit
-          val treeWalk = new TreeWalk(repository)
+          val treeWalk = new TreeWalk(git.getRepository)
           treeWalk.reset()
           treeWalk.setRecursive(true)
           treeWalk.addTree(commit.getTree)
@@ -149,7 +147,7 @@ object JGitUtil {
         } else {
           val parent = revWalk.parseCommit(commit.getParent(0).getId())
           val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
-          df.setRepository(repository)
+          df.setRepository(git.getRepository)
           df.setDiffComparator(RawTextComparator.DEFAULT)
           df.setDetectRenames(true)
           val diffs = df.scan(parent.getTree(), commit.getTree)
@@ -183,6 +181,55 @@ object JGitUtil {
     }
   } catch {
     case e: MissingObjectException => None
+  }
+  
+  def getDiffs(git: Git, id: String): List[DiffInfo] = {
+    @scala.annotation.tailrec
+    def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[RevCommit]): List[RevCommit] =
+      i.hasNext match {
+        case true if(logs.size < 2) => getCommitLog(i, logs :+ i.next)
+        case _ => logs
+      }
+    
+    val revWalk = new RevWalk(git.getRepository)
+    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(id)))
+    
+    val commits = getCommitLog(revWalk.iterator, Nil)
+    revWalk.release
+    
+    val revCommit = commits(0)
+    
+    if(commits.length >= 2){
+      // not initial commit
+      val oldCommit = commits(1)
+      
+      // get diff between specified commit and its previous commit
+      val reader = git.getRepository.newObjectReader
+      
+      val oldTreeIter = new CanonicalTreeParser
+      oldTreeIter.reset(reader, git.getRepository.resolve(oldCommit.name + "^{tree}"))
+      
+      val newTreeIter = new CanonicalTreeParser
+      newTreeIter.reset(reader, git.getRepository.resolve(id + "^{tree}"))
+      
+      import scala.collection.JavaConverters._
+      git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
+        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
+            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
+            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
+      }.toList
+    } else {
+      // initial commit
+      val walk = new TreeWalk(git.getRepository)
+      walk.addTree(revCommit.getTree)
+      val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
+      while(walk.next){
+        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
+            JGitUtil.getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8"))))
+      }
+      walk.release
+      buffer.toList
+    }
   }
 
 }
