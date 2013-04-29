@@ -14,6 +14,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.revwalk.RevWalk
 
+// TODO Should models move to other package?
 case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
 
 case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
