@@ -44,16 +44,6 @@ object JGitUtil {
   }
   
   /**
-   * Get the branch name from the commit id.
-   */
-  def getBranchNameFromCommitId(id: String, repositoryInfo: RepositoryInfo): String = {
-      repositoryInfo.branchList.find { branch =>
-        val git = Git.open(getBranchDir(repositoryInfo.owner, repositoryInfo.name, branch))
-        git.log.add(ObjectId.fromString(id)).call.iterator.hasNext
-      }.get
-  }
-  
-  /**
    * Returns the file list of the specified path.
    * 
    * @param owner the repository owner

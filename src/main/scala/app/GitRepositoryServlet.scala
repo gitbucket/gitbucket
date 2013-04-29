@@ -36,22 +36,4 @@ class GitRepositoryServlet extends GitServlet {
     });
   }
   
-  /**
-   * Override GitServlet#service() to pull pushed changes to cloned repositories for branch exploring.
-   */
-  override def service(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    super.service(request, response)
-    
-    logger.debug(request.getMethod + ": " + request.getRequestURI)
-    
-    // update branches
-    if(request.getMethod == "POST" && request.getRequestURI.endsWith("/git-receive-pack")){
-      request.getRequestURI
-          .replaceFirst("^" + request.getServletContext.getContextPath + "/git/", "")
-          .replaceFirst("\\.git/git-receive-pack$", "").split("/") match {
-        case Array(owner, repository) => Directory.updateAllBranches(owner, repository)
-      }
-    }
-  }
-  
 }
