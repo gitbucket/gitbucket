@@ -213,9 +213,7 @@ class RepositoryViewerController extends ControllerBase {
     
     // process README.md
     val readme = files.find(_.name == "README.md").map { file =>
-      import org.pegdown._
-      val git = Git.open(getRepositoryDir(owner, repository))
-      new PegDownProcessor().markdownToHtml(new String(git.getRepository.open(file.id).getBytes, "UTF-8"))
+      new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
     }
     
     html.files(

@@ -52,10 +52,10 @@
     </tr>
     }
   </table>
-  @readme.map { html =>
+  @readme.map { content =>
   <table class="table table-bordered">
     <tr>
-      <td>@Html(html)</td>
+      <td>@helpers.markdown(content)</td>
     </tr>
   </table>
   }
