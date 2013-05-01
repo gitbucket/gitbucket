@@ -3,7 +3,6 @@ package util
 import java.io._
 import javax.servlet._
 import javax.servlet.http._
-import util.Directory
 import org.eclipse.jgit.http.server.GitServlet
 import org.slf4j.LoggerFactory
 
