@@ -13,7 +13,7 @@
   
   <servlet>
     <servlet-name>GitRepositoryServlet</servlet-name>
-    <servlet-class>app.GitRepositoryServlet</servlet-class>
+    <servlet-class>util.GitRepositoryServlet</servlet-class>
   </servlet>
   
   <servlet-mapping>
@@ -23,7 +23,7 @@
   
   <filter>
     <filter-name>BasicAuthenticationFilter</filter-name>
-    <filter-class>app.BasicAuthenticationFilter</filter-class>
+    <filter-class>util.BasicAuthenticationFilter</filter-class>
   </filter>
   
   <filter-mapping>
