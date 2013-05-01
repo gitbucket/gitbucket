@@ -1,11 +1,20 @@
-@(page: Option[util.WikiUtil.WikiPageInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
-@main("Wiki"){
+@(pageName: String, page: Option[util.WikiUtil.WikiPageInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
+@import view.helpers
+@main(pageName + " - " + repository.owner + "/" + repository.name){
   @header("wiki", repository)
   <ul class="nav nav-tabs">
-    <li><a href="">Home</a></li>
+    <li class="active"><a href="">Home</a></li>
     <li><a href="">Pages</a></li>
     <li><a href="">Wiki History</a></li>
     <li><a href="">Git Access</a></li>
   </ul>
-  xxxx
+  @page.map { page =>
+    <h1 class="wiki-title">@pageName</h1>
+    <div class="markdown-body">
+      @helpers.markdown(page.content)
+    </div>
+    <div class="small">
+      <span class="description">Last Edited by @page.committer at @helpers.datetime(page.time)</span>
+    </div>
+  }
 }

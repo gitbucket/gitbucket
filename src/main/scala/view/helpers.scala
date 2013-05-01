@@ -18,6 +18,12 @@ object helpers {
   def format(value: String): twirl.api.Html = twirl.api.Html(
     value.replaceAll(" ", "&nbsp;").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll("\n", "<br>"))
 
+  def markdown(value: String): twirl.api.Html = {
+    import org.pegdown._
+    val html = new PegDownProcessor().markdownToHtml(value)
+    twirl.api.Html(html)
+  }
+    
   /**
    * Cut the given string by specified length.
    */

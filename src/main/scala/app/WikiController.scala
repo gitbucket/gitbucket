@@ -8,7 +8,9 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    html.wiki(WikiUtil.getPage(owner, repository, "Home"), JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    html.wiki("Home", 
+        WikiUtil.getPage(owner, repository, "Home"), 
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   
 }

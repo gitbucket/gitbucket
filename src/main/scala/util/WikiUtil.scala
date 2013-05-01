@@ -13,8 +13,10 @@ object WikiUtil {
    * 
    * @param name the page name
    * @param content the page content
+   * @param committer the last committer
+   * @param time the last modified time
    */
-  case class WikiPageInfo(name: String, content: String)
+  case class WikiPageInfo(name: String, content: String, committer: String, time: Date)
   
   /**
    * The model for wiki page history.
@@ -44,6 +46,7 @@ object WikiUtil {
     if(!dir.exists){
       val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
       repo.create
+      savePage(owner, repository, "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
     }
   }
   
@@ -54,8 +57,8 @@ object WikiUtil {
     createWikiRepository(owner, repository)
     val git = Git.open(getWikiRepositoryDir(owner, repository))
     try {
-      JGitUtil.getFileList(git, "master", ".").find(_.name == pageName).map { file =>
-        WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"))
+      JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
+        WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time)
       }
     } catch {
       // TODO no commit, but it should not judge by exception.
