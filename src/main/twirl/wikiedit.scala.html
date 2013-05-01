@@ -22,10 +22,15 @@
         </div>
       </li>
     </ul>
-    <input type="text" name="page" value="@pageName" style="width: 900px; font-weight: bold;"/>
-    <textarea name="content" style="width: 900px; height: 400px;">@page.content</textarea>
-    <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
-    <input type="submit" value="Save" class="btn btn-primary">
-    <input type="button" value="Preview" class="btn">
+    <form action="_edit" method="POST" validate="true">
+      <span id="error-pageName" class="error-message"></span>
+      <input type="text" name="pageName" value="@pageName" style="width: 900px; font-weight: bold;"/>
+      <span id="error-content" class="error-message"></span>
+      <textarea name="content" style="width: 900px; height: 400px;">@page.content</textarea>
+      <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
+      <input type="hidden" name="currentPageName" value="@pageName"/>
+      <input type="submit" value="Save" class="btn btn-primary">
+      <input type="button" value="Preview" class="btn">
+    </form>
   }
 }

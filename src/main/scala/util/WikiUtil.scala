@@ -46,7 +46,7 @@ object WikiUtil {
     if(!dir.exists){
       val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
       repo.create
-      savePage(owner, repository, "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
+      savePage(owner, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
     }
   }
   
@@ -54,7 +54,9 @@ object WikiUtil {
    * Returns the wiki page.
    */
   def getPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
+    // TODO create wiki repository in the repository setting changing.
     createWikiRepository(owner, repository)
+    
     val git = Git.open(getWikiRepositoryDir(owner, repository))
     try {
       JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
@@ -76,7 +78,10 @@ object WikiUtil {
   /**
    * Save the wiki page.
    */
-  def savePage(owner: String, repository: String, pageName: String, content: String, committer: String, message: String): Unit = {
+  def savePage(owner: String, repository: String, currentPageName: String, newPageName: String,
+      content: String, committer: String, message: String): Unit = {
+    
+    // TODO create wiki repository in the repository setting changing.
     createWikiRepository(owner, repository)
     
     val workDir = getWikiWorkDir(owner, repository)
@@ -87,12 +92,17 @@ object WikiUtil {
     }
     
     // write as file
-    val file = new File(workDir, pageName + ".md")
+    val cloned = Git.open(workDir)
+    val file = new File(workDir, newPageName + ".md")
     FileUtils.writeStringToFile(file, content, "UTF-8")
+    cloned.add.addFilepattern(file.getName).call
+    
+    // delete file
+    if(currentPageName != newPageName){
+      cloned.rm.addFilepattern(currentPageName + ".md")
+    }
     
     // commit and push
-    val cloned = Git.open(workDir)
-    cloned.add.addFilepattern(file.getName).call
     cloned.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
     cloned.push.call
   }
