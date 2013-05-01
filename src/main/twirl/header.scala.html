@@ -1,4 +1,4 @@
-@(branch: String, repository: app.RepositoryInfo)(implicit context: app.Context)
+@(active: String, repository: app.RepositoryInfo)(implicit context: app.Context)
 @import context._
 <div class="head">
   <a href="@path/@repository.owner">@repository.owner</a> / <a href="@path/@repository.owner/@repository.name">@repository.name</a>
@@ -6,10 +6,10 @@
 <div class="navbar">
   <div class="navbar-inner">
     <ul class="nav">
-      <li class="active"><a href="#">Code</a></li>
-      <li><a href="#">Issue</a></li>
-      <li><a href="#">Wiki</a></li>
-      <li><a href="#">Settings</a></li>
+      <li@if(active=="code"){ class="active"}><a href="@path/@repository.owner/@repository.name">Code</a></li>
+      <li@if(active=="issue"){ class="active"}><a href="#">Issue</a></li>
+      <li@if(active=="wiki"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki">Wiki</a></li>
+      <li@if(active=="settings"){ class="active"}><a href="#">Settings</a></li>
     </ul>
   </div>
 </div>

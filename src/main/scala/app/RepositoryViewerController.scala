@@ -64,7 +64,7 @@ case class ContentInfo(viewType: String, content: Option[String])
 /**
  * The repository viewer.
  */
-class RepositoryViewerServlet extends ServletBase {
+class RepositoryViewerController extends ControllerBase {
   
   /**
    * Displays user information.

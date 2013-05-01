@@ -2,7 +2,7 @@
 @import context._
 @import view.helpers
 @main(repository.owner+"/"+repository.name) {
-  @header(branch, repository)
+  @header("code", repository)
   @navtab(branch, repository, "files")
   <div class="head">
     <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /

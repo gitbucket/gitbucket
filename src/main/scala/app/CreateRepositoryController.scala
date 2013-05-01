@@ -11,7 +11,7 @@ import jp.sf.amateras.scalatra.forms._
 /**
  * Creates new repository.
  */
-class CreateRepositoryServlet extends ServletBase {
+class CreateRepositoryController extends ControllerBase {
   
   case class RepositoryCreationForm(name: String, description: String)
   

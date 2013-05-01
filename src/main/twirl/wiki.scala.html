@@ -1,0 +1,11 @@
+@(page: Option[util.WikiUtil.WikiPageInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
+@main("Wiki"){
+  @header("wiki", repository)
+  <ul class="nav nav-tabs">
+    <li><a href="">Home</a></li>
+    <li><a href="">Pages</a></li>
+    <li><a href="">Wiki History</a></li>
+    <li><a href="">Git Access</a></li>
+  </ul>
+  xxxx
+}

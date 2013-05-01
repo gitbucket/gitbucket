@@ -9,7 +9,7 @@ import jp.sf.amateras.scalatra.forms._
 /**
  * Provides generic features for ScalatraServlet implementations.
  */
-abstract class ServletBase extends ScalatraServlet with ClientSideValidationFormSupport with JacksonJsonSupport {
+abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFormSupport with JacksonJsonSupport {
   
   implicit val jsonFormats = DefaultFormats
   

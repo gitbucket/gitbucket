@@ -4,6 +4,7 @@ import java.io.File
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
+import org.eclipse.jgit.lib.RepositoryBuilder
 
 object WikiUtil {
   
@@ -37,16 +38,33 @@ object WikiUtil {
   def getWikiWorkDir(owner: String, repository: String): File = 
     new File("%s/tmp/%s/%s-wiki".format(Directory.RepositoryHome, owner, repository))
 
+  // TODO synchronized?
+  def createWikiRepository(owner: String, repository: String): Unit = {
+    val dir = getWikiRepositoryDir(owner, repository)
+    if(!dir.exists){
+      val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
+      repo.create
+    }
+  }
   
   /**
    * Returns the wiki page.
    */
   def getPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
+    createWikiRepository(owner, repository)
     val git = Git.open(getWikiRepositoryDir(owner, repository))
-    JGitUtil.getFileList(git, "master", ".").find(_.name == pageName).map { file =>
-      WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"))
+    try {
+      JGitUtil.getFileList(git, "master", ".").find(_.name == pageName).map { file =>
+        WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"))
+      }
+    } catch {
+      // TODO no commit, but it should not judge by exception.
+      case e: NullPointerException => None
     }
   }
+  
+  // TODO
+  // def getPageList(owner: String, repository: String): List[WikiPageHistoryInfo]
   
   // TODO 
   //def getPageHistory(owner: String, repository: String, pageName: String): List[WikiPageHistoryInfo]
@@ -56,6 +74,8 @@ object WikiUtil {
    * Save the wiki page.
    */
   def savePage(owner: String, repository: String, pageName: String, content: String, committer: String, message: String): Unit = {
+    createWikiRepository(owner, repository)
+    
     val workDir = getWikiWorkDir(owner, repository)
     
     // clone
