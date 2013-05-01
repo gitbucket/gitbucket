@@ -169,7 +169,7 @@ object JGitUtil {
    * 
    * @param git the Git object
    * @param id the object id
-   * @param large if true then returns None for the large file
+   * @param large if false then returns None for the large file
    * @return the object or None if object does not exist
    */
   def getContent(git: Git, id: ObjectId, large: Boolean): Option[Array[Byte]] = try {
