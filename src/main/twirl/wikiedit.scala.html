@@ -1,0 +1,31 @@
+@(pageName: String, page: Option[util.WikiUtil.WikiPageInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
+@import view.helpers
+@import context._
+@main(pageName + " - " + repository.owner + "/" + repository.name){
+  @header("wiki", repository)
+  <ul class="nav nav-tabs">
+    <li><a href="">Home</a></li>
+    <li><a href="">Pages</a></li>
+    <li><a href="">Wiki History</a></li>
+    <li><a href="">Git Access</a></li>
+  </ul>
+  @page.map { page =>
+    <ul class="nav nav-tabs">
+      <li>
+        <h1 class="wiki-title"><span class="description">Editing</span> @pageName</h1>
+      </li>
+      <li class="pull-right">
+        <div class="btn-group">
+        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName">View Page</a>
+        <a class="btn" href="#">Delete Page</a>
+        <a class="btn" href="#">Page History</a>
+        </div>
+      </li>
+    </ul>
+    <input type="text" name="page" value="@pageName" style="width: 900px; font-weight: bold;"/>
+    <textarea name="content" style="width: 900px; height: 400px;">@page.content</textarea>
+    <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
+    <input type="submit" value="Save" class="btn btn-primary">
+    <input type="button" value="Preview" class="btn">
+  }
+}

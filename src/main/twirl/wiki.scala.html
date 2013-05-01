@@ -1,5 +1,6 @@
 @(pageName: String, page: Option[util.WikiUtil.WikiPageInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers
+@import context._
 @main(pageName + " - " + repository.owner + "/" + repository.name){
   @header("wiki", repository)
   <ul class="nav nav-tabs">
@@ -16,7 +17,7 @@
       <li class="pull-right">
         <div class="btn-group">
         <a class="btn" href="#">New Page</a>
-        <a class="btn" href="#">Edit Page</a>
+        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_edit">Edit Page</a>
         <a class="btn" href="#">Page History</a>
         </div>
       </li>

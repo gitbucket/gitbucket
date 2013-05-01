@@ -9,6 +9,7 @@ div.head a {
 
 div.container {
   width: 920px;
+  margin-bottom: 40px;
 }
 
 span.error-message {
