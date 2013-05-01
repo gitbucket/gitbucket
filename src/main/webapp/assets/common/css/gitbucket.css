@@ -60,3 +60,7 @@ div.block {
   padding-bottom: 10px;
   border-bottom: 1px solid silver;
 }
+
+h1.wiki-title {
+  margin-top: 0px;
+}
