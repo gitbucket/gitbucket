@@ -98,17 +98,27 @@ object WikiUtil {
     // write as file
     val cloned = Git.open(workDir)
     val file = new File(workDir, newPageName + ".md")
-    FileUtils.writeStringToFile(file, content, "UTF-8")
-    cloned.add.addFilepattern(file.getName).call
+    val added = if(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
+      FileUtils.writeStringToFile(file, content, "UTF-8")
+      cloned.add.addFilepattern(file.getName).call
+      true
+    } else {
+      false
+    }
     
     // delete file
-    if(currentPageName != "" && currentPageName != newPageName){
+    val deleted = if(currentPageName != "" && currentPageName != newPageName){
       cloned.rm.addFilepattern(currentPageName + ".md")
+      true
+    } else {
+      false
     }
     
     // commit and push
-    cloned.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
-    cloned.push.call
+    if(added || deleted){
+      cloned.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
+      cloned.push.call
+    }
   }
   
 }
