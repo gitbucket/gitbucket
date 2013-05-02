@@ -2,6 +2,7 @@ package app
 
 import util.{WikiUtil, JGitUtil}
 import jp.sf.amateras.scalatra.forms._
+import org.eclipse.jgit.api.Git
 
 class WikiController extends ControllerBase {
 
@@ -66,6 +67,14 @@ class WikiController extends ControllerBase {
     val repository = params("repository")
     
     html.wikipages(WikiUtil.getPageList(owner, repository), 
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
+  
+  get("/:owner/:repository/wiki/_history"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    
+    html.wikihistory(JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master", 100)._1, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
 }

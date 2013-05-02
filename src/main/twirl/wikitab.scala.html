@@ -3,6 +3,6 @@
 <ul class="nav nav-tabs">
   <li@if(active == "home"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki">Home</a></li>
   <li@if(active == "pages"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki/_pages">Pages</a></li>
-  <li@if(active == "history"){ class="active"}><a href="">Wiki History</a></li>
+  <li@if(active == "history"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki/_history">Wiki History</a></li>
   <li@if(active == "git"){ class="active"}><a href="">Git Access</a></li>
 </ul>
