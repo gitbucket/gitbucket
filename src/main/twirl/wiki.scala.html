@@ -3,12 +3,7 @@
 @import context._
 @main(pageName + " - " + repository.owner + "/" + repository.name){
   @header("wiki", repository)
-  <ul class="nav nav-tabs">
-    <li class="active"><a href="">Home</a></li>
-    <li><a href="">Pages</a></li>
-    <li><a href="">Wiki History</a></li>
-    <li><a href="">Git Access</a></li>
-  </ul>
+  @wikitab((if(pageName == "Home") "home" else ""), repository)
   @page.map { page =>
     <ul class="nav nav-tabs">
       <li>

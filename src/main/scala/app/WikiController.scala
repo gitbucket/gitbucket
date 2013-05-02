@@ -60,4 +60,12 @@ class WikiController extends ControllerBase {
     html.wikiedit("", None, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
+  
+  get("/:owner/:repository/wiki/_pages"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    
+    html.wikipages(WikiUtil.getPageList(owner, repository), 
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
 }

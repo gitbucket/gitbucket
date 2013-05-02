@@ -68,8 +68,12 @@ object WikiUtil {
     }
   }
   
-  // TODO
-  // def getPageList(owner: String, repository: String): List[WikiPageHistoryInfo]
+  def getPageList(owner: String, repository: String): List[String] = {
+    JGitUtil.getFileList(Git.open(getWikiRepositoryDir(owner, repository)), "master", ".")
+      .filter(_.name.endsWith(".md"))
+      .map(_.name.replaceFirst("\\.md$", ""))
+      .sortBy(x => x)
+  }
   
   // TODO 
   //def getPageHistory(owner: String, repository: String, pageName: String): List[WikiPageHistoryInfo]
