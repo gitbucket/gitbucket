@@ -4,5 +4,10 @@
   <li@if(active == "home"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki">Home</a></li>
   <li@if(active == "pages"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki/_pages">Pages</a></li>
   <li@if(active == "history"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki/_history">Wiki History</a></li>
-  <li@if(active == "git"){ class="active"}><a href="">Git Access</a></li>
+  <li class="pull-right">
+    <div class="input-prepend">
+      <span class="add-on">HTTP</span>
+      <input type="text" value="@repository.url.replaceFirst("\\.git$", "-wiki.git")" style="width: 350px;">
+    </div>
+  </li>
 </ul>
