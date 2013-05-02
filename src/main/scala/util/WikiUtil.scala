@@ -98,7 +98,7 @@ object WikiUtil {
     cloned.add.addFilepattern(file.getName).call
     
     // delete file
-    if(currentPageName != newPageName){
+    if(currentPageName != "" && currentPageName != newPageName){
       cloned.rm.addFilepattern(currentPageName + ".md")
     }
     
