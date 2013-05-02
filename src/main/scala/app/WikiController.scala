@@ -75,7 +75,7 @@ class WikiController extends ControllerBase {
     val repository = params("repository")
     
     // TODO retrieve all commit logs.
-    html.wikihistory(JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master", 100)._1, 
+    html.wikihistory(JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master")._1, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
 }

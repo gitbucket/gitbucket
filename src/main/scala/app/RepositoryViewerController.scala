@@ -114,7 +114,7 @@ class RepositoryViewerController extends ControllerBase {
     val branchName = params("branch")
     val page       = params.getOrElse("page", "1").toInt
     
-    val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page)
+    val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page, 30)
     
     html.commits(branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
       logs.splitWith{ (commit1, commit2) =>

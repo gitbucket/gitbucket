@@ -94,13 +94,17 @@ object JGitUtil {
    * @param git the Git object
    * @param revision the branch name or commit id
    * @param page the page number (1-)
+   * @param limit the number of commit info per page. 0 means unlimited.
    * @return a tuple of the commit list and whether has next
    */
-  def getCommitLog(git: Git, revision: String, page: Int): (List[CommitInfo], Boolean) = {
+  def getCommitLog(git: Git, revision: String, page: Int = 1, limit: Int = 0): (List[CommitInfo], Boolean) = {
+    val fixedPage = if(page <= 0) 1 else page
+    
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], count: Int, logs: List[CommitInfo]): (List[CommitInfo], Boolean)  =
       i.hasNext match {
-        case true if(logs.size < 30) => getCommitLog(i, count + 1, if((page - 1) * 30 < count) logs :+ new CommitInfo(i.next) else logs)
+        case true if(limit <= 0 || logs.size < limit) => 
+          getCommitLog(i, count + 1, if(limit <= 0 || (fixedPage - 1) * limit < count) logs :+ new CommitInfo(i.next) else logs)
         case _ => (logs, i.hasNext)
       }
     
