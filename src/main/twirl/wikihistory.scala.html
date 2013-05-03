@@ -1,12 +1,19 @@
-@(commits: List[app.CommitInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
+@(pageName: Option[String], commits: List[app.CommitInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers
 @import context._
 @main("History - " + repository.owner + "/" + repository.name){
   @header("wiki", repository)
-  @wikitab("history", repository)
+  @wikitab(if(pageName.isEmpty) "history" else "", repository)
   <ul class="nav nav-tabs">
     <li>
-      <h1 class="wiki-title"><span class="description">Pages</span></h1>
+      <h1 class="wiki-title">
+        @if(pageName.nonEmpty){
+          <span class="description">History for</span> @pageName.get
+        }
+        @if(pageName.isEmpty){
+          <span class="description">History</span>
+        }
+      </h1>
     </li>
     <li class="pull-right">
       <div class="btn-group">

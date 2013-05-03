@@ -34,6 +34,20 @@ class WikiController extends ControllerBase {
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   
+  get("/:owner/:repository/wiki/:page/_history"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val page       = params("page")
+    val git        = Git.open(WikiUtil.getWikiRepositoryDir(owner, repository))
+    
+    html.wikihistory(Some(page),
+      JGitUtil.getCommitLog(git, "master")._1.filter { commit =>
+        JGitUtil.getDiffs(git, commit.id).find(_.newPath == page + ".md").isDefined
+      },
+      JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
+  
+  
   get("/:owner/:repository/wiki/:page/_edit"){
     val owner      = params("owner")
     val repository = params("repository")
@@ -74,8 +88,8 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    // TODO retrieve all commit logs.
-    html.wikihistory(JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master")._1, 
+    html.wikihistory(None,
+        JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master")._1, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
 }
