@@ -1,0 +1,18 @@
+@(repository: app.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers
+@html.main(repository.owner + "/" + repository.name) {
+  @html.header("code", repository)
+  @navtab("master", repository, "tags") @* TODO DON'T display branch pulldown *@
+  <h1>Tags</h1>
+  <table class="table table-bordered">
+    @repository.tags.map { tag =>
+      <tr>
+        <td>@tag</td>
+        <td>yyyy/MM/dd HH:mm:SS</td>
+        <td><a href="">xxxxxxxxxx</a></td>
+        <td><a href="">ZIP</a></td>
+      </tr>
+    }
+  </table>
+}

@@ -206,6 +206,16 @@ class RepositoryViewerController extends ControllerBase {
   }
   
   /**
+   * Displays tags.
+   */
+  get("/:owner/:repository/tags"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    
+    repo.html.tags(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
+  
+  /**
    * Provides HTML of the file list.
    * 
    * @param owner the repository owner
