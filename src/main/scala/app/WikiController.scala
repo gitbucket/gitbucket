@@ -9,7 +9,7 @@ class WikiController extends ControllerBase {
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
   val form = mapping(
-    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40)))), 
+    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pageName))), 
     "content"         -> trim(label("Content"            , text(required))),
     "message"         -> trim(label("Message"            , optional(text()))),
     "currentPageName" -> trim(label("Current page name"  , text()))
@@ -90,4 +90,20 @@ class WikiController extends ControllerBase {
         JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master")._1, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
+  
+  /**
+   * Constraint for the wiki page name.
+   */
+  def pageName: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] = {
+      if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
+        Some("Page name contains invalid character.")
+      } else if(WikiUtil.getPageList(params("owner"), params("repository")).contains(value)){
+        Some("Page already exists.")
+      } else {
+        None
+      }
+    }
+  }
+
 }
