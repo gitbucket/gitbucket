@@ -117,7 +117,7 @@ class RepositoryViewerController extends ControllerBase {
     
     val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page, 30)
     
-    html.commits(Nil, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+    repo.html.commits(Nil, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
       logs.splitWith{ (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }, page, hasNext)
@@ -135,7 +135,7 @@ class RepositoryViewerController extends ControllerBase {
     
     val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page, 30, path)
     
-    html.commits(path.split("/").toList, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+    repo.html.commits(path.split("/").toList, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
       logs.splitWith{ (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }, page, hasNext)
@@ -183,7 +183,7 @@ class RepositoryViewerController extends ControllerBase {
       val viewer  = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "text"
       val content = ContentInfo(viewer, if(viewer == "text") JGitUtil.getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
         
-      html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(revCommit))
+      repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(revCommit))
     }
   }
   
@@ -202,7 +202,7 @@ class RepositoryViewerController extends ControllerBase {
     val revCommit = revWalk.parseCommit(objectId)
     revWalk.dispose
     
-    html.commit(id, new CommitInfo(revCommit), JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
+    repo.html.commit(id, new CommitInfo(revCommit), JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
   }
   
   /**
@@ -236,7 +236,7 @@ class RepositoryViewerController extends ControllerBase {
       new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
     }
     
-    html.files(
+    repo.html.files(
       // current branch
       revision, 
       // repository

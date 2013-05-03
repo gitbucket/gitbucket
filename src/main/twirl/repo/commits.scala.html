@@ -1,8 +1,8 @@
 @(pathList: List[String], branch: String, repository: app.RepositoryInfo, commits: Seq[Seq[app.CommitInfo]], page: Int, hasNext: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers
-@main(repository.owner+"/"+repository.name) {
-  @header("code", repository)
+@html.main(repository.owner+"/"+repository.name) {
+  @html.header("code", repository)
   @navtab(branch, repository, if(pathList.isEmpty) "commits" else "files")
   <div class="head">
     @if(pathList.isEmpty){
