@@ -19,7 +19,7 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    html.wiki("Home", 
+    wiki.html.wiki("Home", 
         WikiUtil.getPage(owner, repository, "Home"), 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
@@ -29,7 +29,7 @@ class WikiController extends ControllerBase {
     val repository = params("repository")
     val page       = params("page")
     
-    html.wiki(page, 
+    wiki.html.wiki(page, 
         WikiUtil.getPage(owner, repository, page), 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
@@ -40,7 +40,7 @@ class WikiController extends ControllerBase {
     val page       = params("page")
     val git        = Git.open(WikiUtil.getWikiRepositoryDir(owner, repository))
     
-    html.wikihistory(Some(page),
+    wiki.html.wikihistory(Some(page),
       JGitUtil.getCommitLog(git, "master", path = page + ".md")._1,
       JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
@@ -54,7 +54,7 @@ class WikiController extends ControllerBase {
     println(commitId(0))
     println(commitId(1))
     
-    html.wikicompare(Some(page),
+    wiki.html.wikicompare(Some(page),
       WikiUtil.getDiffs(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), commitId(0), commitId(1)),
       JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
@@ -67,7 +67,7 @@ class WikiController extends ControllerBase {
     println(commitId(0))
     println(commitId(1))
     
-    html.wikicompare(None,
+    wiki.html.wikicompare(None,
       WikiUtil.getDiffs(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), commitId(0), commitId(1)),
       JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
@@ -77,7 +77,7 @@ class WikiController extends ControllerBase {
     val repository = params("repository")
     val page       = params("page")
     
-    html.wikiedit(page, 
+    wiki.html.wikiedit(page, 
         WikiUtil.getPage(owner, repository, page), 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
@@ -96,7 +96,7 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    html.wikiedit("", None, 
+    wiki.html.wikiedit("", None, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   
@@ -104,7 +104,7 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    html.wikipages(WikiUtil.getPageList(owner, repository), 
+    wiki.html.wikipages(WikiUtil.getPageList(owner, repository), 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   
@@ -112,7 +112,7 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    html.wikihistory(None,
+    wiki.html.wikihistory(None,
         JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master")._1, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }

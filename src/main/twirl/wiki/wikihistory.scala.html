@@ -1,8 +1,8 @@
 @(pageName: Option[String], commits: List[app.CommitInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers
 @import context._
-@main("History - " + repository.owner + "/" + repository.name){
-  @header("wiki", repository)
+@html.main("History - " + repository.owner + "/" + repository.name){
+  @html.header("wiki", repository)
   @wikitab(if(pageName.isEmpty) "history" else "", repository)
   <ul class="nav nav-tabs">
     <li>

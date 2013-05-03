@@ -1,8 +1,8 @@
 @(pageName: String, page: Option[util.WikiUtil.WikiPageInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers
 @import context._
-@main(pageName + " - " + repository.owner + "/" + repository.name){
-  @header("wiki", repository)
+@html.main(pageName + " - " + repository.owner + "/" + repository.name){
+  @html.header("wiki", repository)
   @wikitab((if(pageName == "Home") "home" else ""), repository)
   @page.map { page =>
     <ul class="nav nav-tabs">

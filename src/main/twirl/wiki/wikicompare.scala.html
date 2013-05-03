@@ -2,8 +2,8 @@
 @import view.helpers
 @import context._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
-@main("Compare Revisions - " + repository.owner + "/" + repository.name){
-  @header("wiki", repository)
+@html.main("Compare Revisions - " + repository.owner + "/" + repository.name){
+  @html.header("wiki", repository)
   @wikitab("history", repository)
   <ul class="nav nav-tabs">
     <li>
@@ -20,5 +20,5 @@
       </div>
     </li>
   </ul>
-  @diff(diffs, repository, None)
+  @html.diff(diffs, repository, None)
 }
