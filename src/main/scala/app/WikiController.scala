@@ -134,6 +134,12 @@ class WikiController extends ControllerBase {
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   
+  post("/:owner/:repository/wiki/_preview"){
+    val content = params("content")
+    contentType = "text/html"
+    view.helpers.markdown(content)
+  }
+  
   /**
    * Constraint for the wiki page name.
    */

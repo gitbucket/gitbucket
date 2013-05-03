@@ -29,7 +29,7 @@
           <span id="error-pageName" class="error-message"></span>
           <input type="text" name="pageName" value="@pageName" style="width: 900px; font-weight: bold;" placeholder="Input a page name."/>
           <span id="error-content" class="error-message"></span>
-          <textarea name="content" style="width: 900px; height: 400px;">@page.map(_.content)</textarea>
+          <textarea id="content" name="content" style="width: 900px; height: 400px;">@page.map(_.content)</textarea>
           <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
           <input type="hidden" name="currentPageName" value="@pageName"/>
         </div>
@@ -46,7 +46,11 @@
 <script>
 $(function(){
   $('#preview').click(function(){
-    $('#preview-area').html('<h1>xxxxx</h1>');
+    $.post('@path/@repository.owner/@repository.name/wiki/_preview', {
+      content: $('#content').val()
+    }, function(data){
+      $('#preview-area').html(data);
+    });
   });
 });
 </script>
