@@ -24,16 +24,22 @@
   <table class="table table-bordered">
     @commits.map { commit =>
       <tr>
-        <td width="0%"><input type="checkbox"></td>
+        <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
         <td><a href="@path/@commit.committer">@commit.committer</a></td>
         <td width="80%">
           <span class="description">@helpers.datetime(commit.time):</span>
           @commit.message
         </td>
       </tr>
-      
     }
   </table>
   <input type="button" value="Compare Revisions" class="btn"/>
   <input type="button" value="Back to Top" class="btn"/>
+  <script>
+  $(function(){
+    $('input[name=commitId]').click(function(){
+      return !($('input[name=commitId]:checked').length == 3);
+    });
+  });
+  </script>
 }
