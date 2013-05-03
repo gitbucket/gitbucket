@@ -66,6 +66,7 @@ case class ContentInfo(viewType: String, content: Option[String])
  */
 class RepositoryViewerController extends ControllerBase {
   
+  // TODO separate to AccountController?
   /**
    * Displays user information.
    */

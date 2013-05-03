@@ -19,7 +19,9 @@ object Directory {
   def getRepositories(owner: String): List[String] = {
     val dir = new File("%s/%s".format(RepositoryHome, owner))
     if(dir.exists){
-      dir.listFiles.filter(_.isDirectory).map(_.getName.replaceFirst("\\.git$", "")).toList
+      dir.listFiles.filter { file =>
+        file.isDirectory && !file.getName.endsWith(".wiki.git") 
+      }.map(_.getName.replaceFirst("\\.git$", "")).toList
     } else {
       Nil
     }
