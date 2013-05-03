@@ -1,0 +1,24 @@
+@(pageName: Option[String], diffs: Seq[app.DiffInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
+@import view.helpers
+@import context._
+@import org.eclipse.jgit.diff.DiffEntry.ChangeType
+@main("Compare Revisions - " + repository.owner + "/" + repository.name){
+  @header("wiki", repository)
+  @wikitab("history", repository)
+  <ul class="nav nav-tabs">
+    <li>
+      <h1 class="wiki-title"><span class="description">Compare Revisions</span></h1>
+    </li>
+    <li class="pull-right">
+      <div class="btn-group">
+      @if(pageName.isDefined){
+        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName">View Page</a>
+        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_history">Back to Page History</a>
+      } else {
+        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_history">Back to Wiki History</a>
+      }
+      </div>
+    </li>
+  </ul>
+  @diff(diffs, repository, None)
+}

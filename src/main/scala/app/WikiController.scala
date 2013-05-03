@@ -45,6 +45,32 @@ class WikiController extends ControllerBase {
       JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   
+  get("/:owner/:repository/wiki/:page/_compare/:commitId"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val page       = params("page")
+    val commitId   = params("commitId").split("\\.\\.\\.")
+    
+    println(commitId(0))
+    println(commitId(1))
+    
+    html.wikicompare(Some(page),
+      WikiUtil.getDiffs(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), commitId(0), commitId(1)),
+      JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
+  
+  get("/:owner/:repository/wiki/_compare/:commitId"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val commitId   = params("commitId").split("\\.\\.\\.")
+    
+    println(commitId(0))
+    println(commitId(1))
+    
+    html.wikicompare(None,
+      WikiUtil.getDiffs(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), commitId(0), commitId(1)),
+      JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
   
   get("/:owner/:repository/wiki/:page/_edit"){
     val owner      = params("owner")

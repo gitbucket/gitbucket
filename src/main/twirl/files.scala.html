@@ -1,7 +1,7 @@
 @(branch: String, repository: app.RepositoryInfo, pathList: List[String], latestCommit: app.CommitInfo, files: List[app.FileInfo], readme: Option[String])(implicit context: app.Context)
 @import context._
 @import view.helpers
-@main(repository.owner+"/"+repository.name) {
+@main(repository.owner + "/" + repository.name) {
   @header("code", repository)
   @navtab(branch, repository, "files")
   <div class="head">

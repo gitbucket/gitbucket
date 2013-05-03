@@ -7,11 +7,10 @@
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title">
-        @if(pageName.nonEmpty){
-          <span class="description">History for</span> @pageName.get
-        }
         @if(pageName.isEmpty){
           <span class="description">History</span>
+        } else {
+          <span class="description">History for</span> @pageName.get
         }
       </h1>
     </li>
@@ -33,12 +32,29 @@
       </tr>
     }
   </table>
-  <input type="button" value="Compare Revisions" class="btn"/>
-  <input type="button" value="Back to Top" class="btn"/>
+  <input type="button" id="compare" value="Compare Revisions" class="btn"/>
+  <input type="button" id="top" value="Back to Top" class="btn"/>
   <script>
   $(function(){
     $('input[name=commitId]').click(function(){
       return !($('input[name=commitId]:checked').length == 3);
+    });
+    
+    $('#compare').click(function(){
+      var e = $('input[name=commitId]:checked');
+      if(e.length == 2){
+        @if(pageName.isEmpty){
+          location.href = '@path/@repository.owner/@repository.name/wiki/_compare/' + 
+            $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
+        } else {
+          location.href = '@path/@repository.owner/@repository.name/wiki/@pageName.get/_compare/' + 
+            $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
+        }
+      }
+    });
+    
+    $('#top').click(function(){
+      $('html,body').animate({ scrollTop: 0 }, 'fast');
     });
   });
   </script>
