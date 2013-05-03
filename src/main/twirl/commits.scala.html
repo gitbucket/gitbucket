@@ -1,11 +1,24 @@
-@(branch: String, repository: app.RepositoryInfo, commits: Seq[Seq[app.CommitInfo]], page: Int, hasNext: Boolean)(implicit context: app.Context)
+@(pathList: List[String], branch: String, repository: app.RepositoryInfo, commits: Seq[Seq[app.CommitInfo]], page: Int, hasNext: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers
 @main(repository.owner+"/"+repository.name) {
   @header("code", repository)
-  @navtab(branch, repository, "commits")
+  @navtab(branch, repository, if(pathList.isEmpty) "commits" else "files")
   <div class="head">
-    <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> / Commit History
+    @if(pathList.isEmpty){
+      <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> / Commit History
+    }
+    @if(pathList.nonEmpty){
+      <span class="description">History for</span>
+      <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
+      @pathList.zipWithIndex.map { case (section, i) =>
+        @if(i == pathList.length - 1){
+          @section
+        } else {
+          <a href="@path/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
+      }
+    }
   </div>
       
   @commits.map { date =>

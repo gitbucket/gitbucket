@@ -116,11 +116,30 @@ class RepositoryViewerController extends ControllerBase {
     
     val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page, 30)
     
-    html.commits(branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+    html.commits(Nil, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
       logs.splitWith{ (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }, page, hasNext)
   }
+  
+  /**
+   * Displays the commit list of the specified resource.
+   */
+  get("/:owner/:repository/commits/:branch/*"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val branchName = params("branch")
+    val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
+    val page       = params.getOrElse("page", "1").toInt
+    
+    val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page, 30, path)
+    
+    html.commits(path.split("/").toList, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+      logs.splitWith{ (commit1, commit2) =>
+        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+      }, page, hasNext)
+  }
+  
   
   /**
    * Displays the file content of the specified branch or commit.
@@ -130,7 +149,7 @@ class RepositoryViewerController extends ControllerBase {
     val repository = params("repository")
     val id         = params("id") // branch name or commit id
     val raw        = params.get("raw").getOrElse("false").toBoolean
-    val path       = multiParams("splat").head.replaceFirst("^tree/.+?/", "")
+    val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
     val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
 
     val git = Git.open(getRepositoryDir(owner, repository))

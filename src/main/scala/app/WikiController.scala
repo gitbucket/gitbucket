@@ -41,9 +41,7 @@ class WikiController extends ControllerBase {
     val git        = Git.open(WikiUtil.getWikiRepositoryDir(owner, repository))
     
     html.wikihistory(Some(page),
-      JGitUtil.getCommitLog(git, "master")._1.filter { commit =>
-        JGitUtil.getDiffs(git, commit.id).find(_.newPath == page + ".md").isDefined
-      },
+      JGitUtil.getCommitLog(git, "master", path = page + ".md")._1,
       JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   

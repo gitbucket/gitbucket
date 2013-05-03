@@ -20,6 +20,7 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.treewalk.filter.PathFilter
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import org.eclipse.jgit.revwalk.filter.RevFilter
 
 /**
  * Provides complex JGit operations.
@@ -94,10 +95,11 @@ object JGitUtil {
    * @param git the Git object
    * @param revision the branch name or commit id
    * @param page the page number (1-)
-   * @param limit the number of commit info per page. 0 means unlimited.
+   * @param limit the number of commit info per page. 0 (default) means unlimited.
+   * @param path filters by this path. default is no filter.
    * @return a tuple of the commit list and whether has next
    */
-  def getCommitLog(git: Git, revision: String, page: Int = 1, limit: Int = 0): (List[CommitInfo], Boolean) = {
+  def getCommitLog(git: Git, revision: String, page: Int = 1, limit: Int = 0, path: String = ""): (List[CommitInfo], Boolean) = {
     val fixedPage = if(page <= 0) 1 else page
     
     @scala.annotation.tailrec
@@ -110,6 +112,14 @@ object JGitUtil {
     
     val revWalk = new RevWalk(git.getRepository)
     revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
+    if(path.nonEmpty){
+      revWalk.setRevFilter(new RevFilter(){
+        def include(walk: RevWalk, commit: RevCommit): Boolean = {
+          getDiffs(git, commit.getName).find(_.newPath == path).nonEmpty
+        }
+        override def clone(): RevFilter = this
+      })
+    }
     
     val commits = getCommitLog(revWalk.iterator, 0, Nil)
     revWalk.release
