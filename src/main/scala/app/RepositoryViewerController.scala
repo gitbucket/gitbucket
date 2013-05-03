@@ -155,7 +155,7 @@ class RepositoryViewerController extends ControllerBase {
     if(raw){
       // Download
       contentType = "application/octet-stream"
-      JGitUtil.getContent(git, objectId, false)
+      JGitUtil.getContent(git, objectId, false).get
         
     } else {
       // Viewer
