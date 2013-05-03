@@ -23,15 +23,15 @@ class CreateRepositoryController extends ControllerBase {
   /**
    * Show the new repository form.
    */
-  get("/") {
+  get("/new") {
     html.newrepo()
   }
   
   /**
    * Create new repository.
    */
-  post("/", form) { form =>
-    val gitdir = getRepositoryDir(LoginUser, form.name)
+  post("/new", form) { form =>
+    val gitdir = getRepositoryDir(context.loginUser, form.name)
     val repository = new RepositoryBuilder().setGitDir(gitdir).setBare.build
 
     repository.create
@@ -40,7 +40,7 @@ class CreateRepositoryController extends ControllerBase {
     config.setBoolean("http", null, "receivepack", true)
     config.save
 
-    val tmpdir = getInitRepositoryDir(LoginUser, form.name)
+    val tmpdir = getInitRepositoryDir(context.loginUser, form.name)
     try {
       // Clone the repository
       Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
@@ -62,7 +62,7 @@ class CreateRepositoryController extends ControllerBase {
     }
     
     // redirect to the repository
-    redirect("/%s/%s".format(LoginUser, form.name))
+    redirect("/%s/%s".format(context.loginUser, form.name))
   }
   
   /**
@@ -72,7 +72,7 @@ class CreateRepositoryController extends ControllerBase {
     def validate(name: String, value: String): Option[String] = {
       if(!value.matches("^[a-z0-9\\-_]+$")){
         Some("Repository name contains invalid character.")
-      } else if(getRepositories(LoginUser).contains(value)){
+      } else if(getRepositories(context.loginUser).contains(value)){
         Some("Repository already exists.")
       } else {
         None

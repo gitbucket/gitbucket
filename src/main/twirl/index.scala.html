@@ -1,0 +1,9 @@
+@()(implicit context: app.Context)
+@import context._
+@main("GitBucket"){
+  <h1>GitBucket</h1>
+  <ul>
+    <li><a href="@path/@context.loginUser">User page</a></li>
+    <li><a href="@path/new">Create new repository</a></li>
+  </ul>
+}

@@ -13,11 +13,11 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
   
   implicit val jsonFormats = DefaultFormats
   
-  implicit def context: Context = Context(servletContext.getContextPath)
+  implicit def context: Context = Context(servletContext.getContextPath, LoginUser)
   
   // TODO get from session
-  val LoginUser = System.getProperty("user.name")
+  private val LoginUser = System.getProperty("user.name")
   
 }
 
-case class Context(path: String)
+case class Context(path: String, loginUser: String)

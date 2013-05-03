@@ -4,8 +4,9 @@ import javax.servlet._
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
-    context.mount(new CreateRepositoryController, "/new")
+    context.mount(new IndexController, "/")
     context.mount(new WikiController, "/*")
+    context.mount(new CreateRepositoryController, "/*")
     context.mount(new RepositoryViewerController, "/*")
     
     context.addListener(new ServletContextListener(){

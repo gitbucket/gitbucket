@@ -63,7 +63,7 @@ class WikiController extends ControllerBase {
     val repository = params("repository")
     
     WikiUtil.savePage(owner, repository, form.currentPageName, form.pageName, 
-        form.content, LoginUser, form.message.getOrElse(""))
+        form.content, context.loginUser, form.message.getOrElse(""))
     
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   }
