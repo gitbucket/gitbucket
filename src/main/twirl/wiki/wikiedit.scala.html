@@ -32,15 +32,14 @@
           <textarea id="content" name="content" style="width: 900px; height: 400px;">@page.map(_.content)</textarea>
           <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
           <input type="hidden" name="currentPageName" value="@pageName"/>
+          <input type="submit" value="Save" class="btn btn-primary">
         </div>
         <div class="tab-pane" id="tab2">
           <div class="markdown-body" id="preview-area">
-            aaa
           </div>
         </div>
       </div>
     </div>
-    <input type="submit" value="Save" class="btn btn-primary">
   </form>
 }
 <script>
