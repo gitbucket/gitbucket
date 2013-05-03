@@ -32,13 +32,13 @@ object WikiUtil {
    * Returns the directory of the wiki repository.
    */
   def getWikiRepositoryDir(owner: String, repository: String): File =
-    new File("%s/%s/%s-wiki.git".format(Directory.RepositoryHome, owner, repository))
+    new File("%s/%s/%s.wiki.git".format(Directory.RepositoryHome, owner, repository))
   
   /**
    * Returns the directory of the wiki working directory which is cloned from the wiki repository.
    */
   def getWikiWorkDir(owner: String, repository: String): File = 
-    new File("%s/tmp/%s/%s-wiki".format(Directory.RepositoryHome, owner, repository))
+    new File("%s/tmp/%s/%s.wiki".format(Directory.RepositoryHome, owner, repository))
 
   // TODO synchronized?
   def createWikiRepository(owner: String, repository: String): Unit = {
