@@ -19,7 +19,7 @@ class WikiController extends ControllerBase {
     "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pageName))), 
     "content"         -> trim(label("Content"            , text(required))),
     "message"         -> trim(label("Message"            , optional(text()))),
-    "currentPageName" -> trim(label("Current page name"  , text()))
+    "currentPageName" -> trim(label("Current page name"  , text(required)))
   )(WikiPageEditForm.apply)
   
   get("/:owner/:repository/wiki"){
@@ -115,6 +115,16 @@ class WikiController extends ControllerBase {
         form.content, context.loginUser, form.message.getOrElse(""))
     
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
+  }
+  
+  get("/:owner/:repository/wiki/:page/_delete"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val page       = params("page")
+    
+    WikiUtil.deletePage(owner, repository, page, context.loginUser, "Delete %s".format(page))
+    
+    redirect("%s/%s/wiki".format(owner, repository))
   }
   
   get("/:owner/:repository/wiki/_pages"){

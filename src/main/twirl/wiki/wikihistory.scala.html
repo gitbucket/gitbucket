@@ -16,7 +16,12 @@
     </li>
     <li class="pull-right">
       <div class="btn-group">
-        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
+        @if(pageName.isEmpty){
+          <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
+        } else {
+          <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName">View Page</a>
+          <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_edit">Edit Page</a>
+        }
       </div>
     </li>
   </ul>

@@ -114,7 +114,7 @@ object WikiUtil {
     
     // delete file
     val deleted = if(currentPageName != "" && currentPageName != newPageName){
-      cloned.rm.addFilepattern(currentPageName + ".md")
+      cloned.rm.addFilepattern(currentPageName + ".md").call
       true
     } else {
       false
@@ -122,31 +122,39 @@ object WikiUtil {
     
     // commit and push
     if(added || deleted){
+      // TODO committer's mail address
       cloned.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
       cloned.push.call
     }
   }
   
+  /**
+   * Delete the wiki page.
+   */
+  def deletePage(owner: String, repository: String, pageName: String, committer: String, message: String): Unit = {
+    // TODO create wiki repository in the repository setting changing.
+    createWikiRepository(owner, repository)
+    
+    val workDir = getWikiWorkDir(owner, repository)
+    
+    // clone
+    if(!workDir.exists){
+      Git.cloneRepository.setURI(getWikiRepositoryDir(owner, repository).toURI.toString).setDirectory(workDir).call
+    }
+    
+    // delete file
+    new File(workDir, pageName + ".md").delete
+    
+    val cloned = Git.open(workDir)
+    cloned.rm.addFilepattern(pageName + ".md").call
+    
+    // commit and push
+    // TODO committer's mail address
+    cloned.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
+    cloned.push.call
+  }
+  
   def getDiffs(git: Git, commitId1: String, commitId2: String): List[DiffInfo] = {
-//    @scala.annotation.tailrec
-//    def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[RevCommit]): List[RevCommit] =
-//      i.hasNext match {
-//        case true if(logs.size < 2) => getCommitLog(i, logs :+ i.next)
-//        case _ => logs
-//      }
-//    
-//    val revWalk = new RevWalk(git.getRepository)
-//    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(commitId2)))
-//    
-//    val commits = getCommitLog(revWalk.iterator, Nil)
-//    revWalk.release
-//    
-//    val revCommit = commits(0)
-//    
-////    if(commits.length >= 2){
-//      // not initial commit
-//      val oldCommit = commits(1)
-      
       // get diff between specified commit and its previous commit
       val reader = git.getRepository.newObjectReader
       
@@ -162,18 +170,6 @@ object WikiUtil {
             JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
             JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
       }.toList
-//    } else {
-//      // initial commit
-//      val walk = new TreeWalk(git.getRepository)
-//      walk.addTree(revCommit.getTree)
-//      val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
-//      while(walk.next){
-//        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
-//            JGitUtil.getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8"))))
-//      }
-//      walk.release
-//      buffer.toList
-//    }
   }    
   
 }

@@ -12,8 +12,8 @@
       <div class="btn-group">
       @if(pageName != ""){
         <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName">View Page</a>
-        <a class="btn" href="#">Delete Page</a>
-        <a class="btn" href="#">Page History</a>
+        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_delete" id="delete">Delete Page</a>
+        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_history">Page History</a>
       }
       </div>
     </li>
@@ -50,6 +50,10 @@ $(function(){
     }, function(data){
       $('#preview-area').html(data);
     });
+  });
+  
+  $('#delete').click(function(){
+    return confirm('Are you sure you want to delete this page?'); 
   });
 });
 </script>
