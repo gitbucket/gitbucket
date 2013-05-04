@@ -6,11 +6,17 @@
   @navtab("master", repository, "tags") @* TODO DON'T display branch pulldown *@
   <h1>Tags</h1>
   <table class="table table-bordered">
+    <tr>
+      <th width="40%">Tag</th>
+      <th width="20%">Commit</th>
+      <th width="20%">Date</th>
+      <th width="20%">Download</th>
+    </tr>
     @repository.tags.map { tag =>
       <tr>
-        <td>@tag</td>
-        <td>yyyy/MM/dd HH:mm:SS</td>
-        <td><a href="">xxxxxxxxxx</a></td>
+        <td>@tag.name</td>
+        <td>@helpers.datetime(tag.time)</td>
+        <td><a href="@path/@repository.owner/@repository.name/tree/@tag.id">@tag.id.substring(0, 10)</a></td>
         <td><a href="">ZIP</a></td>
       </tr>
     }

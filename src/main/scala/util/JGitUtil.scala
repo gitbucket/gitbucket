@@ -1,7 +1,7 @@
 package util
 
 import org.eclipse.jgit.api.Git
-import app.{RepositoryInfo, FileInfo, CommitInfo, DiffInfo}
+import app.{RepositoryInfo, FileInfo, CommitInfo, DiffInfo, TagInfo}
 import util.Directory._
 import scala.collection.JavaConverters._
 import javax.servlet.ServletContext
@@ -28,6 +28,20 @@ import org.eclipse.jgit.revwalk.filter.RevFilter
 object JGitUtil {
   
   /**
+   * Returns RevCommit from the commit id.
+   * 
+   * @param git the Git object
+   * @param commitId the ObjectId of the commit
+   * @return the RevCommit for the specified commit
+   */
+  def getRevCommitFromId(git: Git, commmitId: ObjectId): RevCommit = {
+    val revWalk = new RevWalk(git.getRepository)
+    val revCommit = revWalk.parseCommit(commmitId)
+    revWalk.dispose
+    revCommit
+  }
+  
+  /**
    * Returns the repository information. It contains branch names and tag names.
    */
   def getRepositoryInfo(owner: String, repository: String, servletContext: ServletContext): RepositoryInfo = {
@@ -35,12 +49,13 @@ object JGitUtil {
     RepositoryInfo(
       owner, repository, "http://localhost:8080%s/git/%s/%s.git".format(servletContext.getContextPath, owner, repository),
       // branches
-      git.branchList.call.toArray.map { ref =>
-        ref.asInstanceOf[Ref].getName.replaceFirst("^refs/heads/", "")
+      git.branchList.call.asScala.map { ref =>
+        ref.getName.replaceFirst("^refs/heads/", "")
       }.toList,
       // tags
-      git.tagList.call.toArray.map { ref =>
-        ref.asInstanceOf[Ref].getName
+      git.tagList.call.asScala.map { ref =>
+        val revCommit = getRevCommitFromId(git, ref.getObjectId)
+        TagInfo(ref.getName.replaceFirst("^refs/tags/", ""), revCommit.getCommitterIdent.getWhen, revCommit.getName)
       }.toList
     )   
   }

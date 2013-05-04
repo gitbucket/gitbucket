@@ -24,7 +24,7 @@ import org.eclipse.jgit.revwalk.RevWalk
  * @param branchList the list of branch names
  * @param tags the list of tags
  */
-case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[String])
+case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[TagInfo])
 
 /**
  * The file data for the file list of the repository viewer.
@@ -60,6 +60,15 @@ case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, ol
  * @param content the string content
  */
 case class ContentInfo(viewType: String, content: Option[String])
+
+/**
+ * The tag data.
+ * 
+ * @param name the tag name
+ * @param time the tagged date
+ * @param id the commit id
+ */
+case class TagInfo(name: String, time: Date, id: String)
 
 /**
  * The repository viewer.
