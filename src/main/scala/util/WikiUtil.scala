@@ -44,7 +44,7 @@ object WikiUtil {
    * Returns the directory of the wiki working directory which is cloned from the wiki repository.
    */
   def getWikiWorkDir(owner: String, repository: String): File = 
-    new File("%s/tmp/%s/%s.wiki".format(Directory.RepositoryHome, owner, repository))
+    new File("%s/tmp/%s/%s.wiki".format(Directory.GitBucketHome, owner, repository))
 
   // TODO synchronized?
   def createWikiRepository(owner: String, repository: String): Unit = {
@@ -80,9 +80,6 @@ object WikiUtil {
       .map(_.name.replaceFirst("\\.md$", ""))
       .sortBy(x => x)
   }
-  
-  // TODO 
-  //def getPageHistory(owner: String, repository: String, pageName: String): List[WikiPageHistoryInfo]
   
   // TODO synchronized
   /**

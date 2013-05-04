@@ -34,6 +34,12 @@ object Directory {
     new File("%s/%s/%s.git".format(RepositoryHome, owner, repository))
   
   /**
+   * Temporary directory which is used to create an archive to download repository contents.
+   */
+  def getDownloadWorkDir(owner: String, repository: String, sessionId: String): File = 
+    new File("%s/tmp/%s/%s/download/%s".format(GitBucketHome, owner, repository, sessionId))
+  
+  /**
    * Temporary directory which is used in the repository creation.
    * GiyBucket generates initial repository contents in this directory and push them.
    * This directory is removed after the repository creation.

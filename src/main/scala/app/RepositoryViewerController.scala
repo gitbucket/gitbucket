@@ -2,7 +2,7 @@ package app
 
 import util.Directory._
 import util.Implicits._
-import util.{JGitUtil, FileTypeUtil}
+import util.{JGitUtil, FileTypeUtil, CompressUtil}
 import org.scalatra._
 import java.io.File
 import java.util.Date
@@ -214,6 +214,47 @@ class RepositoryViewerController extends ControllerBase {
     val repository = params("repository")
     
     repo.html.tags(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
+  
+  /**
+   * Download repository contents as an archive.
+   */
+  get("/:owner/:repository/archive/:name"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val name       = params("name")
+    
+    if(name.endsWith(".zip")){
+      val revision = name.replaceFirst("\\.zip$", "")
+      val workDir = getDownloadWorkDir(owner, repository, session.getId)
+      if(workDir.exists){
+        FileUtils.deleteDirectory(workDir)
+      }
+      workDir.mkdirs
+      
+      // clone the repository
+      val cloneDir = new File(workDir, revision)
+      val git = Git.cloneRepository
+        .setURI(getRepositoryDir(owner, repository).toURI.toString)
+        .setDirectory(cloneDir)
+        .call
+      
+      // checkout the specified revision
+      git.checkout.setName(revision).call
+      git.getRepository.close
+      
+      // remove .git
+      FileUtils.deleteDirectory(new File(cloneDir, ".git"))
+      
+      // create zip file
+      val zipFile = new File(workDir, (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
+      CompressUtil.zip(zipFile, cloneDir)
+      
+      contentType = "application/octet-stream"
+      zipFile
+    } else {
+      BadRequest
+    }
   }
   
   /**
