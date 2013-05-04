@@ -45,11 +45,12 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
-    val git        = Git.open(WikiUtil.getWikiRepositoryDir(owner, repository))
     
-    wiki.html.wikihistory(Some(page),
-      JGitUtil.getCommitLog(git, "master", path = page + ".md")._1,
-      JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    JGitUtil.withGit(WikiUtil.getWikiRepositoryDir(owner, repository)){ git =>
+      wiki.html.wikihistory(Some(page),
+        JGitUtil.getCommitLog(git, "master", path = page + ".md")._1,
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    }
   }
   
   get("/:owner/:repository/wiki/:page/_compare/:commitId"){
@@ -58,12 +59,11 @@ class WikiController extends ControllerBase {
     val page       = params("page")
     val commitId   = params("commitId").split("\\.\\.\\.")
     
-    println(commitId(0))
-    println(commitId(1))
-    
-    wiki.html.wikicompare(Some(page),
-      WikiUtil.getDiffs(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), commitId(0), commitId(1)),
-      JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    JGitUtil.withGit(WikiUtil.getWikiRepositoryDir(owner, repository)){ git =>
+      wiki.html.wikicompare(Some(page),
+        WikiUtil.getDiffs(git, commitId(0), commitId(1)),
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    }
   }
   
   get("/:owner/:repository/wiki/_compare/:commitId"){
@@ -71,12 +71,11 @@ class WikiController extends ControllerBase {
     val repository = params("repository")
     val commitId   = params("commitId").split("\\.\\.\\.")
     
-    println(commitId(0))
-    println(commitId(1))
-    
-    wiki.html.wikicompare(None,
-      WikiUtil.getDiffs(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), commitId(0), commitId(1)),
-      JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    JGitUtil.withGit(WikiUtil.getWikiRepositoryDir(owner, repository)){ git =>
+      wiki.html.wikicompare(None,
+        WikiUtil.getDiffs(git, commitId(0), commitId(1)),
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    }
   }
   
   get("/:owner/:repository/wiki/:page/_edit"){
@@ -139,9 +138,11 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    wiki.html.wikihistory(None,
-        JGitUtil.getCommitLog(Git.open(WikiUtil.getWikiRepositoryDir(owner, repository)), "master")._1, 
+    JGitUtil.withGit(WikiUtil.getWikiRepositoryDir(owner, repository)){ git =>
+      wiki.html.wikihistory(None,
+        JGitUtil.getCommitLog(git, "master")._1, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    }
   }
   
   post("/:owner/:repository/wiki/_preview"){

@@ -124,12 +124,14 @@ class RepositoryViewerController extends ControllerBase {
     val branchName = params("branch")
     val page       = params.getOrElse("page", "1").toInt
     
-    val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page, 30)
+    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30)
     
-    repo.html.commits(Nil, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
-      logs.splitWith{ (commit1, commit2) =>
-        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-      }, page, hasNext)
+      repo.html.commits(Nil, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+        logs.splitWith{ (commit1, commit2) =>
+          view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+        }, page, hasNext)
+    }
   }
   
   /**
@@ -142,12 +144,14 @@ class RepositoryViewerController extends ControllerBase {
     val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
     val page       = params.getOrElse("page", "1").toInt
     
-    val (logs, hasNext) = JGitUtil.getCommitLog(Git.open(getRepositoryDir(owner, repository)), branchName, page, 30, path)
+    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30, path)
     
-    repo.html.commits(path.split("/").toList, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
-      logs.splitWith{ (commit1, commit2) =>
-        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-      }, page, hasNext)
+      repo.html.commits(path.split("/").toList, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+        logs.splitWith{ (commit1, commit2) =>
+          view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+        }, page, hasNext)
+    }
   }
   
   
@@ -162,33 +166,34 @@ class RepositoryViewerController extends ControllerBase {
     val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
     val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
 
-    val git = Git.open(getRepositoryDir(owner, repository))
-    val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
       
-    @scala.annotation.tailrec
-    def getPathObjectId(path: String, walk: TreeWalk): ObjectId = walk.next match {
-      case true if(walk.getPathString == path) => walk.getObjectId(0)
-      case true => getPathObjectId(path, walk)
-    }
+      @scala.annotation.tailrec
+      def getPathObjectId(path: String, walk: TreeWalk): ObjectId = walk.next match {
+        case true if(walk.getPathString == path) => walk.getObjectId(0)
+        case true => getPathObjectId(path, walk)
+      }
       
-    val treeWalk = new TreeWalk(git.getRepository)
-    treeWalk.addTree(revCommit.getTree)
-    treeWalk.setRecursive(true)
-    val objectId = getPathObjectId(path, treeWalk)
-    treeWalk.release
+      val treeWalk = new TreeWalk(git.getRepository)
+      treeWalk.addTree(revCommit.getTree)
+      treeWalk.setRecursive(true)
+      val objectId = getPathObjectId(path, treeWalk)
+      treeWalk.release
       
-    if(raw){
-      // Download
-      contentType = "application/octet-stream"
-      JGitUtil.getContent(git, objectId, false).get
+      if(raw){
+        // Download
+        contentType = "application/octet-stream"
+        JGitUtil.getContent(git, objectId, false).get
+      } else {
+        // Viewer
+        val large   = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+        val viewer  = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "text"
+        val content = ContentInfo(viewer, 
+            if(viewer == "text") JGitUtil.getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
         
-    } else {
-      // Viewer
-      val large   = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-      val viewer  = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "text"
-      val content = ContentInfo(viewer, if(viewer == "text") JGitUtil.getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
-        
-      repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(revCommit))
+        repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(revCommit))
+      }
     }
   }
   
@@ -200,10 +205,11 @@ class RepositoryViewerController extends ControllerBase {
     val repository = params("repository")
     val id         = params("id")
     
-    val git = Git.open(getRepositoryDir(owner, repository))
-    val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-    
-    repo.html.commit(id, new CommitInfo(revCommit), JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
+    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+      repo.html.commit(id, new CommitInfo(revCommit), 
+          JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
+    }
   }
   
   /**
@@ -234,14 +240,14 @@ class RepositoryViewerController extends ControllerBase {
       
       // clone the repository
       val cloneDir = new File(workDir, revision)
-      val git = Git.cloneRepository
-        .setURI(getRepositoryDir(owner, repository).toURI.toString)
-        .setDirectory(cloneDir)
-        .call
+      JGitUtil.withGit(Git.cloneRepository
+          .setURI(getRepositoryDir(owner, repository).toURI.toString)
+          .setDirectory(cloneDir)
+          .call){ git =>
       
-      // checkout the specified revision
-      git.checkout.setName(revision).call
-      git.getRepository.close
+        // checkout the specified revision
+        git.checkout.setName(revision).call
+      }
       
       // remove .git
       FileUtils.deleteDirectory(new File(cloneDir, ".git"))
@@ -273,32 +279,32 @@ class RepositoryViewerController extends ControllerBase {
       revstr
     }
       
-    val git = Git.open(getRepositoryDir(owner, repository))
-
-    // get latest commit
-    val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      // get latest commit
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
     
-    val files = JGitUtil.getFileList(git, revision, path)
+      val files = JGitUtil.getFileList(git, revision, path)
     
-    // process README.md
-    val readme = files.find(_.name == "README.md").map { file =>
-      new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
+      // process README.md
+      val readme = files.find(_.name == "README.md").map { file =>
+        new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
+      }
+    
+      repo.html.files(
+        // current branch
+        revision, 
+        // repository
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext),
+        // current path
+        if(path == ".") Nil else path.split("/").toList,
+        // latest commit
+        new CommitInfo(revCommit),
+        // file list
+        files,
+        // readme
+        readme
+      )
     }
-    
-    repo.html.files(
-      // current branch
-      revision, 
-      // repository
-      JGitUtil.getRepositoryInfo(owner, repository, servletContext),
-      // current path
-      if(path == ".") Nil else path.split("/").toList,
-      // latest commit
-      new CommitInfo(revCommit),
-      // file list
-      files,
-      // readme
-      readme
-    )
   }
   
 }

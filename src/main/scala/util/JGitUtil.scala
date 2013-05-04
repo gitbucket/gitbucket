@@ -5,27 +5,38 @@ import app.{RepositoryInfo, FileInfo, CommitInfo, DiffInfo, TagInfo}
 import util.Directory._
 import scala.collection.JavaConverters._
 import javax.servlet.ServletContext
-import org.eclipse.jgit.lib.Ref
-import org.eclipse.jgit.lib.ObjectId
-import org.eclipse.jgit.errors.MissingObjectException
-import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.diff.DiffFormatter
-import org.eclipse.jgit.treewalk.TreeWalk
-import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.diff.RawTextComparator
-import org.eclipse.jgit.util.io.DisabledOutputStream
-import org.eclipse.jgit.lib.Repository
-import org.eclipse.jgit.revwalk.RevSort
-import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import org.eclipse.jgit.lib.FileMode
-import org.eclipse.jgit.treewalk.filter.PathFilter
-import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import org.eclipse.jgit.lib._
+import org.eclipse.jgit.revwalk._
 import org.eclipse.jgit.revwalk.filter.RevFilter
+import org.eclipse.jgit.treewalk._
+import org.eclipse.jgit.treewalk.filter.PathFilter
+import org.eclipse.jgit.diff._
+import org.eclipse.jgit.diff.DiffEntry.ChangeType
+import org.eclipse.jgit.util.io.DisabledOutputStream
+import org.eclipse.jgit.errors.MissingObjectException
 
 /**
  * Provides complex JGit operations.
  */
 object JGitUtil {
+  
+  /**
+   * Use this method to use the Git object.
+   * Repository resources are released certainly after processing.
+   */
+  def withGit[T](dir: java.io.File)(f: Git => T): T = withGit(Git.open(dir))(f)
+  
+  /**
+   * Use this method to use the Git object.
+   * Repository resources are released certainly after processing.
+   */
+  def withGit[T](git: Git)(f: Git => T): T = {
+    try {
+      f(git)
+    } finally {
+      git.getRepository.close
+    }
+  }
   
   /**
    * Returns RevCommit from the commit id.
@@ -45,19 +56,20 @@ object JGitUtil {
    * Returns the repository information. It contains branch names and tag names.
    */
   def getRepositoryInfo(owner: String, repository: String, servletContext: ServletContext): RepositoryInfo = {
-    val git = Git.open(getRepositoryDir(owner, repository))
-    RepositoryInfo(
-      owner, repository, "http://localhost:8080%s/git/%s/%s.git".format(servletContext.getContextPath, owner, repository),
-      // branches
-      git.branchList.call.asScala.map { ref =>
-        ref.getName.replaceFirst("^refs/heads/", "")
-      }.toList,
-      // tags
-      git.tagList.call.asScala.map { ref =>
-        val revCommit = getRevCommitFromId(git, ref.getObjectId)
-        TagInfo(ref.getName.replaceFirst("^refs/tags/", ""), revCommit.getCommitterIdent.getWhen, revCommit.getName)
-      }.toList
-    )   
+    withGit(getRepositoryDir(owner, repository)){ git =>
+      RepositoryInfo(
+        owner, repository, "http://localhost:8080%s/git/%s/%s.git".format(servletContext.getContextPath, owner, repository),
+        // branches
+        git.branchList.call.asScala.map { ref =>
+          ref.getName.replaceFirst("^refs/heads/", "")
+        }.toList,
+        // tags
+        git.tagList.call.asScala.map { ref =>
+          val revCommit = getRevCommitFromId(git, ref.getObjectId)
+          TagInfo(ref.getName.replaceFirst("^refs/tags/", ""), revCommit.getCommitterIdent.getWhen, revCommit.getName)
+        }.toList
+      )
+    }
   }
   
   /**

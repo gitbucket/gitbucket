@@ -51,8 +51,12 @@ object WikiUtil {
     val dir = getWikiRepositoryDir(owner, repository)
     if(!dir.exists){
       val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
-      repo.create
-      savePage(owner, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
+      try {
+        repo.create
+        savePage(owner, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
+      } finally {
+        repo.close
+      }
     }
   }
   
@@ -63,14 +67,15 @@ object WikiUtil {
     // TODO create wiki repository in the repository setting changing.
     createWikiRepository(owner, repository)
     
-    val git = Git.open(getWikiRepositoryDir(owner, repository))
-    try {
-      JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
-        WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time)
+    JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
+      try {
+        JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
+          WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time)
+        }
+      } catch {
+        // TODO no commit, but it should not judge by exception.
+        case e: NullPointerException => None
       }
-    } catch {
-      // TODO no commit, but it should not judge by exception.
-      case e: NullPointerException => None
     }
   }
   
@@ -99,29 +104,30 @@ object WikiUtil {
     }
     
     // write as file
-    val cloned = Git.open(workDir)
-    val file = new File(workDir, newPageName + ".md")
-    val added = if(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
-      FileUtils.writeStringToFile(file, content, "UTF-8")
-      cloned.add.addFilepattern(file.getName).call
-      true
-    } else {
-      false
-    }
+    JGitUtil.withGit(workDir){ git =>
+      val file = new File(workDir, newPageName + ".md")
+      val added = if(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
+        FileUtils.writeStringToFile(file, content, "UTF-8")
+        git.add.addFilepattern(file.getName).call
+        true
+      } else {
+        false
+      }
     
-    // delete file
-    val deleted = if(currentPageName != "" && currentPageName != newPageName){
-      cloned.rm.addFilepattern(currentPageName + ".md").call
-      true
-    } else {
-      false
-    }
+      // delete file
+      val deleted = if(currentPageName != "" && currentPageName != newPageName){
+        git.rm.addFilepattern(currentPageName + ".md").call
+        true
+      } else {
+        false
+      }
     
-    // commit and push
-    if(added || deleted){
-      // TODO committer's mail address
-      cloned.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
-      cloned.push.call
+      // commit and push
+      if(added || deleted){
+        // TODO committer's mail address
+        git.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
+        git.push.call
+      }
     }
   }
   
@@ -142,13 +148,14 @@ object WikiUtil {
     // delete file
     new File(workDir, pageName + ".md").delete
     
-    val cloned = Git.open(workDir)
-    cloned.rm.addFilepattern(pageName + ".md").call
+    JGitUtil.withGit(workDir){ git =>
+      git.rm.addFilepattern(pageName + ".md").call
     
-    // commit and push
-    // TODO committer's mail address
-    cloned.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
-    cloned.push.call
+      // commit and push
+      // TODO committer's mail address
+      git.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
+      git.push.call
+    }
   }
   
   def getDiffs(git: Git, commitId1: String, commitId2: String): List[DiffInfo] = {
