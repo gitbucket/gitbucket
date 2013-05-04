@@ -163,11 +163,7 @@ class RepositoryViewerController extends ControllerBase {
     val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
 
     val git = Git.open(getRepositoryDir(owner, repository))
-    val commitId = git.getRepository.resolve(id)
-      
-    val revWalk = new RevWalk(git.getRepository)
-    val revCommit = revWalk.parseCommit(commitId)
-    revWalk.dispose
+    val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
       
     @scala.annotation.tailrec
     def getPathObjectId(path: String, walk: TreeWalk): ObjectId = walk.next match {
@@ -205,11 +201,7 @@ class RepositoryViewerController extends ControllerBase {
     val id         = params("id")
     
     val git = Git.open(getRepositoryDir(owner, repository))
-    
-    val revWalk = new RevWalk(git.getRepository)
-    val objectId = git.getRepository.resolve(id)
-    val revCommit = revWalk.parseCommit(objectId)
-    revWalk.dispose
+    val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
     
     repo.html.commit(id, new CommitInfo(revCommit), JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
   }
@@ -243,10 +235,7 @@ class RepositoryViewerController extends ControllerBase {
     val git = Git.open(getRepositoryDir(owner, repository))
 
     // get latest commit
-    val revWalk = new RevWalk(git.getRepository)
-    val objectId = git.getRepository.resolve(revision)
-    val revCommit = revWalk.parseCommit(objectId)
-    revWalk.dispose
+    val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
     
     val files = JGitUtil.getFileList(git, revision, path)
     

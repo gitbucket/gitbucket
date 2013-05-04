@@ -34,9 +34,9 @@ object JGitUtil {
    * @param commitId the ObjectId of the commit
    * @return the RevCommit for the specified commit
    */
-  def getRevCommitFromId(git: Git, commmitId: ObjectId): RevCommit = {
+  def getRevCommitFromId(git: Git, commitId: ObjectId): RevCommit = {
     val revWalk = new RevWalk(git.getRepository)
-    val revCommit = revWalk.parseCommit(commmitId)
+    val revCommit = revWalk.parseCommit(commitId)
     revWalk.dispose
     revCommit
   }
