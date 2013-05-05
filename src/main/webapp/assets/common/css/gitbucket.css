@@ -68,3 +68,9 @@ div.block {
 h1.wiki-title {
   margin-top: 0px;
 }
+
+#repository-url {
+  background-color: white;
+  cursor: default;
+  width: 350px;
+}
