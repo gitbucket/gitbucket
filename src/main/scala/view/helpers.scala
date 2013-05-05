@@ -27,7 +27,7 @@ object helpers {
    */
   def markdown(value: String, repository: app.RepositoryInfo)(implicit context: app.Context): twirl.api.Html = {
     import org.pegdown._
-    val html = new PegDownProcessor(Extensions.AUTOLINKS|Extensions.WIKILINKS)
+    val html = new PegDownProcessor(Extensions.AUTOLINKS|Extensions.WIKILINKS|Extensions.FENCED_CODE_BLOCKS)
       .markdownToHtml(value, new LinkRenderer(){
         override def render(node: WikiLinkNode): Rendering = {
           try {
@@ -53,7 +53,7 @@ object helpers {
    * Converts Markdown to HTML. This method does not support Wiki links.
    */
   def markdown(value: String): twirl.api.Html = {
-    val html = new PegDownProcessor().markdownToHtml(value, new LinkRenderer())
+    val html = new PegDownProcessor(Extensions.FENCED_CODE_BLOCKS).markdownToHtml(value, new LinkRenderer())
     twirl.api.Html(html)
   }
     
