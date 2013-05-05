@@ -146,9 +146,11 @@ class WikiController extends ControllerBase {
   }
   
   post("/:owner/:repository/wiki/_preview"){
-    val content = params("content")
+    val owner      = params("owner")
+    val repository = params("repository")
+    val content    = params("content")
     contentType = "text/html"
-    view.helpers.markdown(content)
+    view.helpers.markdown(content, JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
   
   /**
