@@ -1,4 +1,4 @@
-package util
+package servlet
 
 import javax.servlet._
 import org.slf4j.LoggerFactory

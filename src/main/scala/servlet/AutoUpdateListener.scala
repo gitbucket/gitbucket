@@ -1,12 +1,12 @@
-package util
+package servlet
 
 import java.io.File
 import java.sql.Connection
 import org.apache.commons.io.FileUtils
 import javax.servlet.ServletContextEvent
 import org.apache.commons.io.IOUtils
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import util.Directory
 
 object AutoUpdate {
   
@@ -18,7 +18,7 @@ object AutoUpdate {
    */
   case class Version(majorVersion: Int, minorVersion: Int){
     
-    private val logger = LoggerFactory.getLogger(classOf[Version])
+    private val logger = LoggerFactory.getLogger(classOf[servlet.AutoUpdate.Version])
     
     /**
      * Execute update/MAJOR_MINOR.sql to update schema to this version.

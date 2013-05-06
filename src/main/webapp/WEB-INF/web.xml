@@ -13,7 +13,7 @@
   
   <servlet>
     <servlet-name>GitRepositoryServlet</servlet-name>
-    <servlet-class>util.GitRepositoryServlet</servlet-class>
+    <servlet-class>servlet.GitRepositoryServlet</servlet-class>
   </servlet>
   
   <servlet-mapping>
@@ -23,7 +23,7 @@
   
   <filter>
     <filter-name>TransactionFilter</filter-name>
-    <filter-class>util.TransactionFilter</filter-class>
+    <filter-class>servlet.TransactionFilter</filter-class>
   </filter>
   
   <filter-mapping>
@@ -33,7 +33,7 @@
   
   <filter>
     <filter-name>BasicAuthenticationFilter</filter-name>
-    <filter-class>util.BasicAuthenticationFilter</filter-class>
+    <filter-class>servlet.BasicAuthenticationFilter</filter-class>
   </filter>
   
   <filter-mapping>
@@ -45,7 +45,7 @@
   <!-- H2 database configuration -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>util.AutoUpdateListener</listener-class>
+    <listener-class>servlet.AutoUpdateListener</listener-class>
   </listener>
   
   <context-param>
