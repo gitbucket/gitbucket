@@ -22,6 +22,16 @@
   </servlet-mapping>
   
   <filter>
+    <filter-name>TransactionFilter</filter-name>
+    <filter-class>util.TransactionFilter</filter-class>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>TransactionFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
+  <filter>
     <filter-name>BasicAuthenticationFilter</filter-name>
     <filter-class>util.BasicAuthenticationFilter</filter-class>
   </filter>
