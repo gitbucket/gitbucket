@@ -47,4 +47,16 @@ object Directory {
   def getInitRepositoryDir(owner: String, repository: String): File =
     new File("%s/tmp/%s/init-%s".format(GitBucketHome, owner, repository))
   
+  /**
+   * Substance directory of the wiki repository.
+   */
+  def getWikiRepositoryDir(owner: String, repository: String): File =
+    new File("%s/%s/%s.wiki.git".format(Directory.RepositoryHome, owner, repository))
+  
+  /**
+   * Wiki working directory which is cloned from the wiki repository.
+   */
+  def getWikiWorkDir(owner: String, repository: String): File = 
+    new File("%s/tmp/%s/%s.wiki".format(Directory.GitBucketHome, owner, repository))
+  
 }
