@@ -1,27 +1,25 @@
-@(pageName: String, page: Option[util.WikiUtil.WikiPageInfo], repository: app.RepositoryInfo)(implicit context: app.Context)
+@(pageName: String, page: util.WikiUtil.WikiPageInfo, repository: app.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers
 @import context._
 @html.main(pageName + " - " + repository.owner + "/" + repository.name){
   @html.header("wiki", repository)
   @wikitab((if(pageName == "Home") "home" else ""), repository)
-  @page.map { page =>
-    <ul class="nav nav-tabs">
-      <li>
-        <h1 class="wiki-title">@pageName</h1>
-      </li>
-      <li class="pull-right">
-        <div class="btn-group">
+  <ul class="nav nav-tabs">
+    <li>
+      <h1 class="wiki-title">@pageName</h1>
+    </li>
+    <li class="pull-right">
+      <div class="btn-group">
         <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
         <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_edit">Edit Page</a>
         <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_history">Page History</a>
-        </div>
-      </li>
-    </ul>
-    <div class="markdown-body">
-      @helpers.markdown(page.content, repository)
-    </div>
-    <div class="small">
-      <span class="description">Last edited by @page.committer at @helpers.datetime(page.time)</span>
-    </div>
-  }
+      </div>
+    </li>
+  </ul>
+  <div class="markdown-body">
+    @helpers.markdown(page.content, repository)
+  </div>
+  <div class="small">
+    <span class="description">Last edited by @page.committer at @helpers.datetime(page.time)</span>
+  </div>
 }

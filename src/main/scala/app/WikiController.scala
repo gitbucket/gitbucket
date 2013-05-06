@@ -26,19 +26,25 @@ class WikiController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    wiki.html.wiki("Home", 
-        WikiUtil.getPage(owner, repository, "Home"), 
+    WikiUtil.getPage(owner, repository, "Home") match {
+      case Some(page) => wiki.html.wiki("Home", page, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+      case None => wiki.html.wikiedit("Home", None, 
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    }
   }
   
   get("/:owner/:repository/wiki/:page"){
     val owner      = params("owner")
     val repository = params("repository")
-    val page       = params("page")
+    val pageName   = params("page")
     
-    wiki.html.wiki(page, 
-        WikiUtil.getPage(owner, repository, page), 
+    WikiUtil.getPage(owner, repository, pageName) match {
+      case Some(page) => wiki.html.wiki(pageName, page, 
         JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+      case None => wiki.html.wikiedit(pageName, None, 
+        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    }
   }
   
   get("/:owner/:repository/wiki/:page/_history"){
