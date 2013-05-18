@@ -8,8 +8,11 @@
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @diff.oldPath -> @diff.newPath
         }
-        @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.DELETE || diff.changeType == ChangeType.MODIFY){
+        @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          @diff.oldPath
         }
         @if(commitId.isDefined){
           <div class="pull-right align-right">
