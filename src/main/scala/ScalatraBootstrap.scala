@@ -8,6 +8,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new WikiController, "/*")
     context.mount(new CreateRepositoryController, "/*")
     context.mount(new RepositoryViewerController, "/*")
+    context.mount(new SettingsController, "/*")
     
     context.addListener(new ServletContextListener(){
       def contextInitialized(e: ServletContextEvent): Unit = {

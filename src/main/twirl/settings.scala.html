@@ -1,0 +1,39 @@
+@(repository: app.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@main("Settings"){
+  @header("settings", repository)
+  <form id="form" method="post" action="@path/new" validate="true">
+    <div class="box">
+      <div class="box-header">Settings</div>
+      <div class="box-content">
+        <fieldset>
+          <label for="defaultBranch"><strong>Default Branch</strong></label>
+          <select name="defaultBranch" id="defaultBranch">
+            <option value="master">master</option>
+          </select>
+        </fieldset>
+      </div>
+    </div>
+    <div class="box">
+      <div class="box-header">Features</div>
+        <div class="box-content">
+          <dl>
+            <dt>
+              <label class="checkbox">
+                <input type="checkbox" name="wiki" id="wiki"/> <strong>Wiki</strong>
+              </label>
+            </dt>
+            <dt>
+              <label class="checkbox">
+                <input type="checkbox" name="issue" id="issue"/> <strong>Issue</strong>
+              </label>
+            </dt>
+        </dl>
+      </div>
+    </div>
+    <fieldset>
+      <input type="submit" class="btn btn-primary" value="Apply changes"/>
+      <input type="submit" class="btn btn-danger" value="Delete this repository"/>
+    </fieldset>
+  </form>
+}

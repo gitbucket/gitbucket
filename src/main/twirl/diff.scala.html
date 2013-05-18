@@ -4,7 +4,7 @@
 @diffs.zipWithIndex.map { case (diff, i) =>
   <table class="table table-bordered">
     <tr>
-      <th style="font-weight: normal;">
+      <th style="font-weight: normal;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @diff.oldPath -> @diff.newPath
         }

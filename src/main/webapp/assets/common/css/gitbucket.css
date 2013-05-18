@@ -74,3 +74,51 @@ h1.wiki-title {
   cursor: default;
   width: 350px;
 }
+
+div.box {
+  background-color: #efefef;
+  padding: 2px;
+  margin-bottom: 20px;
+}
+
+div.box-header {
+  font-size: 120%;
+  font-weight: bold;
+  background-color: #e0e0e0;
+  background-image: -moz-linear-gradient(#fafafa, #e0e0e0);
+  background-image: -webkit-linear-gradient(#fafafa, #e0e0e0);
+  background-image: linear-gradient(#fafafa, #e0e0e0);
+  background-repeat: repeat-x;
+  margin: 0;
+  border-top-left-radius: 1px;
+  border-top-right-radius: 1px;
+  border: 1px solid #d8d8d8;
+  border-bottom: none;
+  padding: 10px 10px 11px 10px;
+  text-shadow: 0 1px 0 #fff
+}
+
+div.box-content {
+  background-color: white;
+  border: 1px solid silver;
+  padding: 4px;
+}
+
+th.box-header {
+  background-color: #e0e0e0;
+  background-image: -moz-linear-gradient(#fafafa, #e0e0e0);
+  background-image: -webkit-linear-gradient(#fafafa, #e0e0e0);
+  background-image: linear-gradient(#fafafa, #e0e0e0);
+  background-repeat: repeat-x;
+  margin: 0;
+  border-top-left-radius: 1px;
+  border-top-right-radius: 1px;
+  border: 1px solid #d8d8d8;
+  border-bottom: none;
+  text-shadow: 0 1px 0 #fff
+}
+
+
+dl {
+  margin: 0px;
+}
