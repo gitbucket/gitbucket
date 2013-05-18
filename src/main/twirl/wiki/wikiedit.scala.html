@@ -45,6 +45,7 @@
 <script>
 $(function(){
   $('#preview').click(function(){
+	$('#preview-area').html('<img src="@path/assets/common/images/indicator.gif"> Previewing...');
     $.post('@path/@repository.owner/@repository.name/wiki/_preview', {
       content: $('#content').val()
     }, function(data){
