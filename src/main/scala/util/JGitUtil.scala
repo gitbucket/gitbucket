@@ -155,6 +155,39 @@ object JGitUtil {
   }
   
   /**
+   * Returns the commit list between two revisions.
+   * 
+   * @param git the Git object
+   * @param from the from revision
+   * @param to the to revision
+   * @return the commit list
+   */
+  def getCommitLog(git: Git, from: String, to: String): List[CommitInfo] = {
+    @scala.annotation.tailrec
+    def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[CommitInfo]): List[CommitInfo] =
+      i.hasNext match {
+        case true  => {
+          val revCommit = i.next
+          if(revCommit.name == from){
+            logs 
+          } else {
+            getCommitLog(i, logs :+ new CommitInfo(revCommit))
+          }
+        }
+        case false => logs
+      }
+    
+    val revWalk = new RevWalk(git.getRepository)
+    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(to)))
+    
+    val commits = getCommitLog(revWalk.iterator, Nil)
+    revWalk.release
+    
+    commits.reverse
+  }
+  
+  
+  /**
    * Returns the latest RevCommit of the specified path.
    * 
    * @param git the Git object

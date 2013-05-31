@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
-import util.Directory
+import util.{JGitUtil, Directory}
 
 /**
  * Provides Git repository via HTTP.
@@ -43,36 +43,41 @@ class GitRepositoryServlet extends GitServlet {
 }
 
 class GitBucketRecievePackFactory extends ReceivePackFactory[HttpServletRequest] {
+  
+  private val logger = LoggerFactory.getLogger(classOf[GitBucketRecievePackFactory])
+  
   override def create(req: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    
-    println("----")
-    println("contextPath: " + req.getContextPath)
-    println("requestURI: " + req.getRequestURI)
-    println("remoteUser:" + req.getRemoteUser)
-    
     val userName = req.getSession.getAttribute("USER_INFO")
-    println("userName: " + userName)
     
-    println("----")
+    logger.debug("requestURI: " + req.getRequestURI)
+    logger.debug("userName:" + userName)
     
-    receivePack.setPostReceiveHook(new CommitLogHook())
+    val pathList = req.getRequestURI.split("/")
+    val owner      = pathList(2)
+    val repository = pathList(3).replaceFirst("\\.git$", "")
+    
+    logger.debug("repository:" + owner + "/" + repository)
+    
+    receivePack.setPostReceiveHook(new CommitLogHook(owner, repository))
     receivePack
   }
 }
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook extends PostReceiveHook {
+class CommitLogHook(owner: String, repository: String) extends PostReceiveHook {
+  
+  private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
+  
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
-    println("**** hook ****")
-    commands.asScala.foreach { command =>
-      println(command.getRefName)
-      println(command.getMessage)
-      println(command.getRef().getName())
-      println("--")
+    JGitUtil.withGit(Directory.getRepositoryDir(owner, repository)) { git =>
+      commands.asScala.foreach { command =>
+        JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name).foreach { commit =>
+          // TODO extract issue id and add comment to issue
+          logger.debug(commit.id + ":" + commit.message)
+        }
+      }
     }
-    
-    
   }
 }
