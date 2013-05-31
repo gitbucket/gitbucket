@@ -1,0 +1,15 @@
+@()(implicit context: app.Context)
+@import context._
+@main("Sign in"){
+  <form action="@path/signin" method="POST" validate="true">
+    <label for="email">Email</label>
+    <input type="text" name="email" id="email"/>
+    <span id="error-email" class="error-message"></span>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password"/>
+    <span id="error-password" class="error-message"></span>
+    <div>
+      <input type="submit" class="btn btn-primary" value="Sign in"/>
+    </div>
+  </form>
+}
