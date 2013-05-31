@@ -1,3 +1,25 @@
+table.global-nav {
+  width: 920px;
+  margin-bottom: 10px;
+}
+
+table.global-nav th {
+  padding-top: 5px;
+  padding-bottom: 8px;
+  width: 25%;
+  border-bottom: 2px solid silver;
+  cursor: pointer;
+}
+
+table.global-nav th.active {
+  border-bottom: 2px solid #D26911;
+}
+
+table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:visited {
+  color: black;
+  text-decoration: none;
+}
+
 div.head {
   font-size: large;
   margin-bottom: 10px;

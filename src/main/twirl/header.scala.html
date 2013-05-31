@@ -3,13 +3,27 @@
 <div class="head">
   <a href="@path/@repository.owner">@repository.owner</a> / <a href="@path/@repository.owner/@repository.name">@repository.name</a>
 </div>
-<div class="navbar">
-  <div class="navbar-inner">
-    <ul class="nav">
-      <li@if(active=="code"){ class="active"}><a href="@path/@repository.owner/@repository.name">Code</a></li>
-      <li@if(active=="issue"){ class="active"}><a href="#">Issue</a></li>
-      <li@if(active=="wiki"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki">Wiki</a></li>
-      <li@if(active=="settings"){ class="active"}><a href="@path/@repository.owner/@repository.name/settings">Settings</a></li>
-    </ul>
-  </div>
-</div>
+<table class="global-nav box-header">
+  <tr>
+    <th class="box-header@if(active=="code"){ active}">
+      <a href="@path/@repository.owner/@repository.name">Code</a>
+    </th>
+    <th class="box-header@if(active=="issue"){ active}">
+      <a href="#">Issue</a>
+    </th>
+    <th class="box-header@if(active=="wiki"){ active}">
+      <a href="@path/@repository.owner/@repository.name/wiki">Wiki</a>
+    </th>
+    <th class="box-header@if(active=="settings"){ active}">
+      <a href="@path/@repository.owner/@repository.name/settings">Settings</a>
+    </th>
+  </tr>  
+</table>
+<script type="text/javascript">
+$(function(){
+  $('.box-header').click(function(){
+    location.href = $(this).find('a').attr('href');
+    return false;
+  });
+});
+</script>
