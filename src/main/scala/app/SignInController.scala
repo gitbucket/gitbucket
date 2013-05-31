@@ -16,6 +16,7 @@ class SignInController extends ControllerBase {
   }
 
   post("/signin", form){ form =>
+    // TODO check email and password
     redirect("/%s".format(context.loginUser))
   }
 }
