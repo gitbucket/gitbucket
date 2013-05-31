@@ -1,10 +1,14 @@
 package servlet
 
-import java.io._
-import javax.servlet._
-import javax.servlet.http._
 import org.eclipse.jgit.http.server.GitServlet
+import org.eclipse.jgit.lib._
+import org.eclipse.jgit.transport._
+import org.eclipse.jgit.transport.resolver._
 import org.slf4j.LoggerFactory
+
+import javax.servlet.ServletConfig
+import javax.servlet.ServletContext
+import javax.servlet.http.HttpServletRequest
 import util.Directory
 
 /**
@@ -17,8 +21,10 @@ class GitRepositoryServlet extends GitServlet {
 
   private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
   
-  // TODO are there any other ways...?
   override def init(config: ServletConfig): Unit = {
+    setReceivePackFactory(new GitBucketRecievePackFactory())
+    
+    // TODO are there any other ways...?
     super.init(new ServletConfig(){
       def getInitParameter(name: String): String = name match {
         case "base-path"  => Directory.RepositoryHome
@@ -34,4 +40,39 @@ class GitRepositoryServlet extends GitServlet {
     });
   }
   
+}
+
+class GitBucketRecievePackFactory extends ReceivePackFactory[HttpServletRequest] {
+  override def create(req: HttpServletRequest, db: Repository): ReceivePack = {
+    val receivePack = new ReceivePack(db)
+    
+    println("----")
+    println("contextPath: " + req.getContextPath)
+    println("requestURI: " + req.getRequestURI)
+    println("remoteUser:" + req.getRemoteUser)
+    
+    val userName = req.getSession.getAttribute("USER_INFO")
+    println("userName: " + userName)
+    
+    println("----")
+    
+    receivePack.setPostReceiveHook(new CommitLogHook())
+    receivePack
+  }
+}
+
+import scala.collection.JavaConverters._
+
+class CommitLogHook extends PostReceiveHook {
+  def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
+    println("**** hook ****")
+    commands.asScala.foreach { command =>
+      println(command.getRefName)
+      println(command.getMessage)
+      println(command.getRef().getName())
+      println("--")
+    }
+    
+    
+  }
 }
