@@ -2,74 +2,66 @@
 @import context._
 @html.main("Settings"){
   @html.header("settings", repository)
-  <div class="row-fluid">
-    <div class="span3">
-      <ul class="nav nav-tabs nav-stacked">
-        <li class="active"><a href="@path/settings/options">Options</a></li>
-        <li><a href="@path/settings/collaborators">Collaborators</a></li>
-     </ul>
-    </div>
-    <div class="span9">
-      <form id="form" method="post" action="@path/new" validate="true">
-        <div class="box">
-          <div class="box-header">Settings</div>
-          <div class="box-content">
-            <fieldset>
-              <label for="defaultBranch"><strong>Default Branch</strong></label>
-              <select name="defaultBranch" id="defaultBranch">
-                <option value="master">master</option>
-              </select>
-            </fieldset>
-            <hr>
-            <fieldset>
-              <label><strong>Repository Type</strong></label>
-              <label>
-                <input type="radio" name="repositoryType" value="0" checked>
-                <strong>Public</strong> - All users and guests can read this repository.
-              </label>
-              <label>
-                <input type="radio" name="repositoryType" value="1">
-                <strong>Private</strong> - Only collaborators can read this repository.
-              </label>
-            </fieldset>
-          </div>
+  @menu("options"){
+    <form id="form" method="post" action="@path/new" validate="true">
+      <div class="box">
+        <div class="box-header">Settings</div>
+        <div class="box-content">
+          <fieldset>
+            <label for="defaultBranch"><strong>Default Branch</strong></label>
+            <select name="defaultBranch" id="defaultBranch">
+              <option value="master">master</option>
+            </select>
+          </fieldset>
+          <hr>
+          <fieldset>
+            <label><strong>Repository Type</strong></label>
+            <label>
+              <input type="radio" name="repositoryType" value="0" checked>
+              <strong>Public</strong> - All users and guests can read this repository.
+            </label>
+            <label>
+              <input type="radio" name="repositoryType" value="1">
+              <strong>Private</strong> - Only collaborators can read this repository.
+            </label>
+          </fieldset>
         </div>
-        <div class="box">
-          <div class="box-header">Features</div>
-          <div class="box-content">
-            <dl>
-              <dt>
-                <label class="checkbox">
-                  <input type="checkbox" name="wiki" id="wiki"/> <strong>Wiki</strong>
-                </label>
-              </dt>
-              <dd>
-                Adds lightweight Wiki system to this repository.
-                This is the simplest way to provide documentation or examples.
-                Only collaborators can edit Wiki pages.
-              </dd>
-            </dl>
-            <hr>
-            <dl>
-              <dt>
-                <label class="checkbox">
-                  <input type="checkbox" name="issue" id="issue"/> <strong>Issue</strong>
-                </label>
-              </dt>
-              <dd>
-                Adds lightweight issue tracking integrated with this repository.
-                All users who have signed in and can access this repository can register an issue.
-              </dd>
-            </dl>
-          </div>
+      </div>
+      <div class="box">
+        <div class="box-header">Features</div>
+        <div class="box-content">
+          <dl>
+            <dt>
+              <label class="checkbox">
+                <input type="checkbox" name="wiki" id="wiki"/> <strong>Wiki</strong>
+              </label>
+            </dt>
+            <dd>
+              Adds lightweight Wiki system to this repository.
+              This is the simplest way to provide documentation or examples.
+              Only collaborators can edit Wiki pages.
+            </dd>
+          </dl>
+          <hr>
+          <dl>
+            <dt>
+              <label class="checkbox">
+                <input type="checkbox" name="issue" id="issue"/> <strong>Issue</strong>
+              </label>
+            </dt>
+            <dd>
+              Adds lightweight issue tracking integrated with this repository.
+              All users who have signed in and can access this repository can register an issue.
+            </dd>
+          </dl>
         </div>
-        <fieldset>
-          <input type="submit" class="btn btn-primary" value="Apply changes"/>
-          <!--
-          <input type="submit" class="btn btn-danger" value="Delete this repository"/>
-          -->
-        </fieldset>
-      </form>
-    </div>
-  </div>
+      </div>
+      <fieldset>
+        <input type="submit" class="btn btn-primary" value="Apply changes"/>
+        <!--
+        <input type="submit" class="btn btn-danger" value="Delete this repository"/>
+        -->
+      </fieldset>
+    </form>
+  }
 }
