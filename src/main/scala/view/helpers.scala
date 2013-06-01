@@ -23,40 +23,45 @@ object helpers {
     value.replaceAll(" ", "&nbsp;").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll("\n", "<br>"))
 
   /**
-   * Converts Markdown of Wiki pages to HTML. This method supports Wiki links.
+   * Converts the issue number and the commit id to the link.
    */
-  def markdown(value: String, repository: app.RepositoryInfo)(implicit context: app.Context): twirl.api.Html = {
+  private def markdownFilter(value: String, repository: app.RepositoryInfo)(implicit context: app.Context): String = {
+    value
+      .replaceAll("#([0-9]+)", "[$0](%s/%s/%s/issue/$1)".format(context.path, repository.owner, repository.name))
+      .replaceAll("[0-9a-z]{10,40}", "[$0](%s/%s/%s/commit/$0)".format(context.path, repository.owner, repository.name))
+  }
+    
+  /**
+   * Converts Markdown of Wiki pages to HTML.
+   */
+  def markdown(value: String, repository: app.RepositoryInfo, wikiLink: Boolean)(implicit context: app.Context): twirl.api.Html = {
     import org.pegdown._
     val html = new PegDownProcessor(Extensions.AUTOLINKS|Extensions.WIKILINKS|Extensions.FENCED_CODE_BLOCKS)
-      .markdownToHtml(value, new LinkRenderer(){
+      .markdownToHtml(markdownFilter(value, repository), new LinkRenderer(){
         override def render(node: WikiLinkNode): Rendering = {
-          try {
-            val text = node.getText
-            val (label, page) = if(text.contains('|')){
-              val i = text.indexOf('|')
-              (text.substring(0, i), text.substring(i + 1))
-            } else {
-              (text, text)
+          if(wikiLink){
+            super.render(node)
+          } else {
+            try {
+              val text = node.getText
+              val (label, page) = if(text.contains('|')){
+                val i = text.indexOf('|')
+                (text.substring(0, i), text.substring(i + 1))
+              } else {
+                (text, text)
+              }
+              val url = "%s/%s/%s/wiki/%s".format(context.path, repository.owner, repository.name, 
+                java.net.URLEncoder.encode(page.replace(' ', '-'), "UTF-8"))
+              new Rendering(url, label);
+            } catch {
+              case e: java.io.UnsupportedEncodingException => throw new IllegalStateException();
             }
-            val url = "%s/%s/%s/wiki/%s".format(context.path, repository.owner, repository.name, 
-              java.net.URLEncoder.encode(page.replace(' ', '-'), "UTF-8"))
-            new Rendering(url, label);
-          } catch {
-            case e: java.io.UnsupportedEncodingException => throw new IllegalStateException();
           }
         }      
       })
     twirl.api.Html(html)
   }
   
-  /**
-   * Converts Markdown to HTML. This method does not support Wiki links.
-   */
-  def markdown(value: String): twirl.api.Html = {
-    val html = new PegDownProcessor(Extensions.FENCED_CODE_BLOCKS).markdownToHtml(value, new LinkRenderer())
-    twirl.api.Html(html)
-  }
-    
   /**
    * Cut the given string by specified length.
    */

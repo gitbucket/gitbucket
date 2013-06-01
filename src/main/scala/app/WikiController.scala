@@ -160,7 +160,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     val repository = params("repository")
     val content    = params("content")
     contentType = "text/html"
-    view.helpers.markdown(content, JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    view.helpers.markdown(content, JGitUtil.getRepositoryInfo(owner, repository, servletContext), true)
   }
   
   /**
