@@ -144,3 +144,12 @@ th.box-header {
 dl {
   margin: 0px;
 }
+
+dd {
+  margin-left: 20px;
+}
+
+hr {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}

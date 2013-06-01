@@ -7,8 +7,14 @@ class SettingsController extends ControllerBase {
   get("/:owner/:repository/settings") {
     val owner      = params("owner")
     val repository = params("repository")
+    redirect("/%s/%s/settings/options".format(owner, repository))
+  }
+  
+  get("/:owner/:repository/settings/options") {
+    val owner      = params("owner")
+    val repository = params("repository")
     
-    html.settings(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    settings.html.options(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
 
 }
