@@ -3,6 +3,7 @@ package servlet
 import javax.servlet._
 import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletRequest
+import scala.slick.session.Database
 
 /**
  * Controls the transaction with the open session in view pattern.
@@ -21,9 +22,14 @@ class TransactionFilter extends Filter {
       chain.doFilter(req, res)
     } else {
       // TODO begin transaction!
-      logger.debug("TODO begin transaction")
-      chain.doFilter(req, res)
-      logger.debug("TODO end transaction")
+      val context = req.getServletContext
+      Database.forURL(context.getInitParameter("db.url"),
+          context.getInitParameter("db.user"),
+          context.getInitParameter("db.password")) withTransaction {
+        logger.debug("TODO begin transaction")
+        chain.doFilter(req, res)
+        logger.debug("TODO end transaction")
+      }
     }
   }
   
