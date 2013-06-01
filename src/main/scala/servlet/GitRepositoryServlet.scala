@@ -79,5 +79,8 @@ class CommitLogHook(owner: String, repository: String) extends PostReceiveHook {
         }
       }
     }
+    
+    // TODO update repository last modified time.
+    
   }
 }
