@@ -16,5 +16,12 @@ class SettingsController extends ControllerBase {
     
     settings.html.options(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
   }
+  
+  get("/:owner/:repository/settings/collaborators") {
+    val owner      = params("owner")
+    val repository = params("repository")
+    
+    settings.html.collaborators(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+  }
 
 }

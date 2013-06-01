@@ -1,0 +1,11 @@
+@(repository: app.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@html.main("Settings"){
+  @html.header("settings", repository)
+  @menu("collaborators"){
+    <h3>Manage Collaborators</h3>
+    
+    <input type="text" style="width: 300px; margin-bottom: 0px;"/>
+    <input type="submit" class="btn" value="Add"/>
+  }
+}
