@@ -2,7 +2,7 @@
 @import context._
 @html.main("Settings"){
   @html.header("settings", repository)
-  @menu("options"){
+  @menu("options", repository){
     <form id="form" method="post" action="@path/new" validate="true">
       <div class="box">
         <div class="box-header">Settings</div>

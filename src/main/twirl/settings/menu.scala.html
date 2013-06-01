@@ -1,10 +1,14 @@
-@(active: String)(body: Html)(implicit context: app.Context)
+@(active: String, repository: app.RepositoryInfo)(body: Html)(implicit context: app.Context)
 @import context._
 <div class="row-fluid">
   <div class="span3">
     <ul class="nav nav-tabs nav-stacked">
-      <li class="active"><a href="@path/settings/options">Options</a></li>
-      <li><a href="@path/settings/collaborators">Collaborators</a></li>
+      <li@if(active=="options"){ class="active"}>
+        <a href="@path/@repository.owner/@repository.name/settings/options">Options</a>
+      </li>
+      <li@if(active=="collaborators"){ class="active"}>
+        <a href="@path/@repository.owner/@repository.name/settings/collaborators">Collaborators</a>
+      </li>
    </ul>
   </div>
   <div class="span9">
