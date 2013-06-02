@@ -80,16 +80,16 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Project
     }
   }
   
-  get("/:owner/:repository/wiki/:page/_edit"){
+  get("/:owner/:repository/wiki/:page/_edit")(usersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
     
     wiki.html.wikiedit(page, 
         getWikiPage(owner, repository, page), getRepository(owner, repository, servletContext).get)
-  }
+  })
   
-  post("/:owner/:repository/wiki/_edit", editForm){ form =>
+  post("/:owner/:repository/wiki/_edit", editForm)(usersOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -97,16 +97,16 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Project
         form.content, context.loginAccount.get, form.message.getOrElse(""))
     
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
-  }
+  })
   
-  get("/:owner/:repository/wiki/_new"){
+  get("/:owner/:repository/wiki/_new")(usersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     
     wiki.html.wikiedit("", None, getRepository(owner, repository, servletContext).get)
-  }
+  })
   
-  post("/:owner/:repository/wiki/_new", newForm){ form =>
+  post("/:owner/:repository/wiki/_new", newForm)(usersOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -114,9 +114,9 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Project
         form.content, context.loginAccount.get, form.message.getOrElse(""))
     
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
-  }
+  })
   
-  get("/:owner/:repository/wiki/:page/_delete"){
+  get("/:owner/:repository/wiki/:page/_delete")(usersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
@@ -124,7 +124,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Project
     deleteWikiPage(owner, repository, page, context.loginAccount.get.userName, "Delete %s".format(page))
     
     redirect("%s/%s/wiki".format(owner, repository))
-  }
+  })
   
   get("/:owner/:repository/wiki/_pages"){
     val owner      = params("owner")
