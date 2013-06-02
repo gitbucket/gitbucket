@@ -21,11 +21,12 @@ trait ProjectService { self: AccountService =>
     // TODO create a git repository also here?
 
     val currentDate = new java.sql.Date(System.currentTimeMillis)
+
     Projects.ins returning Projects.projectId insert
       Project(
         projectId        = None,
         projectName      = projectName,
-        userId           = getAccountByUserName(userName).get.userId.get,
+        userId           = getUserId(userName),
         projectType      = 0  /* 0:public, 1:private */,
         description      = description,
         defaultBranch    = "master",
@@ -33,5 +34,17 @@ trait ProjectService { self: AccountService =>
         updatedDate      = currentDate,
         lastActivityDate = currentDate)
   }
+
+  /**
+   * Returns the specified user's project list.
+   *
+   * @param userName the user name
+   * @return the project list which is sorted in descending order of lastActivityDate.
+   */
+  def getProjects(userName: String): List[Project] = {
+    Query(Projects) filter(_.userId is getUserId(userName).bind) sortBy(_.lastActivityDate desc) list
+  }
+
+  private def getUserId(userName: String): Long = getAccountByUserName(userName).get.userId.get
 
 }
