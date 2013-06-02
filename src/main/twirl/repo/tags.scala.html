@@ -1,4 +1,4 @@
-@(repository: app.RepositoryInfo)(implicit context: app.Context)
+@(repository: util.JGitUtil.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers
 @html.main(repository.owner + "/" + repository.name) {

@@ -25,7 +25,7 @@ object helpers {
   /**
    * Converts the issue number and the commit id to the link.
    */
-  private def markdownFilter(value: String, repository: app.RepositoryInfo)(implicit context: app.Context): String = {
+  private def markdownFilter(value: String, repository: util.JGitUtil.RepositoryInfo)(implicit context: app.Context): String = {
     value
       .replaceAll("#([0-9]+)", "[$0](%s/%s/%s/issue/$1)".format(context.path, repository.owner, repository.name))
       .replaceAll("[0-9a-z]{10,40}", "[$0](%s/%s/%s/commit/$0)".format(context.path, repository.owner, repository.name))
@@ -34,7 +34,7 @@ object helpers {
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
-  def markdown(value: String, repository: app.RepositoryInfo, wikiLink: Boolean)(implicit context: app.Context): twirl.api.Html = {
+  def markdown(value: String, repository: util.JGitUtil.RepositoryInfo, wikiLink: Boolean)(implicit context: app.Context): twirl.api.Html = {
     import org.pegdown._
     val html = new PegDownProcessor(Extensions.AUTOLINKS|Extensions.WIKILINKS|Extensions.FENCED_CODE_BLOCKS)
       .markdownToHtml(markdownFilter(value, repository), new LinkRenderer(){

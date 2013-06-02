@@ -1,7 +1,6 @@
 package util
 
 import org.eclipse.jgit.api.Git
-import app.{RepositoryInfo, FileInfo, CommitInfo, DiffInfo, TagInfo}
 import util.Directory._
 import scala.collection.JavaConverters._
 import javax.servlet.ServletContext
@@ -14,12 +13,68 @@ import org.eclipse.jgit.diff._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.eclipse.jgit.errors.MissingObjectException
+import java.util.Date
 
 /**
  * Provides complex JGit operations.
  */
 object JGitUtil {
-  
+
+  /**
+   * The repository data.
+   *
+   * @param owner the user name of the repository owner
+   * @param name the repository name
+   * @param url the repository URL
+   * @param branchList the list of branch names
+   * @param tags the list of tags
+   */
+  case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[TagInfo])
+
+  /**
+   * The file data for the file list of the repository viewer.
+   *
+   * @param id the object id
+   * @param isDirectory whether is it directory
+   * @param name the file (or directory) name
+   * @param time the last modified time
+   * @param message the last commit message
+   * @param committer the last committer name
+   */
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
+
+  /**
+   * The commit data.
+   *
+   * @param id the commit id
+   * @param time the commit time
+   * @param committer  the commiter name
+   * @param message the commit message
+   */
+  case class CommitInfo(id: String, time: Date, committer: String, message: String){
+    def this(rev: org.eclipse.jgit.revwalk.RevCommit) =
+      this(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage)
+  }
+
+  case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
+
+  /**
+   * The file content data for the file content view of the repository viewer.
+   *
+   * @param viewType "image", "large" or "other"
+   * @param content the string content
+   */
+  case class ContentInfo(viewType: String, content: Option[String])
+
+  /**
+   * The tag data.
+   *
+   * @param name the tag name
+   * @param time the tagged date
+   * @param id the commit id
+   */
+  case class TagInfo(name: String, time: Date, id: String)
+
   /**
    * Use this method to use the Git object.
    * Repository resources are released certainly after processing.

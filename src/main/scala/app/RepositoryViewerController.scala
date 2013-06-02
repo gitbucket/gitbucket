@@ -3,72 +3,15 @@ package app
 import util.Directory._
 import util.Implicits._
 import util.{JGitUtil, FileTypeUtil, CompressUtil}
-import model._
 import service._
 import org.scalatra._
 import java.io.File
-import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
-import org.eclipse.jgit.diff.DiffEntry.ChangeType
 
 // TODO Should models move to other package?
-/**
- * The repository data.
- * 
- * @param owner the user name of the repository owner
- * @param name the repository name
- * @param url the repository URL
- * @param branchList the list of branch names
- * @param tags the list of tags
- */
-case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[TagInfo])
-
-/**
- * The file data for the file list of the repository viewer.
- * 
- * @param id the object id
- * @param isDirectory whether is it directory
- * @param name the file (or directory) name
- * @param time the last modified time
- * @param message the last commit message
- * @param committer the last committer name
- */
-case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
-
-/**
- * The commit data.
- * 
- * @param id the commit id
- * @param time the commit time
- * @param committer  the commiter name
- * @param message the commit message
- */
-case class CommitInfo(id: String, time: Date, committer: String, message: String){
-  def this(rev: org.eclipse.jgit.revwalk.RevCommit) = 
-    this(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage)
-}
-
-case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
-
-/**
- * The file content data for the file content view of the repository viewer.
- * 
- * @param viewType "image", "large" or "other"
- * @param content the string content
- */
-case class ContentInfo(viewType: String, content: Option[String])
-
-/**
- * The tag data.
- * 
- * @param name the tag name
- * @param time the tagged date
- * @param id the commit id
- */
-case class TagInfo(name: String, time: Date, id: String)
 
 class RepositoryViewerController extends RepositoryViewerControllerBase with ProjectService with AccountService
 
@@ -191,10 +134,10 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
         // Viewer
         val large   = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
         val viewer  = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "text"
-        val content = ContentInfo(viewer, 
+        val content = JGitUtil.ContentInfo(viewer,
             if(viewer == "text") JGitUtil.getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
         
-        repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new CommitInfo(revCommit))
+        repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
       }
     }
   }
@@ -209,7 +152,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
     
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      repo.html.commit(id, new CommitInfo(revCommit), 
+      repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
           JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
     }
   }
@@ -300,7 +243,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
         // current path
         if(path == ".") Nil else path.split("/").toList,
         // latest commit
-        new CommitInfo(revCommit),
+        new JGitUtil.CommitInfo(revCommit),
         // file list
         files,
         // readme

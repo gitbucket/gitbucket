@@ -1,4 +1,4 @@
-@(pages: List[String], repository: app.RepositoryInfo)(implicit context: app.Context)
+@(pages: List[String], repository: util.JGitUtil.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers
 @import context._
 @html.main("Pages - " + repository.owner + "/" + repository.name){

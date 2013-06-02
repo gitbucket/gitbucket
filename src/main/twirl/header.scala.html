@@ -1,4 +1,4 @@
-@(active: String, repository: app.RepositoryInfo)(implicit context: app.Context)
+@(active: String, repository: util.JGitUtil.RepositoryInfo)(implicit context: app.Context)
 @import context._
 <div class="head">
   <a href="@path/@repository.owner">@repository.owner</a> / <a href="@path/@repository.owner/@repository.name">@repository.name</a>

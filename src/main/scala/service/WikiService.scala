@@ -4,7 +4,7 @@ import java.io.File
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
-import app.DiffInfo
+import util.JGitUtil.DiffInfo
 import util.{Directory, JGitUtil}
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser

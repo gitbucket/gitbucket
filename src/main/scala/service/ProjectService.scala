@@ -56,5 +56,5 @@ trait ProjectService { self: AccountService =>
 }
 
 object ProjectService {
-  case class RepositoryInfo(owner: String, name: String, project: Project, branchList: List[String], tagInfo: List[app.TagInfo])
+  case class RepositoryInfo(owner: String, name: String, project: Project, branchList: List[String], tagInfo: List[util.JGitUtil.TagInfo])
 }

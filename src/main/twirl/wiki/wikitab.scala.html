@@ -1,4 +1,4 @@
-@(active: String, repository: app.RepositoryInfo)(implicit context: app.Context)
+@(active: String, repository: util.JGitUtil.RepositoryInfo)(implicit context: app.Context)
 @import context._
 <ul class="nav nav-tabs">
   <li@if(active == "home"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki">Home</a></li>
