@@ -30,7 +30,7 @@ trait ProjectService { self: AccountService =>
         projectId        = None,
         projectName      = projectName,
         userId           = getUserId(userName),
-        projectType      = 0  /* 0:public, 1:private */,
+        projectType      = Public,
         description      = description,
         defaultBranch    = "master",
         registeredDate   = currentDate,
@@ -70,7 +70,7 @@ trait ProjectService { self: AccountService =>
         }
       }
       case None => {
-        (Query(Projects) filter(_.projectType is 0.bind) sortBy(_.lastActivityDate desc) list) map { project =>
+        (Query(Projects) filter(_.projectType is Public.bind) sortBy(_.lastActivityDate desc) list) map { project =>
           // TODO ユーザ名はジョインして取得する？
           val repositoryInfo = JGitUtil.getRepositoryInfo(getUserName(project.userId), project.projectName, servletContext)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
@@ -86,5 +86,9 @@ trait ProjectService { self: AccountService =>
 }
 
 object ProjectService {
+
+  val Public = 0
+  val Private = 1
+
   case class RepositoryInfo(owner: String, name: String, url: String, project: Project, branchList: List[String], tags: List[util.JGitUtil.TagInfo])
 }
