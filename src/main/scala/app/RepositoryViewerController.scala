@@ -3,6 +3,8 @@ package app
 import util.Directory._
 import util.Implicits._
 import util.{JGitUtil, FileTypeUtil, CompressUtil}
+import model._
+import service._
 import org.scalatra._
 import java.io.File
 import java.util.Date
@@ -10,16 +12,14 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
-import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import org.eclipse.jgit.revwalk.RevWalk
 
 // TODO Should models move to other package?
 /**
  * The repository data.
  * 
  * @param owner the user name of the repository owner
- * @param repository the repository name
+ * @param name the repository name
  * @param url the repository URL
  * @param branchList the list of branch names
  * @param tags the list of tags
@@ -70,10 +70,12 @@ case class ContentInfo(viewType: String, content: Option[String])
  */
 case class TagInfo(name: String, time: Date, id: String)
 
+class RepositoryViewerController extends RepositoryViewerControllerBase with ProjectService with AccountService
+
 /**
  * The repository viewer.
  */
-class RepositoryViewerController extends ControllerBase {
+trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectService =>
   
   // TODO separate to AccountController?
   /**
@@ -81,8 +83,8 @@ class RepositoryViewerController extends ControllerBase {
    */
   get("/:owner") {
     val owner = params("owner")
-    
-    html.user(owner, getRepositories(owner).map(JGitUtil.getRepositoryInfo(owner, _, servletContext)))
+
+    html.user(owner, getProjects(owner, servletContext))
   }
   
   /**
@@ -268,7 +270,7 @@ class RepositoryViewerController extends ControllerBase {
    * 
    * @param owner the repository owner
    * @param repository the repository name
-   * @param rev the branch name or commit id(optional)
+   * @param revstr the branch name or commit id(optional)
    * @param path the directory path (optional)
    * @return HTML of the file list
    */

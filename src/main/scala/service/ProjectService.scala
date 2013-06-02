@@ -3,8 +3,11 @@ package service
 import model._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
+import util.JGitUtil
+import javax.servlet.ServletContext
 
 trait ProjectService { self: AccountService =>
+  import ProjectService._
 
   /**
    * Creates a new project.
@@ -41,10 +44,17 @@ trait ProjectService { self: AccountService =>
    * @param userName the user name
    * @return the project list which is sorted in descending order of lastActivityDate.
    */
-  def getProjects(userName: String): List[Project] = {
-    Query(Projects) filter(_.userId is getUserId(userName).bind) sortBy(_.lastActivityDate desc) list
+  def getProjects(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
+    (Query(Projects) filter(_.userId is getUserId(userName).bind) sortBy(_.lastActivityDate desc) list).map { project =>
+      val repositoryInfo = JGitUtil.getRepositoryInfo(userName, project.projectName, servletContext)
+      RepositoryInfo(userName, project.projectName, project, repositoryInfo.branchList, repositoryInfo.tags)
+    }
   }
 
   private def getUserId(userName: String): Long = getAccountByUserName(userName).get.userId.get
 
+}
+
+object ProjectService {
+  case class RepositoryInfo(owner: String, name: String, project: Project, branchList: List[String], tagInfo: List[app.TagInfo])
 }
