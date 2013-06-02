@@ -7,10 +7,10 @@ class SignInController extends SignInControllerBase with AccountService
 
 trait SignInControllerBase extends ControllerBase { self: AccountService =>
   
-  case class SignInForm(email: String, password: String)
+  case class SignInForm(userName: String, password: String)
   
   val form = mapping(
-    "email"    -> trim(label("Email",    text(required))), 
+    "userName" -> trim(label("Username", text(required))),
     "password" -> trim(label("Password", text(required)))
   )(SignInForm.apply)
   
@@ -19,7 +19,7 @@ trait SignInControllerBase extends ControllerBase { self: AccountService =>
   }
 
   post("/signin", form){ form =>
-    val account = getAccountByUserName(form.email)
+    val account = getAccountByUserName(form.userName)
     if(account.isEmpty || account.get.password != form.password){
       redirect("/signin")
     } else {

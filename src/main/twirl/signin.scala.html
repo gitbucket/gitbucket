@@ -2,12 +2,12 @@
 @import context._
 @main("Sign in"){
   <form action="@path/signin" method="POST" validate="true">
-    <label for="email">Email</label>
-    <input type="text" name="email" id="email"/>
-    <span id="error-email" class="error-message"></span>
+    <label for="userName">Username</label>
+    <input type="text" name="userName" id="userName"/>
+    <span id="error-userName" class="error"></span>
     <label for="password">Password</label>
     <input type="password" name="password" id="password"/>
-    <span id="error-password" class="error-message"></span>
+    <span id="error-password" class="error"></span>
     <div>
       <input type="submit" class="btn btn-primary" value="Sign in"/>
     </div>
