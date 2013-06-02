@@ -33,6 +33,10 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectServi
    * Create new repository.
    */
   post("/new", form) { form =>
+    // Insert to the database at first
+    createProject(form.name, context.loginUser, Some(form.description))
+
+    // Create the actual repository
     val gitdir = getRepositoryDir(context.loginUser, form.name)
     val repository = new RepositoryBuilder().setGitDir(gitdir).setBare.build
 
@@ -63,9 +67,6 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectServi
       FileUtils.deleteDirectory(tmpdir)
     }
 
-    // insert to the database
-    createProject(form.name, context.loginUser, Some(form.description))
-    
     // redirect to the repository
     redirect("/%s/%s".format(context.loginUser, form.name))
   }
