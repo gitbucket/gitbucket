@@ -28,7 +28,7 @@ object helpers {
   private def markdownFilter(value: String, repository: service.ProjectService.RepositoryInfo)(implicit context: app.Context): String = {
     value
       .replaceAll("#([0-9]+)", "[$0](%s/%s/%s/issue/$1)".format(context.path, repository.owner, repository.name))
-      .replaceAll("[0-9a-z]{10,40}", "[$0](%s/%s/%s/commit/$0)".format(context.path, repository.owner, repository.name))
+      .replaceAll("[0-9a-f]{40}", "[$0](%s/%s/%s/commit/$0)".format(context.path, repository.owner, repository.name))
   }
     
   /**
