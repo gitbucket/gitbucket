@@ -11,14 +11,12 @@ import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 
-// TODO Should models move to other package?
-
 class RepositoryViewerController extends RepositoryViewerControllerBase with ProjectService with AccountService
 
 /**
  * The repository viewer.
  */
-trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectService =>
+trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectService with AccountService =>
   
   // TODO separate to AccountController?
   /**
@@ -27,7 +25,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
   get("/:owner") {
     val owner = params("owner")
 
-    html.user(owner, getRepositories(owner, servletContext))
+    html.user(getAccountByUserName(owner).get, getRepositories(owner, servletContext))
   }
   
   /**

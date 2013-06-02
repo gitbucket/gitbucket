@@ -1,16 +1,16 @@
-@(user: String, repositories: List[service.ProjectService.RepositoryInfo])(implicit context: app.Context)
+@(account: model.Account, repositories: List[service.ProjectService.RepositoryInfo])(implicit context: app.Context)
 @import context._
-@main(user){
+@main(account.userName){
   <div class="container-fluid">
     <div class="row-fluid">
       <div class="span4">
         <div class="block">
           <div class="block-header-1">Naoki Takezoe</div>
-          <div class="block-header-2">@user</div>
+          <div class="block-header-2">@account.userName</div>
         </div>
         <div class="block">
-          <div><i class="icon-home"></i> <a href="http://d.hatena.co.jp/takezoe">http://d.hatena.co.jp/takezoe</a></div>
-          <div><i class="icon-time"></i> <span class="description">Joined on</span> yyyy/mm/dd</div>
+          <div><i class="icon-home"></i> <a href="http://d.hatena.co.jp/takezoe">@account.url</a></div>
+          <div><i class="icon-time"></i> <span class="description">Joined on</span> @account.registeredDate</div>
         </div>
       </div>
       <div class="span8">
