@@ -8,10 +8,6 @@ import app.DiffInfo
 import util.{Directory, JGitUtil}
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
-import org.eclipse.jgit.treewalk.TreeWalk
-import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.diff.DiffEntry.ChangeType
 
 object WikiService {
   
