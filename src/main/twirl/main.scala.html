@@ -31,10 +31,14 @@
           <a class="brand" href="#">GitBucket</a>
           <div class="nav-collapse collapse">
             <ul class="nav pull-right">
-              <li><a href="@path/new">New repo</a></li>
-              <li><a href="@path/@context.loginUser">Account</a></li>
-              <li><a href="#users">Users</a></li>
-              <li><a href="#contact">Sign out</a></li>
+              @if(loginAccount.isDefined){
+                <li><a href="@path/new">New repo</a></li>
+                <li><a href="@path/@loginAccount.get.userName">Account</a></li>
+                <li><a href="#users">Users</a></li>
+                <li><a href="@path/signout">Sign out</a></li>
+              } else {
+                <li><a href="@path/signin">Sign in</a></li>
+              }
             </ul>
           </div><!--/.nav-collapse -->
         </div>

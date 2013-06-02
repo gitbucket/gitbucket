@@ -94,7 +94,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Project
     val repository = params("repository")
     
     saveWikiPage(owner, repository, form.currentPageName, form.pageName, 
-        form.content, context.loginUser, form.message.getOrElse(""))
+        form.content, context.loginAccount.get, form.message.getOrElse(""))
     
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   }
@@ -111,7 +111,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Project
     val repository = params("repository")
     
     saveWikiPage(owner, repository, form.currentPageName, form.pageName, 
-        form.content, context.loginUser, form.message.getOrElse(""))
+        form.content, context.loginAccount.get, form.message.getOrElse(""))
     
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   }
@@ -121,7 +121,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Project
     val repository = params("repository")
     val page       = params("page")
     
-    deleteWikiPage(owner, repository, page, context.loginUser, "Delete %s".format(page))
+    deleteWikiPage(owner, repository, page, context.loginAccount.get.userName, "Delete %s".format(page))
     
     redirect("%s/%s/wiki".format(owner, repository))
   }

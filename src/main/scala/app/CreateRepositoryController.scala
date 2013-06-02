@@ -8,12 +8,13 @@ import org.eclipse.jgit.lib._
 import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 
-class CreateRepositoryController extends CreateRepositoryControllerBase with ProjectService with AccountService
+class CreateRepositoryController extends CreateRepositoryControllerBase
+  with ProjectService with AccountService with WikiService
 
 /**
  * Creates new repository.
  */
-trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectService =>
+trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectService with WikiService =>
 
   case class RepositoryCreationForm(name: String, description: String) // TODO Option
 
@@ -25,19 +26,21 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectServi
   /**
    * Show the new repository form.
    */
-  get("/new") {
+  get("/new")(usersOnly {
     html.newrepo()
-  }
+  })
   
   /**
    * Create new repository.
    */
-  post("/new", form) { form =>
+  post("/new", form)(usersOnly { form =>
+    val loginUserName = context.loginAccount.get.userName
+
     // Insert to the database at first
-    createProject(form.name, context.loginUser, Some(form.description))
+    createProject(form.name, loginUserName, Some(form.description))
 
     // Create the actual repository
-    val gitdir = getRepositoryDir(context.loginUser, form.name)
+    val gitdir = getRepositoryDir(loginUserName, form.name)
     val repository = new RepositoryBuilder().setGitDir(gitdir).setBare.build
 
     repository.create
@@ -46,7 +49,7 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectServi
     config.setBoolean("http", null, "receivepack", true)
     config.save
 
-    val tmpdir = getInitRepositoryDir(context.loginUser, form.name)
+    val tmpdir = getInitRepositoryDir(loginUserName, form.name)
     try {
       // Clone the repository
       Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
@@ -67,9 +70,12 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectServi
       FileUtils.deleteDirectory(tmpdir)
     }
 
+    // Create Wiki repository
+    createWikiRepository(context.loginAccount.get, form.name)
+
     // redirect to the repository
-    redirect("/%s/%s".format(context.loginUser, form.name))
-  }
+    redirect("/%s/%s".format(loginUserName, form.name))
+  })
   
   /**
    * Constraint for the repository name.
@@ -78,7 +84,7 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectServi
     def validate(name: String, value: String): Option[String] = {
       if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
         Some("Repository name contains invalid character.")
-      } else if(getRepositories(context.loginUser, servletContext).contains(value)){
+      } else if(getRepositories(context.loginAccount.get.userName, servletContext).contains(value)){
         Some("Repository already exists.")
       } else {
         None

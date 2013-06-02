@@ -34,17 +34,16 @@ object WikiService {
 }
 
 trait WikiService {
-  
   import WikiService._
   
   // TODO synchronized?
-  def createWikiRepository(owner: String, repository: String): Unit = {
-    val dir = Directory.getWikiRepositoryDir(owner, repository)
+  def createWikiRepository(owner: model.Account, repository: String): Unit = {
+    val dir = Directory.getWikiRepositoryDir(owner.userName, repository)
     if(!dir.exists){
       val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
       try {
         repo.create
-        saveWikiPage(owner, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
+        saveWikiPage(owner.userName, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
       } finally {
         repo.close
       }
@@ -55,9 +54,6 @@ trait WikiService {
    * Returns the wiki page.
    */
   def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
-    // TODO create wiki repository in the repository setting changing.
-    createWikiRepository(owner, repository)
-    
     JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
       try {
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
@@ -82,11 +78,8 @@ trait WikiService {
    * Save the wiki page.
    */
   def saveWikiPage(owner: String, repository: String, currentPageName: String, newPageName: String,
-      content: String, committer: String, message: String): Unit = {
-    
-    // TODO create wiki repository in the repository setting changing.
-    createWikiRepository(owner, repository)
-    
+      content: String, committer: model.Account, message: String): Unit = {
+
     val workDir = Directory.getWikiWorkDir(owner, repository)
     
     // clone
@@ -118,8 +111,7 @@ trait WikiService {
     
       // commit and push
       if(added || deleted){
-        // TODO committer's mail address
-        git.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
+        git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(message).call
         git.push.call
       }
     }
@@ -129,8 +121,6 @@ trait WikiService {
    * Delete the wiki page.
    */
   def deleteWikiPage(owner: String, repository: String, pageName: String, committer: String, message: String): Unit = {
-    // TODO create wiki repository in the repository setting changing.
-    createWikiRepository(owner, repository)
     
     val workDir = Directory.getWikiWorkDir(owner, repository)
     
