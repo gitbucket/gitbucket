@@ -11,7 +11,7 @@ object Projects extends Table[Project]("PROJECT") {
   def defaultBranch = column[String]("DEFAULT_BRANCH")
   def registeredDate = column[java.sql.Date]("REGISTERED_DATE")	// TODO convert java.util.Date later
   def updatedDate = column[java.sql.Date]("UPDATED_DATE")
-  def lastActivityDate = column[java.sql.Date]("LAST_LOGIN_DATE")
+  def lastActivityDate = column[java.sql.Date]("LAST_ACTIVITY_DATE")
   def * = projectId.? ~ projectName ~ userId ~ projectType ~ description.? ~ defaultBranch ~ registeredDate ~ updatedDate ~ lastActivityDate <> (Project, Project.unapply _)
   def ins = projectName ~ userId ~ projectType ~ description.? ~ defaultBranch ~ registeredDate ~ updatedDate ~ lastActivityDate <> ({ t => Project(None, t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8)}, { (o: Project) => Some((o.projectName, o.userId, o.projectType, o.description, o.defaultBranch, o.registeredDate, o.updatedDate, o.lastActivityDate))})
 }

@@ -16,7 +16,7 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
   implicit def context: Context = Context(servletContext.getContextPath, LoginUser)
   
   // TODO get from session
-  private val LoginUser = System.getProperty("user.name")
+  private val LoginUser = "admin" //System.getProperty("user.name")
   
 }
 

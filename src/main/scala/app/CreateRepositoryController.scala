@@ -1,25 +1,27 @@
 package app
 
 import util.Directory._
-import org.scalatra._
+import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 
+class CreateRepositoryController extends CreateRepositoryControllerBase with ProjectService with AccountService
+
 /**
  * Creates new repository.
  */
-class CreateRepositoryController extends ControllerBase {
-  
-  case class RepositoryCreationForm(name: String, description: String)
-  
+trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectService =>
+
+  case class RepositoryCreationForm(name: String, description: String) // TODO Option
+
   val form = mapping(
-    "name"        -> trim(label("Repository name", text(required, maxlength(40), repository))), 
+    "name"        -> trim(label("Repository name", text(required, maxlength(40), repository))),
     "description" -> trim(label("Description"    , text()))
   )(RepositoryCreationForm.apply)
-  
+
   /**
    * Show the new repository form.
    */
@@ -60,6 +62,9 @@ class CreateRepositoryController extends ControllerBase {
     } finally {
       FileUtils.deleteDirectory(tmpdir)
     }
+
+    // insert to the database
+    createProject(form.name, context.loginUser, Some(form.description))
     
     // redirect to the repository
     redirect("/%s/%s".format(context.loginUser, form.name))
