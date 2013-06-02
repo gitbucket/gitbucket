@@ -4,11 +4,10 @@ import service._
 import util.JGitUtil
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
-import org.eclipse.jgit.api.Git
 
-class WikiController extends WikiControllerBase with WikiService
+class WikiController extends WikiControllerBase with WikiService with ProjectService with AccountService
 
-trait WikiControllerBase extends ControllerBase { self: WikiService =>
+trait WikiControllerBase extends ControllerBase { self: WikiService with ProjectService =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
@@ -31,10 +30,8 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     val repository = params("repository")
     
     getWikiPage(owner, repository, "Home") match {
-      case Some(page) => wiki.html.wiki("Home", page, 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
-      case None => wiki.html.wikiedit("Home", None, 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+      case Some(page) => wiki.html.wiki("Home", page, getRepository(owner, repository, servletContext).get)
+      case None => wiki.html.wikiedit("Home", None, getRepository(owner, repository, servletContext).get)
     }
   }
   
@@ -44,10 +41,8 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     val pageName   = params("page")
     
     getWikiPage(owner, repository, pageName) match {
-      case Some(page) => wiki.html.wiki(pageName, page, 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
-      case None => wiki.html.wikiedit(pageName, None, 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+      case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, servletContext).get)
+      case None => wiki.html.wikiedit(pageName, None, getRepository(owner, repository, servletContext).get)
     }
   }
   
@@ -58,8 +53,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikihistory(Some(page),
-        JGitUtil.getCommitLog(git, "master", path = page + ".md")._1,
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+        JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, getRepository(owner, repository, servletContext).get)
     }
   }
   
@@ -71,8 +65,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikicompare(Some(page),
-        getWikiDiffs(git, commitId(0), commitId(1)),
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+        getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, servletContext).get)
     }
   }
   
@@ -83,8 +76,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikicompare(None,
-        getWikiDiffs(git, commitId(0), commitId(1)),
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+        getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, servletContext).get)
     }
   }
   
@@ -94,8 +86,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     val page       = params("page")
     
     wiki.html.wikiedit(page, 
-        getWikiPage(owner, repository, page), 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+        getWikiPage(owner, repository, page), getRepository(owner, repository, servletContext).get)
   }
   
   post("/:owner/:repository/wiki/_edit", editForm){ form =>
@@ -112,8 +103,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     val owner      = params("owner")
     val repository = params("repository")
     
-    wiki.html.wikiedit("", None, 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    wiki.html.wikiedit("", None, getRepository(owner, repository, servletContext).get)
   }
   
   post("/:owner/:repository/wiki/_new", newForm){ form =>
@@ -140,8 +130,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     val owner      = params("owner")
     val repository = params("repository")
     
-    wiki.html.wikipages(getWikiPageList(owner, repository), 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    wiki.html.wikipages(getWikiPageList(owner, repository), getRepository(owner, repository, servletContext).get)
   }
   
   get("/:owner/:repository/wiki/_history"){
@@ -150,8 +139,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikihistory(None,
-        JGitUtil.getCommitLog(git, "master")._1, 
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+        JGitUtil.getCommitLog(git, "master")._1, getRepository(owner, repository, servletContext).get)
     }
   }
   
@@ -160,7 +148,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService =>
     val repository = params("repository")
     val content    = params("content")
     contentType = "text/html"
-    view.helpers.markdown(content, JGitUtil.getRepositoryInfo(owner, repository, servletContext), true)
+    view.helpers.markdown(content, getRepository(owner, repository, servletContext).get, true)
   }
   
   /**

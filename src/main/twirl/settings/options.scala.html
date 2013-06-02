@@ -1,4 +1,4 @@
-@(repository: util.JGitUtil.RepositoryInfo)(implicit context: app.Context)
+@(repository: service.ProjectService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @html.main("Settings"){
   @html.header("settings", repository)

@@ -1,4 +1,4 @@
-@(pageName: String, page: Option[service.WikiService.WikiPageInfo], repository: util.JGitUtil.RepositoryInfo)(implicit context: app.Context)
+@(pageName: String, page: Option[service.WikiService.WikiPageInfo], repository: service.ProjectService.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers
 @import context._
 @html.main((if(pageName == "") "New Page" else pageName) + " - " + repository.owner + "/" + repository.name){

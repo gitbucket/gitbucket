@@ -1,4 +1,4 @@
-@(branch: String, repository: util.JGitUtil.RepositoryInfo, pathList: List[String], content: util.JGitUtil.ContentInfo, latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
+@(branch: String, repository: service.ProjectService.RepositoryInfo, pathList: List[String], content: util.JGitUtil.ContentInfo, latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers
 @html.main(repository.owner+"/"+repository.name) {

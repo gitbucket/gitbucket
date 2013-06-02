@@ -44,10 +44,19 @@ trait ProjectService { self: AccountService =>
    * @param userName the user name
    * @return the project list which is sorted in descending order of lastActivityDate.
    */
-  def getProjects(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
-    (Query(Projects) filter(_.userId is getUserId(userName).bind) sortBy(_.lastActivityDate desc) list).map { project =>
+  def getRepositories(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
+    (Query(Projects) filter(_.userId is getUserId(userName).bind) sortBy(_.lastActivityDate desc) list) map { project =>
       val repositoryInfo = JGitUtil.getRepositoryInfo(userName, project.projectName, servletContext)
-      RepositoryInfo(userName, project.projectName, project, repositoryInfo.branchList, repositoryInfo.tags)
+      RepositoryInfo(userName, project.projectName, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
+    }
+  }
+
+  def getRepository(userName: String, projectName: String, servletContext: ServletContext): Option[RepositoryInfo] = {
+    (Query(Projects) filter { project =>
+      (project.userId is getUserId(userName).bind) && (project.projectName is projectName.bind)
+    } firstOption) map { project =>
+      val repositoryInfo = JGitUtil.getRepositoryInfo(userName, project.projectName, servletContext)
+      RepositoryInfo(userName, project.projectName, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
     }
   }
 
@@ -56,5 +65,5 @@ trait ProjectService { self: AccountService =>
 }
 
 object ProjectService {
-  case class RepositoryInfo(owner: String, name: String, project: Project, branchList: List[String], tagInfo: List[util.JGitUtil.TagInfo])
+  case class RepositoryInfo(owner: String, name: String, url: String, project: Project, branchList: List[String], tags: List[util.JGitUtil.TagInfo])
 }

@@ -1,8 +1,11 @@
 package app
 
-import util.JGitUtil
+import service._
 
-class SettingsController extends ControllerBase {
+class SettingsController extends SettingsControllerBase with ProjectService with AccountService
+
+
+trait SettingsControllerBase extends ControllerBase { self: ProjectService =>
   
   get("/:owner/:repository/settings") {
     val owner      = params("owner")
@@ -14,14 +17,14 @@ class SettingsController extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    settings.html.options(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    settings.html.options(getRepository(owner, repository, servletContext).get)
   }
   
   get("/:owner/:repository/settings/collaborators") {
     val owner      = params("owner")
     val repository = params("repository")
     
-    settings.html.collaborators(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    settings.html.collaborators(getRepository(owner, repository, servletContext).get)
   }
 
 }

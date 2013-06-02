@@ -27,7 +27,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
   get("/:owner") {
     val owner = params("owner")
 
-    html.user(owner, getProjects(owner, servletContext))
+    html.user(owner, getRepositories(owner, servletContext))
   }
   
   /**
@@ -72,7 +72,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
       val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30)
     
-      repo.html.commits(Nil, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+      repo.html.commits(Nil, branchName, getRepository(owner, repository, servletContext).get,
         logs.splitWith{ (commit1, commit2) =>
           view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
         }, page, hasNext)
@@ -92,7 +92,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
       val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30, path)
     
-      repo.html.commits(path.split("/").toList, branchName, JGitUtil.getRepositoryInfo(owner, repository, servletContext), 
+      repo.html.commits(path.split("/").toList, branchName, getRepository(owner, repository, servletContext).get,
         logs.splitWith{ (commit1, commit2) =>
           view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
         }, page, hasNext)
@@ -109,7 +109,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
     val id         = params("id") // branch name or commit id
     val raw        = params.get("raw").getOrElse("false").toBoolean
     val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
-    val repositoryInfo = JGitUtil.getRepositoryInfo(owner, repository, servletContext)
+    val repositoryInfo = getRepository(owner, repository, servletContext).get
 
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
@@ -153,7 +153,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
       repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
-          JGitUtil.getRepositoryInfo(owner, repository, servletContext), JGitUtil.getDiffs(git, id))
+          getRepository(owner, repository, servletContext).get, JGitUtil.getDiffs(git, id))
     }
   }
   
@@ -164,7 +164,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
     val owner      = params("owner")
     val repository = params("repository")
     
-    repo.html.tags(JGitUtil.getRepositoryInfo(owner, repository, servletContext))
+    repo.html.tags(getRepository(owner, repository, servletContext).get)
   }
   
   /**
@@ -239,7 +239,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
         // current branch
         revision, 
         // repository
-        JGitUtil.getRepositoryInfo(owner, repository, servletContext),
+        getRepository(owner, repository, servletContext).get,
         // current path
         if(path == ".") Nil else path.split("/").toList,
         // latest commit
