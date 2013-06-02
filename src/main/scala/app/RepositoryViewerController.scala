@@ -25,7 +25,7 @@ trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectServi
   get("/:owner") {
     val owner = params("owner")
 
-    html.user(getAccountByUserName(owner).get, getRepositories(owner, servletContext))
+    html.user(getAccountByUserName(owner).get, getRepositoriesOfUser(owner, servletContext))
   }
   
   /**

@@ -44,10 +44,10 @@ trait ProjectService { self: AccountService =>
    * @param userName the user name
    * @return the project list which is sorted in descending order of lastActivityDate.
    */
-  def getRepositories(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
+  def getRepositoriesOfUser(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
     (Query(Projects) filter(_.userId is getUserId(userName).bind) sortBy(_.lastActivityDate desc) list) map { project =>
       val repositoryInfo = JGitUtil.getRepositoryInfo(userName, project.projectName, servletContext)
-      RepositoryInfo(userName, project.projectName, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
+      RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
     }
   }
 
@@ -56,9 +56,30 @@ trait ProjectService { self: AccountService =>
       (project.userId is getUserId(userName).bind) && (project.projectName is projectName.bind)
     } firstOption) map { project =>
       val repositoryInfo = JGitUtil.getRepositoryInfo(userName, project.projectName, servletContext)
-      RepositoryInfo(userName, project.projectName, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
+      RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
     }
   }
+
+  def getAccessibleRepositories(account: Option[Account], servletContext: ServletContext): List[RepositoryInfo] = {
+    account match {
+      case Some(x) => {
+        (Query(Projects) sortBy(_.lastActivityDate desc) list) map { project =>
+          // TODO ユーザ名はジョインして取得する？
+          val repositoryInfo = JGitUtil.getRepositoryInfo(getUserName(project.userId), project.projectName, servletContext)
+          RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
+        }
+      }
+      case None => {
+        (Query(Projects) filter(_.projectType is 0.bind) sortBy(_.lastActivityDate desc) list) map { project =>
+          // TODO ユーザ名はジョインして取得する？
+          val repositoryInfo = JGitUtil.getRepositoryInfo(getUserName(project.userId), project.projectName, servletContext)
+          RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, project, repositoryInfo.branchList, repositoryInfo.tags)
+        }
+      }
+    }
+  }
+
+  private def getUserName(userId: Long): String = getAccountByUserId(userId).get.userName
 
   private def getUserId(userName: String): Long = getAccountByUserName(userName).get.userId.get
 

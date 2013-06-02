@@ -1,9 +1,12 @@
-@()(implicit context: app.Context)
+@(repositories: List[service.ProjectService.RepositoryInfo])(implicit context: app.Context)
 @import context._
 @main("GitBucket"){
-  <h1>GitBucket</h1>
-  <ul>
-    <li><a href="@path/@context.loginAccount.get.userName">User page</a></li>
-    <li><a href="@path/new">Create new repository</a></li>
-  </ul>
+  <h3>Recent updated repositories</h3>
+  @repositories.map { repository =>
+    <div class="block">
+      <div class="block-header-2"><a href="@path/@repository.owner/@repository.name">@repository.owner/@repository.name</a></div>
+      <div>@repository.project.description</div>
+      <div><span class="description small">Last updated: @repository.project.lastActivityDate</span></div>
+    </div>
+  }
 }
