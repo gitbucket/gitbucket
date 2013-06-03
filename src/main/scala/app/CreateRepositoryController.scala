@@ -9,12 +9,12 @@ import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
-  with ProjectService with AccountService with WikiService
+  with RepositoryService with AccountService with WikiService
 
 /**
  * Creates new repository.
  */
-trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectService with WikiService =>
+trait CreateRepositoryControllerBase extends ControllerBase { self: RepositoryService with WikiService =>
 
   case class RepositoryCreationForm(name: String, description: String) // TODO Option
 
@@ -37,7 +37,7 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: ProjectServi
     val loginUserName = context.loginAccount.get.userName
 
     // Insert to the database at first
-    createProject(form.name, loginUserName, Some(form.description))
+    createRepository(form.name, loginUserName, Some(form.description))
 
     // Create the actual repository
     val gitdir = getRepositoryDir(loginUserName, form.name)

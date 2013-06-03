@@ -2,10 +2,10 @@ package app
 
 import service._
 
-class SettingsController extends SettingsControllerBase with ProjectService with AccountService
+class SettingsController extends SettingsControllerBase with RepositoryService with AccountService
 
 
-trait SettingsControllerBase extends ControllerBase { self: ProjectService =>
+trait SettingsControllerBase extends ControllerBase { self: RepositoryService =>
   
   get("/:owner/:repository/settings") {
     val owner      = params("owner")

@@ -6,11 +6,11 @@ import Database.threadLocalSession
 import util.JGitUtil
 import javax.servlet.ServletContext
 
-trait ProjectService { self: AccountService =>
-  import ProjectService._
+trait RepositoryService { self: AccountService =>
+  import RepositoryService._
 
   /**
-   * Creates a new project.
+   * Creates a new repository.
    *
    * The project is created as public repository at first. Users can modify the project type at the repository settings
    * page after the project creation to configure the project as the private repository.
@@ -20,7 +20,7 @@ trait ProjectService { self: AccountService =>
    * @param description the project description
    * @return the created project id
    */
-  def createProject(repositoryName: String, userName: String, description: Option[String]): Long = {
+  def createRepository(repositoryName: String, userName: String, description: Option[String]): Long = {
     // TODO create a git repository also here?
     
     // TODO insert default labels.
@@ -103,7 +103,7 @@ trait ProjectService { self: AccountService =>
 
 }
 
-object ProjectService {
+object RepositoryService {
 
   val Public = 0
   val Private = 1

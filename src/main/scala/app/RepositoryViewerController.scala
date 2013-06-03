@@ -11,12 +11,14 @@ import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 
-class RepositoryViewerController extends RepositoryViewerControllerBase with ProjectService with AccountService
+class RepositoryViewerController extends RepositoryViewerControllerBase 
+  with RepositoryService with AccountService
 
 /**
  * The repository viewer.
  */
-trait RepositoryViewerControllerBase extends ControllerBase { self: ProjectService with AccountService =>
+trait RepositoryViewerControllerBase extends ControllerBase { 
+  self: RepositoryService with AccountService =>
   
   // TODO separate to AccountController?
   /**

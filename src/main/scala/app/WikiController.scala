@@ -5,9 +5,10 @@ import util.JGitUtil
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 
-class WikiController extends WikiControllerBase with WikiService with ProjectService with AccountService
+class WikiController extends WikiControllerBase 
+  with WikiService with RepositoryService with AccountService
 
-trait WikiControllerBase extends ControllerBase { self: WikiService with ProjectService =>
+trait WikiControllerBase extends ControllerBase { self: WikiService with RepositoryService =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   

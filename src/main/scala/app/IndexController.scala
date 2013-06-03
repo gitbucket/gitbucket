@@ -2,9 +2,9 @@ package app
 
 import service._
 
-class IndexController extends IndexControllerBase with ProjectService with AccountService
+class IndexController extends IndexControllerBase with RepositoryService with AccountService
 
-trait IndexControllerBase extends ControllerBase { self: ProjectService =>
+trait IndexControllerBase extends ControllerBase { self: RepositoryService =>
   
   get("/"){
     html.index(getAccessibleRepositories(context.loginAccount, servletContext))
