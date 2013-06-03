@@ -14,32 +14,32 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
     "userName" -> trim(label("Username", text(required, collaborator)))
   )(CollaboratorForm.apply)
 
-  get("/:owner/:repository/settings") {
+  get("/:owner/:repository/settings")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
     redirect("/%s/%s/settings/options".format(owner, repository))
-  }
+  })
   
-  get("/:owner/:repository/settings/options") {
+  get("/:owner/:repository/settings/options")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
     
     settings.html.options(getRepository(owner, repository, servletContext).get)
-  }
+  })
   
-  get("/:owner/:repository/settings/collaborators") {
+  get("/:owner/:repository/settings/collaborators")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
     
     settings.html.collaborators(getCollaborators(owner, repository), getRepository(owner, repository, servletContext).get)
-  }
+  })
 
-  post("/:owner/:repository/settings/collaborators/_add", form) { form =>
+  post("/:owner/:repository/settings/collaborators/_add", form)(ownerOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     addCollaborator(owner, repository, form.userName)
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
-  }
+  })
 
   def collaborator: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] = {
