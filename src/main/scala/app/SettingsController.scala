@@ -11,7 +11,7 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
   case class CollaboratorForm(userName: String)
 
   val form = mapping(
-    "userName" -> trim(label("Username", text(required, existUser)))
+    "userName" -> trim(label("Username", text(required, collaborator)))
   )(CollaboratorForm.apply)
 
   get("/:owner/:repository/settings") {
@@ -41,12 +41,19 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
   }
 
-  def existUser: Constraint = new Constraint(){
+  def collaborator: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] = {
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")
         case Some(x) if(x.userName == context.loginAccount.get.userName) => Some("User can access this repository already.")
-        case Some(x) => None
+        case Some(x) => {
+          val paths = request.getRequestURI.split("/")
+          if(getCollaborators(paths(1), paths(2)).contains(x.userName)){
+            Some("User can access this repository already.")
+          } else {
+            None
+          }
+        }
       }
     }
   }
