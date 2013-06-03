@@ -1,6 +1,7 @@
 package app
 
 import util.Directory._
+import util.UsersOnlyAuthenticator
 import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
@@ -9,12 +10,13 @@ import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
-  with RepositoryService with AccountService with WikiService
+  with RepositoryService with AccountService with WikiService with UsersOnlyAuthenticator
 
 /**
  * Creates new repository.
  */
-trait CreateRepositoryControllerBase extends ControllerBase { self: RepositoryService with WikiService =>
+trait CreateRepositoryControllerBase extends ControllerBase {
+  self: RepositoryService with WikiService with UsersOnlyAuthenticator =>
 
   case class RepositoryCreationForm(name: String, description: String) // TODO Option?
 

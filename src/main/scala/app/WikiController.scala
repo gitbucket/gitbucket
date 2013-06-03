@@ -1,14 +1,15 @@
 package app
 
 import service._
-import util.JGitUtil
+import util.{CollaboratorsOnlyAuthenticator, JGitUtil}
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 
 class WikiController extends WikiControllerBase 
-  with WikiService with RepositoryService with AccountService
+  with WikiService with RepositoryService with AccountService with CollaboratorsOnlyAuthenticator
 
-trait WikiControllerBase extends ControllerBase { self: WikiService with RepositoryService =>
+trait WikiControllerBase extends ControllerBase {
+  self: WikiService with RepositoryService with CollaboratorsOnlyAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
@@ -81,7 +82,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
     }
   }
   
-  get("/:owner/:repository/wiki/:page/_edit")(usersOnly {
+  get("/:owner/:repository/wiki/:page/_edit")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
@@ -90,7 +91,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
         getWikiPage(owner, repository, page), getRepository(owner, repository, servletContext).get)
   })
   
-  post("/:owner/:repository/wiki/_edit", editForm)(usersOnly { form =>
+  post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -100,14 +101,14 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   })
   
-  get("/:owner/:repository/wiki/_new")(usersOnly {
+  get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
     
     wiki.html.wikiedit("", None, getRepository(owner, repository, servletContext).get)
   })
   
-  post("/:owner/:repository/wiki/_new", newForm)(usersOnly { form =>
+  post("/:owner/:repository/wiki/_new", newForm)(collaboratorsOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -117,7 +118,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   })
   
-  get("/:owner/:repository/wiki/:page/_delete")(usersOnly {
+  get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")

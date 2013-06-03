@@ -1,12 +1,15 @@
 package app
 
 import service._
+import util.OwnerOnlyAuthenticator
 import jp.sf.amateras.scalatra.forms._
 
-class SettingsController extends SettingsControllerBase with RepositoryService with AccountService
+class SettingsController extends SettingsControllerBase
+  with RepositoryService with AccountService with OwnerOnlyAuthenticator
 
 
-trait SettingsControllerBase extends ControllerBase { self: RepositoryService with AccountService =>
+trait SettingsControllerBase extends ControllerBase {
+  self: RepositoryService with AccountService with OwnerOnlyAuthenticator =>
 
   case class CollaboratorForm(userName: String)
 
