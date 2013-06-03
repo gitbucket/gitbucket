@@ -1,4 +1,4 @@
-@(diffs: Seq[util.JGitUtil.DiffInfo], repository: service.ProjectService.RepositoryInfo, commitId: Option[String])(implicit context: app.Context)
+@(diffs: Seq[util.JGitUtil.DiffInfo], repository: service.RepositoryService.RepositoryInfo, commitId: Option[String])(implicit context: app.Context)
 @import context._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @diffs.zipWithIndex.map { case (diff, i) =>

@@ -1,4 +1,4 @@
-@(active: String, repository: service.ProjectService.RepositoryInfo)(implicit context: app.Context)
+@(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 <div class="head">
   <a href="@path/@repository.owner">@repository.owner</a> / <a href="@path/@repository.owner/@repository.name">@repository.name</a>

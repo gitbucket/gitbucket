@@ -1,4 +1,4 @@
-@(branch: String, commit: util.JGitUtil.CommitInfo, repository: service.ProjectService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
+@(branch: String, commit: util.JGitUtil.CommitInfo, repository: service.RepositoryService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
 @import context._
 @import view.helpers
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType

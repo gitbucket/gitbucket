@@ -1,4 +1,4 @@
-@(repository: service.ProjectService.RepositoryInfo)(implicit context: app.Context)
+@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers
 @html.main(repository.owner + "/" + repository.name) {
