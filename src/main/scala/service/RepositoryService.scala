@@ -16,11 +16,10 @@ trait RepositoryService { self: AccountService =>
    * page after the project creation to configure the project as the private repository.
    *
    * @param repositoryName the repository name
-   * @param userName the user name of the project owner
-   * @param description the project description
-   * @return the created project id
+   * @param userName the user name of the repository owner
+   * @param description the repository description
    */
-  def createRepository(repositoryName: String, userName: String, description: Option[String]): Long = {
+  def createRepository(repositoryName: String, userName: String, description: Option[String]): Unit = {
     // TODO create a git repository also here?
     
     // TODO insert default labels.
@@ -40,11 +39,11 @@ trait RepositoryService { self: AccountService =>
   }
 
   /**
-   * Returns the specified user's repository informations.
+   * Returns the list of specified user's repositories information.
    *
    * @param userName the user name
    * @param servletContext the servlet context
-   * @return the repository informations which is sorted in descending order of lastActivityDate.
+   * @return the list of repository information which is sorted in descending order of lastActivityDate.
    */
   def getRepositoriesOfUser(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
     (Query(Repositories) filter(_.userName is userName.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
@@ -56,7 +55,7 @@ trait RepositoryService { self: AccountService =>
   /**
    * Returns the specified repository information.
    * 
-   * @param userName the user name
+   * @param userName the user name of the repository owner
    * @param repositoryName the repository name
    * @param servletContext the servlet context
    * @return the repository information
@@ -71,7 +70,7 @@ trait RepositoryService { self: AccountService =>
   }
 
   /**
-   * Returns the accessible repository informations for the specified account user.
+   * Returns the list of accessible repositories information for the specified account user.
    * 
    * @param account the account
    * @param servletContext the servlet context
@@ -103,13 +102,28 @@ trait RepositoryService { self: AccountService =>
       }
     }
   }
-  
+
   /**
-   * Updates the last activity date of the project.
+   * TODO Updates the last activity date of the repository.
    */
-  def updateLastActivityDate(userName: String, projectName: String): Unit = {
+  def updateLastActivityDate(userName: String, repositoryName: String): Unit = {
     
   }
+
+  /**
+   * Add collaborator to the repository.
+   *
+   * @param userName the user name of the repository owner
+   * @param repositoryName the repository name
+   * @param collaboratorName the collaborator name
+   */
+  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String): Unit =
+    Collaborators.* insert(Collaborator(userName, repositoryName, collaboratorName))
+
+  def getCollaborators(userName: String, repositoryName: String): List[String] =
+    (Query(Collaborators) filter { collaborator =>
+      (collaborator.userName is userName.bind) && (collaborator.repositoryName is repositoryName.bind)
+    } sortBy(_.collaboratorName) list) map(_.collaboratorName)
 
 }
 

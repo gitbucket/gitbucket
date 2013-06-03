@@ -1,11 +1,20 @@
-@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(collaborators: List[String], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @html.main("Settings"){
   @html.header("settings", repository)
   @menu("collaborators", repository){
     <h3>Manage Collaborators</h3>
-    
-    <input type="text" style="width: 300px; margin-bottom: 0px;"/>
-    <input type="submit" class="btn" value="Add"/>
+    <ul>
+      @collaborators.map { collaboratorName =>
+        <li>@collaboratorName</li>
+      }
+    </ul>
+    <form method="POST" action="@path/@repository.owner/@repository.name/settings/collaborators/_add" validate="true">
+      <div>
+        <span class="error" id="error-userName"></span>
+      </div>
+      <input type="text" name="userName" id="userName" style="width: 300px; margin-bottom: 0px;"/>
+      <input type="submit" class="btn" value="Add"/>
+    </form>
   }
 }

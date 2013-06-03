@@ -16,7 +16,7 @@ class CreateRepositoryController extends CreateRepositoryControllerBase
  */
 trait CreateRepositoryControllerBase extends ControllerBase { self: RepositoryService with WikiService =>
 
-  case class RepositoryCreationForm(name: String, description: String) // TODO Option
+  case class RepositoryCreationForm(name: String, description: String) // TODO Option?
 
   val form = mapping(
     "name"        -> trim(label("Repository name", text(required, maxlength(40), repository))),
