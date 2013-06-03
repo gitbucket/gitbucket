@@ -10,3 +10,10 @@ trait AccountService {
     Query(Accounts) filter(_.userName is userName.bind) firstOption
 
 }
+
+object AccountService {
+
+  val Normal = 0
+  val Administrator = 1
+
+}

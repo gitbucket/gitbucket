@@ -79,12 +79,22 @@ trait RepositoryService { self: AccountService =>
    */
   def getAccessibleRepositories(account: Option[Account], servletContext: ServletContext): List[RepositoryInfo] = {
     account match {
-      case Some(x) => {
+      // for Administrators
+      case Some(x) if(x.userType == AccountService.Administrator) => {
         (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
           val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
       }
+      // for Normal Users
+      case Some(x) if(x.userType == AccountService.Normal) => {
+        // TODO only repositories registered as collaborator
+        (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
+          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
+          RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
+        }
+      }
+      // for Guests
       case None => {
         (Query(Repositories) filter(_.repositoryType is Public.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
           val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
