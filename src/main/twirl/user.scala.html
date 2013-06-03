@@ -26,8 +26,8 @@
         @repositories.map { repository =>
         <div class="block">
           <div class="block-header-2"><a href="@path/@repository.owner/@repository.name">@repository.name</a></div>
-          <div>@repository.project.description</div>
-          <div><span class="description small">Last updated: @repository.project.lastActivityDate</span></div>
+          <div>@repository.repository.description</div>
+          <div><span class="description small">Last updated: @repository.repository.lastActivityDate</span></div>
         </div>
         }
       </div>
