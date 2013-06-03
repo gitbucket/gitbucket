@@ -22,6 +22,8 @@ trait ProjectService { self: AccountService =>
    */
   def createProject(repositoryName: String, userName: String, description: Option[String]): Long = {
     // TODO create a git repository also here?
+    
+    // TODO insert default labels.
 
     val currentDate = new java.sql.Date(System.currentTimeMillis)
 
@@ -79,14 +81,12 @@ trait ProjectService { self: AccountService =>
     account match {
       case Some(x) => {
         (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
-          // TODO ユーザ名はジョインして取得する？
           val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
       }
       case None => {
         (Query(Repositories) filter(_.repositoryType is Public.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
-          // TODO ユーザ名はジョインして取得する？
           val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
@@ -100,10 +100,6 @@ trait ProjectService { self: AccountService =>
   def updateLastActivityDate(userName: String, projectName: String): Unit = {
     
   }
-
-//  private def getUserName(userId: Long): String = getAccountByUserId(userId).get.userName
-//
-//  private def getUserId(userName: String): Long = getAccountByUserName(userName).get.userId.get
 
 }
 
