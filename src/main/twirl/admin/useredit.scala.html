@@ -1,0 +1,40 @@
+@(account: Option[model.Account])(implicit context: app.Context)
+@import context._
+@import service.AccountService._
+@html.main(if(account.isEmpty) "New User" else "Update User"){
+  <form method="POST" action="@if(account.isEmpty){@path/admin/users/_new} else {@path/admin/users/@account.get.userName/_edit}" validate="true">
+    <fieldset>
+      <label for="userName"><strong>Username</strong></label>
+      <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+      <span id="error-userName" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <label for="password"><strong>Password</strong></label>
+      <input type="password" name="password" id="password" value="@account.map(_.password)"/>
+      <span id="error-password" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <label for="mailAddress"><strong>Mail Address</strong></label>
+      <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
+      <span id="error-mailAddress" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <label><strong>User Type</strong></label>
+      <label for="userType_Normal">
+        <input type="radio" name="userType" id="userType_Normal" value="@Normal"@if(account.isEmpty || account.get.userType==Normal){ checked}/> Normal
+      </label>
+      <label for="userType_Admin">
+        <input type="radio" name="userType" id="userType_Admin" value="@Administrator"@if(account.isDefined && account.get.userType==Administrator){ checked}/> Administrator
+      </label>
+    </fieldset>
+    <fieldset>
+      <label><strong>URL (Optional)</strong></label>
+      <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
+      <span id="error-url" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <input type="submit" class="btn btn-primary" value="@if(account.isEmpty){Create User} else {Update User}"/>
+      <a href="@path/admin/users" class="btn">Cancel</a>
+    </fieldset>
+  </form>
+}

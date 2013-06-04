@@ -4,12 +4,15 @@
   @html.header("settings", repository)
   @menu("collaborators", repository){
     <h3>Manage Collaborators</h3>
-    <ul>
+    <ul class="collaborator">
       @collaborators.map { collaboratorName =>
-        <li>@collaboratorName</li>
+        <li>
+          <a href="@path/@collaboratorName">@collaboratorName</a>
+          <a href="@path/@repository.owner/@repository.name/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
+        </li>
       }
     </ul>
-    <form method="POST" action="@path/@repository.owner/@repository.name/settings/collaborators/_add" validate="true">
+    <form method="POST" action="@path/@repository.owner/@repository.name/settings/collaborators/add" validate="true">
       <div>
         <span class="error" id="error-userName"></span>
       </div>

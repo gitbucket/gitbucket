@@ -7,22 +7,35 @@ import jp.sf.amateras.scalatra.forms._
 class SettingsController extends SettingsControllerBase
   with RepositoryService with AccountService with OwnerOnlyAuthenticator
 
-
 trait SettingsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with OwnerOnlyAuthenticator =>
 
+  case class OptionsForm(description: Option[String], defaultBranch: String, repositoryType: Int)
+  
+  val optionsForm = mapping(
+    "description"    -> trim(label("Description"    , optional(text()))),
+    "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100)))),
+    "repositoryType" -> trim(label("Repository Type", number()))
+  )(OptionsForm.apply)
+  
   case class CollaboratorForm(userName: String)
 
-  val form = mapping(
+  val collaboratorForm = mapping(
     "userName" -> trim(label("Username", text(required, collaborator)))
   )(CollaboratorForm.apply)
 
+  /**
+   * Redirect to the Options page.
+   */
   get("/:owner/:repository/settings")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
     redirect("/%s/%s/settings/options".format(owner, repository))
   })
   
+  /**
+   * Display the Options page.
+   */
   get("/:owner/:repository/settings/options")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
@@ -30,6 +43,22 @@ trait SettingsControllerBase extends ControllerBase {
     settings.html.options(getRepository(owner, repository, servletContext).get)
   })
   
+  /**
+   * Save the repository options.
+   */
+  post("/:owner/:repository/settings/options", optionsForm){ form =>
+    val owner      = params("owner")
+    val repository = params("repository")
+    
+    // save repository options
+    saveRepositoryOptions(owner, repository, form.description, form.defaultBranch, form.repositoryType)
+    
+    redirect("%s/%s/settings/options".format(owner, repository))
+  }
+  
+  /**
+   * Display the Collaborators page.
+   */
   get("/:owner/:repository/settings/collaborators")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
@@ -37,13 +66,31 @@ trait SettingsControllerBase extends ControllerBase {
     settings.html.collaborators(getCollaborators(owner, repository), getRepository(owner, repository, servletContext).get)
   })
 
-  post("/:owner/:repository/settings/collaborators/_add", form)(ownerOnly { form =>
+  /**
+   * Add the collaborator.
+   */
+  post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     addCollaborator(owner, repository, form.userName)
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
   })
 
+  /**
+   * Add the collaborator.
+   */
+  get("/:owner/:repository/settings/collaborators/remove")(ownerOnly {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val userName   = params("name")
+    removeCollaborator(owner, repository, userName)
+    redirect("/%s/%s/settings/collaborators".format(owner, repository))
+  })
+  
+  
+  /**
+   * Provides Constraint to validate the collaborator name.
+   */
   def collaborator: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] = {
       getAccountByUserName(value) match {
