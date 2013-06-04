@@ -15,7 +15,7 @@ import util.{JGitUtil, Directory}
  * Provides Git repository via HTTP.
  * 
  * This servlet provides only Git repository functionality.
- * Authentication is provided by [[app.BasicAuthenticationFilter]].
+ * Authentication is provided by [[servlet.BasicAuthenticationFilter]].
  */
 class GitRepositoryServlet extends GitServlet {
 
@@ -48,7 +48,7 @@ class GitBucketRecievePackFactory extends ReceivePackFactory[HttpServletRequest]
   
   override def create(req: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    val userName = req.getSession.getAttribute("USER_INFO")
+    val userName = req.getAttribute("USER_NAME")
     
     logger.debug("requestURI: " + req.getRequestURI)
     logger.debug("userName:" + userName)

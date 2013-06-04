@@ -2,12 +2,16 @@ package servlet
 
 import javax.servlet._
 import javax.servlet.http._
+import service.{AccountService, RepositoryService}
+import org.slf4j.LoggerFactory
 
 /**
- * Provides BASIC Authentication for [[app.GitRepositoryServlet]].
+ * Provides BASIC Authentication for [[servlet.GitRepositoryServlet]].
  */
-class BasicAuthenticationFilter extends Filter {
-  
+class BasicAuthenticationFilter extends Filter with RepositoryService with AccountService {
+
+  private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationFilter])
+
   def init(config: FilterConfig) = {}
   
   def destroy(): Unit = {}
@@ -15,25 +19,40 @@ class BasicAuthenticationFilter extends Filter {
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     val request  = req.asInstanceOf[HttpServletRequest]
     val response = res.asInstanceOf[HttpServletResponse]
-    val session  = request.getSession
-    
+
     try {
-      session.getAttribute("USER_INFO") match {
-        case null => request.getHeader("Authorization") match {
-          case null => requireAuth(response)
-          case auth => decodeAuthHeader(auth).split(":") match {
-            // TODO authenticate using registered user info
-            case Array(username, password) if(username == "gitbucket" && password == "password") => {
-              session.setAttribute("USER_INFO", "gitbucket")
-              chain.doFilter(req, res)
-            }
-            case _ => requireAuth(response)
+      request.getHeader("Authorization") match {
+        case null => requireAuth(response)
+        case auth => decodeAuthHeader(auth).split(":") match {
+          case Array(username, password) if(isValidUser(username, password, request)) => {
+            request.setAttribute("USER_NAME", username)
+            chain.doFilter(req, res)
           }
+          case _ => requireAuth(response)
         }
-        case user => chain.doFilter(req, res)
       }
     } catch {
-      case _: Exception => requireAuth(response)
+      case ex: Exception => {
+        logger.error("error", ex)
+        requireAuth(response)
+      }
+    }
+  }
+
+  // TODO If the repository is public, it must allow users which have readable right.
+  private def isValidUser(username: String, password: String, request: HttpServletRequest): Boolean = {
+    val paths = request.getRequestURI.split("/")
+    getAccountByUserName(username) match {
+      case Some(account) if(account.password == password) => {
+        if(account.userType == AccountService.Administrator // administrator
+          || account.userName == paths(2) // repository owner
+          || getCollaborators(paths(2), paths(3).replaceFirst("\\.git$", "")).contains(account.userName)){ // collaborator
+          true
+        } else {
+          false
+        }
+      }
+      case _ => false
     }
   }
   
