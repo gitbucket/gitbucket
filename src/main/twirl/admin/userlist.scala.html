@@ -1,10 +1,11 @@
 @(users: List[model.Account])(implicit context: app.Context)
 @import context._
+@import service.AccountService._
 @html.main("Manage Users"){
   <div style="text-align: right; margin-bottom: 4px;">
     <a href="@path/admin/users/_new" class="btn">New User</a>
   </div>
-  <table class="table table-borderd">
+  <table class="table table-borderd table-hover">
     <tr>
       <th>Username</th>
       <th>Mail Address</th>
@@ -19,10 +20,10 @@
         <td><a href="@path/admin/users/@account.userName/_edit">@account.userName</a></td>
         <td>@account.mailAddress</td>
         <td>
-          @if(account.userType == service.AccountService.Normal){
+          @if(account.userType == Normal){
             Normal
           }
-          @if(account.userType == service.AccountService.Administrator){
+          @if(account.userType == Administrator){
             Administrator
           }
         </td>

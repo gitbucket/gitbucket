@@ -1,5 +1,6 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import service.AccountService._
 <div class="head">
   <a href="@path/@repository.owner">@repository.owner</a> / <a href="@path/@repository.owner/@repository.name">@repository.name</a>
 </div>
@@ -14,7 +15,7 @@
     <th class="box-header@if(active=="wiki"){ active}">
       <a href="@path/@repository.owner/@repository.name/wiki">Wiki</a>
     </th>
-    @if(loginAccount.isDefined && (loginAccount.get.userType == 1 || loginAccount.get.userName == repository.owner)){
+    @if(loginAccount.isDefined && (loginAccount.get.userType == Administrator || loginAccount.get.userName == repository.owner)){
     <th class="box-header@if(active=="settings"){ active}">
       <a href="@path/@repository.owner/@repository.name/settings">Settings</a>
     </th>

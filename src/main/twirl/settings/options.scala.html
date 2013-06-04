@@ -1,5 +1,6 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import service.RepositoryService._
 @html.main("Settings"){
   @html.header("settings", repository)
   @menu("options", repository){
@@ -24,11 +25,11 @@
           <fieldset>
             <label><strong>Repository Type</strong></label>
             <label>
-              <input type="radio" name="repositoryType" value="0"@if(repository.repository.repositoryType==0){ checked}>
+              <input type="radio" name="repositoryType" value="@Public"@if(repository.repository.repositoryType==Public){ checked}>
               <strong>Public</strong> - All users and guests can read this repository.
             </label>
             <label>
-              <input type="radio" name="repositoryType" value="1"@if(repository.repository.repositoryType==1){ checked}>
+              <input type="radio" name="repositoryType" value="@Private"@if(repository.repository.repositoryType==Private){ checked}>
               <strong>Private</strong> - Only collaborators can read this repository.
             </label>
           </fieldset>
