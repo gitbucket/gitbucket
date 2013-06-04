@@ -1,4 +1,4 @@
-@(pageName: String, page: service.WikiService.WikiPageInfo, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(pageName: String, page: service.WikiService.WikiPageInfo, repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import view.helpers
 @import context._
 @html.main(pageName + " - " + repository.owner + "/" + repository.name){
@@ -10,7 +10,7 @@
     </li>
     <li class="pull-right">
       <div class="btn-group">
-        @if(loginAccount.isDefined){
+        @if(isWritable){
           <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
           <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_edit">Edit Page</a>
         }

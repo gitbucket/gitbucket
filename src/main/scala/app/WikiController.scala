@@ -32,8 +32,8 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
     val repository = params("repository")
     
     getWikiPage(owner, repository, "Home") match {
-      case Some(page) => wiki.html.wiki("Home", page, getRepository(owner, repository, servletContext).get)
-      case None => wiki.html.wikiedit("Home", None, getRepository(owner, repository, servletContext).get)
+      case Some(page) => wiki.html.wiki("Home", page, getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
+      case None => redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
     }
   }
   
@@ -43,8 +43,8 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
     val pageName   = params("page")
     
     getWikiPage(owner, repository, pageName) match {
-      case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, servletContext).get)
-      case None => wiki.html.wikiedit(pageName, None, getRepository(owner, repository, servletContext).get)
+      case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
+      case None => redirect("/%s/%s/wiki/%s/_edit".format(owner, repository, pageName)) // TODO URLEncode
     }
   }
   
@@ -132,7 +132,7 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
     val owner      = params("owner")
     val repository = params("repository")
     
-    wiki.html.wikipages(getWikiPageList(owner, repository), getRepository(owner, repository, servletContext).get)
+    wiki.html.wikipages(getWikiPageList(owner, repository), getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
   }
   
   get("/:owner/:repository/wiki/_history"){
@@ -163,6 +163,15 @@ trait WikiControllerBase extends ControllerBase { self: WikiService with Reposit
       } else {
         None
       }
+    }
+  }
+  
+  def isWritable(owner: String, repository: String): Boolean = {
+    context.loginAccount match {
+      case Some(a) if(a.userType == AccountService.Administrator) => true
+      case Some(a) if(a.userName == owner) => true
+      case Some(a) if(getCollaborators(owner, repository).contains(a.userName)) => true
+      case _ => false
     }
   }
   

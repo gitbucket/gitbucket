@@ -1,4 +1,4 @@
-@(pages: List[String], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(pages: List[String], repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import view.helpers
 @import context._
 @html.main("Pages - " + repository.owner + "/" + repository.name){
@@ -10,7 +10,9 @@
     </li>
     <li class="pull-right">
       <div class="btn-group">
-        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
+        @if(isWritable){
+          <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
+        }
       </div>
     </li>
   </ul>
