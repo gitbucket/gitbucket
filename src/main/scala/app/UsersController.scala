@@ -8,6 +8,7 @@ class UsersController extends UsersControllerBase with AccountService
 
 trait UsersControllerBase extends ControllerBase { self: AccountService =>
   
+  // TODO ユーザ名の先頭に_は使えないようにする＆利用可能文字チェック
   case class UserForm(userName: String, password: String, mailAddress: String, userType: Int, url: Option[String])
   
   val newForm = mapping(

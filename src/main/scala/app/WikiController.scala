@@ -10,6 +10,7 @@ class WikiController extends WikiControllerBase
 
 trait WikiControllerBase extends ControllerBase { self: WikiService with RepositoryService =>
 
+  // TODO ユーザ名の先頭に_は使えないようにする
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
   val newForm = mapping(
