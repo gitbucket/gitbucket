@@ -18,7 +18,14 @@
       <tr>
         <td><a href="@path/admin/users/@account.userName/_edit">@account.userName</a></td>
         <td>@account.mailAddress</td>
-        <td>@account.userType</td>
+        <td>
+          @if(account.userType == service.AccountService.Normal){
+            Normal
+          }
+          @if(account.userType == service.AccountService.Administrator){
+            Administrator
+          }
+        </td>
         <td>@account.url</td>
         <td>@account.registeredDate</td>
         <td>@account.updatedDate</td>
