@@ -13,12 +13,11 @@ trait AccountService {
     
   def createAccount(account: Account): Unit = Accounts.* insert account
 
-  def updateAccount(account: Account): Unit = {
-    val q = for {
-      a <- Accounts if a.userName is account.userName.bind
-    } yield a.password ~ a.mailAddress ~ a.userType ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.?
-    
-    q.update(
+  def updateAccount(account: Account): Unit = 
+    Query(Accounts)
+      .filter { a => a.userName is account.userName.bind }
+      .map    { a => a.password ~ a.mailAddress ~ a.userType ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? }
+      .update (
         account.password, 
         account.mailAddress, 
         account.userType, 
@@ -26,15 +25,10 @@ trait AccountService {
         account.registeredDate,
         account.updatedDate,
         account.lastLoginDate)
-  }
   
-  def updateLastLoginDate(userName: String): Unit = {
-    val q = for {
-      a <- Accounts if a.userName is userName.bind
-    } yield a.lastLoginDate
-    
-    q.update(new java.sql.Date(System.currentTimeMillis))
-  }
+  def updateLastLoginDate(userName: String): Unit =
+    Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate)
+      .update(new java.sql.Date(System.currentTimeMillis))
   
 }
 
