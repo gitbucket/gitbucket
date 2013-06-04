@@ -21,12 +21,18 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
     "userName" -> trim(label("Username", text(required, collaborator)))
   )(CollaboratorForm.apply)
 
+  /**
+   * Redirect to the Options page.
+   */
   get("/:owner/:repository/settings")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
     redirect("/%s/%s/settings/options".format(owner, repository))
   })
   
+  /**
+   * Display the Options page.
+   */
   get("/:owner/:repository/settings/options")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
@@ -34,6 +40,9 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
     settings.html.options(getRepository(owner, repository, servletContext).get)
   })
   
+  /**
+   * Save the repository options.
+   */
   post("/:owner/:repository/settings/options", optionsForm){ form =>
     val owner      = params("owner")
     val repository = params("repository")
@@ -44,6 +53,9 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
     redirect("%s/%s/settings/options".format(owner, repository))
   }
   
+  /**
+   * Display the Collaborators page.
+   */
   get("/:owner/:repository/settings/collaborators")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
@@ -51,6 +63,9 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
     settings.html.collaborators(getCollaborators(owner, repository), getRepository(owner, repository, servletContext).get)
   })
 
+  /**
+   * Add the collaborator.
+   */
   post("/:owner/:repository/settings/collaborators/_add", collaboratorForm)(ownerOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
@@ -58,6 +73,9 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
   })
 
+  /**
+   * Provides Constraint to validate the collaborator name.
+   */
   def collaborator: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] = {
       getAccountByUserName(value) match {
