@@ -2,6 +2,8 @@ package view
 import java.util.Date
 import java.text.SimpleDateFormat
 
+import twirl.api.Html
+
 import org.pegdown._
 import org.pegdown.LinkRenderer.Rendering
 import org.pegdown.ast.WikiLinkNode
@@ -19,9 +21,9 @@ object helpers {
   def date(date: Date): String = new SimpleDateFormat("yyyy/MM/dd").format(date)
   
   // TODO escape html tags using HtmlEscapeUtils (Commons Lang)
-  def format(value: String): twirl.api.Html = twirl.api.Html(
+  def format(value: String): Html = Html(
     value.replaceAll(" ", "&nbsp;").replaceAll("\t", "&nbsp;&nbsp;&nbsp;&nbsp;").replaceAll("\n", "<br>"))
-
+    
   /**
    * Converts the issue number and the commit id to the link.
    */
@@ -59,7 +61,8 @@ object helpers {
           }
         }      
       })
-    twirl.api.Html(html)
+
+    Html(html)
   }
   
   /**
