@@ -14,9 +14,11 @@
     <th class="box-header@if(active=="wiki"){ active}">
       <a href="@path/@repository.owner/@repository.name/wiki">Wiki</a>
     </th>
+    @if(loginAccount.isDefined && (loginAccount.get.userType == 1 || loginAccount.get.userName == repository.owner)){
     <th class="box-header@if(active=="settings"){ active}">
       <a href="@path/@repository.owner/@repository.name/settings">Settings</a>
     </th>
+    }
   </tr>  
 </table>
 <script type="text/javascript">
