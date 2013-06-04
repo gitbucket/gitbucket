@@ -24,6 +24,7 @@ trait SignInControllerBase extends ControllerBase { self: AccountService =>
       redirect("/signin")
     } else {
       session.setAttribute("LOGIN_ACCOUNT", account.get)
+      updateLastLoginDate(account.get.userName)
       redirect("/%s".format(account.get.userName))
     }
   }

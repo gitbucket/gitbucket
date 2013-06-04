@@ -28,6 +28,14 @@ trait AccountService {
         account.lastLoginDate)
   }
   
+  def updateLastLoginDate(userName: String): Unit = {
+    val q = for {
+      a <- Accounts if a.userName is userName.bind
+    } yield a.lastLoginDate
+    
+    q.update(new java.sql.Date(System.currentTimeMillis))
+  }
+  
 }
 
 object AccountService {
