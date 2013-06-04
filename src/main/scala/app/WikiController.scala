@@ -1,15 +1,15 @@
 package app
 
 import service._
-import util.{CollaboratorsOnlyAuthenticator, JGitUtil}
+import util.{WritableRepositoryAuthenticator, ReadableRepositoryAuthenticator, JGitUtil}
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 
 class WikiController extends WikiControllerBase 
-  with WikiService with RepositoryService with AccountService with CollaboratorsOnlyAuthenticator
+  with WikiService with RepositoryService with AccountService with WritableRepositoryAuthenticator with ReadableRepositoryAuthenticator
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService with RepositoryService with CollaboratorsOnlyAuthenticator =>
+  self: WikiService with RepositoryService with WritableRepositoryAuthenticator with ReadableRepositoryAuthenticator =>
 
   // TODO ユーザ名の先頭に_は使えないようにする
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
@@ -28,7 +28,7 @@ trait WikiControllerBase extends ControllerBase {
     "currentPageName" -> trim(label("Current page name"  , text(required)))
   )(WikiPageEditForm.apply)
   
-  get("/:owner/:repository/wiki"){
+  get("/:owner/:repository/wiki")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -36,9 +36,9 @@ trait WikiControllerBase extends ControllerBase {
       case Some(page) => wiki.html.wiki("Home", page, getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
       case None => redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
     }
-  }
+  })
   
-  get("/:owner/:repository/wiki/:page"){
+  get("/:owner/:repository/wiki/:page")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val pageName   = params("page")
@@ -47,9 +47,9 @@ trait WikiControllerBase extends ControllerBase {
       case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
       case None => redirect("/%s/%s/wiki/%s/_edit".format(owner, repository, pageName)) // TODO URLEncode
     }
-  }
+  })
   
-  get("/:owner/:repository/wiki/:page/_history"){
+  get("/:owner/:repository/wiki/:page/_history")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
@@ -58,9 +58,9 @@ trait WikiControllerBase extends ControllerBase {
       wiki.html.wikihistory(Some(page),
         JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, getRepository(owner, repository, servletContext).get)
     }
-  }
+  })
   
-  get("/:owner/:repository/wiki/:page/_compare/:commitId"){
+  get("/:owner/:repository/wiki/:page/_compare/:commitId")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
@@ -70,9 +70,9 @@ trait WikiControllerBase extends ControllerBase {
       wiki.html.wikicompare(Some(page),
         getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, servletContext).get)
     }
-  }
+  })
   
-  get("/:owner/:repository/wiki/_compare/:commitId"){
+  get("/:owner/:repository/wiki/_compare/:commitId")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val commitId   = params("commitId").split("\\.\\.\\.")
@@ -81,9 +81,9 @@ trait WikiControllerBase extends ControllerBase {
       wiki.html.wikicompare(None,
         getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, servletContext).get)
     }
-  }
+  })
   
-  get("/:owner/:repository/wiki/:page/_edit")(collaboratorsOnly {
+  get("/:owner/:repository/wiki/:page/_edit")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
@@ -92,7 +92,7 @@ trait WikiControllerBase extends ControllerBase {
         getWikiPage(owner, repository, page), getRepository(owner, repository, servletContext).get)
   })
   
-  post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { form =>
+  post("/:owner/:repository/wiki/_edit", editForm)(writableRepository { form =>
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -102,14 +102,14 @@ trait WikiControllerBase extends ControllerBase {
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   })
   
-  get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
+  get("/:owner/:repository/wiki/_new")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
     wiki.html.wikiedit("", None, getRepository(owner, repository, servletContext).get)
   })
   
-  post("/:owner/:repository/wiki/_new", newForm)(collaboratorsOnly { form =>
+  post("/:owner/:repository/wiki/_new", newForm)(writableRepository { form =>
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -119,7 +119,7 @@ trait WikiControllerBase extends ControllerBase {
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   })
   
-  get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly {
+  get("/:owner/:repository/wiki/:page/_delete")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
@@ -129,14 +129,14 @@ trait WikiControllerBase extends ControllerBase {
     redirect("%s/%s/wiki".format(owner, repository))
   })
   
-  get("/:owner/:repository/wiki/_pages"){
+  get("/:owner/:repository/wiki/_pages")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
     wiki.html.wikipages(getWikiPageList(owner, repository), getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
-  }
+  })
   
-  get("/:owner/:repository/wiki/_history"){
+  get("/:owner/:repository/wiki/_history")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -144,15 +144,15 @@ trait WikiControllerBase extends ControllerBase {
       wiki.html.wikihistory(None,
         JGitUtil.getCommitLog(git, "master")._1, getRepository(owner, repository, servletContext).get)
     }
-  }
+  })
   
-  post("/:owner/:repository/wiki/_preview"){
+  post("/:owner/:repository/wiki/_preview")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val content    = params("content")
     contentType = "text/html"
     view.helpers.markdown(content, getRepository(owner, repository, servletContext).get, true)
-  }
+  })
   
   /**
    * Constraint for the wiki page name.

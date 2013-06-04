@@ -2,11 +2,12 @@ package app
 
 import model._
 import service._
+import util.AdminOnlyAuthenticator
 import jp.sf.amateras.scalatra.forms._
 
-class UsersController extends UsersControllerBase with AccountService
+class UsersController extends UsersControllerBase with AccountService with AdminOnlyAuthenticator
 
-trait UsersControllerBase extends ControllerBase { self: AccountService =>
+trait UsersControllerBase extends ControllerBase { self: AccountService with AdminOnlyAuthenticator =>
   
   // TODO ユーザ名の先頭に_は使えないようにする＆利用可能文字チェック
   case class UserForm(userName: String, password: String, mailAddress: String, userType: Int, url: Option[String])
@@ -27,15 +28,15 @@ trait UsersControllerBase extends ControllerBase { self: AccountService =>
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(UserForm.apply)
   
-  get("/admin/users"){
+  get("/admin/users")(adminOnly {
     admin.html.userlist(getAllUsers())
-  }
+  })
   
-  get("/admin/users/_new"){
+  get("/admin/users/_new")(adminOnly {
     admin.html.useredit(None)
-  }
+  })
   
-  post("/admin/users/_new", newForm){ form =>
+  post("/admin/users/_new", newForm)(adminOnly { form =>
     val currentDate = new java.sql.Date(System.currentTimeMillis)
     createAccount(Account(
         userName       = form.userName, 
@@ -48,14 +49,14 @@ trait UsersControllerBase extends ControllerBase { self: AccountService =>
         lastLoginDate  = None))
         
     redirect("/admin/users")
-  }
+  })
   
-  get("/admin/users/:userName/_edit"){
+  get("/admin/users/:userName/_edit")(adminOnly {
     val userName = params("userName")
     admin.html.useredit(getAccountByUserName(userName))
-  }
+  })
   
-  post("/admin/users/:name/_edit", editForm){ form =>
+  post("/admin/users/:name/_edit", editForm)(adminOnly { form =>
     val userName = params("userName")
     val currentDate = new java.sql.Date(System.currentTimeMillis)
     updateAccount(getAccountByUserName(userName).get.copy(
@@ -66,7 +67,7 @@ trait UsersControllerBase extends ControllerBase { self: AccountService =>
         updatedDate    = currentDate))
     
     redirect("/admin/users")
-  }
+  })
   
   def unique: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =

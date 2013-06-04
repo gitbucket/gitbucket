@@ -46,7 +46,7 @@ trait SettingsControllerBase extends ControllerBase {
   /**
    * Save the repository options.
    */
-  post("/:owner/:repository/settings/options", optionsForm){ form =>
+  post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -54,7 +54,7 @@ trait SettingsControllerBase extends ControllerBase {
     saveRepositoryOptions(owner, repository, form.description, form.defaultBranch, form.repositoryType)
     
     redirect("%s/%s/settings/options".format(owner, repository))
-  }
+  })
   
   /**
    * Display the Collaborators page.

@@ -2,7 +2,7 @@ package app
 
 import util.Directory._
 import util.Implicits._
-import util.{JGitUtil, FileTypeUtil, CompressUtil}
+import _root_.util.{ReadableRepositoryAuthenticator, JGitUtil, FileTypeUtil, CompressUtil}
 import service._
 import org.scalatra._
 import java.io.File
@@ -12,13 +12,13 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
-  with RepositoryService with AccountService
+  with RepositoryService with AccountService with ReadableRepositoryAuthenticator
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
-  self: RepositoryService with AccountService =>
+  self: RepositoryService with AccountService with ReadableRepositoryAuthenticator =>
   
   // TODO separate to AccountController?
   /**
@@ -33,37 +33,37 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file list of the repository root and the default branch.
    */
-  get("/:owner/:repository") {
+  get("/:owner/:repository")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
     fileList(owner, repository)
-  }
+  })
   
   /**
    * Displays the file list of the repository root and the specified branch.
    */
-  get("/:owner/:repository/tree/:id") {
+  get("/:owner/:repository/tree/:id")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
     fileList(owner, repository, params("id"))
-  }
+  })
   
   /**
    * Displays the file list of the specified path and branch.
    */
-  get("/:owner/:repository/tree/:id/*") {
+  get("/:owner/:repository/tree/:id/*")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
     fileList(owner, repository, params("id"), multiParams("splat").head)
-  }
+  })
   
   /**
    * Displays the commit list of the specified branch.
    */
-  get("/:owner/:repository/commits/:branch"){
+  get("/:owner/:repository/commits/:branch")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val branchName = params("branch")
@@ -77,12 +77,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
         }, page, hasNext)
     }
-  }
+  })
   
   /**
    * Displays the commit list of the specified resource.
    */
-  get("/:owner/:repository/commits/:branch/*"){
+  get("/:owner/:repository/commits/:branch/*")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val branchName = params("branch")
@@ -97,13 +97,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
         }, page, hasNext)
     }
-  }
+  })
   
   
   /**
    * Displays the file content of the specified branch or commit.
    */
-  get("/:owner/:repository/blob/:id/*"){
+  get("/:owner/:repository/blob/:id/*")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val id         = params("id") // branch name or commit id
@@ -140,12 +140,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
       }
     }
-  }
+  })
   
   /**
    * Displays details of the specified commit.
    */
-  get("/:owner/:repository/commit/:id"){
+  get("/:owner/:repository/commit/:id")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val id         = params("id")
@@ -155,22 +155,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
           getRepository(owner, repository, servletContext).get, JGitUtil.getDiffs(git, id))
     }
-  }
+  })
   
   /**
    * Displays tags.
    */
-  get("/:owner/:repository/tags"){
+  get("/:owner/:repository/tags")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     
     repo.html.tags(getRepository(owner, repository, servletContext).get)
-  }
+  })
   
   /**
    * Download repository contents as an archive.
    */
-  get("/:owner/:repository/archive/:name"){
+  get("/:owner/:repository/archive/:name")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val name       = params("name")
@@ -206,7 +206,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     } else {
       BadRequest
     }
-  }
+  })
   
   /**
    * Provides HTML of the file list.
