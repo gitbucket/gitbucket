@@ -9,7 +9,9 @@
         /
         <a href="@path/@repository.owner/@repository.name">@repository.name</a>
       </div>
-      <div>@repository.repository.description</div>
+      @if(repository.repository.description.isDefined){
+        <div>@repository.repository.description</div>
+      }
       <div><span class="description small">Last updated: @repository.repository.lastActivityDate</span></div>
     </div>
   }

@@ -16,11 +16,11 @@ class CreateRepositoryController extends CreateRepositoryControllerBase
  */
 trait CreateRepositoryControllerBase extends ControllerBase { self: RepositoryService with WikiService =>
 
-  case class RepositoryCreationForm(name: String, description: String) // TODO Option?
+  case class RepositoryCreationForm(name: String, description: Option[String])
 
   val form = mapping(
     "name"        -> trim(label("Repository name", text(required, maxlength(40), repository))),
-    "description" -> trim(label("Description"    , text()))
+    "description" -> trim(label("Description"    , optional(text())))
   )(RepositoryCreationForm.apply)
 
   /**
@@ -37,7 +37,7 @@ trait CreateRepositoryControllerBase extends ControllerBase { self: RepositorySe
     val loginUserName = context.loginAccount.get.userName
 
     // Insert to the database at first
-    createRepository(form.name, loginUserName, Some(form.description))
+    createRepository(form.name, loginUserName, form.description)
 
     // Create the actual repository
     val gitdir = getRepositoryDir(loginUserName, form.name)
