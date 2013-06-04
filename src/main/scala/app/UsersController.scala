@@ -8,7 +8,7 @@ class UsersController extends UsersControllerBase with AccountService
 
 trait UsersControllerBase extends ControllerBase { self: AccountService =>
   
-  case class NewUserForm(userName: String, password: String, mailAddress: String, userType: Int, url: Option[String])
+  case class UserForm(userName: String, password: String, mailAddress: String, userType: Int, url: Option[String])
   
   val newForm = mapping(
     "userName"    -> trim(label("Username"     , text(required, maxlength(100), unique))), 
@@ -16,10 +16,16 @@ trait UsersControllerBase extends ControllerBase { self: AccountService =>
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
     "userType"    -> trim(label("User Type"    , number())),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
-  )(NewUserForm.apply)
-  
-  
+  )(UserForm.apply)
 
+  val editForm = mapping(
+    "userName"    -> trim(label("Username"     , text())), 
+    "password"    -> trim(label("Password"     , text(required, maxlength(100)))),
+    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
+    "userType"    -> trim(label("User Type"    , number())),
+    "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
+  )(UserForm.apply)
+  
   get("/admin/users"){
     admin.html.userlist(getAllUsers())
   }
@@ -43,13 +49,16 @@ trait UsersControllerBase extends ControllerBase { self: AccountService =>
     redirect("/admin/users")
   }
   
-//  get("/admin/users/:name/_edit"){
-//    
-//  }
-//  
-//  post("/admin/users/:name/_edit"){
-//    
-//  }
+  get("/admin/users/:userName/_edit"){
+    val userName = params("userName")
+    admin.html.useredit(getAccountByUserName(userName))
+  }
+  
+  post("/admin/users/:name/_edit", editForm){ form =>
+    // TODO Update Account
+    
+    redirect("/admin/users")
+  }
   
   def unique: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
