@@ -9,6 +9,9 @@
       <li@if(active=="collaborators"){ class="active"}>
         <a href="@path/@repository.owner/@repository.name/settings/collaborators">Collaborators</a>
       </li>
+      <li@if(active=="delete"){ class="active"}>
+        <a href="@path/@repository.owner/@repository.name/settings/delete">Delete Repository</a>
+      </li>
    </ul>
   </div>
   <div class="span9">
