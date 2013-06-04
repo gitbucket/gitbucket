@@ -55,7 +55,14 @@ trait UsersControllerBase extends ControllerBase { self: AccountService =>
   }
   
   post("/admin/users/:name/_edit", editForm){ form =>
-    // TODO Update Account
+    val userName = params("userName")
+    val currentDate = new java.sql.Date(System.currentTimeMillis)
+    updateAccount(getAccountByUserName(userName).get.copy(
+        password       = form.password, 
+        mailAddress    = form.mailAddress, 
+        userType       = form.userType, 
+        url            = form.url, 
+        updatedDate    = currentDate))
     
     redirect("/admin/users")
   }
