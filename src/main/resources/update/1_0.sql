@@ -118,9 +118,9 @@ INSERT INTO ACCOUNT (
   UPDATED_DATE,
   LAST_LOGIN_DATE
 ) VALUES (
-  'admin',
-  'admin@localhost',
-  'admin',
+  'root',
+  'root@localhost',
+  'root',
   1,
   'https://github.com/takezoe/gitbucket',
   SYSDATE,
