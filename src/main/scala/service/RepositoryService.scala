@@ -104,10 +104,14 @@ trait RepositoryService { self: AccountService =>
   }
 
   /**
-   * TODO Updates the last activity date of the repository.
+   * Updates the last activity date of the repository.
    */
   def updateLastActivityDate(userName: String, repositoryName: String): Unit = {
+    val q = for {
+      r <- Repositories if (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind)
+    } yield r.lastActivityDate
     
+    q.update(new java.sql.Date(System.currentTimeMillis))
   }
 
   /**
