@@ -57,8 +57,9 @@ trait CreateRepositoryControllerBase extends ControllerBase {
       Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
     
       // Create README.md
-      FileUtils.writeStringToFile(new File(tmpdir, "README.md"), if(form.description.nonEmpty){
-          form.name + "\n===============\n\n" + form.description
+      FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
+        if(form.description.nonEmpty){
+          form.name + "\n===============\n\n" + form.description.get
         } else {
           form.name + "\n===============\n"
         }, "UTF-8")
