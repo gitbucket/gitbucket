@@ -3,30 +3,38 @@
 @html.main("Settings"){
   @html.header("settings", repository)
   @menu("options", repository){
-    <form id="form" method="post" action="@path/new" validate="true">
+    <form id="form" method="post" action="@path/@repository.owner/@repository.name/settings/options" validate="true">
       <div class="box">
         <div class="box-header">Settings</div>
         <div class="box-content">
           <fieldset>
+            <label for="description"><strong>Description</strong></label>
+            <input type="text" name="description" id="description" style="width: 600px;" value="@repository.repository.description"/>
+          </fieldset>
+          <hr>
+          <fieldset>
             <label for="defaultBranch"><strong>Default Branch</strong></label>
             <select name="defaultBranch" id="defaultBranch">
-              <option value="master">master</option>
+              @repository.branchList.map { branch =>
+                <option value="@branch"@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
+              }
             </select>
           </fieldset>
           <hr>
           <fieldset>
             <label><strong>Repository Type</strong></label>
             <label>
-              <input type="radio" name="repositoryType" value="0" checked>
+              <input type="radio" name="repositoryType" value="0"@if(repository.repository.repositoryType==0){ checked}>
               <strong>Public</strong> - All users and guests can read this repository.
             </label>
             <label>
-              <input type="radio" name="repositoryType" value="1">
+              <input type="radio" name="repositoryType" value="1"@if(repository.repository.repositoryType==1){ checked}>
               <strong>Private</strong> - Only collaborators can read this repository.
             </label>
           </fieldset>
         </div>
       </div>
+      <!--
       <div class="box">
         <div class="box-header">Features</div>
         <div class="box-content">
@@ -56,6 +64,7 @@
           </dl>
         </div>
       </div>
+      -->
       <fieldset>
         <input type="submit" class="btn btn-primary" value="Apply changes"/>
         <!--

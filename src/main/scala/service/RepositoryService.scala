@@ -106,13 +106,21 @@ trait RepositoryService { self: AccountService =>
   /**
    * Updates the last activity date of the repository.
    */
-  def updateLastActivityDate(userName: String, repositoryName: String): Unit = {
-    val q = for {
-      r <- Repositories if (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind)
-    } yield r.lastActivityDate
-    
-    q.update(new java.sql.Date(System.currentTimeMillis))
-  }
+  def updateLastActivityDate(userName: String, repositoryName: String): Unit =
+    Query(Repositories)
+      .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
+      .map    { _.lastActivityDate }
+      .update (new java.sql.Date(System.currentTimeMillis))
+  
+  /**
+   * Save repository options.
+   */
+  def saveRepositoryOptions(userName: String, repositoryName: String, 
+      description: Option[String], defaultBranch: String, repositoryType: Int): Unit =
+    Query(Repositories)
+      .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
+      .map    { r => r.description.? ~ r.defaultBranch ~ r.repositoryType ~ r.updatedDate }
+      .update (description, defaultBranch, repositoryType, new java.sql.Date(System.currentTimeMillis))
 
   /**
    * Add collaborator to the repository.
