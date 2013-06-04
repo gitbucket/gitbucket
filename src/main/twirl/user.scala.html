@@ -1,11 +1,12 @@
 @(account: model.Account, repositories: List[service.RepositoryService.RepositoryInfo])(implicit context: app.Context)
 @import context._
+@import service.RepositoryService._
 @main(account.userName){
   <div class="container-fluid">
     <div class="row-fluid">
       <div class="span4">
         <div class="block">
-          <div class="block-header-2">@account.userName</div>
+          <div class="block-header-1">@account.userName</div>
         </div>
         <div class="block">
           <div><i class="icon-home"></i> <a href="@account.url">@account.url</a></div>
@@ -24,7 +25,12 @@
         </ul>
         @repositories.map { repository =>
         <div class="block">
-          <div class="block-header-2"><a href="@path/@repository.owner/@repository.name">@repository.name</a></div>
+          <div class="block-header-2">
+            <a href="@path/@repository.owner/@repository.name">@repository.name</a>
+            @if(repository.repository.repositoryType == Private){
+              <i class="icon-lock"></i>
+            }
+          </div>
           @if(repository.repository.description.isDefined){
             <div>@repository.repository.description</div>
           }
