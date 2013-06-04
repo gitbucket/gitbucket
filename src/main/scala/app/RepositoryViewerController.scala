@@ -26,8 +26,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner") {
     val owner = params("owner")
-
-    html.user(getAccountByUserName(owner).get, getRepositoriesOfUser(owner, servletContext))
+    getAccountByUserName(owner) match {
+      case Some(account) => html.user(account, getRepositoriesOfUser(owner, servletContext))
+      case None => NotFound()
+    }
   }
   
   /**
@@ -36,7 +38,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
-    
+
     fileList(owner, repository)
   })
   
@@ -98,8 +100,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }, page, hasNext)
     }
   })
-  
-  
+
   /**
    * Displays the file content of the specified branch or commit.
    */

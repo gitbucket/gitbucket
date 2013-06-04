@@ -2,12 +2,12 @@ package util
 
 import app.ControllerBase
 import service._
+import org.scalatra._
 
 /**
  * Allows only the repository owner and administrators.
  */
 trait OwnerOnlyAuthenticator { self: ControllerBase =>
-
   protected def ownerOnly(action: => Any) = { authenticate(action) }
   protected def ownerOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
 
@@ -16,7 +16,7 @@ trait OwnerOnlyAuthenticator { self: ControllerBase =>
       context.loginAccount match {
         case Some(x) if(x.userType == AccountService.Administrator) => action
         case Some(x) if(request.getRequestURI.split("/")(1) == x.userName) => action
-        case _ => redirect("/signin")
+        case _ => Unauthorized()
       }
     }
   }
@@ -26,7 +26,6 @@ trait OwnerOnlyAuthenticator { self: ControllerBase =>
  * Allows only signed in users.
  */
 trait UsersOnlyAuthenticator { self: ControllerBase =>
-
   protected def usersOnly(action: => Any) = { authenticate(action) }
   protected def usersOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
 
@@ -34,7 +33,7 @@ trait UsersOnlyAuthenticator { self: ControllerBase =>
     {
       context.loginAccount match {
         case Some(x) => action
-        case None    => redirect("/signin")
+        case None => Unauthorized()
       }
     }
   }
@@ -52,7 +51,7 @@ trait AdminOnlyAuthenticator { self: ControllerBase =>
     {
       context.loginAccount match {
         case Some(x) if(x.userType == AccountService.Administrator) => action
-        case _ => redirect("/signin")
+        case _ => Unauthorized()
       }
     }
   }
@@ -62,7 +61,6 @@ trait AdminOnlyAuthenticator { self: ControllerBase =>
  * Allows only collaborators and administrators.
  */
 trait WritableRepositoryAuthenticator { self: ControllerBase with RepositoryService =>
-
   protected def writableRepository(action: => Any) = { authenticate(action) }
   protected def writableRepository[T](action: T => Any) = (form: T) => authenticate({action(form)})
 
@@ -72,7 +70,7 @@ trait WritableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
         case Some(x) if(x.userType == AccountService.Administrator) => action
         case Some(x) if(paths(1) == x.userName) => action
         case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
-        case _ => redirect("/signin")
+        case _ => Unauthorized()
       }
   }
 }
@@ -81,7 +79,6 @@ trait WritableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
  * Allows only the repository owner and administrators.
  */
 trait ReadableRepositoryAuthenticator { self: ControllerBase with RepositoryService =>
-
   protected def readableRepository(action: => Any) = { authenticate(action) }
   protected def readableRepository[T](action: T => Any) = (form: T) => authenticate({action(form)})
 
@@ -96,7 +93,7 @@ trait ReadableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
           case Some(x) if(x.userType == AccountService.Administrator) => action
           case Some(x) if(paths(1) == x.userName) => action
           case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
-          case _ => redirect("/")
+          case _ => Unauthorized()
         }
       }
     }

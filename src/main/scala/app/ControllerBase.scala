@@ -26,6 +26,9 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
     }
   }
 
+  protected def NotFound()     = redirect("/")
+  protected def Unauthorized() = redirect("/")
+
 }
 
 case class Context(path: String, loginAccount: Option[Account])

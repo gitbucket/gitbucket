@@ -30,6 +30,7 @@ trait SettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
+
     redirect("/%s/%s/settings/options".format(owner, repository))
   })
   
@@ -39,8 +40,11 @@ trait SettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/options")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
-    
-    settings.html.options(getRepository(owner, repository, servletContext).get)
+
+    getRepository(owner, repository, servletContext) match {
+      case Some(r) => settings.html.options(r)
+      case None    => NotFound()
+    }
   })
   
   /**
@@ -62,8 +66,11 @@ trait SettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/collaborators")(ownerOnly {
     val owner      = params("owner")
     val repository = params("repository")
-    
-    settings.html.collaborators(getCollaborators(owner, repository), getRepository(owner, repository, servletContext).get)
+
+    getRepository(owner, repository, servletContext) match {
+      case Some(r) => settings.html.collaborators(getCollaborators(owner, repository), r)
+      case None    => NotFound()
+    }
   })
 
   /**
@@ -72,6 +79,7 @@ trait SettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
+
     addCollaborator(owner, repository, form.userName)
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
   })
@@ -83,6 +91,7 @@ trait SettingsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val userName   = params("name")
+
     removeCollaborator(owner, repository, userName)
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
   })
