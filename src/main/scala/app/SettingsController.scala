@@ -66,13 +66,25 @@ trait SettingsControllerBase extends ControllerBase { self: RepositoryService wi
   /**
    * Add the collaborator.
    */
-  post("/:owner/:repository/settings/collaborators/_add", collaboratorForm)(ownerOnly { form =>
+  post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     addCollaborator(owner, repository, form.userName)
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
   })
 
+  /**
+   * Add the collaborator.
+   */
+  get("/:owner/:repository/settings/collaborators/remove")(ownerOnly {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val userName   = params("name")
+    removeCollaborator(owner, repository, userName)
+    redirect("/%s/%s/settings/collaborators".format(owner, repository))
+  })
+  
+  
   /**
    * Provides Constraint to validate the collaborator name.
    */

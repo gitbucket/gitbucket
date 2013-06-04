@@ -153,3 +153,24 @@ hr {
   margin-top: 4px;
   margin-bottom: 4px;
 }
+
+ul.collaborator {
+  list-style-type: none;
+  margin-left: 0px;
+}
+    
+ul.collaborator li {
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 6px;
+}
+    
+ul.collaborator li:hover {
+  background-color: #f8f8f8;
+}
+
+ul.collaborator a.remove {
+  color: #dd0000;
+  text-decoration: underline;
+}

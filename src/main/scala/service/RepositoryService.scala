@@ -26,7 +26,7 @@ trait RepositoryService { self: AccountService =>
 
     val currentDate = new java.sql.Date(System.currentTimeMillis)
 
-    Repositories.* insert
+    Repositories insert
       Repository(
         repositoryName   = repositoryName,
         userName         = userName,
@@ -130,11 +130,31 @@ trait RepositoryService { self: AccountService =>
    * @param collaboratorName the collaborator name
    */
   def addCollaborator(userName: String, repositoryName: String, collaboratorName: String): Unit =
-    Collaborators.* insert(Collaborator(userName, repositoryName, collaboratorName))
+    Collaborators insert(Collaborator(userName, repositoryName, collaboratorName))
 
+  /**
+   * Remove collaborator from the repository.
+   * 
+   * @param userName the user name of the repository owner
+   * @param repositoryName the repository name
+   * @param collaboratorName the collaborator name
+   */
+  def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String): Unit =
+    (Query(Collaborators) filter { c =>
+        (c.userName is userName.bind) && (c.repositoryName is repositoryName.bind) && (c.collaboratorName is collaboratorName.bind)
+    }).delete
+  
+    
+  /**
+   * Returns the list of collaborators name which is sorted with ascending order.
+   * 
+   * @param userName the user name of the repository owner
+   * @param repositoryName the repository name
+   * @return the list of collaborators name
+   */
   def getCollaborators(userName: String, repositoryName: String): List[String] =
-    (Query(Collaborators) filter { collaborator =>
-      (collaborator.userName is userName.bind) && (collaborator.repositoryName is repositoryName.bind)
+    (Query(Collaborators) filter { c =>
+      (c.userName is userName.bind) && (c.repositoryName is repositoryName.bind)
     } sortBy(_.collaboratorName) list) map(_.collaboratorName)
 
 }
