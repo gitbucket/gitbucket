@@ -1,0 +1,38 @@
+@(account: Option[model.Account])(implicit context: app.Context)
+@import context._
+@html.main("New User"){
+  <form method="POST" action="@path/admin/users/_new" validate="true">
+    <fieldset>
+      <label for="userName"><strong>Usrename</strong></label>
+      <input type="text" name="userName" id="userName" />
+      <span id="error-userName" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <label for="password"><strong>Password</strong></label>
+      <input type="password" name="password" id="password" />
+      <span id="error-password" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <label for="mailAddress"><strong>Mail Address</strong></label>
+      <input type="text" name="mailAddress" id="mailAddress" />
+      <span id="error-mailAddress" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <label><strong>User Type</strong></label>
+      <label for="userType_Normal">
+        <input type="radio" name="userType" id="userType_Normal" value="0" selected/> Normal
+      </label>
+      <label for="userType_Admin">
+        <input type="radio" name="userType" id="userType_Admin" value="1"/> Administrator
+      </label>
+    </fieldset>
+    <fieldset>
+      <label><strong>URL</strong></label>
+      <input type="text" name="url" id="url" style="width: 400px;"/>
+      <span id="error-url" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <input type="submit" value="Create User"/>
+    </fieldset>
+  </form>
+}
