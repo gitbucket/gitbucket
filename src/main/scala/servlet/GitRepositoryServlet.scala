@@ -22,7 +22,7 @@ class GitRepositoryServlet extends GitServlet {
   private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
   
   override def init(config: ServletConfig): Unit = {
-    setReceivePackFactory(new GitBucketRecievePackFactory())
+    setReceivePackFactory(new GitBucketReceivePackFactory())
     
     // TODO are there any other ways...?
     super.init(new ServletConfig(){
@@ -42,9 +42,9 @@ class GitRepositoryServlet extends GitServlet {
   
 }
 
-class GitBucketRecievePackFactory extends ReceivePackFactory[HttpServletRequest] {
+class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest] {
   
-  private val logger = LoggerFactory.getLogger(classOf[GitBucketRecievePackFactory])
+  private val logger = LoggerFactory.getLogger(classOf[GitBucketReceivePackFactory])
   
   override def create(req: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
