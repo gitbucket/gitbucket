@@ -21,15 +21,28 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     val response = res.asInstanceOf[HttpServletResponse]
 
     try {
-      request.getHeader("Authorization") match {
-        case null => requireAuth(response)
-        case auth => decodeAuthHeader(auth).split(":") match {
-          case Array(username, password) if(isValidUser(username, password, request)) => {
-            request.setAttribute("USER_NAME", username)
+      val paths = request.getRequestURI.split("/")
+      val repositoryOwner = paths(2)
+      val repositoryName  = paths(3).replaceFirst("\\.git$", "")
+      getRepository(repositoryOwner, repositoryName, request.getServletContext) match {
+        case Some(repository) => {
+          if(!request.getRequestURI.endsWith("/git-receive-pack") &&
+            repository.repository.repositoryType == RepositoryService.Public){
             chain.doFilter(req, res)
+          } else {
+            request.getHeader("Authorization") match {
+              case null => requireAuth(response)
+              case auth => decodeAuthHeader(auth).split(":") match {
+                case Array(username, password) if(isWritableUser(username, password, repository)) => {
+                  request.setAttribute("USER_NAME", username)
+                  chain.doFilter(req, res)
+                }
+                case _ => requireAuth(response)
+              }
+            }
           }
-          case _ => requireAuth(response)
         }
+        case None => response.sendError(HttpServletResponse.SC_NOT_FOUND)
       }
     } catch {
       case ex: Exception => {
@@ -39,18 +52,12 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
   }
 
-  // TODO If the repository is public, it must allow users which have readable right.
-  private def isValidUser(username: String, password: String, request: HttpServletRequest): Boolean = {
-    val paths = request.getRequestURI.split("/")
+  private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean = {
     getAccountByUserName(username) match {
       case Some(account) if(account.password == password) => {
-        if(account.userType == AccountService.Administrator // administrator
-          || account.userName == paths(2) // repository owner
-          || getCollaborators(paths(2), paths(3).replaceFirst("\\.git$", "")).contains(account.userName)){ // collaborator
-          true
-        } else {
-          false
-        }
+        (account.userType == AccountService.Administrator // administrator
+          || account.userName == repository.owner // repository owner
+          || getCollaborators(repository.owner, repository.name).contains(account.userName)) // collaborator
       }
       case _ => false
     }
