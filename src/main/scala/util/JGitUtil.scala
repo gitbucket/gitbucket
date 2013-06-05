@@ -6,9 +6,9 @@ import scala.collection.JavaConverters._
 import javax.servlet.ServletContext
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
-import org.eclipse.jgit.revwalk.filter.RevFilter
+import org.eclipse.jgit.revwalk.filter._
 import org.eclipse.jgit.treewalk._
-import org.eclipse.jgit.treewalk.filter.PathFilter
+import org.eclipse.jgit.treewalk.filter._
 import org.eclipse.jgit.diff._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.util.io.DisabledOutputStream
@@ -144,9 +144,27 @@ object JGitUtil {
     treeWalk.addTree(revCommit.getTree)
     if(path != "."){
       treeWalk.setRecursive(true)
-      treeWalk.setFilter(PathFilter.create(path))
-      treeWalk.next()
-      treeWalk.setRecursive(false)
+      treeWalk.setFilter(new TreeFilter(){
+
+        var stopRecursive = false
+
+        def include(walker: TreeWalk): Boolean = {
+          val targetPath = walker.getPathString
+          if((path + "/").startsWith(targetPath)){
+            true
+          } else if(targetPath.startsWith(path + "/") && targetPath.substring(path.length + 1).indexOf("/") < 0){
+            stopRecursive = true
+            treeWalk.setRecursive(false)
+            true
+          } else {
+            false
+          }
+        }
+
+        def shouldBeRecursive(): Boolean = !stopRecursive
+
+        override def clone: TreeFilter = return this
+      })
     }
       
     val list = new scala.collection.mutable.ListBuffer[FileInfo]
