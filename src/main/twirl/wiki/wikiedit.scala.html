@@ -19,40 +19,16 @@
     </li>
   </ul>
   <form action="@path/@repository.owner/@repository.name/wiki/@if(pageName == ""){_new} else {_edit}" method="POST" validate="true">
-    <div class="tabbable">
-      <ul class="nav nav-tabs">
-        <li class="active"><a href="#tab1" data-toggle="tab">Edit</a></li>
-        <li><a href="#tab2" data-toggle="tab" id="preview">Preview</a></li>
-      </ul>
-      <div class="tab-content">
-        <div class="tab-pane active" id="tab1">
-          <span id="error-pageName" class="error-message"></span>
-          <input type="text" name="pageName" value="@pageName" style="width: 900px; font-weight: bold;" placeholder="Input a page name."/>
-          <span id="error-content" class="error-message"></span>
-          <textarea id="content" name="content" style="width: 900px; height: 400px;">@page.map(_.content)</textarea>
-          <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
-          <input type="hidden" name="currentPageName" value="@pageName"/>
-          <input type="submit" value="Save" class="btn btn-primary">
-        </div>
-        <div class="tab-pane" id="tab2">
-          <div class="markdown-body" id="preview-area">
-          </div>
-        </div>
-      </div>
-    </div>
+    <span id="error-pageName" class="error"></span>
+    <input type="text" name="pageName" value="@pageName" style="width: 900px; font-weight: bold;" placeholder="Input a page name."/>
+    @html.preview(repository, page.map(_.content).getOrElse(""), "width: 900px; height: 400px;")
+    <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
+    <input type="hidden" name="currentPageName" value="@pageName"/>
+    <input type="submit" value="Save" class="btn btn-primary">
   </form>
 }
 <script>
 $(function(){
-  $('#preview').click(function(){
-	$('#preview-area').html('<img src="@path/assets/common/images/indicator.gif"> Previewing...');
-    $.post('@path/@repository.owner/@repository.name/wiki/_preview', {
-      content: $('#content').val()
-    }, function(data){
-      $('#preview-area').html(data);
-    });
-  });
-  
   $('#delete').click(function(){
     return confirm('Are you sure you want to delete this page?'); 
   });

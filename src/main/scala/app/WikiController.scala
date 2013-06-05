@@ -145,15 +145,7 @@ trait WikiControllerBase extends ControllerBase {
         JGitUtil.getCommitLog(git, "master")._1, getRepository(owner, repository, servletContext).get)
     }
   })
-  
-  post("/:owner/:repository/wiki/_preview")(writableRepository {
-    val owner      = params("owner")
-    val repository = params("repository")
-    val content    = params("content")
-    contentType = "text/html"
-    view.helpers.markdown(content, getRepository(owner, repository, servletContext).get, true)
-  })
-  
+
   /**
    * Constraint for the wiki page name.
    */

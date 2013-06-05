@@ -1,0 +1,30 @@
+@(repository: service.RepositoryService.RepositoryInfo, content: String, style: String = "")(implicit context: app.Context)
+@import context._
+<div class="tabbable">
+  <ul class="nav nav-tabs">
+    <li class="active"><a href="#tab1" data-toggle="tab">Write</a></li>
+    <li><a href="#tab2" data-toggle="tab" id="preview">Preview</a></li>
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane active" id="tab1">
+      <span id="error-content" class="error"></span>
+      <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"}>@content</textarea>
+    </div>
+    <div class="tab-pane" id="tab2">
+      <div class="markdown-body" id="preview-area">
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+$(function(){
+  $('#preview').click(function(){
+    $('#preview-area').html('<img src="@path/assets/common/images/indicator.gif"> Previewing...');
+    $.post('@path/@repository.owner/@repository.name/_preview', {
+      content: $('#content').val()
+    }, function(data){
+      $('#preview-area').html(data);
+    });
+  });
+});
+</script>

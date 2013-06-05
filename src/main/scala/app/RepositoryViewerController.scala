@@ -18,7 +18,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
-  self: RepositoryService with AccountService with ReadableRepositoryAuthenticator =>
+  self: RepositoryService with AccountService with ReadableRepositoryAuthenticator  =>
   
   // TODO separate to AccountController?
   /**
@@ -31,7 +31,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case None => NotFound()
     }
   }
-  
+
+  /**
+   * Returns converted HTML from Markdown for preview.
+   */
+  post("/:owner/:repository/_preview")(readableRepository {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val content    = params("content")
+    contentType = "text/html"
+    view.helpers.markdown(content, getRepository(owner, repository, servletContext).get, true)
+  })
+
   /**
    * Displays the file list of the repository root and the default branch.
    */
