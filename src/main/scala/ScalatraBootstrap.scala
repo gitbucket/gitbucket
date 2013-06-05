@@ -8,6 +8,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new SignInController, "/*")
     context.mount(new UsersController, "/*")
     context.mount(new WikiController, "/*")
+    context.mount(new IssuesController, "/*")
     context.mount(new CreateRepositoryController, "/*")
     context.mount(new RepositoryViewerController, "/*")
     context.mount(new SettingsController, "/*")

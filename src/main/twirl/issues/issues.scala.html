@@ -1,0 +1,49 @@
+@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@html.main("Issues - " + repository.owner + "/" + repository.name){
+  @html.header("issues", repository)
+  @issuestab("issues", repository)
+  <div class="btn-group">
+    <a class="btn active" href="#">1 Open</a>
+    <a class="btn" href="#">1 Closed</a>
+  </div>
+  <div class="btn-group">
+    <button class="btn dropdown-toggle" data-toggle="dropdown">
+      Sort: <strong>Newest</strong>
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+      <li><a href="#">Newest</a></li>
+      <li><a href="#">Oldest</a></li>
+      <li><a href="#">Most commented</a></li>
+      <li><a href="#">Least commented</a></li>
+      <li><a href="#">Recently updated</a></li>
+      <li><a href="#">Least recently updated</a></li>
+    </ul>
+  </div>
+  <div class="pagination pagination-right">
+    <ul>
+      <li class="disabled"><span>&#9664;</span></li>
+      <li class="active"><span>1</span></li>
+      <li><a href="#">2</a></li>
+      <li><a href="#">3</a></li>
+      <li><span>&hellip;</span></li>
+      <li><a href="#">7</a></li>
+      <li><a href="#">&#9654;</a></li>
+    </ul>
+  </div>
+  <table class="table table-bordered table-hover">
+    <tr><td>
+      <a href="@path/@repository.owner/@repository.name/issues/1181">2.1 migration issue - ebean</a>
+      <div class="small">
+        Opened by <a href="#">takezoe</a> <time datetime="2013-06-03T15:56:05-07:00" title="2013-06-03 15:56:05">June 03, 2013</time>
+      </div>
+    </td></tr>
+    <tr><td>
+      <a href="#">Serving Play new app sample code page with hyper links</a>
+      <div class="small">
+        Opened by <a href="#">shimamoto</a> <time datetime="2013-06-03T12:58:48-07:00" title="2013-06-03 12:58:48">June 03, 2013</time>
+      </div>
+    </td></tr>
+  </table>
+}
