@@ -145,6 +145,8 @@ object JGitUtil {
     if(path != "."){
       treeWalk.setRecursive(true)
       treeWalk.setFilter(PathFilter.create(path))
+      treeWalk.next()
+      treeWalk.setRecursive(false)
     }
       
     val list = new scala.collection.mutable.ListBuffer[FileInfo]
