@@ -230,37 +230,42 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * @return HTML of the file list
    */
   private def fileList(owner: String, repository: String, revstr: String = "", path: String = ".") = {
-    val revision = if(revstr.isEmpty){
-      Git.open(getRepositoryDir(owner, repository)).getRepository.getBranch
-    } else {
-      revstr
-    }
-      
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      // get latest commit
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
-    
-      val files = JGitUtil.getFileList(git, revision, path)
-    
-      // process README.md
-      val readme = files.find(_.name == "README.md").map { file =>
-        new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
+    getRepository(owner, repository, servletContext) match {
+      case None => NotFound()
+      case Some(repositoryInfo) => {
+        val revision = if(revstr.isEmpty){
+          repositoryInfo.repository.defaultBranch
+        } else {
+          revstr
+        }
+
+        JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+        // get latest commit
+          val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+
+          val files = JGitUtil.getFileList(git, revision, path)
+
+          // process README.md
+          val readme = files.find(_.name == "README.md").map { file =>
+            new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
+          }
+
+          repo.html.files(
+            // current branch
+            revision,
+            // repository
+            repositoryInfo,
+            // current path
+            if(path == ".") Nil else path.split("/").toList,
+            // latest commit
+            new JGitUtil.CommitInfo(revCommit),
+            // file list
+            files,
+            // readme
+            readme
+          )
+        }
       }
-    
-      repo.html.files(
-        // current branch
-        revision, 
-        // repository
-        getRepository(owner, repository, servletContext).get,
-        // current path
-        if(path == ".") Nil else path.split("/").toList,
-        // latest commit
-        new JGitUtil.CommitInfo(revCommit),
-        // file list
-        files,
-        // readme
-        readme
-      )
     }
   }
   
