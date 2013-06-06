@@ -42,6 +42,16 @@ trait RepositoryService { self: AccountService =>
         lastActivityDate = currentDate)
   }
 
+  def deleteRepository(userName: String, repositoryName: String): Unit = {
+    Collaborators
+      .filter { c => (c.userName is userName.bind) && (c.repositoryName is repositoryName.bind) }
+      .delete
+
+    Repositories
+      .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
+      .delete
+  }
+
   /**
    * Returns the list of specified user's repositories information.
    *

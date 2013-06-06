@@ -1,8 +1,10 @@
 package app
 
 import service._
+import util.Directory._
 import util.OwnerOnlyAuthenticator
 import jp.sf.amateras.scalatra.forms._
+import org.apache.commons.io.FileUtils
 
 class SettingsController extends SettingsControllerBase
   with RepositoryService with AccountService with OwnerOnlyAuthenticator
@@ -95,8 +97,35 @@ trait SettingsControllerBase extends ControllerBase {
     removeCollaborator(owner, repository, userName)
     redirect("/%s/%s/settings/collaborators".format(owner, repository))
   })
-  
-  
+
+  /**
+   * Display the delete repository page.
+   */
+  get("/:owner/:repository/settings/delete")(ownerOnly {
+    val owner      = params("owner")
+    val repository = params("repository")
+
+    getRepository(owner, repository, servletContext) match {
+      case Some(r) => settings.html.delete(r)
+      case None    => NotFound()
+    }
+  })
+
+  /**
+   * Delete the repository.
+   */
+  post("/:owner/:repository/settings/delete")(ownerOnly {
+    val owner      = params("owner")
+    val repository = params("repository")
+
+    deleteRepository(owner, repository)
+
+    FileUtils.deleteDirectory(getRepositoryDir(owner, repository))
+    FileUtils.deleteDirectory(getWikiRepositoryDir(owner, repository))
+
+    redirect("/%s".format(owner))
+  })
+
   /**
    * Provides Constraint to validate the collaborator name.
    */
