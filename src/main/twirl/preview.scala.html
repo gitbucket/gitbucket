@@ -16,6 +16,8 @@
     </div>
   </div>
 </div>
+<link  href="@path/assets/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
+<script src="@path/assets/google-code-prettify/prettify.js"></script>
 <script>
 $(function(){
   $('#preview').click(function(){
@@ -24,6 +26,7 @@ $(function(){
       content: $('#content').val()
     }, function(data){
       $('#preview-area').html(data);
+      prettyPrint();
     });
   });
 });
