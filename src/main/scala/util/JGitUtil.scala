@@ -14,7 +14,6 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.eclipse.jgit.errors.MissingObjectException
 import java.util.Date
-import scala.collection.mutable
 
 /**
  * Provides complex JGit operations.
