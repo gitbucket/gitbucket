@@ -19,18 +19,6 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
   self: RepositoryService with AccountService with ReadableRepositoryAuthenticator  =>
-  
-  // TODO separate to AccountController?
-  /**
-   * Displays user information.
-   */
-  get("/:owner") {
-    val owner = params("owner")
-    getAccountByUserName(owner) match {
-      case Some(account) => html.user(account, getRepositoriesOfUser(owner, servletContext))
-      case None => NotFound()
-    }
-  }
 
   /**
    * Returns converted HTML from Markdown for preview.
