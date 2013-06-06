@@ -14,6 +14,7 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.eclipse.jgit.errors.MissingObjectException
 import java.util.Date
+import scala.collection.mutable
 
 /**
  * Provides complex JGit operations.
@@ -167,28 +168,31 @@ object JGitUtil {
       })
     }
       
-    val list = new scala.collection.mutable.ListBuffer[FileInfo]
+    val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String)]
     
     while (treeWalk.next()) {
-      val fileCommit = JGitUtil.getLatestCommitFromPath(git, treeWalk.getPathString, revision)
-      list.append(FileInfo(
-          treeWalk.getObjectId(0),
-          treeWalk.getFileMode(0) == FileMode.TREE, 
-          treeWalk.getNameString,
-          fileCommit.getCommitterIdent.getWhen,
-          fileCommit.getShortMessage, 
-          fileCommit.getCommitterIdent.getName)
-      )
+      list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString))
     }
     
     treeWalk.release
     revWalk.dispose
-    
-    list.toList.sortWith { (file1, file2) => (file1.isDirectory, file2.isDirectory) match {
-      case (true , false) => true
-      case (false, true ) => false
-      case _ => file1.name.compareTo(file2.name) < 0
-    }}
+
+    val commits = getLatestCommitFromPaths(git, list.toList.map(_._3), revision)
+    list.map { case (objectId, fileMode, path, name) =>
+      FileInfo(
+        objectId,
+        fileMode == FileMode.TREE,
+        name,
+        commits(path).getCommitterIdent.getWhen,
+        commits(path).getShortMessage,
+        commits(path).getCommitterIdent.getName)
+    }.sortWith { (file1, file2) =>
+      (file1.isDirectory, file2.isDirectory) match {
+        case (true , false) => true
+        case (false, true ) => false
+       case _ => file1.name.compareTo(file2.name) < 0
+      }
+    }.toList
   }
   
   /**
@@ -270,49 +274,63 @@ object JGitUtil {
    * @param revision the branch name or commit id
    * @return the latest commit
    */
-  def getLatestCommitFromPath(git: Git, path: String, revision: String): RevCommit = {
-      val revWalk = new RevWalk(git.getRepository)
-      revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
-      revWalk.sort(RevSort.REVERSE);
-      val i = revWalk.iterator
-      
-      // TODO DON'T use var!
-      var result: RevCommit = null
-      
-      while(i.hasNext){
-        val commit = i.next
-        if(commit.getParentCount == 0){
-          // Initial commit
-          val treeWalk = new TreeWalk(git.getRepository)
-          treeWalk.reset()
-          treeWalk.setRecursive(true)
-          treeWalk.addTree(commit.getTree)
-          while (treeWalk.next && result == null) {
-            if(treeWalk.getPathString.startsWith(path)){
-              result = commit
+  def getLatestCommitFromPath(git: Git, path: String, revision: String): Option[RevCommit] =
+    getLatestCommitFromPaths(git, List(path), revision).get(path)
+
+  /**
+   * Returns the list of latest RevCommit of the specified paths.
+   *
+   * @param git the Git object
+   * @param paths the list of paths
+   * @param revision the branch name or commit id
+   * @return the list of latest commit
+   */
+  def getLatestCommitFromPaths(git: Git, paths: List[String], revision: String): Map[String, RevCommit] = {
+
+    val map = new scala.collection.mutable.HashMap[String, RevCommit]
+
+    val revWalk = new RevWalk(git.getRepository)
+    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
+    revWalk.sort(RevSort.REVERSE);
+    val i = revWalk.iterator
+
+    while(i.hasNext && map.size != paths.length){
+      val commit = i.next
+      if(commit.getParentCount == 0){
+        // Initial commit
+        val treeWalk = new TreeWalk(git.getRepository)
+        treeWalk.reset()
+        treeWalk.setRecursive(true)
+        treeWalk.addTree(commit.getTree)
+        while (treeWalk.next) {
+          paths.foreach { path =>
+            if(treeWalk.getPathString.startsWith(path) && !map.contains(path)){
+              map.put(path, commit)
             }
           }
-          treeWalk.release     
-        } else {
-          val parent = revWalk.parseCommit(commit.getParent(0).getId())
-          val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
-          df.setRepository(git.getRepository)
-          df.setDiffComparator(RawTextComparator.DEFAULT)
-          df.setDetectRenames(true)
-          val diffs = df.scan(parent.getTree(), commit.getTree)
-          val find = diffs.asScala.find { diff =>
-            val objectId = diff.getNewId.name
-            (diff.getChangeType != ChangeType.DELETE && diff.getNewPath.startsWith(path))
-          }
-          if(find != None){
-            result = commit
+        }
+        treeWalk.release
+      } else {
+        val parent = revWalk.parseCommit(commit.getParent(0).getId())
+        val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
+        df.setRepository(git.getRepository)
+        df.setDiffComparator(RawTextComparator.DEFAULT)
+        df.setDetectRenames(true)
+        val diffs = df.scan(parent.getTree(), commit.getTree)
+        diffs.asScala.foreach { diff =>
+          paths.foreach { path =>
+            if(diff.getChangeType != ChangeType.DELETE && diff.getNewPath.startsWith(path) && !map.contains(path)){
+              map.put(path, commit)
+            }
           }
         }
-        revWalk.release
       }
-      result
+
+      revWalk.release
+    }
+    map.toMap
   }
-  
+
   /**
    * Get object content of the given id as String from the Git repository.
    * 
