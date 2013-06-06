@@ -26,7 +26,7 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
     }
   }
 
-  protected def NotFound()     = redirect("/")
+  protected def NotFound()     = html.error("Not Found")
   protected def Unauthorized() = redirect("/")
 
 }
