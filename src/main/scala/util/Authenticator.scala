@@ -85,16 +85,19 @@ trait ReadableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
   private def authenticate(action: => Any) = {
     {
       val paths = request.getRequestURI.split("/")
-      val repository = getRepository(paths(1), paths(2), servletContext)
-      if(repository.get.repository.repositoryType == RepositoryService.Public){
-        action
-      } else {
-        context.loginAccount match {
-          case Some(x) if(x.userType == AccountService.Administrator) => action
-          case Some(x) if(paths(1) == x.userName) => action
-          case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
-          case _ => Unauthorized()
-        }
+      getRepository(paths(1), paths(2), servletContext) match {
+        case None => NotFound()
+        case Some(repository) =>
+          if(repository.repository.repositoryType == RepositoryService.Public){
+            action
+          } else {
+            context.loginAccount match {
+              case Some(x) if(x.userType == AccountService.Administrator) => action
+              case Some(x) if(paths(1) == x.userName) => action
+              case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
+              case _ => Unauthorized()
+            }
+          }
       }
     }
   }
