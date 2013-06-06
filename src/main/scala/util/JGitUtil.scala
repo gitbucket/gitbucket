@@ -343,7 +343,12 @@ object JGitUtil {
     if(large == false && FileTypeUtil.isLarge(loader.getSize)){
       None
     } else {
-      Some(git.getRepository.getObjectDatabase.open(id).getBytes)
+      val db = git.getRepository.getObjectDatabase
+      try {
+        Some(db.open(id).getBytes)
+      } finally {
+        db.close
+      }
     }
   } catch {
     case e: MissingObjectException => None
