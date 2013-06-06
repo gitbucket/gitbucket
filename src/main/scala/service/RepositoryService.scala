@@ -5,6 +5,10 @@ import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 import util.JGitUtil
 import javax.servlet.ServletContext
+import scala.Some
+import model.Repository
+import model.Account
+import model.Collaborator
 
 trait RepositoryService { self: AccountService =>
   import RepositoryService._
@@ -46,7 +50,16 @@ trait RepositoryService { self: AccountService =>
    * @return the list of repository information which is sorted in descending order of lastActivityDate.
    */
   def getRepositoriesOfUser(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
-    (Query(Repositories) filter(_.userName is userName.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
+    val q1 = Repositories
+      .filter { r => r.userName is userName.bind }
+      .map    { r => r }
+
+    val q2 = Collaborators
+      .innerJoin(Repositories).on((c, r) => (c.userName is r.userName) && (c.repositoryName is r.repositoryName))
+      .filter{ case (c, r) => c.collaboratorName is userName.bind}
+      .map   { case (c, r) => r }
+
+    q1.union(q2).sortBy(_.lastActivityDate).list map { repository =>
       val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
       RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
     }

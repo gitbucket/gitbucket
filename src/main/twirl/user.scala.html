@@ -26,6 +26,8 @@
         @repositories.map { repository =>
         <div class="block">
           <div class="block-header-2">
+            <a href="@path/@repository.owner">@repository.owner</a>
+            /
             <a href="@path/@repository.owner/@repository.name">@repository.name</a>
             @if(repository.repository.repositoryType == Private){
               <i class="icon-lock"></i>
