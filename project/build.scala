@@ -29,7 +29,7 @@ object MyBuild extends Build {
         "org.scalatra" %% "scalatra-json" % ScalatraVersion,
         "org.json4s" %% "json4s-jackson" % "3.2.4",
         "commons-io" % "commons-io" % "2.4",
-        "org.pegdown" % "pegdown" % "1.2.1",
+        "org.pegdown" % "pegdown" % "1.3.0",
         "org.apache.commons" % "commons-compress" % "1.5",
         "com.typesafe.slick" %% "slick" % "1.0.0",
         "com.h2database" % "h2" % "1.3.171",
