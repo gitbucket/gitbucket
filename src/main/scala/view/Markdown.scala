@@ -87,9 +87,6 @@ class GitBucketHtmlSerializer(markdown: String, wikiLink: Boolean, context: app.
       text.replaceFirst("^([0-9]+)", "<a href=\"%s/%s/%s/issue/$1\">$0</a>".format(context.path, repository.owner, repository.name))
     } else text
 
-    println(text)
-
-
     if (abbreviations.isEmpty) {
       printer.print(text2)
     } else {
