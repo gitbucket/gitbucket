@@ -2,36 +2,27 @@ package view
 
 import org.parboiled.common.StringUtils
 import org.pegdown._
+import org.pegdown.ast._
 import org.pegdown.LinkRenderer.Rendering
-import org.pegdown.ast.{WikiLinkNode, VerbatimNode}
 import scala.collection.JavaConverters._
 
 object Markdown {
 
-//  /**
-//   * Converts the issue number and the commit id to the link.
-//   */
-//  private def markdownFilter(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String = {
-//    value
-//      .replaceAll("#([0-9]+)", "[$0](%s/%s/%s/issue/$1)".format(context.path, repository.owner, repository.name))
-//      .replaceAll("[0-9a-f]{40}", "[$0](%s/%s/%s/commit/$0)".format(context.path, repository.owner, repository.name))
-//  }
-
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
-  def toHtml(value: String, repository: service.RepositoryService.RepositoryInfo,
+  def toHtml(markdown: String, repository: service.RepositoryService.RepositoryInfo,
              wikiLink: Boolean)(implicit context: app.Context): String = {
-    new PegDownProcessor(Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES)
-      .markdownToHtml(value,
-        new GitBucketLinkRender(wikiLink, context, repository),
-        Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava)
+    val rootNode = new PegDownProcessor(
+      Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES
+    ).parseMarkdown(markdown.toCharArray)
+
+    new GitBucketHtmlSerializer(markdown, wikiLink, context, repository).toHtml(rootNode)
   }
 }
 
 class GitBucketLinkRender(wikiLink: Boolean, context: app.Context,
                           repository: service.RepositoryService.RepositoryInfo) extends LinkRenderer {
-
   override def render(node: WikiLinkNode): Rendering = {
     if(wikiLink){
       super.render(node)
@@ -52,11 +43,9 @@ class GitBucketLinkRender(wikiLink: Boolean, context: app.Context,
       }
     }
   }
-
 }
 
 class GitBucketVerbatimSerializer extends VerbatimSerializer {
-
   def serialize(node: VerbatimNode, printer: Printer) {
     printer.println.print("<pre")
     if (!StringUtils.isEmpty(node.getType)) {
@@ -71,5 +60,44 @@ class GitBucketVerbatimSerializer extends VerbatimSerializer {
     printer.printEncoded(text)
     printer.print("</pre>")
   }
+}
 
+//  /**
+//   * Converts the issue number and the commit id to the link.
+//   */
+//  private def markdownFilter(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String = {
+//    value
+//      .replaceAll("#([0-9]+)", "[$0](%s/%s/%s/issue/$1)".format(context.path, repository.owner, repository.name))
+//      .replaceAll("[0-9a-f]{40}", "[$0](%s/%s/%s/commit/$0)".format(context.path, repository.owner, repository.name))
+//  }
+
+class GitBucketHtmlSerializer(markdown: String, wikiLink: Boolean, context: app.Context, repository: service.RepositoryService.RepositoryInfo)
+  extends ToHtmlSerializer(
+    new GitBucketLinkRender(wikiLink, context, repository),
+    Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
+  ) {
+  override def visit(node: TextNode) {
+    // convert commit id to link.
+    val text = node.getText.replaceAll("[0-9a-f]{40}",
+      "<a href=\"%s/%s/%s/commit/$0\">$0</a>".format(context.path, repository.owner, repository.name))
+
+    // convert issue id to link
+    val startIndex = node.getStartIndex
+    val text2 = if(startIndex > 0 && markdown.charAt(startIndex - 1) == '#'){
+      text.replaceFirst("^([0-9]+)", "<a href=\"%s/%s/%s/issue/$1\">$0</a>".format(context.path, repository.owner, repository.name))
+    } else text
+
+    println(text)
+
+
+    if (abbreviations.isEmpty) {
+      printer.print(text2)
+    } else {
+      printWithAbbreviations(text2)
+    }
+  }
+
+  override def visit(node: SpecialTextNode) {
+    printer.printEncoded(node.getText)
+  }
 }
