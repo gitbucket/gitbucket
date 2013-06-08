@@ -1,4 +1,5 @@
-@(repository: service.RepositoryService.RepositoryInfo, content: String, style: String = "")(implicit context: app.Context)
+@(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean,
+  enableCommitLink: Boolean, enableIssueLink: Boolean, style: String = "")(implicit context: app.Context)
 @import context._
 <div class="tabbable">
   <ul class="nav nav-tabs">
@@ -23,7 +24,10 @@ $(function(){
   $('#preview').click(function(){
     $('#preview-area').html('<img src="@path/assets/common/images/indicator.gif"> Previewing...');
     $.post('@path/@repository.owner/@repository.name/_preview', {
-      content: $('#content').val()
+      content          : $('#content').val(),
+      enableWikiLink   : @enableWikiLink,
+      enableCommitLink : @enableCommitLink,
+      enableIssueLink  : @enableIssueLink
     }, function(data){
       $('#preview-area').html(data);
       prettyPrint();

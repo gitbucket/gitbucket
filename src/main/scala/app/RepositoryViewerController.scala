@@ -27,8 +27,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val content    = params("content")
+    val enableWikiLink   = params("enableWikiLink").toBoolean
+    val enableCommitLink = params("enableCommitLink").toBoolean
+    val enableIssueLink  = params("enableIssueLink").toBoolean
+
     contentType = "text/html"
-    view.helpers.markdown(content, getRepository(owner, repository, servletContext).get, true)
+    view.helpers.markdown(content, getRepository(owner, repository, servletContext).get,
+      enableWikiLink, enableCommitLink, enableIssueLink)
   })
 
   /**

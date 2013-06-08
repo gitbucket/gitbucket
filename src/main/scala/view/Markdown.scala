@@ -12,19 +12,19 @@ object Markdown {
    * Converts Markdown of Wiki pages to HTML.
    */
   def toHtml(markdown: String, repository: service.RepositoryService.RepositoryInfo,
-             wikiLink: Boolean)(implicit context: app.Context): String = {
+             enableWikiLink: Boolean, enableCommitLink: Boolean, enableIssueLink: Boolean)(implicit context: app.Context): String = {
     val rootNode = new PegDownProcessor(
       Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES
     ).parseMarkdown(markdown.toCharArray)
 
-    new GitBucketHtmlSerializer(markdown, wikiLink, context, repository).toHtml(rootNode)
+    new GitBucketHtmlSerializer(markdown, context, repository, enableWikiLink, enableCommitLink, enableIssueLink).toHtml(rootNode)
   }
 }
 
-class GitBucketLinkRender(wikiLink: Boolean, context: app.Context,
-                          repository: service.RepositoryService.RepositoryInfo) extends LinkRenderer {
+class GitBucketLinkRender(context: app.Context, repository: service.RepositoryService.RepositoryInfo,
+                          enableWikiLink: Boolean) extends LinkRenderer {
   override def render(node: WikiLinkNode): Rendering = {
-    if(wikiLink){
+    if(enableWikiLink){
       super.render(node)
     } else {
       try {
@@ -62,30 +62,32 @@ class GitBucketVerbatimSerializer extends VerbatimSerializer {
   }
 }
 
-//  /**
-//   * Converts the issue number and the commit id to the link.
-//   */
-//  private def markdownFilter(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String = {
-//    value
-//      .replaceAll("#([0-9]+)", "[$0](%s/%s/%s/issue/$1)".format(context.path, repository.owner, repository.name))
-//      .replaceAll("[0-9a-f]{40}", "[$0](%s/%s/%s/commit/$0)".format(context.path, repository.owner, repository.name))
-//  }
-
-class GitBucketHtmlSerializer(markdown: String, wikiLink: Boolean, context: app.Context, repository: service.RepositoryService.RepositoryInfo)
-  extends ToHtmlSerializer(
-    new GitBucketLinkRender(wikiLink, context, repository),
+class GitBucketHtmlSerializer(markdown: String, context: app.Context, repository: service.RepositoryService.RepositoryInfo,
+                              enableWikiLink: Boolean, enableCommitLink: Boolean, enableIssueLink: Boolean) extends ToHtmlSerializer(
+    new GitBucketLinkRender(context, repository, enableWikiLink),
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
   ) {
+
+  override def toHtml(rootNode: RootNode): String = {
+    val html = super.toHtml(rootNode)
+    if(enableIssueLink){
+      // convert marked issue id to link.
+      html.replaceAll("#\\{\\{\\{\\{([0-9]+)\\}\\}\\}\\}",
+        "<a href=\"%s/%s/%s/issue/$1\">#$1</a>".format(context.path, repository.owner, repository.name))
+    } else html
+  }
+
   override def visit(node: TextNode) {
     // convert commit id to link.
-    val text = node.getText.replaceAll("[0-9a-f]{40}",
+    val text1 = if(enableCommitLink) node.getText.replaceAll("[0-9a-f]{40}",
       "<a href=\"%s/%s/%s/commit/$0\">$0</a>".format(context.path, repository.owner, repository.name))
+    else node.getText
 
-    // convert issue id to link
+    // mark issue id to link
     val startIndex = node.getStartIndex
-    val text2 = if(startIndex > 0 && markdown.charAt(startIndex - 1) == '#'){
-      text.replaceFirst("^([0-9]+)", "<a href=\"%s/%s/%s/issue/$1\">$0</a>".format(context.path, repository.owner, repository.name))
-    } else text
+    val text2 = if(enableIssueLink && startIndex > 0 && markdown.charAt(startIndex - 1) == '#'){
+      text1.replaceFirst("^([0-9]+)", "{{{{$0}}}}")
+    } else text1
 
     if (abbreviations.isEmpty) {
       printer.print(text2)
@@ -94,7 +96,13 @@ class GitBucketHtmlSerializer(markdown: String, wikiLink: Boolean, context: app.
     }
   }
 
-  override def visit(node: SpecialTextNode) {
-    printer.printEncoded(node.getText)
+  override def visit(node: HeaderNode) {
+    if(enableIssueLink && markdown.substring(node.getStartIndex, node.getEndIndex).startsWith("#")){
+      printer.print("#" * node.getLevel)
+      visitChildren(node)
+    } else {
+      printTag(node, "h" + node.getLevel)
+    }
   }
+
 }

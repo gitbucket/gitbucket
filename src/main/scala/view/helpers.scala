@@ -1,12 +1,7 @@
 package view
 import java.util.Date
 import java.text.SimpleDateFormat
-
 import twirl.api.Html
-
-import org.pegdown._
-import org.pegdown.LinkRenderer.Rendering
-import org.pegdown.ast.WikiLinkNode
 
 object helpers {
   
@@ -27,8 +22,9 @@ object helpers {
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
-  def markdown(value: String, repository: service.RepositoryService.RepositoryInfo, wikiLink: Boolean)(implicit context: app.Context): twirl.api.Html = {
-    Html(Markdown.toHtml(value, repository, wikiLink))
+  def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,
+               enableWikiLink: Boolean, enableCommitLink: Boolean, enableIssueLink: Boolean)(implicit context: app.Context): Html = {
+    Html(Markdown.toHtml(value, repository, enableWikiLink, enableCommitLink, enableIssueLink))
   }
   
   /**
