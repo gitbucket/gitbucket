@@ -8,15 +8,15 @@
   <table class="table table-bordered">
     <tr>
       <th width="40%">Tag</th>
-      <th width="20%">Commit</th>
       <th width="20%">Date</th>
+      <th width="20%">Commit</th>
       <th width="20%">Download</th>
     </tr>
     @repository.tags.map { tag =>
       <tr>
-        <td>@tag.name</td>
+        <td><a href="@path/@repository.owner/@repository.name/tree/@tag.name">@tag.name</a></td>
         <td>@helpers.datetime(tag.time)</td>
-        <td><a href="@path/@repository.owner/@repository.name/tree/@tag.id">@tag.id.substring(0, 10)</a></td>
+        <td><a href="@path/@repository.owner/@repository.name/commit/@tag.id">@tag.id.substring(0, 10)</a></td>
         <td><a href="@path/@repository.owner/@repository.name/archive/@(tag.name).zip">ZIP</a></td>
       </tr>
     }
