@@ -1,0 +1,50 @@
+@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@html.main("New Issue - " + repository.owner + "/" + repository.name){
+  @html.header("issues", repository)
+  @issuestab("", repository)
+
+  <div class="row-fluid">
+    <div class="span9">
+      <form action="@path/@repository.owner/@repository.name/issues" method="POST">
+      <div class="box">
+        <div class="box-content">
+          <input type="text" name="title" value="" placeholder="Title" style="width: 650px;"/>
+          @*
+          <ul class="nav nav-tabs">
+            <li class="pull-left">No one is assigned
+              <div class="btn-group">
+                <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-cog"></i>
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#">takezoe</a></li>
+                  <li><a href="#">shimamoto</a></li>
+                </ul>
+              </div>
+            </li>
+            <li class="pull-right">No milestone
+              <div class="btn-group">
+                <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-cog"></i>
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li class="divider"></li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+          *@
+          @html.preview(repository, "Leave a comment", true, true, true, "width: 650px; height: 200px;")
+        </div>
+      </div>
+      <input type="submit" class="btn btn-success" value="Submit new issue"/>
+      </form>
+    </div>
+    <div class="span3">
+      TODO Add Labels
+    </div>
+  </div>
+}

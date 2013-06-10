@@ -14,6 +14,13 @@ trait IssuesControllerBase extends ControllerBase { self: RepositoryService =>
   get("/:owner/:repository/issues/:id"){
     issues.html.issue(getRepository(params("owner"), params("repository"), servletContext).get)
   }
-  
-  
+
+  get("/:owner/:repository/issues/new"){
+    issues.html.issueedit(getRepository(params("owner"), params("repository"), servletContext).get)
+  }
+
+  post("/:owner/:repository/issues"){
+    redirect("%s/%s/issues".format(params("owner"), params("repository")))
+  }
+
 }
