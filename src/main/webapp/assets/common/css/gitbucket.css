@@ -49,9 +49,11 @@ span.error {
   font-family: monospace;
 }
 
+/*
 .align-right {
   text-align: right;
 }
+*/
 
 span.description {
   color: gray;
@@ -71,12 +73,7 @@ div.latest-commit {
   font-weight: normal;
 }
 
-div.block-header-1 {
-  font-size: x-large;
-  font-weight: bold;
-}
-
-div.block-header-2 {
+div.block-header {
   font-size: large;
   font-weight: bold;
 }
@@ -177,4 +174,137 @@ ul.collaborator li:hover {
 ul.collaborator a.remove {
   color: #dd0000;
   text-decoration: underline;
+}
+
+div.markdown-body table {
+  /*width: 100%;*/
+  margin-bottom: 20px;
+}
+
+div.markdown-body table th,
+div.markdown-body table td {
+  padding: 8px;
+  line-height: 20px;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid #dddddd;
+}
+
+div.markdown-body table th {
+  font-weight: bold;
+  background-color: #efefef;
+}
+
+div.markdown-body table thead th {
+  vertical-align: bottom;
+}
+
+div.markdown-body table caption + thead tr:first-child th,
+div.markdown-body table caption + thead tr:first-child td,
+div.markdown-body table colgroup + thead tr:first-child th,
+div.markdown-body table colgroup + thead tr:first-child td,
+div.markdown-body table thead:first-child tr:first-child th,
+div.markdown-body table thead:first-child tr:first-child td {
+  border-top: 0;
+}
+
+div.markdown-body table tbody + tbody {
+  border-top: 2px solid #dddddd;
+}
+
+div.markdown-body table {
+  background-color: #ffffff;
+}
+
+div.markdown-body table {
+  border: 1px solid #dddddd;
+  border-collapse: separate;
+  *border-collapse: collapse;
+  border-left: 0;
+  -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+}
+
+div.markdown-body table th,
+div.markdown-body table td {
+  border-left: 1px solid #dddddd;
+}
+
+div.markdown-body table caption + thead tr:first-child th,
+div.markdown-body table caption + tbody tr:first-child th,
+div.markdown-body table caption + tbody tr:first-child td,
+div.markdown-body table colgroup + thead tr:first-child th,
+div.markdown-body table colgroup + tbody tr:first-child th,
+div.markdown-body table colgroup + tbody tr:first-child td,
+div.markdown-body table thead:first-child tr:first-child th,
+div.markdown-body table tbody:first-child tr:first-child th,
+div.markdown-body table tbody:first-child tr:first-child td {
+  border-top: 0;
+}
+
+div.markdown-body table thead:first-child tr:first-child > th:first-child,
+div.markdown-body table tbody:first-child tr:first-child > td:first-child,
+div.markdown-body table tbody:first-child tr:first-child > th:first-child {
+  -webkit-border-top-left-radius: 4px;
+          border-top-left-radius: 4px;
+  -moz-border-radius-topleft: 4px;
+}
+
+div.markdown-body table thead:first-child tr:first-child > th:last-child,
+div.markdown-body table tbody:first-child tr:first-child > td:last-child,
+div.markdown-body table tbody:first-child tr:first-child > th:last-child {
+  -webkit-border-top-right-radius: 4px;
+          border-top-right-radius: 4px;
+  -moz-border-radius-topright: 4px;
+}
+
+div.markdown-body table thead:last-child tr:last-child > th:first-child,
+div.markdown-body table tbody:last-child tr:last-child > td:first-child,
+div.markdown-body table tbody:last-child tr:last-child > th:first-child,
+div.markdown-body table tfoot:last-child tr:last-child > td:first-child,
+div.markdown-body table tfoot:last-child tr:last-child > th:first-child {
+  -webkit-border-bottom-left-radius: 4px;
+          border-bottom-left-radius: 4px;
+  -moz-border-radius-bottomleft: 4px;
+}
+
+div.markdown-body table thead:last-child tr:last-child > th:last-child,
+div.markdown-body table tbody:last-child tr:last-child > td:last-child,
+div.markdown-body table tbody:last-child tr:last-child > th:last-child,
+div.markdown-body table tfoot:last-child tr:last-child > td:last-child,
+div.markdown-body table tfoot:last-child tr:last-child > th:last-child {
+  -webkit-border-bottom-right-radius: 4px;
+          border-bottom-right-radius: 4px;
+  -moz-border-radius-bottomright: 4px;
+}
+
+div.markdown-body table tfoot + tbody:last-child tr:last-child td:first-child {
+  -webkit-border-bottom-left-radius: 0;
+          border-bottom-left-radius: 0;
+  -moz-border-radius-bottomleft: 0;
+}
+
+div.markdown-body table tfoot + tbody:last-child tr:last-child td:last-child {
+  -webkit-border-bottom-right-radius: 0;
+          border-bottom-right-radius: 0;
+  -moz-border-radius-bottomright: 0;
+}
+
+div.markdown-body table caption + thead tr:first-child th:first-child,
+div.markdown-body table caption + tbody tr:first-child td:first-child,
+div.markdown-body table colgroup + thead tr:first-child th:first-child,
+div.markdown-body table colgroup + tbody tr:first-child td:first-child {
+  -webkit-border-top-left-radius: 4px;
+          border-top-left-radius: 4px;
+  -moz-border-radius-topleft: 4px;
+}
+
+div.markdown-body table caption + thead tr:first-child th:last-child,
+div.markdown-body table caption + tbody tr:first-child td:last-child,
+div.markdown-body table colgroup + thead tr:first-child th:last-child,
+div.markdown-body table colgroup + tbody tr:first-child td:last-child {
+  -webkit-border-top-right-radius: 4px;
+          border-top-right-radius: 4px;
+  -moz-border-radius-topright: 4px;
 }

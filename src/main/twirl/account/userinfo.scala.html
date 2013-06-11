@@ -6,7 +6,7 @@
     <div class="row-fluid">
       <div class="span4">
         <div class="block">
-          <div class="block-header-1">@account.userName</div>
+          <div class="block-header">@account.userName</div>
         </div>
         <div class="block">
           <div><i class="icon-home"></i> <a href="@account.url">@account.url</a></div>
@@ -29,7 +29,7 @@
         </ul>
         @repositories.map { repository =>
         <div class="block">
-          <div class="block-header-2">
+          <div class="block-header">
             <a href="@path/@repository.owner">@repository.owner</a>
             /
             <a href="@path/@repository.owner/@repository.name">@repository.name</a>
