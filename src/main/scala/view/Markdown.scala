@@ -97,7 +97,7 @@ class GitBucketHtmlSerializer(markdown: String, context: app.Context, repository
   }
 
   override def visit(node: HeaderNode) {
-    if(enableIssueLink && markdown.substring(node.getStartIndex, node.getEndIndex).startsWith("#")){
+    if(enableIssueLink && markdown.substring(node.getStartIndex, node.getEndIndex - 1).startsWith("#")){
       printer.print("#" * node.getLevel)
       visitChildren(node)
     } else {
