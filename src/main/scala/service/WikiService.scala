@@ -105,13 +105,6 @@ trait WikiService {
         val parentPath = if(index < 0) "."  else path.substring(0, index)
         val fileName   = if(index < 0) path else path.substring(index + 1)
 
-        println("parentPath: " + parentPath)
-        println("fileName: " + fileName)
-
-        JGitUtil.getFileList(git, "master", parentPath).foreach { file =>
-          println("*" + file.name)
-        }
-
         JGitUtil.getFileList(git, "master", parentPath).find(_.name == fileName).map { file =>
           git.getRepository.open(file.id).getBytes
         }
