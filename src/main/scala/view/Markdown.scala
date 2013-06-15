@@ -96,7 +96,7 @@ class GitBucketHtmlSerializer(
   }
 
   private def fixUrl(url: String): String = {
-    if(url.startsWith("http://") || url.startsWith("https://")) url
+    if(!enableWikiLink || url.startsWith("http://") || url.startsWith("https://")) url
     else repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/_blob/" + url
   }
 
