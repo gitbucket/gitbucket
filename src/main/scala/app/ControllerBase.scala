@@ -30,10 +30,7 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
   protected def Unauthorized() = redirect("/")
 
   protected def baseUrl = {
-    println(request.getRequestURL.toString)
-    println(request.getRequestURI)
     val url = request.getRequestURL.toString
-    println(url.substring(0, url.length - request.getRequestURI.length))
     url.substring(0, url.length - request.getRequestURI.length)
   }
 
