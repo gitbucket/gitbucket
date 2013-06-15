@@ -33,7 +33,7 @@ trait WikiControllerBase extends ControllerBase {
     val repository = params("repository")
     
     getWikiPage(owner, repository, "Home") match {
-      case Some(page) => wiki.html.wiki("Home", page, getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
+      case Some(page) => wiki.html.wiki("Home", page, getRepository(owner, repository, baseUrl).get, isWritable(owner, repository))
       case None => redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
     }
   })
@@ -44,7 +44,7 @@ trait WikiControllerBase extends ControllerBase {
     val pageName   = params("page")
     
     getWikiPage(owner, repository, pageName) match {
-      case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
+      case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, baseUrl).get, isWritable(owner, repository))
       case None => redirect("/%s/%s/wiki/%s/_edit".format(owner, repository, pageName)) // TODO URLEncode
     }
   })
@@ -56,7 +56,7 @@ trait WikiControllerBase extends ControllerBase {
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikihistory(Some(page),
-        JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, getRepository(owner, repository, servletContext).get)
+        JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, getRepository(owner, repository, baseUrl).get)
     }
   })
   
@@ -68,7 +68,7 @@ trait WikiControllerBase extends ControllerBase {
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikicompare(Some(page),
-        getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, servletContext).get)
+        getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, baseUrl).get)
     }
   })
   
@@ -79,7 +79,7 @@ trait WikiControllerBase extends ControllerBase {
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikicompare(None,
-        getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, servletContext).get)
+        getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, baseUrl).get)
     }
   })
   
@@ -89,7 +89,7 @@ trait WikiControllerBase extends ControllerBase {
     val page       = params("page")
     
     wiki.html.wikiedit(page, 
-        getWikiPage(owner, repository, page), getRepository(owner, repository, servletContext).get)
+        getWikiPage(owner, repository, page), getRepository(owner, repository, baseUrl).get)
   })
   
   post("/:owner/:repository/wiki/_edit", editForm)(writableRepository { form =>
@@ -106,7 +106,7 @@ trait WikiControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    wiki.html.wikiedit("", None, getRepository(owner, repository, servletContext).get)
+    wiki.html.wikiedit("", None, getRepository(owner, repository, baseUrl).get)
   })
   
   post("/:owner/:repository/wiki/_new", newForm)(writableRepository { form =>
@@ -133,7 +133,7 @@ trait WikiControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     
-    wiki.html.wikipages(getWikiPageList(owner, repository), getRepository(owner, repository, servletContext).get, isWritable(owner, repository))
+    wiki.html.wikipages(getWikiPageList(owner, repository), getRepository(owner, repository, baseUrl).get, isWritable(owner, repository))
   })
   
   get("/:owner/:repository/wiki/_history")(readableRepository {
@@ -142,7 +142,7 @@ trait WikiControllerBase extends ControllerBase {
     
     JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
       wiki.html.wikihistory(None,
-        JGitUtil.getCommitLog(git, "master")._1, getRepository(owner, repository, servletContext).get)
+        JGitUtil.getCommitLog(git, "master")._1, getRepository(owner, repository, baseUrl).get)
     }
   })
 

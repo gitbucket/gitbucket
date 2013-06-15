@@ -25,7 +25,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
       val repositoryOwner = paths(2)
       val repositoryName  = paths(3).replaceFirst("\\.git$", "")
 
-      getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), request.getServletContext) match {
+      getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
         case Some(repository) => {
           if(!request.getRequestURI.endsWith("/git-receive-pack") &&
             repository.repository.repositoryType == RepositoryService.Public){

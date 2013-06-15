@@ -29,6 +29,14 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
   protected def NotFound()     = html.error("Not Found")
   protected def Unauthorized() = redirect("/")
 
+  protected def baseUrl = {
+    println(request.getRequestURL.toString)
+    println(request.getRequestURI)
+    val url = request.getRequestURL.toString
+    println(url.substring(0, url.length - request.getRequestURI.length))
+    url.substring(0, url.length - request.getRequestURI.length)
+  }
+
 }
 
 case class Context(path: String, loginAccount: Option[Account])

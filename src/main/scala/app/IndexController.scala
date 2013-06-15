@@ -7,7 +7,7 @@ class IndexController extends IndexControllerBase with RepositoryService with Ac
 trait IndexControllerBase extends ControllerBase { self: RepositoryService =>
   
   get("/"){
-    html.index(getAccessibleRepositories(context.loginAccount, servletContext))
+    html.index(getAccessibleRepositories(context.loginAccount, baseUrl))
   }
 
 }

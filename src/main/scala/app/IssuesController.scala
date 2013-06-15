@@ -8,15 +8,15 @@ class IssuesController extends IssuesControllerBase
 trait IssuesControllerBase extends ControllerBase { self: RepositoryService =>
 
   get("/:owner/:repository/issues"){
-    issues.html.issues(getRepository(params("owner"), params("repository"), servletContext).get)
+    issues.html.issues(getRepository(params("owner"), params("repository"), baseUrl).get)
   }
 
   get("/:owner/:repository/issues/:id"){
-    issues.html.issue(getRepository(params("owner"), params("repository"), servletContext).get)
+    issues.html.issue(getRepository(params("owner"), params("repository"), baseUrl).get)
   }
 
   get("/:owner/:repository/issues/new"){
-    issues.html.issueedit(getRepository(params("owner"), params("repository"), servletContext).get)
+    issues.html.issueedit(getRepository(params("owner"), params("repository"), baseUrl).get)
   }
 
   post("/:owner/:repository/issues"){

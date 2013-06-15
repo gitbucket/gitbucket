@@ -85,7 +85,7 @@ trait ReadableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
   private def authenticate(action: => Any) = {
     {
       val paths = request.getRequestURI.split("/")
-      getRepository(paths(1), paths(2), servletContext) match {
+      getRepository(paths(1), paths(2), baseUrl) match {
         case None => NotFound()
         case Some(repository) =>
           if(repository.repository.repositoryType == RepositoryService.Public){

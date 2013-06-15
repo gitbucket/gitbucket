@@ -110,10 +110,10 @@ object JGitUtil {
   /**
    * Returns the repository information. It contains branch names and tag names.
    */
-  def getRepositoryInfo(owner: String, repository: String, servletContext: ServletContext): RepositoryInfo = {
+  def getRepositoryInfo(owner: String, repository: String, baseUrl: String): RepositoryInfo = {
     withGit(getRepositoryDir(owner, repository)){ git =>
       RepositoryInfo(
-        owner, repository, "http://localhost:8080%s/git/%s/%s.git".format(servletContext.getContextPath, owner, repository),
+        owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository),
         // branches
         git.branchList.call.asScala.map { ref =>
           ref.getName.replaceFirst("^refs/heads/", "")

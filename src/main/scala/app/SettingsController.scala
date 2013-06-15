@@ -43,7 +43,7 @@ trait SettingsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, servletContext) match {
+    getRepository(owner, repository, baseUrl) match {
       case Some(r) => settings.html.options(r)
       case None    => NotFound()
     }
@@ -69,7 +69,7 @@ trait SettingsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, servletContext) match {
+    getRepository(owner, repository, baseUrl) match {
       case Some(r) => settings.html.collaborators(getCollaborators(owner, repository), r)
       case None    => NotFound()
     }
@@ -105,7 +105,7 @@ trait SettingsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, servletContext) match {
+    getRepository(owner, repository, baseUrl) match {
       case Some(r) => settings.html.delete(r)
       case None    => NotFound()
     }

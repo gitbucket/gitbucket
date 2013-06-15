@@ -56,10 +56,10 @@ trait RepositoryService { self: AccountService =>
    * Returns the list of specified user's repositories information.
    *
    * @param userName the user name
-   * @param servletContext the servlet context
+   * @param baseUrl the base url of this application
    * @return the list of repository information which is sorted in descending order of lastActivityDate.
    */
-  def getRepositoriesOfUser(userName: String, servletContext: ServletContext): List[RepositoryInfo] = {
+  def getRepositoriesOfUser(userName: String, baseUrl: String): List[RepositoryInfo] = {
     val q1 = Repositories
       .filter { r => r.userName is userName.bind }
       .map    { r => r }
@@ -70,7 +70,7 @@ trait RepositoryService { self: AccountService =>
       .map   { case (c, r) => r }
 
     q1.union(q2).sortBy(_.lastActivityDate).list map { repository =>
-      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
+      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
       RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
     }
   }
@@ -80,14 +80,14 @@ trait RepositoryService { self: AccountService =>
    * 
    * @param userName the user name of the repository owner
    * @param repositoryName the repository name
-   * @param servletContext the servlet context
+   * @param baseUrl the base url of this application
    * @return the repository information
    */
-  def getRepository(userName: String, repositoryName: String, servletContext: ServletContext): Option[RepositoryInfo] = {
+  def getRepository(userName: String, repositoryName: String, baseUrl: String): Option[RepositoryInfo] = {
     (Query(Repositories) filter { repository =>
       (repository.userName is userName.bind) && (repository.repositoryName is repositoryName.bind)
     } firstOption) map { repository =>
-      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
+      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
       RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
     }
   }
@@ -96,15 +96,15 @@ trait RepositoryService { self: AccountService =>
    * Returns the list of accessible repositories information for the specified account user.
    * 
    * @param account the account
-   * @param servletContext the servlet context
+   * @param baseUrl the base url of this application
    * @return the repository informations which is sorted in descending order of lastActivityDate.
    */
-  def getAccessibleRepositories(account: Option[Account], servletContext: ServletContext): List[RepositoryInfo] = {
+  def getAccessibleRepositories(account: Option[Account], baseUrl: String): List[RepositoryInfo] = {
     account match {
       // for Administrators
       case Some(x) if(x.userType == AccountService.Administrator) => {
         (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
-          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
+          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
       }
@@ -112,14 +112,14 @@ trait RepositoryService { self: AccountService =>
       case Some(x) if(x.userType == AccountService.Normal) => {
         // TODO only repositories registered as collaborator
         (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
-          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
+          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
       }
       // for Guests
       case None => {
         (Query(Repositories) filter(_.repositoryType is Public.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
-          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, servletContext)
+          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
       }
