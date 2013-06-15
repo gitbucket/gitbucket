@@ -8,6 +8,7 @@ import util.JGitUtil.DiffInfo
 import util.{Directory, JGitUtil}
 import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import java.util.concurrent.ConcurrentHashMap
 
 object WikiService {
   
@@ -30,22 +31,50 @@ object WikiService {
    * @param date the commit date
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
-  
+
+  /**
+   * lock objects
+   */
+  private val locks = new ConcurrentHashMap[String, AnyRef]()
+
+  /**
+   * Returns the lock object for the specified repository.
+   */
+  private def getLockObject(owner: String, repository: String): AnyRef = synchronized {
+    val key = owner + "/" + repository
+    if(!locks.containsKey(key)){
+      locks.put(key, new AnyRef())
+    }
+    locks.get(key)
+  }
+
+  /**
+   * Synchronizes a given function which modifies the working copy of the wiki repository.
+   *
+   * @param owner the repository owner
+   * @param repository the repository name
+   * @param f the function which modifies the working copy of the wiki repository
+   * @tparam T the return type of the given function
+   * @return the result of the given function
+   */
+  def lock[T](owner: String, repository: String)(f: => T): T = getLockObject(owner, repository).synchronized(f)
+
 }
 
 trait WikiService {
   import WikiService._
-  
-  // TODO synchronized?
+
   def createWikiRepository(owner: model.Account, repository: String): Unit = {
-    val dir = Directory.getWikiRepositoryDir(owner.userName, repository)
-    if(!dir.exists){
-      val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
-      try {
-        repo.create
-        saveWikiPage(owner.userName, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
-      } finally {
-        repo.close
+    lock(owner.userName, repository){
+      val dir = Directory.getWikiRepositoryDir(owner.userName, repository)
+      if(!dir.exists){
+        val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
+        try {
+          repo.create
+          saveWikiPage(owner.userName, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
+        } finally {
+          repo.close
+        }
       }
     }
   }
@@ -65,7 +94,37 @@ trait WikiService {
       }
     }
   }
-  
+
+  /**
+   * Returns the content of the specified file.
+   */
+  def getFileContent(owner: String, repository: String, path: String): Option[Array[Byte]] = {
+    JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
+      try {
+        val index = path.lastIndexOf('/')
+        val parentPath = if(index < 0) "."  else path.substring(0, index)
+        val fileName   = if(index < 0) path else path.substring(index + 1)
+
+        println("parentPath: " + parentPath)
+        println("fileName: " + fileName)
+
+        JGitUtil.getFileList(git, "master", parentPath).foreach { file =>
+          println("*" + file.name)
+        }
+
+        JGitUtil.getFileList(git, "master", parentPath).find(_.name == fileName).map { file =>
+          git.getRepository.open(file.id).getBytes
+        }
+      } catch {
+        // TODO no commit, but it should not judge by exception.
+        case e: NullPointerException => None
+      }
+    }
+  }
+
+  /**
+   * Returns the list of wiki page names.
+   */
   def getWikiPageList(owner: String, repository: String): List[String] = {
     JGitUtil.getFileList(Git.open(Directory.getWikiRepositoryDir(owner, repository)), "master", ".")
       .filter(_.name.endsWith(".md"))
@@ -73,78 +132,71 @@ trait WikiService {
       .sortBy(x => x)
   }
   
-  // TODO synchronized
   /**
    * Save the wiki page.
    */
   def saveWikiPage(owner: String, repository: String, currentPageName: String, newPageName: String,
       content: String, committer: model.Account, message: String): Unit = {
 
-    val workDir = Directory.getWikiWorkDir(owner, repository)
-    
-    // clone
-    if(!workDir.exists){
-      Git.cloneRepository
-        .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
-        .setDirectory(workDir)
-        .call
-    }
-    
-    // write as file
-    JGitUtil.withGit(workDir){ git =>
-      val file = new File(workDir, newPageName + ".md")
-      val added = if(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
-        FileUtils.writeStringToFile(file, content, "UTF-8")
-        git.add.addFilepattern(file.getName).call
-        true
-      } else {
-        false
-      }
-    
-      // delete file
-      val deleted = if(currentPageName != "" && currentPageName != newPageName){
-        git.rm.addFilepattern(currentPageName + ".md").call
-        true
-      } else {
-        false
-      }
-    
-      // commit and push
-      if(added || deleted){
-        git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(message).call
-        git.push.call
+    lock(owner, repository){
+      // clone working copy
+      val workDir = Directory.getWikiWorkDir(owner, repository)
+      cloneOrPullWorkingCopy(workDir, owner, repository)
+
+      // write as file
+      JGitUtil.withGit(workDir){ git =>
+        val file = new File(workDir, newPageName + ".md")
+        val added = if(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
+          FileUtils.writeStringToFile(file, content, "UTF-8")
+          git.add.addFilepattern(file.getName).call
+          true
+        } else {
+          false
+        }
+
+        // delete file
+        val deleted = if(currentPageName != "" && currentPageName != newPageName){
+          git.rm.addFilepattern(currentPageName + ".md").call
+          true
+        } else {
+          false
+        }
+
+        // commit and push
+        if(added || deleted){
+          git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(message).call
+          git.push.call
+        }
       }
     }
   }
-  
+
   /**
    * Delete the wiki page.
    */
   def deleteWikiPage(owner: String, repository: String, pageName: String, committer: String, message: String): Unit = {
+    lock(owner, repository){
+      // clone working copy
+      val workDir = Directory.getWikiWorkDir(owner, repository)
+      cloneOrPullWorkingCopy(workDir, owner, repository)
+
+      // delete file
+      new File(workDir, pageName + ".md").delete
     
-    val workDir = Directory.getWikiWorkDir(owner, repository)
+      JGitUtil.withGit(workDir){ git =>
+        git.rm.addFilepattern(pageName + ".md").call
     
-    // clone
-    if(!workDir.exists){
-      Git.cloneRepository
-        .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
-        .setDirectory(workDir)
-        .call
-    }
-    
-    // delete file
-    new File(workDir, pageName + ".md").delete
-    
-    JGitUtil.withGit(workDir){ git =>
-      git.rm.addFilepattern(pageName + ".md").call
-    
-      // commit and push
-      // TODO committer's mail address
-      git.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
-      git.push.call
+        // commit and push
+        // TODO committer's mail address
+        git.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
+        git.push.call
+      }
     }
   }
-  
+
+  /**
+   * Returns differences between specified commits.
+   */
   def getWikiDiffs(git: Git, commitId1: String, commitId2: String): List[DiffInfo] = {
       // get diff between specified commit and its previous commit
       val reader = git.getRepository.newObjectReader
@@ -161,5 +213,17 @@ trait WikiService {
             JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
             JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
       }.toList
-  }   
+  }
+
+  private def cloneOrPullWorkingCopy(workDir: File, owner: String, repository: String): Unit = {
+    if(!workDir.exists){
+      Git.cloneRepository
+        .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
+         .setDirectory(workDir)
+        .call
+    } else {
+      val git = Git.open(workDir).pull()
+    }
+  }
+
 }
