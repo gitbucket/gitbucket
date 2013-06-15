@@ -146,6 +146,15 @@ trait WikiControllerBase extends ControllerBase {
     }
   })
 
+  get("/:owner/:repository/wiki/_blob/*")(readableRepository {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val path       = multiParams("splat").head
+
+    contentType = "application/octet-stream"
+    getFileContent(owner, repository, path).get
+  })
+
   /**
    * Constraint for the wiki page name.
    */
