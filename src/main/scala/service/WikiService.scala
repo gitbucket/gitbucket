@@ -212,10 +212,10 @@ trait WikiService {
     if(!workDir.exists){
       Git.cloneRepository
         .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
-         .setDirectory(workDir)
+        .setDirectory(workDir)
         .call
     } else {
-      val git = Git.open(workDir).pull()
+      Git.open(workDir).pull.call
     }
   }
 
