@@ -62,8 +62,14 @@ class GitBucketVerbatimSerializer extends VerbatimSerializer {
   }
 }
 
-class GitBucketHtmlSerializer(markdown: String, context: app.Context, repository: service.RepositoryService.RepositoryInfo,
-                              enableWikiLink: Boolean, enableCommitLink: Boolean, enableIssueLink: Boolean) extends ToHtmlSerializer(
+class GitBucketHtmlSerializer(
+    markdown: String,
+    context: app.Context,
+    repository: service.RepositoryService.RepositoryInfo,
+    enableWikiLink: Boolean,
+    enableCommitLink: Boolean,
+    enableIssueLink: Boolean
+  ) extends ToHtmlSerializer(
     new GitBucketLinkRender(context, repository, enableWikiLink),
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
   ) {
@@ -75,6 +81,27 @@ class GitBucketHtmlSerializer(markdown: String, context: app.Context, repository
       html.replaceAll("#\\{\\{\\{\\{([0-9]+)\\}\\}\\}\\}",
         "<a href=\"%s/%s/%s/issue/$1\">#$1</a>".format(context.path, repository.owner, repository.name))
     } else html
+  }
+
+  override protected def printImageTag(imageNode: SuperNode, url: String): Unit =
+    printer.print("<img src=\"").print(fixUrl(url)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/>")
+
+  override protected def printLink(rendering: LinkRenderer.Rendering): Unit = {
+    printer.print('<').print('a')
+    printAttribute("href", fixUrl(rendering.href))
+    for (attr <- rendering.attributes.asScala) {
+      printAttribute(attr.name, attr.value)
+    }
+    printer.print('>').print(rendering.text).print("</a>")
+  }
+
+  private def fixUrl(url: String): String = {
+    if(url.startsWith("http://") || url.startsWith("https://")) url
+    else repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/_blob/" + url
+  }
+
+  private def printAttribute(name: String, value: String) {
+    printer.print(' ').print(name).print('=').print('"').print(value).print('"')
   }
 
   override def visit(node: TextNode) {
