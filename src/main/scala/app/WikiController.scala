@@ -30,10 +30,13 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
-    
-    getWikiPage(owner, repository, "Home") match {
-      case Some(page) => wiki.html.wiki("Home", page, getRepository(owner, repository, baseUrl).get, isWritable(owner, repository))
-      case None => redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
+
+    getRepository(owner, repository, baseUrl) match {
+      case Some(repoInfo) => getWikiPage(owner, repository, "Home") match {
+        case Some(page) => wiki.html.wiki("Home", page, repoInfo, isWritable(owner, repository))
+        case None => redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
+      }
+      case None => NotFound()
     }
   })
   
@@ -52,10 +55,12 @@ trait WikiControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
-    
-    JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
-      wiki.html.wikihistory(Some(page),
-        JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, getRepository(owner, repository, baseUrl).get)
+
+    getRepository(owner, repository, baseUrl) match {
+      case Some(repoInfo) => JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
+        wiki.html.wikihistory(Some(page), JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, repoInfo)
+      }
+      case None => NotFound()
     }
   })
   
@@ -75,10 +80,12 @@ trait WikiControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val commitId   = params("commitId").split("\\.\\.\\.")
-    
-    JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
-      wiki.html.wikicompare(None,
-        getWikiDiffs(git, commitId(0), commitId(1)), getRepository(owner, repository, baseUrl).get)
+
+    getRepository(owner, repository, baseUrl) match {
+      case Some(repoInfo) => JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
+        wiki.html.wikicompare(None, getWikiDiffs(git, commitId(0), commitId(1)), repoInfo)
+      }
+      case None => NotFound()
     }
   })
   
@@ -86,9 +93,11 @@ trait WikiControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val page       = params("page")
-    
-    wiki.html.wikiedit(page, 
-        getWikiPage(owner, repository, page), getRepository(owner, repository, baseUrl).get)
+
+    getRepository(owner, repository, baseUrl) match {
+      case Some(repoInfo) => wiki.html.wikiedit(page, getWikiPage(owner, repository, page), repoInfo)
+      case None => NotFound()
+    }
   })
   
   post("/:owner/:repository/wiki/_edit", editForm)(writableRepository { form =>
@@ -104,8 +113,11 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/_new")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
-    
-    wiki.html.wikiedit("", None, getRepository(owner, repository, baseUrl).get)
+
+    getRepository(owner, repository, baseUrl) match {
+      case Some(repoInfo) => wiki.html.wikiedit("", None, repoInfo)
+      case None => NotFound()
+    }
   })
   
   post("/:owner/:repository/wiki/_new", newForm)(writableRepository { form =>
@@ -131,17 +143,22 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/_pages")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
-    
-    wiki.html.wikipages(getWikiPageList(owner, repository), getRepository(owner, repository, baseUrl).get, isWritable(owner, repository))
+
+    getRepository(owner, repository, baseUrl) match {
+      case Some(repoInfo) => wiki.html.wikipages(getWikiPageList(owner, repository), repoInfo, isWritable(owner, repository))
+      case None => NotFound()
+    }
   })
   
   get("/:owner/:repository/wiki/_history")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
-    
-    JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
-      wiki.html.wikihistory(None,
-        JGitUtil.getCommitLog(git, "master")._1, getRepository(owner, repository, baseUrl).get)
+
+    getRepository(owner, repository, baseUrl) match {
+      case Some(repoInfo) => JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
+        wiki.html.wikihistory(None, JGitUtil.getCommitLog(git, "master")._1, repoInfo)
+      }
+      case None => NotFound()
     }
   })
 
@@ -150,8 +167,13 @@ trait WikiControllerBase extends ControllerBase {
     val repository = params("repository")
     val path       = multiParams("splat").head
 
-    contentType = "application/octet-stream"
-    getFileContent(owner, repository, path).get
+    getFileContent(owner, repository, path) match {
+      case Some(content) => {
+        contentType = "application/octet-stream"
+        content
+      }
+      case None => NotFound()
+    }
   })
 
   /**
