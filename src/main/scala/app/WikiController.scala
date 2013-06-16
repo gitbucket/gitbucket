@@ -11,7 +11,6 @@ class WikiController extends WikiControllerBase
 trait WikiControllerBase extends ControllerBase {
   self: WikiService with RepositoryService with WritableRepositoryAuthenticator with ReadableRepositoryAuthenticator =>
 
-  // TODO ユーザ名の先頭に_は使えないようにする
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
   val newForm = mapping(
@@ -162,6 +161,8 @@ trait WikiControllerBase extends ControllerBase {
     def validate(name: String, value: String): Option[String] = {
       if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
         Some("Page name contains invalid character.")
+      } else if(value.startsWith("_")){
+        Some("Page name can not start with '_'.")
       } else {
         None
       }
