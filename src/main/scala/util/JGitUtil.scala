@@ -212,8 +212,10 @@ object JGitUtil {
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], count: Int, logs: List[CommitInfo]): (List[CommitInfo], Boolean)  =
       i.hasNext match {
-        case true if(limit <= 0 || logs.size < limit) => 
-          getCommitLog(i, count + 1, if(limit <= 0 || (fixedPage - 1) * limit < count) logs :+ new CommitInfo(i.next) else logs)
+        case true if(limit <= 0 || logs.size < limit) => {
+          val commit = i.next
+          getCommitLog(i, count + 1, if(limit <= 0 || (fixedPage - 1) * limit <= count) logs :+ new CommitInfo(commit) else logs)
+        }
         case _ => (logs, i.hasNext)
       }
     
@@ -312,16 +314,18 @@ object JGitUtil {
         }
         treeWalk.release
       } else {
-        val parent = revWalk.parseCommit(commit.getParent(0).getId())
-        val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
-        df.setRepository(git.getRepository)
-        df.setDiffComparator(RawTextComparator.DEFAULT)
-        df.setDetectRenames(true)
-        val diffs = df.scan(parent.getTree(), commit.getTree)
-        diffs.asScala.foreach { diff =>
-          paths.foreach { path =>
-            if(diff.getChangeType != ChangeType.DELETE && diff.getNewPath.startsWith(path) && !map.contains(path)){
-              map.put(path, commit)
+        (0 to commit.getParentCount - 1).foreach { i =>
+          val parent = revWalk.parseCommit(commit.getParent(i).getId())
+          val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
+          df.setRepository(git.getRepository)
+          df.setDiffComparator(RawTextComparator.DEFAULT)
+          df.setDetectRenames(true)
+          val diffs = df.scan(parent.getTree(), commit.getTree)
+          diffs.asScala.foreach { diff =>
+            paths.foreach { path =>
+              if(diff.getChangeType != ChangeType.DELETE && diff.getNewPath.startsWith(path) && !map.contains(path)){
+                map.put(path, commit)
+              }
             }
           }
         }
