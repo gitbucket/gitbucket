@@ -45,6 +45,15 @@ span.error {
   font-size: small;
 }
 
+a.commit-message {
+  color: #333333;
+}
+
+a.commit-message:hover {
+  color: #333333;
+}
+
+
 .monospace {
   font-family: monospace;
 }
@@ -57,6 +66,10 @@ span.error {
 
 span.description {
   color: gray;
+}
+
+table.table-file-list {
+  margin-bottom: 0px;
 }
 
 table.table th {

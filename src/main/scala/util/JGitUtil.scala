@@ -39,9 +39,10 @@ object JGitUtil {
    * @param name the file (or directory) name
    * @param time the last modified time
    * @param message the last commit message
+   * @param commitId the last commit id
    * @param committer the last committer name
    */
-  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, committer: String)
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String, committer: String)
 
   /**
    * The commit data.
@@ -184,6 +185,7 @@ object JGitUtil {
         name,
         commits(path).getCommitterIdent.getWhen,
         commits(path).getShortMessage,
+        commits(path).getName,
         commits(path).getCommitterIdent.getName)
     }.sortWith { (file1, file2) =>
       (file1.isDirectory, file2.isDirectory) match {
