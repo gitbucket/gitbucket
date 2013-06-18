@@ -2,13 +2,13 @@
 @import context._
 @import view.helpers
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
-@html.main(helpers.cut(commit.message, 20)){
+@html.main(commit.shortMessage){
   @html.header("code", repository)
   @navtab(branch, repository, "commits")
   <table class="table table-bordered">
     <tr>
       <th>
-        <div>@helpers.format(commit.message)</div>
+        <div class="commit-log">@helpers.formatCommitLog(commit.fullMessage)</div>
         <div class="small" style="font-weight: normal;"><span class="description">@branch</span></div>
       </th>
     </tr>

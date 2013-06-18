@@ -97,6 +97,10 @@ div.block {
   border-bottom: 1px solid silver;
 }
 
+div.commit-log div.description {
+  font-weight: normal;
+}
+
 h1.wiki-title {
   margin-top: 0px;
 }

@@ -50,11 +50,22 @@ object JGitUtil {
    * @param id the commit id
    * @param time the commit time
    * @param committer  the commiter name
-   * @param message the commit message
+   * @param shortMessage the short message
+   * @param fullMessage the full message
    */
-  case class CommitInfo(id: String, time: Date, committer: String, message: String){
+  case class CommitInfo(id: String, time: Date, committer: String, shortMessage: String, fullMessage: String){
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) =
-      this(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getFullMessage)
+      this(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getShortMessage, rev.getFullMessage)
+
+    val description = {
+      val i = fullMessage.trim.indexOf("\n")
+      if(i >= 0){
+        Some(fullMessage.trim.substring(i).trim)
+      } else {
+        None
+      }
+    }
+
   }
 
   case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])

@@ -21,7 +21,7 @@
         <div class="pull-left">
           <a href="@path/@latestCommit.committer">@latestCommit.committer</a>
           <span class="description">@helpers.datetime(latestCommit.time)</span>
-          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@helpers.cut(latestCommit.message, 100)</a>
+          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@latestCommit.shortMessage</a>
         </div>
         <div class="btn-group pull-right">
           <a class="btn btn-mini" href="?raw=true">Raw</a>

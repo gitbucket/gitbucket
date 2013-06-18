@@ -30,7 +30,16 @@
       <tr>
         <td>
           <div class="pull-left">
-            <a href="@path/@repository.owner/@repository.name/commit/@commit.id"><strong>@helpers.cut(commit.message, 100)</strong></a><br>
+            <a href="@path/@repository.owner/@repository.name/commit/@commit.id"><strong>@commit.shortMessage</strong></a>
+            @if(commit.description.isDefined){
+              <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();">...</a>
+            }
+            <br>
+            @if(commit.description.isDefined){
+              <div class="small" id="description-@commit.id" style="display: none;">
+                @helpers.format(commit.description.get)
+              </div>
+            }
             <div class="small">
               <a href="@path/@commit.committer">@commit.committer</a>
               <span class="description">@helpers.datetime(commit.time)</span>

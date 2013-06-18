@@ -75,7 +75,7 @@ class CommitLogHook(owner: String, repository: String) extends PostReceiveHook {
       commands.asScala.foreach { command =>
         JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name).foreach { commit =>
           // TODO extract issue id and add comment to issue
-          logger.debug(commit.id + ":" + commit.message)
+          logger.debug(commit.id + ":" + commit.shortMessage)
         }
       }
     }

@@ -16,7 +16,7 @@
         <th colspan="4" style="font-weight: normal;">
           <div>
             <strong><a href="@path/@repository.owner/@repository.name/@latestCommit.committer">@latestCommit.committer</a></strong> 
-            <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@helpers.cut(latestCommit.message, 100)</a>
+            <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@latestCommit.shortMessage</a>
             <div class="pull-right align-right">
               @helpers.datetime(latestCommit.time)
               <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id">@latestCommit.id.substring(0, 10)</a>
@@ -49,7 +49,7 @@
         }
         </td>
         <td>@helpers.datetime(file.time)</td>
-        <td><a href="@path/@repository.owner/@repository.name/commit/@file.commitId" class="commit-message">@helpers.cut(file.message, 60)</a> [<a href="@path/@file.committer">@file.committer</a>]</td>
+        <td><a href="@path/@repository.owner/@repository.name/commit/@file.commitId" class="commit-message">@file.message</a> [<a href="@path/@file.committer">@file.committer</a>]</td>
       </tr>
       }
     </table>
