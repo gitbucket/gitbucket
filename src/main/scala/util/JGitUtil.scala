@@ -292,7 +292,7 @@ object JGitUtil {
 
     val revWalk = new RevWalk(git.getRepository)
     revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
-    revWalk.sort(RevSort.REVERSE);
+    //revWalk.sort(RevSort.REVERSE);
     val i = revWalk.iterator
 
     while(i.hasNext && map.size != paths.length){
