@@ -24,12 +24,15 @@
     <tr>
       <td>
         @if(diff.newContent != None || diff.oldContent != None){
-          <div id="diff-@i"></div>
-          <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
-          <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
+          @if(diffs.size > 10 && diff.changeType != ChangeType.MODIFY){
+            @diff.changeType
+          } else {
+            <div id="diff-@i"></div>
+            <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
+            <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
+          }
         } else {
           Not supported
-          @*Too big file not shown*@
         }
       </td>
     </tr>
@@ -91,7 +94,9 @@ function diffUsingJS(oldTextId, newTextId, outputId) {
 $(function(){
   @diffs.zipWithIndex.map { case (diff, i) =>
     @if(diff.newContent != None || diff.oldContent != None){
-      diffUsingJS('oldText-@i', 'newText-@i', 'diff-@i');
+      if($('#oldText-@i').length > 0){
+        diffUsingJS('oldText-@i', 'newText-@i', 'diff-@i');
+      }
     }
   }
 });
