@@ -2,6 +2,13 @@ package model
 
 import scala.slick.driver.H2Driver.simple._
 
+object IssueId extends Table[(String, String, Int)]("ISSUE_ID") {
+  def userName = column[String]("USER_NAME", O PrimaryKey)
+  def repositoryName = column[String]("REPOSITORY_NAME", O PrimaryKey)
+  def issueId = column[Int]("ISSUE_ID")
+  def * = userName ~ repositoryName ~ issueId
+}
+
 object Issues extends Table[Issue]("ISSUE") {
   def userName = column[String]("USER_NAME", O PrimaryKey)
   def repositoryName = column[String]("REPOSITORY_NAME", O PrimaryKey)
