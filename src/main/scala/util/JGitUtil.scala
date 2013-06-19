@@ -238,7 +238,7 @@ object JGitUtil {
     if(path.nonEmpty){
       revWalk.setRevFilter(new RevFilter(){
         def include(walk: RevWalk, commit: RevCommit): Boolean = {
-          getDiffs(git, commit.getName).find(_.newPath == path).nonEmpty
+          getDiffs(git, commit.getName, false).find(_.newPath == path).nonEmpty
         }
         override def clone(): RevFilter = this
       })
@@ -374,7 +374,7 @@ object JGitUtil {
     case e: MissingObjectException => None
   }
   
-  def getDiffs(git: Git, id: String): List[DiffInfo] = {
+  def getDiffs(git: Git, id: String, fetchContent: Boolean = true): List[DiffInfo] = {
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[RevCommit]): List[RevCommit] =
       i.hasNext match {
@@ -405,8 +405,8 @@ object JGitUtil {
       
       import scala.collection.JavaConverters._
       git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-        if(FileTypeUtil.isImage(diff.getOldPath) || FileTypeUtil.isImage(diff.getNewPath)){
-          DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None) 
+        if(!fetchContent || FileTypeUtil.isImage(diff.getOldPath) || FileTypeUtil.isImage(diff.getNewPath)){
+          DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
         } else {
           DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
             JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
@@ -419,8 +419,11 @@ object JGitUtil {
       walk.addTree(revCommit.getTree)
       val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
       while(walk.next){
-        buffer.append(DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
-            JGitUtil.getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8"))))
+        buffer.append((if(!fetchContent){
+          DiffInfo(ChangeType.ADD, null, walk.getPathString, None, None)
+        } else {
+          DiffInfo(ChangeType.ADD, null, walk.getPathString, None, JGitUtil.getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8")))
+        }))
       }
       walk.release
       buffer.toList
