@@ -40,15 +40,25 @@ trait RepositoryService { self: AccountService =>
         registeredDate   = currentDate,
         updatedDate      = currentDate,
         lastActivityDate = currentDate)
+    
+    IssueId insert (userName, repositoryName, 0)
   }
 
   def deleteRepository(userName: String, repositoryName: String): Unit = {
     Collaborators
-      .filter { c => (c.userName is userName.bind) && (c.repositoryName is repositoryName.bind) }
+      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
       .delete
 
+    IssueId
+      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
+      .delete
+      
+    Issues
+      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
+      .delete
+      
     Repositories
-      .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
+      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
       .delete
   }
 
