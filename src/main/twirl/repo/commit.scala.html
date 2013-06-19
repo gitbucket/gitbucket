@@ -21,21 +21,26 @@
     <tr>
       <td>
         <a href="@path/@commit.committer" class="username">@commit.committer</a> <span class="description">@helpers.datetime(commit.time)</span>
-        <div class="pull-right align-right monospace small">
-          @if(commit.parents.size == 0){
-            <span class="description">0 parent</span>
-          }
-          @if(commit.parents.size == 1){
-            <span class="description">1 parent</span>
-            <a href="@path/@repository.owner/@repository.name/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
-          }
-          <span class="description">commit</span> @commit.id
+        <div class="pull-right monospace small" style="text-align: right;">
+          <div>
+            @if(commit.parents.size == 0){
+              <span class="description">0 parent</span>
+            }
+            @if(commit.parents.size == 1){
+              <span class="description">1 parent</span>
+              <a href="@path/@repository.owner/@repository.name/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
+            }
+            <span class="description">commit</span> @commit.id
+          </div>
           @if(commit.parents.size > 1){
-            <br>
-            <span class="description">@commit.parents.size parent</span>
-            @commit.parents.map { parent =>
-              @parent
-            }.mkString(" + ")
+            <div>
+              <span class="description">@commit.parents.size parents
+              @commit.parents.zipWithIndex.map { case (parent, i) =>
+                @if(i != 0){ + }
+                <a href="@path/@repository.owner/@repository.name/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
+              }
+              </span>
+            </div>
           }
         </div>
       </td>
