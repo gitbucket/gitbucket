@@ -122,6 +122,7 @@ trait SettingsControllerBase extends ControllerBase {
 
     FileUtils.deleteDirectory(getRepositoryDir(owner, repository))
     FileUtils.deleteDirectory(getWikiRepositoryDir(owner, repository))
+    FileUtils.deleteDirectory(getWikiWorkDir(owner, repository))
 
     redirect("/%s".format(owner))
   })
