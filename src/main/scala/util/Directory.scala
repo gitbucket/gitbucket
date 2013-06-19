@@ -32,12 +32,18 @@ object Directory {
    */
   def getRepositoryDir(owner: String, repository: String): File =
     new File("%s/%s/%s.git".format(RepositoryHome, owner, repository))
-  
+
+  /**
+   * Root of temporary directories for the specified repository.
+   */
+  def getTemporaryDir(owner: String, repository: String): File =
+    new File("%s/tmp/%s/%s".format(GitBucketHome, owner, repository))
+
   /**
    * Temporary directory which is used to create an archive to download repository contents.
    */
   def getDownloadWorkDir(owner: String, repository: String, sessionId: String): File = 
-    new File("%s/tmp/%s/%s/download/%s".format(GitBucketHome, owner, repository, sessionId))
+    new File(getTemporaryDir(owner, repository), "download/%s".format(sessionId))
   
   /**
    * Temporary directory which is used in the repository creation.
@@ -45,7 +51,7 @@ object Directory {
    * This directory is removed after the repository creation.
    */
   def getInitRepositoryDir(owner: String, repository: String): File =
-    new File("%s/tmp/%s/init-%s".format(GitBucketHome, owner, repository))
+    new File(getTemporaryDir(owner, repository), "init")
   
   /**
    * Substance directory of the wiki repository.
@@ -56,7 +62,7 @@ object Directory {
   /**
    * Wiki working directory which is cloned from the wiki repository.
    */
-  def getWikiWorkDir(owner: String, repository: String): File = 
-    new File("%s/tmp/%s/%s.wiki".format(Directory.GitBucketHome, owner, repository))
-  
+  def getWikiWorkDir(owner: String, repository: String): File =
+    new File(getTemporaryDir(owner, repository), "wiki")
+
 }
