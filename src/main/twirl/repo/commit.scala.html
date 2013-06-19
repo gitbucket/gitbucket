@@ -8,6 +8,9 @@
   <table class="table table-bordered">
     <tr>
       <th>
+        <div class="pull-right align-right">
+          <a href="@path/@repository.owner/@repository.name/tree/@commit.id" class="btn btn-small">Browse code</a>
+        </div>
         <div class="commit-log">@commit.shortMessage</div>
         @if(commit.description.isDefined){
           <pre class="commit-description">@commit.description.get</pre>
