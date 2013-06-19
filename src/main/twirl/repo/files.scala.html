@@ -24,12 +24,12 @@
         </th>
       </tr>
       <tr>
-        <td colspan="4">
+        <td colspan="4" class="latest-commmit">
           <div>
-            <strong><a href="@path/@repository.owner/@repository.name/@latestCommit.committer">@latestCommit.committer</a></strong>
-            <div class="pull-right align-right">
-              @helpers.datetime(latestCommit.time)
-              <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id">@latestCommit.id.substring(0, 10)</a>
+            <a href="@path/@repository.owner/@repository.name/@latestCommit.committer" class="username">@latestCommit.committer</a>
+            @helpers.datetime(latestCommit.time)
+            <div class="pull-right align-right monospace">
+              <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-id"><span class="description">latest commit</span> @latestCommit.id.substring(0, 10)</a>
             </div>
           </div>
         </td>

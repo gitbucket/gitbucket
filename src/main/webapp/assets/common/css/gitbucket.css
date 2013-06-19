@@ -45,24 +45,18 @@ span.error {
   font-size: small;
 }
 
-a.commit-message {
+a.commit-message, a.commit-id, a.committer {
   color: #333333;
 }
 
-a.commit-message:hover {
-  color: #333333;
+a.username {
+  color: black;
+  font-weight: bold;
 }
-
 
 .monospace {
   font-family: monospace;
 }
-
-/*
-.align-right {
-  text-align: right;
-}
-*/
 
 span.description {
   color: gray;
@@ -72,6 +66,17 @@ table.table-file-list {
   margin-bottom: 0px;
 }
 
+table.table-file-list th, table.table-file-list td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+table.table-file-list td.latest-commmit {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  background-color: white;
+}
+
 table.table th {
   background-color: #d9edf7;
 }
@@ -79,6 +84,11 @@ table.table th {
 table.table-file-list td {
   background-color: #F8F8F8;
   font-size: small;
+}
+
+th, td, .table th, .table td {
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 div.latest-commit {
