@@ -36,9 +36,7 @@
             }
             <br>
             @if(commit.description.isDefined){
-              <div class="small" id="description-@commit.id" style="display: none;">
-                @helpers.format(commit.description.get)
-              </div>
+              <pre id="description-@commit.id" style="display: none;" class="commit-description">@commit.description.get</pre>
             }
             <div class="small">
               <a href="@path/@commit.committer">@commit.committer</a>

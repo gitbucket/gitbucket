@@ -8,7 +8,10 @@
   <table class="table table-bordered">
     <tr>
       <th>
-        <div class="commit-log">@helpers.formatCommitLog(commit.fullMessage)</div>
+        <div class="commit-log">@commit.shortMessage</div>
+        @if(commit.description.isDefined){
+          <pre class="commit-description">@commit.description.get</pre>
+        }
         <div class="small" style="font-weight: normal;"><span class="description">@branch</span></div>
       </th>
     </tr>
