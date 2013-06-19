@@ -52,10 +52,13 @@ object JGitUtil {
    * @param committer  the commiter name
    * @param shortMessage the short message
    * @param fullMessage the full message
+   * @param parents the list of parent commid id
    */
-  case class CommitInfo(id: String, time: Date, committer: String, shortMessage: String, fullMessage: String){
-    def this(rev: org.eclipse.jgit.revwalk.RevCommit) =
-      this(rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getShortMessage, rev.getFullMessage)
+  case class CommitInfo(id: String, time: Date, committer: String, shortMessage: String, fullMessage: String, parents: List[String]){
+    
+    def this(rev: org.eclipse.jgit.revwalk.RevCommit) = this(
+        rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getShortMessage, rev.getFullMessage,
+        rev.getParents().map(_.name).toList)
 
     val description = {
       val i = fullMessage.trim.indexOf("\n")
