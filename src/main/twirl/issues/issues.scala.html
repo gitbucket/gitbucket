@@ -3,6 +3,17 @@
 @html.main("Issues - " + repository.owner + "/" + repository.name){
   @html.header("issues", repository)
   @issuestab("issues", repository)
+  <div class="pagination pull-right">
+    <ul>
+      <li class="disabled"><span>&#9664;</span></li>
+      <li class="active"><span>1</span></li>
+      <li><a href="#">2</a></li>
+      <li><a href="#">3</a></li>
+      <li><span>&hellip;</span></li>
+      <li><a href="#">7</a></li>
+      <li><a href="#">&#9654;</a></li>
+    </ul>
+  </div>
   <div class="btn-group">
     <a class="btn active" href="#">1 Open</a>
     <a class="btn" href="#">1 Closed</a>
@@ -19,17 +30,6 @@
       <li><a href="#">Least commented</a></li>
       <li><a href="#">Recently updated</a></li>
       <li><a href="#">Least recently updated</a></li>
-    </ul>
-  </div>
-  <div class="pagination pagination-right">
-    <ul>
-      <li class="disabled"><span>&#9664;</span></li>
-      <li class="active"><span>1</span></li>
-      <li><a href="#">2</a></li>
-      <li><a href="#">3</a></li>
-      <li><span>&hellip;</span></li>
-      <li><a href="#">7</a></li>
-      <li><a href="#">&#9654;</a></li>
     </ul>
   </div>
   <table class="table table-bordered table-hover">

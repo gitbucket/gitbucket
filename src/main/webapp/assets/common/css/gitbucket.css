@@ -33,6 +33,11 @@ div.container {
   width: 920px;
 }
 
+div.pagination {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 div.body {
   margin-bottom: 40px;
 }
