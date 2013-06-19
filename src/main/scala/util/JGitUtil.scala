@@ -402,9 +402,13 @@ object JGitUtil {
       
       import scala.collection.JavaConverters._
       git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
+        if(FileTypeUtil.isImage(diff.getOldPath) || FileTypeUtil.isImage(diff.getNewPath)){
+          DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None) 
+        } else {
+          DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
             JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
             JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
+        }
       }.toList
     } else {
       // initial commit
