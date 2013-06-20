@@ -47,7 +47,7 @@ span.error {
 }
 
 .small {
-  font-size: small;
+  font-size: 85%;
 }
 
 a.commit-message, a.commit-id, a.committer {

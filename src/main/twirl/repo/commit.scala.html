@@ -16,16 +16,16 @@
         @if(commit.description.isDefined){
           <pre class="commit-description">@commit.description.get</pre>
         }
-        @*
         <div class="small" style="font-weight: normal;">
           <span class="description">
-            @branchs.map { branch => <a href="@path/@repository.owner/@repository.name/tree/@branch">@branch</a> }.mkHtml(", ")
+            <img src="@path/assets/common/images/branch.png"/>
+            @branchs.map { branch => <a href="@path/@repository.owner/@repository.name/tree/@branch" class="branch">@branch</a>&nbsp; }
           </span>
           <span class="description">
-            @tags.map { tag => <a href="@path/@repository.owner/@repository.name/tree/@tag">@tag</a> }.mkHtml(", ")
+            <img src="@path/assets/common/images/tag.png"/>
+            @tags.map { tag => <a href="@path/@repository.owner/@repository.name/tree/@tag" class="tag">@tag</a>&nbsp; }
           </span>
         </div>
-        *@
       </th>
     </tr>
     <tr>
@@ -97,5 +97,14 @@ $(function(){
       $(this).val('Show file list');
     }
   });
+  $('a.branch:first, a.tag:first').css({
+    'font-weight': 'bold',
+    'color': '#555555'
+  });
 });
 </script>
+<style type="text/css">
+a.branch, a.tag {
+  color: #888888;
+}
+</style>
