@@ -61,7 +61,7 @@
     <li@if(i > 0){ class="border"}>
       <a href="#diff-@i">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@path/assets/common/images/page_edit.png"/> @diff.oldPath -> @diff.newPath
+          <img src="@path/assets/common/images/page_copy.png"/> @diff.oldPath -> @diff.newPath
         }
         @if(diff.changeType == ChangeType.ADD){
           <img src="@path/assets/common/images/page_add.png"/> @diff.newPath
