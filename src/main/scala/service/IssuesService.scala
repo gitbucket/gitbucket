@@ -8,6 +8,15 @@ import Q.interpolation
 import model._
 
 trait IssuesService {
+  def getIssue(owner: String, repository: String, issueId: String) =
+    if (issueId forall (_.isDigit))
+      Query(Issues) filter { t =>
+        (t.userName is owner.bind) &&
+        (t.repositoryName is repository.bind) &&
+        (t.issueId is issueId.toInt.bind)
+      } firstOption
+    else None
+
   def saveIssue(owner: String, repository: String, loginUser: String,
       title: String, content: Option[String]) =
     // next id number

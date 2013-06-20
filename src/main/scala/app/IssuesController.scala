@@ -23,7 +23,13 @@ trait IssuesControllerBase extends ControllerBase {
   }
 
   get("/:owner/:repository/issues/:id"){
-    issues.html.issue(getRepository(params("owner"), params("repository"), baseUrl).get)
+    val owner = params("owner")
+    val repository = params("repository")
+    val issueId = params("id")
+
+    getIssue(owner, repository, issueId) map { issue =>
+      issues.html.issue(issue, getRepository(owner, repository, baseUrl).get)
+    } getOrElse NotFound
   }
 
   get("/:owner/:repository/issues/new")( usersOnly {
