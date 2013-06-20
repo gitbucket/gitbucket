@@ -20,7 +20,7 @@ object Issues extends Table[Issue]("ISSUE") {
   def content = column[String]("CONTENT")
   def registeredDate = column[java.sql.Date]("REGISTERED_DATE")	// TODO convert java.util.Date later
   def updatedDate = column[java.sql.Date]("UPDATED_DATE")
-  def * = userName ~ repositoryName ~ issueId ~ openedUserName ~ milestoneId.? ~ assignedUserName.? ~ title ~ content ~ registeredDate ~ updatedDate <> (Issue, Issue.unapply _)
+  def * = userName ~ repositoryName ~ issueId ~ openedUserName ~ milestoneId.? ~ assignedUserName.? ~ title ~ content.? ~ registeredDate ~ updatedDate <> (Issue, Issue.unapply _)
 }
 
 case class Issue(
@@ -31,6 +31,6 @@ case class Issue(
     milestoneId: Option[Int],
     assignedUserName: Option[String],
     title: String,
-    content: String,
+    content: Option[String],
     registeredDate: java.sql.Date,
     updatedDate: java.sql.Date)
