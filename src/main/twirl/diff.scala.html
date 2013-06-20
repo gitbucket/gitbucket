@@ -2,6 +2,7 @@
 @import context._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @diffs.zipWithIndex.map { case (diff, i) =>
+  <a name="diff-@i"></a>
   <table class="table table-bordered">
     <tr>
       <th style="font-weight: normal;" class="box-header">
@@ -27,7 +28,7 @@
           @if(diffs.size > 10 && diff.changeType != ChangeType.MODIFY){
             @diff.changeType
           } else {
-            <div id="diff-@i"></div>
+            <div id="diffText-@i"></div>
             <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
             <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
           }
@@ -95,7 +96,7 @@ $(function(){
   @diffs.zipWithIndex.map { case (diff, i) =>
     @if(diff.newContent != None || diff.oldContent != None){
       if($('#oldText-@i').length > 0){
-        diffUsingJS('oldText-@i', 'newText-@i', 'diff-@i');
+        diffUsingJS('oldText-@i', 'newText-@i', 'diffText-@i');
       }
     }
   }

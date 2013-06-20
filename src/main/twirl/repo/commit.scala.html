@@ -46,5 +46,59 @@
       </td>
     </tr>
   </table>
+  <div>
+    <div class="pull-right" style="margin-bottom: 10px;">
+      <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
+    </div>
+    @if(diffs.size == 1){
+      Showing 1 changed files
+    } else {
+      Showing @diffs.size changed files
+    }
+  </div>
+  <ul id="commit-file-list" style="display: none;">
+  @diffs.zipWithIndex.map { case (diff, i) =>
+    <li@if(i > 0){ class="border"}>
+      <a href="#diff-@i">
+        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+          <img src="@path/assets/common/images/page_edit.png"/> @diff.oldPath -> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.ADD){
+          <img src="@path/assets/common/images/page_add.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.MODIFY){
+          <img src="@path/assets/common/images/page_edit.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          <img src="@path/assets/common/images/page_delete.png"/> @diff.oldPath
+        }
+      </a>
+    </li>
+  }
+  </ul>
   @html.diff(diffs, repository, Some(commit.id))
 }
+<script>
+$(function(){
+  $('#toggle-file-list').click(function(){
+    $('#commit-file-list').toggle();
+    if($(this).val() == 'Show file list'){
+      $(this).val('Hide file list');
+    } else {
+      $(this).val('Show file list');
+    }
+  });
+});
+</script>
+<style type="text/css">
+ul#commit-file-list {
+  list-style-type: none;
+  padding-left: 0px;
+  margin-left: 0px;
+}
+
+ul#commit-file-list li.border {
+  padding-bottom: 2px;
+  border-top: 1px solid #eeeeee;
+}
+</style>
