@@ -9,14 +9,14 @@ import twirl.api.Html
 object helpers {
   
   /**
-   * Format java.util.Date to "yyyy/MM/dd HH:mm:ss".
+   * Format java.util.Date to "yyyy-MM-dd HH:mm:ss".
    */
-  def datetime(date: Date): String = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(date)
+  def datetime(date: Date): String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date)
   
   /**
-   * Format java.util.Date to "yyyy/MM/dd".
+   * Format java.util.Date to "yyyy-MM-dd".
    */
-  def date(date: Date): String = new SimpleDateFormat("yyyy/MM/dd").format(date)
+  def date(date: Date): String = new SimpleDateFormat("yyyy-MM-dd").format(date)
 
   /**
    * Converts Markdown of Wiki pages to HTML.
