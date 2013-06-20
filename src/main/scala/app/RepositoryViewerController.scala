@@ -157,7 +157,27 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
+      
+      import scala.collection.JavaConverters._
+      import org.eclipse.jgit.lib.Constants
+      val walk = new org.eclipse.jgit.revwalk.RevWalk(git.getRepository)
+      val commit = walk.parseCommit(git.getRepository.resolve(revCommit.getName + "^0"))
+      
+      // TODO move to JGitUtil
+      val branchs = git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
+        (e.getKey.startsWith(Constants.R_HEADS) && walk.isMergedInto(commit, walk.parseCommit(e.getValue.getObjectId)))
+      }.map { e =>
+        e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_HEADS.length)
+      }.toList.sorted
+  
+      // TODO move to JGitUtil
+      val tags = git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
+        (e.getKey.startsWith(Constants.R_TAGS) && walk.isMergedInto(commit, walk.parseCommit(e.getValue.getObjectId)))
+      }.map { e =>
+        e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_TAGS.length)
+      }.toList.sorted.reverse
+      
+      repo.html.commit(id, new JGitUtil.CommitInfo(revCommit), branchs, tags,
           getRepository(owner, repository, baseUrl).get, JGitUtil.getDiffs(git, id))
     }
   })

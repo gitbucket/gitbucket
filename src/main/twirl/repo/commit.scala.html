@@ -1,10 +1,11 @@
-@(branch: String, commit: util.JGitUtil.CommitInfo, repository: service.RepositoryService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
+@(commitId: String, commit: util.JGitUtil.CommitInfo, branchs: List[String], tags: List[String], repository: service.RepositoryService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
 @import context._
 @import view.helpers
+@import view.implicits._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main(commit.shortMessage){
   @html.header("code", repository)
-  @navtab(branch, repository, "commits")
+  @navtab(commitId, repository, "commits")
   <table class="table table-bordered">
     <tr>
       <th>
@@ -15,7 +16,16 @@
         @if(commit.description.isDefined){
           <pre class="commit-description">@commit.description.get</pre>
         }
-        <div class="small" style="font-weight: normal;"><span class="description">@branch</span></div>
+        @*
+        <div class="small" style="font-weight: normal;">
+          <span class="description">
+            @branchs.map { branch => <a href="@path/@repository.owner/@repository.name/tree/@branch">@branch</a> }.mkHtml(", ")
+          </span>
+          <span class="description">
+            @tags.map { tag => <a href="@path/@repository.owner/@repository.name/tree/@tag">@tag</a> }.mkHtml(", ")
+          </span>
+        </div>
+        *@
       </th>
     </tr>
     <tr>
@@ -35,10 +45,9 @@
           @if(commit.parents.size > 1){
             <div>
               <span class="description">@commit.parents.size parents
-              @commit.parents.zipWithIndex.map { case (parent, i) =>
-                @if(i != 0){ + }
+              @commit.parents.map { parent =>
                 <a href="@path/@repository.owner/@repository.name/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
-              }
+              }.mkHtml(" + ")
               </span>
             </div>
           }
@@ -61,16 +70,16 @@
     <li@if(i > 0){ class="border"}>
       <a href="#diff-@i">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@path/assets/common/images/page_copy.png"/> @diff.oldPath -> @diff.newPath
+          <img src="@path/assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
         }
         @if(diff.changeType == ChangeType.ADD){
-          <img src="@path/assets/common/images/page_add.png"/> @diff.newPath
+          <img src="@path/assets/common/images/diff_add.png"/> @diff.newPath
         }
         @if(diff.changeType == ChangeType.MODIFY){
-          <img src="@path/assets/common/images/page_edit.png"/> @diff.newPath
+          <img src="@path/assets/common/images/diff_edit.png"/> @diff.newPath
         }
         @if(diff.changeType == ChangeType.DELETE){
-          <img src="@path/assets/common/images/page_delete.png"/> @diff.oldPath
+          <img src="@path/assets/common/images/diff_delete.png"/> @diff.oldPath
         }
       </a>
     </li>
