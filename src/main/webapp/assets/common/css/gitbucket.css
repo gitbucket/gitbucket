@@ -82,6 +82,10 @@ table.table-file-list td.latest-commmit {
   background-color: white;
 }
 
+table.table {
+  margin-bottom: 10px;
+}
+
 table.table th {
   background-color: #d9edf7;
 }
@@ -189,6 +193,17 @@ dd {
 hr {
   margin-top: 4px;
   margin-bottom: 4px;
+}
+
+ul#commit-file-list {
+  list-style-type: none;
+  padding-left: 0px;
+  margin-left: 0px;
+}
+
+ul#commit-file-list li.border {
+  padding-bottom: 2px;
+  border-top: 1px solid #eee;
 }
 
 ul.collaborator {
