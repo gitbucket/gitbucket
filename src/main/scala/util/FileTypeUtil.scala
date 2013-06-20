@@ -18,5 +18,7 @@ object FileTypeUtil {
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
   
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
+  
+  def isText(content: Array[Byte]): Boolean = !content.contains(0)
 
 }

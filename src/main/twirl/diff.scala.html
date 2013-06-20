@@ -25,13 +25,9 @@
     <tr>
       <td>
         @if(diff.newContent != None || diff.oldContent != None){
-          @if(diffs.size > 10 && diff.changeType != ChangeType.MODIFY){
-            @diff.changeType
-          } else {
-            <div id="diffText-@i"></div>
-            <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
-            <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
-          }
+          <div id="diffText-@i"></div>
+          <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
+          <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
         } else {
           Not supported
         }

@@ -409,8 +409,8 @@ object JGitUtil {
           DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
         } else {
           DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
-            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
+            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).filter(FileTypeUtil.isText).map(new String(_, "UTF-8")), 
+            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).filter(FileTypeUtil.isText).map(new String(_, "UTF-8")))
         }
       }.toList
     } else {
@@ -422,7 +422,8 @@ object JGitUtil {
         buffer.append((if(!fetchContent){
           DiffInfo(ChangeType.ADD, null, walk.getPathString, None, None)
         } else {
-          DiffInfo(ChangeType.ADD, null, walk.getPathString, None, JGitUtil.getContent(git, walk.getObjectId(0), false).map(new String(_, "UTF-8")))
+          DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
+              JGitUtil.getContent(git, walk.getObjectId(0), false).filter(FileTypeUtil.isText).map(new String(_, "UTF-8")))
         }))
       }
       walk.release
