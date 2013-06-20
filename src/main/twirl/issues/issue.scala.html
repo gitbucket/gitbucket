@@ -1,19 +1,20 @@
-@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issue: model.Issue, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
-@html.main("2.1 migration issue - ebean - Issue #1181 - " + repository.owner + "/" + repository.name){
+@import view.helpers._
+@html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
   @html.header("issues", repository)
   @issuestab("issues", repository)
   <ul class="nav nav-tabs">
     <li class="pull-left"><a href="@path/@repository.owner/@repository.name/issues">&#8592; Back to issue list</a></li>
-    <li class="pull-right">Issue #1181</li>
+    <li class="pull-right">Issue #@issue.issueId</li>
   </ul>
   <div class="box">
     <div class="box-content">
-      <div class="small"><a href="#">takezoe</a> opened this issue <time datetime="2013-06-03T15:56:05-07:00" title="2013-06-03 15:56:05">June 03, 2013</time></div>
-      <h4>2.1 migration issue - ebean</h4>
+      <div class="small"><a href="#">@issue.openedUserName</a> opened this issue <time title="2013-06-03 15:56:05">TODO June 03, 2013</time></div>
+      <h4>@issue.title</h4>
     </div>
     <div class="box-content" style="background-color: #f5f5f5;">
-      TODO Detail
+      @markdown(issue.content getOrElse "No description given.", repository, true, true, true)
     </div>
   </div>
   <div class="box">
