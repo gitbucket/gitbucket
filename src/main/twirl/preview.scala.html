@@ -1,5 +1,5 @@
 @(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean,
-  enableCommitLink: Boolean, enableIssueLink: Boolean, style: String = "")(implicit context: app.Context)
+  enableCommitLink: Boolean, enableIssueLink: Boolean, style: String = "", placeholder: String = "Leave a comment")(implicit context: app.Context)
 @import context._
 <div class="tabbable">
   <ul class="nav nav-tabs">
@@ -12,7 +12,7 @@
   <div class="tab-content">
     <div class="tab-pane active" id="tab1">
       <span id="error-content" class="error"></span>
-      <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"}>@content</textarea>
+      <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
     </div>
     <div class="tab-pane" id="tab2">
       <div class="markdown-body" id="preview-area">
