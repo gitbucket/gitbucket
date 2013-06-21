@@ -17,18 +17,22 @@
           <pre class="commit-description">@commit.description.get</pre>
         }
         <div class="small" style="font-weight: normal;">
-          <span class="description">
-            <img src="@path/assets/common/images/branch.png"/>
-            @branches.zipWithIndex.map { case (branch, i) =>
-              <a href="@path/@repository.owner/@repository.name/tree/@branch" class="branch" id="branch-@i">@branch</a>
-            }
-          </span>
-          <span class="description">
-            <img src="@path/assets/common/images/tag.png"/>
-            @tags.zipWithIndex.map { case (tag, i) =>
-              <a href="@path/@repository.owner/@repository.name/tree/@tag" class="tag" id="tag-@i">@tag</a>
-            }
-          </span>
+          @if(branches.nonEmpty){
+            <span class="description">
+              <img src="@path/assets/common/images/branch.png"/>
+              @branches.zipWithIndex.map { case (branch, i) =>
+                <a href="@path/@repository.owner/@repository.name/tree/@branch" class="branch" id="branch-@i">@branch</a>
+              }
+            </span>
+          }
+          @if(tags.nonEmpty){
+            <span class="description">
+              <img src="@path/assets/common/images/tag.png"/>
+              @tags.zipWithIndex.map { case (tag, i) =>
+                <a href="@path/@repository.owner/@repository.name/tree/@tag" class="tag" id="tag-@i">@tag</a>
+              }
+            </span>
+          }
         </div>
       </th>
     </tr>
