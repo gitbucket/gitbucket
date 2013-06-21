@@ -431,4 +431,42 @@ object JGitUtil {
     }
   }
 
+  /**
+   * Returns the list of branch names of the specified commit.
+   */
+  def getBranchesOfCommit(git: Git, commitId: String): List[String] = {
+    val walk = new org.eclipse.jgit.revwalk.RevWalk(git.getRepository)
+    try {
+      val commit = walk.parseCommit(git.getRepository.resolve(commitId + "^0"))
+
+      git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
+        (e.getKey.startsWith(Constants.R_HEADS) && walk.isMergedInto(commit, walk.parseCommit(e.getValue.getObjectId)))
+      }.map { e =>
+        e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_HEADS.length)
+      }.toList.sorted
+
+    } finally {
+      walk.release
+    }
+  }
+
+  /**
+   * Returns the list of tags of the specified commit.
+   */
+  def getTagsOfCommit(git: Git, commitId: String): List[String] = {
+    val walk = new org.eclipse.jgit.revwalk.RevWalk(git.getRepository)
+    try {
+      val commit = walk.parseCommit(git.getRepository.resolve(commitId + "^0"))
+
+      git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
+        (e.getKey.startsWith(Constants.R_TAGS) && walk.isMergedInto(commit, walk.parseCommit(e.getValue.getObjectId)))
+      }.map { e =>
+        e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_TAGS.length)
+      }.toList.sorted.reverse
+
+    } finally {
+      walk.release
+    }
+  }
+
 }
