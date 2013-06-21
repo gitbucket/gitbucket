@@ -14,14 +14,14 @@ trait WikiControllerBase extends ControllerBase {
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
   val newForm = mapping(
-    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pageName, unique))), 
+    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), identifier, unique))),
     "content"         -> trim(label("Content"            , text(required))),
     "message"         -> trim(label("Message"            , optional(text()))),
     "currentPageName" -> trim(label("Current page name"  , text()))
   )(WikiPageEditForm.apply)
   
   val editForm = mapping(
-    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pageName))), 
+    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), identifier))),
     "content"         -> trim(label("Content"            , text(required))),
     "message"         -> trim(label("Message"            , optional(text()))),
     "currentPageName" -> trim(label("Current page name"  , text(required)))
@@ -176,22 +176,7 @@ trait WikiControllerBase extends ControllerBase {
     }
   })
 
-  /**
-   * Constraint for the wiki page name.
-   */
-  def pageName: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] = {
-      if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
-        Some("Page name contains invalid character.")
-      } else if(value.startsWith("_") || value.startsWith("-")){
-        Some("Page name starts with invalid character.")
-      } else {
-        None
-      }
-    }
-  }
-  
-  def isWritable(owner: String, repository: String): Boolean = {
+  private def isWritable(owner: String, repository: String): Boolean = {
     context.loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
@@ -199,15 +184,10 @@ trait WikiControllerBase extends ControllerBase {
       case _ => false
     }
   }
-  
-  def unique: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] = {
-      if(getWikiPageList(params("owner"), params("repository")).contains(value)){
-        Some("Page already exists.")
-      } else {
-        None
-      }
-    }
+
+  private def unique: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      getWikiPageList(params("owner"), params("repository")).find(_ == value).map(_ => "Page already exists.")
   }
 
 }

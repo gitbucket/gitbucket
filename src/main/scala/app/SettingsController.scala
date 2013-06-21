@@ -130,7 +130,7 @@ trait SettingsControllerBase extends ControllerBase {
   /**
    * Provides Constraint to validate the collaborator name.
    */
-  def collaborator: Constraint = new Constraint(){
+  private def collaborator: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] = {
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")

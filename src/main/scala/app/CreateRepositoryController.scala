@@ -21,7 +21,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   case class RepositoryCreationForm(name: String, description: Option[String])
 
   val form = mapping(
-    "name"        -> trim(label("Repository name", text(required, maxlength(40), repository))),
+    "name"        -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
     "description" -> trim(label("Description"    , optional(text())))
   )(RepositoryCreationForm.apply)
 
@@ -81,20 +81,11 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   })
   
   /**
-   * Constraint for the repository name.
+   * Duplicate check for the repository name.
    */
-  def repository: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] = {
-      if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
-        Some("Repository name contains invalid character.")
-      } else if(value.startsWith("_") || value.startsWith("-")){
-        Some("Repository name starts with invalid character.")
-      } else if(getRepositoryNamesOfUser(context.loginAccount.get.userName).contains(value)){
-        Some("Repository already exists.")
-      } else {
-        None
-      }
-    }
+  private def unique: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      getRepositoryNamesOfUser(context.loginAccount.get.userName).find(_ == value).map(_ => "Repository already exists.")
   }
   
 }

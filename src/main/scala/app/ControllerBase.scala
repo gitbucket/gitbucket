@@ -34,6 +34,17 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
     url.substring(0, url.length - request.getRequestURI.length)
   }
 
+  protected def identifier: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
+        Some("%s contains invalid character.".format(name))
+      } else if(value.startsWith("_") || value.startsWith("-")){
+        Some("%s starts with invalid character.".format(name))
+      } else {
+        None
+      }
+  }
+
 }
 
 case class Context(path: String, loginAccount: Option[Account])
