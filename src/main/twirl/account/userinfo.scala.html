@@ -1,5 +1,6 @@
 @(account: model.Account, repositories: List[service.RepositoryService.RepositoryInfo])(implicit context: app.Context)
 @import context._
+@import view.helpers
 @html.main(account.userName){
   <div class="container-fluid">
     <div class="row-fluid">
@@ -9,7 +10,7 @@
         </div>
         <div class="block">
           <div><i class="icon-home"></i> <a href="@account.url">@account.url</a></div>
-          <div><i class="icon-time"></i> <span class="description">Joined on</span> @account.registeredDate</div>
+          <div><i class="icon-time"></i> <span class="description">Joined on</span> @helpers.date(account.registeredDate)</div>
         </div>
       </div>
       <div class="span8">
@@ -39,7 +40,7 @@
           @if(repository.repository.description.isDefined){
             <div>@repository.repository.description</div>
           }
-          <div><span class="description small">Last updated: @repository.repository.lastActivityDate</span></div>
+          <div><span class="description small">Last updated: @helpers.date(repository.repository.lastActivityDate)</span></div>
         </div>
         }
       </div>

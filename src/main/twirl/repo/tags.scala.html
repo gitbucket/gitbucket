@@ -16,7 +16,7 @@
       <tr>
         <td><a href="@path/@repository.owner/@repository.name/tree/@tag.name">@tag.name</a></td>
         <td>@helpers.datetime(tag.time)</td>
-        <td><a href="@path/@repository.owner/@repository.name/commit/@tag.id">@tag.id.substring(0, 10)</a></td>
+        <td class="monospace"><a href="@path/@repository.owner/@repository.name/commit/@tag.id">@tag.id.substring(0, 10)</a></td>
         <td><a href="@path/@repository.owner/@repository.name/archive/@(tag.name).zip">ZIP</a></td>
       </tr>
     }
