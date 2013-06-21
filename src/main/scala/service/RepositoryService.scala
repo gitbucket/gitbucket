@@ -34,7 +34,7 @@ trait RepositoryService { self: AccountService =>
       Repository(
         repositoryName   = repositoryName,
         userName         = userName,
-        repositoryType   = Public,
+        isPrivate        = false,
         description      = description,
         defaultBranch    = "master",
         registeredDate   = currentDate,
@@ -112,14 +112,14 @@ trait RepositoryService { self: AccountService =>
   def getAccessibleRepositories(account: Option[Account], baseUrl: String): List[RepositoryInfo] = {
     account match {
       // for Administrators
-      case Some(x) if(x.userType == AccountService.Administrator) => {
+      case Some(x) if(x.isAdmin) => {
         (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
           val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
       }
       // for Normal Users
-      case Some(x) if(x.userType == AccountService.Normal) => {
+      case Some(x) if(!x.isAdmin) => {
         // TODO only repositories registered as collaborator
         (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
           val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
@@ -128,7 +128,7 @@ trait RepositoryService { self: AccountService =>
       }
       // for Guests
       case None => {
-        (Query(Repositories) filter(_.repositoryType is Public.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
+        (Query(Repositories) filter(_.isPrivate is false.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
           val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
           RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
         }
@@ -149,11 +149,11 @@ trait RepositoryService { self: AccountService =>
    * Save repository options.
    */
   def saveRepositoryOptions(userName: String, repositoryName: String, 
-      description: Option[String], defaultBranch: String, repositoryType: Int): Unit =
+      description: Option[String], defaultBranch: String, isPrivate: Boolean): Unit =
     Query(Repositories)
       .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
-      .map    { r => r.description.? ~ r.defaultBranch ~ r.repositoryType ~ r.updatedDate }
-      .update (description, defaultBranch, repositoryType, new java.sql.Date(System.currentTimeMillis))
+      .map    { r => r.description.? ~ r.defaultBranch ~ r.isPrivate ~ r.updatedDate }
+      .update (description, defaultBranch, isPrivate, new java.sql.Date(System.currentTimeMillis))
 
   /**
    * Add collaborator to the repository.
@@ -194,8 +194,6 @@ trait RepositoryService { self: AccountService =>
 
 object RepositoryService {
 
-  val Public = 0
-  val Private = 1
-
   case class RepositoryInfo(owner: String, name: String, url: String, repository: Repository, branchList: List[String], tags: List[util.JGitUtil.TagInfo])
+
 }

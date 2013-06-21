@@ -14,7 +14,7 @@ trait OwnerOnlyAuthenticator { self: ControllerBase =>
   private def authenticate(action: => Any) = {
     {
       context.loginAccount match {
-        case Some(x) if(x.userType == AccountService.Administrator) => action
+        case Some(x) if(x.isAdmin) => action
         case Some(x) if(request.getRequestURI.split("/")(1) == x.userName) => action
         case _ => Unauthorized()
       }
@@ -50,7 +50,7 @@ trait AdminOnlyAuthenticator { self: ControllerBase =>
   private def authenticate(action: => Any) = {
     {
       context.loginAccount match {
-        case Some(x) if(x.userType == AccountService.Administrator) => action
+        case Some(x) if(x.isAdmin) => action
         case _ => Unauthorized()
       }
     }
@@ -67,7 +67,7 @@ trait WritableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
   private def authenticate(action: => Any) = {
       val paths = request.getRequestURI.split("/")
       context.loginAccount match {
-        case Some(x) if(x.userType == AccountService.Administrator) => action
+        case Some(x) if(x.isAdmin) => action
         case Some(x) if(paths(1) == x.userName) => action
         case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
         case _ => Unauthorized()
@@ -88,11 +88,11 @@ trait ReadableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
       getRepository(paths(1), paths(2), baseUrl) match {
         case None => NotFound()
         case Some(repository) =>
-          if(repository.repository.repositoryType == RepositoryService.Public){
+          if(!repository.repository.isPrivate){
             action
           } else {
             context.loginAccount match {
-              case Some(x) if(x.userType == AccountService.Administrator) => action
+              case Some(x) if(x.isAdmin) => action
               case Some(x) if(paths(1) == x.userName) => action
               case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
               case _ => Unauthorized()

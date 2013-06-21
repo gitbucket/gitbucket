@@ -1,6 +1,5 @@
 @(account: model.Account, repositories: List[service.RepositoryService.RepositoryInfo])(implicit context: app.Context)
 @import context._
-@import service.RepositoryService._
 @html.main(account.userName){
   <div class="container-fluid">
     <div class="row-fluid">
@@ -33,7 +32,7 @@
             <a href="@path/@repository.owner">@repository.owner</a>
             /
             <a href="@path/@repository.owner/@repository.name">@repository.name</a>
-            @if(repository.repository.repositoryType == Private){
+            @if(repository.repository.isPrivate){
               <i class="icon-lock"></i>
             }
           </div>

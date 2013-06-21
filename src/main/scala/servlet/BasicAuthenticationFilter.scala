@@ -27,8 +27,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
 
       getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
         case Some(repository) => {
-          if(!request.getRequestURI.endsWith("/git-receive-pack") &&
-            repository.repository.repositoryType == RepositoryService.Public){
+          if(!request.getRequestURI.endsWith("/git-receive-pack") && !repository.repository.isPrivate){
             chain.doFilter(req, res)
           } else {
             request.getHeader("Authorization") match {
@@ -56,7 +55,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
   private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean = {
     getAccountByUserName(username) match {
       case Some(account) if(account.password == password) => {
-        (account.userType == AccountService.Administrator // administrator
+        (account.isAdmin // administrator
           || account.userName == repository.owner // repository owner
           || getCollaborators(repository.owner, repository.name).contains(account.userName)) // collaborator
       }

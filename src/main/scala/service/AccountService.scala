@@ -16,11 +16,11 @@ trait AccountService {
   def updateAccount(account: Account): Unit = 
     Query(Accounts)
       .filter { a => a.userName is account.userName.bind }
-      .map    { a => a.password ~ a.mailAddress ~ a.userType ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? }
+      .map    { a => a.password ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? }
       .update (
         account.password, 
         account.mailAddress, 
-        account.userType, 
+        account.isAdmin,
         account.url, 
         account.registeredDate,
         account.updatedDate,
@@ -30,11 +30,4 @@ trait AccountService {
     Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate)
       .update(new java.sql.Date(System.currentTimeMillis))
   
-}
-
-object AccountService {
-
-  val Normal = 0
-  val Administrator = 1
-
 }

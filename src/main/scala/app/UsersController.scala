@@ -10,21 +10,21 @@ class UsersController extends UsersControllerBase with AccountService with Admin
 trait UsersControllerBase extends ControllerBase { self: AccountService with AdminOnlyAuthenticator =>
   
   // TODO ユーザ名の先頭に_は使えないようにする＆利用可能文字チェック
-  case class UserForm(userName: String, password: String, mailAddress: String, userType: Int, url: Option[String])
+  case class UserForm(userName: String, password: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
   
   val newForm = mapping(
-    "userName"    -> trim(label("Username"     , text(required, maxlength(100), unique))), 
+    "userName"    -> trim(label("Username"     , text(required, maxlength(100), unique))),
     "password"    -> trim(label("Password"     , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
-    "userType"    -> trim(label("User Type"    , number())),
+    "isAdmin"     -> trim(label("User Type"    , boolean())),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(UserForm.apply)
 
   val editForm = mapping(
-    "userName"    -> trim(label("Username"     , text())), 
+    "userName"    -> trim(label("Username"     , text())),
     "password"    -> trim(label("Password"     , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
-    "userType"    -> trim(label("User Type"    , number())),
+    "isAdmin"     -> trim(label("User Type"    , boolean())),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(UserForm.apply)
   
@@ -41,8 +41,8 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
     createAccount(Account(
         userName       = form.userName, 
         password       = form.password, 
-        mailAddress    = form.mailAddress, 
-        userType       = form.userType, 
+        mailAddress    = form.mailAddress,
+        isAdmin        = form.isAdmin,
         url            = form.url, 
         registeredDate = currentDate, 
         updatedDate    = currentDate, 
@@ -60,11 +60,11 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
     val userName = params("userName")
     val currentDate = new java.sql.Date(System.currentTimeMillis)
     updateAccount(getAccountByUserName(userName).get.copy(
-        password       = form.password, 
-        mailAddress    = form.mailAddress, 
-        userType       = form.userType, 
-        url            = form.url, 
-        updatedDate    = currentDate))
+        password     = form.password,
+        mailAddress  = form.mailAddress,
+        isAdmin      = form.isAdmin,
+        url          = form.url,
+        updatedDate  = currentDate))
     
     redirect("/admin/users")
   })

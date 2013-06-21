@@ -12,12 +12,12 @@ class SettingsController extends SettingsControllerBase
 trait SettingsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with OwnerOnlyAuthenticator =>
 
-  case class OptionsForm(description: Option[String], defaultBranch: String, repositoryType: Int)
+  case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
   val optionsForm = mapping(
-    "description"    -> trim(label("Description"    , optional(text()))),
-    "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100)))),
-    "repositoryType" -> trim(label("Repository Type", number()))
+    "description"   -> trim(label("Description"    , optional(text()))),
+    "defaultBranch" -> trim(label("Default Branch" , text(required, maxlength(100)))),
+    "isPrivate"     -> trim(label("Repository Type", boolean()))
   )(OptionsForm.apply)
   
   case class CollaboratorForm(userName: String)
@@ -57,7 +57,7 @@ trait SettingsControllerBase extends ControllerBase {
     val repository = params("repository")
     
     // save repository options
-    saveRepositoryOptions(owner, repository, form.description, form.defaultBranch, form.repositoryType)
+    saveRepositoryOptions(owner, repository, form.description, form.defaultBranch, form.isPrivate)
     
     redirect("%s/%s/settings/options".format(owner, repository))
   })
