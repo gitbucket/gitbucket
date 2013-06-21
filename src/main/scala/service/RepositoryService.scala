@@ -4,7 +4,6 @@ import model._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 import util.JGitUtil
-import javax.servlet.ServletContext
 import scala.Some
 import model.Repository
 import model.Account
@@ -63,13 +62,23 @@ trait RepositoryService { self: AccountService =>
   }
 
   /**
+   * Returns the repository names of the specified user.
+   *
+   * @param userName the user name of repository owner
+   * @return the list of repository names
+   */
+  def getRepositoryNamesOfUser(userName: String): List[String] =
+    Query(Repositories).filter(_.userName is userName.bind).list.map(_.repositoryName)
+
+  /**
    * Returns the list of specified user's repositories information.
    *
    * @param userName the user name
    * @param baseUrl the base url of this application
+   * @param loginUserName the logged in user name
    * @return the list of repository information which is sorted in descending order of lastActivityDate.
    */
-  def getRepositoriesOfUser(userName: String, baseUrl: String): List[RepositoryInfo] = {
+  def getVisibleRepositories(userName: String, baseUrl: String, loginUserName: Option[String]): List[RepositoryInfo] = {
     val q1 = Repositories
       .filter { r => r.userName is userName.bind }
       .map    { r => r }
@@ -79,7 +88,17 @@ trait RepositoryService { self: AccountService =>
       .filter{ case (c, r) => c.collaboratorName is userName.bind}
       .map   { case (c, r) => r }
 
-    q1.union(q2).sortBy(_.lastActivityDate).list map { repository =>
+    def visibleFor(r: Repositories.type, loginUserName: Option[String]) = {
+      loginUserName match {
+        case Some(x) => (r.isPrivate is false.bind) || (
+          (r.isPrivate is true.bind) && ((r.userName is x.bind) || (Collaborators.filter { c =>
+              (c.repositoryName is r.repositoryName) && (c.userName is r.userName) && (c.collaboratorName is x.bind)
+          }.exists)))
+        case None    => (r.isPrivate is false.bind)
+      }
+    }
+
+    q1.union(q2).filter(visibleFor(_, loginUserName)).sortBy(_.lastActivityDate).list map { repository =>
       val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
       RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
     }

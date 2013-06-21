@@ -23,7 +23,7 @@ trait AccountControllerBase extends ControllerBase {
   get("/:userName") {
     val userName = params("userName")
     getAccountByUserName(userName) match {
-      case Some(a) => account.html.userinfo(a, getRepositoriesOfUser(userName, baseUrl))
+      case Some(a) => account.html.userinfo(a, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
       case None => NotFound()
     }
   }

@@ -87,7 +87,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     def validate(name: String, value: String): Option[String] = {
       if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
         Some("Repository name contains invalid character.")
-      } else if(getRepositoriesOfUser(context.loginAccount.get.userName, baseUrl).contains(value)){
+      } else if(getRepositoryNamesOfUser(context.loginAccount.get.userName).contains(value)){
         Some("Repository already exists.")
       } else {
         None
