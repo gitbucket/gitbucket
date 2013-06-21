@@ -31,6 +31,7 @@ trait IssuesService {
           None,
           title,
           content,
+          false,
           new java.sql.Date(System.currentTimeMillis),	// TODO
           new java.sql.Date(System.currentTimeMillis))
 
