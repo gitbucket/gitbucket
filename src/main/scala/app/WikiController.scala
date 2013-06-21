@@ -183,8 +183,8 @@ trait WikiControllerBase extends ControllerBase {
     def validate(name: String, value: String): Option[String] = {
       if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
         Some("Page name contains invalid character.")
-      } else if(value.startsWith("_")){
-        Some("Page name can not start with '_'.")
+      } else if(value.startsWith("_") || value.startsWith("-")){
+        Some("Page name starts with invalid character.")
       } else {
         None
       }

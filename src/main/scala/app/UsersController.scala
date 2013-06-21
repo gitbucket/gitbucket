@@ -9,11 +9,10 @@ class UsersController extends UsersControllerBase with AccountService with Admin
 
 trait UsersControllerBase extends ControllerBase { self: AccountService with AdminOnlyAuthenticator =>
   
-  // TODO ユーザ名の先頭に_は使えないようにする＆利用可能文字チェック
   case class UserForm(userName: String, password: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
   
   val newForm = mapping(
-    "userName"    -> trim(label("Username"     , text(required, maxlength(100), unique))),
+    "userName"    -> trim(label("Username"     , text(required, maxlength(100), username, unique))),
     "password"    -> trim(label("Password"     , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
     "isAdmin"     -> trim(label("User Type"    , boolean())),
@@ -21,7 +20,7 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
   )(UserForm.apply)
 
   val editForm = mapping(
-    "userName"    -> trim(label("Username"     , text())),
+    "userName"    -> trim(label("Username"     , text(required, maxlength(100), username))),
     "password"    -> trim(label("Password"     , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
     "isAdmin"     -> trim(label("User Type"    , boolean())),
@@ -68,8 +67,19 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
     
     redirect("/admin/users")
   })
-  
-  def unique: Constraint = new Constraint(){
+
+  private def username: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
+        Some("Username contains invalid character.")
+      } else if(value.startsWith("_") || value.startsWith("-")){
+        Some("Username starts with invalid character.")
+      } else {
+        None
+      }
+  }
+
+  private def unique: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
       getAccountByUserName(value).map { _ => "User already exists." }
   }  
