@@ -16,7 +16,7 @@
         <th colspan="4" style="font-weight: normal;">
           <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@latestCommit.shortMessage</a>
           @if(latestCommit.description.isDefined){
-            <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();">...</a>
+            <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
           }
           @if(latestCommit.description.isDefined){
             <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@latestCommit.description.get</pre>
