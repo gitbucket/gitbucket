@@ -1,4 +1,4 @@
-@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issues: List[model.Issue], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
   @html.header("issues", repository)
@@ -33,17 +33,13 @@
     </ul>
   </div>
   <table class="table table-bordered table-hover">
+  @issues.map { issue =>
     <tr><td>
-      <a href="@path/@repository.owner/@repository.name/issues/1181">2.1 migration issue - ebean</a>
-      <div class="small">
-        Opened by <a href="#">takezoe</a> <time datetime="2013-06-03T15:56:05-07:00" title="2013-06-03 15:56:05">June 03, 2013</time>
+      <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId">@issue.title</a>
+      <div class="small muted">
+        Opened by <a href="@path/@repository.owner">@issue.openedUserName</a> <time title="2013-06-03 15:56:05">TODO June 03, 2013</time>
       </div>
     </td></tr>
-    <tr><td>
-      <a href="#">Serving Play new app sample code page with hyper links</a>
-      <div class="small">
-        Opened by <a href="#">shimamoto</a> <time datetime="2013-06-03T12:58:48-07:00" title="2013-06-03 12:58:48">June 03, 2013</time>
-      </div>
-    </td></tr>
+  }
   </table>
 }

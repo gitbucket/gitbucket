@@ -17,6 +17,15 @@ trait IssuesService {
       } firstOption
     else None
 
+  def searchIssue(owner: String, repository: String,
+      // TODO It is better to have a DTO
+      closed: Boolean) =
+    Query(Issues) filter { t =>
+      (t.userName is owner.bind) &&
+      (t.repositoryName is repository.bind) &&
+      (t.closed is closed.bind)
+    } list
+
   def saveIssue(owner: String, repository: String, loginUser: String,
       title: String, content: Option[String]) =
     // next id number

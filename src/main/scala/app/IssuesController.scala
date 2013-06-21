@@ -19,7 +19,16 @@ trait IssuesControllerBase extends ControllerBase {
     )(IssueForm.apply)
 
   get("/:owner/:repository/issues"){
-    issues.html.issues(getRepository(params("owner"), params("repository"), baseUrl).get)
+    val owner = params("owner")
+    val repository = params("repository")
+
+    // search condition
+    val closed = params.get("state") collect {
+      case "closed" => true
+    } getOrElse false
+
+    issues.html.issues(searchIssue(owner, repository, closed),
+        getRepository(params("owner"), params("repository"), baseUrl).get)
   }
 
   get("/:owner/:repository/issues/:id"){
@@ -27,8 +36,8 @@ trait IssuesControllerBase extends ControllerBase {
     val repository = params("repository")
     val issueId = params("id")
 
-    getIssue(owner, repository, issueId) map { issue =>
-      issues.html.issue(issue, getRepository(owner, repository, baseUrl).get)
+    getIssue(owner, repository, issueId) map {
+      issues.html.issue(_, getRepository(owner, repository, baseUrl).get)
     } getOrElse NotFound
   }
 
