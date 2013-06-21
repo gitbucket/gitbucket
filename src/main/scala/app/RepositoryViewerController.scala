@@ -126,10 +126,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
       
       val treeWalk = new TreeWalk(git.getRepository)
-      treeWalk.addTree(revCommit.getTree)
-      treeWalk.setRecursive(true)
-      val objectId = getPathObjectId(path, treeWalk)
-      treeWalk.release
+      val objectId = try {
+        treeWalk.addTree(revCommit.getTree)
+        treeWalk.setRecursive(true)
+        getPathObjectId(path, treeWalk)
+      } finally {
+        treeWalk.release
+      }
       
       if(raw){
         // Download
@@ -137,10 +140,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         JGitUtil.getContent(git, objectId, false).get
       } else {
         // Viewer
-        val large   = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-        val viewer  = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "text"
-        val content = JGitUtil.ContentInfo(viewer,
-            if(viewer == "text") JGitUtil.getContent(git, objectId, false).map(new String(_, "UTF-8")) else None)
+        val large  = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+        val viewer = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "other"
+        val bytes  = if(viewer == "other") JGitUtil.getContent(git, objectId, false) else None
+
+        val content = if(viewer == "other"){
+          if(bytes.isDefined && FileTypeUtil.isText(bytes.get)){
+            // text
+            JGitUtil.ContentInfo("text", bytes.map(new String(_, "UTF-8")))
+          } else {
+            // binary
+            JGitUtil.ContentInfo("binary", None)
+          }
+        } else {
+          // image or large
+          JGitUtil.ContentInfo(viewer, None)
+        }
         
         repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
       }

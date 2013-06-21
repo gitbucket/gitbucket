@@ -37,7 +37,7 @@
         @if(content.viewType == "image"){
         <img src="?raw=true"/>
         }
-        @if(content.viewType == "large"){
+        @if(content.viewType == "large" || content.viewType == "binary"){
         <div style="text-align: center">
           <a href="?raw=true">View Raw</a><br>
           (Sorry about that, but we can't show files that are this big right now)
