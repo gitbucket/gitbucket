@@ -1,4 +1,4 @@
-@(commitId: String, commit: util.JGitUtil.CommitInfo, branchs: List[String], tags: List[String], repository: service.RepositoryService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
+@(commitId: String, commit: util.JGitUtil.CommitInfo, branches: List[String], tags: List[String], repository: service.RepositoryService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
 @import context._
 @import view.helpers
 @import view.implicits._
@@ -19,11 +19,15 @@
         <div class="small" style="font-weight: normal;">
           <span class="description">
             <img src="@path/assets/common/images/branch.png"/>
-            @branchs.map { branch => <a href="@path/@repository.owner/@repository.name/tree/@branch" class="branch">@branch</a>&nbsp; }
+            @branches.zipWithIndex.map { case (branch, i) =>
+              <a href="@path/@repository.owner/@repository.name/tree/@branch" class="branch" id="branch-@i">@branch</a>
+            }
           </span>
           <span class="description">
             <img src="@path/assets/common/images/tag.png"/>
-            @tags.map { tag => <a href="@path/@repository.owner/@repository.name/tree/@tag" class="tag">@tag</a>&nbsp; }
+            @tags.zipWithIndex.map { case (tag, i) =>
+              <a href="@path/@repository.owner/@repository.name/tree/@tag" class="tag" id="tag-@i">@tag</a>
+            }
           </span>
         </div>
       </th>
@@ -97,14 +101,52 @@ $(function(){
       $(this).val('Show file list');
     }
   });
+
   $('a.branch:first, a.tag:first').css({
     'font-weight': 'bold',
     'color': '#555555'
   });
+
+  @if(branches.size > 5){
+    // hide branches
+    @for(i <- 1 to branches.size - 2){
+      $('#branch-@i').hide();
+    }
+    // add omit link
+    $('#branch-@(branches.size - 1)').before(
+      $('<a href="javascript:void(0);" class="omit">...</a>').click(function(){
+        @for(i <- 1 to branches.size - 2){
+          $('#branch-@i').show();
+          this.remove();
+        }
+      })
+    );
+  }
+
+  @if(tags.size > 5){
+    // hide tags
+    @for(i <- 1 to tags.size - 2){
+      $('#tag-@i').hide();
+    }
+    // add omit link
+    $('#tag-@(tags.size - 1)').before(
+      $('<a href="javascript:void(0);" class="omit">...</a>').click(function(){
+        @for(i <- 1 to tags.size - 2){
+          $('#tag-@i').show();
+          this.remove();
+        }
+      })
+    );
+  }
 });
 </script>
 <style type="text/css">
 a.branch, a.tag {
   color: #888888;
+  margin-right: 4px;
+}
+
+a.omit {
+  margin-right: 4px;
 }
 </style>

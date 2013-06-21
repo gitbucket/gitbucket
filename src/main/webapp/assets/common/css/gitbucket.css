@@ -59,6 +59,17 @@ a.username {
   font-weight: bold;
 }
 
+a.omit {
+  background-color: #ddd;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-weight: bold;
+}
+
+a.omit:hover {
+  background-color: #aaa;
+}
+
 .monospace {
   font-family: monospace;
 }
