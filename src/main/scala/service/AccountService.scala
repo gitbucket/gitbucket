@@ -28,6 +28,6 @@ trait AccountService {
   
   def updateLastLoginDate(userName: String): Unit =
     Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate)
-      .update(new java.sql.Date(System.currentTimeMillis))
+      .update(new java.sql.Timestamp(System.currentTimeMillis))
   
 }

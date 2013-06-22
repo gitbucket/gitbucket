@@ -1,5 +1,6 @@
 @(users: List[model.Account])(implicit context: app.Context)
 @import context._
+@import view.helpers
 @html.main("Manage Users"){
   <div style="text-align: right; margin-bottom: 4px;">
     <a href="@path/admin/users/_new" class="btn">New User</a>
@@ -26,9 +27,9 @@
           }
         </td>
         <td>@account.url</td>
-        <td>@account.registeredDate</td>
-        <td>@account.updatedDate</td>
-        <td>@account.lastLoginDate</td>
+        <td>@helpers.datetime(account.registeredDate)</td>
+        <td>@helpers.datetime(account.updatedDate)</td>
+        <td>@account.lastLoginDate.map(helpers.datetime)</td>
       </tr>
     }
   </table>

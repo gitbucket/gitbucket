@@ -38,7 +38,7 @@ trait AccountControllerBase extends ControllerBase {
 
   post("/:userName/_edit", form)(ownerOnly { form =>
     val userName = params("userName")
-    val currentDate = new java.sql.Date(System.currentTimeMillis)
+    val currentDate = new java.sql.Timestamp(System.currentTimeMillis)
     updateAccount(getAccountByUserName(userName).get.copy(
       mailAddress    = form.mailAddress,
       url            = form.url,

@@ -36,7 +36,7 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
   })
   
   post("/admin/users/_new", newForm)(adminOnly { form =>
-    val currentDate = new java.sql.Date(System.currentTimeMillis)
+    val currentDate = new java.sql.Timestamp(System.currentTimeMillis)
     createAccount(Account(
         userName       = form.userName, 
         password       = form.password, 
@@ -57,7 +57,7 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
   
   post("/admin/users/:name/_edit", editForm)(adminOnly { form =>
     val userName = params("userName")
-    val currentDate = new java.sql.Date(System.currentTimeMillis)
+    val currentDate = new java.sql.Timestamp(System.currentTimeMillis)
     updateAccount(getAccountByUserName(userName).get.copy(
         password     = form.password,
         mailAddress  = form.mailAddress,
