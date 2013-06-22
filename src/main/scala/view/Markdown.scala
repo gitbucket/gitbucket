@@ -78,7 +78,7 @@ class GitBucketHtmlSerializer(
     val html = super.toHtml(rootNode)
     if(enableIssueLink){
       // convert marked issue id to link.
-      html.replaceAll("#\\{\\{\\{\\{([0-9]+)\\}\\}\\}\\}",
+      html.replaceAll("#\\{\\{\\{\\{(\\d+)\\}\\}\\}\\}",
         "<a href=\"%s/%s/%s/issue/$1\">#$1</a>".format(context.path, repository.owner, repository.name))
     } else html
   }
@@ -113,7 +113,7 @@ class GitBucketHtmlSerializer(
     // mark issue id to link
     val startIndex = node.getStartIndex
     val text2 = if(enableIssueLink && startIndex > 0 && markdown.charAt(startIndex - 1) == '#'){
-      text1.replaceFirst("^([0-9]+)", "{{{{$0}}}}")
+      text1.replaceFirst("^(\\d+)", "{{{{$0}}}}")
     } else text1
 
     if (abbreviations.isEmpty) {
