@@ -34,10 +34,14 @@
               <div class="milestone row-fluid">
                 <div class="span4">
                   <a href="#" class="milestone-title">@milestone.title</a><br>
-                  @if(milestone.dueDate.isDefined){
-                    <span class="description">@helpers.date(milestone.dueDate.get)</span>
+                  @if(milestone.closedDate.isDefined){
+                    <span class="description">Closed @helpers.datetime(milestone.closedDate.get)</span>
                   } else {
-                    <span class="description">No due date</span>
+                    @if(milestone.dueDate.isDefined){
+                      <span class="description">Due in @helpers.date(milestone.dueDate.get)</span>
+                    } else {
+                      <span class="description">No due date</span>
+                    }
                   }
                 </div>
                 <div class="span8">
