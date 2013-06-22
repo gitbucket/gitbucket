@@ -3,20 +3,30 @@ package app
 import jp.sf.amateras.scalatra.forms._
 
 import service._
-import util.UsersOnlyAuthenticator
+import util.{WritableRepositoryAuthenticator, ReadableRepositoryAuthenticator, UsersOnlyAuthenticator}
 
 class IssuesController extends IssuesControllerBase
-  with IssuesService with RepositoryService with AccountService with UsersOnlyAuthenticator
+  with IssuesService with RepositoryService with AccountService
+  with UsersOnlyAuthenticator with ReadableRepositoryAuthenticator with WritableRepositoryAuthenticator
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with UsersOnlyAuthenticator =>
+  self: IssuesService with RepositoryService
+    with UsersOnlyAuthenticator with ReadableRepositoryAuthenticator with WritableRepositoryAuthenticator  =>
 
   case class IssueForm(title: String, content: Option[String])
+
+  case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.sql.Date])
 
   val form = mapping(
       "title"   -> trim(label("Title", text(required))),
       "content" -> trim(optional(text()))
     )(IssueForm.apply)
+
+  val milestoneForm = mapping(
+    "title"       -> trim(label("Title", text(required))),
+    "description" -> trim(label("Description", optional(text()))),
+    "dueDate"     -> trim(label("Due Date", optional(date())))
+  )(MilestoneForm.apply)
 
   get("/:owner/:repository/issues"){
     val owner = params("owner")
@@ -53,4 +63,86 @@ trait IssuesControllerBase extends ControllerBase {
         saveIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
   })
 
+  get("/:owner/:repository/issues/milestones")(readableRepository {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val state      = params.getOrElse("state", "open")
+
+    getRepository(owner, repository, baseUrl) match {
+      case None    => NotFound()
+      case Some(r) => issues.html.milestones(state, getMilestones(owner, repository), r, isWritable(owner, repository, context.loginAccount))
+    }
+  })
+
+  get("/:owner/:repository/issues/milestones/new")(writableRepository {
+    val owner      = params("owner")
+    val repository = params("repository")
+
+    getRepository(owner, repository, baseUrl) match {
+      case None    => NotFound()
+      case Some(r) => issues.html.milestoneedit(None, r)
+    }
+  })
+
+  post("/:owner/:repository/issues/milestones/new", milestoneForm)(writableRepository { form =>
+    val owner      = params("owner")
+    val repository = params("repository")
+
+    createMilestone(owner, repository, form.title, form.description, form.dueDate)
+
+    redirect("/%s/%s/issues/milestones".format(owner, repository))
+  })
+
+  get("/:owner/:repository/issues/milestones/:milestoneId/edit")(writableRepository {
+    val owner       = params("owner")
+    val repository  = params("repository")
+    val milestoneId = params("milestoneId").toInt
+
+    getRepository(owner, repository, baseUrl) match {
+      case None    => NotFound()
+      case Some(r) => issues.html.milestoneedit(getMilestone(owner, repository, milestoneId), r)
+    }
+  })
+
+  post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(writableRepository { form =>
+    val owner       = params("owner")
+    val repository  = params("repository")
+    val milestoneId = params("milestoneId").toInt
+
+    getMilestone(owner, repository, milestoneId) match {
+      case None    => NotFound()
+      case Some(m) => {
+        updateMilestone(m.copy(title = form.title, description = form.description, dueDate = form.dueDate))
+        redirect("/%s/%s/issues/milestones".format(owner, repository))
+      }
+    }
+  })
+
+  get("/:owner/:repository/issues/milestones/:milestoneId/close")(writableRepository {
+    val owner       = params("owner")
+    val repository  = params("repository")
+    val milestoneId = params("milestoneId").toInt
+
+    getMilestone(owner, repository, milestoneId) match {
+      case None    => NotFound()
+      case Some(m) => {
+        updateMilestone(m.copy(closed = true))
+        redirect("/%s/%s/issues/milestones".format(owner, repository))
+      }
+    }
+  })
+
+  get("/:owner/:repository/issues/milestones/:milestoneId/open")(writableRepository {
+    val owner       = params("owner")
+    val repository  = params("repository")
+    val milestoneId = params("milestoneId").toInt
+
+    getMilestone(owner, repository, milestoneId) match {
+      case None    => NotFound()
+      case Some(m) => {
+        updateMilestone(m.copy(closed = false))
+        redirect("/%s/%s/issues/milestones".format(owner, repository))
+      }
+    }
+  })
 }

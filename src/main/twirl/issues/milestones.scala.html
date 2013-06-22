@@ -1,0 +1,120 @@
+@(state: String, milestones: List[model.Milestone], repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
+@import context._
+@import view.helpers
+@html.main("Milestones - " + repository.owner + "/" + repository.name){
+  @html.header("milestones", repository)
+  @issuestab("milestones", repository)
+  <div class="row-fluid">
+    <div class="span3">
+      <ul class="nav nav-pills nav-stacked">
+        <li@if(state == "open"){ class="active"}>
+          <a href="?state=open">
+            <span style="float: right; font-weight: bold;">@milestones.filter(!_.closed).size</span>
+            Open Milestones
+          </a>
+        </li>
+        <li@if(state == "closed"){ class="active"}>
+          <a href="?state=closed">
+            <span style="float: right; font-weight: bold;">@milestones.filter(_.closed).size</span>
+            Closed Milestones
+          </a>
+        </li>
+      </ul>
+      @if(isWritable){
+        <hr>
+        <a href="@path/@repository.owner/@repository.name/issues/milestones/new" class="btn" style="display: block;">Create a new milestone</a>
+      }
+    </div>
+    <div class="span9">
+      <table class="table table-bordered table-hover">
+        @defining(milestones.filter(milestone => if(state == "open") !milestone.closed else milestone.closed)){ milestones =>
+          @milestones.map { milestone =>
+          <tr>
+            <td>
+              <div class="milestone row-fluid">
+                <div class="span4">
+                  <a href="#" class="milestone-title">@milestone.title</a><br>
+                  @if(milestone.dueDate.isDefined){
+                    <span class="description">@helpers.date(milestone.dueDate.get)</span>
+                  } else {
+                    <span class="description">No due date</span>
+                  }
+                </div>
+                <div class="span8">
+                  <div class="milestone-menu">
+                    <div class="pull-right">
+                      @if(isWritable){
+                        <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/edit">Edit
+                        @if(milestone.closed){
+                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/open">Open</a>
+                        } else {
+                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/close">Close</a>
+                        }
+                        <a href="" class="delete">Delete</a>
+                      }
+                      <a href="">Browse issues</a>
+                    </div>
+                    <span class="description">0 closed - 0 open</span>
+                  </div>
+                  <div class="milestone-progress">10%</div>
+                </div>
+              </div>
+              @if(milestone.description.isDefined){
+                <div class="milestone-description">
+                  @helpers.markdown(milestone.description.get, repository, false, false, false)
+                </div>
+              }
+            </td>
+          </tr>
+          }
+          @if(milestones.isEmpty){
+          <tr>
+            <td style="padding: 20px; background-color: #eee; text-align: center;">
+              No milestones to show.
+              @if(isWritable){
+                <a href="@path/@repository.owner/@repository.name/issues/milestones/new">Create a new milestone.</a>
+              }
+            </td>
+          </tr>
+          }
+        }
+      </table>
+    </div>
+  </div>
+}
+<style type="text/css">
+a.milestone-title {
+  font-size: 120%;
+  font-weight: bold;
+}
+div.milestone-description {
+  border-top: 1px solid #eee;
+  color: #666;
+}
+
+div.milestone-menu {
+  font-size: 80%;
+}
+
+div.milestone-menu a {
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+div.milestone-menu a.delete {
+  color: #b00;
+}
+
+div.milestone-progress {
+  color: white;
+  padding-left: 4px;
+  margin-bottom: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  text-shadow: 0px 0px 5px #444;
+  background-color: silver;
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+}
+</style>

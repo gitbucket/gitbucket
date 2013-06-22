@@ -50,4 +50,31 @@ trait IssuesService {
       }.map(_.issueId).update(id) > 0
     } get
 
+  def createMilestone(owner: String, repository: String,
+      title: String, description: Option[String], dueDate: Option[java.sql.Date]): Unit = {
+    Milestones.ins insert (owner, repository, title, description, dueDate, false)
+  }
+
+  def updateMilestone(milestone: Milestone): Unit =
+    Query(Milestones)
+      .filter { m => (m.userName is milestone.userName.bind) && (m.repositoryName is milestone.repositoryName.bind) && (m.milestoneId is milestone.milestoneId.bind)}
+      .map    { m => m.title ~ m.description.? ~ m.dueDate.? ~ m.closed }
+      .update (
+      milestone.title,
+      milestone.description,
+      milestone.dueDate,
+      milestone.closed)
+
+  def getMilestone(owner: String, repository: String, milestoneId: Int): Option[Milestone] =
+    Query(Milestones)
+      .filter(m => (m.userName is owner.bind) && (m.repositoryName is repository.bind) && (m.milestoneId is milestoneId.bind))
+      .sortBy(_.milestoneId desc)
+      .firstOption
+
+  def getMilestones(owner: String, repository: String): List[Milestone] =
+    Query(Milestones)
+      .filter(m => (m.userName is owner.bind) && (m.repositoryName is repository.bind))
+      .sortBy(_.milestoneId desc)
+      .list
+
 }
