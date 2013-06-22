@@ -33,7 +33,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl) match {
       case Some(repoInfo) => getWikiPage(owner, repository, "Home") match {
-        case Some(page) => wiki.html.wiki("Home", page, repoInfo, isWritable(owner, repository))
+        case Some(page) => wiki.html.wiki("Home", page, repoInfo, isWritable(owner, repository, context.loginAccount))
         case None => redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
       }
       case None => NotFound()
@@ -46,7 +46,7 @@ trait WikiControllerBase extends ControllerBase {
     val pageName   = params("page")
     
     getWikiPage(owner, repository, pageName) match {
-      case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, baseUrl).get, isWritable(owner, repository))
+      case Some(page) => wiki.html.wiki(pageName, page, getRepository(owner, repository, baseUrl).get, isWritable(owner, repository, context.loginAccount))
       case None => redirect("/%s/%s/wiki/%s/_edit".format(owner, repository, pageName)) // TODO URLEncode
     }
   })
@@ -145,7 +145,7 @@ trait WikiControllerBase extends ControllerBase {
     val repository = params("repository")
 
     getRepository(owner, repository, baseUrl) match {
-      case Some(repoInfo) => wiki.html.wikipages(getWikiPageList(owner, repository), repoInfo, isWritable(owner, repository))
+      case Some(repoInfo) => wiki.html.wikipages(getWikiPageList(owner, repository), repoInfo, isWritable(owner, repository, context.loginAccount))
       case None => NotFound()
     }
   })
@@ -175,15 +175,6 @@ trait WikiControllerBase extends ControllerBase {
       case None => NotFound()
     }
   })
-
-  private def isWritable(owner: String, repository: String): Boolean = {
-    context.loginAccount match {
-      case Some(a) if(a.isAdmin) => true
-      case Some(a) if(a.userName == owner) => true
-      case Some(a) if(getCollaborators(owner, repository).contains(a.userName)) => true
-      case _ => false
-    }
-  }
 
   private def unique: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =

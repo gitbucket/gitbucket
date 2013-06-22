@@ -209,6 +209,15 @@ trait RepositoryService { self: AccountService =>
       (c.userName is userName.bind) && (c.repositoryName is repositoryName.bind)
     } sortBy(_.collaboratorName) list) map(_.collaboratorName)
 
+  def isWritable(owner: String, repository: String, loginAccount: Option[Account]): Boolean = {
+    loginAccount match {
+      case Some(a) if(a.isAdmin) => true
+      case Some(a) if(a.userName == owner) => true
+      case Some(a) if(getCollaborators(owner, repository).contains(a.userName)) => true
+      case _ => false
+    }
+  }
+
 }
 
 object RepositoryService {
