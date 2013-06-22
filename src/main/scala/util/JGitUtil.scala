@@ -61,11 +61,15 @@ object JGitUtil {
         rev.getParents().map(_.name).toList)
 
     val description = {
-      val i = fullMessage.trim.indexOf("\n")
-      if(i >= 0){
-        Some(fullMessage.trim.substring(i).trim)
-      } else {
+      if(shortMessage == fullMessage){
         None
+      } else {
+        val i = fullMessage.trim.indexOf("\n")
+        if(i >= 0){
+          Some(fullMessage.trim.substring(i).trim)
+        } else {
+          None
+        }
       }
     }
 

@@ -12,9 +12,9 @@
         <div class="pull-right align-right">
           <a href="@path/@repository.owner/@repository.name/tree/@commit.id" class="btn btn-small">Browse code</a>
         </div>
-        <div class="commit-log">@commit.shortMessage</div>
+        <div class="commit-log">@helpers.link(commit.shortMessage, repository)</div>
         @if(commit.description.isDefined){
-          <pre class="commit-description">@commit.description.get</pre>
+          <pre class="commit-description">@helpers.link(commit.description.get, repository)</pre>
         }
         <div class="small" style="font-weight: normal;">
           @if(branches.nonEmpty){

@@ -14,12 +14,12 @@
     <table class="table table-file-list" style="border: 1px solid silver;">
       <tr>
         <th colspan="4" style="font-weight: normal;">
-          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@latestCommit.shortMessage</a>
+          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.shortMessage, repository)</a>
           @if(latestCommit.description.isDefined){
             <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
           }
           @if(latestCommit.description.isDefined){
-            <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@latestCommit.description.get</pre>
+            <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@helpers.link(latestCommit.description.get, repository)</pre>
           }
         </th>
       </tr>
@@ -59,7 +59,7 @@
         }
         </td>
         <td>@helpers.datetime(file.time)</td>
-        <td><a href="@path/@repository.owner/@repository.name/commit/@file.commitId" class="commit-message">@file.message</a> [<a href="@path/@file.committer">@file.committer</a>]</td>
+        <td><a href="@path/@repository.owner/@repository.name/commit/@file.commitId" class="commit-message">@helpers.link(file.message, repository)</a> [<a href="@path/@file.committer">@file.committer</a>]</td>
       </tr>
       }
     </table>
