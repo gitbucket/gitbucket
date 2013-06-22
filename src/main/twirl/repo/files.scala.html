@@ -14,7 +14,7 @@
     <table class="table table-file-list" style="border: 1px solid silver;">
       <tr>
         <th colspan="4" style="font-weight: normal;">
-          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.shortMessage, repository)</a>
+          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
           @if(latestCommit.description.isDefined){
             <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
           }

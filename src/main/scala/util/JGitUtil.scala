@@ -49,10 +49,10 @@ object JGitUtil {
    *
    * @param id the commit id
    * @param time the commit time
-   * @param committer  the commiter name
+   * @param committer  the committer name
    * @param shortMessage the short message
    * @param fullMessage the full message
-   * @param parents the list of parent commid id
+   * @param parents the list of parent commit id
    */
   case class CommitInfo(id: String, time: Date, committer: String, shortMessage: String, fullMessage: String, parents: List[String]){
     
@@ -60,16 +60,26 @@ object JGitUtil {
         rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getShortMessage, rev.getFullMessage,
         rev.getParents().map(_.name).toList)
 
-    val description = {
-      if(shortMessage == fullMessage){
-        None
+    val summary = {
+      val i = fullMessage.trim.indexOf("\n")
+      val firstLine = if(i >= 0){
+        fullMessage.trim.substring(0, i).trim
       } else {
-        val i = fullMessage.trim.indexOf("\n")
-        if(i >= 0){
-          Some(fullMessage.trim.substring(i).trim)
-        } else {
-          None
-        }
+        fullMessage
+      }
+      if(firstLine.length > shortMessage.length){
+        shortMessage
+      } else {
+        firstLine
+      }
+    }
+
+    val description = {
+      val i = fullMessage.trim.indexOf("\n")
+      if(i >= 0){
+        Some(fullMessage.trim.substring(i).trim)
+      } else {
+        None
       }
     }
 
