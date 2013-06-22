@@ -5,7 +5,6 @@ import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
 import jp.sf.amateras.scalatra.forms._
-import service._
 
 /**
  * Provides generic features for ScalatraServlet implementations.
@@ -34,6 +33,9 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
     url.substring(0, url.length - request.getRequestURI.length)
   }
 
+  /**
+   * Constraint for the identifier such as user name, repository name or page name.
+   */
   protected def identifier: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
       if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
@@ -43,6 +45,17 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
       } else {
         None
       }
+  }
+
+  /**
+   * ValueType for the Date property.
+   */
+  def date(constraints: Constraint*): SingleValueType[java.sql.Date] =
+      new SingleValueType[java.sql.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*){
+    def convert(value: String): java.sql.Date = {
+      val formatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
+      new java.sql.Date(formatter.parse(value).getTime)
+    }
   }
 
 }
