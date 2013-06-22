@@ -10,6 +10,7 @@ import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
 import util.{JGitUtil, Directory}
+import service._
 
 /**
  * Provides Git repository via HTTP.
@@ -66,21 +67,25 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String) extends PostReceiveHook {
+class CommitLogHook(owner: String, repository: String) extends PostReceiveHook with RepositoryService with AccountService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
+
     JGitUtil.withGit(Directory.getRepositoryDir(owner, repository)) { git =>
       commands.asScala.foreach { command =>
         JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name).foreach { commit =>
           // TODO extract issue id and add comment to issue
           logger.debug(commit.id + ":" + commit.shortMessage)
+
+          println(owner + "/" + repository + " " + commit.id)
+          println(commit.fullMessage)
         }
       }
     }
     
-    // TODO update repository last modified time.
-    
+    // update repository last modified time.
+    updateLastActivityDate(owner, repository)
   }
 }

@@ -27,7 +27,7 @@ trait RepositoryService { self: AccountService =>
     
     // TODO insert default labels.
 
-    val currentDate = new java.sql.Date(System.currentTimeMillis)
+    val currentDate = new java.sql.Timestamp(System.currentTimeMillis)
 
     Repositories insert
       Repository(
@@ -98,7 +98,7 @@ trait RepositoryService { self: AccountService =>
       }
     }
 
-    q1.union(q2).filter(visibleFor(_, loginUserName)).sortBy(_.lastActivityDate).list map { repository =>
+    q1.union(q2).filter(visibleFor(_, loginUserName)).sortBy(_.lastActivityDate desc).list map { repository =>
       val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
       RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
     }
@@ -162,7 +162,7 @@ trait RepositoryService { self: AccountService =>
     Query(Repositories)
       .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
       .map    { _.lastActivityDate }
-      .update (new java.sql.Date(System.currentTimeMillis))
+      .update (new java.sql.Timestamp(System.currentTimeMillis))
   
   /**
    * Save repository options.
@@ -172,7 +172,7 @@ trait RepositoryService { self: AccountService =>
     Query(Repositories)
       .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
       .map    { r => r.description.? ~ r.defaultBranch ~ r.isPrivate ~ r.updatedDate }
-      .update (description, defaultBranch, isPrivate, new java.sql.Date(System.currentTimeMillis))
+      .update (description, defaultBranch, isPrivate, new java.sql.Timestamp(System.currentTimeMillis))
 
   /**
    * Add collaborator to the repository.

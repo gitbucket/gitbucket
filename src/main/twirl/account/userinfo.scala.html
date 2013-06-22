@@ -40,7 +40,7 @@
           @if(repository.repository.description.isDefined){
             <div>@repository.repository.description</div>
           }
-          <div><span class="description small">Last updated: @helpers.date(repository.repository.lastActivityDate)</span></div>
+          <div><span class="description small">Last updated: @helpers.datetime(repository.repository.lastActivityDate)</span></div>
         </div>
         }
       </div>
