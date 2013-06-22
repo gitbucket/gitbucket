@@ -127,7 +127,8 @@ trait IssuesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId) match {
       case None    => NotFound()
       case Some(m) => {
-        val currentDate = new Timestamp(System.currentTimeMillis) // TODO move to trait?
+        // TODO make a common function to get the current timestamp.
+        val currentDate = new Timestamp(System.currentTimeMillis)
         updateMilestone(m.copy(closedDate = Some(currentDate)))
         redirect("/%s/%s/issues/milestones".format(owner, repository))
       }

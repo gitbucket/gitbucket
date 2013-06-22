@@ -27,6 +27,7 @@ trait RepositoryService { self: AccountService =>
     
     // TODO insert default labels.
 
+    // TODO make a common function to get the current timestamp.
     val currentDate = new java.sql.Timestamp(System.currentTimeMillis)
 
     Repositories insert
@@ -159,6 +160,7 @@ trait RepositoryService { self: AccountService =>
    * Updates the last activity date of the repository.
    */
   def updateLastActivityDate(userName: String, repositoryName: String): Unit =
+    // TODO make a common function to get the current timestamp.
     Query(Repositories)
       .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
       .map    { _.lastActivityDate }
@@ -169,6 +171,7 @@ trait RepositoryService { self: AccountService =>
    */
   def saveRepositoryOptions(userName: String, repositoryName: String, 
       description: Option[String], defaultBranch: String, isPrivate: Boolean): Unit =
+    // TODO make a common function to get the current timestamp.
     Query(Repositories)
       .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
       .map    { r => r.description.? ~ r.defaultBranch ~ r.isPrivate ~ r.updatedDate }

@@ -27,6 +27,7 @@ trait AccountService {
         account.lastLoginDate)
   
   def updateLastLoginDate(userName: String): Unit =
+    // TODO make a common function to get the current timestamp.
     Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate)
       .update(new java.sql.Timestamp(System.currentTimeMillis))
   
