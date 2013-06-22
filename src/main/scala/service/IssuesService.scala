@@ -52,18 +52,18 @@ trait IssuesService {
 
   def createMilestone(owner: String, repository: String,
       title: String, description: Option[String], dueDate: Option[java.sql.Date]): Unit = {
-    Milestones.ins insert (owner, repository, title, description, dueDate, false)
+    Milestones.ins insert (owner, repository, title, description, dueDate, None)
   }
 
   def updateMilestone(milestone: Milestone): Unit =
     Query(Milestones)
       .filter { m => (m.userName is milestone.userName.bind) && (m.repositoryName is milestone.repositoryName.bind) && (m.milestoneId is milestone.milestoneId.bind)}
-      .map    { m => m.title ~ m.description.? ~ m.dueDate.? ~ m.closed }
+      .map    { m => m.title ~ m.description.? ~ m.dueDate.? ~ m.closedDate.? }
       .update (
       milestone.title,
       milestone.description,
       milestone.dueDate,
-      milestone.closed)
+      milestone.closedDate)
 
   def getMilestone(owner: String, repository: String, milestoneId: Int): Option[Milestone] =
     Query(Milestones)

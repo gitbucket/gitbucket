@@ -9,13 +9,13 @@
       <ul class="nav nav-pills nav-stacked">
         <li@if(state == "open"){ class="active"}>
           <a href="?state=open">
-            <span style="float: right; font-weight: bold;">@milestones.filter(!_.closed).size</span>
+            <span style="float: right; font-weight: bold;">@milestones.filter(_.closedDate.isEmpty).size</span>
             Open Milestones
           </a>
         </li>
         <li@if(state == "closed"){ class="active"}>
           <a href="?state=closed">
-            <span style="float: right; font-weight: bold;">@milestones.filter(_.closed).size</span>
+            <span style="float: right; font-weight: bold;">@milestones.filter(_.closedDate.isDefined).size</span>
             Closed Milestones
           </a>
         </li>
@@ -27,7 +27,7 @@
     </div>
     <div class="span9">
       <table class="table table-bordered table-hover">
-        @defining(milestones.filter(milestone => if(state == "open") !milestone.closed else milestone.closed)){ milestones =>
+        @defining(milestones.filter(m => if(state == "open") m.closedDate.isEmpty else m.closedDate.isDefined)){ milestones =>
           @milestones.map { milestone =>
           <tr>
             <td>
@@ -45,7 +45,7 @@
                     <div class="pull-right">
                       @if(isWritable){
                         <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/edit">Edit
-                        @if(milestone.closed){
+                        @if(milestone.closedDate.isDefined){
                           <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/open">Open</a>
                         } else {
                           <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/close">Close</a>

@@ -9,10 +9,10 @@ object Milestones extends Table[Milestone]("MILESTONE") {
   def title = column[String]("TITLE")
   def description = column[String]("DESCRIPTION")
   def dueDate = column[java.sql.Date]("DUE_DATE") // TODO convert java.util.Date later
-  def closed = column[Boolean]("CLOSED")
+  def closedDate = column[java.sql.Timestamp]("CLOSED_DATE")
 
-  def ins = userName ~ repositoryName ~ title ~ description.? ~ dueDate.? ~ closed
-  def * = userName ~ repositoryName ~ milestoneId ~ title ~ description.? ~ dueDate.? ~ closed <> (Milestone, Milestone.unapply _)
+  def ins = userName ~ repositoryName ~ title ~ description.? ~ dueDate.? ~ closedDate.?
+  def * = userName ~ repositoryName ~ milestoneId ~ title ~ description.? ~ dueDate.? ~ closedDate.? <> (Milestone, Milestone.unapply _)
 }
 
 case class Milestone(
@@ -22,4 +22,4 @@ case class Milestone(
   title: String,
   description: Option[String],
   dueDate: Option[java.sql.Date],
-  closed: Boolean)
+  closedDate: Option[java.sql.Timestamp])

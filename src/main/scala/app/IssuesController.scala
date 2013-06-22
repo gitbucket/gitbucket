@@ -4,6 +4,7 @@ import jp.sf.amateras.scalatra.forms._
 
 import service._
 import util.{WritableRepositoryAuthenticator, ReadableRepositoryAuthenticator, UsersOnlyAuthenticator}
+import java.sql.Timestamp
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService
@@ -126,7 +127,8 @@ trait IssuesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId) match {
       case None    => NotFound()
       case Some(m) => {
-        updateMilestone(m.copy(closed = true))
+        val currentDate = new Timestamp(System.currentTimeMillis) // TODO move to trait?
+        updateMilestone(m.copy(closedDate = Some(currentDate)))
         redirect("/%s/%s/issues/milestones".format(owner, repository))
       }
     }
@@ -140,7 +142,7 @@ trait IssuesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId) match {
       case None    => NotFound()
       case Some(m) => {
-        updateMilestone(m.copy(closed = false))
+        updateMilestone(m.copy(closedDate = None))
         redirect("/%s/%s/issues/milestones".format(owner, repository))
       }
     }

@@ -28,7 +28,7 @@
       @if(milestone.isEmpty){
         <input type="submit" class="btn" value="Create milestone"/>
       } else {
-        @if(milestone.get.closed){
+        @if(milestone.get.closedDate.isDefined){
           <input type="button" class="btn" value="Open" id="open"
                  onclick="location.href='@path/@repository.owner/@repository.name/issues/milestones/@milestone.get.milestoneId/close';"/>
         } else {
