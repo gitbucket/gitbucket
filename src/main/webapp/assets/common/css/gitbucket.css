@@ -92,11 +92,11 @@ table.table-file-list td.latest-commmit {
   padding-bottom: 4px;
   background-color: white;
 }
-
+/*
 table.table {
   margin-bottom: 10px;
 }
-
+*/
 table.table th {
   background-color: #d9edf7;
 }
