@@ -148,4 +148,18 @@ trait IssuesControllerBase extends ControllerBase {
       }
     }
   })
+
+  get("/:owner/:repository/issues/milestones/:milestoneId/delete")(writableRepository {
+    val owner       = params("owner")
+    val repository  = params("repository")
+    val milestoneId = params("milestoneId").toInt
+
+    getMilestone(owner, repository, milestoneId) match {
+      case None    => NotFound()
+      case Some(m) => {
+        deleteMilestone(owner, repository, milestoneId)
+        redirect("/%s/%s/issues/milestones".format(owner, repository))
+      }
+    }
+  })
 }

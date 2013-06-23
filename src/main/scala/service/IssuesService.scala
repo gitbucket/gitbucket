@@ -65,6 +65,17 @@ trait IssuesService {
       milestone.dueDate,
       milestone.closedDate)
 
+  def deleteMilestone(owner: String, repository: String, milestoneId: Int): Unit = {
+    Query(Issues)
+      .filter { i => (i.userName is owner.bind) && (i.repositoryName is repository.bind) && (i.milestoneId is milestoneId.bind)}
+      .map    { i => i.milestoneId.? }
+      .update(None)
+
+    Query(Milestones)
+      .filter { i => (i.userName is owner.bind) && (i.repositoryName is repository.bind) && (i.milestoneId is milestoneId.bind)}
+      .delete
+  }
+
   def getMilestone(owner: String, repository: String, milestoneId: Int): Option[Milestone] =
     Query(Milestones)
       .filter(m => (m.userName is owner.bind) && (m.repositoryName is repository.bind) && (m.milestoneId is milestoneId.bind))

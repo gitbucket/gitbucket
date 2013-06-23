@@ -54,7 +54,7 @@
                         } else {
                           <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/close">Close</a>
                         }
-                        <a href="" class="delete">Delete</a>
+                        <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                       }
                       <a href="">Browse issues</a>
                     </div>
@@ -86,6 +86,13 @@
     </div>
   </div>
 }
+<script>
+$(function(){
+  $('a.delete').click(function(){
+    return confirm('Once you delete this milestone, there is no going back.\nAre you sure?');
+  });
+});
+</script>
 <style type="text/css">
 a.milestone-title {
   font-size: 120%;
