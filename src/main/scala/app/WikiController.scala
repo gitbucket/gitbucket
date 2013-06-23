@@ -106,7 +106,8 @@ trait WikiControllerBase extends ControllerBase {
     
     saveWikiPage(owner, repository, form.currentPageName, form.pageName, 
         form.content, context.loginAccount.get, form.message.getOrElse(""))
-    
+    updateLastActivityDate(owner, repository)
+
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   })
   
@@ -126,7 +127,7 @@ trait WikiControllerBase extends ControllerBase {
     
     saveWikiPage(owner, repository, form.currentPageName, form.pageName, 
         form.content, context.loginAccount.get, form.message.getOrElse(""))
-    
+
     redirect("%s/%s/wiki/%s".format(owner, repository, form.pageName))
   })
   
@@ -136,7 +137,8 @@ trait WikiControllerBase extends ControllerBase {
     val page       = params("page")
     
     deleteWikiPage(owner, repository, page, context.loginAccount.get.userName, "Delete %s".format(page))
-    
+    updateLastActivityDate(owner, repository)
+
     redirect("%s/%s/wiki".format(owner, repository))
   })
   
