@@ -1,5 +1,7 @@
 package util
 
+import twirl.api.Html
+
 /**
  * Provides some usable implicit conversions.
  */
@@ -20,7 +22,11 @@ object Implicits {
         case Nil => result
       }
     }
+  }
 
-  }  
+  implicit def extendsHtmlSeq(seq: Seq[Html]) = new {
+    def mkHtml(separator: String) = Html(seq.mkString(separator))
+    def mkHtml(separator: scala.xml.Elem) = Html(seq.mkString(separator.toString))
+  }
 
 }

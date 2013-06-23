@@ -40,14 +40,14 @@ object helpers {
 
 }
 
-/**
- * Provides implicit conversions for Twirl templates.
- */
-object implicits {
-  
-  implicit def extendsHtmlSeq(seq: Seq[Html]) = new {
-    def mkHtml(separator: String) = Html(seq.mkString(separator))
-    def mkHtml(separator: scala.xml.Elem) = Html(seq.mkString(separator.toString))
-  }
-  
-}
+///**
+// * Provides implicit conversions for Twirl templates.
+// */
+//object implicits {
+//
+//  implicit def extendsHtmlSeq(seq: Seq[Html]) = new {
+//    def mkHtml(separator: String) = Html(seq.mkString(separator))
+//    def mkHtml(separator: scala.xml.Elem) = Html(seq.mkString(separator.toString))
+//  }
+//
+//}
