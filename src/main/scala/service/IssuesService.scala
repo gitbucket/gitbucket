@@ -65,6 +65,10 @@ trait IssuesService {
       milestone.dueDate,
       milestone.closedDate)
 
+  def openMilestone(milestone: Milestone): Unit = updateMilestone(milestone.copy(closedDate = None))
+
+  def closeMilestone(milestone: Milestone): Unit = updateMilestone(milestone.copy(closedDate = Some(currentDate)))
+
   def deleteMilestone(owner: String, repository: String, milestoneId: Int): Unit = {
     Query(Issues)
       .filter { i => (i.userName is owner.bind) && (i.repositoryName is repository.bind) && (i.milestoneId is milestoneId.bind)}
@@ -85,11 +89,11 @@ trait IssuesService {
   def getMilestoneIssueCounts(owner: String, repository: String): Map[(Int, Boolean), Int] = {
     import scala.slick.jdbc.GetResult
 
-    case class IssueCount(userName: String, repositoryName: String, milestoneId: Int, closed: Boolean, count: Int)
-    implicit val getIssueCount = GetResult(r => IssueCount(r.<<, r.<<, r.<<, r.<<, r.<<))
+    case class IssueCount(milestoneId: Int, closed: Boolean, count: Int)
+    implicit val getIssueCount = GetResult(r => IssueCount(r.<<, r.<<, r.<<))
 
     sql"""
-      select USER_NAME, REPOSITORY_NAME, MILESTONE_ID, CLOSED, COUNT(ISSUE_ID)
+      select MILESTONE_ID, CLOSED, COUNT(ISSUE_ID)
        from ISSUE
        where USER_NAME = $owner AND REPOSITORY_NAME = $repository AND MILESTONE_ID IS NOT NULL
        group by USER_NAME, REPOSITORY_NAME, MILESTONE_ID, CLOSED"""

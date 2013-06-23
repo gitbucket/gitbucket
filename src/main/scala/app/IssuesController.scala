@@ -23,7 +23,7 @@ trait IssuesControllerBase extends ControllerBase {
     )(IssueForm.apply)
 
   val milestoneForm = mapping(
-    "title"       -> trim(label("Title", text(required))),
+    "title"       -> trim(label("Title", text(required, maxlength(100)))),
     "description" -> trim(label("Description", optional(text()))),
     "dueDate"     -> trim(label("Due Date", optional(date())))
   )(MilestoneForm.apply)
@@ -127,9 +127,7 @@ trait IssuesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId) match {
       case None    => NotFound()
       case Some(m) => {
-        // TODO I want to ban to use the currentDate in Controller.
-        val currentDate = new java.util.Date()
-        updateMilestone(m.copy(closedDate = Some(currentDate)))
+        closeMilestone(m)
         redirect("/%s/%s/issues/milestones".format(owner, repository))
       }
     }
@@ -143,7 +141,7 @@ trait IssuesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId) match {
       case None    => NotFound()
       case Some(m) => {
-        updateMilestone(m.copy(closedDate = None))
+        openMilestone(m)
         redirect("/%s/%s/issues/milestones".format(owner, repository))
       }
     }
