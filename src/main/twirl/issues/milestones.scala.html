@@ -1,4 +1,4 @@
-@(state: String, milestones: List[model.Milestone], repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
+@(state: String, milestones: List[model.Milestone], counts: Map[(Int, Boolean), Int], repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers
 @html.main("Milestones - " + repository.owner + "/" + repository.name){
@@ -45,24 +45,37 @@
                   }
                 </div>
                 <div class="span8">
-                  <div class="milestone-menu">
-                    <div class="pull-right">
-                      @if(isWritable){
-                        <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/edit">Edit
-                        @if(milestone.closedDate.isDefined){
-                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/open">Open</a>
-                        } else {
-                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/close">Close</a>
+                  @defining((counts.getOrElse((milestone.milestoneId, true), 0), counts.getOrElse((milestone.milestoneId, false), 0))) { case (closedCount, openCount) =>
+                    <div class="milestone-menu">
+                      <div class="pull-right">
+                        @if(isWritable){
+                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/edit">Edit
+                          @if(milestone.closedDate.isDefined){
+                            <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/open">Open</a>
+                          } else {
+                            <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/close">Close</a>
+                          }
+                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                         }
-                        <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
-                      }
-                      <a href="">Browse issues</a>
+                        <a href="">Browse issues</a>
+                      </div>
+                      <span class="description">@closedCount closed - @openCount open</span>
                     </div>
-                    <span class="description">0 closed - 0 open</span>
+                    <div class="milestone-progress">
+                      @if(closedCount > 0){
+                        <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
+                      }
+                      <span class="milestone-percentage">
+                      @if(closedCount == 0){
+                        0%
+                      } else {
+                        @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%
+                      }
+                      </span>
+                    </div>
                   </div>
-                  <div class="milestone-progress">10%</div>
                 </div>
-              </div>
+              }
               @if(milestone.description.isDefined){
                 <div class="milestone-description">
                   @helpers.markdown(milestone.description.get, repository, false, false, false)
@@ -93,39 +106,3 @@ $(function(){
   });
 });
 </script>
-<style type="text/css">
-a.milestone-title {
-  font-size: 120%;
-  font-weight: bold;
-}
-div.milestone-description {
-  border-top: 1px solid #eee;
-  color: #666;
-}
-
-div.milestone-menu {
-  font-size: 80%;
-}
-
-div.milestone-menu a {
-  margin-left: 8px;
-  font-weight: bold;
-}
-
-div.milestone-menu a.delete {
-  color: #b00;
-}
-
-div.milestone-progress {
-  color: white;
-  padding-left: 4px;
-  margin-bottom: 4px;
-  font-weight: bold;
-  font-size: 12px;
-  text-shadow: 0px 0px 5px #444;
-  background-color: silver;
-  border-radius: 4px;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-}
-</style>

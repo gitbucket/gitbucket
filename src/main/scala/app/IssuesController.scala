@@ -71,7 +71,8 @@ trait IssuesControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl) match {
       case None    => NotFound()
-      case Some(r) => issues.html.milestones(state, getMilestones(owner, repository), r, isWritable(owner, repository, context.loginAccount))
+      case Some(r) => issues.html.milestones(state, getMilestones(owner, repository),
+        getMilestoneIssueCounts(owner, repository), r, isWritable(owner, repository, context.loginAccount))
     }
   })
 

@@ -82,6 +82,24 @@ trait IssuesService {
       .sortBy(_.milestoneId desc)
       .firstOption
 
+  def getMilestoneIssueCounts(owner: String, repository: String): Map[(Int, Boolean), Int] = {
+    import scala.slick.jdbc.{GetResult, StaticQuery}
+    import StaticQuery.interpolation
+
+    case class IssueCount(userName: String, repositoryName: String, milestoneId: Int, closed: Boolean, count: Int)
+    implicit val getIssueCount = GetResult(r => IssueCount(r.<<, r.<<, r.<<, r.<<, r.<<))
+
+    sql"""
+      select USER_NAME, REPOSITORY_NAME, MILESTONE_ID, CLOSED, COUNT(ISSUE_ID)
+       from ISSUE
+       where USER_NAME = $owner AND REPOSITORY_NAME = $repository AND MILESTONE_ID IS NOT NULL
+       group by USER_NAME, REPOSITORY_NAME, MILESTONE_ID, CLOSED"""
+    .as[IssueCount]
+    .list
+    .map { x => (x.milestoneId, x.closed) -> x.count }
+    .toMap
+  }
+
   def getMilestones(owner: String, repository: String): List[Milestone] =
     Query(Milestones)
       .filter(m => (m.userName is owner.bind) && (m.repositoryName is repository.bind))

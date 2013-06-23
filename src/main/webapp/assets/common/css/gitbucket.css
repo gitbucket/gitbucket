@@ -238,6 +238,56 @@ ul.collaborator a.remove {
   text-decoration: underline;
 }
 
+a.milestone-title {
+  font-size: 120%;
+  font-weight: bold;
+}
+div.milestone-description {
+  border-top: 1px solid #eee;
+  color: #666;
+}
+
+div.milestone-menu {
+  font-size: 80%;
+}
+
+div.milestone-menu a {
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+div.milestone-menu a.delete {
+  color: #b00;
+}
+
+div.milestone-progress {
+  position: relative;
+  height: 20px;
+  color: white;
+  margin-bottom: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  text-shadow: 0px 0px 5px #444;
+  background-color: silver;
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+}
+
+span.milestone-progress {
+  position: absolute;
+  height: 100%;
+  background-color: green;
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+}
+
+span.milestone-percentage {
+  position: absolute;
+  padding-left: 8px;
+}
+
 div.markdown-body table {
   /*width: 100%;*/
   margin-bottom: 20px;
