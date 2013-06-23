@@ -63,6 +63,16 @@ trait IssuesControllerBase extends ControllerBase {
         saveIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
   })
 
+  post("/:owner/:repository/issue_comments")( usersOnly {
+    val owner = params("owner")
+    val repository = params("repository")
+    val issueId = params("issueId")
+    val content = params("content")
+
+    // TODO Returns JSON
+    redirect("/%s/%s/issues/%d".format(owner, repository, 1))
+  })
+
   get("/:owner/:repository/issues/milestones")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
