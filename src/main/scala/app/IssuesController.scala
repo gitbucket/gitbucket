@@ -4,7 +4,6 @@ import jp.sf.amateras.scalatra.forms._
 
 import service._
 import util.{WritableRepositoryAuthenticator, ReadableRepositoryAuthenticator, UsersOnlyAuthenticator}
-import java.sql.Timestamp
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService
@@ -16,7 +15,7 @@ trait IssuesControllerBase extends ControllerBase {
 
   case class IssueForm(title: String, content: Option[String])
 
-  case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.sql.Date])
+  case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 
   val form = mapping(
       "title"   -> trim(label("Title", text(required))),
@@ -128,8 +127,8 @@ trait IssuesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId) match {
       case None    => NotFound()
       case Some(m) => {
-        // TODO make a common function to get the current timestamp.
-        val currentDate = new Timestamp(System.currentTimeMillis)
+        // TODO I want to ban to use the currentDate in Controller.
+        val currentDate = new java.util.Date()
         updateMilestone(m.copy(closedDate = Some(currentDate)))
         redirect("/%s/%s/issues/milestones".format(owner, repository))
       }

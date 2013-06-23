@@ -36,8 +36,8 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
   })
   
   post("/admin/users/_new", newForm)(adminOnly { form =>
-    // TODO make a common function to get the current timestamp.
-    val currentDate = new java.sql.Timestamp(System.currentTimeMillis)
+    // TODO I want to ban to use the currentDate in Controller.
+    val currentDate = new java.util.Date()
     createAccount(Account(
         userName       = form.userName, 
         password       = form.password, 
@@ -58,14 +58,11 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
   
   post("/admin/users/:name/_edit", editForm)(adminOnly { form =>
     val userName = params("userName")
-    // TODO make a common function to get the current timestamp.
-    val currentDate = new java.sql.Timestamp(System.currentTimeMillis)
     updateAccount(getAccountByUserName(userName).get.copy(
         password     = form.password,
         mailAddress  = form.mailAddress,
         isAdmin      = form.isAdmin,
-        url          = form.url,
-        updatedDate  = currentDate))
+        url          = form.url))
     
     redirect("/admin/users")
   })

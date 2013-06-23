@@ -50,11 +50,11 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
   /**
    * ValueType for the Date property.
    */
-  def date(constraints: Constraint*): SingleValueType[java.sql.Date] =
-      new SingleValueType[java.sql.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*){
-    def convert(value: String): java.sql.Date = {
+  def date(constraints: Constraint*): SingleValueType[java.util.Date] =
+      new SingleValueType[java.util.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*){
+    def convert(value: String): java.util.Date = {
       val formatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
-      new java.sql.Date(formatter.parse(value).getTime)
+      formatter.parse(value)
     }
   }
 

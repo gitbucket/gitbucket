@@ -1,6 +1,7 @@
 package service
 
 import model._
+import Accounts._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 
@@ -11,7 +12,7 @@ trait AccountService {
     
   def getAllUsers(): List[Account] = Query(Accounts) sortBy(_.userName) list
     
-  def createAccount(account: Account): Unit = Accounts.* insert account
+  def createAccount(account: Account): Unit = Accounts insert account
 
   def updateAccount(account: Account): Unit = 
     Query(Accounts)
@@ -21,14 +22,13 @@ trait AccountService {
         account.password, 
         account.mailAddress, 
         account.isAdmin,
-        account.url, 
+        account.url,
         account.registeredDate,
-        account.updatedDate,
+        currentDate,
         account.lastLoginDate)
   
   def updateLastLoginDate(userName: String): Unit =
-    // TODO make a common function to get the current timestamp.
     Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate)
-      .update(new java.sql.Timestamp(System.currentTimeMillis))
+      .update(currentDate)
   
 }

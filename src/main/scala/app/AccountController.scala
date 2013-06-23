@@ -38,11 +38,9 @@ trait AccountControllerBase extends ControllerBase {
 
   post("/:userName/_edit", form)(ownerOnly { form =>
     val userName = params("userName")
-    val currentDate = new java.sql.Timestamp(System.currentTimeMillis) // TODO make a common function to get the current timestamp.
     updateAccount(getAccountByUserName(userName).get.copy(
       mailAddress    = form.mailAddress,
-      url            = form.url,
-      updatedDate    = currentDate))
+      url            = form.url))
 
     redirect("/%s".format(userName))
   })

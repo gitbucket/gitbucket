@@ -6,6 +6,7 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 import model._
+import Issues._
 
 trait IssuesService {
   def getIssue(owner: String, repository: String, issueId: String) =
@@ -41,8 +42,8 @@ trait IssuesService {
           title,
           content,
           false,
-          new java.sql.Date(System.currentTimeMillis),	// TODO
-          new java.sql.Date(System.currentTimeMillis))
+          currentDate,
+          currentDate)
 
       // increment issue id
       IssueId.filter { t =>
@@ -51,9 +52,8 @@ trait IssuesService {
     } get
 
   def createMilestone(owner: String, repository: String,
-      title: String, description: Option[String], dueDate: Option[java.sql.Date]): Unit = {
-    Milestones.ins insert (owner, repository, title, description, dueDate, None)
-  }
+      title: String, description: Option[String], dueDate: Option[java.util.Date]) =
+    Milestones.autoInc insert (owner, repository, title, description, dueDate, None)
 
   def updateMilestone(milestone: Milestone): Unit =
     Query(Milestones)
