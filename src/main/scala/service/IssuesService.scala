@@ -83,8 +83,7 @@ trait IssuesService {
       .firstOption
 
   def getMilestoneIssueCounts(owner: String, repository: String): Map[(Int, Boolean), Int] = {
-    import scala.slick.jdbc.{GetResult, StaticQuery}
-    import StaticQuery.interpolation
+    import scala.slick.jdbc.GetResult
 
     case class IssueCount(userName: String, repositoryName: String, milestoneId: Int, closed: Boolean, count: Int)
     implicit val getIssueCount = GetResult(r => IssueCount(r.<<, r.<<, r.<<, r.<<, r.<<))
