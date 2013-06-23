@@ -47,7 +47,8 @@ object Directory {
   
   /**
    * Temporary directory which is used in the repository creation.
-   * GiyBucket generates initial repository contents in this directory and push them.
+   *
+   * GitBucket generates initial repository contents in this directory and push them.
    * This directory is removed after the repository creation.
    */
   def getInitRepositoryDir(owner: String, repository: String): File =
