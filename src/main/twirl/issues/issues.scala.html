@@ -1,45 +1,67 @@
 @(issues: List[model.Issue], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
   @html.header("issues", repository)
   @issuestab("issues", repository)
-  <div class="pagination pull-right">
-    <ul>
-      <li class="disabled"><span>&#9664;</span></li>
-      <li class="active"><span>1</span></li>
-      <li><a href="#">2</a></li>
-      <li><a href="#">3</a></li>
-      <li><span>&hellip;</span></li>
-      <li><a href="#">7</a></li>
-      <li><a href="#">&#9654;</a></li>
-    </ul>
-  </div>
-  <div class="btn-group">
-    <a class="btn active" href="#">1 Open</a>
-    <a class="btn" href="#">1 Closed</a>
-  </div>
-  <div class="btn-group">
-    <button class="btn dropdown-toggle" data-toggle="dropdown">
-      Sort: <strong>Newest</strong>
-      <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-      <li><a href="#">Newest</a></li>
-      <li><a href="#">Oldest</a></li>
-      <li><a href="#">Most commented</a></li>
-      <li><a href="#">Least commented</a></li>
-      <li><a href="#">Recently updated</a></li>
-      <li><a href="#">Least recently updated</a></li>
-    </ul>
-  </div>
-  <table class="table table-bordered table-hover">
-  @issues.map { issue =>
-    <tr><td>
-      <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId">@issue.title</a>
-      <div class="small muted">
-        Opened by <a href="@path/@repository.owner">@issue.openedUserName</a> <time title="2013-06-03 15:56:05">TODO June 03, 2013</time>
+  <div class="row-fluid">
+    <div class="span3">
+      <ul class="nav nav-pills nav-stacked">
+        <li class="active"><a href="#">Everyone's Issues</a></li>
+        <li><a href="#">Assigned to you</a></li>
+        <li><a href="#">Created by you</a></li>
+      </ul>
+      <hr/>
+      No milestone selected
+      <hr/>
+      <strong>Labels</strong>
+      <hr/>
+      <a class="btn btn-block" href="#">Manage Labels</a>
+      <br/>
+      <strong>New label</strong>
+      <input type="text" name="labelName" value="" placeholder="New label name"/>
+    </div>
+    <div class="span9">
+      <div class="pagination pull-right">
+        <ul>
+          <li class="disabled"><span>&#9664;</span></li>
+          <li class="active"><span>1</span></li>
+          <li><a href="#">2</a></li>
+          <li><a href="#">3</a></li>
+          <li><span>&hellip;</span></li>
+          <li><a href="#">7</a></li>
+          <li><a href="#">&#9654;</a></li>
+        </ul>
       </div>
-    </td></tr>
-  }
-  </table>
+      <div class="btn-group">
+        <a class="btn active" href="#">1 Open</a>
+        <a class="btn" href="#">1 Closed</a>
+      </div>
+      <div class="btn-group">
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+          Sort: <strong>Newest</strong>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="#">Newest</a></li>
+          <li><a href="#">Oldest</a></li>
+          <li><a href="#">Most commented</a></li>
+          <li><a href="#">Least commented</a></li>
+          <li><a href="#">Recently updated</a></li>
+          <li><a href="#">Least recently updated</a></li>
+        </ul>
+      </div>
+      <table class="table table-bordered table-hover">
+      @issues.map { issue =>
+        <tr><td>
+          <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId">@issue.title</a>
+          <span class="pull-right muted">#@issue.issueId</span>
+          <div class="small muted">
+            Opened by <a href="@path/@repository.owner">@issue.openedUserName</a> @datetime(issue.registeredDate)
+          </div>
+        </td></tr>
+      }
+      </table>
+    </div>
+  </div>
 }
