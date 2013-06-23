@@ -1,6 +1,7 @@
 package app
 
 import model.Account
+import util.Validations
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
@@ -9,7 +10,8 @@ import jp.sf.amateras.scalatra.forms._
 /**
  * Provides generic features for ScalatraServlet implementations.
  */
-abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFormSupport with JacksonJsonSupport {
+abstract class ControllerBase extends ScalatraFilter
+  with ClientSideValidationFormSupport with JacksonJsonSupport with Validations {
 
   implicit val jsonFormats = DefaultFormats
 
@@ -31,31 +33,6 @@ abstract class ControllerBase extends ScalatraFilter with ClientSideValidationFo
   protected def baseUrl = {
     val url = request.getRequestURL.toString
     url.substring(0, url.length - request.getRequestURI.length)
-  }
-
-  /**
-   * Constraint for the identifier such as user name, repository name or page name.
-   */
-  protected def identifier: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
-      if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
-        Some("%s contains invalid character.".format(name))
-      } else if(value.startsWith("_") || value.startsWith("-")){
-        Some("%s starts with invalid character.".format(name))
-      } else {
-        None
-      }
-  }
-
-  /**
-   * ValueType for the Date property.
-   */
-  def date(constraints: Constraint*): SingleValueType[java.util.Date] =
-      new SingleValueType[java.util.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*){
-    def convert(value: String): java.util.Date = {
-      val formatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
-      formatter.parse(value)
-    }
   }
 
 }
