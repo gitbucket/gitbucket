@@ -74,6 +74,8 @@ trait WikiService {
           saveWikiPage(owner.userName, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
         } finally {
           repo.close
+          // once delete cloned repository because initial cloned repository does not have 'branch.master.merge'
+          FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner.userName, repository))
         }
       }
     }
