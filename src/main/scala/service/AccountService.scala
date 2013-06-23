@@ -12,7 +12,16 @@ trait AccountService {
     
   def getAllUsers(): List[Account] = Query(Accounts) sortBy(_.userName) list
     
-  def createAccount(account: Account): Unit = Accounts insert account
+  def createAccount(userName: String, password: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit =
+    Accounts insert Account(
+      userName       = userName,
+      password       = password,
+      mailAddress    = mailAddress,
+      isAdmin        = isAdmin,
+      url            = url,
+      registeredDate = currentDate,
+      updatedDate    = currentDate,
+      lastLoginDate  = None)
 
   def updateAccount(account: Account): Unit = 
     Query(Accounts)

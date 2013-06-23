@@ -36,18 +36,7 @@ trait UsersControllerBase extends ControllerBase { self: AccountService with Adm
   })
   
   post("/admin/users/_new", newForm)(adminOnly { form =>
-    // TODO I want to ban to use the currentDate in Controller.
-    val currentDate = new java.util.Date()
-    createAccount(Account(
-        userName       = form.userName, 
-        password       = form.password, 
-        mailAddress    = form.mailAddress,
-        isAdmin        = form.isAdmin,
-        url            = form.url, 
-        registeredDate = currentDate, 
-        updatedDate    = currentDate, 
-        lastLoginDate  = None))
-        
+    createAccount(form.userName, form.password, form.mailAddress, form.isAdmin, form.url)
     redirect("/admin/users")
   })
   
