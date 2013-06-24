@@ -7,7 +7,7 @@ object Labels extends Table[Label]("LABEL") with Functions {
   def repositoryName = column[String]("REPOSITORY_NAME", O PrimaryKey)
   def labelId = column[Int]("LABEL_ID", O PrimaryKey, O AutoInc)
   def labelName = column[String]("LABEL_NAME")
-  def color = column[Int]("COLOR")
+  def color = column[String]("COLOR")
   def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
 }
 
