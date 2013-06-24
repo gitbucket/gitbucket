@@ -1,8 +1,8 @@
 @(label: Option[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @defining((if(label.isEmpty) ("new", 190, 4) else ("edit", 180, 8))){ case (mode, width, margin) =>
-<div id="@(mode)LabelForm">
-  <form method="POST"
+<div id="@(mode)LabelArea">
+  <form method="POST" id="edit-label-form"
         action="@path/@repository.owner/@repository.name/issues/label/@{if(mode == "new") "new" else label.get.labelId + "/edit"}"
         validate="true" @if(mode == "edit"){ style="margin-bottom: 8px;"}>
     <span id="error-@(mode)LabelName" class="error"></span>
@@ -25,12 +25,25 @@
   } else {
     $('#editColor').colorpicker();
 
-    $('#editLabelForm').click(function(e){
-      e.stopPropagation();
-    });
+    $('#edit-label-form').submit(function(e){
+      var form = $(e.target);
+      $.post(form.attr('action') + '/validate', $(form).serialize(), function(data){
+        // clear all error messages
+        $('.error').text('');
 
-    $.each($('form[validate=true]'), function(i, form){
-      $(form).submit(validate);
+        if($.isEmptyObject(data)){
+          $.post(form.attr('action'), $(form).serialize(), function(data){
+            var parent = $('#label-edit').parent();
+            $('#label-edit').remove();
+            parent.append(data);
+          });
+        } else {
+          $.each(data, function(key, value){
+            $('#error-' + key).text(value);
+          });
+        }
+      }, 'json');
+      return false;
     });
   }
   </script>

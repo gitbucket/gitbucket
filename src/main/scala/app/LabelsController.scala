@@ -32,6 +32,13 @@ trait LabelsControllerBase extends ControllerBase {
     redirect("/%s/%s/issues".format(owner, repository))
   })
 
+  get("/:owner/:repository/issues/label/edit")(writableRepository {
+    val owner      = params("owner")
+    val repository = params("repository")
+
+    issues.html.labellist(getLabels(owner, repository), getRepository(owner, repository, baseUrl).get)
+  })
+
   get("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
@@ -50,7 +57,7 @@ trait LabelsControllerBase extends ControllerBase {
 
 //    createLabel(owner, repository, form.labelName, form.color.substring(1))
 //
-    Ok("label updated.")
+    issues.html.labellist(getLabels(owner, repository), getRepository(owner, repository, baseUrl).get)
   })
 
 }

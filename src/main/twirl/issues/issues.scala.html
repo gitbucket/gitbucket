@@ -15,41 +15,21 @@
       No milestone selected
       <hr/>
       <strong>Labels</strong>
-      <ul id="label-list" class="label-list nav nav-pills nav-stacked">
-        @labels.map { label =>
-          <li>
-            <a href="#">
-              <span class="count-right">0</span>
-              <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
-              @label.labelName
-            </a>
-          </li>
-        }
-      </ul>
-      <ul id="label-edit" class="label-list nav nav-pills nav-stacked" style="display: none;">
-        @labels.map { label =>
-        <li style="border: 1px solid white;">
-          <a href="javascript:void(0);" class="label-edit-link" labelId="@label.labelId" labelName="@label.labelName" color="#@label.color">
-            <span class="count-right"><i class="icon-remove-circle" onclick="alert('delete!');"></i></span>
-            <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
-            @label.labelName
-          </a>
-        </li>
-        }
-        @*
-        <form id="editLabelForm" style="display: none; margin-bottom: 8px;">
-          <span id="error-editLabelName" class="error"></span>
-          <input type="text" name="editLabelName" id="editLabelName" value="" style="width: 180px; margin-left: 8px; margin-bottom: 0px;"/>
-          <span id="error-editColor" class="error"></span>
-          <div class="input-append color bscp" data-color="#888888" data-color-format="hex" id="editColor" style="width: 180px; margin-bottom: 0px;">
-            <input type="text" class="span3" name="editColor" value="" readonly style="width: 168px; margin-left: 8px;"/>
-            <span class="add-on"><i style="background-color: #888888;"></i></span>
-          </div>
-          <input type="hidden" name="editLabelId"/>
-          <input type="submit" class="btn label-submit" value="Save" style="margin-left: 8px; margin-bottom: 0px;"/>
-        </form>
-        *@
-      </ul>
+      <div>
+        <div id="label-list">
+          <ul class="label-list nav nav-pills nav-stacked">
+            @labels.map { label =>
+              <li>
+                <a href="#">
+                  <span class="count-right">0</span>
+                  <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
+                  @label.labelName
+                </a>
+              </li>
+             }
+          </ul>
+        </div>
+      </div>
       <hr/>
       <input type="button" class="btn btn-block" id="manageLabel" data-toggle="button" value="Manage Labels"/>
       <br/>
@@ -102,50 +82,18 @@
 }
 <script>
 $(function(){
-  $('#editColor').colorpicker();
-
   $('#manageLabel').click(function(){
     if($(this).data('toggle-state')){
       location.href = '@path/@repository.owner/@repository.name/issues';
     } else {
       $(this).data('toggle-state', 'on');
-      $('#label-list').hide();
-      $('#label-edit').show();
+      $.get('@path/@repository.owner/@repository.name/issues/label/edit', function(data){
+        var parent = $('#label-list').parent();
+        $('#label-list').remove();
+        parent.append(data);
+      });
     }
   });
-
-  $('a.label-edit-link').click(function(e){
-    e.stopPropagation();
-    if($('input[name=editLabelId]').val() != $(this).attr('labelId')){
-      showEditLabelForm(this);
-    } else {
-      hideEditLabelForm();
-    }
-  });
-
-  $('body').click(function(){
-    hideEditLabelForm();
-  });
-
-  function showEditLabelForm(element){
-    $('#editLabelForm').remove();
-
-    $.ajax({
-      method: 'GET',
-      url: '@path/@repository.owner/@repository.name/issues/label/' + $(element).attr('labelId') + '/edit',
-      dataType: 'html',
-      success: function(data){
-        $(element).parent().append(data);
-        $('ul#label-edit li').css('border', '1px solid white');
-        $(element).parent().css('border', '1px solid #eee');
-      }
-    });
-  }
-
-  function hideEditLabelForm(){
-    $('#editLabelForm').remove();
-    $('ul#label-edit li').css('border', '1px solid white');
-  }
 });
 </script>
 <style type="text/css">
@@ -156,7 +104,7 @@ ul.label-list {
   font-size: 90%;
 }
 
-ul.label-list li a {
+ul.label-list a {
   padding-left: 6px;
   padding-top: 4px;
   padding-bottom: 4px;

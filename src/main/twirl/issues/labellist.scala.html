@@ -1,0 +1,39 @@
+@(labels: List[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+<div id="label-edit">
+  <ul class="label-list nav nav-pills nav-stacked">
+    @labels.map { label =>
+    <li style="border: 1px solid white;">
+      <a href="javascript:void(0);" class="label-edit-link" labelId="@label.labelId" labelName="@label.labelName" color="#@label.color">
+        <span class="count-right"><i class="icon-remove-circle" labelId="@label.labelId"></i></span>
+        <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
+        @label.labelName
+      </a>
+    </li>
+    }
+  </ul>
+  <script>
+  $('i.icon-remove-circle').click(function(e){
+    e.stopPropagation();
+    // TODO Delete label
+    alert('Delete this label. Are you Sure?');
+  });
+
+  $('a.label-edit-link').click(function(e){
+    if($('input[name=editLabelId]').val() != $(this).attr('labelId')){
+      $('#editLabelArea').remove();
+      var element = this;
+      $.get('@path/@repository.owner/@repository.name/issues/label/' + $(this).attr('labelId') + '/edit',
+        function(data){
+          $(element).parent().append(data);
+          $('div#label-edit li').css('border', '1px solid white');
+          $(element).parent().css('border', '1px solid #eee');
+        }
+      );
+    } else {
+      $('#editLabelArea').remove();
+      $('div#label-edit li').css('border', '1px solid white');
+    }
+  });
+  </script>
+</div>
