@@ -9,6 +9,7 @@ object Labels extends Table[Label]("LABEL") with Functions {
   def labelName = column[String]("LABEL_NAME")
   def color = column[String]("COLOR")
   def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
+  def ins = userName ~ repositoryName ~ labelName ~ color
 }
 
 case class Label(
