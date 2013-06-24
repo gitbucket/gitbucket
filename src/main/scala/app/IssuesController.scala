@@ -6,11 +6,11 @@ import service._
 import util.{WritableRepositoryAuthenticator, ReadableRepositoryAuthenticator, UsersOnlyAuthenticator}
 
 class IssuesController extends IssuesControllerBase
-  with IssuesService with RepositoryService with AccountService
+  with IssuesService with RepositoryService with AccountService with LabelsService
   with UsersOnlyAuthenticator with ReadableRepositoryAuthenticator with WritableRepositoryAuthenticator
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService
+  self: IssuesService with RepositoryService with LabelsService
     with UsersOnlyAuthenticator with ReadableRepositoryAuthenticator with WritableRepositoryAuthenticator  =>
 
   case class IssueForm(title: String, content: Option[String])
@@ -37,8 +37,8 @@ trait IssuesControllerBase extends ControllerBase {
       case "closed" => true
     } getOrElse false
 
-    issues.html.issues(searchIssue(owner, repository, closed),
-        getRepository(params("owner"), params("repository"), baseUrl).get)
+    issues.html.issues(searchIssue(owner, repository, closed), getLabels(owner, repository),
+      getRepository(owner, repository, baseUrl).get)
   }
 
   get("/:owner/:repository/issues/:id"){

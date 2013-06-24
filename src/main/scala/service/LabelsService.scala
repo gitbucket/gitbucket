@@ -16,4 +16,7 @@ trait LabelsService {
       .sortBy(_.labelName asc)
       .list
 
+  def createLabel(owner: String, repository: String, labelName: String, color: String): Unit =
+    Labels.ins insert (owner, repository, labelName, color)
+
 }

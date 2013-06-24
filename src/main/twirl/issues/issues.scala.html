@@ -1,4 +1,4 @@
-@(issues: List[model.Issue], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issues: List[model.Issue], labels: List[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
@@ -15,11 +15,27 @@
       No milestone selected
       <hr/>
       <strong>Labels</strong>
+      <ul class="label-list">
+        @labels.map { label =>
+          <li>
+            <span style="float: right; font-weight: bold;">0</span>
+            <span style="background-color: #@label.color;" class="label-color">&nbsp;</span>
+            @label.labelName
+          </li>
+        }
+      </ul>
       <hr/>
       <a class="btn btn-block" href="#">Manage Labels</a>
       <br/>
       <strong>New label</strong>
-      <input type="text" name="labelName" value="" placeholder="New label name"/>
+      <form method="POST" action="@path/@repository.owner/@repository.name/issues/label/new" validate="true">
+        <input type="text" name="labelName" value="" placeholder="New label name"/>
+        <div class="input-append color bscp" data-color="#ff0000" data-color-format="hex" id="cp3">
+          <input type="text" class="span3" name="color" value="" readonly style="width: 100%;">
+          <span class="add-on"><i style="background-color: #ff0000;"></i></span>
+        </div>
+        <input type="submit" class="btn" value="Create"/>
+      </form>
     </div>
     <div class="span9">
       <div class="pagination pull-right">
@@ -65,3 +81,27 @@
     </div>
   </div>
 }
+<script>
+$(function(){
+  $('#cp3').colorpicker();
+});
+</script>
+<style type="text/css">
+ul.label-list {
+  list-style-type: none;
+  padding-left: 0px;
+  margin-left: 0px;
+  font-size: 90%;
+  color: #444;
+}
+
+ul.label-list li {
+  margin-bottom: 4px;
+}
+
+span.label-color {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
+</style>
