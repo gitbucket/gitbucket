@@ -66,11 +66,13 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issue_comments")( usersOnly {
     val owner = params("owner")
     val repository = params("repository")
-    val issueId = params("issueId")
-    val content = params("content")
+    val issueId = params("issueId").toInt
+    val content = params("content")	// TODO input check
 
-    // TODO Returns JSON
-    redirect("/%s/%s/issues/%d".format(owner, repository, 1))
+    saveComment(owner, repository, context.loginAccount.get.userName, issueId, content)
+
+    contentType = formats("json")
+    org.json4s.jackson.Serialization.write(Map("content" -> content))
   })
 
 }

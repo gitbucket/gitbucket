@@ -19,15 +19,13 @@
           @markdown(issue.content getOrElse "No description given.", repository, false, true, true)
         </div>
       </div>
-      <form action="@path/@repository.owner/@repository.name/issue_comments" method="POST">
+      <span id="comment-area"></span>
       <div class="box">
         <div class="box-content">
           @html.preview(repository, "", false, true, true, "width: 730px; height: 100px;")
         </div>
       </div>
-      <input type="hidden" name="issueId" value="@issue.issueId"/>
-      <input type="submit" class="btn btn-success" value="Comment"/>
-      </form>
+      <input type="button" class="btn btn-success" value="Comment" id="comment"/>
     </div>
     <div class="span2">
       @if(issue.closed) {
@@ -41,3 +39,17 @@
     </div>
   </div>
 }
+<script>
+$(function(){
+  $('#comment').click(function(){
+    $.post('@path/@repository.owner/@repository.name/issue_comments',
+    {
+      issueId : @issue.issueId,
+      content : $('#content').val()
+    },
+    function(data){
+      $('#comment-area').html(data.content);
+    });
+  });
+});
+</script>

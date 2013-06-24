@@ -51,4 +51,15 @@ trait IssuesService {
       }.map(_.issueId).update(id) > 0
     } get
 
+  def saveComment(owner: String, repository: String, loginUser: String,
+      issueId: Int, content: String) =
+    IssueComments.autoInc insert (
+        owner,
+        repository,
+        issueId,
+        loginUser,
+        content,
+        currentDate,
+        currentDate)
+
 }
