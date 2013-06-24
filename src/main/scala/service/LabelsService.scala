@@ -16,6 +16,11 @@ trait LabelsService {
       .sortBy(_.labelName asc)
       .list
 
+  def getLabel(owner: String, repository: String, labelId: Int): Option[Label] =
+    Query(Labels)
+      .filter(l => (l.userName is owner.bind) && (l.repositoryName is repository.bind) && (l.labelId is labelId.bind))
+      .firstOption
+
   def createLabel(owner: String, repository: String, labelName: String, color: String): Unit =
     Labels.ins insert (owner, repository, labelName, color)
 

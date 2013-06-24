@@ -8,7 +8,7 @@ class LabelsController extends LabelsControllerBase
   with LabelsService with RepositoryService with AccountService with WritableRepositoryAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
-  self: LabelsService with WritableRepositoryAuthenticator =>
+  self: LabelsService with RepositoryService with WritableRepositoryAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
 
@@ -24,6 +24,17 @@ trait LabelsControllerBase extends ControllerBase {
     createLabel(owner, repository, form.labelName, form.color.substring(1))
 
     redirect("/%s/%s/issues".format(owner, repository))
+  })
+
+  get("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val labelId    = params("labelId").toInt
+
+    getLabel(owner, repository, labelId) match {
+      case None    => NotFound()
+      case Some(l) => issues.html.labeledit(Some(l), getRepository(owner, repository, baseUrl).get)
+    }
   })
 
 }

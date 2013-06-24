@@ -123,30 +123,27 @@ $(function(){
     }
   });
 
-  $('#editLabelForm').click(function(e){
-    e.stopPropagation();
-  });
-
   $('body').click(function(){
     hideEditLabelForm();
   });
 
   function showEditLabelForm(element){
-    var form = $('#editLabelForm');
-    form.detach();
-    form.find('input[name=editLabelName]').val($(element).attr('labelName'));
-    //form.find('input[name=editColor]').colorpicker('setValue', $(element).attr('color'));
-    form.find('input[name=editLabelId]').val($(element).attr('labelId'));
-    $(element).parent().append(form);
-    form.show();
-    $('ul#label-edit li').css('border', '1px solid white');
-    $(element).parent().css('border', '1px solid #eee');
+    $('#editLabelForm').remove();
+
+    $.ajax({
+      method: 'GET',
+      url: '@path/@repository.owner/@repository.name/issues/label/' + $(element).attr('labelId') + '/edit',
+      dataType: 'html',
+      success: function(data){
+        $(element).parent().append(data);
+        $('ul#label-edit li').css('border', '1px solid white');
+        $(element).parent().css('border', '1px solid #eee');
+      }
+    });
   }
 
   function hideEditLabelForm(){
-    var form = $('#editLabelForm');
-    form.find('input[name=editLabelId]').val('');
-    form.hide();
+    $('#editLabelForm').remove();
     $('ul#label-edit li').css('border', '1px solid white');
   }
 });
