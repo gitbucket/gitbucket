@@ -224,7 +224,7 @@
 					'mousedown': this.hide
 				});
 				if (this.component){
-					this.element.find('input').prop('value', this.format.call(this));
+					this.element.find('input[type=hidden]').prop('value', this.format.call(this));
 				}
 				this.element.data('color', this.format.call(this));
 			} else {
