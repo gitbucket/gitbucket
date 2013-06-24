@@ -17,10 +17,7 @@
     </fieldset>
     <fieldset>
       <label for="dueDate"><strong>Due Date</strong></label>
-      <div id="dueDate" class="input-append date" data-date-format="yyyy-mm-dd" data-date="@milestone.map(_.dueDate.map(helpers.date))">
-        <input class="span2" name="dueDate" type="text" readonly="" value="@milestone.map(_.dueDate.map(helpers.date))" size="16" name="dueDate"/>
-        <span class="add-on"><i class="icon-calendar"></i></span>
-      </div>
+      @html.datepicker("dueDate", milestone.flatMap(_.dueDate))
       <span id="error-dueDate" class="error"></span>
     </fieldset>
     <hr>
@@ -40,8 +37,3 @@
     </div>
   </form>
 }
-<script>
-$(function(){
-  $('#dueDate').datepicker();
-});
-</script>

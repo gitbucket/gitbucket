@@ -15,12 +15,14 @@
       No milestone selected
       <hr/>
       <strong>Labels</strong>
-      <ul class="label-list">
+      <ul class="label-list nav nav-pills nav-stacked">
         @labels.map { label =>
           <li>
-            <span style="float: right; font-weight: bold;">0</span>
-            <span style="background-color: #@label.color;" class="label-color">&nbsp;</span>
-            @label.labelName
+            <a href="#">
+              <span class="count-right">0</span>
+              <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
+              @label.labelName
+            </a>
           </li>
         }
       </ul>
@@ -29,10 +31,12 @@
       <br/>
       <strong>New label</strong>
       <form method="POST" action="@path/@repository.owner/@repository.name/issues/label/new" validate="true">
+        <span id="error-labelName" class="error"></span>
         <input type="text" name="labelName" value="" placeholder="New label name"/>
-        <div class="input-append color bscp" data-color="#ff0000" data-color-format="hex" id="cp3">
+        <span id="error-color" class="error"></span>
+        <div class="input-append color bscp" data-color="#888888" data-color-format="hex" id="cp3">
           <input type="text" class="span3" name="color" value="" readonly style="width: 100%;">
-          <span class="add-on"><i style="background-color: #ff0000;"></i></span>
+          <span class="add-on"><i style="background-color: #888888;"></i></span>
         </div>
         <input type="submit" class="btn" value="Create"/>
       </form>
@@ -92,11 +96,14 @@ ul.label-list {
   padding-left: 0px;
   margin-left: 0px;
   font-size: 90%;
-  color: #444;
 }
 
-ul.label-list li {
-  margin-bottom: 4px;
+ul.label-list li a {
+  padding-left: 6px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  color: #444;
 }
 
 span.label-color {
