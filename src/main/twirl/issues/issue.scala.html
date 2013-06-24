@@ -48,7 +48,14 @@ $(function(){
       content : $('#content').val()
     },
     function(data){
-      $('#comment-area').html(data.content);
+      var div = $('<div>').addClass('box')
+          .append($('<div>').addClass('box-header-small')
+              .append($('<a>').attr('href', '@path/@repository.owner').text(data.commentedUserName))
+              .append(' commented')
+              .append($('<span>').addClass('pull-right').text(data.registeredDate)))
+          .append($('<div>').addClass('box-content').attr('style', 'background-color: #f5f5f5;').html(data.content));
+      $('#comment-area').append(div);
+      $('#content').val('');
     });
   });
 });
