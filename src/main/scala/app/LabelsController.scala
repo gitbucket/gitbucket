@@ -36,7 +36,10 @@ trait LabelsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    issues.html.labellist(getLabels(owner, repository), getRepository(owner, repository, baseUrl).get)
+    getRepository(owner, repository, baseUrl) match {
+      case None    => NotFound()
+      case Some(r) => issues.html.labellist(getLabels(owner, repository), r)
+    }
   })
 
   get("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
@@ -44,9 +47,12 @@ trait LabelsControllerBase extends ControllerBase {
     val repository = params("repository")
     val labelId    = params("labelId").toInt
 
-    getLabel(owner, repository, labelId) match {
+    getRepository(owner, repository, baseUrl) match {
       case None    => NotFound()
-      case Some(l) => issues.html.labeledit(Some(l), getRepository(owner, repository, baseUrl).get)
+      case Some(r) => getLabel(owner, repository, labelId) match {
+        case None    => NotFound()
+        case Some(l) => issues.html.labeledit(Some(l), r)
+      }
     }
   })
 
@@ -55,9 +61,27 @@ trait LabelsControllerBase extends ControllerBase {
     val repository = params("repository")
     val labelId    = params("labelId").toInt
 
-//    createLabel(owner, repository, form.labelName, form.color.substring(1))
-//
-    issues.html.labellist(getLabels(owner, repository), getRepository(owner, repository, baseUrl).get)
+    getRepository(owner, repository, baseUrl) match {
+      case None    => NotFound()
+      case Some(r) => {
+        updateLabel(owner, repository, labelId, form.labelName, form.color.substring(1))
+        issues.html.labellist(getLabels(owner, repository), r)
+      }
+    }
+  })
+
+  get("/:owner/:repository/issues/label/:labelId/delete")(writableRepository {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val labelId    = params("labelId").toInt
+
+    getRepository(owner, repository, baseUrl) match {
+      case None    => NotFound()
+      case Some(r) => {
+        deleteLabel(owner, repository, labelId)
+        issues.html.labellist(getLabels(owner, repository), r)
+      }
+    }
   })
 
 }

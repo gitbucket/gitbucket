@@ -24,4 +24,22 @@ trait LabelsService {
   def createLabel(owner: String, repository: String, labelName: String, color: String): Unit =
     Labels.ins insert (owner, repository, labelName, color)
 
+  def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String): Unit =
+    Query(Labels)
+      .filter { l => (l.userName is owner.bind) && (l.repositoryName is repository.bind) && (l.labelId is labelId.bind)}
+      .map    { l => l.labelName ~ l.color }
+      .update (labelName, color)
+
+  def deleteLabel(owner: String, repository: String, labelId: Int): Unit = {
+    // TODO delete ISSUE_LABEL
+//    Query(Issues)
+//      .filter { i => (i.userName is owner.bind) && (i.repositoryName is repository.bind) && (i.milestoneId is milestoneId.bind)}
+//      .map    { i => i.milestoneId.? }
+//      .update(None)
+
+    Query(Labels)
+      .filter { i => (i.userName is owner.bind) && (i.repositoryName is repository.bind) && (i.labelId is labelId.bind)}
+      .delete
+  }
+
 }

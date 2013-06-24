@@ -15,8 +15,15 @@
   <script>
   $('i.icon-remove-circle').click(function(e){
     e.stopPropagation();
-    // TODO Delete label
-    alert('Delete this label. Are you Sure?');
+    if(confirm('Delete this label. Are you Sure?')){
+      $.get('@path/@repository.owner/@repository.name/issues/label/' + $(this).attr('labelId') + '/delete',
+        function(data){
+          var parent = $('#label-edit').parent();
+          $('#label-edit').remove();
+          parent.append(data);
+        }
+      );
+    }
   });
 
   $('a.label-edit-link').click(function(e){
