@@ -2,7 +2,9 @@
 @import context._
 @defining((if(label.isEmpty) ("new", 190, 4) else ("edit", 180, 8))){ case (mode, width, margin) =>
 <div id="@(mode)LabelForm">
-  <form method="POST" action="@path/@repository.owner/@repository.name/issues/label/@mode" validate="true" @if(mode == "edit"){ style="margin-bottom: 8px;"}>
+  <form method="POST"
+        action="@path/@repository.owner/@repository.name/issues/label/@{if(mode == "new") "new" else label.get.labelId + "/edit"}"
+        validate="true" @if(mode == "edit"){ style="margin-bottom: 8px;"}>
     <span id="error-@(mode)LabelName" class="error"></span>
     <input type="text" name="@(mode)LabelName" id="@(mode)LabelName" style="width: @(width)px; margin-left: @(margin)px; margin-bottom: 0px;" value="@label.map(_.labelName)"@if(mode == "new"){ placeholder="New label name"}/>
     <span id="error-@(mode)Color" class="error"></span>
@@ -25,6 +27,10 @@
 
     $('#editLabelForm').click(function(e){
       e.stopPropagation();
+    });
+
+    $.each($('form[validate=true]'), function(i, form){
+      $(form).submit(validate);
     });
   }
   </script>
