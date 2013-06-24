@@ -13,8 +13,8 @@ trait LabelsControllerBase extends ControllerBase {
   case class LabelForm(labelName: String, color: String)
 
   val labelForm = mapping(
-    "labelName" -> trim(label("Label name", text(required, maxlength(100)))),
-    "color"     -> trim(label("Color",      text(required, maxlength(7))))
+    "newLabelName" -> trim(label("Label name", text(required, maxlength(100)))),
+    "newColor"     -> trim(label("Color",      text(required, maxlength(7))))
   )(LabelForm.apply)
 
   post("/:owner/:repository/issues/label/new", labelForm)(writableRepository { form =>
