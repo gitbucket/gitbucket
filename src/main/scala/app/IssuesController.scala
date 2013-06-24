@@ -69,10 +69,15 @@ trait IssuesControllerBase extends ControllerBase {
     val issueId = params("issueId").toInt
     val content = params("content")	// TODO input check
 
-    saveComment(owner, repository, context.loginAccount.get.userName, issueId, content)
-
     contentType = formats("json")
-    org.json4s.jackson.Serialization.write(Map("content" -> content))
+    saveComment(owner, repository, context.loginAccount.get.userName, issueId, content) map {
+      model => org.json4s.jackson.Serialization.write(
+          Map("commentedUserName" -> model.commentedUserName,
+              "registeredDate"    -> view.helpers.datetime(model.registeredDate),
+              "content"           -> view.Markdown.toHtml(
+                  model.content, getRepository(owner, repository, baseUrl).get, false, true, true)
+          ))
+    } getOrElse ""
   })
 
 }
