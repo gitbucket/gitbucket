@@ -9,13 +9,13 @@
       <ul class="nav nav-pills nav-stacked">
         <li@if(state == "open"){ class="active"}>
           <a href="?state=open">
-            <span style="float: right; font-weight: bold;">@milestones.filter(_.closedDate.isEmpty).size</span>
+            <span class="count-right">@milestones.filter(_.closedDate.isEmpty).size</span>
             Open Milestones
           </a>
         </li>
         <li@if(state == "closed"){ class="active"}>
           <a href="?state=closed">
-            <span style="float: right; font-weight: bold;">@milestones.filter(_.closedDate.isDefined).size</span>
+            <span class="count-right">@milestones.filter(_.closedDate.isDefined).size</span>
             Closed Milestones
           </a>
         </li>
