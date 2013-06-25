@@ -38,7 +38,7 @@ trait LabelsControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl) match {
       case None    => NotFound()
-      case Some(r) => issues.html.labellist(getLabels(owner, repository), r)
+      case Some(r) => issues.html.labeleditlist(getLabels(owner, repository), r)
     }
   })
 
@@ -65,7 +65,7 @@ trait LabelsControllerBase extends ControllerBase {
       case None    => NotFound()
       case Some(r) => {
         updateLabel(owner, repository, labelId, form.labelName, form.color.substring(1))
-        issues.html.labellist(getLabels(owner, repository), r)
+        issues.html.labeleditlist(getLabels(owner, repository), r)
       }
     }
   })
@@ -79,7 +79,7 @@ trait LabelsControllerBase extends ControllerBase {
       case None    => NotFound()
       case Some(r) => {
         deleteLabel(owner, repository, labelId)
-        issues.html.labellist(getLabels(owner, repository), r)
+        issues.html.labeleditlist(getLabels(owner, repository), r)
       }
     }
   })

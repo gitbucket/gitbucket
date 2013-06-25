@@ -6,11 +6,11 @@ import service._
 import util.{WritableRepositoryAuthenticator, ReadableRepositoryAuthenticator, UsersOnlyAuthenticator}
 
 class IssuesController extends IssuesControllerBase
-  with IssuesService with RepositoryService with AccountService with LabelsService
+  with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService
   with UsersOnlyAuthenticator with ReadableRepositoryAuthenticator with WritableRepositoryAuthenticator
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with LabelsService
+  self: IssuesService with RepositoryService with LabelsService with MilestonesService
     with UsersOnlyAuthenticator with ReadableRepositoryAuthenticator with WritableRepositoryAuthenticator  =>
 
   case class IssueForm(title: String, content: Option[String])
@@ -32,13 +32,20 @@ trait IssuesControllerBase extends ControllerBase {
     val owner = params("owner")
     val repository = params("repository")
 
-    // search condition
-    val closed = params.get("state") collect {
-      case "closed" => true
-    } getOrElse false
+    getRepository(owner, repository, baseUrl) match {
+      case None    => NotFound()
+      case Some(r) => {
+        // search condition
+        val closed = params.get("state") collect {
+          case "closed" => true
+        } getOrElse false
 
-    issues.html.issues(searchIssue(owner, repository, closed), getLabels(owner, repository),
-      getRepository(owner, repository, baseUrl).get)
+        issues.html.issues(searchIssue(owner, repository, closed),
+          getLabels(owner, repository),
+          getMilestones(owner, repository).filter(_.closedDate.isEmpty),
+          r, isWritable(owner, repository, context.loginAccount))
+      }
+    }
   }
 
   get("/:owner/:repository/issues/:id"){

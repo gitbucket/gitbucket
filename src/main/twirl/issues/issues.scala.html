@@ -1,4 +1,4 @@
-@(issues: List[model.Issue], labels: List[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], repository: service.RepositoryService.RepositoryInfo, isWrite: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
@@ -7,12 +7,40 @@
   <div class="row-fluid">
     <div class="span3">
       <ul class="nav nav-pills nav-stacked">
-        <li class="active"><a href="#">Everyone's Issues</a></li>
-        <li><a href="#">Assigned to you</a></li>
-        <li><a href="#">Created by you</a></li>
+        <li class="active">
+          <a href="#">
+            <span class="count-right">0</span>
+            Everyone's Issues
+          </a>
+        </li>
+        @if(loginAccount.isDefined){
+        <li>
+          <a href="#">
+            <span class="count-right">0</span>
+            Assigned to you
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span class="count-right">0</span>
+            Created by you
+          </a>
+        </li>
+        }
       </ul>
       <hr/>
       No milestone selected
+      <div class="btn-group">
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+          <i class="icon-cog"></i>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          @milestones.map { milestone =>
+            <li><a href="#">@milestone.title</a></li>
+          }
+        </ul>
+      </div>
       <hr/>
       <strong>Labels</strong>
       <div>
@@ -30,11 +58,13 @@
           </ul>
         </div>
       </div>
-      <hr/>
-      <input type="button" class="btn btn-block" id="manageLabel" data-toggle="button" value="Manage Labels"/>
-      <br/>
-      <strong>New label</strong>
-      @labeledit(None, repository)
+      @if(isWrite){
+        <hr/>
+        <input type="button" class="btn btn-block" id="manageLabel" data-toggle="button" value="Manage Labels"/>
+        <br/>
+        <strong>New label</strong>
+        @labeledit(None, repository)
+      }
     </div>
     <div class="span9">
       <div class="pagination pull-right">
@@ -80,6 +110,7 @@
     </div>
   </div>
 }
+@if(isWrite){
 <script>
 $(function(){
   $('#manageLabel').click(function(){
@@ -96,6 +127,7 @@ $(function(){
   });
 });
 </script>
+}
 <style type="text/css">
 ul.label-list {
   list-style-type: none;
