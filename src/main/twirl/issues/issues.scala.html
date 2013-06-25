@@ -118,13 +118,27 @@
       </div>
       <table class="table table-bordered table-hover">
       @issues.map { issue =>
-        <tr><td>
-          <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId">@issue.title</a>
-          <span class="pull-right muted">#@issue.issueId</span>
-          <div class="small muted">
-            Opened by <a href="@path/@repository.owner">@issue.openedUserName</a> @datetime(issue.registeredDate)
-          </div>
-        </td></tr>
+        <tr>
+          <td>
+            <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId">@issue.title</a>
+            <span class="pull-right muted">#@issue.issueId</span>
+            <div class="small muted">
+              Opened by <a href="@path/@repository.owner">@issue.openedUserName</a> @datetime(issue.registeredDate)
+            </div>
+          </td>
+        </tr>
+      }
+      @if(issues.isEmpty){
+        <tr>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            No issues to show.
+            @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
+              <a href="@condition.copy(labels = Set.empty, milestoneId = None).toURL">Clear active filters.</a>
+            } else {
+              <a href="@path/@repository.owner/@repository.name/issues/new">Create a new issue.</a>
+            }
+          </td>
+        </tr>
       }
       </table>
     </div>
