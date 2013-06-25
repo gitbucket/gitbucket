@@ -19,6 +19,8 @@ trait Validations {
       }
   }
 
+  def color = pattern("#[0-9a-fA-F]{6}")
+
   /**
    * ValueType for the java.util.Date property.
    */
