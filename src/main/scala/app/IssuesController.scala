@@ -14,11 +14,16 @@ trait IssuesControllerBase extends ControllerBase {
     with UsersOnlyAuthenticator =>
 
   case class IssueForm(title: String, content: Option[String])
+  case class CommentForm(issueId: Int, content: String)
 
   val form = mapping(
       "title"   -> trim(label("Title", text(required))),
       "content" -> trim(optional(text()))
     )(IssueForm.apply)
+  val commentForm = mapping(
+      "issueId" -> label("Issue Id", number()),
+      "content" -> trim(label("Comment", text(required)))
+    )(CommentForm.apply)
 
   get("/:owner/:repository/issues"){
     val owner = params("owner")
@@ -68,21 +73,12 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   // TODO requires users only and redable repository checking
-  post("/:owner/:repository/issue_comments")( usersOnly {
+  post("/:owner/:repository/issue_comments", commentForm)( usersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
-    val issueId = params("issueId").toInt
-    val content = params("content")	// TODO input check
 
-    contentType = formats("json")
-    saveComment(owner, repository, context.loginAccount.get.userName, issueId, content) map {
-      model => org.json4s.jackson.Serialization.write(
-          Map("commentedUserName" -> model.commentedUserName,
-              "registeredDate"    -> view.helpers.datetime(model.registeredDate),
-              "content"           -> view.Markdown.toHtml(
-                  model.content, getRepository(owner, repository, baseUrl).get, false, true, true)
-          ))
-    } getOrElse ""
+    redirect("/%s/%s/issues/%d#comment-%d".format(owner, repository, form.issueId,
+        saveComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
   })
 
 }
