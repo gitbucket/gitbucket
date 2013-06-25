@@ -75,16 +75,16 @@ object IssuesService {
   import java.net.URLEncoder
   import javax.servlet.http.HttpServletRequest
 
-  case class IssueSearchCondition(labels: Set[String], milestoneId: Option[Int], state: String, sort: Option[String], direction: Option[String]){
+  case class IssueSearchCondition(labels: Set[String], milestoneId: Option[Int], state: String, sort: String, direction: String){
     import IssueSearchCondition._
 
     def toURL(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String = {
       val params = List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(" "))),
         milestoneId.map("milestone=" + _),
-        Some("state=" + urlEncode(state)),
-        sort.map("sort=" + urlEncode(_)),
-        direction.map("direction=" + urlEncode(_))
+        Some("state="     + urlEncode(state)),
+        Some("sort="      + urlEncode(sort)),
+        Some("direction=" + urlEncode(direction))
       )
       "%s/%s/%s/issues?%s".format(context.path, repository.owner, repository.name, params.flatten.mkString("&"))
     }
@@ -94,17 +94,17 @@ object IssuesService {
 
     private def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8")
 
-    private def param(request: HttpServletRequest, name: String): Option[String] = {
+    private def param(request: HttpServletRequest, name: String, allow: Seq[String] = Nil): Option[String] = {
       val value = request.getParameter(name)
-      if(value == null || value.isEmpty) None else Some(value)
+      if(value == null || value.isEmpty || (allow.nonEmpty && !allow.contains(value))) None else Some(value)
     }
 
     def apply(request: HttpServletRequest): IssueSearchCondition =
       IssueSearchCondition(
         param(request, "labels").map(_.split(" ").toSet).getOrElse(Set.empty),
         param(request, "milestone").map(_.toInt),
-        param(request, "state").getOrElse("open"),
-        param(request, "sort"),
-        param(request, "direction"))
+        param(request, "state",     Seq("open", "closed")).getOrElse("open"),
+        param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
+        param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))
   }
 }

@@ -89,16 +89,24 @@
       </div>
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
-          Sort: <strong>Newest</strong>
+          Sort:
+          <strong>
+            @if(condition.sort == "created"  && condition.direction == "desc"){ Newest }
+            @if(condition.sort == "created"  && condition.direction == "asc" ){ Oldest }
+            @if(condition.sort == "comments" && condition.direction == "desc"){ Most commented }
+            @if(condition.sort == "comments" && condition.direction == "asc" ){ Least commented }
+            @if(condition.sort == "updated"  && condition.direction == "desc"){ Recently updated }
+            @if(condition.sort == "updated"  && condition.direction == "asc" ){ Least recently updated }
+          </strong>
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="#">Newest</a></li>
-          <li><a href="#">Oldest</a></li>
-          <li><a href="#">Most commented</a></li>
-          <li><a href="#">Least commented</a></li>
-          <li><a href="#">Recently updated</a></li>
-          <li><a href="#">Least recently updated</a></li>
+          <li><a href="@condition.copy(sort="created",  direction="desc").toURL(repository)">Newest</a></li>
+          <li><a href="@condition.copy(sort="created",  direction="asc" ).toURL(repository)">Oldest</a></li>
+          <li><a href="@condition.copy(sort="comments", direction="desc").toURL(repository)">Most commented</a></li>
+          <li><a href="@condition.copy(sort="comments", direction="asc" ).toURL(repository)">Least commented</a></li>
+          <li><a href="@condition.copy(sort="updated",  direction="desc").toURL(repository)">Recently updated</a></li>
+          <li><a href="@condition.copy(sort="updated",  direction="asc" ).toURL(repository)">Least recently updated</a></li>
         </ul>
       </div>
       <table class="table table-bordered table-hover">
