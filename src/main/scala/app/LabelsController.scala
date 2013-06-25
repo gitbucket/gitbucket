@@ -36,10 +36,8 @@ trait LabelsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl) match {
-      case None    => NotFound()
-      case Some(r) => issues.html.labeleditlist(getLabels(owner, repository), r)
-    }
+    getRepository(owner, repository, baseUrl)
+      .map(issues.html.labeleditlist(getLabels(owner, repository), _)) getOrElse NotFound()
   })
 
   get("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
@@ -47,13 +45,9 @@ trait LabelsControllerBase extends ControllerBase {
     val repository = params("repository")
     val labelId    = params("labelId").toInt
 
-    getRepository(owner, repository, baseUrl) match {
-      case None    => NotFound()
-      case Some(r) => getLabel(owner, repository, labelId) match {
-        case None    => NotFound()
-        case Some(l) => issues.html.labeledit(Some(l), r)
-      }
-    }
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      getLabel(owner, repository, labelId).map(label => issues.html.labeledit(Some(label), repositoryInfo)) getOrElse NotFound()
+    } getOrElse NotFound()
   })
 
   post("/:owner/:repository/issues/label/:labelId/edit", editForm)(writableRepository { form =>
@@ -61,13 +55,10 @@ trait LabelsControllerBase extends ControllerBase {
     val repository = params("repository")
     val labelId    = params("labelId").toInt
 
-    getRepository(owner, repository, baseUrl) match {
-      case None    => NotFound()
-      case Some(r) => {
-        updateLabel(owner, repository, labelId, form.labelName, form.color.substring(1))
-        issues.html.labeleditlist(getLabels(owner, repository), r)
-      }
-    }
+    getRepository(owner, repository, baseUrl).map{ repositoryInfo =>
+      updateLabel(owner, repository, labelId, form.labelName, form.color.substring(1))
+      issues.html.labeleditlist(getLabels(owner, repository), repositoryInfo)
+    } getOrElse NotFound()
   })
 
   get("/:owner/:repository/issues/label/:labelId/delete")(writableRepository {
@@ -75,13 +66,10 @@ trait LabelsControllerBase extends ControllerBase {
     val repository = params("repository")
     val labelId    = params("labelId").toInt
 
-    getRepository(owner, repository, baseUrl) match {
-      case None    => NotFound()
-      case Some(r) => {
-        deleteLabel(owner, repository, labelId)
-        issues.html.labeleditlist(getLabels(owner, repository), r)
-      }
-    }
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      deleteLabel(owner, repository, labelId)
+      issues.html.labeleditlist(getLabels(owner, repository), repositoryInfo)
+    } getOrElse NotFound()
   })
 
 }

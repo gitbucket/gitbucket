@@ -74,15 +74,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val repository = params("repository")
     val branchName = params("branch")
     val page       = params.getOrElse("page", "1").toInt
-    
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30)
-    
-      repo.html.commits(Nil, branchName, getRepository(owner, repository, baseUrl).get,
-        logs.splitWith{ (commit1, commit2) =>
+
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+        val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30)
+
+        repo.html.commits(Nil, branchName, repositoryInfo, logs.splitWith{ (commit1, commit2) =>
           view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
         }, page, hasNext)
-    }
+      }
+    } getOrElse NotFound()
   })
   
   /**
@@ -114,50 +115,51 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val id         = params("id") // branch name or commit id
     val raw        = params.get("raw").getOrElse("false").toBoolean
     val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
-    val repositoryInfo = getRepository(owner, repository, baseUrl).get
 
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      
-      @scala.annotation.tailrec
-      def getPathObjectId(path: String, walk: TreeWalk): ObjectId = walk.next match {
-        case true if(walk.getPathString == path) => walk.getObjectId(0)
-        case true => getPathObjectId(path, walk)
-      }
-      
-      val treeWalk = new TreeWalk(git.getRepository)
-      val objectId = try {
-        treeWalk.addTree(revCommit.getTree)
-        treeWalk.setRecursive(true)
-        getPathObjectId(path, treeWalk)
-      } finally {
-        treeWalk.release
-      }
-      
-      if(raw){
-        // Download
-        contentType = "application/octet-stream"
-        JGitUtil.getContent(git, objectId, false).get
-      } else {
-        // Viewer
-        val large  = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-        val viewer = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "other"
-        val bytes  = if(viewer == "other") JGitUtil.getContent(git, objectId, false) else None
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
-        val content = if(viewer == "other"){
-          if(bytes.isDefined && FileTypeUtil.isText(bytes.get)){
-            // text
-            JGitUtil.ContentInfo("text", bytes.map(new String(_, "UTF-8")))
-          } else {
-            // binary
-            JGitUtil.ContentInfo("binary", None)
-          }
-        } else {
-          // image or large
-          JGitUtil.ContentInfo(viewer, None)
+        @scala.annotation.tailrec
+        def getPathObjectId(path: String, walk: TreeWalk): ObjectId = walk.next match {
+          case true if(walk.getPathString == path) => walk.getObjectId(0)
+          case true => getPathObjectId(path, walk)
         }
-        
-        repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
+
+        val treeWalk = new TreeWalk(git.getRepository)
+        val objectId = try {
+          treeWalk.addTree(revCommit.getTree)
+          treeWalk.setRecursive(true)
+          getPathObjectId(path, treeWalk)
+        } finally {
+          treeWalk.release
+        }
+
+        if(raw){
+          // Download
+          contentType = "application/octet-stream"
+          JGitUtil.getContent(git, objectId, false).get
+        } else {
+          // Viewer
+          val large  = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+          val viewer = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "other"
+          val bytes  = if(viewer == "other") JGitUtil.getContent(git, objectId, false) else None
+
+          val content = if(viewer == "other"){
+            if(bytes.isDefined && FileTypeUtil.isText(bytes.get)){
+              // text
+              JGitUtil.ContentInfo("text", bytes.map(new String(_, "UTF-8")))
+            } else {
+              // binary
+              JGitUtil.ContentInfo("binary", None)
+            }
+          } else {
+            // image or large
+            JGitUtil.ContentInfo(viewer, None)
+          }
+
+          repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
+        }
       }
     }
   })
@@ -169,14 +171,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val id         = params("id")
-    
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      
-      repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
-        JGitUtil.getBranchesOfCommit(git, revCommit.getName),
-        JGitUtil.getTagsOfCommit(git, revCommit.getName),
-        getRepository(owner, repository, baseUrl).get, JGitUtil.getDiffs(git, id))
+
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+
+        repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
+          JGitUtil.getBranchesOfCommit(git, revCommit.getName), JGitUtil.getTagsOfCommit(git, revCommit.getName),
+          repositoryInfo, JGitUtil.getDiffs(git, id))
+      }
     }
   })
   
@@ -241,41 +244,38 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * @return HTML of the file list
    */
   private def fileList(owner: String, repository: String, revstr: String = "", path: String = ".") = {
-    getRepository(owner, repository, baseUrl) match {
-      case None => NotFound()
-      case Some(repositoryInfo) => {
-        val revision = if(revstr.isEmpty){
-          repositoryInfo.repository.defaultBranch
-        } else {
-          revstr
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      val revision = if(revstr.isEmpty){
+        repositoryInfo.repository.defaultBranch
+      } else {
+        revstr
+      }
+
+      JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      // get latest commit
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+
+        val files = JGitUtil.getFileList(git, revision, path)
+
+        // process README.md
+        val readme = files.find(_.name == "README.md").map { file =>
+          new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
         }
 
-        JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-        // get latest commit
-          val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
-
-          val files = JGitUtil.getFileList(git, revision, path)
-
-          // process README.md
-          val readme = files.find(_.name == "README.md").map { file =>
-            new String(JGitUtil.getContent(Git.open(getRepositoryDir(owner, repository)), file.id, true).get, "UTF-8")
-          }
-
-          repo.html.files(
-            // current branch
-            revision,
-            // repository
-            repositoryInfo,
-            // current path
-            if(path == ".") Nil else path.split("/").toList,
-            // latest commit
-            new JGitUtil.CommitInfo(revCommit),
-            // file list
-            files,
-            // readme
-            readme
-          )
-        }
+        repo.html.files(
+          // current branch
+          revision,
+          // repository
+          repositoryInfo,
+          // current path
+          if(path == ".") Nil else path.split("/").toList,
+          // latest commit
+          new JGitUtil.CommitInfo(revCommit),
+          // file list
+          files,
+          // readme
+          readme
+        )
       }
     }
   }
