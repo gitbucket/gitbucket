@@ -91,6 +91,8 @@ trait IssuesControllerBase extends ControllerBase {
       issues.html.issues(searchIssue(owner, repository, condition, filter, userName),
         getLabels(owner, repository),
         getMilestones(owner, repository).filter(_.closedDate.isEmpty),
+        countIssue(owner, repository, condition.copy(state = "open"), filter, userName),
+        countIssue(owner, repository, condition.copy(state = "closed"), filter, userName),
         condition, filter, repositoryInfo, isWritable(owner, repository, context.loginAccount))
 
     } getOrElse NotFound

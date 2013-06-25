@@ -1,4 +1,5 @@
 @(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone],
+  openCount: Int, closedCount: Int,
   condition: service.IssuesService.IssueSearchCondition, filter: String,
   repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
@@ -91,8 +92,8 @@
         </ul>
       </div>
       <div class="btn-group">
-        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">1 Open</a>
-        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">1 Closed</a>
+        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
+        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
       </div>
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">

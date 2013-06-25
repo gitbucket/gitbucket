@@ -28,16 +28,31 @@ trait IssuesService {
       (t.issueId is issueId.bind)
     } list
 
+  /**
+   * Returns the count of the search result against  issues.
+   *
+   * @param owner the repository owner
+   * @param repository the repository name
+   * @param condition the search condition
+   * @param filter the filter type ("all", "assigned" or "created_by")
+   * @param userName the filter user name required for "assigned" and "created_by"
+   * @return the count of the search result
+   */
+  def countIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]): Int =
+    searchIssueQuery(owner, repository, condition, filter, userName) map (_.length) first
+
+  /**
+   * Returns the search result against  issues.
+   *
+   * @param owner the repository owner
+   * @param repository the repository name
+   * @param condition the search condition
+   * @param filter the filter type ("all", "assigned" or "created_by")
+   * @param userName the filter user name required for "assigned" and "created_by"
+   * @return the count of the search result
+   */
   def searchIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
-    Query(Issues) filter { t =>
-      (t.userName         is owner.bind) &&
-      (t.repositoryName   is repository.bind) &&
-      (t.closed           is (condition.state == "closed").bind) &&
-      (t.milestoneId     is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
-      //if(condition.labels.nonEmpty) Some(Query(Issue)) else None,
-      (t.assignedUserName is userName.get.bind, filter == "assigned") &&
-      (t.openedUserName   is userName.get.bind, filter == "created_by")
-    } sortBy { t =>
+    searchIssueQuery(owner, repository, condition, filter, userName).sortBy { t =>
       (condition.sort match {
         case "created"  => t.registeredDate
         case "comments" => t.updatedDate
@@ -49,6 +64,20 @@ trait IssuesService {
         }
       }
     } list
+
+  /**
+   * Assembles query for conditional issue searching.
+   */
+  private def searchIssueQuery(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
+    Query(Issues) filter { t =>
+      (t.userName         is owner.bind) &&
+        (t.repositoryName   is repository.bind) &&
+        (t.closed           is (condition.state == "closed").bind) &&
+        (t.milestoneId      is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
+        //if(condition.labels.nonEmpty) Some(Query(Issue)) else None,
+        (t.assignedUserName is userName.get.bind, filter == "assigned") &&
+        (t.openedUserName   is userName.get.bind, filter == "created_by")
+    }
 
   def saveIssue(owner: String, repository: String, loginUser: String,
       title: String, content: Option[String]) =
