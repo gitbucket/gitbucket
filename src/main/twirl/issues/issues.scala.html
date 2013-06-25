@@ -1,4 +1,6 @@
-@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], condition: service.IssuesService.IssueSearchCondition, filter: String, repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
+@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone],
+  condition: service.IssuesService.IssueSearchCondition, filter: String,
+  repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){

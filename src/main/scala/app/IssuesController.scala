@@ -27,26 +27,15 @@ trait IssuesControllerBase extends ControllerBase {
     )(CommentForm.apply)
 
   get("/:owner/:repository/issues"){
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    searchIssues(owner, repository, "all", None)
+    searchIssues("all")
   }
 
   get("/:owner/:repository/issues/assigned/:userName"){
-    val owner      = params("owner")
-    val repository = params("repository")
-    val userName   = params("userName")
-
-    searchIssues(owner, repository, "assigned", Some(userName))
+    searchIssues("assigned")
   }
 
   get("/:owner/:repository/issues/created_by/:userName"){
-    val owner      = params("owner")
-    val repository = params("repository")
-    val userName   = params("userName")
-
-    searchIssues(owner, repository, "created_by", Some(userName))
+    searchIssues("created_by")
   }
 
   get("/:owner/:repository/issues/:id"){
@@ -85,7 +74,10 @@ trait IssuesControllerBase extends ControllerBase {
         saveComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
   })
 
-  private def searchIssues(owner: String, repository: String, filter: String, userName: Option[String]) = {
+  private def searchIssues(filter: String) = {
+    val owner      = params("owner")
+    val repository = params("repository")
+    val userName   = if(filter != "all") Some(params("userName")) else None
     val sessionKey = "%s/%s/issues".format(owner, repository)
 
     // retrieve search condition
@@ -96,7 +88,7 @@ trait IssuesControllerBase extends ControllerBase {
     session.put(sessionKey, condition)
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      issues.html.issues(searchIssue(owner, repository, condition.state == "closed"),
+      issues.html.issues(searchIssue(owner, repository, condition, filter, userName),
         getLabels(owner, repository),
         getMilestones(owner, repository).filter(_.closedDate.isEmpty),
         condition, filter, repositoryInfo, isWritable(owner, repository, context.loginAccount))

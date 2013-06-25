@@ -7,8 +7,11 @@ import Q.interpolation
 
 import model._
 import Issues._
+import util.Implicits._
 
 trait IssuesService {
+  import IssuesService._
+
   def getIssue(owner: String, repository: String, issueId: String) =
     if (issueId forall (_.isDigit))
       Query(Issues) filter { t =>
@@ -25,13 +28,26 @@ trait IssuesService {
       (t.issueId is issueId.bind)
     } list
 
-  def searchIssue(owner: String, repository: String,
-      // TODO It is better to have a DTO
-      closed: Boolean) =
+  def searchIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
     Query(Issues) filter { t =>
-      (t.userName is owner.bind) &&
-      (t.repositoryName is repository.bind) &&
-      (t.closed is closed.bind)
+      (t.userName         is owner.bind) &&
+      (t.repositoryName   is repository.bind) &&
+      (t.closed           is (condition.state == "closed").bind) &&
+      (t.milestoneId     is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
+      //if(condition.labels.nonEmpty) Some(Query(Issue)) else None,
+      (t.assignedUserName is userName.get.bind, filter == "assigned") &&
+      (t.openedUserName   is userName.get.bind, filter == "created_by")
+    } sortBy { t =>
+      (condition.sort match {
+        case "created"  => t.registeredDate
+        case "comments" => t.updatedDate
+        case "updated"  => t.updatedDate
+      }) match {
+        case sort => condition.direction match {
+          case "asc"  => sort asc
+          case "desc" => sort desc
+        }
+      }
     } list
 
   def saveIssue(owner: String, repository: String, loginUser: String,

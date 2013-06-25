@@ -1,6 +1,7 @@
 package util
 
 import twirl.api.Html
+import scala.slick.driver.H2Driver.simple._
 
 /**
  * Provides some usable implicit conversions.
@@ -27,6 +28,10 @@ object Implicits {
   implicit def extendsHtmlSeq(seq: Seq[Html]) = new {
     def mkHtml(separator: String) = Html(seq.mkString(separator))
     def mkHtml(separator: scala.xml.Elem) = Html(seq.mkString(separator.toString))
+  }
+
+  implicit def extendsColumn(c1: Column[Boolean]) = new {
+    def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
   }
 
 }
