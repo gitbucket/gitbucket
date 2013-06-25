@@ -62,12 +62,12 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound
   }
 
-  // TODO requires users only and redable repository checking
+  // TODO requires users only and readable repository checking
   get("/:owner/:repository/issues/new")( usersOnly {
     issues.html.issueedit(getRepository(params("owner"), params("repository"), baseUrl).get)
   })
 
-  // TODO requires users only and redable repository checking
+  // TODO requires users only and readable repository checking
   post("/:owner/:repository/issues", form)( usersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
@@ -76,7 +76,7 @@ trait IssuesControllerBase extends ControllerBase {
         saveIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
   })
 
-  // TODO requires users only and redable repository checking
+  // TODO requires users only and readable repository checking
   post("/:owner/:repository/issue_comments", commentForm)( usersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
