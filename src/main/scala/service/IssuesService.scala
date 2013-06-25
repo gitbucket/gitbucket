@@ -60,16 +60,14 @@ trait IssuesService {
 
   def saveComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String) =
-    Query(IssueComments) filter {
-      _.commentId is ( IssueComments.autoInc insert (
-          owner,
-          repository,
-          issueId,
-          loginUser,
-          content,
-          currentDate,
-          currentDate) ).bind
-    } firstOption
+    IssueComments.autoInc insert (
+        owner,
+        repository,
+        issueId,
+        loginUser,
+        content,
+        currentDate,
+        currentDate)
 
 }
 
