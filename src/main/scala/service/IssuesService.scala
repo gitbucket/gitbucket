@@ -75,7 +75,13 @@ object IssuesService {
   import java.net.URLEncoder
   import javax.servlet.http.HttpServletRequest
 
-  case class IssueSearchCondition(labels: Set[String], milestoneId: Option[Int], state: String, sort: String, direction: String){
+  case class IssueSearchCondition(
+      labels: Set[String]      = Set.empty,
+      milestoneId: Option[Int] = None,
+      state: String            = "open",
+      sort: String             = "created",
+      direction: String        = "desc"){
+
     import IssueSearchCondition._
 
     def toURL(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String = {

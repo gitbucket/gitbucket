@@ -72,6 +72,11 @@
       }
     </div>
     <div class="span9">
+      @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
+        <a href="@(new service.IssuesService.IssueSearchCondition().toURL(repository))" id="clear-filter">
+          <i class="icon-remove-circle"></i> Clear milestone and label filters
+        </a>
+      }
       <div class="pagination pull-right">
         <ul>
           <li class="disabled"><span>&#9664;</span></li>
@@ -161,5 +166,12 @@ span.label-color {
   border-radius: 2px;
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
+}
+
+a#clear-filter {
+  display: block;
+  color: #444;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 </style>

@@ -29,24 +29,22 @@ trait IssuesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues"){
     val owner      = params("owner")
     val repository = params("repository")
-    val condition  = IssueSearchCondition(request)
+    val sessionKey = "%s/%s/issues".format(owner, repository)
 
-    println(condition)
+    // retreive search condition
+    val condition = if(request.getQueryString == null){
+      session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+    } else IssueSearchCondition(request)
 
-    getRepository(owner, repository, baseUrl) match {
-      case None => NotFound()
-      case Some(repositoryInfo) => {
-        // search condition
-        val closed = params.get("state") collect {
-          case "closed" => true
-        } getOrElse false
+    session.put(sessionKey, condition)
 
-        issues.html.issues(searchIssue(owner, repository, closed),
-          getLabels(owner, repository),
-          getMilestones(owner, repository).filter(_.closedDate.isEmpty),
-          condition, repositoryInfo, isWritable(owner, repository, context.loginAccount))
-      }
-    }
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      issues.html.issues(searchIssue(owner, repository, condition.state == "closed"),
+        getLabels(owner, repository),
+        getMilestones(owner, repository).filter(_.closedDate.isEmpty),
+        condition, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+
+    } getOrElse NotFound
   }
 
   get("/:owner/:repository/issues/:id"){
