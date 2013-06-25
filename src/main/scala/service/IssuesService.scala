@@ -18,6 +18,13 @@ trait IssuesService {
       } firstOption
     else None
 
+  def getComment(owner: String, repository: String, issueId: Int) =
+    Query(IssueComments) filter { t =>
+      (t.userName is owner.bind) &&
+      (t.repositoryName is repository.bind) &&
+      (t.issueId is issueId.bind)
+    } list
+
   def searchIssue(owner: String, repository: String,
       // TODO It is better to have a DTO
       closed: Boolean) =

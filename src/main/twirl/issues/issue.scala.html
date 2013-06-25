@@ -1,4 +1,4 @@
-@(issue: model.Issue, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issue: model.Issue, comments: List[model.IssueComment], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
@@ -19,7 +19,19 @@
           @markdown(issue.content getOrElse "No description given.", repository, false, true, true)
         </div>
       </div>
-      <span id="comment-area"></span>
+      <span id="comment-area">
+      @comments.map { comment =>
+        <div class="box">
+          <div class="box-header-small">
+            <a href="@path/@comment.commentedUserName">@comment.commentedUserName</a> commented
+            <span class="pull-right">@datetime(comment.registeredDate)</span>
+          </div>
+          <div class="box-content" style="background-color: #f5f5f5;">
+            @markdown(comment.content, repository, false, true, true)
+          </div>
+        </div>
+      }
+      </span>
       <div class="box">
         <div class="box-content">
           @html.preview(repository, "", false, true, true, "width: 730px; height: 100px;")
@@ -33,7 +45,7 @@
       } else {
         <a class="btn btn-large btn-success disabled">Open</a>
       }
-      <div class="small">3 comments</div>
+      <div class="small">@comments.size comments</div>
       <hr/>
       <strong>Labels</strong>
     </div>

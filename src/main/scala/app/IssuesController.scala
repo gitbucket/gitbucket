@@ -46,7 +46,10 @@ trait IssuesControllerBase extends ControllerBase {
     val issueId = params("id")
 
     getIssue(owner, repository, issueId) map {
-      issues.html.issue(_, getRepository(owner, repository, baseUrl).get)
+      issues.html.issue(
+          _,
+          getComment(owner, repository, issueId.toInt),
+          getRepository(owner, repository, baseUrl).get)
     } getOrElse NotFound
   }
 
