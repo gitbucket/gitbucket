@@ -1,4 +1,4 @@
-@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], condition: service.IssuesService.IssueSearchCondition, repository: service.RepositoryService.RepositoryInfo, isWrite: Boolean)(implicit context: app.Context)
+@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], condition: service.IssuesService.IssueSearchCondition, repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
@@ -63,7 +63,7 @@
           </ul>
         </div>
       </div>
-      @if(isWrite){
+      @if(isWritable){
         <hr/>
         <input type="button" class="btn btn-block" id="manageLabel" data-toggle="button" value="Manage Labels"/>
         <br/>
@@ -79,13 +79,13 @@
           <li><a href="#">2</a></li>
           <li><a href="#">3</a></li>
           <li><span>&hellip;</span></li>
-          <li><a href="#">7</a></li>
+            <li><a href="#">7</a></li>
           <li><a href="#">&#9654;</a></li>
         </ul>
       </div>
       <div class="btn-group">
-        <a class="btn@if(condition.state == Some("open")){ active}" href="@condition.copy(state = Some("open")).toURL(repository)">1 Open</a>
-        <a class="btn@if(condition.state == Some("closed")){ active}" href="@condition.copy(state = Some("closed")).toURL(repository)">1 Closed</a>
+        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL(repository)">1 Open</a>
+        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL(repository)">1 Closed</a>
       </div>
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
@@ -115,7 +115,7 @@
     </div>
   </div>
 }
-@if(isWrite){
+@if(isWritable){
 <script>
 $(function(){
   $('#manageLabel').click(function(){
