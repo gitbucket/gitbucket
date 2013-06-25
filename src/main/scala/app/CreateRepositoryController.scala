@@ -10,13 +10,13 @@ import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
-  with RepositoryService with AccountService with WikiService with UsersOnlyAuthenticator
+  with RepositoryService with AccountService with WikiService with LabelsService with UsersOnlyAuthenticator
 
 /**
  * Creates new repository.
  */
 trait CreateRepositoryControllerBase extends ControllerBase {
-  self: RepositoryService with WikiService with UsersOnlyAuthenticator =>
+  self: RepositoryService with WikiService with LabelsService with UsersOnlyAuthenticator =>
 
   case class RepositoryCreationForm(name: String, description: Option[String])
 
@@ -40,6 +40,14 @@ trait CreateRepositoryControllerBase extends ControllerBase {
 
     // Insert to the database at first
     createRepository(form.name, loginUserName, form.description)
+
+    // Insert default labels
+    createLabel(loginUserName, form.name, "bug", "fc2929")
+    createLabel(loginUserName, form.name, "duplicate", "cccccc")
+    createLabel(loginUserName, form.name, "enhancement", "84b6eb")
+    createLabel(loginUserName, form.name, "invalid", "e6e6e6")
+    createLabel(loginUserName, form.name, "question", "cc317c")
+    createLabel(loginUserName, form.name, "wontfix", "ffffff")
 
     // Create the actual repository
     val gitdir = getRepositoryDir(loginUserName, form.name)
