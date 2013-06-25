@@ -3,6 +3,7 @@ package app
 import jp.sf.amateras.scalatra.forms._
 
 import service._
+import IssuesService._
 import util.UsersOnlyAuthenticator
 
 class IssuesController extends IssuesControllerBase
@@ -26,12 +27,15 @@ trait IssuesControllerBase extends ControllerBase {
     )(CommentForm.apply)
 
   get("/:owner/:repository/issues"){
-    val owner = params("owner")
+    val owner      = params("owner")
     val repository = params("repository")
+    val condition  = IssueSearchCondition(request)
+
+    println(condition)
 
     getRepository(owner, repository, baseUrl) match {
-      case None    => NotFound()
-      case Some(r) => {
+      case None => NotFound()
+      case Some(repositoryInfo) => {
         // search condition
         val closed = params.get("state") collect {
           case "closed" => true
@@ -40,7 +44,7 @@ trait IssuesControllerBase extends ControllerBase {
         issues.html.issues(searchIssue(owner, repository, closed),
           getLabels(owner, repository),
           getMilestones(owner, repository).filter(_.closedDate.isEmpty),
-          r, isWritable(owner, repository, context.loginAccount))
+          condition, repositoryInfo, isWritable(owner, repository, context.loginAccount))
       }
     }
   }

@@ -17,4 +17,18 @@ case class Label(
   repositoryName: String,
   labelId: Int,
   labelName: String,
-  color: String)
+  color: String){
+
+  val fontColor = {
+    val r = color.substring(0, 2)
+    val g = color.substring(2, 4)
+    val b = color.substring(4, 6)
+
+    if(Integer.parseInt(r, 16) + Integer.parseInt(g, 16) + Integer.parseInt(b, 16) > 408){
+      "000000"
+    } else {
+      "FFFFFF"
+    }
+  }
+
+}
