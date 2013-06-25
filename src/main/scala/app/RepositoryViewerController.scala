@@ -83,7 +83,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
         }, page, hasNext)
       }
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
   
   /**
@@ -95,15 +95,17 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val branchName = params("branch")
     val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
     val page       = params.getOrElse("page", "1").toInt
-    
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30, path)
-    
-      repo.html.commits(path.split("/").toList, branchName, getRepository(owner, repository, baseUrl).get,
-        logs.splitWith{ (commit1, commit2) =>
-          view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-        }, page, hasNext)
-    }
+
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+        val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30, path)
+
+        repo.html.commits(path.split("/").toList, branchName, repositoryInfo,
+          logs.splitWith{ (commit1, commit2) =>
+            view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+          }, page, hasNext)
+      }
+    } getOrElse NotFound
   })
 
   /**
@@ -161,7 +163,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.blob(id, repositoryInfo, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
         }
       }
-    }
+    } getOrElse NotFound
   })
   
   /**
@@ -180,7 +182,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           JGitUtil.getBranchesOfCommit(git, revCommit.getName), JGitUtil.getTagsOfCommit(git, revCommit.getName),
           repositoryInfo, JGitUtil.getDiffs(git, id))
       }
-    }
+    } getOrElse NotFound
   })
   
   /**
@@ -189,8 +191,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/tags")(readableRepository {
     val owner      = params("owner")
     val repository = params("repository")
-    
-    repo.html.tags(getRepository(owner, repository, baseUrl).get)
+
+    getRepository(owner, repository, baseUrl).map(repo.html.tags(_)) getOrElse NotFound
   })
   
   /**
@@ -277,7 +279,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           readme
         )
       }
-    }
+    } getOrElse NotFound
   }
   
 }

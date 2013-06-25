@@ -32,14 +32,14 @@ trait MilestonesControllerBase extends ControllerBase {
         getMilestoneIssueCounts(owner, repository),
         repositoryInfo,
         isWritable(owner, repository, context.loginAccount))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/new")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl).map(issues.html.milestoneedit(None, _)) getOrElse NotFound()
+    getRepository(owner, repository, baseUrl).map(issues.html.milestoneedit(None, _)) getOrElse NotFound
   })
 
   post("/:owner/:repository/issues/milestones/new", milestoneForm)(writableRepository { form =>
@@ -56,7 +56,7 @@ trait MilestonesControllerBase extends ControllerBase {
     val milestoneId = params("milestoneId").toInt
 
     getRepository(owner, repository, baseUrl).map(
-      issues.html.milestoneedit(getMilestone(owner, repository, milestoneId), _)) getOrElse NotFound()
+      issues.html.milestoneedit(getMilestone(owner, repository, milestoneId), _)) getOrElse NotFound
   })
 
   post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(writableRepository { form =>
@@ -67,7 +67,7 @@ trait MilestonesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId).map { milestone =>
       updateMilestone(milestone.copy(title = form.title, description = form.description, dueDate = form.dueDate))
       redirect("/%s/%s/issues/milestones".format(owner, repository))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/close")(writableRepository {
@@ -78,7 +78,7 @@ trait MilestonesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId).map { milestone =>
       closeMilestone(milestone)
       redirect("/%s/%s/issues/milestones".format(owner, repository))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/open")(writableRepository {
@@ -89,7 +89,7 @@ trait MilestonesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId).map { milestone =>
       openMilestone(milestone)
       redirect("/%s/%s/issues/milestones".format(owner, repository))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/delete")(writableRepository {
@@ -100,7 +100,7 @@ trait MilestonesControllerBase extends ControllerBase {
     getMilestone(owner, repository, milestoneId).map { _ =>
       deleteMilestone(owner, repository, milestoneId)
       redirect("/%s/%s/issues/milestones".format(owner, repository))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
 
 }

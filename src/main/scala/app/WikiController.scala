@@ -35,7 +35,7 @@ trait WikiControllerBase extends ControllerBase {
       getWikiPage(owner, repository, "Home").map { page =>
         wiki.html.wiki("Home", page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
       } getOrElse redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
   
   get("/:owner/:repository/wiki/:page")(readableRepository {
@@ -47,7 +47,7 @@ trait WikiControllerBase extends ControllerBase {
       getWikiPage(owner, repository, pageName).map { page =>
         wiki.html.wiki(pageName, page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
       } getOrElse redirect("/%s/%s/wiki/%s/_edit".format(owner, repository, pageName)) // TODO URLEncode
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
   
   get("/:owner/:repository/wiki/:page/_history")(readableRepository {
@@ -59,7 +59,7 @@ trait WikiControllerBase extends ControllerBase {
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
         wiki.html.wikihistory(Some(page), JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, repositoryInfo)
       }
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
   
   get("/:owner/:repository/wiki/:page/_compare/:commitId")(readableRepository {
@@ -72,7 +72,7 @@ trait WikiControllerBase extends ControllerBase {
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
         wiki.html.wikicompare(Some(page), getWikiDiffs(git, commitId(0), commitId(1)), repositoryInfo)
       }
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
   
   get("/:owner/:repository/wiki/_compare/:commitId")(readableRepository {
@@ -84,7 +84,7 @@ trait WikiControllerBase extends ControllerBase {
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
         wiki.html.wikicompare(None, getWikiDiffs(git, commitId(0), commitId(1)), repositoryInfo)
       }
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
   
   get("/:owner/:repository/wiki/:page/_edit")(writableRepository {
@@ -93,7 +93,7 @@ trait WikiControllerBase extends ControllerBase {
     val page       = params("page")
 
     getRepository(owner, repository, baseUrl).map(
-      wiki.html.wikiedit(page, getWikiPage(owner, repository, page), _)) getOrElse NotFound()
+      wiki.html.wikiedit(page, getWikiPage(owner, repository, page), _)) getOrElse NotFound
   })
   
   post("/:owner/:repository/wiki/_edit", editForm)(writableRepository { form =>
@@ -111,7 +111,7 @@ trait WikiControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl).map(wiki.html.wikiedit("", None, _)) getOrElse NotFound()
+    getRepository(owner, repository, baseUrl).map(wiki.html.wikiedit("", None, _)) getOrElse NotFound
   })
   
   post("/:owner/:repository/wiki/_new", newForm)(writableRepository { form =>
@@ -141,7 +141,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map {
       wiki.html.wikipages(getWikiPageList(owner, repository), _, isWritable(owner, repository, context.loginAccount))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
   
   get("/:owner/:repository/wiki/_history")(readableRepository {
@@ -152,7 +152,7 @@ trait WikiControllerBase extends ControllerBase {
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
         wiki.html.wikihistory(None, JGitUtil.getCommitLog(git, "master")._1, repositoryInfo)
       }
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
 
   get("/:owner/:repository/wiki/_blob/*")(readableRepository {
@@ -163,7 +163,7 @@ trait WikiControllerBase extends ControllerBase {
     getFileContent(owner, repository, path).map { content =>
         contentType = "application/octet-stream"
         content
-    } getOrElse NotFound()
+    } getOrElse NotFound
   })
 
   private def unique: Constraint = new Constraint(){

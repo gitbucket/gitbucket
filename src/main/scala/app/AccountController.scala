@@ -24,12 +24,12 @@ trait AccountControllerBase extends ControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName).map {
       account.html.userinfo(_, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
-    } getOrElse NotFound()
+    } getOrElse NotFound
   }
 
   get("/:userName/_edit")(ownerOnly {
     val userName = params("userName")
-    getAccountByUserName(userName).map(account.html.useredit(_)) getOrElse NotFound()
+    getAccountByUserName(userName).map(account.html.useredit(_)) getOrElse NotFound
   })
 
   post("/:userName/_edit", form)(ownerOnly { form =>

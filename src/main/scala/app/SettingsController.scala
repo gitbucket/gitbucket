@@ -43,7 +43,7 @@ trait SettingsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl).map(settings.html.options(_)) getOrElse NotFound()
+    getRepository(owner, repository, baseUrl).map(settings.html.options(_)) getOrElse NotFound
   })
   
   /**
@@ -67,7 +67,7 @@ trait SettingsControllerBase extends ControllerBase {
     val repository = params("repository")
 
     getRepository(owner, repository, baseUrl).map(
-      settings.html.collaborators(getCollaborators(owner, repository), _)) getOrElse NotFound()
+      settings.html.collaborators(getCollaborators(owner, repository), _)) getOrElse NotFound
   })
 
   /**
@@ -100,7 +100,7 @@ trait SettingsControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl).map(settings.html.delete(_)) getOrElse NotFound()
+    getRepository(owner, repository, baseUrl).map(settings.html.delete(_)) getOrElse NotFound
   })
 
   /**
