@@ -33,7 +33,7 @@
             <td>
               <div class="milestone row-fluid">
                 <div class="span4">
-                  <a href="#" class="milestone-title">@milestone.title</a><br>
+                  <a href="@path/@repository.owner/@repository.name/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a><br>
                   @if(milestone.closedDate.isDefined){
                     <span class="description">Closed @helpers.datetime(milestone.closedDate.get)</span>
                   } else {
@@ -57,7 +57,7 @@
                           }
                           <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                         }
-                        <a href="">Browse issues</a>
+                        <a href="@path/@repository.owner/@repository.name/issues?milestone=@milestone.milestoneId&state=open">Browse issues</a>
                       </div>
                       <span class="description">@closedCount closed - @openCount open</span>
                     </div>
