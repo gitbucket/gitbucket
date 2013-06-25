@@ -29,22 +29,24 @@ trait IssuesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues"){
     val owner      = params("owner")
     val repository = params("repository")
-    val sessionKey = "%s/%s/issues".format(owner, repository)
 
-    // retreive search condition
-    val condition = if(request.getQueryString == null){
-      session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
-    } else IssueSearchCondition(request)
+    searchIssues(owner, repository, "all", None)
+  }
 
-    session.put(sessionKey, condition)
+  get("/:owner/:repository/issues/assigned/:userName"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val userName   = params("userName")
 
-    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      issues.html.issues(searchIssue(owner, repository, condition.state == "closed"),
-        getLabels(owner, repository),
-        getMilestones(owner, repository).filter(_.closedDate.isEmpty),
-        condition, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+    searchIssues(owner, repository, "assigned", Some(userName))
+  }
 
-    } getOrElse NotFound
+  get("/:owner/:repository/issues/created_by/:userName"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val userName   = params("userName")
+
+    searchIssues(owner, repository, "created_by", Some(userName))
   }
 
   get("/:owner/:repository/issues/:id"){
@@ -82,5 +84,24 @@ trait IssuesControllerBase extends ControllerBase {
     redirect("/%s/%s/issues/%d#comment-%d".format(owner, repository, form.issueId,
         saveComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
   })
+
+  private def searchIssues(owner: String, repository: String, filter: String, userName: Option[String]) = {
+    val sessionKey = "%s/%s/issues".format(owner, repository)
+
+    // retrieve search condition
+    val condition = if(request.getQueryString == null){
+      session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+    } else IssueSearchCondition(request)
+
+    session.put(sessionKey, condition)
+
+    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
+      issues.html.issues(searchIssue(owner, repository, condition.state == "closed"),
+        getLabels(owner, repository),
+        getMilestones(owner, repository).filter(_.closedDate.isEmpty),
+        condition, filter, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+
+    } getOrElse NotFound
+  }
 
 }

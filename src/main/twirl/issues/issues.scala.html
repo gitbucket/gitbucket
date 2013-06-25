@@ -1,4 +1,4 @@
-@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], condition: service.IssuesService.IssueSearchCondition, repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
+@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], condition: service.IssuesService.IssueSearchCondition, filter: String, repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
@@ -7,21 +7,21 @@
   <div class="row-fluid">
     <div class="span3">
       <ul class="nav nav-pills nav-stacked">
-        <li class="active">
-          <a href="#">
+        <li@if(filter == "all"){ class="active"}>
+          <a href="@path/@repository.owner/@repository.name/issues@condition.toURL">
             <span class="count-right">0</span>
             Everyone's Issues
           </a>
         </li>
         @if(loginAccount.isDefined){
-        <li>
-          <a href="#">
+        <li@if(filter == "assigned"){ class="active"}>
+          <a href="@path/@repository.owner/@repository.name/issues/assigned/@loginAccount.map(_.userName)@condition.toURL">
             <span class="count-right">0</span>
             Assigned to you
           </a>
         </li>
-        <li>
-          <a href="#">
+        <li@if(filter == "created_by"){ class="active"}>
+          <a href="@path/@repository.owner/@repository.name/issues/created_by/@loginAccount.map(_.userName)@condition.toURL">
             <span class="count-right">0</span>
             Created by you
           </a>
@@ -41,7 +41,7 @@
         </button>
         <ul class="dropdown-menu">
           @milestones.map { milestone =>
-            <li><a href="@condition.copy(milestoneId = Some(milestone.milestoneId)).toURL(repository)">@milestone.title</a></li>
+            <li><a href="@condition.copy(milestoneId = Some(milestone.milestoneId)).toURL">@milestone.title</a></li>
           }
         </ul>
       </div>
@@ -52,7 +52,7 @@
           <ul class="label-list nav nav-pills nav-stacked">
             @labels.map { label =>
               <li>
-                <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL(repository)"
+                <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL"
                    @if(condition.labels.contains(label.labelName)){style="background-color: #@label.color; color: #@label.fontColor;"}>
                   <span class="count-right">0</span>
                   <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
@@ -73,7 +73,7 @@
     </div>
     <div class="span9">
       @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
-        <a href="@(new service.IssuesService.IssueSearchCondition().toURL(repository))" id="clear-filter">
+        <a href="@condition.copy(labels = Set.empty, milestoneId = None).toURL" id="clear-filter">
           <i class="icon-remove-circle"></i> Clear milestone and label filters
         </a>
       }
@@ -89,8 +89,8 @@
         </ul>
       </div>
       <div class="btn-group">
-        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL(repository)">1 Open</a>
-        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL(repository)">1 Closed</a>
+        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">1 Open</a>
+        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">1 Closed</a>
       </div>
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
@@ -106,12 +106,12 @@
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="@condition.copy(sort="created",  direction="desc").toURL(repository)">Newest</a></li>
-          <li><a href="@condition.copy(sort="created",  direction="asc" ).toURL(repository)">Oldest</a></li>
-          <li><a href="@condition.copy(sort="comments", direction="desc").toURL(repository)">Most commented</a></li>
-          <li><a href="@condition.copy(sort="comments", direction="asc" ).toURL(repository)">Least commented</a></li>
-          <li><a href="@condition.copy(sort="updated",  direction="desc").toURL(repository)">Recently updated</a></li>
-          <li><a href="@condition.copy(sort="updated",  direction="asc" ).toURL(repository)">Least recently updated</a></li>
+          <li><a href="@condition.copy(sort="created",  direction="desc").toURL">Newest</a></li>
+          <li><a href="@condition.copy(sort="created",  direction="asc" ).toURL">Oldest</a></li>
+          <li><a href="@condition.copy(sort="comments", direction="desc").toURL">Most commented</a></li>
+          <li><a href="@condition.copy(sort="comments", direction="asc" ).toURL">Least commented</a></li>
+          <li><a href="@condition.copy(sort="updated",  direction="desc").toURL">Recently updated</a></li>
+          <li><a href="@condition.copy(sort="updated",  direction="asc" ).toURL">Least recently updated</a></li>
         </ul>
       </div>
       <table class="table table-bordered table-hover">

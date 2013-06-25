@@ -84,16 +84,14 @@ object IssuesService {
 
     import IssueSearchCondition._
 
-    def toURL(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String = {
-      val params = List(
+    def toURL: String =
+      "?" + List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(" "))),
         milestoneId.map("milestone=" + _),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
-        Some("direction=" + urlEncode(direction))
-      )
-      "%s/%s/%s/issues?%s".format(context.path, repository.owner, repository.name, params.flatten.mkString("&"))
-    }
+        Some("direction=" + urlEncode(direction))).flatten.mkString("&")
+
   }
 
   object IssueSearchCondition {
