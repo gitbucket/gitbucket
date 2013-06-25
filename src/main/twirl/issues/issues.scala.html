@@ -1,4 +1,4 @@
-@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], repository: service.RepositoryService.RepositoryInfo, isWrite: Boolean)(implicit context: app.Context)
+@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone], condition: service.IssuesService.IssueSearchCondition, repository: service.RepositoryService.RepositoryInfo, isWrite: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
@@ -29,7 +29,11 @@
         }
       </ul>
       <hr/>
-      No milestone selected
+      @if(condition.milestoneId.isEmpty){
+        No milestone selected
+      } else {
+        <span class="description">Milestone:</span> @milestones.find(_.milestoneId == condition.milestoneId.get).map(_.title)
+      }
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
           <i class="icon-cog"></i>
@@ -37,7 +41,7 @@
         </button>
         <ul class="dropdown-menu">
           @milestones.map { milestone =>
-            <li><a href="#">@milestone.title</a></li>
+            <li><a href="@condition.copy(milestoneId = Some(milestone.milestoneId)).toURL(repository)">@milestone.title</a></li>
           }
         </ul>
       </div>
@@ -48,7 +52,8 @@
           <ul class="label-list nav nav-pills nav-stacked">
             @labels.map { label =>
               <li>
-                <a href="#">
+                <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL(repository)"
+                   @if(condition.labels.contains(label.labelName)){style="background-color: #@label.color; color: #@label.fontColor;"}>
                   <span class="count-right">0</span>
                   <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
                   @label.labelName
@@ -79,8 +84,8 @@
         </ul>
       </div>
       <div class="btn-group">
-        <a class="btn active" href="#">1 Open</a>
-        <a class="btn" href="#">1 Closed</a>
+        <a class="btn@if(condition.state == Some("open")){ active}" href="@condition.copy(state = Some("open")).toURL(repository)">1 Open</a>
+        <a class="btn@if(condition.state == Some("closed")){ active}" href="@condition.copy(state = Some("closed")).toURL(repository)">1 Closed</a>
       </div>
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
