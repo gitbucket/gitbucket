@@ -75,14 +75,14 @@ object IssuesService {
   import java.net.URLEncoder
   import javax.servlet.http.HttpServletRequest
 
-  case class IssueSearchCondition(labels: Set[String], milestoneId: Option[Int], state: Option[String], sort: Option[String], direction: Option[String]){
+  case class IssueSearchCondition(labels: Set[String], milestoneId: Option[Int], state: String, sort: Option[String], direction: Option[String]){
     import IssueSearchCondition._
 
     def toURL(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String = {
       val params = List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(" "))),
         milestoneId.map("milestone=" + _),
-        state.map("state=" + urlEncode(_)),
+        Some("state=" + urlEncode(state)),
         sort.map("sort=" + urlEncode(_)),
         direction.map("direction=" + urlEncode(_))
       )
@@ -103,7 +103,7 @@ object IssuesService {
       IssueSearchCondition(
         param(request, "labels").map(_.split(" ").toSet).getOrElse(Set.empty),
         param(request, "milestone").map(_.toInt),
-        param(request, "state"),
+        param(request, "state").getOrElse("open"),
         param(request, "sort"),
         param(request, "direction"))
   }
