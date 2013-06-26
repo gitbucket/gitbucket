@@ -87,6 +87,10 @@ trait IssuesControllerBase extends ControllerBase {
   // TODO Authenticator
   post("/:owner/:repository/issue_comments/:id"){
     // TODO update issue memo
+    contentType = formats("json")
+
+    org.json4s.jackson.Serialization.write(Map(
+        "content" -> view.Markdown.toHtml("* hoge memo", getRepository("root", "test", baseUrl).get, false, true, true)))
   }
 
   // TODO Authenticator

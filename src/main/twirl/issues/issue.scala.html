@@ -12,7 +12,7 @@
     <div class="span10">
       <div class="box">
         <div class="box-content">
-          <span class="pull-right"><a class="btn btn-small" href="#" id="editIssue">Edit</a></span>
+          <span class="pull-right"><a class="btn btn-small" href="#" id="edit">Edit</a></span>
           <div class="small"><a href="@path/@issue.openedUserName">@issue.openedUserName</a> opened this issue @datetime(issue.registeredDate)</div>
           <h4 id="issueTitle">@issue.title</h4>
         </div>
@@ -24,9 +24,12 @@
       <div class="box" id="comment-@comment.commentId">
         <div class="box-header-small">
           <a href="@path/@comment.commentedUserName">@comment.commentedUserName</a> commented
-          <span class="pull-right">@datetime(comment.registeredDate)</span>
+          <span class="pull-right">
+            @datetime(comment.registeredDate)
+            <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
+          </span>
         </div>
-        <div class="box-content" style="background-color: #f5f5f5;">
+        <div class="box-content" style="background-color: #f5f5f5;" id="commentContent-@comment.commentId">
           @markdown(comment.content, repository, false, true, true)
         </div>
       </div>
@@ -55,7 +58,7 @@
 }
 <script>
 $(function(){
-  $('#editIssue').click(function(){
+  $('#edit').click(function(){
     $.get('@path/@repository.owner/@repository.name/issues/_data/@issue.issueId',
     function(data){
       $('#issueContent').empty().html(data);
@@ -63,5 +66,13 @@ $(function(){
     return false;
   });
 
+  $('i.icon-pencil').click(function(){
+    var id = $(this).closest('a').data('comment-id');
+    $.get('@path/@repository.owner/@repository.name/issue_comments/_data/' + id,
+    function(data){
+      $('#commentContent-' + id).empty().html(data);
+    });
+    return false;
+  });
 });
 </script>

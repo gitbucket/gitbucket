@@ -1,29 +1,41 @@
 @(title: Option[String], content: String, key: Int, owner: String, repository: String)(implicit context: app.Context)
 @import context._
-@if(title.isDefined){
-<input type="text" style="width: 730px;" id="title" value="@title.get"/>
+@defining(title.isEmpty){ isComment =>
+@if(!isComment){
+<input type="text" style="width: 730px;" id="edit-title" value="@title.get"/>
 }
-<textarea style="width: 730px; height: 100px;" id="content-@key">@content</textarea>
-<input type="button" class="btn btn-small" value="Update @{if(title.isDefined) "Issue" else "Comment"}" id="update-@key"/>
-<span class="pull-right"><a class="btn btn-small btn-danger" href="#" id="cancel-@key">Cancel</a></span>
+<textarea style="width: 730px; height: 100px;" id="edit-content@if(isComment){"-" + key}">@content</textarea>
+<input type="button" class="btn btn-small" value="Update @{if(isComment) "Comment" else "Issue"}"/>
+<span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
 <script>
 $(function(){
-  $('#update-@key').click(function(){
-    $.post('@path/@owner/@repository/@{if(title.isDefined) "issues" else "issue_comments"}/@key',
-    {
-      @if(title.isDefined){ title : $('#title').val(), }
-      content : $('#content-@key').val()
-    },
-    function(data){
-      @if(title.isDefined){
-        $('#issueTitle').empty().text(data.title);
-      }
-      $('#issueContent').empty().html(data.content);
-    });
+  $('@{if(isComment) "#commentContent-" + key else "#issueContent"} input.btn').click(function(){
+    @if(isComment){
+      var url = '@path/@owner/@repository/issue_comments/@key';
+      var param = {
+          content : $('#edit-content-@key').val()
+      };
+      var func = function(data){
+          $('#commentContent-@key').empty().html(data.content);
+      };
+    }else{
+      var url = '@path/@owner/@repository/issues/@key';
+      var param = {
+          title   : $('#edit-title').val(),
+          content : $('#edit-content-@key').val()
+      };
+      var func = function(data){
+          $('#issueTitle').empty().text(data.title);
+          $('#issueContent').empty().html(data.content);
+      };
+    }
+    $.post(url, param, func);
   });
 
-  $('#cancel-@key').click(function(){
+  $('#cancel').click(function(){
 
   });
 });
 </script>
+
+}
