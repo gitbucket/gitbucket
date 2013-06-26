@@ -94,8 +94,8 @@ trait IssuesControllerBase extends ControllerBase {
         countIssue(owner, repository, condition.copy(state = "open"), filter, userName),
         countIssue(owner, repository, condition.copy(state = "closed"), filter, userName),
         countIssue(owner, repository, condition, "all", None),
-        context.loginAccount.map(x => countIssue(owner, repository, condition, "assigned", userName)),
-        context.loginAccount.map(x => countIssue(owner, repository, condition, "created_by", userName)),
+        context.loginAccount.map(x => countIssue(owner, repository, condition, "assigned", Some(x.userName))),
+        context.loginAccount.map(x => countIssue(owner, repository, condition, "created_by", Some(x.userName))),
         countIssueGroupByLabels(owner, repository, condition, filter, userName),
         condition, filter, repositoryInfo, isWritable(owner, repository, context.loginAccount))
 
