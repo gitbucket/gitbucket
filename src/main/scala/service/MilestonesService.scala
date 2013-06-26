@@ -2,8 +2,6 @@ package service
 
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
-import scala.slick.jdbc.{StaticQuery => Q}
-import Q.interpolation
 
 import model._
 import Milestones._
@@ -16,13 +14,19 @@ trait MilestonesService {
 
   def updateMilestone(milestone: Milestone): Unit =
     Query(Milestones)
-      .filter { m => (m.userName is milestone.userName.bind) && (m.repositoryName is milestone.repositoryName.bind) && (m.milestoneId is milestone.milestoneId.bind)}
-      .map    { m => m.title ~ m.description.? ~ m.dueDate.? ~ m.closedDate.? }
+      .filter { m =>
+        (m.userName       is milestone.userName.bind) &&
+        (m.repositoryName is milestone.repositoryName.bind) &&
+        (m.milestoneId    is milestone.milestoneId.bind)
+      }
+      .map { m =>
+        m.title ~ m.description.? ~ m.dueDate.? ~ m.closedDate.?
+      }
       .update (
-      milestone.title,
-      milestone.description,
-      milestone.dueDate,
-      milestone.closedDate)
+        milestone.title,
+        milestone.description,
+        milestone.dueDate,
+        milestone.closedDate)
 
   def openMilestone(milestone: Milestone): Unit = updateMilestone(milestone.copy(closedDate = None))
 
@@ -30,35 +34,57 @@ trait MilestonesService {
 
   def deleteMilestone(owner: String, repository: String, milestoneId: Int): Unit = {
     Query(Issues)
-      .filter { i => (i.userName is owner.bind) && (i.repositoryName is repository.bind) && (i.milestoneId is milestoneId.bind)}
-      .map    { i => i.milestoneId.? }
+      .filter { t =>
+        (t.userName       is owner.bind) &&
+        (t.repositoryName is repository.bind) &&
+        (t.milestoneId    is milestoneId.bind)
+      }
+      .map(_.milestoneId.?)
       .update(None)
 
     Query(Milestones)
-      .filter { i => (i.userName is owner.bind) && (i.repositoryName is repository.bind) && (i.milestoneId is milestoneId.bind)}
+      .filter { t =>
+        (t.userName       is owner.bind) &&
+        (t.repositoryName is repository.bind) &&
+        (t.milestoneId    is milestoneId.bind)
+      }
       .delete
   }
 
   def getMilestone(owner: String, repository: String, milestoneId: Int): Option[Milestone] =
     Query(Milestones)
-      .filter(m => (m.userName is owner.bind) && (m.repositoryName is repository.bind) && (m.milestoneId is milestoneId.bind))
+      .filter { m =>
+        (m.userName       is owner.bind) &&
+        (m.repositoryName is repository.bind) &&
+        (m.milestoneId    is milestoneId.bind)
+      }
       .sortBy(_.milestoneId desc)
       .firstOption
 
   def getMilestoneIssueCounts(owner: String, repository: String): Map[(Int, Boolean), Int] =
-    sql"""
-      select MILESTONE_ID, CLOSED, COUNT(ISSUE_ID)
-       from ISSUE
-       where USER_NAME = $owner AND REPOSITORY_NAME = $repository AND MILESTONE_ID IS NOT NULL
-       group by USER_NAME, REPOSITORY_NAME, MILESTONE_ID, CLOSED"""
-      .as[(Int, Boolean, Int)]
+    Issues
+      .filter { t =>
+        (t.userName       is owner.bind) &&
+        (t.repositoryName is repository.bind) &&
+        (t.milestoneId    isNotNull)
+      }
+      .groupBy { t =>
+        t.milestoneId ~ t.closed
+      }
+      .map { case (t1, t2) =>
+        t1._1 ~ t1._2 ~ t2.length
+      }
       .list
-      .map { case (milestoneId, closed, count) => (milestoneId, closed) -> count }
+      .map { case (milestoneId, closed, count) =>
+        (milestoneId, closed) -> count
+      }
       .toMap
 
   def getMilestones(owner: String, repository: String): List[Milestone] =
     Query(Milestones)
-      .filter(m => (m.userName is owner.bind) && (m.repositoryName is repository.bind))
+      .filter { t =>
+        (t.userName is owner.bind) && (t.repositoryName is repository.bind)
+      }
       .sortBy(_.milestoneId desc)
       .list
 }
