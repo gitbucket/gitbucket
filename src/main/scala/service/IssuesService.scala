@@ -2,7 +2,7 @@ package service
 
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
-import scala.slick.jdbc.{StaticQuery => Q, GetResult}
+import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 import model._
@@ -54,30 +54,28 @@ trait IssuesService {
   def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
                               filter: String, userName: Option[String]): Map[String, Int] = {
 
-    case class LabelCount(labelName: String, count: Int)
-    implicit val getLabelCount = GetResult(r => LabelCount(r.<<, r.<<))
-
-    Q.query[(String, String, Boolean), LabelCount](
-      """SELECT
-        T3.LABEL_NAME, COUNT(T1.ISSUE_ID)
-      FROM ISSUE T1
-        INNER JOIN ISSUE_LABEL T2 ON T1.ISSUE_ID = T2.ISSUE_ID
-        INNER JOIN LABEL       T3 ON T2.LABEL_ID = T3.LABEL_ID
-      WHERE
-            T1.USER_NAME       = ?
-        AND T1.REPOSITORY_NAME = ?
-        AND T1.CLOSED          = ?
-      """ +
-      condition.milestoneId.map(" AND T1.MILESTONE_ID = " + milestoneId).getOrElse("") +
-      (filter match {
-        case "assigned"   => " AND T1.ASSIGNED_USER_NAME = '%s'".format(userName.get)
-        case "created_by" => " AND T1.OPENED_USER_NAME   = '%s'".format(userName.get)
-        case _ => ""
-      }) +
-      " GROUP BY T3.LABEL_NAME")
-      .list(owner, repository, condition.state == "closed")
-      .map(x => x.labelName -> x.count)
-      .toMap
+    Issues
+      .innerJoin(IssueLabels).on { (t1, t2) =>
+        (t1.userName is t2.userName) && (t1.repositoryName is t2.repositoryName) && (t1.issueId is t2.issueId)
+      }
+      .innerJoin(Labels).on { case ((t1, t2), t3) =>
+        (t2.userName is t3.userName) && (t2.repositoryName is t3.repositoryName) && (t2.labelId is t3.labelId)
+      }
+      .filter { case ((t1, t2), t3) =>
+        (t1.userName         is owner.bind) &&
+        (t1.repositoryName   is repository.bind) &&
+        (t1.closed           is (condition.state == "closed").bind) &&
+        (t1.milestoneId      is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
+        (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
+        (t1.openedUserName   is userName.get.bind, filter == "created_by")
+      }
+      .groupBy { case ((t1, t2), t3) =>
+        t3.labelName
+      }
+      .map { case (labelName, t) =>
+        labelName ~ t.length
+      }
+      .list.toMap
   }
 
   /**
