@@ -48,6 +48,14 @@
           }
         </ul>
       </div>
+      @if(condition.milestoneId.isDefined){
+        <div class="milestone-progress" style="margin-top: 8px;">
+          @if(closedCount > 0){
+            <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
+          }
+        </div>
+        <span class="description small">@openCount open issues</span>
+      }
       <hr/>
       <strong>Labels</strong>
       <div>
