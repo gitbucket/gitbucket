@@ -38,9 +38,10 @@ trait IssuesService {
    * @param userName the filter user name required for "assigned" and "created_by"
    * @return the count of the search result
    */
-  def countIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]): Int =
-    searchIssueQuery(owner, repository, condition, filter, userName) map (_.length) first
-
+  def countIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]): Int = {
+    // TODO It must be _.length instead of map (_.issueId) list).length. But it does not work on Slick 1.0.1 (worked on Slick 1.0.0).
+    (searchIssueQuery(owner, repository, condition, filter, userName) map (_.issueId) list).length
+  }
   /**
    * Returns the Map which contains issue count for each labels.
    *
@@ -75,7 +76,8 @@ trait IssuesService {
       .map { case (labelName, t) =>
         labelName ~ t.length
       }
-      .list.toMap
+      .list
+      .toMap
   }
 
   /**
