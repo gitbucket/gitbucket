@@ -116,14 +116,24 @@ trait IssuesService {
    * Assembles query for conditional issue searching.
    */
   private def searchIssueQuery(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
-    Query(Issues) filter { t =>
-      (t.userName         is owner.bind) &&
-        (t.repositoryName   is repository.bind) &&
-        (t.closed           is (condition.state == "closed").bind) &&
-        (t.milestoneId      is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
-        //if(condition.labels.nonEmpty) Some(Query(Issue)) else None,
-        (t.assignedUserName is userName.get.bind, filter == "assigned") &&
-        (t.openedUserName   is userName.get.bind, filter == "created_by")
+    Query(Issues) filter { t1 =>
+      (t1.userName         is owner.bind) &&
+      (t1.repositoryName   is repository.bind) &&
+      (t1.closed           is (condition.state == "closed").bind) &&
+      (t1.milestoneId      is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
+      (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
+      (t1.openedUserName   is userName.get.bind, filter == "created_by") &&
+      (IssueLabels filter { t2 =>
+        (t2.userName       is t1.userName) &&
+        (t2.repositoryName is t1.repositoryName) &&
+        (t2.issueId        is t1.issueId) &&
+        (t2.labelId        in
+          (Labels filter { t3 =>
+            (t3.userName       is t1.userName) &&
+            (t3.repositoryName is t1.repositoryName) &&
+            (t3.labelName      inSetBind condition.labels)
+          } map(_.labelId)))
+      } exists, condition.labels.nonEmpty)
     }
 
   def saveIssue(owner: String, repository: String, loginUser: String,
