@@ -21,12 +21,17 @@ trait IssuesService {
       } firstOption
     else None
 
-  def getComment(owner: String, repository: String, issueId: Int) =
+  def getComments(owner: String, repository: String, issueId: Int) =
     Query(IssueComments) filter { t =>
       (t.userName is owner.bind) &&
       (t.repositoryName is repository.bind) &&
       (t.issueId is issueId.bind)
     } list
+
+  def getComment(commentId: String) =
+    if (commentId forall (_.isDigit))
+      Query(IssueComments) filter (_.commentId is commentId.toInt.bind) firstOption
+    else None
 
   /**
    * Returns the count of the search result against  issues.

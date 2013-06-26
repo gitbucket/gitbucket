@@ -46,7 +46,7 @@ trait IssuesControllerBase extends ControllerBase {
     getIssue(owner, repository, issueId) map {
       issues.html.issue(
           _,
-          getComment(owner, repository, issueId.toInt),
+          getComments(owner, repository, issueId.toInt),
           getRepository(owner, repository, baseUrl).get)
     } getOrElse NotFound
   }
@@ -65,6 +65,16 @@ trait IssuesControllerBase extends ControllerBase {
         saveIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
   })
 
+  // TODO Authenticator
+  post("/:owner/:repository/issues/:id"){
+    // TODO update issue
+    contentType = formats("json")
+
+    org.json4s.jackson.Serialization.write(Map(
+        "title" -> "test title 2",
+        "content" -> view.Markdown.toHtml("* hoge", getRepository("root", "test", baseUrl).get, false, true, true)))
+  }
+
   // TODO requires users only and readable repository checking
   post("/:owner/:repository/issue_comments", commentForm)( usersOnly { form =>
     val owner = params("owner")
@@ -73,6 +83,23 @@ trait IssuesControllerBase extends ControllerBase {
     redirect("/%s/%s/issues/%d#comment-%d".format(owner, repository, form.issueId,
         saveComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
   })
+
+  // TODO Authenticator
+  post("/:owner/:repository/issue_comments/:id"){
+    // TODO update issue memo
+  }
+
+  // TODO Authenticator
+  get("/:owner/:repository/issues/_data/:id"){
+    getIssue(params("owner"), params("repository"), params("id")) map { x =>
+      issues.html.edit(Some(x.title), x.content.getOrElse(""), x.issueId, x.userName, x.repositoryName)
+    } getOrElse NotFound
+  }
+  get("/:owner/:repository/issue_comments/_data/:id"){
+    getComment(params("id")) map { x =>
+      issues.html.edit(None, x.content, x.commentId, x.userName, x.repositoryName)
+    } getOrElse NotFound
+  }
 
   private def searchIssues(filter: String) = {
     val owner      = params("owner")
