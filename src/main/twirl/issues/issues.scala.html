@@ -1,5 +1,5 @@
 @(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone],
-  openCount: Int, closedCount: Int, allCount: Int, assignedCount: Option[Int], createdByCount: Option[Int],
+  openCount: Int, closedCount: Int, allCount: Int, assignedCount: Option[Int], createdByCount: Option[Int], labelCounts: Map[String, Int],
   condition: service.IssuesService.IssueSearchCondition, filter: String,
   repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
@@ -57,7 +57,7 @@
               <li>
                 <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL"
                    @if(condition.labels.contains(label.labelName)){style="background-color: #@label.color; color: #@label.fontColor;"}>
-                  <span class="count-right">0</span>
+                  <span class="count-right">@labelCounts.getOrElse(label.labelName, 0)</span>
                   <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
                   @label.labelName
                 </a>

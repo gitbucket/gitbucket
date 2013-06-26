@@ -2,7 +2,7 @@ package service
 
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
-import scala.slick.jdbc.{StaticQuery => Q}
+import scala.slick.jdbc.{StaticQuery => Q, GetResult}
 import Q.interpolation
 
 import model._
@@ -40,6 +40,45 @@ trait IssuesService {
    */
   def countIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]): Int =
     searchIssueQuery(owner, repository, condition, filter, userName) map (_.length) first
+
+  /**
+   * Returns the Map which contains issue count for each labels.
+   *
+   * @param owner the repository owner
+   * @param repository the repository name
+   * @param condition the search condition
+   * @param filter the filter type ("all", "assigned" or "created_by")
+   * @param userName the filter user name required for "assigned" and "created_by"
+   * @return the Map which contains issue count for each labels (key is label name, value is issue count),
+   */
+  def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
+                              filter: String, userName: Option[String]): Map[String, Int] = {
+
+    case class LabelCount(labelName: String, count: Int)
+    implicit val getLabelCount = GetResult(r => LabelCount(r.<<, r.<<))
+
+    Q.query[(String, String, Boolean), LabelCount](
+      """SELECT
+        T3.LABEL_NAME, COUNT(T1.ISSUE_ID)
+      FROM ISSUE T1
+        INNER JOIN ISSUE_LABEL T2 ON T1.ISSUE_ID = T2.ISSUE_ID
+        INNER JOIN LABEL       T3 ON T2.LABEL_ID = T3.LABEL_ID
+      WHERE
+            T1.USER_NAME       = ?
+        AND T1.REPOSITORY_NAME = ?
+        AND T1.CLOSED          = ?
+      """ +
+      condition.milestoneId.map(" AND T1.MILESTONE_ID = " + milestoneId).getOrElse("") +
+      (filter match {
+        case "assigned"   => " AND T1.ASSIGNED_USER_NAME = '%s'".format(userName.get)
+        case "created_by" => " AND T1.OPENED_USER_NAME   = '%s'".format(userName.get)
+        case _ => ""
+      }) +
+      " GROUP BY T3.LABEL_NAME")
+      .list(owner, repository, condition.state == "closed")
+      .map(x => x.labelName -> x.count)
+      .toMap
+  }
 
   /**
    * Returns the search result against  issues.
