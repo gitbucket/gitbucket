@@ -80,38 +80,9 @@
           <i class="icon-remove-circle"></i> Clear milestone and label filters
         </a>
       }
-      @defining(if(condition.state == "open") openCount else closedCount){ count =>
-        @if(count > service.IssuesService.IssueLimit){
-          <div class="pagination pull-right">
-            <ul>
-              @if(page == 1){
-                <li class="disabled"><span>&#9664;</span></li>
-              } else {
-                <li><a href="@condition.toURL&page=@(page - 1)">&#9664;</a></li>
-              }
-              @for(i <- 1 to (count - 1) / service.IssuesService.IssueLimit + 1){
-                @if(i == page){
-                  <li class="active"><span>@i</span></li>
-                } else {
-                  <li><a href="@condition.toURL&page=@i">@i</a></li>
-                }
-              }
-              @*
-              <li class="active"><span>1</span></li>
-              <li><a href="#">2</a></li>
-              <li><a href="#">3</a></li>
-              <li><span>&hellip;</span></li>
-              <li><a href="#">7</a></li>
-              *@
-              @if(page == (count - 1) / service.IssuesService.IssueLimit + 1){
-                <li class="disabled"><span>&#9654;</span></li>
-              } else {
-                <li><a href="@condition.toURL&page=@(page + 1)">&#9654;</a></li>
-              }
-            </ul>
-          </div>
-        }
-      }
+      <div class="pull-right">
+        @html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 7, condition.toURL)
+      </div>
       <div class="btn-group">
         <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
         <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
@@ -163,6 +134,9 @@
         </tr>
       }
       </table>
+      <div class="pull-right">
+        @html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 10, condition.toURL)
+      </div>
     </div>
   </div>
 }
