@@ -157,9 +157,7 @@ $(function(){
     } else {
       $(this).data('toggle-state', 'on');
       $.get('@path/@repository.owner/@repository.name/issues/label/edit', function(data){
-        var parent = $('#label-list').parent();
-        $('#label-list').remove();
-        parent.append(data);
+        $('#label-list').parent().empty().html(data);
       });
     }
   });

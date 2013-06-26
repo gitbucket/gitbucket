@@ -18,34 +18,32 @@
     }
   </form>
   <script>
-  @if(mode == "new"){
-    $(function(){
+  $(function(){
+    @if(mode == "new"){
       $('#newColor').colorpicker();
-    });
-  } else {
-    $('#editColor').colorpicker();
+    } else {
+      $('#editColor').colorpicker();
 
-    $('#edit-label-form').submit(function(e){
-      var form = $(e.target);
-      $.post(form.attr('action') + '/validate', $(form).serialize(), function(data){
-        // clear all error messages
-        $('.error').text('');
+      $('#edit-label-form').submit(function(e){
+        var form = $(e.target);
+        $.post(form.attr('action') + '/validate', $(form).serialize(), function(data){
+          // clear all error messages
+          $('.error').text('');
 
-        if($.isEmptyObject(data)){
-          $.post(form.attr('action'), $(form).serialize(), function(data){
-            var parent = $('#label-edit').parent();
-            $('#label-edit').remove();
-            parent.append(data);
-          });
-        } else {
-          $.each(data, function(key, value){
-            $('#error-' + key).text(value);
-          });
-        }
-      }, 'json');
-      return false;
-    });
-  }
+          if($.isEmptyObject(data)){
+            $.post(form.attr('action'), $(form).serialize(), function(data){
+              $('#label-edit').parent().empty().html(data);
+            });
+          } else {
+            $.each(data, function(key, value){
+              $('#error-' + key).text(value);
+            });
+          }
+        }, 'json');
+        return false;
+      });
+    }
+  });
   </script>
 </div>
 }
