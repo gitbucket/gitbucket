@@ -35,7 +35,7 @@
       @if(condition.milestoneId.isEmpty){
         No milestone selected
       } else {
-        <span class="description">Milestone:</span> @milestones.find(_.milestoneId == condition.milestoneId.get).map(_.title)
+        <span class="muted">Milestone:</span> @milestones.find(_.milestoneId == condition.milestoneId.get).map(_.title)
       }
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
@@ -54,7 +54,7 @@
             <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
           }
         </div>
-        <span class="description small">@openCount open issues</span>
+        <span class="muted small">@openCount open issues</span>
       }
       <hr/>
       <strong>Labels</strong>
@@ -117,14 +117,14 @@
           <li><a href="@condition.copy(sort="updated",  direction="asc" ).toURL">Least recently updated</a></li>
         </ul>
       </div>
-      <table class="table table-bordered table-hover">
+      <table class="table table-bordered table-hover table-issues">
       @issues.map { issue =>
         <tr>
           <td>
-            <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId">@issue.title</a>
+            <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId" class="issue-title">@issue.title</a>
             <span class="pull-right muted">#@issue.issueId</span>
             <div class="small muted">
-              Opened by <a href="@path/@repository.owner">@issue.openedUserName</a> @datetime(issue.registeredDate)
+              Opened by <a href="@path/@repository.owner" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)
             </div>
           </td>
         </tr>
@@ -167,6 +167,16 @@ $(function(){
 </script>
 }
 <style type="text/css">
+table.table-issues {
+  margin-top: 12px;
+}
+
+a.issue-title {
+  color: black;
+  font-weight: bold;
+  size: 110%;
+}
+
 ul.label-list {
   list-style-type: none;
   padding-left: 0px;
