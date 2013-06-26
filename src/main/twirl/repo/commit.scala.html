@@ -18,7 +18,7 @@
         }
         <div class="small" style="font-weight: normal;">
           @if(branches.nonEmpty){
-            <span class="description">
+            <span class="muted">
               <img src="@path/assets/common/images/branch.png"/>
               @branches.zipWithIndex.map { case (branch, i) =>
                 <a href="@path/@repository.owner/@repository.name/tree/@branch" class="branch" id="branch-@i">@branch</a>
@@ -26,7 +26,7 @@
             </span>
           }
           @if(tags.nonEmpty){
-            <span class="description">
+            <span class="muted">
               <img src="@path/assets/common/images/tag.png"/>
               @tags.zipWithIndex.map { case (tag, i) =>
                 <a href="@path/@repository.owner/@repository.name/tree/@tag" class="tag" id="tag-@i">@tag</a>
@@ -38,21 +38,21 @@
     </tr>
     <tr>
       <td>
-        <a href="@path/@commit.committer" class="username">@commit.committer</a> <span class="description">@helpers.datetime(commit.time)</span>
+        <a href="@path/@commit.committer" class="username strong">@commit.committer</a> <span class="muted">@helpers.datetime(commit.time)</span>
         <div class="pull-right monospace small" style="text-align: right;">
           <div>
             @if(commit.parents.size == 0){
-              <span class="description">0 parent</span>
+              <span class="muted">0 parent</span>
             }
             @if(commit.parents.size == 1){
-              <span class="description">1 parent</span>
+              <span class="muted">1 parent</span>
               <a href="@path/@repository.owner/@repository.name/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
             }
-            <span class="description">commit</span> @commit.id
+            <span class="muted">commit</span> @commit.id
           </div>
           @if(commit.parents.size > 1){
             <div>
-              <span class="description">@commit.parents.size parents
+              <span class="muted">@commit.parents.size parents
               @commit.parents.map { parent =>
                 <a href="@path/@repository.owner/@repository.name/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
               }.mkHtml(" + ")

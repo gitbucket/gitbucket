@@ -9,7 +9,7 @@
       <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> / Commit History
     }
     @if(pathList.nonEmpty){
-      <span class="description">History for</span>
+      <span class="muted">History for</span>
       <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
       @pathList.zipWithIndex.map { case (section, i) =>
         @if(i == pathList.length - 1){
@@ -39,8 +39,8 @@
               <pre id="description-@commit.id" style="display: none;" class="commit-description">@helpers.link(commit.description.get, repository)</pre>
             }
             <div class="small">
-              <a href="@path/@commit.committer" class="committer">@commit.committer</a>
-              <span class="description">@helpers.datetime(commit.time)</span>
+              <a href="@path/@commit.committer" class="username">@commit.committer</a>
+              <span class="muted">@helpers.datetime(commit.time)</span>
             </div>
           </div>
           <div class="pull-right align-right">

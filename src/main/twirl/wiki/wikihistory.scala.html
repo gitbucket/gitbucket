@@ -8,9 +8,9 @@
     <li>
       <h1 class="wiki-title">
         @if(pageName.isEmpty){
-          <span class="description">History</span>
+          <span class="muted">History</span>
         } else {
-          <span class="description">History for</span> @pageName.get
+          <span class="muted">History for</span> @pageName.get
         }
       </h1>
     </li>
@@ -35,7 +35,7 @@
         <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
         <td><a href="@path/@commit.committer">@commit.committer</a></td>
         <td width="80%">
-          <span class="description">@helpers.datetime(commit.time):</span>
+          <span class="muted">@helpers.datetime(commit.time):</span>
           @commit.shortMessage
         </td>
       </tr>

@@ -35,12 +35,12 @@
                 <div class="span4">
                   <a href="@path/@repository.owner/@repository.name/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a><br>
                   @if(milestone.closedDate.isDefined){
-                    <span class="description">Closed @helpers.datetime(milestone.closedDate.get)</span>
+                    <span class="muted">Closed @helpers.datetime(milestone.closedDate.get)</span>
                   } else {
                     @if(milestone.dueDate.isDefined){
-                      <span class="description">Due in @helpers.date(milestone.dueDate.get)</span>
+                      <span class="muted">Due in @helpers.date(milestone.dueDate.get)</span>
                     } else {
-                      <span class="description">No due date</span>
+                      <span class="muted">No due date</span>
                     }
                   }
                 </div>
@@ -59,7 +59,7 @@
                         }
                         <a href="@path/@repository.owner/@repository.name/issues?milestone=@milestone.milestoneId&state=open">Browse issues</a>
                       </div>
-                      <span class="description">@closedCount closed - @openCount open</span>
+                      <span class="muted">@closedCount closed - @openCount open</span>
                     </div>
                     <div class="milestone-progress">
                       @if(closedCount > 0){

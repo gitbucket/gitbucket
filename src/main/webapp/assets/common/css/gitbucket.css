@@ -50,13 +50,12 @@ span.error {
   font-size: 85%;
 }
 
-a.commit-message, a.commit-id, a.committer {
-  color: #333333;
+.strong {
+  font-weight: bold;
 }
 
-a.username {
-  color: black;
-  font-weight: bold;
+a.commit-message, a.commit-id, a.username {
+  color: #333333;
 }
 
 a.omit {
@@ -77,10 +76,6 @@ span.count-right {
 
 .monospace {
   font-family: monospace;
-}
-
-span.description {
-  color: gray;
 }
 
 table.table-file-list {
