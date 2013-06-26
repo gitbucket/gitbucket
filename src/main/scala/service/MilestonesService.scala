@@ -61,8 +61,8 @@ trait MilestonesService {
       .sortBy(_.milestoneId desc)
       .firstOption
 
-  def getMilestoneIssueCounts(owner: String, repository: String): Map[(Int, Boolean), Int] =
-    Issues
+  def getMilestonesWithIssueCount(owner: String, repository: String): List[(Milestone, Int, Int)] = {
+    val counts = Issues
       .filter { t =>
         (t.userName       is owner.bind) &&
         (t.repositoryName is repository.bind) &&
@@ -79,6 +79,11 @@ trait MilestonesService {
         (milestoneId, closed) -> count
       }
       .toMap
+
+    getMilestones(owner, repository).map { milestone =>
+      (milestone, counts.getOrElse((milestone.milestoneId, false), 0), counts.getOrElse((milestone.milestoneId, true), 0))
+    }
+  }
 
   def getMilestones(owner: String, repository: String): List[Milestone] =
     Query(Milestones)

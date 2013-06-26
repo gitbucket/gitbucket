@@ -28,8 +28,7 @@ trait MilestonesControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       issues.html.milestones(state,
-        getMilestones(owner, repository),
-        getMilestoneIssueCounts(owner, repository),
+        getMilestonesWithIssueCount(owner, repository),
         repositoryInfo,
         isWritable(owner, repository, context.loginAccount))
     } getOrElse NotFound
