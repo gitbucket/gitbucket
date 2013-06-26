@@ -95,22 +95,53 @@ trait IssuesService {
    * @param userName the filter user name required for "assigned" and "created_by"
    * @param offset the offset for pagination
    * @param limit the limit for pagination
-   * @return the count of the search result
+   * @return the search result (list of tuples which contain issue, labels and comment count)
    */
   def searchIssue(owner: String, repository: String, condition: IssueSearchCondition,
-                  filter: String, userName: Option[String], offset: Int, limit: Int): List[Issue] =
-    searchIssueQuery(owner, repository, condition, filter, userName).sortBy { t =>
-      (condition.sort match {
-        case "created"  => t.registeredDate
-        case "comments" => t.updatedDate
-        case "updated"  => t.updatedDate
-      }) match {
-        case sort => condition.direction match {
-          case "asc"  => sort asc
-          case "desc" => sort desc
+                  filter: String, userName: Option[String], offset: Int, limit: Int): List[(Issue, List[Label], Int)] = {
+
+    // get issues and comment count
+    val issues = searchIssueQuery(owner, repository, condition, filter, userName)
+      .leftJoin(Query(IssueComments)
+        .filter  { t => (t.userName is owner.bind) && (t.repositoryName is repository.bind) }
+        .groupBy { _.issueId }
+        .map     { case (issueId, t) => issueId ~ t.length }).on((t1, t2) => t1.issueId is t2._1)
+      .sortBy { case (t1, t2) =>
+        (condition.sort match {
+          case "created"  => t1.registeredDate
+          case "comments" => t2._2
+          case "updated"  => t1.updatedDate
+        }) match {
+          case sort => condition.direction match {
+            case "asc"  => sort asc
+            case "desc" => sort desc
+          }
         }
       }
-    } drop(offset) take(limit) list
+      .map { case (t1, t2) => (t1, t2._2.ifNull(0)) }
+      .drop(offset).take(limit)
+      .list
+
+    // get labels
+    val labels = Query(IssueLabels)
+      .innerJoin(Labels).on { (t1, t2) =>
+        (t1.userName       is t2.userName) &&
+        (t1.repositoryName is t2.repositoryName) &&
+        (t1.labelId        is t2.labelId)
+      }
+      .filter { case (t1, t2) =>
+        (t1.userName       is owner.bind) &&
+        (t1.repositoryName is repository.bind) &&
+        (t1.issueId        inSetBind (issues.map(_._1.issueId)))
+      }
+      .sortBy { case (t1, t2) => t1.issueId ~ t2.labelName }
+      .map    { case (t1, t2) => (t1.issueId, t2) }
+      .list
+
+    issues.map { case (issue, commentCount) =>
+      (issue, labels.collect { case (issueId, labels) if(issueId == issue.issueId) => labels }, commentCount)
+    }
+  }
 
   /**
    * Assembles query for conditional issue searching.
