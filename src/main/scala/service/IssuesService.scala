@@ -167,7 +167,7 @@ object IssuesService {
   import java.net.URLEncoder
   import javax.servlet.http.HttpServletRequest
 
-  val IssueLimit = 1
+  val IssueLimit = 30
 
   case class IssueSearchCondition(
       labels: Set[String]      = Set.empty,
