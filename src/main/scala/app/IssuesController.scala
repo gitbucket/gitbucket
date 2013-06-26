@@ -107,6 +107,13 @@ trait IssuesControllerBase extends ControllerBase {
     val userName   = if(filter != "all") Some(params("userName")) else None
     val sessionKey = "%s/%s/issues".format(owner, repository)
 
+    val page = try {
+      val i = params.getOrElse("page", "1").toInt
+      if(i <= 0) 1 else i
+    } catch {
+      case e: NumberFormatException => 1
+    }
+
     // retrieve search condition
     val condition = if(request.getQueryString == null){
       session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
@@ -115,7 +122,9 @@ trait IssuesControllerBase extends ControllerBase {
     session.put(sessionKey, condition)
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      issues.html.issues(searchIssue(owner, repository, condition, filter, userName),
+      issues.html.issues(
+        searchIssue(owner, repository, condition, filter, userName, (page - 1) * IssueLimit, IssueLimit),
+        page,
         getLabels(owner, repository),
         getMilestones(owner, repository).filter(_.closedDate.isEmpty),
         countIssue(owner, repository, condition.copy(state = "open"), filter, userName),
@@ -124,7 +133,10 @@ trait IssuesControllerBase extends ControllerBase {
         context.loginAccount.map(x => countIssue(owner, repository, condition, "assigned", Some(x.userName))),
         context.loginAccount.map(x => countIssue(owner, repository, condition, "created_by", Some(x.userName))),
         countIssueGroupByLabels(owner, repository, condition, filter, userName),
-        condition, filter, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+        condition,
+        filter,
+        repositoryInfo,
+        isWritable(owner, repository, context.loginAccount))
 
     } getOrElse NotFound
   }

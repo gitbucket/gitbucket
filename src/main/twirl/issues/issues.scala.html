@@ -1,4 +1,4 @@
-@(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone],
+@(issues: List[model.Issue], page: Int, labels: List[model.Label], milestones: List[model.Milestone],
   openCount: Int, closedCount: Int, allCount: Int, assignedCount: Option[Int], createdByCount: Option[Int], labelCounts: Map[String, Int],
   condition: service.IssuesService.IssueSearchCondition, filter: String,
   repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
@@ -80,17 +80,38 @@
           <i class="icon-remove-circle"></i> Clear milestone and label filters
         </a>
       }
-      <div class="pagination pull-right">
-        <ul>
-          <li class="disabled"><span>&#9664;</span></li>
-          <li class="active"><span>1</span></li>
-          <li><a href="#">2</a></li>
-          <li><a href="#">3</a></li>
-          <li><span>&hellip;</span></li>
-            <li><a href="#">7</a></li>
-          <li><a href="#">&#9654;</a></li>
-        </ul>
-      </div>
+      @defining(if(condition.state == "open") openCount else closedCount){ count =>
+        @if(count > service.IssuesService.IssueLimit){
+          <div class="pagination pull-right">
+            <ul>
+              @if(page == 1){
+                <li class="disabled"><span>&#9664;</span></li>
+              } else {
+                <li><a href="@condition.toURL&page=@(page - 1)">&#9664;</a></li>
+              }
+              @for(i <- 1 to (count - 1) / service.IssuesService.IssueLimit + 1){
+                @if(i == page){
+                  <li class="active"><span>@i</span></li>
+                } else {
+                  <li><a href="@condition.toURL&page=@i">@i</a></li>
+                }
+              }
+              @*
+              <li class="active"><span>1</span></li>
+              <li><a href="#">2</a></li>
+              <li><a href="#">3</a></li>
+              <li><span>&hellip;</span></li>
+              <li><a href="#">7</a></li>
+              *@
+              @if(page == (count - 1) / service.IssuesService.IssueLimit + 1){
+                <li class="disabled"><span>&#9654;</span></li>
+              } else {
+                <li><a href="@condition.toURL&page=@(page + 1)">&#9654;</a></li>
+              }
+            </ul>
+          </div>
+        }
+      }
       <div class="btn-group">
         <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
         <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>

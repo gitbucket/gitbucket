@@ -93,9 +93,12 @@ trait IssuesService {
    * @param condition the search condition
    * @param filter the filter type ("all", "assigned" or "created_by")
    * @param userName the filter user name required for "assigned" and "created_by"
+   * @param offset the offset for pagination
+   * @param limit the limit for pagination
    * @return the count of the search result
    */
-  def searchIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
+  def searchIssue(owner: String, repository: String, condition: IssueSearchCondition,
+                  filter: String, userName: Option[String], offset: Int, limit: Int): List[Issue] =
     searchIssueQuery(owner, repository, condition, filter, userName).sortBy { t =>
       (condition.sort match {
         case "created"  => t.registeredDate
@@ -107,7 +110,7 @@ trait IssuesService {
           case "desc" => sort desc
         }
       }
-    } list
+    } drop(offset) take(limit) list
 
   /**
    * Assembles query for conditional issue searching.
@@ -163,6 +166,8 @@ trait IssuesService {
 object IssuesService {
   import java.net.URLEncoder
   import javax.servlet.http.HttpServletRequest
+
+  val IssueLimit = 1
 
   case class IssueSearchCondition(
       labels: Set[String]      = Set.empty,
