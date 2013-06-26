@@ -1,0 +1,29 @@
+@(title: Option[String], content: String, key: Int, owner: String, repository: String)(implicit context: app.Context)
+@import context._
+@if(title.isDefined){
+<input type="text" style="width: 730px;" id="title" value="@title.get"/>
+}
+<textarea style="width: 730px; height: 100px;" id="content-@key">@content</textarea>
+<input type="button" class="btn btn-small" value="Update @{if(title.isDefined) "Issue" else "Comment"}" id="update-@key"/>
+<span class="pull-right"><a class="btn btn-small btn-danger" href="#" id="cancel-@key">Cancel</a></span>
+<script>
+$(function(){
+  $('#update-@key').click(function(){
+    $.post('@path/@owner/@repository/@{if(title.isDefined) "issues" else "issue_comments"}/@key',
+    {
+      @if(title.isDefined){ title : $('#title').val(), }
+      content : $('#content-@key').val()
+    },
+    function(data){
+      @if(title.isDefined){
+        $('#issueTitle').empty().text(data.title);
+      }
+      $('#issueContent').empty().html(data.content);
+    });
+  });
+
+  $('#cancel-@key').click(function(){
+
+  });
+});
+</script>
