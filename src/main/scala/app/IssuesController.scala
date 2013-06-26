@@ -93,6 +93,9 @@ trait IssuesControllerBase extends ControllerBase {
         getMilestones(owner, repository).filter(_.closedDate.isEmpty),
         countIssue(owner, repository, condition.copy(state = "open"), filter, userName),
         countIssue(owner, repository, condition.copy(state = "closed"), filter, userName),
+        countIssue(owner, repository, condition, "all", None),
+        context.loginAccount.map(x => countIssue(owner, repository, condition, "assigned", Some(x.userName))),
+        context.loginAccount.map(x => countIssue(owner, repository, condition, "created_by", Some(x.userName))),
         condition, filter, repositoryInfo, isWritable(owner, repository, context.loginAccount))
 
     } getOrElse NotFound

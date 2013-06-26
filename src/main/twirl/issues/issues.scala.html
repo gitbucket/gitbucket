@@ -1,5 +1,5 @@
 @(issues: List[model.Issue], labels: List[model.Label], milestones: List[model.Milestone],
-  openCount: Int, closedCount: Int,
+  openCount: Int, closedCount: Int, allCount: Int, assignedCount: Option[Int], createdByCount: Option[Int],
   condition: service.IssuesService.IssueSearchCondition, filter: String,
   repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
@@ -12,20 +12,20 @@
       <ul class="nav nav-pills nav-stacked">
         <li@if(filter == "all"){ class="active"}>
           <a href="@path/@repository.owner/@repository.name/issues@condition.toURL">
-            <span class="count-right">0</span>
+            <span class="count-right">@allCount</span>
             Everyone's Issues
           </a>
         </li>
         @if(loginAccount.isDefined){
         <li@if(filter == "assigned"){ class="active"}>
           <a href="@path/@repository.owner/@repository.name/issues/assigned/@loginAccount.map(_.userName)@condition.toURL">
-            <span class="count-right">0</span>
+            <span class="count-right">@assignedCount</span>
             Assigned to you
           </a>
         </li>
         <li@if(filter == "created_by"){ class="active"}>
           <a href="@path/@repository.owner/@repository.name/issues/created_by/@loginAccount.map(_.userName)@condition.toURL">
-            <span class="count-right">0</span>
+            <span class="count-right">@createdByCount</span>
             Created by you
           </a>
         </li>
