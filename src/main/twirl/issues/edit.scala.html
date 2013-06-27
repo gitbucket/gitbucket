@@ -9,14 +9,20 @@
 <span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
 <script>
 $(function(){
+  var callback = function(data){
+    @if(isComment){
+      $('#commentContent-@key').empty().html(data.content);
+    }else{
+      $('#issueTitle').empty().text(data.title);
+      $('#issueContent').empty().html(data.content);
+    }
+  };
+
   $('@{if(isComment) "#commentContent-" + key else "#issueContent"} input.btn').click(function(){
     @if(isComment){
       var url = '@path/@owner/@repository/issue_comments/@key';
       var param = {
           content : $('#edit-content-@key').val()
-      };
-      var func = function(data){
-          $('#commentContent-@key').empty().html(data.content);
       };
     }else{
       var url = '@path/@owner/@repository/issues/@key';
@@ -24,16 +30,18 @@ $(function(){
           title   : $('#edit-title').val(),
           content : $('#edit-content').val()
       };
-      var func = function(data){
-          $('#issueTitle').empty().text(data.title);
-          $('#issueContent').empty().html(data.content);
-      };
     }
-    $.post(url, param, func);
+    $.post(url, param, callback);
   });
 
-  $('#cancel').click(function(){
-
+  $('@{if(isComment) "#commentContent-" + key else "#issueContent"} a.btn').click(function(){
+    var url = @if(isComment){
+      '@path/@owner/@repository/issue_comments/_data/@key'
+    }else{
+      '@path/@owner/@repository/issues/_data/@key'
+    };
+    $.get(url, callback);
+    return false;
   });
 });
 </script>

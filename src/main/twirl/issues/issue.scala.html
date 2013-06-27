@@ -60,6 +60,9 @@
 $(function(){
   $('#edit').click(function(){
     $.get('@path/@repository.owner/@repository.name/issues/_data/@issue.issueId',
+    {
+      dataType : 'html'
+    },
     function(data){
       $('#issueContent').empty().html(data);
     });
@@ -69,6 +72,9 @@ $(function(){
   $('i.icon-pencil').click(function(){
     var id = $(this).closest('a').data('comment-id');
     $.get('@path/@repository.owner/@repository.name/issue_comments/_data/' + id,
+    {
+      dataType : 'html'
+    },
     function(data){
       $('#commentContent-' + id).empty().html(data);
     });

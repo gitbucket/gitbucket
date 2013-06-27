@@ -53,7 +53,9 @@ trait IssuesControllerBase extends ControllerBase {
 
   // TODO requires users only and readable repository checking
   get("/:owner/:repository/issues/new")( usersOnly {
-    issues.html.issueedit(getRepository(params("owner"), params("repository"), baseUrl).get)
+    getRepository(params("owner"), params("repository"), baseUrl)
+      .map (issues.html.issueedit(_))
+      .getOrElse (NotFound)
   })
 
   // TODO requires users only and readable repository checking
@@ -74,13 +76,7 @@ trait IssuesControllerBase extends ControllerBase {
     val content = params.get("content")
 
     updateIssue(owner, repository, issueId, title, content)
-
-    contentType = formats("json")
-
-    org.json4s.jackson.Serialization.write(
-        Map("title"   -> title,
-            "content" -> view.Markdown.toHtml(content getOrElse "No description given.",
-                getRepository(owner, repository, baseUrl).get, false, true, true)))
+    redirect("/%s/%s/issues/_data/%d".format(owner, repository, issueId))
   }
 
   // TODO requires users only and readable repository checking
@@ -98,23 +94,39 @@ trait IssuesControllerBase extends ControllerBase {
     val content = params("content")
 
     updateComment(commentId, content)
-
-    contentType = formats("json")
-
-    org.json4s.jackson.Serialization.write(
-        Map("content" -> view.Markdown.toHtml(content,
-            getRepository(params("owner"), params("repository"), baseUrl).get, false, true, true)))
+    redirect("/%s/%s/issue_comments/_data/%d".format(params("owner"), params("repository"), commentId))
   }
 
   // TODO Authenticator
   get("/:owner/:repository/issues/_data/:id"){
     getIssue(params("owner"), params("repository"), params("id")) map { x =>
-      issues.html.edit(Some(x.title), x.content.getOrElse(""), x.issueId, x.userName, x.repositoryName)
+      params.get("dataType") collect {
+        case t if t == "html" => issues.html.edit(
+            Some(x.title), x.content getOrElse "", x.issueId, x.userName, x.repositoryName)
+      } getOrElse {
+        contentType = formats("json")
+        org.json4s.jackson.Serialization.write(
+            Map("title"   -> x.title,
+                "content" -> view.Markdown.toHtml(x.content getOrElse "No description given.",
+                    getRepository(x.userName, x.repositoryName, baseUrl).get, false, true, true)
+            ))
+      }
     } getOrElse NotFound
   }
+
+  // TODO Authenticator
   get("/:owner/:repository/issue_comments/_data/:id"){
     getComment(params("id")) map { x =>
-      issues.html.edit(None, x.content, x.commentId, x.userName, x.repositoryName)
+      params.get("dataType") collect {
+        case t if t == "html" => issues.html.edit(
+            None, x.content, x.commentId, x.userName, x.repositoryName)
+      } getOrElse {
+        contentType = formats("json")
+        org.json4s.jackson.Serialization.write(
+            Map("content" -> view.Markdown.toHtml(x.content,
+                getRepository(x.userName, x.repositoryName, baseUrl).get, false, true, true)
+            ))
+      }
     } getOrElse NotFound
   }
 
