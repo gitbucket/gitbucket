@@ -33,9 +33,13 @@
       </ul>
       <hr/>
       @if(condition.milestoneId.isEmpty){
-        No milestone selected
+        <span class="muted small">No milestone selected</span>
       } else {
-        <span class="muted">Milestone:</span> @milestones.find(_.milestoneId == condition.milestoneId.get).map(_.title)
+        @if(condition.milestoneId.get.isEmpty){
+          <span class="muted small">Issues with no milestone</span>
+        } else {
+          <span class="muted small">Milestone:</span> @milestones.find(_.milestoneId == condition.milestoneId.get.get).map(_.title)
+        }
       }
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
@@ -43,12 +47,16 @@
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
+          @if(condition.milestoneId.isDefined){
+            <li><a href="@condition.copy(milestoneId = None).toURL">Clear milestone filter</a></li>
+          }
+          <li><a href="@condition.copy(milestoneId = Some(None)).toURL">Issues with no milestone</a></li>
           @milestones.map { milestone =>
-            <li><a href="@condition.copy(milestoneId = Some(milestone.milestoneId)).toURL">@milestone.title</a></li>
+            <li><a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">@milestone.title</a></li>
           }
         </ul>
       </div>
-      @if(condition.milestoneId.isDefined){
+      @if(condition.milestoneId.isDefined && condition.milestoneId.get.isDefined){
         <div class="milestone-progress" style="margin-top: 8px;">
           @if(closedCount > 0){
             <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>

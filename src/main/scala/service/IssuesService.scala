@@ -71,7 +71,8 @@ trait IssuesService {
         (t1.userName         is owner.bind) &&
         (t1.repositoryName   is repository.bind) &&
         (t1.closed           is (condition.state == "closed").bind) &&
-        (t1.milestoneId      is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
+        (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
+        (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
         (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
         (t1.openedUserName   is userName.get.bind, filter == "created_by")
       }
@@ -151,7 +152,8 @@ trait IssuesService {
       (t1.userName         is owner.bind) &&
       (t1.repositoryName   is repository.bind) &&
       (t1.closed           is (condition.state == "closed").bind) &&
-      (t1.milestoneId      is condition.milestoneId.get.bind, condition.milestoneId.isDefined) &&
+      (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
+      (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
       (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
       (t1.openedUserName   is userName.get.bind, filter == "created_by") &&
       (IssueLabels filter { t2 =>
@@ -211,18 +213,21 @@ object IssuesService {
   val IssueLimit = 30
 
   case class IssueSearchCondition(
-      labels: Set[String]      = Set.empty,
-      milestoneId: Option[Int] = None,
-      state: String            = "open",
-      sort: String             = "created",
-      direction: String        = "desc"){
+      labels: Set[String] = Set.empty,
+      milestoneId: Option[Option[Int]] = None,
+      state: String = "open",
+      sort: String = "created",
+      direction: String = "desc"){
 
     import IssueSearchCondition._
 
     def toURL: String =
       "?" + List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(" "))),
-        milestoneId.map("milestone=" + _),
+        milestoneId.map { id => "milestone=" + (id match {
+          case Some(x) => x.toString
+          case None    => "none"
+        })},
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
         Some("direction=" + urlEncode(direction))).flatten.mkString("&")
@@ -241,7 +246,10 @@ object IssuesService {
     def apply(request: HttpServletRequest): IssueSearchCondition =
       IssueSearchCondition(
         param(request, "labels").map(_.split(" ").toSet).getOrElse(Set.empty),
-        param(request, "milestone").map(_.toInt),
+        param(request, "milestone").map(_ match {
+          case "none" => None
+          case x      => Some(x.toInt)
+        }),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))
