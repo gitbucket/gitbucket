@@ -4,7 +4,7 @@
 @if(!isComment){
 <input type="text" style="width: 730px;" id="edit-title" value="@title.get"/>
 }
-<textarea style="width: 730px; height: 100px;" id="edit-content@if(isComment){"-" + key}">@content</textarea>
+<textarea style="width: 730px; height: 100px;" id="edit-content@if(isComment){-@key}">@content</textarea>
 <input type="button" class="btn btn-small" value="Update @{if(isComment) "Comment" else "Issue"}"/>
 <span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
 <script>
@@ -22,7 +22,7 @@ $(function(){
       var url = '@path/@owner/@repository/issues/@key';
       var param = {
           title   : $('#edit-title').val(),
-          content : $('#edit-content-@key').val()
+          content : $('#edit-content').val()
       };
       var func = function(data){
           $('#issueTitle').empty().text(data.title);
