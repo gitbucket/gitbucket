@@ -1,12 +1,11 @@
 package model
 
 import scala.slick.driver.H2Driver.simple._
+import model.{BaseTable => Table}
 
 object Collaborators extends Table[Collaborator]("COLLABORATOR") {
-  def userName = column[String]("USER_NAME", O PrimaryKey)
-  def repositoryName = column[String]("REPOSITORY_NAME")
   def collaboratorName = column[String]("COLLABORATOR_NAME")
-  def * = userName ~ repositoryName ~ collaboratorName <> (Collaborator, Collaborator.unapply _)
+  def * = base ~ collaboratorName <> (Collaborator, Collaborator.unapply _)
 }
 
 case class Collaborator(

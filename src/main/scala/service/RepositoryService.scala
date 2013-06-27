@@ -26,8 +26,8 @@ trait RepositoryService { self: AccountService =>
 
     Repositories insert
       Repository(
-        repositoryName   = repositoryName,
         userName         = userName,
+        repositoryName   = repositoryName,
         isPrivate        = false,
         description      = description,
         defaultBranch    = "master",
