@@ -62,17 +62,25 @@ trait IssuesControllerBase extends ControllerBase {
     val repository = params("repository")
 
     redirect("/%s/%s/issues/%d".format(owner, repository,
-        saveIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
+        createIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
   })
 
-  // TODO Authenticator
+  // TODO Authenticator, Validation
   post("/:owner/:repository/issues/:id"){
-    // TODO update issue
+    val owner = params("owner")
+    val repository = params("repository")
+    val issueId = params("id").toInt
+    val title = params("title")
+    val content = params.get("content")
+
+    updateIssue(owner, repository, issueId, title, content)
+
     contentType = formats("json")
 
-    org.json4s.jackson.Serialization.write(Map(
-        "title" -> "test title 2",
-        "content" -> view.Markdown.toHtml("* hoge", getRepository("root", "test", baseUrl).get, false, true, true)))
+    org.json4s.jackson.Serialization.write(
+        Map("title"   -> title,
+            "content" -> view.Markdown.toHtml(content getOrElse "No description given.",
+                getRepository(owner, repository, baseUrl).get, false, true, true)))
   }
 
   // TODO requires users only and readable repository checking
@@ -81,16 +89,21 @@ trait IssuesControllerBase extends ControllerBase {
     val repository = params("repository")
 
     redirect("/%s/%s/issues/%d#comment-%d".format(owner, repository, form.issueId,
-        saveComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
+        createComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
   })
 
-  // TODO Authenticator
+  // TODO Authenticator, Validation
   post("/:owner/:repository/issue_comments/:id"){
-    // TODO update issue memo
+    val commentId = params("id").toInt
+    val content = params("content")
+
+    updateComment(commentId, content)
+
     contentType = formats("json")
 
-    org.json4s.jackson.Serialization.write(Map(
-        "content" -> view.Markdown.toHtml("* hoge memo", getRepository("root", "test", baseUrl).get, false, true, true)))
+    org.json4s.jackson.Serialization.write(
+        Map("content" -> view.Markdown.toHtml(content,
+            getRepository(params("owner"), params("repository"), baseUrl).get, false, true, true)))
   }
 
   // TODO Authenticator

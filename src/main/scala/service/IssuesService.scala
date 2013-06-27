@@ -167,7 +167,7 @@ trait IssuesService {
       } exists, condition.labels.nonEmpty)
     }
 
-  def saveIssue(owner: String, repository: String, loginUser: String,
+  def createIssue(owner: String, repository: String, loginUser: String,
       title: String, content: Option[String]) =
     // next id number
     sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
@@ -191,7 +191,7 @@ trait IssuesService {
       }.map(_.issueId).update(id) > 0
     } get
 
-  def saveComment(owner: String, repository: String, loginUser: String,
+  def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String) =
     IssueComments.autoInc insert (
         owner,
@@ -201,6 +201,23 @@ trait IssuesService {
         content,
         currentDate,
         currentDate)
+
+  def updateIssue(owner: String, repository: String, issueId: Int,
+      title: String, content: Option[String]) =
+    Issues filter { t =>
+      (t.userName is owner.bind) &&
+      (t.repositoryName is repository.bind) &&
+      (t.issueId is issueId.bind)
+    } map { t =>
+      t.title ~ t.content.? ~ t.updatedDate
+    } update (title, content, currentDate)
+
+  def updateComment(commentId: Int, content: String) =
+    IssueComments filter {
+      _.commentId is commentId.bind
+    } map { t =>
+      t.content ~ t.updatedDate
+    } update (content, currentDate)
 
 }
 
