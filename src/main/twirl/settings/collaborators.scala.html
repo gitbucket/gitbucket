@@ -21,3 +21,13 @@
     </form>
   }
 }
+<script>
+$('#userName').typeahead({
+  source: function (query, process) {
+    return $.get('@path/@repository.owner/@repository.name/settings/collaborators/proposals', { query: query },
+      function (data) {
+        return process(data.options);
+      });
+  }
+});
+</script>

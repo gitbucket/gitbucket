@@ -2,15 +2,15 @@ package app
 
 import service._
 import util.Directory._
-import util.OwnerOnlyAuthenticator
+import util.{UsersOnlyAuthenticator, OwnerOnlyAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 
 class SettingsController extends SettingsControllerBase
-  with RepositoryService with AccountService with OwnerOnlyAuthenticator
+  with RepositoryService with AccountService with OwnerOnlyAuthenticator with UsersOnlyAuthenticator
 
 trait SettingsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with OwnerOnlyAuthenticator =>
+  self: RepositoryService with AccountService with OwnerOnlyAuthenticator with UsersOnlyAuthenticator =>
 
   case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
@@ -68,6 +68,14 @@ trait SettingsControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map(
       settings.html.collaborators(getCollaborators(owner, repository), _)) getOrElse NotFound
+  })
+
+  /**
+   * JSON API for collaborator completion.
+   */
+  get("/:owner/:repository/settings/collaborators/proposals")(usersOnly {
+    contentType = formats("json")
+    org.json4s.jackson.Serialization.write(Map("options" -> getAllUsers.map(_.userName).toArray))
   })
 
   /**
