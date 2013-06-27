@@ -32,7 +32,7 @@ trait LabelsControllerBase extends ControllerBase {
     redirect("/%s/%s/issues".format(owner, repository))
   })
 
-  get("/:owner/:repository/issues/label/edit")(writableRepository {
+  ajaxGet("/:owner/:repository/issues/label/edit")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
 
@@ -40,7 +40,7 @@ trait LabelsControllerBase extends ControllerBase {
       .map(issues.html.labeleditlist(getLabels(owner, repository), _)) getOrElse NotFound()
   })
 
-  get("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
+  ajaxGet("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val labelId    = params("labelId").toInt
@@ -50,7 +50,7 @@ trait LabelsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/issues/label/:labelId/edit", editForm)(writableRepository { form =>
+  ajaxPost("/:owner/:repository/issues/label/:labelId/edit", editForm)(writableRepository { form =>
     val owner      = params("owner")
     val repository = params("repository")
     val labelId    = params("labelId").toInt
@@ -61,7 +61,7 @@ trait LabelsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  get("/:owner/:repository/issues/label/:labelId/delete")(writableRepository {
+  ajaxGet("/:owner/:repository/issues/label/:labelId/delete")(writableRepository {
     val owner      = params("owner")
     val repository = params("repository")
     val labelId    = params("labelId").toInt

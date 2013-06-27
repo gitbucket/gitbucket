@@ -27,8 +27,50 @@ abstract class ControllerBase extends ScalatraFilter
     }
   }
 
-  protected def NotFound()     = html.error("Not Found")
-  protected def Unauthorized() = redirect("/")
+  def ajaxGet(path : String)(action : => Any) : Route = {
+    super.get(path){
+      request.setAttribute("AJAX", "true")
+      action
+    }
+  }
+
+  override def ajaxGet[T](path : String, form : MappingValueType[T])(action : T => Any) : Route = {
+    super.ajaxGet(path, form){ form =>
+      request.setAttribute("AJAX", "true")
+      action(form)
+    }
+  }
+
+  def ajaxPost(path : String)(action : => Any) : Route = {
+    super.post(path){
+      request.setAttribute("AJAX", "true")
+      action
+    }
+  }
+
+  override def ajaxPost[T](path : String, form : MappingValueType[T])(action : T => Any) : Route = {
+    super.ajaxPost(path, form){ form =>
+      request.setAttribute("AJAX", "true")
+      action(form)
+    }
+  }
+
+  protected def NotFound() = {
+    if(request.getAttribute("AJAX") == null){
+      org.scalatra.NotFound(html.error("Not Found"))
+    } else {
+      org.scalatra.NotFound()
+    }
+  }
+
+  // TODO redirect to the sign-in page if not logged in?
+  protected def Unauthorized() = {
+    if(request.getAttribute("AJAX") == null){
+      org.scalatra.Unauthorized(redirect("/"))
+    } else {
+      org.scalatra.Unauthorized()
+    }
+  }
 
   protected def baseUrl = {
     val url = request.getRequestURL.toString
