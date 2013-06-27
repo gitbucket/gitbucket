@@ -60,21 +60,12 @@ trait IssuesService {
   def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
                               filter: String, userName: Option[String]): Map[String, Int] = {
 
-    Issues
+    searchIssueQuery(owner, repository, condition.copy(labels = Set.empty), filter, userName)
       .innerJoin(IssueLabels).on { (t1, t2) =>
         (t1.userName is t2.userName) && (t1.repositoryName is t2.repositoryName) && (t1.issueId is t2.issueId)
       }
       .innerJoin(Labels).on { case ((t1, t2), t3) =>
         (t2.userName is t3.userName) && (t2.repositoryName is t3.repositoryName) && (t2.labelId is t3.labelId)
-      }
-      .filter { case ((t1, t2), t3) =>
-        (t1.userName         is owner.bind) &&
-        (t1.repositoryName   is repository.bind) &&
-        (t1.closed           is (condition.state == "closed").bind) &&
-        (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
-        (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
-        (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
-        (t1.openedUserName   is userName.get.bind, filter == "created_by")
       }
       .groupBy { case ((t1, t2), t3) =>
         t3.labelName
