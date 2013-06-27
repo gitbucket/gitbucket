@@ -1,3 +1,6 @@
+/****************************************************************************/
+/* Common */
+/****************************************************************************/
 table.global-nav {
   width: 920px;
   margin-bottom: 10px;
@@ -54,7 +57,7 @@ span.error {
   font-weight: bold;
 }
 
-a.commit-message, a.commit-id, a.username {
+a.commit-message, a.commit-id, a.username, a.issue-comment-count {
   color: #333333;
 }
 
@@ -78,37 +81,8 @@ span.count-right {
   font-family: monospace;
 }
 
-table.table-file-list {
-  margin-bottom: 0px;
-}
-
-table.table-file-list th, table.table-file-list td {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
-table.table-file-list td.latest-commit {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  background-color: white;
-}
-/*
-table.table {
-  margin-bottom: 10px;
-}
-*/
 table.table th {
   background-color: #d9edf7;
-}
-
-table.table-file-list td {
-  background-color: #F8F8F8;
-  font-size: small;
-}
-
-th, td, .table th, .table td {
-  padding-top: 4px;
-  padding-bottom: 4px;
 }
 
 div.block-header {
@@ -122,26 +96,8 @@ div.block {
   border-bottom: 1px solid silver;
 }
 
-pre.commit-description {
-  font-weight: normal;
-  border: none;
-  background-color: transparent;
-  padding: 2px;
-  margin: 0px;
-}
-
-h1.wiki-title {
-  margin-top: 0px;
-}
-
 h3 {
   margin-top: 0px;
-}
-
-#repository-url {
-  background-color: white;
-  cursor: default;
-  width: 350px;
 }
 
 div.box {
@@ -216,6 +172,48 @@ hr {
   margin-bottom: 4px;
 }
 
+/****************************************************************************/
+/* Repository Viewer */
+/****************************************************************************/
+table.table-file-list {
+  margin-bottom: 0px;
+}
+
+table.table-file-list th, table.table-file-list td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+table.table-file-list td.latest-commit {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  background-color: white;
+}
+
+table.table-file-list td {
+  background-color: #F8F8F8;
+  font-size: small;
+}
+
+th, td, .table th, .table td {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+pre.commit-description {
+  font-weight: normal;
+  border: none;
+  background-color: transparent;
+  padding: 2px;
+  margin: 0px;
+}
+
+#repository-url {
+  background-color: white;
+  cursor: default;
+  width: 350px;
+}
+
 ul#commit-file-list {
   list-style-type: none;
   padding-left: 0px;
@@ -227,25 +225,45 @@ ul#commit-file-list li.border {
   border-top: 1px solid #eee;
 }
 
-ul.collaborator {
-  list-style-type: none;
-  margin-left: 0px;
-}
-    
-ul.collaborator li {
-  background-color: #eee;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  padding: 6px;
-}
-    
-ul.collaborator li:hover {
-  background-color: #f8f8f8;
+/****************************************************************************/
+/* Issues */
+/****************************************************************************/
+table.table-issues {
+  margin-top: 12px;
 }
 
-ul.collaborator a.remove {
-  color: #dd0000;
-  text-decoration: underline;
+a.issue-title {
+  color: black;
+  font-weight: bold;
+  size: 110%;
+}
+
+ul.label-list {
+  list-style-type: none;
+  padding-left: 0px;
+  margin-left: 0px;
+  font-size: 90%;
+}
+
+ul.label-list a {
+  padding-left: 6px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+span.label-color {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
+
+a#clear-filter {
+  display: block;
+  color: #444;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 a.milestone-title {
@@ -298,6 +316,40 @@ span.milestone-percentage {
   padding-left: 8px;
 }
 
+/****************************************************************************/
+/* Wiki */
+/****************************************************************************/
+h1.wiki-title {
+  margin-top: 0px;
+}
+
+/****************************************************************************/
+/* Repository Settings */
+/****************************************************************************/
+ul.collaborator {
+  list-style-type: none;
+  margin-left: 0px;
+}
+    
+ul.collaborator li {
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 6px;
+}
+    
+ul.collaborator li:hover {
+  background-color: #f8f8f8;
+}
+
+ul.collaborator a.remove {
+  color: #dd0000;
+  text-decoration: underline;
+}
+
+/****************************************************************************/
+/* Markdown */
+/****************************************************************************/
 div.markdown-body table {
   /*width: 100%;*/
   margin-bottom: 20px;
