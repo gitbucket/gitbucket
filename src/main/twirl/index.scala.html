@@ -1,14 +1,14 @@
 @(repositories: List[service.RepositoryService.RepositoryInfo])(implicit context: app.Context)
 @import context._
-@import view.helpers
+@import view.helpers._
 @main("GitBucket"){
   <h3>Recent updated repositories</h3>
   @repositories.map { repository =>
     <div class="block">
       <div class="block-header-2">
-        <a href="@path/@repository.owner">@repository.owner</a>
+        <a href="@url(repository.owner)">@repository.owner</a>
         /
-        <a href="@path/@repository.owner/@repository.name">@repository.name</a>
+        <a href="@url(repository)">@repository.name</a>
         @if(repository.repository.isPrivate){
           <i class="icon-lock"></i>
         }
@@ -16,7 +16,7 @@
       @if(repository.repository.description.isDefined){
         <div>@repository.repository.description</div>
       }
-      <div><span class="muted small">Last updated: @helpers.datetime(repository.repository.lastActivityDate)</span></div>
+      <div><span class="muted small">Last updated: @datetime(repository.repository.lastActivityDate)</span></div>
     </div>
   }
 }

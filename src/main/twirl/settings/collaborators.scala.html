@@ -1,5 +1,6 @@
 @(collaborators: List[String], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @html.main("Settings"){
   @html.header("settings", repository)
   @menu("collaborators", repository){
@@ -7,12 +8,12 @@
     <ul class="collaborator">
       @collaborators.map { collaboratorName =>
         <li>
-          <a href="@path/@collaboratorName">@collaboratorName</a>
-          <a href="@path/@repository.owner/@repository.name/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
+          <a href="@url(collaboratorName)">@collaboratorName</a>
+          <a href="@url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
         </li>
       }
     </ul>
-    <form method="POST" action="@path/@repository.owner/@repository.name/settings/collaborators/add" validate="true">
+    <form method="POST" action="@url(repository)/settings/collaborators/add" validate="true">
       <div>
         <span class="error" id="error-userName"></span>
       </div>
@@ -24,7 +25,7 @@
 <script>
 $('#userName').typeahead({
   source: function (query, process) {
-    return $.get('@path/@repository.owner/@repository.name/settings/collaborators/proposals', { query: query },
+    return $.get('@url(repository)/settings/collaborators/proposals', { query: query },
       function (data) {
         return process(data.options);
       });

@@ -1,6 +1,6 @@
 @(pageName: String, page: service.WikiService.WikiPageInfo, repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
-@import view.helpers
 @import context._
+@import view.helpers._
 @html.main(pageName + " - " + repository.owner + "/" + repository.name){
   @html.header("wiki", repository)
   @wikitab((if(pageName == "Home") "home" else ""), repository)
@@ -11,22 +11,20 @@
     <li class="pull-right">
       <div class="btn-group">
         @if(isWritable){
-          <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
-          <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_edit">Edit Page</a>
+          <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
+          <a class="btn" href="@url(repository)/wiki/@pageName/_edit">Edit Page</a>
         }
-        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_history">Page History</a>
+        <a class="btn" href="@url(repository)/wiki/@pageName/_history">Page History</a>
       </div>
     </li>
   </ul>
   <div class="markdown-body">
-    @helpers.markdown(page.content, repository, true, false, false)
+    @markdown(page.content, repository, true, false, false)
   </div>
   <div class="small">
-    <span class="muted">Last edited by @page.committer at @helpers.datetime(page.time)</span>
+    <span class="muted">Last edited by @page.committer at @datetime(page.time)</span>
   </div>
 }
-<link  href="@path/assets/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
-<script src="@path/assets/google-code-prettify/prettify.js"></script>
 <script>
   $(function(){ prettyPrint(); });
 </script>

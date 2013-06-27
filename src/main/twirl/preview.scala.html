@@ -1,13 +1,16 @@
 @(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean,
   enableCommitLink: Boolean, enableIssueLink: Boolean, style: String = "", placeholder: String = "Leave a comment")(implicit context: app.Context)
 @import context._
+@import view.helpers._
 <div class="tabbable">
   <ul class="nav nav-tabs">
     <li class="active"><a href="#tab1" data-toggle="tab">Write</a></li>
     <li><a href="#tab2" data-toggle="tab" id="preview">Preview</a></li>
+    @*
     <li class="pull-right">
       <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown Syntax Guide</a>
     </li>
+    *@
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" id="tab1">
@@ -20,13 +23,13 @@
     </div>
   </div>
 </div>
-<link  href="@path/assets/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
-<script src="@path/assets/google-code-prettify/prettify.js"></script>
+<link  href="@assets/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
+<script src="@assets/google-code-prettify/prettify.js"></script>
 <script>
 $(function(){
   $('#preview').click(function(){
-    $('#preview-area').html('<img src="@path/assets/common/images/indicator.gif"> Previewing...');
-    $.post('@path/@repository.owner/@repository.name/_preview', {
+    $('#preview-area').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
+    $.post('@url(repository)/_preview', {
       content          : $('#content').val(),
       enableWikiLink   : @enableWikiLink,
       enableCommitLink : @enableCommitLink,

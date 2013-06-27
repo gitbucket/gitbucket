@@ -1,6 +1,6 @@
 @(state: String, milestones: List[(model.Milestone, Int, Int)], repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
 @import context._
-@import view.helpers
+@import view.helpers._
 @html.main("Milestones - " + repository.owner + "/" + repository.name){
   @html.header("milestones", repository)
   @issuestab("milestones", repository)
@@ -22,7 +22,7 @@
       </ul>
       @if(isWritable){
         <hr>
-        <a href="@path/@repository.owner/@repository.name/issues/milestones/new" class="btn btn-block">Create a new milestone</a>
+        <a href="@url(repository)/issues/milestones/new" class="btn btn-block">Create a new milestone</a>
       }
     </div>
     <div class="span9">
@@ -35,12 +35,12 @@
             <td>
               <div class="milestone row-fluid">
                 <div class="span4">
-                  <a href="@path/@repository.owner/@repository.name/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a><br>
+                  <a href="@url(repository)/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a><br>
                   @if(milestone.closedDate.isDefined){
-                    <span class="muted">Closed @helpers.datetime(milestone.closedDate.get)</span>
+                    <span class="muted">Closed @datetime(milestone.closedDate.get)</span>
                   } else {
                     @if(milestone.dueDate.isDefined){
-                      <span class="muted">Due in @helpers.date(milestone.dueDate.get)</span>
+                      <span class="muted">Due in @date(milestone.dueDate.get)</span>
                     } else {
                       <span class="muted">No due date</span>
                     }
@@ -50,15 +50,15 @@
                   <div class="milestone-menu">
                     <div class="pull-right">
                       @if(isWritable){
-                        <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/edit">Edit
+                        <a href="@url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit
                         @if(milestone.closedDate.isDefined){
-                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/open">Open</a>
+                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a>
                         } else {
-                          <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/close">Close</a>
+                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a>
                         }
-                        <a href="@path/@repository.owner/@repository.name/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
+                        <a href="@url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                       }
-                      <a href="@path/@repository.owner/@repository.name/issues?milestone=@milestone.milestoneId&state=open">Browse issues</a>
+                      <a href="@url(repository)/issues?milestone=@milestone.milestoneId&state=open">Browse issues</a>
                     </div>
                     <span class="muted">@closedCount closed - @openCount open</span>
                   </div>
@@ -78,7 +78,7 @@
               </div>
               @if(milestone.description.isDefined){
                 <div class="milestone-description">
-                  @helpers.markdown(milestone.description.get, repository, false, false, false)
+                  @markdown(milestone.description.get, repository, false, false, false)
                 </div>
               }
             </td>
@@ -89,7 +89,7 @@
             <td style="padding: 20px; background-color: #eee; text-align: center;">
               No milestones to show.
               @if(isWritable){
-                <a href="@path/@repository.owner/@repository.name/issues/milestones/new">Create a new milestone.</a>
+                <a href="@url(repository)/issues/milestones/new">Create a new milestone.</a>
               }
             </td>
           </tr>

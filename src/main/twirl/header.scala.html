@@ -1,7 +1,8 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 <div class="head">
-  <a href="@path/@repository.owner">@repository.owner</a> / <a href="@path/@repository.owner/@repository.name">@repository.name</a>
+  <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)">@repository.name</a>
   @if(repository.repository.isPrivate){
     <i class="icon-lock"></i>
   }
@@ -9,17 +10,17 @@
 <table class="global-nav box-header">
   <tr>
     <th class="box-header@if(active=="code"){ active}">
-      <a href="@path/@repository.owner/@repository.name">Code</a>
+      <a href="@url(repository)">Code</a>
     </th>
     <th class="box-header@if(active=="issues"){ active}">
-      <a href="@path/@repository.owner/@repository.name/issues">Issues</a>
+      <a href="@url(repository)/issues">Issues</a>
     </th>
     <th class="box-header@if(active=="wiki"){ active}">
-      <a href="@path/@repository.owner/@repository.name/wiki">Wiki</a>
+      <a href="@url(repository)/wiki">Wiki</a>
     </th>
     @if(loginAccount.isDefined && (loginAccount.get.isAdmin || loginAccount.get.userName == repository.owner)){
     <th class="box-header@if(active=="settings"){ active}">
-      <a href="@path/@repository.owner/@repository.name/settings">Settings</a>
+      <a href="@url(repository)/settings">Settings</a>
     </th>
     }
   </tr>  

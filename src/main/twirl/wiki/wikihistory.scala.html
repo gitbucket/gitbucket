@@ -1,6 +1,6 @@
 @(pageName: Option[String], commits: List[util.JGitUtil.CommitInfo], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
-@import view.helpers
 @import context._
+@import view.helpers._
 @html.main("History - " + repository.owner + "/" + repository.name){
   @html.header("wiki", repository)
   @wikitab(if(pageName.isEmpty) "history" else "", repository)
@@ -18,12 +18,12 @@
       <div class="btn-group">
         @if(pageName.isEmpty){
           @if(loginAccount.isDefined){
-            <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_new">New Page</a>
+            <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
           }
         } else {
-          <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName">View Page</a>
+          <a class="btn" href="@url(repository)/wiki/@pageName">View Page</a>
           @if(loginAccount.isDefined){
-            <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_edit">Edit Page</a>
+            <a class="btn" href="@url(repository)/wiki/@pageName/_edit">Edit Page</a>
           }
         }
       </div>
@@ -33,9 +33,9 @@
     @commits.map { commit =>
       <tr>
         <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
-        <td><a href="@path/@commit.committer">@commit.committer</a></td>
+        <td><a href="@url(commit.committer)">@commit.committer</a></td>
         <td width="80%">
-          <span class="muted">@helpers.datetime(commit.time):</span>
+          <span class="muted">@datetime(commit.time):</span>
           @commit.shortMessage
         </td>
       </tr>
@@ -53,10 +53,10 @@
       var e = $('input[name=commitId]:checked');
       if(e.length == 2){
         @if(pageName.isEmpty){
-          location.href = '@path/@repository.owner/@repository.name/wiki/_compare/' + 
+          location.href = '@url(repository)/wiki/_compare/' +
             $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
         } else {
-          location.href = '@path/@repository.owner/@repository.name/wiki/@pageName.get/_compare/' + 
+          location.href = '@url(repository)/wiki/@pageName.get/_compare/' +
             $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
         }
       }

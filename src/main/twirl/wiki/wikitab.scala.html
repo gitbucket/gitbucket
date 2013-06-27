@@ -1,9 +1,10 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 <ul class="nav nav-tabs">
-  <li@if(active == "home"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki">Home</a></li>
-  <li@if(active == "pages"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki/_pages">Pages</a></li>
-  <li@if(active == "history"){ class="active"}><a href="@path/@repository.owner/@repository.name/wiki/_history">Wiki History</a></li>
+  <li@if(active == "home"){ class="active"}><a href="@url(repository)/wiki">Home</a></li>
+  <li@if(active == "pages"){ class="active"}><a href="@url(repository)/wiki/_pages">Pages</a></li>
+  <li@if(active == "history"){ class="active"}><a href="@url(repository)/wiki/_history">Wiki History</a></li>
   <li class="pull-right">
     <div class="input-prepend">
       <span class="add-on">HTTP</span>

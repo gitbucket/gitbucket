@@ -1,9 +1,10 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @html.main("Settings"){
   @html.header("settings", repository)
   @menu("options", repository){
-    <form id="form" method="post" action="@path/@repository.owner/@repository.name/settings/options" validate="true">
+    <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
       <div class="box">
         <div class="box-header">Settings</div>
         <div class="box-content">
@@ -66,10 +67,7 @@
       </div>
       *@
       <fieldset>
-        <input type="submit" class="btn btn-primary" value="Apply changes"/>
-        <!--
-        <input type="submit" class="btn btn-danger" value="Delete this repository"/>
-        -->
+        <input type="submit" class="btn btn-success" value="Apply changes"/>
       </fieldset>
     </form>
   }

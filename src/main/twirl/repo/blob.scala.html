@@ -1,16 +1,16 @@
 @(branch: String, repository: service.RepositoryService.RepositoryInfo, pathList: List[String], content: util.JGitUtil.ContentInfo, latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
 @import context._
-@import view.helpers
+@import view.helpers._
 @html.main(repository.owner+"/"+repository.name) {
   @html.header("code", repository)
   @navtab(branch, repository, "files")
   <div class="head">
-    <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
+    <a href="@url(repository)/tree/@branch">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>
       @if(i == pathList.length - 1){
         @section
       } else {
-        <a href="@path/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
+        <a href="@url(repository)/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
       }
     }
   </div>
@@ -19,20 +19,20 @@
     <tr>
       <th style="font-weight: normal;">
         <div class="pull-left">
-          <a href="@path/@latestCommit.committer" class="username strong">@latestCommit.committer</a>
-          <span class="muted">@helpers.datetime(latestCommit.time)</span>
-          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
+          <a href="@url(latestCommit.committer)" class="username strong">@latestCommit.committer</a>
+          <span class="muted">@datetime(latestCommit.time)</span>
+          <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
         </div>
         <div class="btn-group pull-right">
           <a class="btn btn-mini" href="?raw=true">Raw</a>
-          <a class="btn btn-mini" href="@path/@repository.owner/@repository.name/commits/@branch/@pathList.mkString("/")">History</a>
+          <a class="btn btn-mini" href="@url(repository)/commits/@branch/@pathList.mkString("/")">History</a>
         </div>  
       </th>
     </tr>
     <tr>
       <td>
         @if(content.viewType == "text"){
-        <pre class="prettyprint linenums">@content.content.get</pre>
+        <pre class="prettyprint linenums blob">@content.content.get</pre>
         }
         @if(content.viewType == "image"){
         <img src="?raw=true"/>
@@ -46,26 +46,4 @@
       </td>
     </tr>
   </table>
-  
-  <link  href="@path/assets/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
-  <script src="@path/assets/google-code-prettify/prettify.js"></script>
-  <style type="text/css">
-  li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9 {
-    list-style-type: decimal;
-    background: white;
-  }
-
-  li.L1, li.L3, li.L5, li.L7, li.L9 {
-    background: #f5f5f5;
-  }
-
-  pre.prettyprint {
-    border: none;
-    background-color: white;
-    padding-left: 20px;
-  }
-  </style>
-  <script>
-  $(function(){ prettyPrint(); });
-  </script>
 }

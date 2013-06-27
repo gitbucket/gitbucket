@@ -1,6 +1,6 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
-@import view.helpers
+@import view.helpers._
 @html.main(repository.owner + "/" + repository.name) {
   @html.header("code", repository)
   @navtab("master", repository, "tags") @* TODO DON'T display branch pulldown *@
@@ -14,10 +14,10 @@
     </tr>
     @repository.tags.map { tag =>
       <tr>
-        <td><a href="@path/@repository.owner/@repository.name/tree/@tag.name">@tag.name</a></td>
-        <td>@helpers.datetime(tag.time)</td>
-        <td class="monospace"><a href="@path/@repository.owner/@repository.name/commit/@tag.id">@tag.id.substring(0, 10)</a></td>
-        <td><a href="@path/@repository.owner/@repository.name/archive/@(tag.name).zip">ZIP</a></td>
+        <td><a href="@url(repository)/tree/@tag.name">@tag.name</a></td>
+        <td>@datetime(tag.time)</td>
+        <td class="monospace"><a href="@url(repository)/commit/@tag.id">@tag.id.substring(0, 10)</a></td>
+        <td><a href="@url(repository)/archive/@(tag.name).zip">ZIP</a></td>
       </tr>
     }
   </table>

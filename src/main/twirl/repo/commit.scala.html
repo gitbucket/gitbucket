@@ -1,6 +1,6 @@
 @(commitId: String, commit: util.JGitUtil.CommitInfo, branches: List[String], tags: List[String], repository: service.RepositoryService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
 @import context._
-@import view.helpers
+@import view.helpers._
 @import util.Implicits._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main(commit.shortMessage){
@@ -10,26 +10,26 @@
     <tr>
       <th>
         <div class="pull-right align-right">
-          <a href="@path/@repository.owner/@repository.name/tree/@commit.id" class="btn btn-small">Browse code</a>
+          <a href="@url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
         </div>
-        <div class="commit-log">@helpers.link(commit.summary, repository)</div>
+        <div class="commit-log">@link(commit.summary, repository)</div>
         @if(commit.description.isDefined){
-          <pre class="commit-description">@helpers.link(commit.description.get, repository)</pre>
+          <pre class="commit-description">@link(commit.description.get, repository)</pre>
         }
         <div class="small" style="font-weight: normal;">
           @if(branches.nonEmpty){
             <span class="muted">
-              <img src="@path/assets/common/images/branch.png"/>
+              <img src="@assets/common/images/branch.png"/>
               @branches.zipWithIndex.map { case (branch, i) =>
-                <a href="@path/@repository.owner/@repository.name/tree/@branch" class="branch" id="branch-@i">@branch</a>
+                <a href="@url(repository)/tree/@branch" class="branch" id="branch-@i">@branch</a>
               }
             </span>
           }
           @if(tags.nonEmpty){
             <span class="muted">
-              <img src="@path/assets/common/images/tag.png"/>
+              <img src="@assets/common/images/tag.png"/>
               @tags.zipWithIndex.map { case (tag, i) =>
-                <a href="@path/@repository.owner/@repository.name/tree/@tag" class="tag" id="tag-@i">@tag</a>
+                <a href="@url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
               }
             </span>
           }
@@ -38,7 +38,7 @@
     </tr>
     <tr>
       <td>
-        <a href="@path/@commit.committer" class="username strong">@commit.committer</a> <span class="muted">@helpers.datetime(commit.time)</span>
+        <a href="@url(commit.committer)" class="username strong">@commit.committer</a> <span class="muted">@datetime(commit.time)</span>
         <div class="pull-right monospace small" style="text-align: right;">
           <div>
             @if(commit.parents.size == 0){
@@ -46,7 +46,7 @@
             }
             @if(commit.parents.size == 1){
               <span class="muted">1 parent</span>
-              <a href="@path/@repository.owner/@repository.name/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
+              <a href="@url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
             }
             <span class="muted">commit</span> @commit.id
           </div>
@@ -54,7 +54,7 @@
             <div>
               <span class="muted">@commit.parents.size parents
               @commit.parents.map { parent =>
-                <a href="@path/@repository.owner/@repository.name/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
+                <a href="@url(repository)/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
               }.mkHtml(" + ")
               </span>
             </div>
@@ -78,16 +78,16 @@
     <li@if(i > 0){ class="border"}>
       <a href="#diff-@i">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@path/assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
         }
         @if(diff.changeType == ChangeType.ADD){
-          <img src="@path/assets/common/images/diff_add.png"/> @diff.newPath
+          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
         }
         @if(diff.changeType == ChangeType.MODIFY){
-          <img src="@path/assets/common/images/diff_edit.png"/> @diff.newPath
+          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
         }
         @if(diff.changeType == ChangeType.DELETE){
-          <img src="@path/assets/common/images/diff_delete.png"/> @diff.oldPath
+          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
         }
       </a>
     </li>

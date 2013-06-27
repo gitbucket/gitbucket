@@ -27,6 +27,22 @@ object helpers {
   }
 
   /**
+   * Generates the url to the repository.
+   */
+  def url(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String =
+    "%s/%s/%s".format(context.path, repository.owner, repository.name)
+
+  /**
+   * Generates the url to the account page.
+   */
+  def url(userName: String)(implicit context: app.Context): String = "%s/%s".format(context.path, userName)
+
+  /**
+   * Returns the url to the root of assets.
+   */
+  def assets(implicit context: app.Context): String = "%s/assets".format(context.path)
+
+  /**
    * Converts issue id and commit id to link.
    */
   def link(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =

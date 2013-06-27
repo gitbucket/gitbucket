@@ -1,35 +1,35 @@
 @(branch: String, repository: service.RepositoryService.RepositoryInfo, pathList: List[String], latestCommit: util.JGitUtil.CommitInfo, files: List[util.JGitUtil.FileInfo], readme: Option[String])(implicit context: app.Context)
 @import context._
-@import view.helpers
+@import view.helpers._
 @html.main(repository.owner + "/" + repository.name) {
   @html.header("code", repository)
   @navtab(branch, repository, "files")
   <div class="head">
-    <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
+    <a href="@url(repository)/tree/@branch">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>
-      <a href="@path/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
+      <a href="@url(repository)/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
     }
   </div>
   <div class="box">
     <table class="table table-file-list" style="border: 1px solid silver;">
       <tr>
         <th colspan="4" style="font-weight: normal;">
-          <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
+          <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
           @if(latestCommit.description.isDefined){
             <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
           }
           @if(latestCommit.description.isDefined){
-            <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@helpers.link(latestCommit.description.get, repository)</pre>
+            <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@link(latestCommit.description.get, repository)</pre>
           }
         </th>
       </tr>
       <tr>
         <td colspan="4" class="latest-commit">
           <div>
-            <a href="@path/@repository.owner/@repository.name/@latestCommit.committer" class="username strong">@latestCommit.committer</a>
-            <span class="muted">@helpers.datetime(latestCommit.time)</span>
+            <a href="@url(latestCommit.committer)" class="username strong">@latestCommit.committer</a>
+            <span class="muted">@datetime(latestCommit.time)</span>
             <div class="pull-right align-right monospace">
-              <a href="@path/@repository.owner/@repository.name/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
+              <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
             </div>
           </div>
         </td>
@@ -37,7 +37,7 @@
       @if(pathList.size > 0){
       <tr>
         <td width="16"></td>
-        <td><a href="@path/@repository.owner/@repository.name@if(pathList.size > 1){/tree/@branch/@pathList.init.mkString("/")}">..</a></td>
+        <td><a href="@url(repository)@if(pathList.size > 1){/tree/@branch/@pathList.init.mkString("/")}">..</a></td>
         <td></td>
         <td></td>
       </tr>
@@ -46,20 +46,20 @@
       <tr>
         <td width="16">
         @if(file.isDirectory){
-          <img src="@path/assets/common/images/folder.png"/>
+          <img src="@assets/common/images/folder.png"/>
         } else {
-          <img src="@path/assets/common/images/file.png"/>
+          <img src="@assets/common/images/file.png"/>
         }
         </td>
         <td>
         @if(file.isDirectory){
-          <a href="@path/@repository.owner/@repository.name/tree@{(branch :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+          <a href="@url(repository)/tree@{(branch :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
         } else {
-          <a href="@path/@repository.owner/@repository.name/blob@{(branch :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+          <a href="@url(repository)/blob@{(branch :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
         }
         </td>
-        <td>@helpers.datetime(file.time)</td>
-        <td><a href="@path/@repository.owner/@repository.name/commit/@file.commitId" class="commit-message">@helpers.link(file.message, repository)</a> [<a href="@path/@file.committer">@file.committer</a>]</td>
+        <td>@datetime(file.time)</td>
+        <td><a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a> [<a href="@url(file.committer)">@file.committer</a>]</td>
       </tr>
       }
     </table>
@@ -68,7 +68,7 @@
   @readme.map { content =>
   <div class="box">
     <div class="box-header">README.md</div>
-    <div class="box-content">@helpers.markdown(content, repository, false, false, false)</div>
+    <div class="box-content">@markdown(content, repository, false, false, false)</div>
   </div>
   }
 }

@@ -5,7 +5,7 @@
   @html.header("issues", repository)
   @issuestab("issues", repository)
   <ul class="nav nav-tabs">
-    <li class="pull-left"><a href="@path/@repository.owner/@repository.name/issues"><i class="icon-arrow-left"></i> Back to issue list</a></li>
+    <li class="pull-left"><a href="@url(repository)/issues"><i class="icon-arrow-left"></i> Back to issue list</a></li>
     <li class="pull-right">Issue #@issue.issueId</li>
   </ul>
   <div class="row-fluid">
@@ -13,7 +13,7 @@
       <div class="box">
         <div class="box-content">
           <span class="pull-right"><a class="btn btn-small" href="#" id="edit">Edit</a></span>
-          <div class="small"><a href="@path/@issue.openedUserName">@issue.openedUserName</a> opened this issue @datetime(issue.registeredDate)</div>
+          <div class="small"><a href="@url(issue.openedUserName)">@issue.openedUserName</a> opened this issue @datetime(issue.registeredDate)</div>
           <h4 id="issueTitle">@issue.title</h4>
         </div>
         <div class="box-content" style="background-color: #f5f5f5;" id="issueContent">
@@ -23,7 +23,7 @@
       @comments.map { comment =>
       <div class="box" id="comment-@comment.commentId">
         <div class="box-header-small">
-          <a href="@path/@comment.commentedUserName">@comment.commentedUserName</a> commented
+          <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> commented
           <span class="pull-right">
             @datetime(comment.registeredDate)
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
@@ -34,7 +34,7 @@
         </div>
       </div>
       }
-      <form action="@path/@repository.owner/@repository.name/issue_comments" method="POST" validate="true">
+      <form action="@url(repository)/issue_comments" method="POST" validate="true">
       <div class="box">
         <div class="box-content">
           @html.preview(repository, "", false, true, true, "width: 730px; height: 100px;")
@@ -59,7 +59,7 @@
 <script>
 $(function(){
   $('#edit').click(function(){
-    $.get('@path/@repository.owner/@repository.name/issues/_data/@issue.issueId',
+    $.get('@url(repository)/issues/_data/@issue.issueId',
     {
       dataType : 'html'
     },
@@ -71,7 +71,7 @@ $(function(){
 
   $('i.icon-pencil').click(function(){
     var id = $(this).closest('a').data('comment-id');
-    $.get('@path/@repository.owner/@repository.name/issue_comments/_data/' + id,
+    $.get('@url(repository)/issue_comments/_data/' + id,
     {
       dataType : 'html'
     },

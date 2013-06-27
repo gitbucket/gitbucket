@@ -1,9 +1,10 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @html.main("Delete Repository"){
   @html.header("settings", repository)
   @menu("delete", repository){
-    <form id="form" method="post" action="@path/@repository.owner/@repository.name/settings/delete">
+    <form id="form" method="post" action="@url(repository)/settings/delete">
       <h3>Delete repository</h3>
       <p>
         Once you delete a repository, there is no going back.

@@ -1,6 +1,6 @@
 @(pageName: Option[String], diffs: Seq[util.JGitUtil.DiffInfo], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
-@import view.helpers
 @import context._
+@import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main("Compare Revisions - " + repository.owner + "/" + repository.name){
   @html.header("wiki", repository)
@@ -12,10 +12,10 @@
     <li class="pull-right">
       <div class="btn-group">
       @if(pageName.isDefined){
-        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName">View Page</a>
-        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/@pageName/_history">Back to Page History</a>
+        <a class="btn" href="@url(repository)/wiki/@pageName">View Page</a>
+        <a class="btn" href="@url(repository)/wiki/@pageName/_history">Back to Page History</a>
       } else {
-        <a class="btn" href="@path/@repository.owner/@repository.name/wiki/_history">Back to Wiki History</a>
+        <a class="btn" href="@url(repository)/wiki/_history">Back to Wiki History</a>
       }
       </div>
     </li>

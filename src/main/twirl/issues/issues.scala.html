@@ -11,20 +11,20 @@
     <div class="span3">
       <ul class="nav nav-pills nav-stacked">
         <li@if(filter == "all"){ class="active"}>
-          <a href="@path/@repository.owner/@repository.name/issues@condition.toURL">
+          <a href="@url(repository)/issues@condition.toURL">
             <span class="count-right">@allCount</span>
             Everyone's Issues
           </a>
         </li>
         @if(loginAccount.isDefined){
         <li@if(filter == "assigned"){ class="active"}>
-          <a href="@path/@repository.owner/@repository.name/issues/assigned/@loginAccount.map(_.userName)@condition.toURL">
+          <a href="@url(repository)/issues/assigned/@loginAccount.map(_.userName)@condition.toURL">
             <span class="count-right">@assignedCount</span>
             Assigned to you
           </a>
         </li>
         <li@if(filter == "created_by"){ class="active"}>
-          <a href="@path/@repository.owner/@repository.name/issues/created_by/@loginAccount.map(_.userName)@condition.toURL">
+          <a href="@url(repository)/issues/created_by/@loginAccount.map(_.userName)@condition.toURL">
             <span class="count-right">@createdByCount</span>
             Created by you
           </a>
@@ -129,18 +129,18 @@
       @issues.map { case (issue, labels, commentCount) =>
         <tr>
           <td>
-            <a href="@path/@repository.owner/@repository.name/issues/@issue.issueId" class="issue-title">@issue.title</a>
+            <a href="@url(repository)/issues/@issue.issueId" class="issue-title">@issue.title</a>
             @labels.map { label =>
               <span class="label-color" style="background-color: #@label.color; color: #@label.fontColor;">@label.labelName</span>
             }
             <span class="pull-right muted">#@issue.issueId</span>
             <div class="small muted">
-              Opened by <a href="@path/@repository.owner" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
+              Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
               @if(commentCount == 1){
-                <i class="icon-comment"></i><a href="@path/@repository.owner/@repository.name/issues/@issue.issueId" class="issue-comment-count">1 comment</a>
+                <i class="icon-comment"></i><a href="@url(repository)/issues/@issue.issueId" class="issue-comment-count">1 comment</a>
               }
               @if(commentCount > 1){
-                <i class="icon-comment"></i><a href="@path/@repository.owner/@repository.name/issues/@issue.issueId" class="issue-comment-count">@commentCount comments</a>
+                <i class="icon-comment"></i><a href="@url(repository)/issues/@issue.issueId" class="issue-comment-count">@commentCount comments</a>
               }
             </div>
           </td>
@@ -153,7 +153,7 @@
             @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
               <a href="@condition.copy(labels = Set.empty, milestoneId = None).toURL">Clear active filters.</a>
             } else {
-              <a href="@path/@repository.owner/@repository.name/issues/new">Create a new issue.</a>
+              <a href="@url(repository)/issues/new">Create a new issue.</a>
             }
           </td>
         </tr>
@@ -170,10 +170,10 @@
 $(function(){
   $('#manageLabel').click(function(){
     if($(this).data('toggle-state')){
-      location.href = '@path/@repository.owner/@repository.name/issues';
+      location.href = '@url(repository)/issues';
     } else {
       $(this).data('toggle-state', 'on');
-      $.get('@path/@repository.owner/@repository.name/issues/label/edit', function(data){
+      $.get('@url(repository)/issues/label/edit', function(data){
         $('#label-list').parent().empty().html(data);
       });
     }

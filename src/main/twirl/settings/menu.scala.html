@@ -1,16 +1,17 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 <div class="row-fluid">
   <div class="span3">
     <ul class="nav nav-tabs nav-stacked">
       <li@if(active=="options"){ class="active"}>
-        <a href="@path/@repository.owner/@repository.name/settings/options">Options</a>
+        <a href="@url(repository)/settings/options">Options</a>
       </li>
       <li@if(active=="collaborators"){ class="active"}>
-        <a href="@path/@repository.owner/@repository.name/settings/collaborators">Collaborators</a>
+        <a href="@url(repository)/settings/collaborators">Collaborators</a>
       </li>
       <li@if(active=="delete"){ class="active"}>
-        <a href="@path/@repository.owner/@repository.name/settings/delete">Delete Repository</a>
+        <a href="@url(repository)/settings/delete">Delete Repository</a>
       </li>
    </ul>
   </div>

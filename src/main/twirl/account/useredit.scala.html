@@ -1,7 +1,8 @@
 @(account: model.Account)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @html.main(account.userName){
-  <form action="@path/@account.userName/_edit" method="POST" validate="true">
+  <form action="@url(account.userName)/_edit" method="POST" validate="true">
     <fieldset>
       <label><strong>Mail Address</strong></label>
       <input type="text" name="mailAddress" id="mailAddress" value="@account.mailAddress"/>
@@ -13,8 +14,8 @@
       <span id="error-url" class="error"></span>
     </fieldset>
     <fieldset>
-      <input type="submit" class="btn btn-primary" value="Save"/>
-      <a href="@path/@account.userName" class="btn">Cancel</a>
+      <input type="submit" class="btn btn-success" value="Save"/>
+      <a href="@url(account.userName)" class="btn">Cancel</a>
     </fieldset>
   </form>
 }

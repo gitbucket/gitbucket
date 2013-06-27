@@ -1,12 +1,13 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import view.helpers._
 @html.main("New Issue - " + repository.owner + "/" + repository.name){
   @html.header("issues", repository)
   @issuestab("", repository)
 
   <div class="row-fluid">
     <div class="span9">
-      <form action="@path/@repository.owner/@repository.name/issues" method="POST" validate="true">
+      <form action="@url(repository)/issues" method="POST" validate="true">
       <div class="box">
         <div class="box-content">
           <span id="error-title" class="error"></span>

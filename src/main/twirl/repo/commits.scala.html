@@ -1,51 +1,50 @@
 @(pathList: List[String], branch: String, repository: service.RepositoryService.RepositoryInfo, commits: Seq[Seq[util.JGitUtil.CommitInfo]], page: Int, hasNext: Boolean)(implicit context: app.Context)
 @import context._
-@import view.helpers
+@import view.helpers._
 @html.main(repository.owner+"/"+repository.name) {
   @html.header("code", repository)
   @navtab(branch, repository, if(pathList.isEmpty) "commits" else "files")
   <div class="head">
     @if(pathList.isEmpty){
-      <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> / Commit History
+      <a href="@url(repository)/tree/@branch">@repository.name</a> / Commit History
     }
     @if(pathList.nonEmpty){
       <span class="muted">History for</span>
-      <a href="@path/@repository.owner/@repository.name/tree/@branch">@repository.name</a> /
+      <a href="@url(repository)/tree/@branch">@repository.name</a> /
       @pathList.zipWithIndex.map { case (section, i) =>
         @if(i == pathList.length - 1){
           @section
         } else {
-          <a href="@path/@repository.owner/@repository.name/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
+          <a href="@url(repository)/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
       }
     }
   </div>
-      
-  @commits.map { date =>
+  @commits.map { day =>
     <table class="table table-bordered">
       <tr>
-        <th>@helpers.date(date.head.time)</th>
+        <th>@date(day.head.time)</th>
       </tr>
-      @date.map { commit =>
+      @day.map { commit =>
       <tr>
         <td>
           <div class="pull-left">
-            <a href="@path/@repository.owner/@repository.name/commit/@commit.id" class="commit-message" style="font-weight: bold;">@helpers.link(commit.summary, repository)</a>
+            <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
             @if(commit.description.isDefined){
               <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
             }
             <br>
             @if(commit.description.isDefined){
-              <pre id="description-@commit.id" style="display: none;" class="commit-description">@helpers.link(commit.description.get, repository)</pre>
+              <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
             }
             <div class="small">
-              <a href="@path/@commit.committer" class="username">@commit.committer</a>
-              <span class="muted">@helpers.datetime(commit.time)</span>
+              <a href="@url(commit.committer)" class="username">@commit.committer</a>
+              <span class="muted">@datetime(commit.time)</span>
             </div>
           </div>
           <div class="pull-right align-right">
-            <a href="@path/@repository.owner/@repository.name/commit/@commit.id" class="btn btn-small monospace">@commit.id.substring(0, 10)</a><br>
-            <a href="@path/@repository.owner/@repository.name/tree/@commit.id" class="small">Browse code</a>
+            <a href="@url(repository)/commit/@commit.id" class="btn btn-small monospace">@commit.id.substring(0, 10)</a><br>
+            <a href="@url(repository)/tree/@commit.id" class="small">Browse code</a>
           </div>
         </td>
       </tr>
