@@ -127,12 +127,12 @@
             }
             <span class="pull-right muted">#@issue.issueId</span>
             <div class="small muted">
-              Opened by <a href="@path/@repository.owner" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)
+              Opened by <a href="@path/@repository.owner" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
               @if(commentCount == 1){
-                <i class="icon-comment"></i> 1 comment
+                <i class="icon-comment"></i><a href="@path/@repository.owner/@repository.name/issues/@issue.issueId" class="issue-comment-count">1 comment</a>
               }
               @if(commentCount > 1){
-                <i class="icon-comment"></i> @commentCount comments
+                <i class="icon-comment"></i><a href="@path/@repository.owner/@repository.name/issues/@issue.issueId" class="issue-comment-count">@commentCount comments</a>
               }
             </div>
           </td>
@@ -173,42 +173,3 @@ $(function(){
 });
 </script>
 }
-<style type="text/css">
-table.table-issues {
-  margin-top: 12px;
-}
-
-a.issue-title {
-  color: black;
-  font-weight: bold;
-  size: 110%;
-}
-
-ul.label-list {
-  list-style-type: none;
-  padding-left: 0px;
-  margin-left: 0px;
-  font-size: 90%;
-}
-
-ul.label-list a {
-  padding-left: 6px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-  color: #444;
-}
-
-span.label-color {
-  border-radius: 2px;
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-}
-
-a#clear-filter {
-  display: block;
-  color: #444;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-</style>
