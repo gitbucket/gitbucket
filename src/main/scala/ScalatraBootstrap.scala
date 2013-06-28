@@ -6,7 +6,8 @@ class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     context.mount(new IndexController, "/")
     context.mount(new SignInController, "/*")
-    context.mount(new UsersController, "/*")
+    context.mount(new UserManagementController, "/*")
+    context.mount(new SystemSettingsController, "/*")
     context.mount(new CreateRepositoryController, "/*")
     context.mount(new AccountController, "/*")
     context.mount(new RepositoryViewerController, "/*")

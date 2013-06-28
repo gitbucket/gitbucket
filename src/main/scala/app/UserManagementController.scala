@@ -5,9 +5,9 @@ import service._
 import util.AdminOnlyAuthenticator
 import jp.sf.amateras.scalatra.forms._
 
-class UsersController extends UsersControllerBase with AccountService with AdminOnlyAuthenticator
+class UserManagementController extends UserManagementControllerBase with AccountService with AdminOnlyAuthenticator
 
-trait UsersControllerBase extends ControllerBase { self: AccountService with AdminOnlyAuthenticator =>
+trait UserManagementControllerBase extends ControllerBase { self: AccountService with AdminOnlyAuthenticator =>
   
   case class UserForm(userName: String, password: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
   

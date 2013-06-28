@@ -10,6 +10,8 @@ import org.eclipse.jgit.lib.Ref
 object Directory {
 
   val GitBucketHome = new File(System.getProperty("user.home"), "gitbucket").getAbsolutePath
+
+  val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
   
   val RepositoryHome = "%s/repositories".format(GitBucketHome)
   
