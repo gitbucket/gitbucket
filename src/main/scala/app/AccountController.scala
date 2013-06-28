@@ -12,7 +12,7 @@ trait AccountControllerBase extends ControllerBase {
 
   case class AccountNewForm(userName: String, password: String,mailAddress: String, url: Option[String])
 
-  case class AccountEditForm(mailAddress: String, url: Option[String])
+  case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String])
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100)))),
@@ -22,6 +22,7 @@ trait AccountControllerBase extends ControllerBase {
   )(AccountNewForm.apply)
 
   val editForm = mapping(
+    "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(AccountEditForm.apply)
@@ -45,6 +46,7 @@ trait AccountControllerBase extends ControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       updateAccount(account.copy(
+        password    = form.password.getOrElse(account.password),
         mailAddress = form.mailAddress,
         url         = form.url))
       redirect("/%s".format(userName))
