@@ -1,4 +1,4 @@
-@()(implicit context: app.Context)
+@(systemSettings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
 @import context._
 @main("Sign in"){
   <form action="@path/signin" method="POST" validate="true">
@@ -10,6 +10,9 @@
     <span id="error-password" class="error"></span>
     <div>
       <input type="submit" class="btn btn-success" value="Sign in"/>
+      @if(systemSettings.allowAccountRegistration){
+        <a href="@path/register" class="btn">Create new account</a>
+      }
     </div>
   </form>
 }

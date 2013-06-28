@@ -3,9 +3,9 @@ package app
 import service._
 import jp.sf.amateras.scalatra.forms._
 
-class SignInController extends SignInControllerBase with AccountService
+class SignInController extends SignInControllerBase with SystemSettingsService with AccountService
 
-trait SignInControllerBase extends ControllerBase { self: AccountService =>
+trait SignInControllerBase extends ControllerBase { self: SystemSettingsService with AccountService =>
   
   case class SignInForm(userName: String, password: String)
   
@@ -15,7 +15,7 @@ trait SignInControllerBase extends ControllerBase { self: AccountService =>
   )(SignInForm.apply)
   
   get("/signin"){
-    html.signin()
+    html.signin(loadSystemSettings())
   }
 
   post("/signin", form){ form =>

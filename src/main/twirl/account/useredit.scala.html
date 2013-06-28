@@ -1,21 +1,37 @@
-@(account: model.Account)(implicit context: app.Context)
+@(account: Option[model.Account])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(account.userName){
-  <form action="@url(account.userName)/_edit" method="POST" validate="true">
+@html.main(account.map(_.userName).getOrElse("Create account")){
+  <form action="@if(account.isDefined){url(account.get.userName)/_edit}else{/register}" method="POST" validate="true">
+    @if(account.isEmpty){
+      <fieldset>
+        <label><strong>User name</strong></label>
+        <input type="text" name="userName" id="userName" value=""/>
+        <span id="error-userName" class="error"></span>
+      </fieldset>
+      <fieldset>
+        <label><strong>Password</strong></label>
+        <input type="password" name="password" id="password" value=""/>
+        <span id="error-password" class="error"></span>
+      </fieldset>
+    }
     <fieldset>
       <label><strong>Mail Address</strong></label>
-      <input type="text" name="mailAddress" id="mailAddress" value="@account.mailAddress"/>
+      <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
       <span id="error-mailAddress" class="error"></span>
     </fieldset>
     <fieldset>
       <label><strong>URL (Optional)</strong></label>
-      <input type="text" name="url" id="url" style="width: 400px;" value="@account.url"/>
+      <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
       <span id="error-url" class="error"></span>
     </fieldset>
     <fieldset>
-      <input type="submit" class="btn btn-success" value="Save"/>
-      <a href="@url(account.userName)" class="btn">Cancel</a>
+      @if(account.isDefined){
+        <input type="submit" class="btn btn-success" value="Save"/>
+        <a href="@url(account.get.userName)" class="btn">Cancel</a>
+      } else {
+        <input type="submit" class="btn btn-success" value="Create account"/>
+      }
     </fieldset>
   </form>
 }
