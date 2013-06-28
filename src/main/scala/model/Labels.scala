@@ -8,6 +8,7 @@ object Labels extends Table[Label]("LABEL") with LabelTemplate {
   def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
 
   def ins = userName ~ repositoryName ~ labelName ~ color
+  def byPrimaryKey = byLabel _
 }
 
 case class Label(

@@ -11,6 +11,9 @@ object Milestones extends Table[Milestone]("MILESTONE") with BasicTemplate with 
   def * = userName ~ repositoryName ~ milestoneId ~ title ~ description.? ~ dueDate.? ~ closedDate.? <> (Milestone, Milestone.unapply _)
 
   def autoInc = userName ~ repositoryName ~ title ~ description.? ~ dueDate.? ~ closedDate.? returning milestoneId
+  // TODO create a template?
+  def byPrimaryKey(owner: String, repository: String, milestoneId: Int) =
+    byRepository(owner, repository) && (this.milestoneId is milestoneId.bind)
 }
 
 case class Milestone(

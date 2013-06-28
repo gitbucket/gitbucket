@@ -11,6 +11,7 @@ object IssueComments extends Table[IssueComment]("ISSUE_COMMENT") with IssueTemp
   def * = userName ~ repositoryName ~ issueId ~ commentId ~ commentedUserName ~ content ~ registeredDate ~ updatedDate <> (IssueComment, IssueComment.unapply _)
 
   def autoInc = userName ~ repositoryName ~ issueId ~ commentedUserName ~ content ~ registeredDate ~ updatedDate returning commentId
+  def byPrimaryKey(commentId: Int) = this.commentId is commentId.bind
 }
 
 case class IssueComment(
