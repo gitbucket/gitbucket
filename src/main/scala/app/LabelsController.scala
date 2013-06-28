@@ -3,7 +3,6 @@ package app
 import jp.sf.amateras.scalatra.forms._
 import service._
 import util.WritableRepositoryAuthenticator
-import org.scalatra._
 
 class LabelsController extends LabelsControllerBase
   with LabelsService with RepositoryService with AccountService with WritableRepositoryAuthenticator
