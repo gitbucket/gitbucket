@@ -15,6 +15,10 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
   )(SignInForm.apply)
   
   get("/signin"){
+    val queryString = request.getQueryString
+    if(queryString.startsWith("/")){
+      session.setAttribute("REDIRECT", queryString)
+    }
     html.signin(loadSystemSettings())
   }
 
@@ -25,7 +29,13 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
     } else {
       session.setAttribute("LOGIN_ACCOUNT", account.get)
       updateLastLoginDate(account.get.userName)
-      redirect("/%s".format(account.get.userName))
+
+      session.get("REDIRECT").map { redirectUrl =>
+        session.removeAttribute("REDIRECT")
+        redirect(redirectUrl.asInstanceOf[String])
+      }.getOrElse {
+        redirect("/%s".format(account.get.userName))
+      }
     }
   }
 

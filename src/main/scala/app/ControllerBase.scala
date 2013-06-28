@@ -18,8 +18,13 @@ abstract class ControllerBase extends ScalatraFilter
   /**
    * Returns the context object for the request.
    */
-  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount)
-  
+  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, currentURL)
+
+  private def currentURL: String = {
+    val queryString = request.getQueryString
+    request.getRequestURI + (if(queryString != null) "?" + queryString else "")
+  }
+
   private def LoginAccount: Option[Account] = {
     session.get("LOGIN_ACCOUNT") match {
       case Some(x: Account) => Some(x)
@@ -79,4 +84,4 @@ abstract class ControllerBase extends ScalatraFilter
 
 }
 
-case class Context(path: String, loginAccount: Option[Account])
+case class Context(path: String, loginAccount: Option[Account], currentUrl: String)
