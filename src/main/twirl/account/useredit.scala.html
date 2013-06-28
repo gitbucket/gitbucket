@@ -1,7 +1,12 @@
 @(account: Option[model.Account])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main((if(account.isDefined) "Your Profile" else "Create account")){
+@html.main((if(account.isDefined) "Edit your profile" else "Create your account")){
+  @if(account.isDefined){
+    <h3>Edit your profile</h3>
+  } else {
+    <h3>Create your account</h3>
+  }
   <form action="@if(account.isDefined){@url(account.get.userName)/_edit}else{/register}" method="POST" validate="true">
     @if(account.isEmpty){
       <fieldset>

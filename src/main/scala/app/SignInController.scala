@@ -31,7 +31,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
 
   get("/signout"){
     session.invalidate
-    redirect("/signin")
+    redirect("/")
   }
 
 }

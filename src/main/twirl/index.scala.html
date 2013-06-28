@@ -1,11 +1,14 @@
-@(repositories: List[service.RepositoryService.RepositoryInfo])(implicit context: app.Context)
+@(repositories: List[service.RepositoryService.RepositoryInfo], systemSettings: service.SystemSettingsService.SystemSettings,
+  userRepositories: List[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @main("GitBucket"){
+<div class="row-fluid">
+  <div class="span8">
   <h3>Recent updated repositories</h3>
   @repositories.map { repository =>
     <div class="block">
-      <div class="block-header-2">
+      <div class="block-header">
         <a href="@url(repository.owner)">@repository.owner</a>
         /
         <a href="@url(repository)">@repository.name</a>
@@ -19,4 +22,23 @@
       <div><span class="muted small">Last updated: @datetime(repository.repository.lastActivityDate)</span></div>
     </div>
   }
+  </div>
+  <div class="span4">
+    @if(loginAccount.isEmpty){
+      @signinform(systemSettings)
+    } else {
+      <table class="table table-bordered">
+        <tr>
+          <th>Your repositories (@userRepositories.size)</th>
+        </tr>
+        @userRepositories.map { repositoryName =>
+          <tr>
+            <td><a href="@path/@loginAccount.get.userName/@repositoryName">@repositoryName</a></td>
+          </tr>
+        }
+      </table>
+    }
+  </div>
+
+</div>
 }
