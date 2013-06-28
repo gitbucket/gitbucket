@@ -41,7 +41,9 @@
               @if(loginAccount.isDefined){
                 <li><a href="@path/new">New repo</a></li>
                 <li><a href="@url(loginAccount.get.userName)">Account</a></li>
-                <li><a href="@path/admin/users">Administration</a></li>
+                @if(loginAccount.get.isAdmin){
+                  <li><a href="@path/admin/users">Administration</a></li>
+                }
                 <li><a href="@path/signout">Sign out</a></li>
               } else {
                 <li><a href="@path/signin">Sign in</a></li>
