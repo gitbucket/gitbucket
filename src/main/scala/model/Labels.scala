@@ -1,14 +1,13 @@
 package model
 
 import scala.slick.driver.H2Driver.simple._
-import model.{BaseTable => Table}
 
-object Labels extends Table[Label]("LABEL") {
-  def labelId = column[Int]("LABEL_ID", O AutoInc)
+object Labels extends Table[Label]("LABEL") with LabelTemplate {
   def labelName = column[String]("LABEL_NAME")
   def color = column[String]("COLOR")
-  def * = base ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
-  def ins = base ~ labelName ~ color
+  def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
+
+  def ins = userName ~ repositoryName ~ labelName ~ color
 }
 
 case class Label(
