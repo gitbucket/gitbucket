@@ -69,9 +69,13 @@ abstract class ControllerBase extends ScalatraFilter
   }
 
   // TODO redirect to the sign-in page if not logged in?
-  protected def Unauthorized() = {
+  protected def Unauthorized()(implicit context: app.Context) = {
     if(request.getAttribute("AJAX") == null){
-      org.scalatra.Unauthorized(redirect("/"))
+      if(context.loginAccount.isDefined){
+        org.scalatra.Unauthorized(redirect("/"))
+      } else {
+        org.scalatra.Unauthorized(redirect("/signin?" + currentURL))
+      }
     } else {
       org.scalatra.Unauthorized()
     }
