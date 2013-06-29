@@ -374,7 +374,7 @@ object JGitUtil {
    */
   def getContent(git: Git, id: ObjectId, large: Boolean): Option[Array[Byte]] = try {
     val loader = git.getRepository.getObjectDatabase.open(id)
-    if(large == false && FileTypeUtil.isLarge(loader.getSize)){
+    if(large == false && FileUtil.isLarge(loader.getSize)){
       None
     } else {
       val db = git.getRepository.getObjectDatabase
@@ -419,12 +419,12 @@ object JGitUtil {
       
       import scala.collection.JavaConverters._
       git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-        if(!fetchContent || FileTypeUtil.isImage(diff.getOldPath) || FileTypeUtil.isImage(diff.getNewPath)){
+        if(!fetchContent || FileUtil.isImage(diff.getOldPath) || FileUtil.isImage(diff.getNewPath)){
           DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
         } else {
           DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).filter(FileTypeUtil.isText).map(new String(_, "UTF-8")), 
-            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).filter(FileTypeUtil.isText).map(new String(_, "UTF-8")))
+            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")),
+            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")))
         }
       }.toList
     } else {
@@ -437,7 +437,7 @@ object JGitUtil {
           DiffInfo(ChangeType.ADD, null, walk.getPathString, None, None)
         } else {
           DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
-              JGitUtil.getContent(git, walk.getObjectId(0), false).filter(FileTypeUtil.isText).map(new String(_, "UTF-8")))
+              JGitUtil.getContent(git, walk.getObjectId(0), false).filter(FileUtil.isText).map(new String(_, "UTF-8")))
         }))
       }
       walk.release

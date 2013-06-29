@@ -2,7 +2,7 @@ package app
 
 import util.Directory._
 import util.Implicits._
-import _root_.util.{ReadableRepositoryAuthenticator, JGitUtil, FileTypeUtil, CompressUtil}
+import _root_.util.{ReadableRepositoryAuthenticator, JGitUtil, FileUtil}
 import service._
 import org.scalatra._
 import java.io.File
@@ -143,12 +143,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           JGitUtil.getContent(git, objectId, false).get
         } else {
           // Viewer
-          val large  = FileTypeUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-          val viewer = if(FileTypeUtil.isImage(path)) "image" else if(large) "large" else "other"
+          val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+          val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
           val bytes  = if(viewer == "other") JGitUtil.getContent(git, objectId, false) else None
 
           val content = if(viewer == "other"){
-            if(bytes.isDefined && FileTypeUtil.isText(bytes.get)){
+            if(bytes.isDefined && FileUtil.isText(bytes.get)){
               // text
               JGitUtil.ContentInfo("text", bytes.map(new String(_, "UTF-8")))
             } else {
@@ -227,7 +227,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       
       // create zip file
       val zipFile = new File(workDir, (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
-      CompressUtil.zip(zipFile, cloneDir)
+      FileUtil.createZipFile(zipFile, cloneDir)
       
       contentType = "application/octet-stream"
       zipFile
