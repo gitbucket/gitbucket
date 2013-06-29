@@ -1,6 +1,7 @@
 package app
 
 import service._
+import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
 
 class SignInController extends SignInControllerBase with SystemSettingsService with AccountService
@@ -16,7 +17,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
   
   get("/signin"){
     val queryString = request.getQueryString
-    if(queryString.startsWith("/")){
+    if(queryString != null && queryString.startsWith("/")){
       session.setAttribute("REDIRECT", queryString)
     }
     html.signin(loadSystemSettings())
@@ -24,7 +25,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
 
   post("/signin", form){ form =>
     val account = getAccountByUserName(form.userName)
-    if(account.isEmpty || account.get.password != form.password){
+    if(account.isEmpty || account.get.password != encrypt(form.password)){
       redirect("/signin")
     } else {
       session.setAttribute("LOGIN_ACCOUNT", account.get)

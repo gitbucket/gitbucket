@@ -2,6 +2,7 @@ package app
 
 import service._
 import util.OwnerOnlyAuthenticator
+import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
 
 class AccountController extends AccountControllerBase
@@ -46,7 +47,7 @@ trait AccountControllerBase extends ControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       updateAccount(account.copy(
-        password    = form.password.getOrElse(account.password),
+        password    = form.password.map(encrypt).getOrElse(account.password),
         mailAddress = form.mailAddress,
         url         = form.url))
       redirect("/%s".format(userName))
@@ -61,7 +62,7 @@ trait AccountControllerBase extends ControllerBase {
 
   post("/register", newForm){ newForm =>
     if(loadSystemSettings().allowAccountRegistration){
-      createAccount(newForm.userName, newForm.password, newForm.mailAddress, false, newForm.url)
+      createAccount(newForm.userName, encrypt(newForm.password), newForm.mailAddress, false, newForm.url)
       redirect("/signin")
     } else NotFound
   }
