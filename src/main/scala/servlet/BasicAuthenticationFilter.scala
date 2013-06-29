@@ -2,6 +2,7 @@ package servlet
 
 import javax.servlet._
 import javax.servlet.http._
+import util.StringUtil._
 import service.{AccountService, RepositoryService}
 import org.slf4j.LoggerFactory
 
@@ -54,7 +55,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
 
   private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean = {
     getAccountByUserName(username) match {
-      case Some(account) if(account.password == password) => {
+      case Some(account) if(account.password == encrypt(password)) => {
         (account.isAdmin // administrator
           || account.userName == repository.owner // repository owner
           || getCollaborators(repository.owner, repository.name).contains(account.userName)) // collaborator
