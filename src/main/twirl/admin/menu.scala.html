@@ -2,14 +2,16 @@
 @import context._
 <div class="row-fluid">
   <div class="span3">
-    <ul class="nav nav-tabs nav-stacked">
-      <li@if(active=="users"){ class="active"}>
-        <a href="@path/admin/users">User Management</a>
-      </li>
-      <li@if(active=="system"){ class="active"}>
-        <a href="@path/admin/system">System Settings</a>
-      </li>
-   </ul>
+    <div class="box">
+      <ul class="nav nav-tabs nav-stacked">
+        <li@if(active=="users"){ class="active"}>
+          <a href="@path/admin/users">User Management</a>
+        </li>
+        <li@if(active=="system"){ class="active"}>
+          <a href="@path/admin/system">System Settings</a>
+        </li>
+     </ul>
+   </div>
   </div>
   <div class="span9">
     @body

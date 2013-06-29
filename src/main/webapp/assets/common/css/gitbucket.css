@@ -140,7 +140,7 @@ div.box-header-small {
 
 div.box-content {
   background-color: white;
-  border: 1px solid silver;
+  border: 1px solid #d8d8d8;
   padding: 4px;
 }
 
@@ -185,6 +185,57 @@ hr {
 div.signin-form {
   width: 350px;
   margin: 30px auto;
+}
+
+/****************************************************************************/
+/* Stacked side menu */
+/****************************************************************************/
+ul.nav-stacked {
+  margin-bottom: 0px;
+}
+
+ul.nav-stacked li {
+  background-color: #f9f9f9;
+}
+
+ul.nav-stacked li a:hover {
+  background-color: white;
+}
+
+ul.nav-stacked li.active a {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  border-left: 2px solid #cc6666;
+}
+
+ul.nav-stacked li.active a:hover {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  border-left: 2px solid #cc6666;
+}
+
+.nav-tabs.nav-stacked > li:first-child > a {
+  -webkit-border-top-right-radius: 0px;
+
+  border-top-right-radius: 0px;
+  -webkit-border-top-left-radius: 0px;
+
+  border-top-left-radius: 0px;
+  -moz-border-radius-topright: 0px;
+  -moz-border-radius-topleft: 0px;
+}
+
+.nav-tabs.nav-stacked > li:last-child > a {
+  -webkit-border-bottom-right-radius: 0px;
+
+  border-bottom-right-radius: 0px;
+  -webkit-border-bottom-left-radius: 0px;
+
+  border-bottom-left-radius: 0px;
+  -moz-border-radius-bottomright: 0px;
+  -moz-border-radius-bottomleft: 0px;
 }
 
 /****************************************************************************/
