@@ -79,7 +79,7 @@ class GitBucketHtmlSerializer(
     if(enableIssueLink){
       // convert marked issue id to link.
       html.replaceAll("#\\{\\{\\{\\{(\\d+)\\}\\}\\}\\}",
-        "<a href=\"%s/%s/%s/issue/$1\">#$1</a>".format(context.path, repository.owner, repository.name))
+        "<a href=\"%s/%s/%s/issues/$1\">#$1</a>".format(context.path, repository.owner, repository.name))
     } else html
   }
 
@@ -106,14 +106,14 @@ class GitBucketHtmlSerializer(
 
   override def visit(node: TextNode) {
     // convert commit id to link.
-    val text1 = if(enableCommitLink) node.getText.replaceAll("[0-9a-f]{40}",
-      "<a href=\"%s/%s/%s/commit/$0\">$0</a>".format(context.path, repository.owner, repository.name))
+    val text1 = if(enableCommitLink) node.getText.replaceAll("(^|\\W)([0-9a-f]{40})(\\W|$)",
+      "<a href=\"%s/%s/%s/commit/$2\">$2</a>".format(context.path, repository.owner, repository.name))
     else node.getText
 
     // mark issue id to link
     val startIndex = node.getStartIndex
     val text2 = if(enableIssueLink && startIndex > 0 && markdown.charAt(startIndex - 1) == '#'){
-      text1.replaceFirst("^(\\d+)", "{{{{$0}}}}")
+      text1.replaceFirst("^(\\d+)(\\W|$)", "{{{{$1}}}}")
     } else text1
 
     if (abbreviations.isEmpty) {
