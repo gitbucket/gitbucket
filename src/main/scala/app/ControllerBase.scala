@@ -68,7 +68,6 @@ abstract class ControllerBase extends ScalatraFilter
     }
   }
 
-  // TODO redirect to the sign-in page if not logged in?
   protected def Unauthorized()(implicit context: app.Context) = {
     if(request.getAttribute("AJAX") == null){
       if(context.loginAccount.isDefined){
