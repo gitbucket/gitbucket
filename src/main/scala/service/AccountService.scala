@@ -37,7 +37,6 @@ trait AccountService {
         account.lastLoginDate)
   
   def updateLastLoginDate(userName: String): Unit =
-    Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate)
-      .update(currentDate)
+    Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
   
 }

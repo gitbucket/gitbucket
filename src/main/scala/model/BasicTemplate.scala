@@ -32,3 +32,13 @@ protected[model] trait LabelTemplate extends BasicTemplate { self: Table[_] =>
   def byLabel(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) =
     byRepository(userName, repositoryName) && (this.labelId is labelId)
 }
+
+protected[model] trait MilestoneTemplate extends BasicTemplate { self: Table[_] =>
+  def milestoneId = column[Int]("MILESTONE_ID")
+
+  def byMilestone(owner: String, repository: String, milestoneId: Int) =
+    byRepository(owner, repository) && (this.milestoneId is milestoneId.bind)
+
+  def byMilestone(userName: Column[String], repositoryName: Column[String], milestoneId: Column[Int]) =
+    byRepository(userName, repositoryName) && (this.milestoneId is milestoneId)
+}

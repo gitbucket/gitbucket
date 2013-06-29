@@ -39,21 +39,10 @@ trait RepositoryService { self: AccountService =>
   }
 
   def deleteRepository(userName: String, repositoryName: String): Unit = {
-    Collaborators
-      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
-      .delete
-
-    IssueId
-      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
-      .delete
-      
-    Issues
-      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
-      .delete
-      
-    Repositories
-      .filter { t => (t.userName is userName.bind) && (t.repositoryName is repositoryName.bind) }
-      .delete
+    Collaborators .filter(_.byRepository(userName, repositoryName)).delete
+    IssueId       .filter(_.byRepository(userName, repositoryName)).delete
+    Issues        .filter(_.byRepository(userName, repositoryName)).delete
+    Repositories  .filter(_.byRepository(userName, repositoryName)).delete
   }
 
   /**
@@ -75,21 +64,21 @@ trait RepositoryService { self: AccountService =>
    */
   def getVisibleRepositories(userName: String, baseUrl: String, loginUserName: Option[String]): List[RepositoryInfo] = {
     val q1 = Repositories
-      .filter { r => r.userName is userName.bind }
+      .filter { t => t.userName is userName.bind }
       .map    { r => r }
 
     val q2 = Collaborators
-      .innerJoin(Repositories).on((c, r) => (c.userName is r.userName) && (c.repositoryName is r.repositoryName))
-      .filter{ case (c, r) => c.collaboratorName is userName.bind}
-      .map   { case (c, r) => r }
+      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .filter{ case (t1, t2) => t1.collaboratorName is userName.bind}
+      .map   { case (t1, t2) => t2 }
 
-    def visibleFor(r: Repositories.type, loginUserName: Option[String]) = {
+    def visibleFor(t: Repositories.type, loginUserName: Option[String]) = {
       loginUserName match {
-        case Some(x) => (r.isPrivate is false.bind) || (
-          (r.isPrivate is true.bind) && ((r.userName is x.bind) || (Collaborators.filter { c =>
-              (c.repositoryName is r.repositoryName) && (c.userName is r.userName) && (c.collaboratorName is x.bind)
+        case Some(x) => (t.isPrivate is false.bind) || (
+          (t.isPrivate is true.bind) && ((t.userName is x.bind) || (Collaborators.filter { c =>
+            c.byRepository(t.userName, t.repositoryName) && (c.collaboratorName is x.bind)
           }.exists)))
-        case None    => (r.isPrivate is false.bind)
+        case None    => (t.isPrivate is false.bind)
       }
     }
 
@@ -108,9 +97,7 @@ trait RepositoryService { self: AccountService =>
    * @return the repository information
    */
   def getRepository(userName: String, repositoryName: String, baseUrl: String): Option[RepositoryInfo] = {
-    (Query(Repositories) filter { repository =>
-      (repository.userName is userName.bind) && (repository.repositoryName is repositoryName.bind)
-    } firstOption) map { repository =>
+    (Query(Repositories) filter { t => t.byRepository(userName, repositoryName) } firstOption) map { repository =>
       val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
       RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
     }
@@ -154,19 +141,15 @@ trait RepositoryService { self: AccountService =>
    * Updates the last activity date of the repository.
    */
   def updateLastActivityDate(userName: String, repositoryName: String): Unit =
-    Query(Repositories)
-      .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
-      .map    { _.lastActivityDate }
-      .update (currentDate)
+    Query(Repositories).filter(_.byRepository(userName, repositoryName)).map(_.lastActivityDate).update(currentDate)
   
   /**
    * Save repository options.
    */
   def saveRepositoryOptions(userName: String, repositoryName: String, 
       description: Option[String], defaultBranch: String, isPrivate: Boolean): Unit =
-    Query(Repositories)
-      .filter { r => (r.userName is userName.bind) && (r.repositoryName is repositoryName.bind) }
-      .map    { r => r.description.? ~ r.defaultBranch ~ r.isPrivate ~ r.updatedDate }
+    Query(Repositories).filter(_.byRepository(userName, repositoryName))
+      .map { r => r.description.? ~ r.defaultBranch ~ r.isPrivate ~ r.updatedDate }
       .update (description, defaultBranch, isPrivate, currentDate)
 
   /**
@@ -187,9 +170,7 @@ trait RepositoryService { self: AccountService =>
    * @param collaboratorName the collaborator name
    */
   def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String): Unit =
-    (Query(Collaborators) filter { c =>
-        (c.userName is userName.bind) && (c.repositoryName is repositoryName.bind) && (c.collaboratorName is collaboratorName.bind)
-    }).delete
+    Query(Collaborators).filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
   
     
   /**
@@ -200,9 +181,7 @@ trait RepositoryService { self: AccountService =>
    * @return the list of collaborators name
    */
   def getCollaborators(userName: String, repositoryName: String): List[String] =
-    (Query(Collaborators) filter { c =>
-      (c.userName is userName.bind) && (c.repositoryName is repositoryName.bind)
-    } sortBy(_.collaboratorName) list) map(_.collaboratorName)
+    Query(Collaborators).filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).list.map(_.collaboratorName)
 
   def isWritable(owner: String, repository: String, loginAccount: Option[Account]): Boolean = {
     loginAccount match {
@@ -217,6 +196,7 @@ trait RepositoryService { self: AccountService =>
 
 object RepositoryService {
 
-  case class RepositoryInfo(owner: String, name: String, url: String, repository: Repository, branchList: List[String], tags: List[util.JGitUtil.TagInfo])
+  case class RepositoryInfo(owner: String, name: String, url: String, repository: Repository,
+                            branchList: List[String], tags: List[util.JGitUtil.TagInfo])
 
 }

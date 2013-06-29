@@ -6,7 +6,8 @@ object Collaborators extends Table[Collaborator]("COLLABORATOR") with BasicTempl
   def collaboratorName = column[String]("COLLABORATOR_NAME")
   def * = userName ~ repositoryName ~ collaboratorName <> (Collaborator, Collaborator.unapply _)
 
-  def byPrimaryKey = byRepository _
+  def byPrimaryKey(owner: String, repository: String, collaborator: String) =
+    byRepository(owner, repository) && (collaboratorName is collaborator.bind)
 }
 
 case class Collaborator(
