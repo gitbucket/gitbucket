@@ -50,7 +50,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   override def create(req: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
     val userName = req.getAttribute("USER_NAME")
-    
+
     logger.debug("requestURI: " + req.getRequestURI)
     logger.debug("userName:" + userName)
     
@@ -59,7 +59,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
     val repository = pathList(3).replaceFirst("\\.git$", "")
     
     logger.debug("repository:" + owner + "/" + repository)
-    
+
     receivePack.setPostReceiveHook(new CommitLogHook(owner, repository))
     receivePack
   }
@@ -67,24 +67,24 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String) extends PostReceiveHook with RepositoryService with AccountService {
+class CommitLogHook(owner: String, repository: String) extends PostReceiveHook
+  with RepositoryService with AccountService with IssuesService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
-
     JGitUtil.withGit(Directory.getRepositoryDir(owner, repository)) { git =>
       commands.asScala.foreach { command =>
         JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name).foreach { commit =>
-          // TODO extract issue id and add comment to issue
-          logger.debug(commit.id + ":" + commit.shortMessage)
-
-          println(owner + "/" + repository + " " + commit.id)
-          println(commit.fullMessage)
+          "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
+            val issueId = matchData.group(2)
+            if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
+              createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage)
+            }
+          }
         }
       }
     }
-    
     // update repository last modified time.
     updateLastActivityDate(owner, repository)
   }
