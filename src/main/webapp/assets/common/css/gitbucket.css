@@ -158,6 +158,16 @@ th.box-header {
   text-shadow: 0 1px 0 #fff
 }
 
+th.metal {
+  background-color: #e0e0e0;
+  background-image: -moz-linear-gradient(#fafafa, #e8e8e8);
+  background-image: -webkit-linear-gradient(#fafafa, #e8e8e8);
+  background-image: linear-gradient(#fafafa, #e8e8e8);
+  background-repeat: repeat-x;
+  margin: 0;
+  border-top-left-radius: 1px;
+  border-top-right-radius: 1px;
+}
 
 dl {
   margin: 0px;
