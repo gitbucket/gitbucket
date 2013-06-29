@@ -25,6 +25,7 @@ object Implicits {
     }
   }
 
+  // TODO Should this implicit conversion move to model.Functions?
   implicit def extendsColumn(c1: Column[Boolean]) = new {
     def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
   }
