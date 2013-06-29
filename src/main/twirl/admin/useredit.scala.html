@@ -9,8 +9,12 @@
         <span id="error-userName" class="error"></span>
       </fieldset>
       <fieldset>
-        <label for="password"><strong>Password</strong></label>
-        <input type="password" name="password" id="password" value="@account.map(_.password)"/>
+        <label for="password"><strong>Password</strong>
+          @if(account.isDefined){
+            (Input to change password)
+          }
+        </label>
+        <input type="password" name="password" id="password" value=""/>
         <span id="error-password" class="error"></span>
       </fieldset>
       <fieldset>

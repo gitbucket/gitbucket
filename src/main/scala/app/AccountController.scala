@@ -16,7 +16,7 @@ trait AccountControllerBase extends ControllerBase {
   case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String])
 
   val newForm = mapping(
-    "userName"    -> trim(label("User name"    , text(required, maxlength(100)))),
+    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, unique))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
@@ -66,4 +66,10 @@ trait AccountControllerBase extends ControllerBase {
       redirect("/signin")
     } else NotFound
   }
+
+  private def unique: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      getAccountByUserName(value).map { _ => "User already exists." }
+  }
+
 }
