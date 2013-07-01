@@ -10,7 +10,8 @@ object Milestones extends Table[Milestone]("MILESTONE") with MilestoneTemplate w
   def * = userName ~ repositoryName ~ milestoneId ~ title ~ description.? ~ dueDate.? ~ closedDate.? <> (Milestone, Milestone.unapply _)
 
   def ins = userName ~ repositoryName ~ title ~ description.? ~ dueDate.? ~ closedDate.?
-  def byPrimaryKey = byMilestone _
+  def byPrimaryKey(owner: String, repository: String, milestoneId: Int) = byMilestone(owner, repository, milestoneId)
+  def byPrimaryKey(userName: Column[String], repositoryName: Column[String], milestoneId: Column[Int]) = byMilestone(userName, repositoryName, milestoneId)
 }
 
 case class Milestone(

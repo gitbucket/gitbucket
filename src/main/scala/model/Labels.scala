@@ -8,7 +8,8 @@ object Labels extends Table[Label]("LABEL") with LabelTemplate {
   def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
 
   def ins = userName ~ repositoryName ~ labelName ~ color
-  def byPrimaryKey = byLabel _
+  def byPrimaryKey(owner: String, repository: String, labelId: Int) = byLabel(owner, repository, labelId)
+  def byPrimaryKey(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) = byLabel(userName, repositoryName, labelId)
 }
 
 case class Label(
