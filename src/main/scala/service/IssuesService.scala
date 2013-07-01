@@ -190,6 +190,7 @@ trait IssuesService {
         owner,
         repository,
         issueId,
+        None,
         loginUser,
         content,
         currentDate,
