@@ -4,7 +4,7 @@ import scala.slick.driver.H2Driver.simple._
 
 object IssueId extends Table[(String, String, Int)]("ISSUE_ID") with IssueTemplate {
   def * = userName ~ repositoryName ~ issueId
-  def byPrimaryKey = byRepository _
+  def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
 }
 
 object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTemplate with Functions {
@@ -17,7 +17,7 @@ object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTem
   def updatedDate = column[java.util.Date]("UPDATED_DATE")
   def * = userName ~ repositoryName ~ issueId ~ openedUserName ~ milestoneId.? ~ assignedUserName.? ~ title ~ content.? ~ closed ~ registeredDate ~ updatedDate <> (Issue, Issue.unapply _)
 
-  def byPrimaryKey = byIssue _
+  def byPrimaryKey(owner: String, repository: String, issueId: Int) = byIssue(owner, repository, issueId)
 }
 
 case class Issue(

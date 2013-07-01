@@ -11,7 +11,7 @@ object Repositories extends Table[Repository]("REPOSITORY") with BasicTemplate w
   def lastActivityDate = column[java.util.Date]("LAST_ACTIVITY_DATE")
   def * = userName ~ repositoryName ~ isPrivate ~ description.? ~ defaultBranch ~ registeredDate ~ updatedDate ~ lastActivityDate <> (Repository, Repository.unapply _)
 
-  def byPrimaryKey = byRepository _
+  def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
 }
 
 case class Repository(
