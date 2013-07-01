@@ -9,8 +9,8 @@ import Milestones._
 trait MilestonesService {
 
   def createMilestone(owner: String, repository: String, title: String, description: Option[String],
-                      dueDate: Option[java.util.Date]) =
-    Milestones.autoInc insert (owner, repository, title, description, dueDate, None)
+                      dueDate: Option[java.util.Date]): Unit =
+    Milestones.ins insert (owner, repository, title, description, dueDate, None)
 
   def updateMilestone(milestone: Milestone): Unit =
     Query(Milestones)
