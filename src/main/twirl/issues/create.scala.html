@@ -55,11 +55,21 @@
     </div>
     <div class="span3">
       <strong>Add Labels</strong>
-      <ul>
-        @labels.map { label =>
-          <li>@label.labelName</li>
-        }
-      </ul>
+      <div>
+        <div id="label-list">
+          <ul class="label-list nav nav-pills nav-stacked">
+            @labels.map { label =>
+              <li>
+                <a href="javascript:void(0);" class="toggle-label" data-label="@label.labelName" data-bgcolor="@label.color" data-fgcolor="@label.fontColor">
+                  <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
+                  @label.labelName
+                </a>
+              </li>
+            }
+          </ul>
+          <input type="hidden" name="labelNames" value=""/>
+        </div>
+      </div>
     </div>
   </div>
 }
@@ -78,6 +88,30 @@ $(function(){
   $('a.milestone').click(function(){
     $('#label-milestone').text($(this).text());
     $('input[name=milestoneId]').val($(this).data('id'));
+  });
+
+  $('a.toggle-label').click(function(){
+    if($(this).data('selected') == true){
+      $(this).css({
+        'background-color': 'white',
+        'color'           : 'black'
+      });
+      $(this).data('selected', false);
+    } else {
+      $(this).css({
+        'background-color': '#' + $(this).data('bgcolor'),
+        'color'           : '#' + $(this).data('fgcolor')
+      });
+      $(this).data('selected', true);
+    }
+
+    var labelNames = Array();
+    $('a.toggle-label').each(function(i, e){
+      if($(e).data('selected') == true){
+        labelNames.push($(e).data('label'));
+      }
+    });
+    $('input[name=labelNames]').val(labelNames.join(','));
   });
 });
 </script>
