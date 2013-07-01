@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main(repository.owner + "/" + repository.name) {
   @html.header("code", repository)
-  @navtab(branch, repository, "files")
+  @tab(branch, repository, "files")
   <div class="head">
     <a href="@url(repository)/tree/@branch">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>

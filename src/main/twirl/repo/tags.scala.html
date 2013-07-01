@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main(repository.owner + "/" + repository.name) {
   @html.header("code", repository)
-  @navtab("master", repository, "tags") @* TODO DON'T display branch pulldown *@
+  @tab("master", repository, "tags") @* TODO DON'T display branch pulldown *@
   <h1>Tags</h1>
   <table class="table table-bordered">
     <tr>

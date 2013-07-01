@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main(repository.owner+"/"+repository.name) {
   @html.header("code", repository)
-  @navtab(branch, repository, if(pathList.isEmpty) "commits" else "files")
+  @tab(branch, repository, if(pathList.isEmpty) "commits" else "files")
   <div class="head">
     @if(pathList.isEmpty){
       <a href="@url(repository)/tree/@branch">@repository.name</a> / Commit History
