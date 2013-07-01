@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main(pageName + " - " + repository.owner + "/" + repository.name){
   @html.header("wiki", repository)
-  @wikitab((if(pageName == "Home") "home" else ""), repository)
+  @tab((if(pageName == "Home") "home" else ""), repository)
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title">@pageName</h1>

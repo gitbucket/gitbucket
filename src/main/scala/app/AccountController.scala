@@ -34,13 +34,13 @@ trait AccountControllerBase extends ControllerBase {
   get("/:userName") {
     val userName = params("userName")
     getAccountByUserName(userName).map {
-      account.html.userinfo(_, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
+      account.html.info(_, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
     } getOrElse NotFound
   }
 
   get("/:userName/_edit")(ownerOnly {
     val userName = params("userName")
-    getAccountByUserName(userName).map(x => account.html.useredit(Some(x))) getOrElse NotFound
+    getAccountByUserName(userName).map(x => account.html.edit(Some(x))) getOrElse NotFound
   })
 
   post("/:userName/_edit", editForm)(ownerOnly { form =>
@@ -56,7 +56,7 @@ trait AccountControllerBase extends ControllerBase {
 
   get("/register"){
     if(loadSystemSettings().allowAccountRegistration){
-      account.html.useredit(None)
+      account.html.edit(None)
     } else NotFound
   }
 

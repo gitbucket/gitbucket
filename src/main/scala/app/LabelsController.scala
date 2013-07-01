@@ -36,7 +36,7 @@ trait LabelsControllerBase extends ControllerBase {
     val repository = params("repository")
 
     getRepository(owner, repository, baseUrl)
-      .map(issues.html.labeleditlist(getLabels(owner, repository), _)) getOrElse NotFound()
+      .map(issues.labels.html.editlist(getLabels(owner, repository), _)) getOrElse NotFound()
   })
 
   ajaxGet("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
@@ -45,7 +45,7 @@ trait LabelsControllerBase extends ControllerBase {
     val labelId    = params("labelId").toInt
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      getLabel(owner, repository, labelId).map(label => issues.html.labeledit(Some(label), repositoryInfo)) getOrElse NotFound()
+      getLabel(owner, repository, labelId).map(label => issues.labels.html.edit(Some(label), repositoryInfo)) getOrElse NotFound()
     } getOrElse NotFound()
   })
 
@@ -56,7 +56,7 @@ trait LabelsControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map{ repositoryInfo =>
       updateLabel(owner, repository, labelId, form.labelName, form.color.substring(1))
-      issues.html.labeleditlist(getLabels(owner, repository), repositoryInfo)
+      issues.labels.html.editlist(getLabels(owner, repository), repositoryInfo)
     } getOrElse NotFound()
   })
 
@@ -67,7 +67,7 @@ trait LabelsControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       deleteLabel(owner, repository, labelId)
-      issues.html.labeleditlist(getLabels(owner, repository), repositoryInfo)
+      issues.labels.html.editlist(getLabels(owner, repository), repositoryInfo)
     } getOrElse NotFound()
   })
 

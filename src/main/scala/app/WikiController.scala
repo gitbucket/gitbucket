@@ -33,7 +33,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       getWikiPage(owner, repository, "Home").map { page =>
-        wiki.html.wiki("Home", page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+        wiki.html.page("Home", page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
       } getOrElse redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
     } getOrElse NotFound
   })
@@ -45,7 +45,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       getWikiPage(owner, repository, pageName).map { page =>
-        wiki.html.wiki(pageName, page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+        wiki.html.page(pageName, page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
       } getOrElse redirect("/%s/%s/wiki/%s/_edit".format(owner, repository, pageName)) // TODO URLEncode
     } getOrElse NotFound
   })
@@ -57,7 +57,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
-        wiki.html.wikihistory(Some(page), JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, repositoryInfo)
+        wiki.html.history(Some(page), JGitUtil.getCommitLog(git, "master", path = page + ".md")._1, repositoryInfo)
       }
     } getOrElse NotFound
   })
@@ -70,7 +70,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
-        wiki.html.wikicompare(Some(page), getWikiDiffs(git, commitId(0), commitId(1)), repositoryInfo)
+        wiki.html.compare(Some(page), getWikiDiffs(git, commitId(0), commitId(1)), repositoryInfo)
       }
     } getOrElse NotFound
   })
@@ -82,7 +82,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
-        wiki.html.wikicompare(None, getWikiDiffs(git, commitId(0), commitId(1)), repositoryInfo)
+        wiki.html.compare(None, getWikiDiffs(git, commitId(0), commitId(1)), repositoryInfo)
       }
     } getOrElse NotFound
   })
@@ -93,7 +93,7 @@ trait WikiControllerBase extends ControllerBase {
     val page       = params("page")
 
     getRepository(owner, repository, baseUrl).map(
-      wiki.html.wikiedit(page, getWikiPage(owner, repository, page), _)) getOrElse NotFound
+      wiki.html.edit(page, getWikiPage(owner, repository, page), _)) getOrElse NotFound
   })
   
   post("/:owner/:repository/wiki/_edit", editForm)(writableRepository { form =>
@@ -111,7 +111,7 @@ trait WikiControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl).map(wiki.html.wikiedit("", None, _)) getOrElse NotFound
+    getRepository(owner, repository, baseUrl).map(wiki.html.edit("", None, _)) getOrElse NotFound
   })
   
   post("/:owner/:repository/wiki/_new", newForm)(writableRepository { form =>
@@ -140,7 +140,7 @@ trait WikiControllerBase extends ControllerBase {
     val repository = params("repository")
 
     getRepository(owner, repository, baseUrl).map {
-      wiki.html.wikipages(getWikiPageList(owner, repository), _, isWritable(owner, repository, context.loginAccount))
+      wiki.html.pages(getWikiPageList(owner, repository), _, isWritable(owner, repository, context.loginAccount))
     } getOrElse NotFound
   })
   
@@ -150,7 +150,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       JGitUtil.withGit(getWikiRepositoryDir(owner, repository)){ git =>
-        wiki.html.wikihistory(None, JGitUtil.getCommitLog(git, "master")._1, repositoryInfo)
+        wiki.html.history(None, JGitUtil.getCommitLog(git, "master")._1, repositoryInfo)
       }
     } getOrElse NotFound
   })

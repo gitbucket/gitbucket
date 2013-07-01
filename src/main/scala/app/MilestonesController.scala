@@ -27,7 +27,7 @@ trait MilestonesControllerBase extends ControllerBase {
     val state      = params.getOrElse("state", "open")
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      issues.html.milestones(state,
+      issues.milestones.html.list(state,
         getMilestonesWithIssueCount(owner, repository),
         repositoryInfo,
         isWritable(owner, repository, context.loginAccount))
@@ -38,7 +38,7 @@ trait MilestonesControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl).map(issues.html.milestoneedit(None, _)) getOrElse NotFound
+    getRepository(owner, repository, baseUrl).map(issues.milestones.html.edit(None, _)) getOrElse NotFound
   })
 
   post("/:owner/:repository/issues/milestones/new", milestoneForm)(writableRepository { form =>
@@ -55,7 +55,7 @@ trait MilestonesControllerBase extends ControllerBase {
     val milestoneId = params("milestoneId").toInt
 
     getRepository(owner, repository, baseUrl).map(
-      issues.html.milestoneedit(getMilestone(owner, repository, milestoneId), _)) getOrElse NotFound
+      issues.milestones.html.edit(getMilestone(owner, repository, milestoneId), _)) getOrElse NotFound
   })
 
   post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(writableRepository { form =>

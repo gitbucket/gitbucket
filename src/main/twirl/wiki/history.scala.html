@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main("History - " + repository.owner + "/" + repository.name){
   @html.header("wiki", repository)
-  @wikitab(if(pageName.isEmpty) "history" else "", repository)
+  @tab(if(pageName.isEmpty) "history" else "", repository)
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title">

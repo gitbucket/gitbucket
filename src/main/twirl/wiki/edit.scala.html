@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main((if(pageName == "") "New Page" else pageName) + " - " + repository.owner + "/" + repository.name){
   @html.header("wiki", repository)
-  @wikitab("", repository)
+  @tab("", repository)
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName == ""){New Page} else {@pageName}</h1>
