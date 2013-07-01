@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main("Milestones - " + repository.owner + "/" + repository.name){
   @html.header("milestones", repository)
-  @issues.html.issuestab("milestones", repository)
+  @issues.html.tab("milestones", repository)
   <form method="POST" action="@url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true">
     <fieldset>
       <label for="title"><string>Title</string></label>

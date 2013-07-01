@@ -54,7 +54,7 @@ trait IssuesControllerBase extends ControllerBase {
   // TODO requires users only and readable repository checking
   get("/:owner/:repository/issues/new")( usersOnly {
     getRepository(params("owner"), params("repository"), baseUrl)
-      .map (issues.html.issueedit(_))
+      .map (issues.html.create(_))
       .getOrElse (NotFound)
   })
 
@@ -148,7 +148,7 @@ trait IssuesControllerBase extends ControllerBase {
     session.put(sessionKey, condition)
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      issues.html.issues(
+      issues.html.list(
         searchIssue(owner, repository, condition, filter, userName, (page - 1) * IssueLimit, IssueLimit),
         page,
         getLabels(owner, repository),

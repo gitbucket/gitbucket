@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
   @html.header("issues", repository)
-  @issuestab("issues", repository)
+  @tab("issues", repository)
   <ul class="nav nav-tabs">
     <li class="pull-left"><a href="@url(repository)/issues"><i class="icon-arrow-left"></i> Back to issue list</a></li>
     <li class="pull-right">Issue #@issue.issueId</li>
