@@ -9,7 +9,7 @@ object Milestones extends Table[Milestone]("MILESTONE") with MilestoneTemplate w
   def closedDate = column[java.util.Date]("CLOSED_DATE")
   def * = userName ~ repositoryName ~ milestoneId ~ title ~ description.? ~ dueDate.? ~ closedDate.? <> (Milestone, Milestone.unapply _)
 
-  def ins = userName ~ repositoryName ~ title ~ description.? ~ dueDate.? ~ closedDate.? returning milestoneId
+  def ins = userName ~ repositoryName ~ title ~ description.? ~ dueDate.? ~ closedDate.?
   def byPrimaryKey = byMilestone _
 }
 
