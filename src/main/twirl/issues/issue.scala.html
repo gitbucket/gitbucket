@@ -33,6 +33,17 @@
           @markdown(comment.content, repository, false, true, true)
         </div>
       </div>
+      @comment.action.map { action =>
+      <div class="small">
+        @if(action == "close"){
+          <span class="label label-important">Closed</span>
+          <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
+        } else {
+          <span class="label label-success">Reopened</span>
+          <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
+        }
+      </div>
+      }
       }
       <form action="@url(repository)/issue_comments/new" method="POST" validate="true">
       <div class="box">
@@ -42,6 +53,7 @@
       </div>
       <input type="hidden" name="issueId" value="@issue.issueId"/>
       <input type="submit" class="btn btn-success" value="Comment"/>
+      <input type="submit" class="btn" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
       </form>
     </div>
     <div class="span2">
@@ -79,6 +91,10 @@ $(function(){
       $('#commentContent-' + id).empty().html(data);
     });
     return false;
+  });
+
+  $('#action').click(function(){
+    $('<input type="hidden">').attr('name', 'action').val($(this).val().toLowerCase()).appendTo('form');
   });
 });
 </script>

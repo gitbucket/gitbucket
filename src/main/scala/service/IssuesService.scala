@@ -185,12 +185,12 @@ trait IssuesService {
     } get
 
   def createComment(owner: String, repository: String, loginUser: String,
-      issueId: Int, content: String) =
+      issueId: Int, content: String, action: Option[String]) =
     IssueComments.autoInc insert (
         owner,
         repository,
         issueId,
-        None,
+        action,
         loginUser,
         content,
         currentDate,
@@ -212,6 +212,14 @@ trait IssuesService {
     } map { t =>
       t.content ~ t.updatedDate
     } update (content, currentDate)
+
+  def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean) =
+    Issues
+      .filter (_.byPrimaryKey(owner, repository, issueId))
+      .map { t =>
+        t.closed ~ t.updatedDate
+      }
+      .update (closed, currentDate)
 
 }
 

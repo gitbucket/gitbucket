@@ -81,9 +81,12 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issue_comments/new", commentForm)( usersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
+    val action = params.get("action") filter { action =>
+      updateClosed(owner, repository, form.issueId, if(action == "close") true else false) > 0
+    }
 
     redirect("/%s/%s/issues/%d#comment-%d".format(owner, repository, form.issueId,
-        createComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
+        createComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content, action)))
   })
 
   // TODO Authenticator, repository checking
