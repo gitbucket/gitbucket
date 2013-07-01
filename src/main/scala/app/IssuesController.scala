@@ -59,7 +59,7 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   // TODO requires users only and readable repository checking
-  post("/:owner/:repository/issues", form)( usersOnly { form =>
+  post("/:owner/:repository/issues/new", form)( usersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
 
@@ -67,20 +67,18 @@ trait IssuesControllerBase extends ControllerBase {
         createIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
   })
 
-  // TODO Authenticator, Validation
-  post("/:owner/:repository/issues/:id"){
+  // TODO Authenticator
+  ajaxPost("/:owner/:repository/issues/edit/:id", form){ form =>
     val owner = params("owner")
     val repository = params("repository")
     val issueId = params("id").toInt
-    val title = params("title")
-    val content = params.get("content")
 
-    updateIssue(owner, repository, issueId, title, content)
+    updateIssue(owner, repository, issueId, form.title, form.content)
     redirect("/%s/%s/issues/_data/%d".format(owner, repository, issueId))
   }
 
   // TODO requires users only and readable repository checking
-  post("/:owner/:repository/issue_comments", commentForm)( usersOnly { form =>
+  post("/:owner/:repository/issue_comments/new", commentForm)( usersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
 
@@ -88,17 +86,16 @@ trait IssuesControllerBase extends ControllerBase {
         createComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content)))
   })
 
-  // TODO Authenticator, Validation
-  post("/:owner/:repository/issue_comments/:id"){
+  // TODO Authenticator, repository checking
+  ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm){ form =>
     val commentId = params("id").toInt
-    val content = params("content")
 
-    updateComment(commentId, content)
+    updateComment(commentId, form.content)
     redirect("/%s/%s/issue_comments/_data/%d".format(params("owner"), params("repository"), commentId))
   }
 
   // TODO Authenticator
-  get("/:owner/:repository/issues/_data/:id"){
+  ajaxGet("/:owner/:repository/issues/_data/:id"){
     getIssue(params("owner"), params("repository"), params("id")) map { x =>
       params.get("dataType") collect {
         case t if t == "html" => issues.html.edit(
@@ -115,7 +112,7 @@ trait IssuesControllerBase extends ControllerBase {
   }
 
   // TODO Authenticator
-  get("/:owner/:repository/issue_comments/_data/:id"){
+  ajaxGet("/:owner/:repository/issue_comments/_data/:id"){
     getComment(params("id")) map { x =>
       params.get("dataType") collect {
         case t if t == "html" => issues.html.edit(

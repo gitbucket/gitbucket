@@ -20,18 +20,25 @@ $(function(){
 
   $('@{if(isComment) "#commentContent-" + key else "#issueContent"} input.btn').click(function(){
     @if(isComment){
-      var url = '@path/@owner/@repository/issue_comments/@key';
+      var url = '@path/@owner/@repository/issue_comments/edit/@key';
       var param = {
+          issueId : 0,	// TODO
           content : $('#edit-content-@key').val()
       };
     }else{
-      var url = '@path/@owner/@repository/issues/@key';
+      var url = '@path/@owner/@repository/issues/edit/@key';
       var param = {
           title   : $('#edit-title').val(),
           content : $('#edit-content').val()
       };
     }
-    $.post(url, param, callback);
+    $.ajax({
+      url: url, type: 'POST', data: param
+    }).done(
+      callback
+    ).fail(function(req) {
+      displayErrors($.parseJSON(req.responseText));
+    });
   });
 
   $('@{if(isComment) "#commentContent-" + key else "#issueContent"} a.btn').click(function(){
