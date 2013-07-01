@@ -53,8 +53,12 @@ trait IssuesControllerBase extends ControllerBase {
 
   // TODO requires users only and readable repository checking
   get("/:owner/:repository/issues/new")( usersOnly {
-    getRepository(params("owner"), params("repository"), baseUrl)
-      .map (issues.html.create(_))
+    val owner      = params("owner")
+    val repository = params("repository")
+
+    getRepository(owner, repository, baseUrl)
+      .map (issues.html.create((getCollaborators(owner, repository) :+ owner).sorted,
+                               getMilestones(owner, repository), getLabels(owner, repository), _))
       .getOrElse (NotFound)
   })
 

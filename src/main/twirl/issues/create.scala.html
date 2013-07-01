@@ -1,4 +1,4 @@
-@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(collaborators: List[String], milestones: List[model.Milestone], labels: List[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("New Issue - " + repository.owner + "/" + repository.name){
@@ -12,33 +12,41 @@
         <div class="box-content">
           <span id="error-title" class="error"></span>
           <input type="text" name="title" value="" placeholder="Title" style="width: 650px;"/>
-          @*
-          <ul class="nav nav-tabs">
-            <li class="pull-left">No one is assigned
+          <div>
+            <span id="label-assigned">No one is assigned</span>
+            <input type="hidden" name="assignedUserName" value=""/>
+            <div class="btn-group">
+              <button class="btn dropdown-toggle" data-toggle="dropdown">
+                <i class="icon-cog"></i>
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a href="javascript:void(0);" id="clear-assignee">Clear assignee</a></li>
+                <li class="divider"></li>
+                @collaborators.map { collaborator =>
+                  <li><a href="javascript:void(0);" class="assign">@collaborator</a></li>
+                }
+              </ul>
+            </div>
+            <div class="pull-right">
+              <span id="label-milestone">No milestone</span>
+              <input type="hidden" name="milestoneId" value=""/>
               <div class="btn-group">
-                <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
+                <button class="btn dropdown-toggle" data-toggle="dropdown">
                   <i class="icon-cog"></i>
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><a href="#">takezoe</a></li>
-                  <li><a href="#">shimamoto</a></li>
-                </ul>
-              </div>
-            </li>
-            <li class="pull-right">No milestone
-              <div class="btn-group">
-                <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-                  <i class="icon-cog"></i>
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
+                  <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
                   <li class="divider"></li>
+                  @milestones.map { milestone =>
+                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                  }
                 </ul>
               </div>
-            </li>
-          </ul>
-          *@
+            </div>
+          </div>
+          <hr>
           @html.preview(repository, "", false, true, true, "width: 650px; height: 200px;")
         </div>
       </div>
@@ -46,7 +54,30 @@
       </form>
     </div>
     <div class="span3">
-      TODO Add Labels
+      <strong>Add Labels</strong>
+      <ul>
+        @labels.map { label =>
+          <li>@label.labelName</li>
+        }
+      </ul>
     </div>
   </div>
 }
+<script>
+$(function(){
+  $('a.assign').click(function(){
+    $('#label-assigned').html($(this).text() + ' well be assigned');
+    $('input[name=assignedUserName]').val($(this).text());
+  });
+
+  $('a#clear-assignee').click(function(){
+    $('#label-assigned').text('No one will be assigned');
+    $('input[name=assignedUserName]').val('');
+  });
+
+  $('a.milestone').click(function(){
+    $('#label-milestone').text($(this).text());
+    $('input[name=milestoneId]').val($(this).data('id'));
+  });
+});
+</script>
