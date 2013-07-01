@@ -1,0 +1,35 @@
+@(title: String, content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: app.Context)
+@import context._
+<span id="error-edit-title" class="error"></span>
+<input type="text" style="width: 730px;" id="edit-title" value="@title"/>
+<textarea style="width: 730px; height: 100px;" id="edit-content">@content.getOrElse("")</textarea>
+<input type="button" class="btn btn-small" value="Update Issue"/>
+<span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
+<script>
+$(function(){
+  var callback = function(data){
+    $('#issueTitle').empty().text(data.title);
+    $('#issueContent').empty().html(data.content);
+  };
+
+  $('#issueContent input.btn').click(function(){
+    $.ajax({
+      url: '@path/@owner/@repository/issues/edit/@issueId',
+      type: 'POST',
+      data: {
+        title   : $('#edit-title').val(),
+        content : $('#edit-content').val()
+      }
+    }).done(
+      callback
+    ).fail(function(req) {
+      $('#error-edit-title').text($.parseJSON(req.responseText).title);
+    });
+  });
+
+  $('#issueContent a.btn').click(function(){
+    $.get('@path/@owner/@repository/issues/_data/@issueId', callback);
+    return false;
+  });
+});
+</script>

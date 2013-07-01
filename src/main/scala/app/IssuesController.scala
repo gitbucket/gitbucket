@@ -98,8 +98,8 @@ trait IssuesControllerBase extends ControllerBase {
   ajaxGet("/:owner/:repository/issues/_data/:id"){
     getIssue(params("owner"), params("repository"), params("id")) map { x =>
       params.get("dataType") collect {
-        case t if t == "html" => issues.html.edit(
-            Some(x.title), x.content getOrElse "", x.issueId, x.userName, x.repositoryName)
+        case t if t == "html" => issues.html.editissue(
+            x.title, x.content, x.issueId, x.userName, x.repositoryName)
       } getOrElse {
         contentType = formats("json")
         org.json4s.jackson.Serialization.write(
@@ -115,8 +115,8 @@ trait IssuesControllerBase extends ControllerBase {
   ajaxGet("/:owner/:repository/issue_comments/_data/:id"){
     getComment(params("id")) map { x =>
       params.get("dataType") collect {
-        case t if t == "html" => issues.html.edit(
-            None, x.content, x.commentId, x.userName, x.repositoryName)
+        case t if t == "html" => issues.html.editcomment(
+            x.content, x.commentId, x.userName, x.repositoryName)
       } getOrElse {
         contentType = formats("json")
         org.json4s.jackson.Serialization.write(
