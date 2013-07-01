@@ -1,7 +1,7 @@
 @(account: Option[model.Account])(implicit context: app.Context)
 @import context._
 @html.main(if(account.isEmpty) "New User" else "Update User"){
-  @menu("users"){
+  @admin.html.menu("users"){
     <form method="POST" action="@if(account.isEmpty){@path/admin/users/_new} else {@path/admin/users/@account.get.userName/_edit}" validate="true">
       <fieldset>
         <label for="userName"><strong>Username</strong></label>

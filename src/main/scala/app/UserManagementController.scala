@@ -29,11 +29,11 @@ trait UserManagementControllerBase extends ControllerBase { self: AccountService
   )(UserEditForm.apply)
   
   get("/admin/users")(adminOnly {
-    admin.html.userlist(getAllUsers())
+    admin.users.html.list(getAllUsers())
   })
   
   get("/admin/users/_new")(adminOnly {
-    admin.html.useredit(None)
+    admin.users.html.edit(None)
   })
   
   post("/admin/users/_new", newForm)(adminOnly { form =>
@@ -43,7 +43,7 @@ trait UserManagementControllerBase extends ControllerBase { self: AccountService
   
   get("/admin/users/:userName/_edit")(adminOnly {
     val userName = params("userName")
-    admin.html.useredit(getAccountByUserName(userName))
+    admin.users.html.edit(getAccountByUserName(userName))
   })
   
   post("/admin/users/:name/_edit", editForm)(adminOnly { form =>
