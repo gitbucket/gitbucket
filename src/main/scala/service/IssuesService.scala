@@ -14,23 +14,15 @@ trait IssuesService {
 
   def getIssue(owner: String, repository: String, issueId: String) =
     if (issueId forall (_.isDigit))
-      Query(Issues) filter { t =>
-        (t.userName is owner.bind) &&
-        (t.repositoryName is repository.bind) &&
-        (t.issueId is issueId.toInt.bind)
-      } firstOption
+      Query(Issues) filter (_.byPrimaryKey(owner, repository, issueId.toInt)) firstOption
     else None
 
   def getComments(owner: String, repository: String, issueId: Int) =
-    Query(IssueComments) filter { t =>
-      (t.userName is owner.bind) &&
-      (t.repositoryName is repository.bind) &&
-      (t.issueId is issueId.bind)
-    } list
+    Query(IssueComments) filter (_.byIssue(owner, repository, issueId)) list
 
   def getComment(commentId: String) =
     if (commentId forall (_.isDigit))
-      Query(IssueComments) filter (_.commentId is commentId.toInt.bind) firstOption
+      Query(IssueComments) filter (_.byPrimaryKey(commentId.toInt)) firstOption
     else None
 
   /**
@@ -62,10 +54,10 @@ trait IssuesService {
 
     searchIssueQuery(owner, repository, condition.copy(labels = Set.empty), filter, userName)
       .innerJoin(IssueLabels).on { (t1, t2) =>
-        (t1.userName is t2.userName) && (t1.repositoryName is t2.repositoryName) && (t1.issueId is t2.issueId)
+        t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
       .innerJoin(Labels).on { case ((t1, t2), t3) =>
-        (t2.userName is t3.userName) && (t2.repositoryName is t3.repositoryName) && (t2.labelId is t3.labelId)
+        t2.byLabel(t3.userName, t3.repositoryName, t3.labelId)
       }
       .groupBy { case ((t1, t2), t3) =>
         t3.labelName
@@ -95,7 +87,7 @@ trait IssuesService {
     // get issues and comment count
     val issues = searchIssueQuery(owner, repository, condition, filter, userName)
       .leftJoin(Query(IssueComments)
-        .filter  { t => (t.userName is owner.bind) && (t.repositoryName is repository.bind) }
+        .filter  { _.byRepository(owner, repository) }
         .groupBy { _.issueId }
         .map     { case (issueId, t) => issueId ~ t.length }).on((t1, t2) => t1.issueId is t2._1)
       .sortBy { case (t1, t2) =>
@@ -117,14 +109,11 @@ trait IssuesService {
     // get labels
     val labels = Query(IssueLabels)
       .innerJoin(Labels).on { (t1, t2) =>
-        (t1.userName       is t2.userName) &&
-        (t1.repositoryName is t2.repositoryName) &&
-        (t1.labelId        is t2.labelId)
+        t1.byLabel(t2.userName, t2.repositoryName, t2.labelId)
       }
       .filter { case (t1, t2) =>
-        (t1.userName       is owner.bind) &&
-        (t1.repositoryName is repository.bind) &&
-        (t1.issueId        inSetBind (issues.map(_._1.issueId)))
+        (t1.byRepository(owner, repository)) &&
+        (t1.issueId inSetBind (issues.map(_._1.issueId)))
       }
       .sortBy { case (t1, t2) => t1.issueId ~ t2.labelName }
       .map    { case (t1, t2) => (t1.issueId, t2) }
@@ -140,22 +129,18 @@ trait IssuesService {
    */
   private def searchIssueQuery(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
     Query(Issues) filter { t1 =>
-      (t1.userName         is owner.bind) &&
-      (t1.repositoryName   is repository.bind) &&
+      (t1.byRepository(owner, repository)) &&
       (t1.closed           is (condition.state == "closed").bind) &&
       (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
       (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
       (t1.openedUserName   is userName.get.bind, filter == "created_by") &&
       (IssueLabels filter { t2 =>
-        (t2.userName       is t1.userName) &&
-        (t2.repositoryName is t1.repositoryName) &&
-        (t2.issueId        is t1.issueId) &&
-        (t2.labelId        in
+        (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
+        (t2.labelId in
           (Labels filter { t3 =>
-            (t3.userName       is t1.userName) &&
-            (t3.repositoryName is t1.repositoryName) &&
-            (t3.labelName      inSetBind condition.labels)
+            (t3.byRepository(t1.userName, t1.repositoryName)) &&
+            (t3.labelName inSetBind condition.labels)
           } map(_.labelId)))
       } exists, condition.labels.nonEmpty)
     }
@@ -179,10 +164,14 @@ trait IssuesService {
           currentDate)
 
       // increment issue id
-      IssueId.filter { t =>
-        (t.userName is owner.bind) && (t.repositoryName is repository.bind)
-      }.map(_.issueId).update(id) > 0
+      IssueId
+        .filter (_.byPrimaryKey(owner, repository))
+        .map (_.issueId)
+        .update (id) > 0
     } get
+
+  def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int): Unit =
+    IssueLabels.* insert (IssueLabel(owner, repository, issueId, labelId))
 
   def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int): Unit =
     IssueLabels.* insert (IssueLabel(owner, repository, issueId, labelId))
@@ -201,20 +190,20 @@ trait IssuesService {
 
   def updateIssue(owner: String, repository: String, issueId: Int,
       title: String, content: Option[String]) =
-    Issues filter { t =>
-      (t.userName is owner.bind) &&
-      (t.repositoryName is repository.bind) &&
-      (t.issueId is issueId.bind)
-    } map { t =>
-      t.title ~ t.content.? ~ t.updatedDate
-    } update (title, content, currentDate)
+    Issues
+      .filter (_.byPrimaryKey(owner, repository, issueId))
+      .map { t =>
+        t.title ~ t.content.? ~ t.updatedDate
+      }
+      .update (title, content, currentDate)
 
   def updateComment(commentId: Int, content: String) =
-    IssueComments filter {
-      _.commentId is commentId.bind
-    } map { t =>
-      t.content ~ t.updatedDate
-    } update (content, currentDate)
+    IssueComments
+      .filter (_.byPrimaryKey(commentId))
+      .map { t =>
+        t.content ~ t.updatedDate
+      }
+      .update (content, currentDate)
 
   def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean) =
     Issues
