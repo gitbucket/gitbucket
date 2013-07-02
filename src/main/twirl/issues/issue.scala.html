@@ -78,7 +78,7 @@
           <ul class="dropdown-menu">
           @labels.map { label =>
             <li>
-              <a href="#" class="toggle-label" data-label="@label.labelId">
+              <a href="#" class="toggle-label" data-label-id="@label.labelId">
                 <i class="@{if(issueLabels.exists(_.labelId == label.labelId)) "icon-ok" else "icon-white"}"></i>
                 <span class="label" style="background-color: #@label.color;">&nbsp;</span>
                 @label.labelName
@@ -89,9 +89,7 @@
         </div>
       </div>
       <ul class="label-list">
-      @issueLabels.map { label =>
-        <li><span class="label" style="background-color: #@label.color;">@label.labelName</span></li>
-      }
+        @labellist(issueLabels)
       </ul>
     </div>
   </div>
@@ -126,7 +124,7 @@ $(function(){
   });
 
   $('a.toggle-label').click(function(){
-    var url = '@url(repository)/issues/@issue.issueId/label/' + $(this).data('label');
+    var url = '@url(repository)/issues/@issue.issueId/label/' + $(this).data('label-id');
     var icon;
     var i = $(this).children('i');
     if(i.hasClass('icon-ok')){
