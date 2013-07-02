@@ -91,7 +91,7 @@
           <tr>
             <td style="padding: 20px; background-color: #eee; text-align: center;">
               No milestones to show.
-              @if(isWritable){
+              @if(hasWritePermission){
                 <a href="@url(repository)/issues/milestones/new">Create a new milestone.</a>
               }
             </td>
