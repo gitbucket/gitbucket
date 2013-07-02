@@ -68,8 +68,9 @@
         </div>
       </div>
       @comments.map { comment =>
-        <div class="box" id="comment-@comment.commentId">
+        <div class="box issue-comment-box" id="comment-@comment.commentId">
           <div class="box-header-small">
+            <i class="icon-comment"></i>
             <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> commented
             <span class="pull-right">
               @datetime(comment.registeredDate)
@@ -83,13 +84,13 @@
           </div>
         </div>
         @comment.action.map { action =>
-        <div class="small">
+        <div class="small issue-comment-action">
           @if(action == "close"){
             <span class="label label-important">Closed</span>
-            <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
+            <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
           } else {
             <span class="label label-success">Reopened</span>
-            <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
+            <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
           }
         </div>
         }
@@ -109,21 +110,23 @@
     </div>
     <div class="span2">
       @if(issue.closed) {
-        <a class="btn btn-large btn-danger disabled">Closed</a>
+        <span class="label label-important issue-status">Closed</span>
       } else {
-        <a class="btn btn-large btn-success disabled">Open</a>
+        <span class="label label-success issue-status">Open</span>
       }
-      <div class="small">@comments.size comments</div>
+      <div class="small" style="text-align: center;">
+        @if(comments.size == 1){
+          <strong>1</strong> comment
+        } else {
+          <strong>@comments.size</strong> comments
+        }
+      </div>
       <hr/>
+      <div style="margin-bottom: 8px;">
       <strong>Labels</strong>
       @if(hasWritePermission){
         <div class="pull-right">
-          <div class="btn-group">
-            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-              <i class="icon-cog"></i>
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
+          @helper.html.dropdown {
             @labels.map { label =>
               <li>
                 <a href="#" class="toggle-label" data-label-id="@label.labelId">
@@ -134,9 +137,10 @@
               </li>
             }
             </ul>
-          </div>
+          }
         </div>
       }
+      </div>
       <ul class="label-list">
         @labellist(issueLabels)
       </ul>

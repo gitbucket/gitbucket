@@ -107,7 +107,7 @@ h3 {
 div.box {
   background-color: #efefef;
   padding: 2px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 div.box-header {
@@ -313,6 +313,13 @@ pre.blob {
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
+span.issue-status {
+  display: block;
+  font-size: large;
+  text-align: center;
+  padding: 8px;
+}
+
 table.table-issues {
   margin-top: 12px;
 }
@@ -428,6 +435,18 @@ h4#issueTitle {
   margin-top: 2px;
   margin-bottom: 0px;
   padding: 0px;
+}
+
+div.issue-comment-box {
+  margin-bottom: 15px;
+  margin-top: 25px;
+}
+
+div.issue-comment-action {
+  padding-bottom: 10px;
+  padding-top: 0px;
+  margin-bottom: 10px;
+  border-bottom: 4px solid #ddd;
 }
 
 /****************************************************************************/

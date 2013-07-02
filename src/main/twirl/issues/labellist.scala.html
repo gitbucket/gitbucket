@@ -1,4 +1,4 @@
 @(issueLabels: List[model.Label])
 @issueLabels.map { label =>
-  <li><span class="label" style="background-color: #@label.color;">@label.labelName</span></li>
+  <li><span class="label" style="display: block; background-color: #@label.color; color: #@label.fontColor; margin-top: 2px; padding: 4px;">@label.labelName</span></li>
 }
