@@ -80,9 +80,11 @@ trait IssuesControllerBase extends ControllerBase {
     val owner = params("owner")
     val repository = params("repository")
 
+    // TODO User and milestone are assigned by only collaborators.
     val issueId = createIssue(owner, repository, context.loginAccount.get.userName,
       form.title, form.content, form.assignedUserName, form.milestoneId)
 
+    // TODO labels are assigned by only collaborators
     form.labelNames.map { value =>
       val labels = getLabels(owner, repository)
       value.split(",").foreach { labelName =>
