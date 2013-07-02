@@ -61,7 +61,7 @@ trait IssuesControllerBase extends ControllerBase {
       issues.html.issue(
           _,
           getComments(owner, repository, issueId.toInt),
-          getIssueLabel(owner, repository, issueId.toInt),
+          getIssueLabels(owner, repository, issueId.toInt),
           (getCollaborators(owner, repository) :+ owner).sorted,
           getMilestones(owner, repository),
           getLabels(owner, repository),
@@ -115,16 +115,6 @@ trait IssuesControllerBase extends ControllerBase {
     redirect("/%s/%s/issues/_data/%d".format(owner, repository, issueId))
   }
 
-  // TODO Authenticator
-  ajaxPost("/:owner/:repository/issues/:id/label/:labelId/new"){
-    "TODO Insert!"
-  }
-
-  // TODO Authenticator
-  ajaxPost("/:owner/:repository/issues/:id/label/:labelId/delete"){
-    "TODO Delete!"
-  }
-
   // TODO requires users only and readable repository checking
   post("/:owner/:repository/issue_comments/new", commentForm)( usersOnly { form =>
     val owner = params("owner")
@@ -176,6 +166,28 @@ trait IssuesControllerBase extends ControllerBase {
             ))
       }
     } getOrElse NotFound
+  }
+
+  // TODO Authenticator
+  ajaxPost("/:owner/:repository/issues/:id/label/new"){
+    val owner = params("owner")
+    val repository = params("repository")
+    val issueId = params("id").toInt
+
+    registerIssueLabel(owner, repository, issueId, params("labelId").toInt)
+
+    issues.html.labellist(getIssueLabels(owner, repository, issueId))
+  }
+
+  // TODO Authenticator
+  ajaxPost("/:owner/:repository/issues/:id/label/delete"){
+    val owner = params("owner")
+    val repository = params("repository")
+    val issueId = params("id").toInt
+
+    deleteIssueLabel(owner, repository, issueId, params("labelId").toInt)
+
+    issues.html.labellist(getIssueLabels(owner, repository, issueId))
   }
 
   ajaxPost("/:owner/:repository/issues/assign/:id"){

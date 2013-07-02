@@ -25,7 +25,7 @@ trait IssuesService {
       Query(IssueComments) filter (_.byPrimaryKey(commentId.toInt)) firstOption
     else None
 
-  def getIssueLabel(owner: String, repository: String, issueId: Int) =
+  def getIssueLabels(owner: String, repository: String, issueId: Int) =
     IssueLabels
       .innerJoin(Labels).on { (t1, t2) =>
         t1.byLabel(t2.userName, t2.repositoryName, t2.labelId)

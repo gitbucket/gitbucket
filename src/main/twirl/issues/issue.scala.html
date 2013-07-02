@@ -189,21 +189,22 @@ $(function(){
   });
 
   $('a.toggle-label').click(function(){
-    var url = '@url(repository)/issues/@issue.issueId/label/' + $(this).data('label-id');
-    var icon;
+    var path, icon;
     var i = $(this).children('i');
     if(i.hasClass('icon-ok')){
-      url += '/delete';
+      path = 'delete';
       icon = 'icon-white';
     } else {
-      url += '/new';
+      path = 'new';
       icon = 'icon-ok';
     }
-    $.post(url,
+    $.post('@url(repository)/issues/@issue.issueId/label/' + path,
+    {
+      labelId : $(this).data('label-id')
+    },
     function(data){
       i.removeClass().addClass(icon);
-      // TODO label sort
-      alert(data);
+      $('ul.label-list').empty().html(data);
     });
     return false;
   });
