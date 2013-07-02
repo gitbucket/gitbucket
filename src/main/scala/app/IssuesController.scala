@@ -167,6 +167,28 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound
   }
 
+  ajaxPost("/:owner/:repository/issues/assign/:id"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val issueId    = params("id").toInt
+
+    params.get("assignedUserName") match {
+      case null|None      => updateAssignedUserName(owner, repository, issueId, None)
+      case Some(userName) => updateAssignedUserName(owner, repository, issueId, Some(userName))
+    }
+  }
+
+  ajaxPost("/:owner/:repository/issues/milestone/:id"){
+    val owner      = params("owner")
+    val repository = params("repository")
+    val issueId    = params("id").toInt
+
+    params.get("milestoneId") match {
+      case null|None         => updateMilestoneId(owner, repository, issueId, None)
+      case Some(milestoneId) => updateMilestoneId(owner, repository, issueId, Some(milestoneId.toInt))
+    }
+  }
+
   private def searchIssues(filter: String) = {
     val owner      = params("owner")
     val repository = params("repository")
