@@ -4,10 +4,9 @@
 @html.main("New Issue - " + repository.owner + "/" + repository.name){
   @html.header("issues", repository)
   @tab("", repository)
-
+  <form action="@url(repository)/issues/new" method="POST" validate="true">
   <div class="row-fluid">
     <div class="span9">
-      <form action="@url(repository)/issues/new" method="POST" validate="true">
       <div class="box">
         <div class="box-content">
           <span id="error-title" class="error"></span>
@@ -51,7 +50,6 @@
         </div>
       </div>
       <input type="submit" class="btn btn-success" value="Submit new issue"/>
-      </form>
     </div>
     <div class="span3">
       <strong>Add Labels</strong>
@@ -72,6 +70,7 @@
       </div>
     </div>
   </div>
+  </form>
 }
 <script>
 $(function(){

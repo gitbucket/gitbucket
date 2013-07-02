@@ -160,8 +160,8 @@ trait IssuesService {
       } exists, condition.labels.nonEmpty)
     }
 
-  def createIssue(owner: String, repository: String, loginUser: String,
-      title: String, content: Option[String]) =
+  def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
+                  assignedUserName: Option[String], milestoneId: Option[Int]) =
     // next id number
     sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
         .firstOption.filter { id =>
@@ -170,8 +170,8 @@ trait IssuesService {
           repository,
           id,
           loginUser,
-          None,
-          None,
+          milestoneId,
+          assignedUserName,
           title,
           content,
           false,
@@ -183,6 +183,9 @@ trait IssuesService {
         (t.userName is owner.bind) && (t.repositoryName is repository.bind)
       }.map(_.issueId).update(id) > 0
     } get
+
+  def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int): Unit =
+    IssueLabels.* insert (IssueLabel(owner, repository, issueId, labelId))
 
   def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String, action: Option[String]) =
