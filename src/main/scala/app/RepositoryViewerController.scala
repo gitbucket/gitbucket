@@ -2,7 +2,7 @@ package app
 
 import util.Directory._
 import util.Implicits._
-import _root_.util.{ReadableRepositoryAuthenticator, JGitUtil, FileUtil}
+import _root_.util.{ReferrerAuthenticator, JGitUtil, FileUtil}
 import service._
 import org.scalatra._
 import java.io.File
@@ -12,18 +12,18 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
-  with RepositoryService with AccountService with ReadableRepositoryAuthenticator
+  with RepositoryService with AccountService with ReferrerAuthenticator
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
-  self: RepositoryService with AccountService with ReadableRepositoryAuthenticator  =>
+  self: RepositoryService with AccountService with ReferrerAuthenticator  =>
 
   /**
    * Returns converted HTML from Markdown for preview.
    */
-  post("/:owner/:repository/_preview")(readableRepository {
+  post("/:owner/:repository/_preview")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val content    = params("content")
@@ -39,7 +39,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file list of the repository root and the default branch.
    */
-  get("/:owner/:repository")(readableRepository {
+  get("/:owner/:repository")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
 
@@ -49,7 +49,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file list of the repository root and the specified branch.
    */
-  get("/:owner/:repository/tree/:id")(readableRepository {
+  get("/:owner/:repository/tree/:id")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -59,7 +59,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file list of the specified path and branch.
    */
-  get("/:owner/:repository/tree/:id/*")(readableRepository {
+  get("/:owner/:repository/tree/:id/*")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     
@@ -69,7 +69,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the commit list of the specified branch.
    */
-  get("/:owner/:repository/commits/:branch")(readableRepository {
+  get("/:owner/:repository/commits/:branch")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val branchName = params("branch")
@@ -89,7 +89,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the commit list of the specified resource.
    */
-  get("/:owner/:repository/commits/:branch/*")(readableRepository {
+  get("/:owner/:repository/commits/:branch/*")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val branchName = params("branch")
@@ -111,7 +111,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file content of the specified branch or commit.
    */
-  get("/:owner/:repository/blob/:id/*")(readableRepository {
+  get("/:owner/:repository/blob/:id/*")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val id         = params("id") // branch name or commit id
@@ -169,7 +169,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays details of the specified commit.
    */
-  get("/:owner/:repository/commit/:id")(readableRepository {
+  get("/:owner/:repository/commit/:id")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val id         = params("id")
@@ -188,7 +188,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays tags.
    */
-  get("/:owner/:repository/tags")(readableRepository {
+  get("/:owner/:repository/tags")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
 
@@ -198,7 +198,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Download repository contents as an archive.
    */
-  get("/:owner/:repository/archive/:name")(readableRepository {
+  get("/:owner/:repository/archive/:name")(referrersOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val name       = params("name")

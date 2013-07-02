@@ -4,16 +4,16 @@ import jp.sf.amateras.scalatra.forms._
 
 import service._
 import IssuesService._
-import util.UsersOnlyAuthenticator
+import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, ReadableUsersAuthenticator}
 import org.scalatra.Ok
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService
-  with UsersOnlyAuthenticator
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait IssuesControllerBase extends ControllerBase {
   self: IssuesService with RepositoryService with LabelsService with MilestonesService
-    with UsersOnlyAuthenticator =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
@@ -40,19 +40,19 @@ trait IssuesControllerBase extends ControllerBase {
       "content" -> trim(label("Comment", text(required)))
     )(CommentForm.apply)
 
-  get("/:owner/:repository/issues"){
+  get("/:owner/:repository/issues")(referrersOnly {
     searchIssues("all")
-  }
+  })
 
-  get("/:owner/:repository/issues/assigned/:userName"){
+  get("/:owner/:repository/issues/assigned/:userName")(referrersOnly {
     searchIssues("assigned")
-  }
+  })
 
-  get("/:owner/:repository/issues/created_by/:userName"){
+  get("/:owner/:repository/issues/created_by/:userName")(referrersOnly {
     searchIssues("created_by")
-  }
+  })
 
-  get("/:owner/:repository/issues/:id"){
+  get("/:owner/:repository/issues/:id")(referrersOnly {
     val owner = params("owner")
     val repository = params("repository")
     val issueId = params("id")
@@ -67,10 +67,9 @@ trait IssuesControllerBase extends ControllerBase {
           getLabels(owner, repository),
           getRepository(owner, repository, baseUrl).get)
     } getOrElse NotFound
-  }
+  })
 
-  // TODO requires users only and readable repository checking
-  get("/:owner/:repository/issues/new")( usersOnly {
+  get("/:owner/:repository/issues/new")( readableUsersOnly {
     val owner      = params("owner")
     val repository = params("repository")
 
@@ -83,8 +82,7 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
-  // TODO requires users only and readable repository checking
-  post("/:owner/:repository/issues/new", issueCreateForm)( usersOnly { form =>
+  post("/:owner/:repository/issues/new", issueCreateForm)( readableUsersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
 
@@ -116,7 +114,7 @@ trait IssuesControllerBase extends ControllerBase {
   }
 
   // TODO requires users only and readable repository checking
-  post("/:owner/:repository/issue_comments/new", commentForm)( usersOnly { form =>
+  post("/:owner/:repository/issue_comments/new", commentForm)( referrersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
     val action = params.get("action") filter { action =>
@@ -168,8 +166,7 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound
   }
 
-  // TODO Authenticator
-  ajaxPost("/:owner/:repository/issues/:id/label/new"){
+  ajaxPost("/:owner/:repository/issues/:id/label/new")(collaboratorsOnly {
     val owner = params("owner")
     val repository = params("repository")
     val issueId = params("id").toInt
@@ -177,10 +174,9 @@ trait IssuesControllerBase extends ControllerBase {
     registerIssueLabel(owner, repository, issueId, params("labelId").toInt)
 
     issues.html.labellist(getIssueLabels(owner, repository, issueId))
-  }
+  })
 
-  // TODO Authenticator
-  ajaxPost("/:owner/:repository/issues/:id/label/delete"){
+  ajaxPost("/:owner/:repository/issues/:id/label/delete")(collaboratorsOnly {
     val owner = params("owner")
     val repository = params("repository")
     val issueId = params("id").toInt
@@ -188,9 +184,9 @@ trait IssuesControllerBase extends ControllerBase {
     deleteIssueLabel(owner, repository, issueId, params("labelId").toInt)
 
     issues.html.labellist(getIssueLabels(owner, repository, issueId))
-  }
+  })
 
-  ajaxPost("/:owner/:repository/issues/assign/:id"){
+  ajaxPost("/:owner/:repository/issues/:id/assign")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val issueId    = params("id").toInt
@@ -201,9 +197,9 @@ trait IssuesControllerBase extends ControllerBase {
       case Some(userName)           => updateAssignedUserName(owner, repository, issueId, Some(userName))
     }
     Ok("updated")
-  }
+  })
 
-  ajaxPost("/:owner/:repository/issues/milestone/:id"){
+  ajaxPost("/:owner/:repository/issues/:id/milestone")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val issueId    = params("id").toInt
@@ -214,7 +210,7 @@ trait IssuesControllerBase extends ControllerBase {
       case Some(milestoneId)        => updateMilestoneId(owner, repository, issueId, Some(milestoneId.toInt))
     }
     Ok("updated")
-  }
+  })
 
   private def searchIssues(filter: String) = {
     val owner      = params("owner")

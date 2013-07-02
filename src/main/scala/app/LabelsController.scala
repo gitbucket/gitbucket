@@ -2,13 +2,13 @@ package app
 
 import jp.sf.amateras.scalatra.forms._
 import service._
-import util.WritableRepositoryAuthenticator
+import util.CollaboratorsAuthenticator
 
 class LabelsController extends LabelsControllerBase
-  with LabelsService with RepositoryService with AccountService with WritableRepositoryAuthenticator
+  with LabelsService with RepositoryService with AccountService with CollaboratorsAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
-  self: LabelsService with RepositoryService with WritableRepositoryAuthenticator =>
+  self: LabelsService with RepositoryService with CollaboratorsAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
 
@@ -22,7 +22,7 @@ trait LabelsControllerBase extends ControllerBase {
     "editColor"     -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
-  post("/:owner/:repository/issues/label/new", newForm)(writableRepository { form =>
+  post("/:owner/:repository/issues/label/new", newForm)(collaboratorsOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
 
@@ -31,7 +31,7 @@ trait LabelsControllerBase extends ControllerBase {
     redirect("/%s/%s/issues".format(owner, repository))
   })
 
-  ajaxGet("/:owner/:repository/issues/label/edit")(writableRepository {
+  ajaxGet("/:owner/:repository/issues/label/edit")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
 
@@ -39,7 +39,7 @@ trait LabelsControllerBase extends ControllerBase {
       .map(issues.labels.html.editlist(getLabels(owner, repository), _)) getOrElse NotFound()
   })
 
-  ajaxGet("/:owner/:repository/issues/label/:labelId/edit")(writableRepository {
+  ajaxGet("/:owner/:repository/issues/label/:labelId/edit")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val labelId    = params("labelId").toInt
@@ -49,7 +49,7 @@ trait LabelsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/label/:labelId/edit", editForm)(writableRepository { form =>
+  ajaxPost("/:owner/:repository/issues/label/:labelId/edit", editForm)(collaboratorsOnly { form =>
     val owner      = params("owner")
     val repository = params("repository")
     val labelId    = params("labelId").toInt
@@ -60,7 +60,7 @@ trait LabelsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxGet("/:owner/:repository/issues/label/:labelId/delete")(writableRepository {
+  ajaxGet("/:owner/:repository/issues/label/:labelId/delete")(collaboratorsOnly {
     val owner      = params("owner")
     val repository = params("repository")
     val labelId    = params("labelId").toInt

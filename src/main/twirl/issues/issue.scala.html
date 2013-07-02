@@ -145,9 +145,11 @@ $(function(){
 
   $('a.assign').click(function(){
     var userName = $(this).data('name');
-    $.post('@url(repository)/issues/assign/@issue.issueId', {
+    $.post('@url(repository)/issues/@issue.issueId/assign',
+    {
       assignedUserName: userName
-    }, function(){
+    },
+    function(){
       if(userName == ''){
         $('#label-assigned').text('No one is assigned');
       } else {
@@ -161,9 +163,11 @@ $(function(){
   $('a.milestone').click(function(){
     var title = $(this).text();
     var milestoneId = $(this).data('id');
-    $.post('@url(repository)/issues/milestone/@issue.issueId', {
+    $.post('@url(repository)/issues/@issue.issueId/milestone',
+    {
       milestoneId: milestoneId
-    }, function(){
+    },
+    function(){
       if(milestoneId == ''){
         $('#label-milestone').text('No milestone');
       } else {

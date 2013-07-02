@@ -60,9 +60,9 @@ trait AdminOnlyAuthenticator { self: ControllerBase =>
 /**
  * Allows only collaborators and administrators.
  */
-trait WritableRepositoryAuthenticator { self: ControllerBase with RepositoryService =>
-  protected def writableRepository(action: => Any) = { authenticate(action) }
-  protected def writableRepository[T](action: T => Any) = (form: T) => authenticate({action(form)})
+trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =>
+  protected def collaboratorsOnly(action: => Any) = { authenticate(action) }
+  protected def collaboratorsOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
 
   private def authenticate(action: => Any) = {
       val paths = request.getRequestURI.split("/")
@@ -78,9 +78,9 @@ trait WritableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
 /**
  * Allows only the repository owner and administrators.
  */
-trait ReadableRepositoryAuthenticator { self: ControllerBase with RepositoryService =>
-  protected def readableRepository(action: => Any) = { authenticate(action) }
-  protected def readableRepository[T](action: T => Any) = (form: T) => authenticate({action(form)})
+trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
+  protected def referrersOnly(action: => Any) = { authenticate(action) }
+  protected def referrersOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
 
   private def authenticate(action: => Any) = {
     {
@@ -98,6 +98,30 @@ trait ReadableRepositoryAuthenticator { self: ControllerBase with RepositoryServ
               case _ => Unauthorized()
             }
           }
+      }
+    }
+  }
+}
+
+/**
+ * Allows only signed in users which can access the repository.
+ */
+trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =>
+  protected def readableUsersOnly(action: => Any) = { authenticate(action) }
+  protected def readableUsersOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
+
+  private def authenticate(action: => Any) = {
+    {
+      val paths = request.getRequestURI.split("/")
+      getRepository(paths(1), paths(2), baseUrl) match {
+        case None => NotFound()
+        case Some(repository) => context.loginAccount match {
+          case Some(x) if(x.isAdmin) => action
+          case Some(x) if(!repository.repository.isPrivate) => action
+          case Some(x) if(paths(1) == x.userName) => action
+          case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
+          case _ => Unauthorized()
+        }
       }
     }
   }
