@@ -14,13 +14,26 @@ trait IssuesControllerBase extends ControllerBase {
   self: IssuesService with RepositoryService with LabelsService with MilestonesService
     with UsersOnlyAuthenticator =>
 
-  case class IssueForm(title: String, content: Option[String])
+  case class IssueCreateForm(title: String, content: Option[String],
+    assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
+
+  case class IssueEditForm(title: String, content: Option[String])
+
   case class CommentForm(issueId: Int, content: String)
 
-  val form = mapping(
+  val issueCreateForm = mapping(
+      "title"            -> trim(label("Title", text(required))),
+      "content"          -> trim(optional(text())),
+      "assignedUserName" -> trim(optional(text())),
+      "milestoneId"      -> trim(optional(number())),
+      "labelNames"       -> trim(optional(text()))
+    )(IssueCreateForm.apply)
+
+  val issueEditForm = mapping(
       "title"   -> trim(label("Title", text(required))),
       "content" -> trim(optional(text()))
-    )(IssueForm.apply)
+    )(IssueEditForm.apply)
+
   val commentForm = mapping(
       "issueId" -> label("Issue Id", number()),
       "content" -> trim(label("Comment", text(required)))
@@ -63,16 +76,29 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   // TODO requires users only and readable repository checking
-  post("/:owner/:repository/issues/new", form)( usersOnly { form =>
+  post("/:owner/:repository/issues/new", issueCreateForm)( usersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
 
-    redirect("/%s/%s/issues/%d".format(owner, repository,
-        createIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content)))
+    // TODO User and milestone are assigned by only collaborators.
+    val issueId = createIssue(owner, repository, context.loginAccount.get.userName,
+      form.title, form.content, form.assignedUserName, form.milestoneId)
+
+    // TODO labels are assigned by only collaborators
+    form.labelNames.map { value =>
+      val labels = getLabels(owner, repository)
+      value.split(",").foreach { labelName =>
+        labels.find(_.labelName == labelName).map { label =>
+          registerIssueLabel(owner, repository, issueId, label.labelId)
+        }
+      }
+    }
+
+    redirect("/%s/%s/issues/%d".format(owner, repository, issueId))
   })
 
   // TODO Authenticator
-  ajaxPost("/:owner/:repository/issues/edit/:id", form){ form =>
+  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm){ form =>
     val owner = params("owner")
     val repository = params("repository")
     val issueId = params("id").toInt
