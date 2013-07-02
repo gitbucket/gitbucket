@@ -1,4 +1,8 @@
-@(issue: model.Issue, comments: List[model.IssueComment], issueLabels: List[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issue: model.Issue,
+  comments: List[model.IssueComment],
+  issueLabels: List[model.Label],
+  labels: List[model.Label],
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
@@ -72,7 +76,15 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu">
-            <li><a href="#">TODO</a></li>
+          @labels.map { label =>
+            <li>
+              <a href="#">
+                <i class="@{if(issueLabels.exists(_.labelId == label.labelId)) "icon-ok" else "icon-white"}"></i>
+                <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                @label.labelName
+              </a>
+            </li>
+          }
           </ul>
         </div>
       </div>
