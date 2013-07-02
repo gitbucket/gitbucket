@@ -5,6 +5,7 @@ import jp.sf.amateras.scalatra.forms._
 import service._
 import IssuesService._
 import util.UsersOnlyAuthenticator
+import org.scalatra.Ok
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService
@@ -173,9 +174,11 @@ trait IssuesControllerBase extends ControllerBase {
     val issueId    = params("id").toInt
 
     params.get("assignedUserName") match {
-      case null|None      => updateAssignedUserName(owner, repository, issueId, None)
-      case Some(userName) => updateAssignedUserName(owner, repository, issueId, Some(userName))
+      case None                     => updateAssignedUserName(owner, repository, issueId, None)
+      case Some(x) if(x.trim == "") => updateAssignedUserName(owner, repository, issueId, None)
+      case Some(userName)           => updateAssignedUserName(owner, repository, issueId, Some(userName))
     }
+    Ok("updated")
   }
 
   ajaxPost("/:owner/:repository/issues/milestone/:id"){
@@ -184,9 +187,11 @@ trait IssuesControllerBase extends ControllerBase {
     val issueId    = params("id").toInt
 
     params.get("milestoneId") match {
-      case null|None         => updateMilestoneId(owner, repository, issueId, None)
-      case Some(milestoneId) => updateMilestoneId(owner, repository, issueId, Some(milestoneId.toInt))
+      case None                     => updateMilestoneId(owner, repository, issueId, None)
+      case Some(x) if(x.trim == "") => updateMilestoneId(owner, repository, issueId, None)
+      case Some(milestoneId)        => updateMilestoneId(owner, repository, issueId, Some(milestoneId.toInt))
     }
+    Ok("updated")
   }
 
   private def searchIssues(filter: String) = {
