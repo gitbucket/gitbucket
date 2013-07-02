@@ -131,7 +131,7 @@
           <td>
             <a href="@url(repository)/issues/@issue.issueId" class="issue-title">@issue.title</a>
             @labels.map { label =>
-              <span class="label-color" style="background-color: #@label.color; color: #@label.fontColor;">@label.labelName</span>
+              <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
             }
             <span class="pull-right muted">#@issue.issueId</span>
             <div class="small muted">
