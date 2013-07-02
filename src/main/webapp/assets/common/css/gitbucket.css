@@ -1,6 +1,10 @@
 /****************************************************************************/
 /* Common */
 /****************************************************************************/
+* {
+  color: #333;
+}
+
 table.global-nav {
   width: 920px;
   margin-bottom: 10px;
@@ -19,7 +23,7 @@ table.global-nav th.active {
 }
 
 table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:visited {
-  color: black;
+  color: #333;
   text-decoration: none;
 }
 
@@ -134,7 +138,7 @@ div.box-header-small {
   border-top-right-radius: 1px;
   border: 1px solid #d8d8d8;
   border-bottom: none;
-  padding: 10px 10px 11px 10px;
+  padding: 6px 4px 6px 4px;
   text-shadow: 0 1px 0 #fff
 }
 
@@ -204,14 +208,14 @@ ul.nav-stacked.side-menu li a:hover {
 
 ul.nav-stacked.side-menu li.active a {
   background-color: white;
-  color: black;
+  color: #333;
   font-weight: bold;
   border-left: 2px solid #cc6666;
 }
 
 ul.nav-stacked.side-menu li.active a:hover {
   background-color: white;
-  color: black;
+  color: #333;
   font-weight: bold;
   border-left: 2px solid #cc6666;
 }
@@ -314,7 +318,7 @@ table.table-issues {
 }
 
 a.issue-title {
-  color: black;
+  color: #333;
   font-weight: bold;
   size: 110%;
 }
