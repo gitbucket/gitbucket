@@ -173,9 +173,6 @@ trait IssuesService {
   def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int): Unit =
     IssueLabels.* insert (IssueLabel(owner, repository, issueId, labelId))
 
-  def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int): Unit =
-    IssueLabels.* insert (IssueLabel(owner, repository, issueId, labelId))
-
   def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String, action: Option[String]) =
     IssueComments.autoInc insert (
