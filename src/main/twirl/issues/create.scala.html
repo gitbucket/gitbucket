@@ -1,4 +1,7 @@
-@(collaborators: List[String], milestones: List[model.Milestone], labels: List[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(collaborators: List[String],
+  milestones: List[model.Milestone],
+  labels: List[model.Label],
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("New Issue - " + repository.owner + "/" + repository.name){
