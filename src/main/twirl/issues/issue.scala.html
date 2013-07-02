@@ -4,6 +4,7 @@
   collaborators: List[String],
   milestones: List[model.Milestone],
   labels: List[model.Label],
+  hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -19,7 +20,9 @@
       <div class="box">
         <div class="box-content" style="padding: 0px;">
           <div class="issue-header">
-            <span class="pull-right"><a class="btn btn-small" href="#" id="edit">Edit</a></span>
+            @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
+              <span class="pull-right"><a class="btn btn-small" href="#" id="edit">Edit</a></span>
+            }
             <div class="small muted">
               <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> opened this issue @datetime(issue.registeredDate)
             </div>
@@ -31,11 +34,13 @@
                 <a href="@url(userName)" class="username strong">@userName</a> is assigned
               }.getOrElse("No one is assigned")
             </span>
-            @helper.html.dropdown {
-              <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
-              <li class="divider"></li>
-              @collaborators.map { collaborator =>
-                <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
+            @if(hasWritePermission){
+              @helper.html.dropdown {
+                <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
+                <li class="divider"></li>
+                @collaborators.map { collaborator =>
+                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
+                }
               }
             }
             <div class="pull-right">
@@ -46,11 +51,13 @@
                   }
                 }.getOrElse("No milestone")
               </span>
-              @helper.html.dropdown {
-                <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
-                <li class="divider"></li>
-                @milestones.map { milestone =>
-                  <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+              @if(hasWritePermission){
+                @helper.html.dropdown {
+                  <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
+                  <li class="divider"></li>
+                  @milestones.map { milestone =>
+                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                  }
                 }
               }
             </div>
@@ -61,40 +68,44 @@
         </div>
       </div>
       @comments.map { comment =>
-      <div class="box" id="comment-@comment.commentId">
-        <div class="box-header-small">
-          <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> commented
-          <span class="pull-right">
-            @datetime(comment.registeredDate)
-            <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
-          </span>
+        <div class="box" id="comment-@comment.commentId">
+          <div class="box-header-small">
+            <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> commented
+            <span class="pull-right">
+              @datetime(comment.registeredDate)
+              @if(hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){
+                <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
+              }
+            </span>
+          </div>
+          <div class="box-content"class="issue-content" id="commentContent-@comment.commentId">
+            @markdown(comment.content, repository, false, true, true)
+          </div>
         </div>
-        <div class="box-content"class="issue-content" id="commentContent-@comment.commentId">
-          @markdown(comment.content, repository, false, true, true)
+        @comment.action.map { action =>
+        <div class="small">
+          @if(action == "close"){
+            <span class="label label-important">Closed</span>
+            <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
+          } else {
+            <span class="label label-success">Reopened</span>
+            <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
+          }
         </div>
-      </div>
-      @comment.action.map { action =>
-      <div class="small">
-        @if(action == "close"){
-          <span class="label label-important">Closed</span>
-          <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
-        } else {
-          <span class="label label-success">Reopened</span>
-          <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
         }
-      </div>
       }
+      @if(loginAccount.isDefined){
+        <form action="@url(repository)/issue_comments/new" method="POST" validate="true">
+          <div class="box">
+            <div class="box-content">
+              @helper.html.preview(repository, "", false, true, true, "width: 730px; height: 100px;")
+            </div>
+          </div>
+          <input type="hidden" name="issueId" value="@issue.issueId"/>
+          <input type="submit" class="btn btn-success" value="Comment"/>
+          <input type="submit" class="btn" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+        </form>
       }
-      <form action="@url(repository)/issue_comments/new" method="POST" validate="true">
-      <div class="box">
-        <div class="box-content">
-          @helper.html.preview(repository, "", false, true, true, "width: 730px; height: 100px;")
-        </div>
-      </div>
-      <input type="hidden" name="issueId" value="@issue.issueId"/>
-      <input type="submit" class="btn btn-success" value="Comment"/>
-      <input type="submit" class="btn" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
-      </form>
     </div>
     <div class="span2">
       @if(issue.closed) {
@@ -105,25 +116,27 @@
       <div class="small">@comments.size comments</div>
       <hr/>
       <strong>Labels</strong>
-      <div class="pull-right">
-        <div class="btn-group">
-          <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-            <i class="icon-cog"></i>
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu">
-          @labels.map { label =>
-            <li>
-              <a href="#" class="toggle-label" data-label-id="@label.labelId">
-                <i class="@{if(issueLabels.exists(_.labelId == label.labelId)) "icon-ok" else "icon-white"}"></i>
-                <span class="label" style="background-color: #@label.color;">&nbsp;</span>
-                @label.labelName
-              </a>
-            </li>
-          }
-          </ul>
+      @if(hasWritePermission){
+        <div class="pull-right">
+          <div class="btn-group">
+            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
+              <i class="icon-cog"></i>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+            @labels.map { label =>
+              <li>
+                <a href="#" class="toggle-label" data-label-id="@label.labelId">
+                  <i class="@{if(issueLabels.exists(_.labelId == label.labelId)) "icon-ok" else "icon-white"}"></i>
+                  <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                  @label.labelName
+                </a>
+              </li>
+            }
+            </ul>
+          </div>
         </div>
-      </div>
+      }
       <ul class="label-list">
         @labellist(issueLabels)
       </ul>

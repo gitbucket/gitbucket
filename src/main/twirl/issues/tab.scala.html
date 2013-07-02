@@ -4,9 +4,11 @@
 <ul class="nav nav-tabs">
   <li@if(active == "issues"){ class="active"}><a href="@url(repository)/issues">Browse Issues</a></li>
   <li@if(active == "milestones"){ class="active"}><a href="@url(repository)/issues/milestones">Milestones</a></li>
+  @if(loginAccount.isDefined){
   <li class="pull-right">
     <div class="btn-group">
       <a class="btn btn-success" href="@url(repository)/issues/new">New Issue</a>
     </div>
   </li>
+  }
 </ul>

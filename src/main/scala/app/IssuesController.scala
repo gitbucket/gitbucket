@@ -65,11 +65,12 @@ trait IssuesControllerBase extends ControllerBase {
           (getCollaborators(owner, repository) :+ owner).sorted,
           getMilestones(owner, repository),
           getLabels(owner, repository),
+          hasWritePermission(owner, repository, context.loginAccount),
           getRepository(owner, repository, baseUrl).get)
     } getOrElse NotFound
   })
 
-  get("/:owner/:repository/issues/new")( readableUsersOnly {
+  get("/:owner/:repository/issues/new")(readableUsersOnly {
     val owner      = params("owner")
     val repository = params("repository")
 
@@ -82,20 +83,22 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
-  post("/:owner/:repository/issues/new", issueCreateForm)( readableUsersOnly { form =>
-    val owner = params("owner")
+  post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnly { form =>
+    val owner      = params("owner")
     val repository = params("repository")
+    val writable   = hasWritePermission(owner, repository, context.loginAccount)
 
-    // TODO User and milestone are assigned by only collaborators.
-    val issueId = createIssue(owner, repository, context.loginAccount.get.userName,
-      form.title, form.content, form.assignedUserName, form.milestoneId)
+    val issueId = createIssue(owner, repository, context.loginAccount.get.userName, form.title, form.content,
+      if(writable) form.assignedUserName else None,
+      if(writable) form.milestoneId else None)
 
-    // TODO labels are assigned by only collaborators
-    form.labelNames.map { value =>
-      val labels = getLabels(owner, repository)
-      value.split(",").foreach { labelName =>
-        labels.find(_.labelName == labelName).map { label =>
-          registerIssueLabel(owner, repository, issueId, label.labelId)
+    if(writable){
+      form.labelNames.map { value =>
+        val labels = getLabels(owner, repository)
+        value.split(",").foreach { labelName =>
+          labels.find(_.labelName == labelName).map { label =>
+            registerIssueLabel(owner, repository, issueId, label.labelId)
+          }
         }
       }
     }
@@ -103,18 +106,24 @@ trait IssuesControllerBase extends ControllerBase {
     redirect("/%s/%s/issues/%d".format(owner, repository, issueId))
   })
 
-  // TODO Authenticator
-  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm){ form =>
-    val owner = params("owner")
+  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { form =>
+    val owner      = params("owner")
     val repository = params("repository")
-    val issueId = params("id").toInt
+    val issueId    = params("id").toInt
+    val writable   = hasWritePermission(owner, repository, context.loginAccount)
 
-    updateIssue(owner, repository, issueId, form.title, form.content)
-    redirect("/%s/%s/issues/_data/%d".format(owner, repository, issueId))
-  }
+    getIssue(owner, repository, issueId.toString).map { issue =>
+      if(writable || issue.openedUserName == context.loginAccount.get.userName){
+        updateIssue(owner, repository, issueId, form.title, form.content)
+        redirect("/%s/%s/issues/_data/%d".format(owner, repository, issueId))
+      } else {
+        Unauthorized
+      }
+    } getOrElse NotFound
+  })
 
-  // TODO requires users only and readable repository checking
-  post("/:owner/:repository/issue_comments/new", commentForm)( referrersOnly { form =>
+  // TODO repository checking
+  post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { form =>
     val owner = params("owner")
     val repository = params("repository")
     val action = params.get("action") filter { action =>
@@ -125,13 +134,22 @@ trait IssuesControllerBase extends ControllerBase {
         createComment(owner, repository, context.loginAccount.get.userName, form.issueId, form.content, action)))
   })
 
-  // TODO Authenticator, repository checking
-  ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm){ form =>
-    val commentId = params("id").toInt
+  // TODO repository checking
+  ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnly { form =>
+    val owner      = params("owner")
+    val repository = params("repository")
+    val commentId  = params("id").toInt
+    val writable   = hasWritePermission(owner, repository, context.loginAccount)
 
-    updateComment(commentId, form.content)
-    redirect("/%s/%s/issue_comments/_data/%d".format(params("owner"), params("repository"), commentId))
-  }
+    getComment(commentId.toString).map { comment =>
+      if(writable || comment.commentedUserName == context.loginAccount.get.userName){
+        updateComment(commentId, form.content)
+        redirect("/%s/%s/issue_comments/_data/%d".format(owner, repository, commentId))
+      } else {
+        Unauthorized
+      }
+    } getOrElse NotFound
+  })
 
   // TODO Authenticator
   ajaxGet("/:owner/:repository/issues/_data/:id"){
