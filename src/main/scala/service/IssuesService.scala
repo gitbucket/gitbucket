@@ -203,6 +203,12 @@ trait IssuesService {
       }
       .update (title, content, currentDate)
 
+  def updateAssignedUserName(owner: String, repository: String, issueId: Int, assignedUserName: Option[String]) =
+    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.assignedUserName?).update (assignedUserName)
+
+  def updateMilestoneId(owner: String, repository: String, issueId: Int, milestoneId: Option[Int]) =
+    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.milestoneId?).update (milestoneId)
+
   def updateComment(commentId: Int, content: String) =
     IssueComments
       .filter (_.byPrimaryKey(commentId))
