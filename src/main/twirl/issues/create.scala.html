@@ -18,10 +18,10 @@
             <span id="label-assigned">No one is assigned</span>
             <input type="hidden" name="assignedUserName" value=""/>
             @helper.html.dropdown {
-              <li><a href="javascript:void(0);" id="clear-assignee">Clear assignee</a></li>
+              <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
               <li class="divider"></li>
               @collaborators.map { collaborator =>
-                <li><a href="javascript:void(0);" class="assign">@collaborator</a></li>
+                <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
               }
             }
             <div class="pull-right">
@@ -66,18 +66,25 @@
 <script>
 $(function(){
   $('a.assign').click(function(){
-    $('#label-assigned').html($(this).text() + ' well be assigned');
-    $('input[name=assignedUserName]').val($(this).text());
-  });
-
-  $('a#clear-assignee').click(function(){
-    $('#label-assigned').text('No one will be assigned');
-    $('input[name=assignedUserName]').val('');
+    var userName = $(this).data('name');
+    if(userName == ''){
+      $('#label-assigned').text('No one will be assigned');
+    } else {
+      $('#label-assigned').html($('<span>').append($('<strong>').text(userName)).append(' well be assigned'));
+    }
+    $('input[name=assignedUserName]').val(userName);
   });
 
   $('a.milestone').click(function(){
-    $('#label-milestone').text($(this).text());
-    $('input[name=milestoneId]').val($(this).data('id'));
+    var title = $(this).text();
+    var milestoneId = $(this).data('id');
+
+    if(milestoneId == ''){
+      $('#label-milestone').text('No milestone');
+    } else {
+      $('#label-milestone').html($('<span>').append('Milestone: ').append($('<strong>').text(title)));
+    }
+    $('input[name=milestoneId]').val(milestoneId);
   });
 
   $('a.toggle-label').click(function(){
