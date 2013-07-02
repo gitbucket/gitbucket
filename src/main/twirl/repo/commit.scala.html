@@ -1,4 +1,9 @@
-@(commitId: String, commit: util.JGitUtil.CommitInfo, branches: List[String], tags: List[String], repository: service.RepositoryService.RepositoryInfo, diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
+@(commitId: String,
+  commit: util.JGitUtil.CommitInfo,
+  branches: List[String],
+  tags: List[String],
+  repository: service.RepositoryService.RepositoryInfo,
+  diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import util.Implicits._
