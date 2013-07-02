@@ -79,6 +79,7 @@ trait IssuesControllerBase extends ControllerBase {
         (getCollaborators(owner, repository) :+ owner).sorted,
         getMilestones(owner, repository),
         getLabels(owner, repository),
+        hasWritePermission(owner, repository, context.loginAccount),
         _)
     } getOrElse NotFound
   })
@@ -110,15 +111,12 @@ trait IssuesControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val issueId    = params("id").toInt
-    val writable   = hasWritePermission(owner, repository, context.loginAccount)
 
     getIssue(owner, repository, issueId.toString).map { issue =>
-      if(writable || issue.openedUserName == context.loginAccount.get.userName){
+      if(hasWritePermission(owner, repository, context.loginAccount) || issue.openedUserName == context.loginAccount.get.userName){
         updateIssue(owner, repository, issueId, form.title, form.content)
         redirect("/%s/%s/issues/_data/%d".format(owner, repository, issueId))
-      } else {
-        Unauthorized
-      }
+      } else Unauthorized
     } getOrElse NotFound
   })
 
@@ -139,50 +137,55 @@ trait IssuesControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
     val commentId  = params("id").toInt
-    val writable   = hasWritePermission(owner, repository, context.loginAccount)
 
     getComment(commentId.toString).map { comment =>
-      if(writable || comment.commentedUserName == context.loginAccount.get.userName){
+      if(hasWritePermission(owner, repository, context.loginAccount) || comment.commentedUserName == context.loginAccount.get.userName){
         updateComment(commentId, form.content)
         redirect("/%s/%s/issue_comments/_data/%d".format(owner, repository, commentId))
-      } else {
-        Unauthorized
-      }
+      } else Unauthorized
     } getOrElse NotFound
   })
 
-  // TODO Authenticator
-  ajaxGet("/:owner/:repository/issues/_data/:id"){
-    getIssue(params("owner"), params("repository"), params("id")) map { x =>
-      params.get("dataType") collect {
-        case t if t == "html" => issues.html.editissue(
-            x.title, x.content, x.issueId, x.userName, x.repositoryName)
-      } getOrElse {
-        contentType = formats("json")
-        org.json4s.jackson.Serialization.write(
-            Map("title"   -> x.title,
-                "content" -> view.Markdown.toHtml(x.content getOrElse "No description given.",
-                    getRepository(x.userName, x.repositoryName, baseUrl).get, false, true, true)
-            ))
-      }
-    } getOrElse NotFound
-  }
+  ajaxGet("/:owner/:repository/issues/_data/:id")(readableUsersOnly {
+    val owner      = params("owner")
+    val repository = params("repository")
 
-  // TODO Authenticator
-  ajaxGet("/:owner/:repository/issue_comments/_data/:id"){
-    getComment(params("id")) map { x =>
-      params.get("dataType") collect {
-        case t if t == "html" => issues.html.editcomment(
-            x.content, x.commentId, x.userName, x.repositoryName)
-      } getOrElse {
-        contentType = formats("json")
-        org.json4s.jackson.Serialization.write(
-            Map("content" -> view.Markdown.toHtml(x.content,
-                getRepository(x.userName, x.repositoryName, baseUrl).get, false, true, true)
-            ))
-      }
+    getIssue(params("owner"), params("repository"), params("id")) map { x =>
+      if(hasWritePermission(owner, repository, context.loginAccount) || x.openedUserName == context.loginAccount.get.userName){
+        params.get("dataType") collect {
+          case t if t == "html" => issues.html.editissue(
+              x.title, x.content, x.issueId, x.userName, x.repositoryName)
+        } getOrElse {
+          contentType = formats("json")
+          org.json4s.jackson.Serialization.write(
+              Map("title"   -> x.title,
+                  "content" -> view.Markdown.toHtml(x.content getOrElse "No description given.",
+                      getRepository(x.userName, x.repositoryName, baseUrl).get, false, true, true)
+              ))
+        }
+      } else Unauthorized
     } getOrElse NotFound
-  }
+  })
+
+  ajaxGet("/:owner/:repository/issue_comments/_data/:id")(readableUsersOnly {
+    val owner      = params("owner")
+    val repository = params("repository")
+
+    getComment(params("id")) map { x =>
+      if(hasWritePermission(owner, repository, context.loginAccount) || x.commentedUserName == context.loginAccount.get.userName){
+        params.get("dataType") collect {
+          case t if t == "html" => issues.html.editcomment(
+              x.content, x.commentId, x.userName, x.repositoryName)
+        } getOrElse {
+          contentType = formats("json")
+          org.json4s.jackson.Serialization.write(
+              Map("content" -> view.Markdown.toHtml(x.content,
+                  getRepository(x.userName, x.repositoryName, baseUrl).get, false, true, true)
+              ))
+        }
+      } else Unauthorized
+    } getOrElse NotFound
+  })
 
   ajaxPost("/:owner/:repository/issues/:id/label/new")(collaboratorsOnly {
     val owner = params("owner")

@@ -1,6 +1,7 @@
 @(collaborators: List[String],
   milestones: List[model.Milestone],
   labels: List[model.Label],
+  hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -16,22 +17,26 @@
           <input type="text" name="title" value="" placeholder="Title" style="width: 650px;"/>
           <div>
             <span id="label-assigned">No one is assigned</span>
-            <input type="hidden" name="assignedUserName" value=""/>
-            @helper.html.dropdown {
-              <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
-              <li class="divider"></li>
-              @collaborators.map { collaborator =>
-                <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
+            @if(hasWritePermission){
+              <input type="hidden" name="assignedUserName" value=""/>
+              @helper.html.dropdown {
+                <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
+                <li class="divider"></li>
+                @collaborators.map { collaborator =>
+                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
+                }
               }
             }
             <div class="pull-right">
               <span id="label-milestone">No milestone</span>
-              <input type="hidden" name="milestoneId" value=""/>
-              @helper.html.dropdown {
-                <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
-                <li class="divider"></li>
-                @milestones.map { milestone =>
-                  <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+              @if(hasWritePermission){
+                <input type="hidden" name="milestoneId" value=""/>
+                @helper.html.dropdown {
+                  <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
+                  <li class="divider"></li>
+                  @milestones.map { milestone =>
+                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                  }
                 }
               }
             </div>
@@ -43,22 +48,24 @@
       <input type="submit" class="btn btn-success" value="Submit new issue"/>
     </div>
     <div class="span3">
-      <strong>Add Labels</strong>
-      <div>
-        <div id="label-list">
-          <ul class="label-list nav nav-pills nav-stacked">
-            @labels.map { label =>
-              <li>
-                <a href="javascript:void(0);" class="toggle-label" data-label="@label.labelName" data-bgcolor="@label.color" data-fgcolor="@label.fontColor">
-                  <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
-                  @label.labelName
-                </a>
-              </li>
-            }
-          </ul>
-          <input type="hidden" name="labelNames" value=""/>
+      @if(hasWritePermission){
+        <strong>Add Labels</strong>
+        <div>
+          <div id="label-list">
+            <ul class="label-list nav nav-pills nav-stacked">
+              @labels.map { label =>
+                <li>
+                  <a href="javascript:void(0);" class="toggle-label" data-label="@label.labelName" data-bgcolor="@label.color" data-fgcolor="@label.fontColor">
+                    <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
+                    @label.labelName
+                  </a>
+                </li>
+              }
+            </ul>
+            <input type="hidden" name="labelNames" value=""/>
+          </div>
         </div>
-      </div>
+      }
     </div>
   </div>
   </form>
