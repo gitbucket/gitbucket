@@ -70,7 +70,9 @@ $(function(){
     if(userName == ''){
       $('#label-assigned').text('No one will be assigned');
     } else {
-      $('#label-assigned').html($('<span>').append($('<strong>').text(userName)).append(' well be assigned'));
+      $('#label-assigned').html($('<span>')
+        .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
+        .append(' well be assigned'));
     }
     $('input[name=assignedUserName]').val(userName);
   });
