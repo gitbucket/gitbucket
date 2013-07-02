@@ -25,6 +25,15 @@ trait IssuesService {
       Query(IssueComments) filter (_.byPrimaryKey(commentId.toInt)) firstOption
     else None
 
+  def getIssueLabel(owner: String, repository: String, issueId: Int) =
+    IssueLabels
+      .innerJoin(Labels).on { (t1, t2) =>
+        t1.byLabel(t2.userName, t2.repositoryName, t2.labelId)
+      }
+      .filter ( _._1.byIssue(owner, repository, issueId) )
+      .map    ( _._2 )
+      .list
+
   /**
    * Returns the count of the search result against  issues.
    *
@@ -171,7 +180,7 @@ trait IssuesService {
     } get
 
   def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int): Unit =
-    IssueLabels.* insert (IssueLabel(owner, repository, issueId, labelId))
+    IssueLabels insert (IssueLabel(owner, repository, issueId, labelId))
 
   def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String, action: Option[String]) =

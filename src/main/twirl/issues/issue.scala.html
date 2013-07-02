@@ -1,4 +1,4 @@
-@(issue: model.Issue, comments: List[model.IssueComment], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issue: model.Issue, comments: List[model.IssueComment], issueLabels: List[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
@@ -77,8 +77,9 @@
         </div>
       </div>
       <ul class="label-list">
-        <li><span class="label" style="background-color: #f89406;">improvement</span></li>
-        <li><span class="label" style="background-color: #3a87ad;">not bug</span></li>
+      @issueLabels.map { label =>
+        <li><span class="label" style="background-color: #@label.color;">@label.labelName</span></li>
+      }
       </ul>
     </div>
   </div>
