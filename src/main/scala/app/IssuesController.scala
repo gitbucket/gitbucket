@@ -61,6 +61,7 @@ trait IssuesControllerBase extends ControllerBase {
           _,
           getComments(owner, repository, issueId.toInt),
           getIssueLabel(owner, repository, issueId.toInt),
+          getLabels(owner, repository),
           getRepository(owner, repository, baseUrl).get)
     } getOrElse NotFound
   }
