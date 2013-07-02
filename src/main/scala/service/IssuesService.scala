@@ -179,8 +179,11 @@ trait IssuesService {
         .update (id) > 0
     } get
 
-  def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int): Unit =
+  def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int) =
     IssueLabels insert (IssueLabel(owner, repository, issueId, labelId))
+
+  def deleteIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int) =
+    IssueLabels filter(_.byPrimaryKey(owner, repository, issueId, labelId)) delete
 
   def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String, action: Option[String]) =
