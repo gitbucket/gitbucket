@@ -61,6 +61,8 @@ trait IssuesControllerBase extends ControllerBase {
           _,
           getComments(owner, repository, issueId.toInt),
           getIssueLabel(owner, repository, issueId.toInt),
+          (getCollaborators(owner, repository) :+ owner).sorted,
+          getMilestones(owner, repository),
           getLabels(owner, repository),
           getRepository(owner, repository, baseUrl).get)
     } getOrElse NotFound
@@ -71,10 +73,13 @@ trait IssuesControllerBase extends ControllerBase {
     val owner      = params("owner")
     val repository = params("repository")
 
-    getRepository(owner, repository, baseUrl)
-      .map (issues.html.create((getCollaborators(owner, repository) :+ owner).sorted,
-                               getMilestones(owner, repository), getLabels(owner, repository), _))
-      .getOrElse (NotFound)
+    getRepository(owner, repository, baseUrl).map {
+      issues.html.create(
+        (getCollaborators(owner, repository) :+ owner).sorted,
+        getMilestones(owner, repository),
+        getLabels(owner, repository),
+        _)
+    } getOrElse NotFound
   })
 
   // TODO requires users only and readable repository checking

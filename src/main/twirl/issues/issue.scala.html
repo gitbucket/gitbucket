@@ -1,6 +1,8 @@
 @(issue: model.Issue,
   comments: List[model.IssueComment],
   issueLabels: List[model.Label],
+  collaborators: List[String],
+  milestones: List[model.Milestone],
   labels: List[model.Label],
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -15,25 +17,59 @@
   <div class="row-fluid">
     <div class="span10">
       <div class="box">
-        <div class="box-content">
-          <span class="pull-right"><a class="btn btn-small" href="#" id="edit">Edit</a></span>
-          <div class="small"><a href="@url(issue.openedUserName)">@issue.openedUserName</a> opened this issue @datetime(issue.registeredDate)</div>
-          <h4 id="issueTitle">@issue.title</h4>
-        </div>
-        <div class="box-content" style="background-color: #f5f5f5;" id="issueContent">
-          @markdown(issue.content getOrElse "No description given.", repository, false, true, true)
+        <div class="box-content" style="padding: 0px;">
+          <div class="issue-header">
+            <span class="pull-right"><a class="btn btn-small" href="#" id="edit">Edit</a></span>
+            <div class="small muted">
+              <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> opened this issue @datetime(issue.registeredDate)
+            </div>
+            <h4 id="issueTitle">@issue.title</h4>
+          </div>
+          <div class="issue-info">
+            <span id="label-assigned">
+              @issue.assignedUserName.map { userName =>
+                <a href="@url(userName)" class="username strong">@userName</a> is assigned
+              }.getOrElse("No one is assigned")
+            </span>
+            @helper.html.dropdown {
+              <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
+              <li class="divider"></li>
+              @collaborators.map { collaborator =>
+                <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
+              }
+            }
+            <div class="pull-right">
+              <span id="label-milestone">
+                @issue.milestoneId.map { milestoneId =>
+                  @milestones.find(_.milestoneId == milestoneId).map { milestone =>
+                    Milestone: <strong>@milestone.title</strong>
+                  }
+                }.getOrElse("No milestone")
+              </span>
+              @helper.html.dropdown {
+                <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
+                <li class="divider"></li>
+                @milestones.map { milestone =>
+                  <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                }
+              }
+            </div>
+          </div>
+          <div class="issue-content" id="issueContent">
+            @markdown(issue.content getOrElse "No description given.", repository, false, true, true)
+          </div>
         </div>
       </div>
       @comments.map { comment =>
       <div class="box" id="comment-@comment.commentId">
         <div class="box-header-small">
-          <a href="@url(comment.commentedUserName)">@comment.commentedUserName</a> commented
+          <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> commented
           <span class="pull-right">
             @datetime(comment.registeredDate)
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
           </span>
         </div>
-        <div class="box-content" style="background-color: #f5f5f5;" id="commentContent-@comment.commentId">
+        <div class="box-content"class="issue-content" id="commentContent-@comment.commentId">
           @markdown(comment.content, repository, false, true, true)
         </div>
       </div>
@@ -107,6 +143,14 @@ $(function(){
       $('#issueContent').empty().html(data);
     });
     return false;
+  });
+
+  $('a.assign').click(function(){
+    alert($(this).data('name'));
+  });
+
+  $('a.milestone').click(function(){
+    alert($(this).data('id'));
   });
 
   $('i.icon-pencil').click(function(){
