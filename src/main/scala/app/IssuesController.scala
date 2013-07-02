@@ -247,7 +247,7 @@ trait IssuesControllerBase extends ControllerBase {
         condition,
         filter,
         repositoryInfo,
-        isWritable(owner, repository, context.loginAccount))
+        hasWritePermission(owner, repository, context.loginAccount))
 
     } getOrElse NotFound
   }

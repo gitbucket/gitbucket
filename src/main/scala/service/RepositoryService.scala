@@ -183,7 +183,7 @@ trait RepositoryService { self: AccountService =>
   def getCollaborators(userName: String, repositoryName: String): List[String] =
     Query(Collaborators).filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).list.map(_.collaboratorName)
 
-  def isWritable(owner: String, repository: String, loginAccount: Option[Account]): Boolean = {
+  def hasWritePermission(owner: String, repository: String, loginAccount: Option[Account]): Boolean = {
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true

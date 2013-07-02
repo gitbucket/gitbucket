@@ -1,4 +1,7 @@
-@(state: String, milestones: List[(model.Milestone, Int, Int)], repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
+@(state: String,
+  milestones: List[(model.Milestone, Int, Int)],
+  repository: service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Milestones - " + repository.owner + "/" + repository.name){
@@ -20,7 +23,7 @@
           </a>
         </li>
       </ul>
-      @if(isWritable){
+      @if(hasWritePermission){
         <hr>
         <a href="@url(repository)/issues/milestones/new" class="btn btn-block">Create a new milestone</a>
       }
@@ -49,7 +52,7 @@
                 <div class="span8">
                   <div class="milestone-menu">
                     <div class="pull-right">
-                      @if(isWritable){
+                      @if(hasWritePermission){
                         <a href="@url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit
                         @if(milestone.closedDate.isDefined){
                           <a href="@url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a>

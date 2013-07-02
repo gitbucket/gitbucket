@@ -33,7 +33,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       getWikiPage(owner, repository, "Home").map { page =>
-        wiki.html.page("Home", page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+        wiki.html.page("Home", page, repositoryInfo, hasWritePermission(owner, repository, context.loginAccount))
       } getOrElse redirect("/%s/%s/wiki/Home/_edit".format(owner, repository))
     } getOrElse NotFound
   })
@@ -45,7 +45,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getRepository(owner, repository, baseUrl).map { repositoryInfo =>
       getWikiPage(owner, repository, pageName).map { page =>
-        wiki.html.page(pageName, page, repositoryInfo, isWritable(owner, repository, context.loginAccount))
+        wiki.html.page(pageName, page, repositoryInfo, hasWritePermission(owner, repository, context.loginAccount))
       } getOrElse redirect("/%s/%s/wiki/%s/_edit".format(owner, repository, pageName)) // TODO URLEncode
     } getOrElse NotFound
   })
@@ -140,7 +140,7 @@ trait WikiControllerBase extends ControllerBase {
     val repository = params("repository")
 
     getRepository(owner, repository, baseUrl).map {
-      wiki.html.pages(getWikiPageList(owner, repository), _, isWritable(owner, repository, context.loginAccount))
+      wiki.html.pages(getWikiPageList(owner, repository), _, hasWritePermission(owner, repository, context.loginAccount))
     } getOrElse NotFound
   })
   

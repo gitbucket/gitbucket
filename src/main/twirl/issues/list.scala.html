@@ -11,7 +11,7 @@
   condition: service.IssuesService.IssueSearchCondition,
   filter: String,
   repository: service.RepositoryService.RepositoryInfo,
-  isWritable: Boolean)(implicit context: app.Context)
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues - " + repository.owner + "/" + repository.name){
@@ -86,7 +86,7 @@
           </ul>
         </div>
       </div>
-      @if(isWritable){
+      @if(hasWritePermission){
         <hr/>
         <input type="button" class="btn btn-block" id="manageLabel" data-toggle="button" value="Manage Labels"/>
         <br/>
@@ -169,7 +169,7 @@
     </div>
   </div>
 }
-@if(isWritable){
+@if(hasWritePermission){
 <script>
 $(function(){
   $('#manageLabel').click(function(){

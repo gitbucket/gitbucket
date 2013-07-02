@@ -56,6 +56,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
   private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean = {
     getAccountByUserName(username) match {
       case Some(account) if(account.password == encrypt(password)) => {
+        // TODO Use hasWritePermission?
         (account.isAdmin // administrator
           || account.userName == repository.owner // repository owner
           || getCollaborators(repository.owner, repository.name).contains(account.userName)) // collaborator

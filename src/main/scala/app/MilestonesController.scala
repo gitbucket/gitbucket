@@ -30,7 +30,7 @@ trait MilestonesControllerBase extends ControllerBase {
       issues.milestones.html.list(state,
         getMilestonesWithIssueCount(owner, repository),
         repositoryInfo,
-        isWritable(owner, repository, context.loginAccount))
+        hasWritePermission(owner, repository, context.loginAccount))
     } getOrElse NotFound
   })
 
