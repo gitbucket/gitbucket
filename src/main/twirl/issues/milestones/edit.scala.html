@@ -17,7 +17,7 @@
     </fieldset>
     <fieldset>
       <label for="dueDate"><strong>Due Date</strong></label>
-      @html.datepicker("dueDate", milestone.flatMap(_.dueDate))
+      @helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
       <span id="error-dueDate" class="error"></span>
     </fieldset>
     <hr>

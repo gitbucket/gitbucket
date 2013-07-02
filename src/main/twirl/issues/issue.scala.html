@@ -48,7 +48,7 @@
       <form action="@url(repository)/issue_comments/new" method="POST" validate="true">
       <div class="box">
         <div class="box-content">
-          @html.preview(repository, "", false, true, true, "width: 730px; height: 100px;")
+          @helper.html.preview(repository, "", false, true, true, "width: 730px; height: 100px;")
         </div>
       </div>
       <input type="hidden" name="issueId" value="@issue.issueId"/>

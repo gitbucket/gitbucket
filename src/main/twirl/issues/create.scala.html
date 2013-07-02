@@ -14,39 +14,27 @@
           <div>
             <span id="label-assigned">No one is assigned</span>
             <input type="hidden" name="assignedUserName" value=""/>
-            <div class="btn-group">
-              <button class="btn dropdown-toggle" data-toggle="dropdown">
-                <i class="icon-cog"></i>
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a href="javascript:void(0);" id="clear-assignee">Clear assignee</a></li>
-                <li class="divider"></li>
-                @collaborators.map { collaborator =>
-                  <li><a href="javascript:void(0);" class="assign">@collaborator</a></li>
-                }
-              </ul>
-            </div>
+            @helper.html.dropdown {
+              <li><a href="javascript:void(0);" id="clear-assignee">Clear assignee</a></li>
+              <li class="divider"></li>
+              @collaborators.map { collaborator =>
+                <li><a href="javascript:void(0);" class="assign">@collaborator</a></li>
+              }
+            }
             <div class="pull-right">
               <span id="label-milestone">No milestone</span>
               <input type="hidden" name="milestoneId" value=""/>
-              <div class="btn-group">
-                <button class="btn dropdown-toggle" data-toggle="dropdown">
-                  <i class="icon-cog"></i>
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
-                  <li class="divider"></li>
-                  @milestones.map { milestone =>
-                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
-                  }
-                </ul>
-              </div>
+              @helper.html.dropdown {
+                <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
+                <li class="divider"></li>
+                @milestones.map { milestone =>
+                  <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                }
+              }
             </div>
           </div>
           <hr>
-          @html.preview(repository, "", false, true, true, "width: 650px; height: 200px;")
+          @helper.html.preview(repository, "", false, true, true, "width: 650px; height: 200px;")
         </div>
       </div>
       <input type="submit" class="btn btn-success" value="Submit new issue"/>

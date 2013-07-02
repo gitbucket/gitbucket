@@ -41,21 +41,15 @@
           <span class="muted small">Milestone:</span> @milestones.find(_.milestoneId == condition.milestoneId.get.get).map(_.title)
         }
       }
-      <div class="btn-group">
-        <button class="btn dropdown-toggle" data-toggle="dropdown">
-          <i class="icon-cog"></i>
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          @if(condition.milestoneId.isDefined){
-            <li><a href="@condition.copy(milestoneId = None).toURL">Clear milestone filter</a></li>
-          }
-          <li><a href="@condition.copy(milestoneId = Some(None)).toURL">Issues with no milestone</a></li>
-          @milestones.map { milestone =>
-            <li><a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">@milestone.title</a></li>
-          }
-        </ul>
-      </div>
+      @helper.html.dropdown {
+        @if(condition.milestoneId.isDefined){
+          <li><a href="@condition.copy(milestoneId = None).toURL">Clear milestone filter</a></li>
+        }
+        <li><a href="@condition.copy(milestoneId = Some(None)).toURL">Issues with no milestone</a></li>
+        @milestones.map { milestone =>
+          <li><a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">@milestone.title</a></li>
+        }
+      }
       @if(condition.milestoneId.isDefined && condition.milestoneId.get.isDefined){
         <div class="milestone-progress" style="margin-top: 8px;">
           @if(closedCount > 0){
@@ -97,7 +91,7 @@
         </a>
       }
       <div class="pull-right">
-        @html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 7, condition.toURL)
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 7, condition.toURL)
       </div>
       <div class="btn-group">
         <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
@@ -160,7 +154,7 @@
       }
       </table>
       <div class="pull-right">
-        @html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 10, condition.toURL)
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 10, condition.toURL)
       </div>
     </div>
   </div>
