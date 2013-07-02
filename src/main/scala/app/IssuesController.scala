@@ -109,6 +109,16 @@ trait IssuesControllerBase extends ControllerBase {
     redirect("/%s/%s/issues/_data/%d".format(owner, repository, issueId))
   }
 
+  // TODO Authenticator
+  ajaxPost("/:owner/:repository/issues/:id/label/:labelId/new"){
+    "TODO Insert!"
+  }
+
+  // TODO Authenticator
+  ajaxPost("/:owner/:repository/issues/:id/label/:labelId/delete"){
+    "TODO Delete!"
+  }
+
   // TODO requires users only and readable repository checking
   post("/:owner/:repository/issue_comments/new", commentForm)( usersOnly { form =>
     val owner = params("owner")

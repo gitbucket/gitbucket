@@ -78,7 +78,7 @@
           <ul class="dropdown-menu">
           @labels.map { label =>
             <li>
-              <a href="#">
+              <a href="#" class="toggle-label" data-label="@label.labelId">
                 <i class="@{if(issueLabels.exists(_.labelId == label.labelId)) "icon-ok" else "icon-white"}"></i>
                 <span class="label" style="background-color: #@label.color;">&nbsp;</span>
                 @label.labelName
@@ -123,6 +123,26 @@ $(function(){
 
   $('#action').click(function(){
     $('<input type="hidden">').attr('name', 'action').val($(this).val().toLowerCase()).appendTo('form');
+  });
+
+  $('a.toggle-label').click(function(){
+    var url = '@url(repository)/issues/@issue.issueId/label/' + $(this).data('label');
+    var icon;
+    var i = $(this).children('i');
+    if(i.hasClass('icon-ok')){
+      url += '/delete';
+      icon = 'icon-white';
+    } else {
+      url += '/new';
+      icon = 'icon-ok';
+    }
+    $.post(url,
+    function(data){
+      i.removeClass().addClass(icon);
+      // TODO label sort
+      alert(data);
+    });
+    return false;
   });
 });
 </script>
