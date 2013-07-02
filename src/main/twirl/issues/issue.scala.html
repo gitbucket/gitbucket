@@ -146,11 +146,32 @@ $(function(){
   });
 
   $('a.assign').click(function(){
-    alert($(this).data('name'));
+    var userName = $(this).data('name');
+    $.post('@url(repository)/issues/assign/@issue.issueId', {
+      assignedUserName: userName
+    }, function(){
+      if(userName == ''){
+        $('#label-assigned').text('No one is assigned');
+      } else {
+        $('#label-assigned').html($('<span>')
+          .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
+          .append(' is assigned'));
+      }
+    });
   });
 
   $('a.milestone').click(function(){
-    alert($(this).data('id'));
+    var title = $(this).text();
+    var milestoneId = $(this).data('id');
+    $.post('@url(repository)/issues/milestone/@issue.issueId', {
+      milestoneId: milestoneId
+    }, function(){
+      if(milestoneId == ''){
+        $('#label-milestone').text('No milestone');
+      } else {
+        $('#label-milestone').html($('<span>').append('Milestone: ').append($('<strong>').text(title)));
+      }
+    });
   });
 
   $('i.icon-pencil').click(function(){
