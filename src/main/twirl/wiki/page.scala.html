@@ -1,4 +1,7 @@
-@(pageName: String, page: service.WikiService.WikiPageInfo, repository: service.RepositoryService.RepositoryInfo, isWritable: Boolean)(implicit context: app.Context)
+@(pageName: String,
+  page: service.WikiService.WikiPageInfo,
+  repository: service.RepositoryService.RepositoryInfo,
+  isWritable: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(pageName + " - " + repository.owner + "/" + repository.name){

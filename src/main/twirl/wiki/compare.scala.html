@@ -1,4 +1,6 @@
-@(pageName: Option[String], diffs: Seq[util.JGitUtil.DiffInfo], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(pageName: Option[String],
+  diffs: Seq[util.JGitUtil.DiffInfo],
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType

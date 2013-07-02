@@ -1,4 +1,6 @@
-@(pageName: Option[String], commits: List[util.JGitUtil.CommitInfo], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(pageName: Option[String],
+  commits: List[util.JGitUtil.CommitInfo],
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("History - " + repository.owner + "/" + repository.name){
