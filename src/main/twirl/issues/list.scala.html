@@ -53,11 +53,23 @@
       }
       @helper.html.dropdown {
         @if(condition.milestoneId.isDefined){
-          <li><a href="@condition.copy(milestoneId = None).toURL">Clear milestone filter</a></li>
+          <li>
+            <a href="@condition.copy(milestoneId = None).toURL">
+              <i class="icon-remove-circle"></i> Clear milestone filter
+            </a>
+          </li>
         }
-        <li><a href="@condition.copy(milestoneId = Some(None)).toURL">Issues with no milestone</a></li>
+        <li>
+           <a href="@condition.copy(milestoneId = Some(None)).toURL">
+             @helper.html.checkicon(condition.milestoneId == Some(None)) Issues with no milestone
+           </a>
+        </li>
         @milestones.map { milestone =>
-          <li><a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">@milestone.title</a></li>
+          <li>
+             <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
+               @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
+             </a>
+          </li>
         }
       }
       @if(condition.milestoneId.isDefined && condition.milestoneId.get.isDefined){
@@ -121,12 +133,36 @@
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="@condition.copy(sort="created",  direction="desc").toURL">Newest</a></li>
-          <li><a href="@condition.copy(sort="created",  direction="asc" ).toURL">Oldest</a></li>
-          <li><a href="@condition.copy(sort="comments", direction="desc").toURL">Most commented</a></li>
-          <li><a href="@condition.copy(sort="comments", direction="asc" ).toURL">Least commented</a></li>
-          <li><a href="@condition.copy(sort="updated",  direction="desc").toURL">Recently updated</a></li>
-          <li><a href="@condition.copy(sort="updated",  direction="asc" ).toURL">Least recently updated</a></li>
+          <li>
+            <a href="@condition.copy(sort="created",  direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+            </a>
+          </li>
         </ul>
       </div>
       <table class="table table-bordered table-hover table-issues">

@@ -36,10 +36,10 @@
             </span>
             @if(hasWritePermission){
               @helper.html.dropdown {
-                <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
+                <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
                 <li class="divider"></li>
                 @collaborators.map { collaborator =>
-                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
+                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator"><i class="icon-white"></i> @collaborator</a></li>
                 }
               }
             }
@@ -53,10 +53,10 @@
               </span>
               @if(hasWritePermission){
                 @helper.html.dropdown {
-                  <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
+                  <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> No milestone</a></li>
                   <li class="divider"></li>
                   @milestones.map { milestone =>
-                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId"><i class="icon-white"></i> @milestone.title</a></li>
                   }
                 }
               }
@@ -149,6 +149,13 @@
 }
 <script>
 $(function(){
+  @if(issue.assignedUserName.isDefined){
+    $('a.assign[data-name=@issue.assignedUserName] i').attr('class', 'icon-ok');
+  }
+  @if(issue.milestoneId.isDefined){
+    $('a.milestone[data-id=@issue.milestoneId] i').attr('class', 'icon-ok');
+  }
+
   $('#edit').click(function(){
     $.get('@url(repository)/issues/_data/@issue.issueId',
     {
@@ -167,12 +174,14 @@ $(function(){
       assignedUserName: userName
     },
     function(){
+      $('a.assign i.icon-ok').attr('class', 'icon-white');
       if(userName == ''){
         $('#label-assigned').text('No one is assigned');
       } else {
         $('#label-assigned').html($('<span>')
           .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
           .append(' is assigned'));
+        $('a.assign[data-name=' + userName + '] i').attr('class', 'icon-ok');
       }
     });
   });
@@ -185,10 +194,12 @@ $(function(){
       milestoneId: milestoneId
     },
     function(){
+      $('a.milestone i.icon-ok').attr('class', 'icon-white');
       if(milestoneId == ''){
         $('#label-milestone').text('No milestone');
       } else {
         $('#label-milestone').html($('<span>').append('Milestone: ').append($('<strong>').text(title)));
+        $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
       }
     });
   });

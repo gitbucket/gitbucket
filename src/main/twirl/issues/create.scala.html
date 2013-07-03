@@ -20,10 +20,10 @@
             @if(hasWritePermission){
               <input type="hidden" name="assignedUserName" value=""/>
               @helper.html.dropdown {
-                <li><a href="javascript:void(0);" class="assign" data-name="">Clear assignee</a></li>
+                <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
                 <li class="divider"></li>
                 @collaborators.map { collaborator =>
-                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator">@collaborator</a></li>
+                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator"><i class="icon-while"></i> @collaborator</a></li>
                 }
               }
             }
@@ -32,10 +32,10 @@
               @if(hasWritePermission){
                 <input type="hidden" name="milestoneId" value=""/>
                 @helper.html.dropdown {
-                  <li><a href="javascript:void(0);" class="milestone" data-id="">No milestone</a></li>
+                  <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> No milestone</a></li>
                   <li class="divider"></li>
                   @milestones.map { milestone =>
-                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+                    <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId"><i class="icon-while"></i> @milestone.title</a></li>
                   }
                 }
               }
@@ -74,12 +74,15 @@
 $(function(){
   $('a.assign').click(function(){
     var userName = $(this).data('name');
+    $('a.assign i.icon-ok').attr('class', 'icon-white');
+
     if(userName == ''){
       $('#label-assigned').text('No one will be assigned');
     } else {
       $('#label-assigned').html($('<span>')
         .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
         .append(' well be assigned'));
+      $('a.assign[data-name=' + userName + '] i').attr('class', 'icon-ok');
     }
     $('input[name=assignedUserName]').val(userName);
   });
@@ -87,11 +90,13 @@ $(function(){
   $('a.milestone').click(function(){
     var title = $(this).text();
     var milestoneId = $(this).data('id');
+    $('a.milestone i.icon-ok').attr('class', 'icon-white');
 
     if(milestoneId == ''){
       $('#label-milestone').text('No milestone');
     } else {
       $('#label-milestone').html($('<span>').append('Milestone: ').append($('<strong>').text(title)));
+      $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
     }
     $('input[name=milestoneId]').val(milestoneId);
   });
