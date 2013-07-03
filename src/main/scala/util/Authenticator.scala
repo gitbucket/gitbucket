@@ -8,10 +8,10 @@ import RepositoryService.RepositoryInfo
  * Allows only oneself and administrators.
  */
 trait OneselfAuthenticator { self: ControllerBase =>
-  protected def oneselfOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
-  protected def oneselfOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
+  protected def oneselfOnly(action: => Any) = { authenticate(action) }
+  protected def oneselfOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 
-  private def authenticate(action: (RepositoryInfo) => Any) = {
+  private def authenticate(action: => Any) = {
     {
       val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
       context.loginAccount match {
