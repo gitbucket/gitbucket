@@ -22,53 +22,29 @@ trait LabelsControllerBase extends ControllerBase {
     "editColor"     -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
-  post("/:owner/:repository/issues/label/new", newForm)(collaboratorsOnly { form =>
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    createLabel(owner, repository, form.labelName, form.color.substring(1))
-
-    redirect("/%s/%s/issues".format(owner, repository))
+  post("/:owner/:repository/issues/label/new", newForm)(collaboratorsOnly { (form, repository) =>
+    createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
+    redirect("/%s/%s/issues".format(repository.owner, repository.name))
   })
 
-  ajaxGet("/:owner/:repository/issues/label/edit")(collaboratorsOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    getRepository(owner, repository, baseUrl)
-      .map(issues.labels.html.editlist(getLabels(owner, repository), _)) getOrElse NotFound()
+  ajaxGet("/:owner/:repository/issues/label/edit")(collaboratorsOnly { repository =>
+    issues.labels.html.editlist(getLabels(repository.owner, repository.name), repository)
   })
 
-  ajaxGet("/:owner/:repository/issues/label/:labelId/edit")(collaboratorsOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-    val labelId    = params("labelId").toInt
-
-    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      getLabel(owner, repository, labelId).map(label => issues.labels.html.edit(Some(label), repositoryInfo)) getOrElse NotFound()
+  ajaxGet("/:owner/:repository/issues/label/:labelId/edit")(collaboratorsOnly { repository =>
+    getLabel(repository.owner, repository.name, params("labelId").toInt).map { label =>
+      issues.labels.html.edit(Some(label), repository)
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/label/:labelId/edit", editForm)(collaboratorsOnly { form =>
-    val owner      = params("owner")
-    val repository = params("repository")
-    val labelId    = params("labelId").toInt
-
-    getRepository(owner, repository, baseUrl).map{ repositoryInfo =>
-      updateLabel(owner, repository, labelId, form.labelName, form.color.substring(1))
-      issues.labels.html.editlist(getLabels(owner, repository), repositoryInfo)
-    } getOrElse NotFound()
+  ajaxPost("/:owner/:repository/issues/label/:labelId/edit", editForm)(collaboratorsOnly { (form, repository) =>
+    updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
+    issues.labels.html.editlist(getLabels(repository.owner, repository.name), repository)
   })
 
-  ajaxGet("/:owner/:repository/issues/label/:labelId/delete")(collaboratorsOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-    val labelId    = params("labelId").toInt
-
-    getRepository(owner, repository, baseUrl).map { repositoryInfo =>
-      deleteLabel(owner, repository, labelId)
-      issues.labels.html.editlist(getLabels(owner, repository), repositoryInfo)
-    } getOrElse NotFound()
+  ajaxGet("/:owner/:repository/issues/label/:labelId/delete")(collaboratorsOnly { repository =>
+    deleteLabel(repository.owner, repository.name, params("labelId").toInt)
+    issues.labels.html.editlist(getLabels(repository.owner, repository.name), repository)
   })
 
 }
