@@ -449,6 +449,15 @@ div.issue-comment-action {
   border-bottom: 4px solid #ddd;
 }
 
+.nav-pills > li > span.issue-label {
+  display: block;
+  padding: 0px 8px 2px 8px;
+  margin-top: 2px;
+  -webkit-border-radius: 5px;
+     -moz-border-radius: 5px;
+          border-radius: 5px;
+}
+
 /****************************************************************************/
 /* Wiki */
 /****************************************************************************/
