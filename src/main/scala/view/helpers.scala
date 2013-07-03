@@ -19,6 +19,13 @@ object helpers {
   def date(date: Date): String = new SimpleDateFormat("yyyy-MM-dd").format(date)
 
   /**
+   * Returns singular if count is 1, otherwise plural.
+   * If plural is not specified, returns singular + "s" as plural.
+   */
+  def plural(count: Int, singular: String, plural: String = ""): String =
+    if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
+
+  /**
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,

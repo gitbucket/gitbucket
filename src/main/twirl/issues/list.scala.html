@@ -176,12 +176,7 @@
             <span class="pull-right muted">#@issue.issueId</span>
             <div class="small muted">
               Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
-              @if(commentCount == 1){
-                <i class="icon-comment"></i><a href="@url(repository)/issues/@issue.issueId" class="issue-comment-count">1 comment</a>
-              }
-              @if(commentCount > 1){
-                <i class="icon-comment"></i><a href="@url(repository)/issues/@issue.issueId" class="issue-comment-count">@commentCount comments</a>
-              }
+              <i class="icon-comment"></i><a href="@url(repository)/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
             </div>
           </td>
         </tr>

@@ -117,11 +117,7 @@
         <span class="label label-success issue-status">Open</span>
       }
       <div class="small" style="text-align: center;">
-        @if(comments.size == 1){
-          <strong>1</strong> comment
-        } else {
-          <strong>@comments.size</strong> comments
-        }
+        <strong>@comments.size</strong> @plural(@comments.size, "comment")
       </div>
       <hr/>
       <div style="margin-bottom: 8px;">
