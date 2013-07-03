@@ -82,7 +82,7 @@ abstract class ControllerBase extends ScalatraFilter
 
   protected def baseUrl = {
     val url = request.getRequestURL.toString
-    url.substring(0, url.length - request.getRequestURI.length)
+    url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
   }
 
 }
