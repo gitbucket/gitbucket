@@ -1,15 +1,15 @@
 package app
 
 import service._
-import util.OwnerOnlyAuthenticator
+import util.OneselfAuthenticator
 import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
 
 class AccountController extends AccountControllerBase
-  with SystemSettingsService with AccountService with RepositoryService with OwnerOnlyAuthenticator
+  with SystemSettingsService with AccountService with RepositoryService with OneselfAuthenticator
 
 trait AccountControllerBase extends ControllerBase {
-  self: SystemSettingsService with AccountService with RepositoryService with OwnerOnlyAuthenticator =>
+  self: SystemSettingsService with AccountService with RepositoryService with OneselfAuthenticator =>
 
   case class AccountNewForm(userName: String, password: String,mailAddress: String, url: Option[String])
 
@@ -38,12 +38,12 @@ trait AccountControllerBase extends ControllerBase {
     } getOrElse NotFound
   }
 
-  get("/:userName/_edit")(ownerOnly {
+  get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map(x => account.html.edit(Some(x))) getOrElse NotFound
   })
 
-  post("/:userName/_edit", editForm)(ownerOnly { form =>
+  post("/:userName/_edit", editForm)(oneselfOnly { form =>
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       updateAccount(account.copy(

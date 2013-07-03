@@ -5,8 +5,28 @@ import service._
 import RepositoryService.RepositoryInfo
 
 /**
+ * Allows only oneself and administrators.
+ */
+trait OneselfAuthenticator { self: ControllerBase =>
+  protected def oneselfOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
+  protected def oneselfOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
+
+  private def authenticate(action: (RepositoryInfo) => Any) = {
+    {
+      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
+      context.loginAccount match {
+        case Some(x) if(x.isAdmin) => action
+        case Some(x) if(paths(1) == x.userName) => action
+        case _ => Unauthorized()
+      }
+    }
+  }
+}
+
+/**
  * Allows only the repository owner and administrators.
  */
+// TODO rename to OwnerAuthenticator
 trait OwnerOnlyAuthenticator { self: ControllerBase with RepositoryService =>
   protected def ownerOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def ownerOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
@@ -28,6 +48,7 @@ trait OwnerOnlyAuthenticator { self: ControllerBase with RepositoryService =>
 /**
  * Allows only signed in users.
  */
+// TODO rename to UsersAuthenticator
 trait UsersOnlyAuthenticator { self: ControllerBase =>
   protected def usersOnly(action: => Any) = { authenticate(action) }
   protected def usersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
@@ -45,6 +66,7 @@ trait UsersOnlyAuthenticator { self: ControllerBase =>
 /**
  * Allows only administrators.
  */
+// TODO rename to AdminAuthenticator
 trait AdminOnlyAuthenticator { self: ControllerBase =>
   protected def adminOnly(action: => Any) = { authenticate(action) }
   protected def adminOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
