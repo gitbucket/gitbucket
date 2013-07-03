@@ -1,8 +1,8 @@
 package util
 
+import JGitUtil.RepositoryInfo
 import app.ControllerBase
 import service._
-import org.scalatra._
 
 /**
  * Allows only the repository owner and administrators.
@@ -61,18 +61,24 @@ trait AdminOnlyAuthenticator { self: ControllerBase =>
  * Allows only collaborators and administrators.
  */
 trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =>
-  protected def collaboratorsOnly(action: => Any) = { authenticate(action) }
-  protected def collaboratorsOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
+
+  protected def collaboratorsOnly(action: (RepositoryInfo) => Any) =
+    (repository: RepositoryInfo) => authenticate({action(repository)})
+
+  protected def collaboratorsOnly[T](action: (RepositoryInfo, T) => Any) =
+    (repository: RepositoryInfo, form: T) => authenticate({action(repository, form)})
 
   private def authenticate(action: => Any) = {
     {
       val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      context.loginAccount match {
-        case Some(x) if(x.isAdmin) => action
-        case Some(x) if(paths(1) == x.userName) => action
-        case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
-        case _ => Unauthorized()
-      }
+      getRepository(paths(1), paths(2), baseUrl).map { _ =>
+        context.loginAccount match {
+          case Some(x) if(x.isAdmin) => action
+          case Some(x) if(paths(1) == x.userName) => action
+          case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
+          case _ => Unauthorized()
+        }
+      } getOrElse NotFound()
     }
   }
 }
@@ -81,8 +87,12 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
  * Allows only the repository owner and administrators.
  */
 trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
-  protected def referrersOnly(action: => Any) = { authenticate(action) }
-  protected def referrersOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
+
+  protected def referrersOnly(action: (RepositoryInfo) => Any) =
+    (repository: RepositoryInfo) => authenticate({action(repository)})
+
+  protected def referrersOnly[T](action: (RepositoryInfo, T) => Any) =
+    (repository: RepositoryInfo, form: T) => authenticate({action(repository, form)})
 
   private def authenticate(action: => Any) = {
     {
@@ -109,8 +119,12 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
  * Allows only signed in users which can access the repository.
  */
 trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =>
-  protected def readableUsersOnly(action: => Any) = { authenticate(action) }
-  protected def readableUsersOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
+
+  protected def readableUsersOnly(action: (RepositoryInfo) => Any) =
+    (repository: RepositoryInfo) => authenticate({action(repository)})
+
+  protected def readableUsersOnly[T](action: (RepositoryInfo, T) => Any) =
+    (repository: RepositoryInfo, form: T) => authenticate({action(repository, form)})
 
   private def authenticate(action: => Any) = {
     {
