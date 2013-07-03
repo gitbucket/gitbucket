@@ -17,12 +17,12 @@ trait LabelsService {
     Labels.ins insert (owner, repository, labelName, color)
 
   def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String): Unit =
-    Query(Labels).filter(_.byPrimaryKey(owner, repository, labelId)).map(t => t.labelName ~ t.color)
+    Labels.filter(_.byPrimaryKey(owner, repository, labelId)).map(t => t.labelName ~ t.color)
       .update(labelName, color)
 
   def deleteLabel(owner: String, repository: String, labelId: Int): Unit = {
-    Query(IssueLabels).filter(_.byLabel(owner, repository, labelId)).delete
-    Query(Labels).filter(_.byPrimaryKey(owner, repository, labelId)).delete
+    IssueLabels.filter(_.byLabel(owner, repository, labelId)).delete
+    Labels.filter(_.byPrimaryKey(owner, repository, labelId)).delete
   }
 
 }
