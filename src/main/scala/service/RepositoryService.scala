@@ -22,8 +22,6 @@ trait RepositoryService { self: AccountService =>
   def createRepository(repositoryName: String, userName: String, description: Option[String]): Unit = {
     // TODO create a git repository also here?
     
-    // TODO insert default labels.
-
     Repositories insert
       Repository(
         userName         = userName,
@@ -111,30 +109,23 @@ trait RepositoryService { self: AccountService =>
    * @return the repository informations which is sorted in descending order of lastActivityDate.
    */
   def getAccessibleRepositories(account: Option[Account], baseUrl: String): List[RepositoryInfo] = {
-    account match {
-      // for Administrators
-      case Some(x) if(x.isAdmin) => {
-        (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
-          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
-          RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
-        }
-      }
-      // for Normal Users
-      case Some(x) if(!x.isAdmin) => {
-        // TODO only repositories registered as collaborator
-        (Query(Repositories) sortBy(_.lastActivityDate desc) list) map { repository =>
-          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
-          RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
-        }
-      }
-      // for Guests
-      case None => {
-        (Query(Repositories) filter(_.isPrivate is false.bind) sortBy(_.lastActivityDate desc) list) map { repository =>
-          val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
-          RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
-        }
-      }
+
+    def createRepositoryInfo(repository: Repository): RepositoryInfo = {
+      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+      RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
     }
+
+    (account match {
+      // for Administrators
+      case Some(x) if(x.isAdmin) => Query(Repositories)
+      // for Normal Users
+      case Some(x) if(!x.isAdmin) =>
+        Query(Repositories) filter { t => (t.isPrivate is false.bind) ||
+          (Query(Collaborators).filter(t2 => t2.byRepository(t.userName, t.repositoryName) && (t2.collaboratorName is x.userName.bind)) exists)
+        }
+      // for Guests
+      case None => Query(Repositories) filter(_.isPrivate is false.bind)
+    }).sortBy(_.lastActivityDate desc).list.map(createRepositoryInfo _)
   }
 
   /**
