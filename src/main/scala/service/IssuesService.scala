@@ -20,9 +20,11 @@ trait IssuesService {
   def getComments(owner: String, repository: String, issueId: Int) =
     Query(IssueComments) filter (_.byIssue(owner, repository, issueId)) list
 
-  def getComment(commentId: String) =
+  def getComment(owner: String, repository: String, commentId: String) =
     if (commentId forall (_.isDigit))
-      Query(IssueComments) filter (_.byPrimaryKey(commentId.toInt)) firstOption
+      Query(IssueComments) filter { t =>
+        t.byPrimaryKey(commentId.toInt) && t.byRepository(owner, repository)
+      } firstOption
     else None
 
   def getIssueLabels(owner: String, repository: String, issueId: Int) =
