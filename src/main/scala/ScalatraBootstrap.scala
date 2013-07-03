@@ -17,15 +17,9 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new IssuesController, "/*")
     context.mount(new SettingsController, "/*")
 
-    context.addListener(new ServletContextListener(){
-      def contextInitialized(e: ServletContextEvent): Unit = {
-        val dir = new java.io.File(_root_.util.Directory.GitBucketHome)
-        if(!dir.exists){
-          dir.mkdirs()
-        }
-      }
-      
-      def contextDestroyed(e: ServletContextEvent): Unit = {}
-    })
+    val dir = new java.io.File(_root_.util.Directory.GitBucketHome)
+    if(!dir.exists){
+      dir.mkdirs()
+    }
   }
 }
