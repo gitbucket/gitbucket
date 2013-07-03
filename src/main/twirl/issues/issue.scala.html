@@ -104,7 +104,9 @@
           </div>
           <input type="hidden" name="issueId" value="@issue.issueId"/>
           <input type="submit" class="btn btn-success" value="Comment"/>
-          <input type="submit" class="btn" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+          @if(hasWritePermission || issue.openedUserName == loginAccount.get.userName){
+            <input type="submit" class="btn" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+          }
         </form>
       }
     </div>

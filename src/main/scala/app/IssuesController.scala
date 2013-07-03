@@ -110,8 +110,7 @@ trait IssuesControllerBase extends ControllerBase {
     val name  = repository.name
 
     getIssue(owner, name, params("id")).map { issue =>
-      if(hasWritePermission(owner, name, context.loginAccount) ||
-          issue.openedUserName == context.loginAccount.get.userName){
+      if(isEditable(owner, name, issue.openedUserName)){
         updateIssue(owner, name, issue.issueId, form.title, form.content)
         redirect("/%s/%s/issues/_data/%d".format(owner, name, issue.issueId))
       } else Unauthorized
@@ -122,15 +121,19 @@ trait IssuesControllerBase extends ControllerBase {
     val owner = repository.owner
     val name  = repository.name
 
-    redirect("/%s/%s/issues/%d#comment-%d".format(
+    getIssue(owner, name, form.issueId.toString).map { issue =>
+      redirect("/%s/%s/issues/%d#comment-%d".format(
         owner, name, form.issueId,
         createComment(owner, name, context.loginAccount.get.userName,
-            form.issueId,
-            form.content,
+          form.issueId,
+          form.content,
+          if(isEditable(owner, name, issue.openedUserName)){
             params.get("action") filter { action =>
               updateClosed(owner, name, form.issueId, if(action == "close") true else false) > 0
-            })
-    ))
+            }
+          } else None)
+      ))
+    }
   })
 
   ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
@@ -138,8 +141,7 @@ trait IssuesControllerBase extends ControllerBase {
     val name  = repository.name
 
     getComment(owner, name, params("id")).map { comment =>
-      if(hasWritePermission(owner, name, context.loginAccount) ||
-          comment.commentedUserName == context.loginAccount.get.userName){
+      if(isEditable(owner, name, comment.commentedUserName)){
         updateComment(comment.commentId, form.content)
         redirect("/%s/%s/issue_comments/_data/%d".format(owner, name, comment.commentId))
       } else Unauthorized
@@ -148,8 +150,7 @@ trait IssuesControllerBase extends ControllerBase {
 
   ajaxGet("/:owner/:repository/issues/_data/:id")(readableUsersOnly { repository =>
     getIssue(repository.owner, repository.name, params("id")) map { x =>
-      if(hasWritePermission(x.userName, x.repositoryName, context.loginAccount) ||
-          x.openedUserName == context.loginAccount.get.userName){
+      if(isEditable(x.userName, x.repositoryName, x.openedUserName)){
         params.get("dataType") collect {
           case t if t == "html" => issues.html.editissue(
               x.title, x.content, x.issueId, x.userName, x.repositoryName)
@@ -167,8 +168,7 @@ trait IssuesControllerBase extends ControllerBase {
 
   ajaxGet("/:owner/:repository/issue_comments/_data/:id")(readableUsersOnly { repository =>
     getComment(repository.owner, repository.name, params("id")) map { x =>
-      if(hasWritePermission(x.userName, x.repositoryName, context.loginAccount) ||
-          x.commentedUserName == context.loginAccount.get.userName){
+      if(isEditable(x.userName, x.repositoryName, x.commentedUserName)){
         params.get("dataType") collect {
           case t if t == "html" => issues.html.editcomment(
               x.content, x.commentId, x.userName, x.repositoryName)
@@ -208,6 +208,9 @@ trait IssuesControllerBase extends ControllerBase {
         params.get("milestoneId") collect { case x if x.trim != "" => x.toInt })
     Ok("updated")
   })
+
+  private def isEditable(owner: String, repository: String, author: String)(implicit context: app.Context): Boolean =
+    hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
   private def searchIssues(filter: String, repository: RepositoryService.RepositoryInfo) = {
     val owner      = repository.owner
