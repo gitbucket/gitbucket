@@ -24,7 +24,7 @@ trait AccountService {
       lastLoginDate  = None)
 
   def updateAccount(account: Account): Unit = 
-    Query(Accounts)
+    Accounts
       .filter { a => a.userName is account.userName.bind }
       .map    { a => a.password ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? }
       .update (
@@ -37,6 +37,6 @@ trait AccountService {
         account.lastLoginDate)
   
   def updateLastLoginDate(userName: String): Unit =
-    Query(Accounts).filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
+    Accounts.filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
   
 }

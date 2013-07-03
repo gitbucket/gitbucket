@@ -52,7 +52,7 @@ trait RepositoryService { self: AccountService =>
    * @return the list of repository names
    */
   def getRepositoryNamesOfUser(userName: String): List[String] =
-    Query(Repositories).filter(_.userName is userName.bind).list.map(_.repositoryName)
+    Query(Repositories) filter(_.userName is userName.bind) map (_.repositoryName) list
 
   /**
    * Returns the list of specified user's repositories information.
@@ -141,14 +141,14 @@ trait RepositoryService { self: AccountService =>
    * Updates the last activity date of the repository.
    */
   def updateLastActivityDate(userName: String, repositoryName: String): Unit =
-    Query(Repositories).filter(_.byRepository(userName, repositoryName)).map(_.lastActivityDate).update(currentDate)
+    Repositories.filter(_.byRepository(userName, repositoryName)).map(_.lastActivityDate).update(currentDate)
   
   /**
    * Save repository options.
    */
   def saveRepositoryOptions(userName: String, repositoryName: String, 
       description: Option[String], defaultBranch: String, isPrivate: Boolean): Unit =
-    Query(Repositories).filter(_.byRepository(userName, repositoryName))
+    Repositories.filter(_.byRepository(userName, repositoryName))
       .map { r => r.description.? ~ r.defaultBranch ~ r.isPrivate ~ r.updatedDate }
       .update (description, defaultBranch, isPrivate, currentDate)
 
@@ -170,9 +170,8 @@ trait RepositoryService { self: AccountService =>
    * @param collaboratorName the collaborator name
    */
   def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String): Unit =
-    Query(Collaborators).filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
-  
-    
+    Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
+
   /**
    * Returns the list of collaborators name which is sorted with ascending order.
    * 
@@ -181,7 +180,7 @@ trait RepositoryService { self: AccountService =>
    * @return the list of collaborators name
    */
   def getCollaborators(userName: String, repositoryName: String): List[String] =
-    Query(Collaborators).filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).list.map(_.collaboratorName)
+    Query(Collaborators).filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).map(_.collaboratorName).list
 
   def hasWritePermission(owner: String, repository: String, loginAccount: Option[Account]): Boolean = {
     loginAccount match {

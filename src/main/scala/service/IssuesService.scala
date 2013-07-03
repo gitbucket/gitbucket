@@ -74,7 +74,6 @@ trait IssuesService {
       .map { case (labelName, t) =>
         labelName ~ t.length
       }
-      .list
       .toMap
   }
 
