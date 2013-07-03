@@ -47,7 +47,9 @@ trait IssuesService {
    * @return the count of the search result
    */
   def countIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]): Int = {
-    // TODO It must be _.length instead of map (_.issueId) list).length. But it does not work on Slick 1.0.1 (worked on Slick 1.0.0).
+    // TODO It must be _.length instead of map (_.issueId) list).length.
+    //       But it does not work on Slick 1.0.1 (worked on Slick 1.0.0).
+    //       https://github.com/slick/slick/issues/170
     (searchIssueQuery(owner, repository, condition, filter, userName) map (_.issueId) list).length
   }
   /**
