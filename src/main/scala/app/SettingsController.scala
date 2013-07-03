@@ -29,45 +29,30 @@ trait SettingsControllerBase extends ControllerBase {
   /**
    * Redirect to the Options page.
    */
-  get("/:owner/:repository/settings")(ownerOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    redirect("/%s/%s/settings/options".format(owner, repository))
+  get("/:owner/:repository/settings")(ownerOnly { repository =>
+    redirect("/%s/%s/settings/options".format(repository.owner, repository.name))
   })
   
   /**
    * Display the Options page.
    */
   get("/:owner/:repository/settings/options")(ownerOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    getRepository(owner, repository, baseUrl).map(settings.html.options(_)) getOrElse NotFound
+    settings.html.options(_)
   })
   
   /**
    * Save the repository options.
    */
-  post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { form =>
-    val owner      = params("owner")
-    val repository = params("repository")
-    
-    // save repository options
-    saveRepositoryOptions(owner, repository, form.description, form.defaultBranch, form.isPrivate)
-    
-    redirect("%s/%s/settings/options".format(owner, repository))
+  post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
+    saveRepositoryOptions(repository.owner, repository.name, form.description, form.defaultBranch, form.isPrivate)
+    redirect("%s/%s/settings/options".format(repository.owner, repository.name))
   })
   
   /**
    * Display the Collaborators page.
    */
-  get("/:owner/:repository/settings/collaborators")(ownerOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    getRepository(owner, repository, baseUrl).map(
-      settings.html.collaborators(getCollaborators(owner, repository), _)) getOrElse NotFound
+  get("/:owner/:repository/settings/collaborators")(ownerOnly { repository =>
+    settings.html.collaborators(getCollaborators(repository.owner, repository.name), repository)
   })
 
   /**
@@ -81,50 +66,37 @@ trait SettingsControllerBase extends ControllerBase {
   /**
    * Add the collaborator.
    */
-  post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { form =>
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    addCollaborator(owner, repository, form.userName)
-    redirect("/%s/%s/settings/collaborators".format(owner, repository))
+  post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { (form, repository) =>
+    addCollaborator(repository.owner, repository.name, form.userName)
+    redirect("/%s/%s/settings/collaborators".format(repository.owner, repository.name))
   })
 
   /**
    * Add the collaborator.
    */
-  get("/:owner/:repository/settings/collaborators/remove")(ownerOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-    val userName   = params("name")
-
-    removeCollaborator(owner, repository, userName)
-    redirect("/%s/%s/settings/collaborators".format(owner, repository))
+  get("/:owner/:repository/settings/collaborators/remove")(ownerOnly { repository =>
+    removeCollaborator(repository.owner, repository.name, params("name"))
+    redirect("/%s/%s/settings/collaborators".format(repository.owner, repository.name))
   })
 
   /**
    * Display the delete repository page.
    */
   get("/:owner/:repository/settings/delete")(ownerOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
-
-    getRepository(owner, repository, baseUrl).map(settings.html.delete(_)) getOrElse NotFound
+    settings.html.delete(_)
   })
 
   /**
    * Delete the repository.
    */
-  post("/:owner/:repository/settings/delete")(ownerOnly {
-    val owner      = params("owner")
-    val repository = params("repository")
+  post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
+    deleteRepository(repository.owner, repository.name)
 
-    deleteRepository(owner, repository)
+    FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
+    FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
+    FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
 
-    FileUtils.deleteDirectory(getRepositoryDir(owner, repository))
-    FileUtils.deleteDirectory(getWikiRepositoryDir(owner, repository))
-    FileUtils.deleteDirectory(getTemporaryDir(owner, repository))
-
-    redirect("/%s".format(owner))
+    redirect("/%s".format(repository.owner))
   })
 
   /**
