@@ -65,13 +65,15 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
   protected def collaboratorsOnly[T](action: T => Any) = (form: T) => authenticate({action(form)})
 
   private def authenticate(action: => Any) = {
-      val paths = request.getRequestURI.split("/")
+    {
+      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
       context.loginAccount match {
         case Some(x) if(x.isAdmin) => action
         case Some(x) if(paths(1) == x.userName) => action
         case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action
         case _ => Unauthorized()
       }
+    }
   }
 }
 
@@ -84,7 +86,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
 
   private def authenticate(action: => Any) = {
     {
-      val paths = request.getRequestURI.split("/")
+      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
       getRepository(paths(1), paths(2), baseUrl) match {
         case None => NotFound()
         case Some(repository) =>
@@ -112,7 +114,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
 
   private def authenticate(action: => Any) = {
     {
-      val paths = request.getRequestURI.split("/")
+      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
       getRepository(paths(1), paths(2), baseUrl) match {
         case None => NotFound()
         case Some(repository) => context.loginAccount match {
