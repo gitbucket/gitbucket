@@ -23,7 +23,7 @@ Following features are not implemented, but we will make them in the future rele
 
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
 
-Instllation
+Installation
 --------
 
 1. Download latest **gitbucket.war** from [the release page](https://github.com/takezoe/gitbucket/releases).
