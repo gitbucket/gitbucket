@@ -20,8 +20,6 @@ trait RepositoryService { self: AccountService =>
    * @param description the repository description
    */
   def createRepository(repositoryName: String, userName: String, description: Option[String]): Unit = {
-    // TODO create a git repository also here?
-    
     Repositories insert
       Repository(
         userName         = userName,
