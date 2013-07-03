@@ -26,8 +26,7 @@ trait OneselfAuthenticator { self: ControllerBase =>
 /**
  * Allows only the repository owner and administrators.
  */
-// TODO rename to OwnerAuthenticator
-trait OwnerOnlyAuthenticator { self: ControllerBase with RepositoryService =>
+trait OwnerAuthenticator { self: ControllerBase with RepositoryService =>
   protected def ownerOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def ownerOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
@@ -48,8 +47,7 @@ trait OwnerOnlyAuthenticator { self: ControllerBase with RepositoryService =>
 /**
  * Allows only signed in users.
  */
-// TODO rename to UsersAuthenticator
-trait UsersOnlyAuthenticator { self: ControllerBase =>
+trait UsersAuthenticator { self: ControllerBase =>
   protected def usersOnly(action: => Any) = { authenticate(action) }
   protected def usersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 
@@ -66,8 +64,7 @@ trait UsersOnlyAuthenticator { self: ControllerBase =>
 /**
  * Allows only administrators.
  */
-// TODO rename to AdminAuthenticator
-trait AdminOnlyAuthenticator { self: ControllerBase =>
+trait AdminAuthenticator { self: ControllerBase =>
   protected def adminOnly(action: => Any) = { authenticate(action) }
   protected def adminOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 

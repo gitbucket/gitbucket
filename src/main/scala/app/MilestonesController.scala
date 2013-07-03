@@ -3,7 +3,7 @@ package app
 import jp.sf.amateras.scalatra.forms._
 
 import service._
-import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, UsersOnlyAuthenticator}
+import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, UsersAuthenticator}
 
 class MilestonesController extends MilestonesControllerBase
   with MilestonesService with RepositoryService with AccountService

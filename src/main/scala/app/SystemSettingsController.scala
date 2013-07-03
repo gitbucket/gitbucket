@@ -2,14 +2,14 @@ package app
 
 import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
-import util.AdminOnlyAuthenticator
+import util.AdminAuthenticator
 import jp.sf.amateras.scalatra.forms._
 
 class SystemSettingsController extends SystemSettingsControllerBase
-  with SystemSettingsService with AccountService with AdminOnlyAuthenticator
+  with SystemSettingsService with AccountService with AdminAuthenticator
 
 trait SystemSettingsControllerBase extends ControllerBase {
-  self: SystemSettingsService with AccountService with AdminOnlyAuthenticator =>
+  self: SystemSettingsService with AccountService with AdminAuthenticator =>
 
   private case class SystemSettingsForm(allowAccountRegistration: Boolean)
 

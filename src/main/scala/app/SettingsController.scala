@@ -2,15 +2,15 @@ package app
 
 import service._
 import util.Directory._
-import util.{UsersOnlyAuthenticator, OwnerOnlyAuthenticator}
+import util.{UsersAuthenticator, OwnerAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 
 class SettingsController extends SettingsControllerBase
-  with RepositoryService with AccountService with OwnerOnlyAuthenticator with UsersOnlyAuthenticator
+  with RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator
 
 trait SettingsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with OwnerOnlyAuthenticator with UsersOnlyAuthenticator =>
+  self: RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator =>
 
   case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
