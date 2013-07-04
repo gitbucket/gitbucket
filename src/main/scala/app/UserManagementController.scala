@@ -13,9 +13,9 @@ trait UserManagementControllerBase extends ControllerBase { self: AccountService
   case class UserEditForm(userName: String, password: Option[String], mailAddress: String, isAdmin: Boolean, url: Option[String])
 
   val newForm = mapping(
-    "userName"    -> trim(label("Username"     , text(required, maxlength(100), identifier, unique))),
+    "userName"    -> trim(label("Username"     , text(required, maxlength(100), identifier, uniqueUserName))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
+    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
     "isAdmin"     -> trim(label("User Type"    , boolean())),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(UserNewForm.apply)
@@ -23,7 +23,7 @@ trait UserManagementControllerBase extends ControllerBase { self: AccountService
   val editForm = mapping(
     "userName"    -> trim(label("Username"     , text(required, maxlength(100), identifier))),
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
+    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
     "isAdmin"     -> trim(label("User Type"    , boolean())),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(UserEditForm.apply)
@@ -59,9 +59,18 @@ trait UserManagementControllerBase extends ControllerBase { self: AccountService
     } getOrElse NotFound
   })
 
-  private def unique: Constraint = new Constraint(){
+  // TODO Merge with AccountController?
+  private def uniqueUserName: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
       getAccountByUserName(value).map { _ => "User already exists." }
-  }  
+  }
+
+  // TODO Merge with AccountController?
+  private def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      getAccountByMailAddress(value)
+        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
+        .map    { _ => "Mail address is already registered." }
+  }
   
 }

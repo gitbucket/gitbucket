@@ -9,7 +9,10 @@ trait AccountService {
 
   def getAccountByUserName(userName: String): Option[Account] = 
     Query(Accounts) filter(_.userName is userName.bind) firstOption
-    
+
+  def getAccountByMailAddress(mailAddress: String): Option[Account] =
+    Query(Accounts) filter(_.mailAddress is mailAddress.bind) firstOption
+
   def getAllUsers(): List[Account] = Query(Accounts) sortBy(_.userName) list
     
   def createAccount(userName: String, password: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit =

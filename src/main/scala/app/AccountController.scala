@@ -16,15 +16,15 @@ trait AccountControllerBase extends ControllerBase {
   case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String])
 
   val newForm = mapping(
-    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, unique))),
+    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
+    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(AccountNewForm.apply)
 
   val editForm = mapping(
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100)))),
+    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
   )(AccountEditForm.apply)
 
@@ -67,9 +67,18 @@ trait AccountControllerBase extends ControllerBase {
     } else NotFound
   }
 
-  private def unique: Constraint = new Constraint(){
+  // TODO Merge with UserManagementController
+  private def uniqueUserName: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
       getAccountByUserName(value).map { _ => "User already exists." }
+  }
+
+  // TODO Merge with UserManagementController
+  private def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      getAccountByMailAddress(value)
+        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
+        .map    { _ => "Mail address is already registered." }
   }
 
 }
