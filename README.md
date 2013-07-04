@@ -3,7 +3,7 @@ GitBucket
 
 GitBucket is a Github clone by Scala, Easy to setup.
 
-The latest version of GitBucket provides a basic features below:
+The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http access only)
 - Repository viewer (some advanced features are not implemented)
