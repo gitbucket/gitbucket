@@ -13,7 +13,7 @@ function validate(e){
 
   $.post(form.attr('action') + '/validate', $(e.target).serialize(), function(data){
     // clear all error messages
-    $('.error-message').text('');
+    $('.error').text('');
     
     if($.isEmptyObject(data)){
       form.data('validated', true);
