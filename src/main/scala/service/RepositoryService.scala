@@ -36,8 +36,12 @@ trait RepositoryService { self: AccountService =>
 
   def deleteRepository(userName: String, repositoryName: String): Unit = {
     Collaborators .filter(_.byRepository(userName, repositoryName)).delete
-    IssueId       .filter(_.byRepository(userName, repositoryName)).delete
+    IssueLabels   .filter(_.byRepository(userName, repositoryName)).delete
+    Labels        .filter(_.byRepository(userName, repositoryName)).delete
+    IssueComments .filter(_.byRepository(userName, repositoryName)).delete
     Issues        .filter(_.byRepository(userName, repositoryName)).delete
+    IssueId       .filter(_.byRepository(userName, repositoryName)).delete
+    Milestones    .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
   }
 
