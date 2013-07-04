@@ -25,8 +25,6 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
                           enableWikiLink: Boolean) extends LinkRenderer {
   override def render(node: WikiLinkNode): Rendering = {
     if(enableWikiLink){
-      super.render(node)
-    } else {
       try {
         val text = node.getText
         val (label, page) = if(text.contains('|')){
@@ -35,12 +33,14 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
         } else {
           (text, text)
         }
-        val url = "%s/%s/%s/wiki/%s".format(context.path, repository.owner, repository.name,
-          java.net.URLEncoder.encode(page.replace(' ', '-'), "UTF-8"))
+        val url = repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") +
+          "/wiki/" + java.net.URLEncoder.encode(page.replace(' ', '-'), "UTF-8")
         new Rendering(url, label)
       } catch {
         case e: java.io.UnsupportedEncodingException => throw new IllegalStateException();
       }
+    } else {
+      super.render(node)
     }
   }
 }
@@ -96,8 +96,11 @@ class GitBucketHtmlSerializer(
   }
 
   private def fixUrl(url: String): String = {
-    if(!enableWikiLink || url.startsWith("http://") || url.startsWith("https://")) url
-    else repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/_blob/" + url
+    if(!enableWikiLink || url.startsWith("http://") || url.startsWith("https://")){
+      url
+    } else {
+      repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/_blob/" + url
+    }
   }
 
   private def printAttribute(name: String, value: String) {
