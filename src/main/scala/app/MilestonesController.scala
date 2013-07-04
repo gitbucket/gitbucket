@@ -45,7 +45,7 @@ trait MilestonesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(collaboratorsOnly { (form, repository) =>
     getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
       updateMilestone(milestone.copy(title = form.title, description = form.description, dueDate = form.dueDate))
-      redirect("/%s/%s/issues/milestones".format(repository.owner, repository.repository))
+      redirect("/%s/%s/issues/milestones".format(repository.owner, repository.name))
     } getOrElse NotFound
   })
 
