@@ -45,7 +45,7 @@ trait SettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
     saveRepositoryOptions(repository.owner, repository.name, form.description, form.defaultBranch, form.isPrivate)
-    redirect("%s/%s/settings/options".format(repository.owner, repository.name))
+    redirect("/%s/%s/settings/options".format(repository.owner, repository.name))
   })
   
   /**
