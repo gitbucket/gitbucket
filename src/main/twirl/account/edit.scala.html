@@ -7,7 +7,7 @@
   } else {
     <h3>Create your account</h3>
   }
-  <form action="@if(account.isDefined){@url(account.get.userName)/_edit}else{/register}" method="POST" validate="true">
+  <form action="@if(account.isDefined){@url(account.get.userName)/_edit}else{@path/register}" method="POST" validate="true">
     @if(account.isEmpty){
       <fieldset>
         <label for="userName"><strong>User name</strong></label>
