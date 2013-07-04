@@ -47,16 +47,16 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   
   private val logger = LoggerFactory.getLogger(classOf[GitBucketReceivePackFactory])
   
-  override def create(req: HttpServletRequest, db: Repository): ReceivePack = {
+  override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    val userName = req.getAttribute("USER_NAME")
+    val userName = request.getAttribute("USER_NAME")
 
-    logger.debug("requestURI: " + req.getRequestURI)
+    logger.debug("requestURI: " + request.getRequestURI)
     logger.debug("userName:" + userName)
-    
-    val pathList = req.getRequestURI.split("/")
-    val owner      = pathList(2)
-    val repository = pathList(3).replaceFirst("\\.git$", "")
+
+    val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
+    val owner      = paths(2)
+    val repository = paths(3).replaceFirst("\\.git$", "")
     
     logger.debug("repository:" + owner + "/" + repository)
 
