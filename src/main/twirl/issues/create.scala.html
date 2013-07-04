@@ -105,13 +105,15 @@ $(function(){
     if($(this).data('selected') == true){
       $(this).css({
         'background-color': 'white',
-        'color'           : 'black'
+        'color'           : 'black',
+        'font-weight'     : 'normal'
       });
       $(this).data('selected', false);
     } else {
       $(this).css({
         'background-color': '#' + $(this).data('bgcolor'),
-        'color'           : '#' + $(this).data('fgcolor')
+        'color'           : '#' + $(this).data('fgcolor'),
+        'font-weight'     : 'bold'
       });
       $(this).data('selected', true);
     }
