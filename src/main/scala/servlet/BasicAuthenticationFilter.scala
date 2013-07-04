@@ -22,7 +22,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     val response = res.asInstanceOf[HttpServletResponse]
 
     try {
-      val paths = request.getRequestURI.split("/")
+      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
       val repositoryOwner = paths(2)
       val repositoryName  = paths(3).replaceFirst("\\.git$", "")
 

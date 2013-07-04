@@ -76,7 +76,7 @@ trait WikiControllerBase extends ControllerBase {
         form.content, context.loginAccount.get, form.message.getOrElse(""))
     updateLastActivityDate(repository.owner, repository.name)
 
-    redirect("%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
+    redirect("/%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
   })
   
   get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
@@ -88,7 +88,7 @@ trait WikiControllerBase extends ControllerBase {
         form.content, context.loginAccount.get, form.message.getOrElse(""))
     updateLastActivityDate(repository.owner, repository.name)
 
-    redirect("%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
+    redirect("/%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
   })
   
   get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly { repository =>
@@ -97,7 +97,7 @@ trait WikiControllerBase extends ControllerBase {
     deleteWikiPage(repository.owner, repository.name, pageName, context.loginAccount.get.userName, "Delete %s".format(pageName))
     updateLastActivityDate(repository.owner, repository.name)
 
-    redirect("%s/%s/wiki".format(repository.owner, repository.name))
+    redirect("/%s/%s/wiki".format(repository.owner, repository.name))
   })
   
   get("/:owner/:repository/wiki/_pages")(referrersOnly { repository =>
