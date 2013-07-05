@@ -22,7 +22,7 @@ object MyBuild extends Build {
       scalaVersion := ScalaVersion,
       resolvers += Classpaths.typesafeReleases,
       libraryDependencies ++= Seq(
-        "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "2.3.1.201302201838-r",
+        "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.0.0.201306101825-r",
         "org.apache.commons" % "commons-io" % "1.3.2",
         "org.scalatra" %% "scalatra" % ScalatraVersion,
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
