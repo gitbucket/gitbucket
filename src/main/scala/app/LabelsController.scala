@@ -13,12 +13,12 @@ trait LabelsControllerBase extends ControllerBase {
   case class LabelForm(labelName: String, color: String)
 
   val newForm = mapping(
-    "newLabelName" -> trim(label("Label name", text(required, identifier, maxlength(100)))),
+    "newLabelName" -> trim(label("Label name", text(required, labelName, maxlength(100)))),
     "newColor"     -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
   val editForm = mapping(
-    "editLabelName" -> trim(label("Label name", text(required, identifier, maxlength(100)))),
+    "editLabelName" -> trim(label("Label name", text(required, labelName, maxlength(100)))),
     "editColor"     -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
@@ -46,5 +46,19 @@ trait LabelsControllerBase extends ControllerBase {
     deleteLabel(repository.owner, repository.name, params("labelId").toInt)
     issues.labels.html.editlist(getLabels(repository.owner, repository.name), repository)
   })
+
+  /**
+   * Constraint for the identifier such as user name, repository name or page name.
+   */
+  private def labelName: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      if(!value.matches("^[^,]+$")){
+        Some("%s contains invalid character.".format(name))
+      } else if(value.startsWith("_") || value.startsWith("-")){
+        Some("%s starts with invalid character.".format(name))
+      } else {
+        None
+      }
+  }
 
 }
