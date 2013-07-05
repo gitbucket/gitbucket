@@ -74,15 +74,6 @@ class GitBucketHtmlSerializer(
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
   ) {
 
-  override def toHtml(rootNode: RootNode): String = {
-    val html = super.toHtml(rootNode)
-    if(enableIssueLink){
-      // convert marked issue id to link.
-      html.replaceAll("#\\{\\{\\{\\{(\\d+)\\}\\}\\}\\}",
-        "<a href=\"%s/%s/%s/issues/$1\">#$1</a>".format(context.path, repository.owner, repository.name))
-    } else html
-  }
-
   override protected def printImageTag(imageNode: SuperNode, url: String): Unit =
     printer.print("<img src=\"").print(fixUrl(url)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/>")
 
@@ -109,27 +100,23 @@ class GitBucketHtmlSerializer(
 
   override def visit(node: TextNode) {
     // convert commit id to link.
-    val text1 = if(enableCommitLink) node.getText.replaceAll("(^|\\W)([0-9a-f]{40})(\\W|$)",
+    val text = if(enableCommitLink) node.getText.replaceAll("(^|\\W)([0-9a-f]{40})(\\W|$)",
       "<a href=\"%s/%s/%s/commit/$2\">$2</a>".format(context.path, repository.owner, repository.name))
     else node.getText
 
-    // mark issue id to link
-    val startIndex = node.getStartIndex
-    val text2 = if(enableIssueLink && startIndex > 0 && markdown.charAt(startIndex - 1) == '#'){
-      text1.replaceFirst("^(\\d+)(\\W|$)", "{{{{$1}}}}")
-    } else text1
-
     if (abbreviations.isEmpty) {
-      printer.print(text2)
+      printer.print(text)
     } else {
-      printWithAbbreviations(text2)
+      printWithAbbreviations(text)
     }
   }
 
   override def visit(node: HeaderNode) {
-    if(enableIssueLink && markdown.substring(node.getStartIndex, node.getEndIndex - 1).startsWith("#")){
-      printer.print("#" * node.getLevel)
-      visitChildren(node)
+    val text = markdown.substring(node.getStartIndex, node.getEndIndex - 1).trim
+    if(enableIssueLink && text.matches("#[\\d]+")){
+      // convert issue id to link
+      val issueId = text.substring(1).toInt
+      printer.print("<a href=\"%s/%s/%s/issues/%d\">#%d</a>".format(context.path, repository.owner, repository.name, issueId, issueId))
     } else {
       printTag(node, "h" + node.getLevel)
     }
