@@ -5,6 +5,13 @@ body {
   color: #333;
 }
 
+div.gitbucket-version {
+  font-size: small;
+  color: silver;
+  float: right;
+  margin-right: 10px;
+}
+
 table.global-nav {
   width: 920px;
   margin-bottom: 10px;

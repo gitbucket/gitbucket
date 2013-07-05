@@ -52,6 +52,9 @@
           </div><!--/.nav-collapse -->
         </div>
       </div>
+      @defining(servlet.AutoUpdate.getCurrentVersion){ version =>
+        <div class="gitbucket-version">version @version.majorVersion.@version.minorVersion</div>
+      }
     </div>
     <div class="container body">
       @body
