@@ -104,7 +104,7 @@ div.block-header {
 div.block {
   padding-top: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid silver;
+  border-bottom: 1px solid #ddd;
 }
 
 h3 {
