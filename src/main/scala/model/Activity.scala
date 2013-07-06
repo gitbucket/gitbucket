@@ -6,9 +6,10 @@ object Activities extends Table[Activity]("ACTIVITY") with BasicTemplate with Fu
   def activityId = column[Int]("ACTIVITY_ID", O AutoInc)
   def activityUserName = column[String]("ACTIVITY_USER_NAME")
   def message = column[String]("MESSAGE")
+  def additionalInfo = column[String]("ADDITIONAL_INFO")
   def activityDate = column[java.util.Date]("ACTIVITY_DATE")
-  def * = activityId ~ userName ~ repositoryName ~ activityUserName ~ message ~ activityDate <> (Activity, Activity.unapply _)
-  def autoInc = userName ~ repositoryName ~ activityUserName ~ message ~ activityDate returning activityId
+  def * = activityId ~ userName ~ repositoryName ~ activityUserName ~ message ~ additionalInfo.? ~ activityDate <> (Activity, Activity.unapply _)
+  def autoInc = userName ~ repositoryName ~ activityUserName ~ message ~ additionalInfo.? ~ activityDate returning activityId
 }
 
 case class Activity(
@@ -17,5 +18,6 @@ case class Activity(
   repositoryName: String,
   activityUserName: String,
   message: String,
+  additionalInfo: Option[String],
   activityDate: java.util.Date
 )

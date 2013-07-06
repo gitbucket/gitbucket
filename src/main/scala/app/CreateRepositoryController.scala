@@ -88,7 +88,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     createWikiRepository(loginAccount, form.name)
 
     // Record activity
-    recordCreateRepository(loginUserName, form.name, loginUserName)
+    recordCreateRepositoryActivity(loginUserName, form.name, loginUserName)
 
     // redirect to the repository
     redirect("/%s/%s".format(loginUserName, form.name))

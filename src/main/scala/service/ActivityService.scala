@@ -21,13 +21,28 @@ trait ActivityService {
     .list
   }
 
-  def recordCreateRepository(userName: String, repositoryName: String, activityUserName: String): Unit =
+  def recordCreateRepositoryActivity(userName: String, repositoryName: String, activityUserName: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "[[%s]] created [[%s/%s]]".format(activityUserName, userName, repositoryName),
-      currentDate)
+      None, currentDate)
 
-  def recordCreateIssue(userName: String, repositoryName: String, activityUserName: String, issueId: Int): Unit =
+  def recordCreateIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "[[%s]] opened issue [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
-      currentDate)
+      Some(title), currentDate)
+
+  def recordCloseIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "[[%s]] closed issue [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
+      Some(title), currentDate)
+
+  def recordReopenIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "[[%s]] closed reopened [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
+      Some(title), currentDate)
+
+  def recordCommentIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, comment: String): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "[[%s]] commented on issue [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
+      Some(comment), currentDate)
 }

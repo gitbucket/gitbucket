@@ -88,10 +88,12 @@ trait IssuesControllerBase extends ControllerBase {
     val writable = hasWritePermission(owner, name, context.loginAccount)
     val userName = context.loginAccount.get.userName
 
+    // insert issue
     val issueId = createIssue(owner, name, userName, form.title, form.content,
       if(writable) form.assignedUserName else None,
       if(writable) form.milestoneId else None)
 
+    // insert labels
     if(writable){
       form.labelNames.map { value =>
         val labels = getLabels(owner, name)
@@ -103,7 +105,8 @@ trait IssuesControllerBase extends ControllerBase {
       }
     }
 
-    recordCreateIssue(owner, name, userName, issueId)
+    // record activity
+    recordCreateIssueActivity(owner, name, userName, issueId, form.title)
 
     redirect("/%s/%s/issues/%d".format(owner, name, issueId))
   })
@@ -121,21 +124,28 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
-    val owner = repository.owner
-    val name  = repository.name
+    val owner    = repository.owner
+    val name     = repository.name
+    val userName = context.loginAccount.get.userName
 
     getIssue(owner, name, form.issueId.toString).map { issue =>
-      redirect("/%s/%s/issues/%d#comment-%d".format(
-        owner, name, form.issueId,
-        createComment(owner, name, context.loginAccount.get.userName,
-          form.issueId,
-          form.content,
-          if(isEditable(owner, name, issue.openedUserName)){
-            params.get("action") filter { action =>
-              updateClosed(owner, name, form.issueId, if(action == "close") true else false) > 0
-            }
-          } else None)
-      ))
+      val action = if(isEditable(owner, name, issue.openedUserName)){
+        params.get("action") filter { action =>
+          updateClosed(owner, name, form.issueId, if(action == "close") true else false) > 0
+        }
+      } else None
+
+      val commentId = createComment(owner, name, userName, form.issueId, form.content, action)
+
+      // record activity
+      recordCommentIssueActivity(owner, name, userName, issue.issueId, form.content)
+      action match {
+        case Some("reopen") => recordReopenIssueActivity(owner, name, userName, issue.issueId, issue.title)
+        case Some("close") => recordCloseIssueActivity(owner, name, userName, issue.issueId, issue.title)
+        case _ => 
+      }
+
+      redirect("/%s/%s/issues/%d#comment-%d".format(owner, name, form.issueId, commentId))
     }
   })
 
