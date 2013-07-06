@@ -34,10 +34,14 @@ object helpers {
   }
 
   def activityMessage(message: String)(implicit context: app.Context): Html = {
+    val a = s"a $message aa $$1 a"
+    
     Html(message
-      .replaceAll("\\[\\[([^\\s]+?)/([^\\s]+?)#((\\d+))\\]\\]", "<a href=\"%s/$1/$2/issues/$3\">$1/$2#$3</a>".format(context.path))
-      .replaceAll("\\[\\[([^\\s]+?)/([^\\s]+?)\\]\\]", "<a href=\"%s/$1/$2\">$1/$2</a>".format(context.path))
-      .replaceAll("\\[\\[([^\\s]+?)\\]\\]", "<a href=\"%s/$1\">$1</a>".format(context.path))
+      .replaceAll("\\[issue:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"   , s"""<a href="${context.path}/$$1/$$2/issues/$$3">$$1/$$2#$$3</a>""")
+      .replaceAll("\\[repo:([^\\s]+?)/([^\\s]+?)\\]"             , s"""<a href="${context.path}/$$1/$$2\">$$1/$$2</a>""")
+      .replaceAll("\\[branch:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]", s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")
+      .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")
+      .replaceAll("\\[user:([^\\s]+?)\\]"                        , s"""<a href="${context.path}/$$1">$$1</a>""")
     )
   }
 

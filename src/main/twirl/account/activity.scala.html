@@ -30,6 +30,16 @@
                   case "edit_wiki" => {
                     <div>Edited <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
                   }
+                  case "push" => {
+                    <div>
+                      {additionalInfo.split("\n").map{ commit => 
+                        <div>
+                          <a href={"%s/%s/%s/commit/%s".format(path, activity.userName, activity.repositoryName, commit.substring(0, 40))} class="monospace">{commit.substring(0, 7)}</a>
+                          <span>{commit.substring(41)}</span>
+                        </div>
+                      }}
+                    </div>
+                  }
                   case _ => {
                     <div>{additionalInfo}</div>
                   }

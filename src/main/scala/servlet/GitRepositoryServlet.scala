@@ -49,7 +49,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    val userName = request.getAttribute("USER_NAME")
+    val userName = request.getAttribute("USER_NAME").asInstanceOf[String]
 
     logger.debug("requestURI: " + request.getRequestURI)
     logger.debug("userName:" + userName)
@@ -60,28 +60,53 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
     
     logger.debug("repository:" + owner + "/" + repository)
 
-    receivePack.setPostReceiveHook(new CommitLogHook(owner, repository))
+    receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, userName))
     receivePack
   }
 }
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String) extends PostReceiveHook
-  with RepositoryService with AccountService with IssuesService {
+class CommitLogHook(owner: String, repository: String, userName: String) extends PostReceiveHook
+  with RepositoryService with AccountService with IssuesService with ActivityService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     JGitUtil.withGit(Directory.getRepositoryDir(owner, repository)) { git =>
       commands.asScala.foreach { command =>
-        JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name).foreach { commit =>
-          "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
-            val issueId = matchData.group(2)
-            if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
-              createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, None)
+        val commits = JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+          .filter(commit => JGitUtil.getBranchesOfCommit(git, commit.id).length == 1)
+        val refName = command.getRefName.split("/")
+        
+        println("****************************")
+        println(command.getRefName)
+        println(command.getMessage)
+        println(command.getResult)
+        println(command.getType)
+        println("****************************")
+        
+        // apply issue comment
+        if(refName(1) == "heads"){
+          commits.foreach { commit =>
+            "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
+              val issueId = matchData.group(2)
+              if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
+                createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, None)
+              }
             }
           }
+        }
+        
+        git.getRepository.getAllRefs.asScala.map { e =>
+          println(e._1)
+        }
+        
+        // record activity
+        if(refName(1) == "heads"){
+          recordPushActivity(owner, repository, userName, refName(2), commits)
+        } else if(refName(1) == "tags"){
+          recordCreateTagActivity(owner, repository, userName, refName(2), commits)
         }
       }
     }
