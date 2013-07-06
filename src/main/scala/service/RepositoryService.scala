@@ -111,7 +111,6 @@ trait RepositoryService { self: AccountService =>
   def getAccessibleRepositories(account: Option[Account], baseUrl: String): List[RepositoryInfo] = {
 
     def newRepositoryInfo(repository: Repository): RepositoryInfo = {
-      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
       new RepositoryInfo(JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl), repository)
     }
 
