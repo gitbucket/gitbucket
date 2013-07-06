@@ -6,10 +6,12 @@ import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 
 class WikiController extends WikiControllerBase 
-  with WikiService with RepositoryService with AccountService with CollaboratorsAuthenticator with ReferrerAuthenticator
+  with WikiService with RepositoryService with AccountService with ActivityService
+  with CollaboratorsAuthenticator with ReferrerAuthenticator
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService with RepositoryService with CollaboratorsAuthenticator with ReferrerAuthenticator =>
+  self: WikiService with RepositoryService with ActivityService
+    with CollaboratorsAuthenticator with ReferrerAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
@@ -72,9 +74,13 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { (form, repository) =>
+    val loginAccount = context.loginAccount.get
+    
     saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-        form.content, context.loginAccount.get, form.message.getOrElse(""))
+        form.content, loginAccount, form.message.getOrElse(""))
+    
     updateLastActivityDate(repository.owner, repository.name)
+    recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
     redirect("/%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
   })
@@ -84,9 +90,13 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   post("/:owner/:repository/wiki/_new", newForm)(collaboratorsOnly { (form, repository) =>
+    val loginAccount = context.loginAccount.get
+    
     saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
         form.content, context.loginAccount.get, form.message.getOrElse(""))
+    
     updateLastActivityDate(repository.owner, repository.name)
+    recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
     redirect("/%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
   })

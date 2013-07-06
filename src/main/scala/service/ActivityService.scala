@@ -18,31 +18,57 @@ trait ActivityService {
     })
     .sortBy { case (t1, t2) => t1.activityId desc }
     .map    { case (t1, t2) => t1 }
+    .take(30)
     .list
   }
 
   def recordCreateRepositoryActivity(userName: String, repositoryName: String, activityUserName: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "create_repository",
       "[[%s]] created [[%s/%s]]".format(activityUserName, userName, repositoryName),
-      None, currentDate)
+      None,
+      currentDate)
 
   def recordCreateIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "open_issue",
       "[[%s]] opened issue [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
-      Some(title), currentDate)
+      Some(title), 
+      currentDate)
 
   def recordCloseIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "close_issue",
       "[[%s]] closed issue [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
-      Some(title), currentDate)
+      Some(title),
+      currentDate)
 
   def recordReopenIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "reopen_issue",
       "[[%s]] closed reopened [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
-      Some(title), currentDate)
+      Some(title),
+      currentDate)
 
   def recordCommentIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, comment: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "comment_issue",
       "[[%s]] commented on issue [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
-      Some(comment), currentDate)
+      Some(comment),
+      currentDate)
+  
+  def recordCreateWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String) =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "create_wiki",
+      "[[%s]] created the [[%s/%s]] wiki".format(activityUserName, userName, repositoryName),
+      Some(pageName),
+      currentDate)
+  
+  def recordEditWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String) =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "edit_wiki",
+      "[[%s]] edited the [[%s/%s]] wiki".format(activityUserName, userName, repositoryName),
+      Some(pageName),
+      currentDate)
+  
 }
