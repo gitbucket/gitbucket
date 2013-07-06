@@ -8,11 +8,11 @@ import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, ReadableUsersAut
 import org.scalatra.Ok
 
 class IssuesController extends IssuesControllerBase
-  with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService
+  with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with LabelsService with MilestonesService
+  self: IssuesService with RepositoryService with LabelsService with MilestonesService with ActivityService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   case class IssueCreateForm(title: String, content: Option[String],
@@ -86,8 +86,9 @@ trait IssuesControllerBase extends ControllerBase {
     val owner    = repository.owner
     val name     = repository.name
     val writable = hasWritePermission(owner, name, context.loginAccount)
+    val userName = context.loginAccount.get.userName
 
-    val issueId = createIssue(owner, name, context.loginAccount.get.userName, form.title, form.content,
+    val issueId = createIssue(owner, name, userName, form.title, form.content,
       if(writable) form.assignedUserName else None,
       if(writable) form.milestoneId else None)
 
@@ -101,6 +102,8 @@ trait IssuesControllerBase extends ControllerBase {
         }
       }
     }
+
+    recordCreateIssue(owner, name, userName, issueId)
 
     redirect("/%s/%s/issues/%d".format(owner, name, issueId))
   })

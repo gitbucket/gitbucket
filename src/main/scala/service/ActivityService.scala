@@ -21,10 +21,13 @@ trait ActivityService {
     .list
   }
 
-  def recordCreateRepository(userName: String, repositoryName: String, activityUserName: String): Unit = {
+  def recordCreateRepository(userName: String, repositoryName: String, activityUserName: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "[[%s]] created [[%s/%s]]".format(activityUserName, userName, repositoryName),
       currentDate)
-  }
 
+  def recordCreateIssue(userName: String, repositoryName: String, activityUserName: String, issueId: Int): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "[[%s]] opened issue [[%s/%s#%d]]".format(activityUserName, userName, repositoryName, issueId),
+      currentDate)
 }
