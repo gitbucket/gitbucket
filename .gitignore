@@ -14,3 +14,7 @@ project/plugins/project/
 .classpath
 .project
 .cache
+
+# IntelliJ specific
+.idea/
+.idea_modules/
