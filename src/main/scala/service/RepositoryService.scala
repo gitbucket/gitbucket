@@ -83,8 +83,7 @@ trait RepositoryService { self: AccountService =>
     }
 
     q1.union(q2).filter(visibleFor(_, loginUserName)).sortBy(_.lastActivityDate desc).list map { repository =>
-      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
-      RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
+      new RepositoryInfo(JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl), repository)
     }
   }
 
@@ -98,8 +97,7 @@ trait RepositoryService { self: AccountService =>
    */
   def getRepository(userName: String, repositoryName: String, baseUrl: String): Option[RepositoryInfo] = {
     (Query(Repositories) filter { t => t.byRepository(userName, repositoryName) } firstOption) map { repository =>
-      val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
-      RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
+      new RepositoryInfo(JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl), repository)
     }
   }
 
@@ -112,9 +110,9 @@ trait RepositoryService { self: AccountService =>
    */
   def getAccessibleRepositories(account: Option[Account], baseUrl: String): List[RepositoryInfo] = {
 
-    def createRepositoryInfo(repository: Repository): RepositoryInfo = {
+    def newRepositoryInfo(repository: Repository): RepositoryInfo = {
       val repositoryInfo = JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
-      RepositoryInfo(repositoryInfo.owner, repositoryInfo.name, repositoryInfo.url, repository, repositoryInfo.branchList, repositoryInfo.tags)
+      new RepositoryInfo(JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl), repository)
     }
 
     (account match {
@@ -127,7 +125,7 @@ trait RepositoryService { self: AccountService =>
         }
       // for Guests
       case None => Query(Repositories) filter(_.isPrivate is false.bind)
-    }).sortBy(_.lastActivityDate desc).list.map(createRepositoryInfo _)
+    }).sortBy(_.lastActivityDate desc).list.map(newRepositoryInfo _)
   }
 
   /**
@@ -189,6 +187,12 @@ trait RepositoryService { self: AccountService =>
 object RepositoryService {
 
   case class RepositoryInfo(owner: String, name: String, url: String, repository: Repository,
-                            branchList: List[String], tags: List[util.JGitUtil.TagInfo])
+    commitCount: Int, branchList: List[String], tags: List[util.JGitUtil.TagInfo]){
+
+    def this(repo: JGitUtil.RepositoryInfo, model: Repository) = {
+      this(repo.owner, repo.name, repo.url, model, repo.commitCount, repo.branchList, repo.tags)
+    }
+
+  }
 
 }

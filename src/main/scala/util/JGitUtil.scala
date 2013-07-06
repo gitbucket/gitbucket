@@ -26,10 +26,11 @@ object JGitUtil {
    * @param owner the user name of the repository owner
    * @param name the repository name
    * @param url the repository URL
+   * @param commitCount the commit count. If the repository has over 1000 commits then this property is 1001.
    * @param branchList the list of branch names
    * @param tags the list of tags
    */
-  case class RepositoryInfo(owner: String, name: String, url: String, branchList: List[String], tags: List[TagInfo])
+  case class RepositoryInfo(owner: String, name: String, url: String, commitCount: Int, branchList: List[String], tags: List[TagInfo])
 
   /**
    * The file data for the file list of the repository viewer.
@@ -141,8 +142,18 @@ object JGitUtil {
    */
   def getRepositoryInfo(owner: String, repository: String, baseUrl: String): RepositoryInfo = {
     withGit(getRepositoryDir(owner, repository)){ git =>
+      // get commit count
+      val i = git.log.all.call.iterator
+      var commitCount = 0
+      while(i.hasNext && commitCount <= 1000){
+        i.next
+        commitCount = commitCount + 1
+      }
+
       RepositoryInfo(
         owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository),
+        // commit count
+        commitCount,
         // branches
         git.branchList.call.asScala.map { ref =>
           ref.getName.replaceFirst("^refs/heads/", "")
