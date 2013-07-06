@@ -33,6 +33,13 @@ object helpers {
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableCommitLink, enableIssueLink))
   }
 
+  def activityMessage(message: String)(implicit context: app.Context): Html = {
+    Html(message
+      .replaceAll("\\[\\[([^\\s]+?)/([^\\s]+?)\\]\\]", "<a href=\"%s/$1/$2\">$1/$2</a>".format(context.path))
+      .replaceAll("\\[\\[([^\\s]+?)\\]\\]", "<a href=\"%s/$1\">$1</a>".format(context.path))
+    )
+  }
+
   /**
    * Generates the url to the repository.
    */
@@ -61,6 +68,9 @@ object helpers {
       // convert commit id to link
       .replaceAll("(^|\\W)([a-f0-9]{40})(\\W|$)", "$1<a href=\"%s/%s/%s/commit/$2\">$2</a>$3").format(context.path, repository.owner, repository.name))
 
+  /**
+   * Implicit conversion to add mkHtml() to Seq[Html].
+   */
   implicit def extendsHtmlSeq(seq: Seq[Html]) = new {
     def mkHtml(separator: String) = Html(seq.mkString(separator))
     def mkHtml(separator: scala.xml.Elem) = Html(seq.mkString(separator.toString))

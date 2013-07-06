@@ -14,19 +14,7 @@
         </div>
       </div>
       <div class="span8">
-        <ul class="nav nav-tabs">
-          <li class="active"><a href="#">Repositories</a></li>
-          <!--
-          <li><a href="#">Activity</a></li>
-          -->
-          @if(loginAccount.isDefined && loginAccount.get.userName == account.userName){
-          <li class="pull-right">
-            <div class="button-group">
-              <a href="@url(account.userName)/_edit" class="btn">Edit Your Profile</a>
-            </div>
-          </li>
-          }
-        </ul>
+        @tab(account, "repositories")
         @if(repositories.isEmpty){
           No repositories
         } else {

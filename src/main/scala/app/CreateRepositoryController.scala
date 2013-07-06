@@ -10,13 +10,15 @@ import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
-  with RepositoryService with AccountService with WikiService with LabelsService with UsersAuthenticator
+  with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
+  with UsersAuthenticator
 
 /**
  * Creates new repository.
  */
 trait CreateRepositoryControllerBase extends ControllerBase {
-  self: RepositoryService with WikiService with LabelsService with UsersAuthenticator =>
+  self: RepositoryService with WikiService with LabelsService with ActivityService
+    with UsersAuthenticator =>
 
   case class RepositoryCreationForm(name: String, description: Option[String])
 
@@ -36,7 +38,8 @@ trait CreateRepositoryControllerBase extends ControllerBase {
    * Create new repository.
    */
   post("/new", form)(usersOnly { form =>
-    val loginUserName = context.loginAccount.get.userName
+    val loginAccount  = context.loginAccount.get
+    val loginUserName = loginAccount.userName
 
     // Insert to the database at first
     createRepository(form.name, loginUserName, form.description)
@@ -82,7 +85,10 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     }
 
     // Create Wiki repository
-    createWikiRepository(context.loginAccount.get, form.name)
+    createWikiRepository(loginAccount, form.name)
+
+    // Record activity
+    recordCreateRepository(loginUserName, form.name, loginUserName)
 
     // redirect to the repository
     redirect("/%s/%s".format(loginUserName, form.name))

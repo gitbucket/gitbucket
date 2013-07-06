@@ -1,0 +1,31 @@
+@(account: model.Account, activities: List[model.Activity])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main(account.userName){
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <div class="span4">
+        <div class="block">
+          <div class="block-header">@account.userName</div>
+        </div>
+        <div class="block">
+          <div><i class="icon-home"></i> <a href="@account.url">@account.url</a></div>
+          <div><i class="icon-time"></i> <span class="muted">Joined on</span> @date(account.registeredDate)</div>
+        </div>
+      </div>
+      <div class="span8">
+        @tab(account, "activity")
+        @if(activities.isEmpty){
+          No activity
+        } else {
+          @activities.map { activity =>
+            <div class="block">
+              <div class="muted small">@datetime(activity.activityDate)</div>
+              <div>@activityMessage(activity.message)</div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

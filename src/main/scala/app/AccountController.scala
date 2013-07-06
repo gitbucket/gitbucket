@@ -6,10 +6,12 @@ import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
 
 class AccountController extends AccountControllerBase
-  with SystemSettingsService with AccountService with RepositoryService with OneselfAuthenticator
+  with SystemSettingsService with AccountService with RepositoryService with ActivityService
+  with OneselfAuthenticator
 
 trait AccountControllerBase extends ControllerBase {
-  self: SystemSettingsService with AccountService with RepositoryService with OneselfAuthenticator =>
+  self: SystemSettingsService with AccountService with RepositoryService with ActivityService
+    with OneselfAuthenticator =>
 
   case class AccountNewForm(userName: String, password: String,mailAddress: String, url: Option[String])
 
@@ -33,8 +35,13 @@ trait AccountControllerBase extends ControllerBase {
    */
   get("/:userName") {
     val userName = params("userName")
-    getAccountByUserName(userName).map {
-      account.html.info(_, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
+    getAccountByUserName(userName).map { x =>
+      params.getOrElse("tab", "repositories") match {
+        // Public Activity
+        case "activity" => account.html.activity(x, getActivitiesByUser(userName, true))
+        // Repositories
+        case _ => account.html.repositories(x, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
+      }
     } getOrElse NotFound
   }
 
