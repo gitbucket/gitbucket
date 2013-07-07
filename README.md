@@ -36,7 +36,7 @@ Release Notes
 --------
 ### 1.1 - 05 Jul 2013
 
-- Some bugs are fixed.
+- Fixed some bugs.
 - Upgrade to JGit 3.0.
 
 
