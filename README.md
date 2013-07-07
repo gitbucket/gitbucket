@@ -34,6 +34,11 @@ The default administrator account is **root** and password is **root**.
 
 Release Notes
 --------
+### 1.1 - 05 Jul 2013
+
+- Some bugs are fixed.
+- Upgrade to JGit 3.0.
+
 
 ### 1.0 - 04 Jul 2013
 
