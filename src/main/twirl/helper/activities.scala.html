@@ -1,0 +1,36 @@
+@(activities: List[model.Activity])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@if(activities.isEmpty){
+  No activity
+} else {
+  @activities.map { activity =>
+    <div class="block">
+      <div class="muted small">@datetime(activity.activityDate)</div>
+      <div class="strong">@activityMessage(activity.message)</div>
+      @activity.additionalInfo.map { additionalInfo =>
+        @(activity.activityType match {
+          case "create_wiki" => {
+            <div class="small">Created <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
+          }
+          case "edit_wiki" => {
+            <div class="small">Edited <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
+          }
+          case "push" => {
+            <div class="small">
+              {additionalInfo.split("\n").map{ commit => 
+                <div>
+                  <a href={"%s/%s/%s/commit/%s".format(path, activity.userName, activity.repositoryName, commit.substring(0, 40))} class="monospace">{commit.substring(0, 7)}</a>
+                  <span>{commit.substring(41)}</span>
+                </div>
+              }}
+            </div>
+          }
+          case _ => {
+            <div>{additionalInfo}</div>
+          }
+        })
+      }
+    </div>
+  }
+}

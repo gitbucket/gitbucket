@@ -1,31 +1,14 @@
-@(repositories: List[service.RepositoryService.RepositoryInfo], systemSettings: service.SystemSettingsService.SystemSettings,
+@(activities: List[model.Activity],
+  repositories: List[service.RepositoryService.RepositoryInfo], 
+  systemSettings: service.SystemSettingsService.SystemSettings,
   userRepositories: List[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @main("GitBucket"){
 <div class="row-fluid">
   <div class="span8">
-  <h3>Recent updated repositories</h3>
-  @if(repositories.isEmpty){
-    No repositories
-  } else {
-    @repositories.map { repository =>
-      <div class="block">
-        <div class="block-header">
-          <a href="@url(repository.owner)">@repository.owner</a>
-          /
-          <a href="@url(repository)">@repository.name</a>
-          @if(repository.repository.isPrivate){
-            <i class="icon-lock"></i>
-          }
-        </div>
-        @if(repository.repository.description.isDefined){
-          <div>@repository.repository.description</div>
-        }
-        <div><span class="muted small">Last updated: @datetime(repository.repository.lastActivityDate)</span></div>
-      </div>
-    }
-  }
+    <h3>News Feed</h3>
+    @helper.html.activities(activities)
   </div>
   <div class="span4">
     @if(loginAccount.isEmpty){
@@ -47,12 +30,33 @@
         } else {
           @userRepositories.map { repositoryName =>
             <tr>
-              <td><a href="@path/@loginAccount.get.userName/@repositoryName">@repositoryName</a></td>
+              <td><a href="@path/@loginAccount.get.userName/@repositoryName"><strong>@repositoryName</strong></a></td>
             </tr>
           }
         }
       </table>
     }
+    
+    <table class="table table-bordered">
+      <tr>
+        <th class="metal">
+          Recent updated repositories
+        </th>
+      </tr>
+      @if(repositories.isEmpty){
+        <tr>
+          <td>No repositories</td>
+        </tr>
+      } else {
+        @repositories.map { repository =>
+          <tr>
+            <td>
+              <a href="@url(repository)">@repository.owner/<strong>@repository.name</strong></a>
+            </td>
+          </tr>
+        }
+      }
+    </table>
   </div>
 
 </div>

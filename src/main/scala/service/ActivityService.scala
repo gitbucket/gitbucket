@@ -21,6 +21,16 @@ trait ActivityService {
     .take(30)
     .list
   }
+  
+  def getRecentActivities(): List[Activity] =
+    Query(Activities)
+      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .filter { case (t1, t2) => t2.isPrivate is false.bind }
+      .sortBy { case (t1, t2) => t1.activityId desc }
+      .map    { case (t1, t2) => t1 }
+      .take(30)
+      .list
+  
 
   def recordCreateRepositoryActivity(userName: String, repositoryName: String, activityUserName: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
