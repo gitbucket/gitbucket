@@ -20,18 +20,18 @@
         } else {
           @activities.map { activity =>
             <div class="block">
-              <div class="muted smal">@datetime(activity.activityDate)</div>
+              <div class="muted small">@datetime(activity.activityDate)</div>
               <div class="strong">@activityMessage(activity.message)</div>
               @activity.additionalInfo.map { additionalInfo =>
                 @(activity.activityType match {
                   case "create_wiki" => {
-                    <div>Created <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
+                    <div class="small">Created <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
                   }
                   case "edit_wiki" => {
-                    <div>Edited <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
+                    <div class="small">Edited <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
                   }
                   case "push" => {
-                    <div>
+                    <div class="small">
                       {additionalInfo.split("\n").map{ commit => 
                         <div>
                           <a href={"%s/%s/%s/commit/%s".format(path, activity.userName, activity.repositoryName, commit.substring(0, 40))} class="monospace">{commit.substring(0, 7)}</a>

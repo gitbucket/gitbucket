@@ -87,13 +87,19 @@ trait ActivityService {
       None,
       currentDate)
   
-  def recordCreateBranchActivity(userName: String, repositoryName: String, activityUserName: String, 
-      branchName: String, commits: List[util.JGitUtil.CommitInfo]) =
+  def recordCreateBranchActivity(userName: String, repositoryName: String, activityUserName: String, branchName: String) =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "create_tag",
       s"[user:${activityUserName}] created branch [tag:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
       None,
       currentDate)
+  
+  def insertCommitId(userName: String, repositoryName: String, commitId: String) = {
+    CommitLog insert (userName, repositoryName, commitId)
+  }
+  
+  def existsCommitId(userName: String, repositoryName: String, commitId: String): Boolean =
+    Query(CommitLog).filter(_.byPrimaryKey(userName, repositoryName, commitId)).firstOption.isDefined
   
   private def cut(value: String, length: Int): String = 
     if(value.length > length) value.substring(0, length) + "..." else value

@@ -76,37 +76,37 @@ class CommitLogHook(owner: String, repository: String, userName: String) extends
     JGitUtil.withGit(Directory.getRepositoryDir(owner, repository)) { git =>
       commands.asScala.foreach { command =>
         val commits = JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
-          .filter(commit => JGitUtil.getBranchesOfCommit(git, commit.id).length == 1)
         val refName = command.getRefName.split("/")
         
-        println("****************************")
-        println(command.getRefName)
-        println(command.getMessage)
-        println(command.getResult)
-        println(command.getType)
-        println("****************************")
-        
         // apply issue comment
-        if(refName(1) == "heads"){
-          commits.foreach { commit =>
+        val newCommits = commits.flatMap { commit =>
+          if(!existsCommitId(owner, repository, commit.id)){
+            insertCommitId(owner, repository, commit.id)
             "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
               val issueId = matchData.group(2)
               if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
                 createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, None)
               }
             }
-          }
-        }
-        
-        git.getRepository.getAllRefs.asScala.map { e =>
-          println(e._1)
-        }
+            Some(commit)
+          } else None
+        }.toList
         
         // record activity
         if(refName(1) == "heads"){
-          recordPushActivity(owner, repository, userName, refName(2), commits)
+          command.getType match {
+            case ReceiveCommand.Type.CREATE => {
+              recordCreateBranchActivity(owner, repository, userName, refName(2))
+              recordPushActivity(owner, repository, userName, refName(2), newCommits)
+            }
+            case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, userName, refName(2), newCommits)
+            case _ =>
+          }
         } else if(refName(1) == "tags"){
-          recordCreateTagActivity(owner, repository, userName, refName(2), commits)
+          command.getType match {
+            case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, userName, refName(2), newCommits)
+            case _ =>
+          }
         }
       }
     }
