@@ -22,10 +22,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     val response = res.asInstanceOf[HttpServletResponse]
 
     val wrappedResponse = new HttpServletResponseWrapper(response){
-      override def setContentType(contentType: String) = {
-        setCharacterEncoding(null)
-        setHeader("Content-Type", contentType)
-      }
+      override def setCharacterEncoding(encoding: String) = {}
     }
 
     try {
