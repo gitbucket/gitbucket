@@ -485,6 +485,7 @@ ul.collaborator li {
   border: 1px solid #ccc;
   border-radius: 3px;
   padding: 6px;
+  margin-bottom: 2px;
 }
     
 ul.collaborator li:hover {
