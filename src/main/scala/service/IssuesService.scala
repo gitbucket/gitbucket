@@ -6,7 +6,6 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 import model._
-import Issues._
 import util.Implicits._
 
 trait IssuesService {

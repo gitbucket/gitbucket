@@ -2,7 +2,7 @@ package model
 
 import scala.slick.driver.H2Driver.simple._
 
-object Milestones extends Table[Milestone]("MILESTONE") with MilestoneTemplate with Functions {
+object Milestones extends Table[Milestone]("MILESTONE") with MilestoneTemplate {
   def title = column[String]("TITLE")
   def description = column[String]("DESCRIPTION")
   def dueDate = column[java.util.Date]("DUE_DATE")

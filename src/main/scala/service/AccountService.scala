@@ -1,7 +1,6 @@
 package service
 
 import model._
-import Accounts._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 

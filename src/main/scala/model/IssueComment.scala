@@ -2,7 +2,7 @@ package model
 
 import scala.slick.driver.H2Driver.simple._
 
-object IssueComments extends Table[IssueComment]("ISSUE_COMMENT") with IssueTemplate with Functions {
+object IssueComments extends Table[IssueComment]("ISSUE_COMMENT") with IssueTemplate {
   def commentId = column[Int]("COMMENT_ID", O AutoInc)
   def action = column[String]("ACTION")
   def commentedUserName = column[String]("COMMENTED_USER_NAME")

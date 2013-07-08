@@ -2,7 +2,7 @@ package model
 
 import scala.slick.driver.H2Driver.simple._
 
-object Activities extends Table[Activity]("ACTIVITY") with BasicTemplate with Functions {
+object Activities extends Table[Activity]("ACTIVITY") with BasicTemplate {
   def activityId = column[Int]("ACTIVITY_ID", O AutoInc)
   def activityUserName = column[String]("ACTIVITY_USER_NAME")
   def activityType = column[String]("ACTIVITY_TYPE")

@@ -4,7 +4,6 @@ import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 
 import model._
-import Milestones._
 
 trait MilestonesService {
 

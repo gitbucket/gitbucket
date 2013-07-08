@@ -7,7 +7,7 @@ object IssueId extends Table[(String, String, Int)]("ISSUE_ID") with IssueTempla
   def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
 }
 
-object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTemplate with Functions {
+object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTemplate {
   def openedUserName = column[String]("OPENED_USER_NAME")
   def assignedUserName = column[String]("ASSIGNED_USER_NAME")
   def title = column[String]("TITLE")

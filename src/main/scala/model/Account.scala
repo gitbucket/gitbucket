@@ -2,7 +2,7 @@ package model
 
 import scala.slick.driver.H2Driver.simple._
 
-object Accounts extends Table[Account]("ACCOUNT") with Functions {
+object Accounts extends Table[Account]("ACCOUNT") {
   def userName = column[String]("USER_NAME", O PrimaryKey)
   def mailAddress = column[String]("MAIL_ADDRESS")
   def password = column[String]("PASSWORD")

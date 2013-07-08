@@ -1,7 +1,6 @@
 package service
 
 import model._
-import Repositories._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 import util.JGitUtil

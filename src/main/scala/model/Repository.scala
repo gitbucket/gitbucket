@@ -2,7 +2,7 @@ package model
 
 import scala.slick.driver.H2Driver.simple._
 
-object Repositories extends Table[Repository]("REPOSITORY") with BasicTemplate with Functions {
+object Repositories extends Table[Repository]("REPOSITORY") with BasicTemplate {
   def isPrivate = column[Boolean]("PRIVATE")
   def description = column[String]("DESCRIPTION")
   def defaultBranch = column[String]("DEFAULT_BRANCH")
