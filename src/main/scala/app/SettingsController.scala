@@ -104,17 +104,12 @@ trait SettingsControllerBase extends ControllerBase {
    */
   private def collaborator: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] = {
+      val paths = request.getRequestURI.split("/")
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")
-        case Some(x) if(x.userName == context.loginAccount.get.userName) => Some("User can access this repository already.")
-        case Some(x) => {
-          val paths = request.getRequestURI.split("/")
-          if(getCollaborators(paths(1), paths(2)).contains(x.userName)){
-            Some("User can access this repository already.")
-          } else {
-            None
-          }
-        }
+        case Some(x) if(x.userName == paths(1) || getCollaborators(paths(1), paths(2)).contains(x.userName))
+                  => Some("User can access this repository already.")
+        case _    => None
       }
     }
   }
