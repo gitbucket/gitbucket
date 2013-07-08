@@ -21,6 +21,13 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     val request  = req.asInstanceOf[HttpServletRequest]
     val response = res.asInstanceOf[HttpServletResponse]
 
+    val wrappedResponse = new HttpServletResponseWrapper(response){
+      override def setContentType(contentType: String) = {
+        setCharacterEncoding(null)
+        setHeader("Content-Type", contentType)
+      }
+    }
+
     try {
       val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
       val repositoryOwner = paths(2)
@@ -29,14 +36,14 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
       getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
         case Some(repository) => {
           if(!request.getRequestURI.endsWith("/git-receive-pack") && !repository.repository.isPrivate){
-            chain.doFilter(req, res)
+            chain.doFilter(req, wrappedResponse)
           } else {
             request.getHeader("Authorization") match {
               case null => requireAuth(response)
               case auth => decodeAuthHeader(auth).split(":") match {
                 case Array(username, password) if(isWritableUser(username, password, repository)) => {
                   request.setAttribute("USER_NAME", username)
-                  chain.doFilter(req, res)
+                  chain.doFilter(req, wrappedResponse)
                 }
                 case _ => requireAuth(response)
               }
