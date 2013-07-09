@@ -20,11 +20,13 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   self: RepositoryService with WikiService with LabelsService with ActivityService
     with UsersAuthenticator =>
 
-  case class RepositoryCreationForm(name: String, description: Option[String])
+  case class RepositoryCreationForm(name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
 
   val form = mapping(
-    "name"        -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
-    "description" -> trim(label("Description"    , optional(text())))
+    "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
+    "description"  -> trim(label("Description"    , optional(text()))),
+    "isPrivate"    -> trim(label("Repository Type", boolean())),
+    "createReadme" -> trim(label("Create README"  , boolean()))
   )(RepositoryCreationForm.apply)
 
   /**
@@ -42,7 +44,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     val loginUserName = loginAccount.userName
 
     // Insert to the database at first
-    createRepository(form.name, loginUserName, form.description)
+    createRepository(form.name, loginUserName, form.description, form.isPrivate)
 
     // Insert default labels
     createLabel(loginUserName, form.name, "bug", "fc2929")
@@ -62,26 +64,28 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     config.setBoolean("http", null, "receivepack", true)
     config.save
 
-    val tmpdir = getInitRepositoryDir(loginUserName, form.name)
-    try {
-      // Clone the repository
-      Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
-    
-      // Create README.md
-      FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
-        if(form.description.nonEmpty){
-          form.name + "\n===============\n\n" + form.description.get
-        } else {
-          form.name + "\n===============\n"
-        }, "UTF-8")
-  
-      val git = Git.open(tmpdir)
-      git.add.addFilepattern("README.md").call
-      git.commit.setMessage("Initial commit").call
-      git.push.call
-    
-    } finally {
-      FileUtils.deleteDirectory(tmpdir)
+    if(form.createReadme){
+      val tmpdir = getInitRepositoryDir(loginUserName, form.name)
+      try {
+        // Clone the repository
+        Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
+
+        // Create README.md
+        FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
+          if(form.description.nonEmpty){
+            form.name + "\n===============\n\n" + form.description.get
+          } else {
+            form.name + "\n===============\n"
+          }, "UTF-8")
+
+        val git = Git.open(tmpdir)
+        git.add.addFilepattern("README.md").call
+        git.commit.setMessage("Initial commit").call
+        git.push.call
+
+      } finally {
+        FileUtils.deleteDirectory(tmpdir)
+      }
     }
 
     // Create Wiki repository

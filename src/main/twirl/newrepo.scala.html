@@ -1,6 +1,7 @@
 @()(implicit context: app.Context)
 @import context._
 @main("Create a New Repository"){
+<div style="width: 600px; margin: 10px auto;">
 <form id="form" method="post" action="@path/new" validate="true">
   <fieldset>
     <label for="name"><strong>Repository name</strong></label>
@@ -9,10 +10,38 @@
   </fieldset>
   <fieldset>
     <label for="description"><strong>Description</strong> (optional)</label>
-    <input type="text" name="description" id="description" style="width: 600px;"/>
+    <input type="text" name="description" id="description" style="width: 95%;"/>
+  </fieldset>
+  <fieldset class="margin">
+    <label>
+      <input type="radio" name="isPrivate" value="false" checked>
+      <strong>Public</strong><br>
+      <div>
+        <span class="note">All users and guests can read this repository.</span>
+      </div>
+    </label>
   </fieldset>
   <fieldset>
+    <label>
+      <input type="radio" name="isPrivate" value="true">
+      <strong>Private</strong><br>
+      <div>
+        <span class="note">Only collaborators can read this repository.</span>
+      </div>
+    </label>
+  </fieldset>
+  <fieldset class="margin">
+    <label for="createReadme">
+      <input type="checkbox" name="createReadme" id="createReadme"/>
+      <strong>Initialize this repository with a README</strong>
+      <div>
+        <span class="note">This will allow you to <code>git clone</code> the repository immediately.</span>
+      </div>
+    </label>
+  </fieldset>
+  <fieldset class="margin">
     <input type="submit" class="btn btn-success" value="Create repository"/>
   </fieldset>
 </form>
+</div>
 }

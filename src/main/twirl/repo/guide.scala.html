@@ -1,0 +1,21 @@
+@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main(repository.owner + "/" + repository.name) {
+@html.header("code", repository)
+<h3 style="margin-top: 30px;">Create a new repository on the command line</h3>
+<pre>
+touch README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin @repository.url
+git push -u origin master
+</pre>
+
+<h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
+<pre>
+git remote add origin @repository.url
+git push -u origin master
+</pre>
+}

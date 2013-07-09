@@ -14,6 +14,7 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.eclipse.jgit.errors.MissingObjectException
 import java.util.Date
+import org.eclipse.jgit.api.errors.NoHeadException
 
 /**
  * Provides complex JGit operations.
@@ -142,28 +143,35 @@ object JGitUtil {
    */
   def getRepositoryInfo(owner: String, repository: String, baseUrl: String): RepositoryInfo = {
     withGit(getRepositoryDir(owner, repository)){ git =>
-      // get commit count
-      val i = git.log.all.call.iterator
-      var commitCount = 0
-      while(i.hasNext && commitCount <= 1000){
-        i.next
-        commitCount = commitCount + 1
-      }
+      try {
+        // get commit count
+        val i = git.log.all.call.iterator
+        var commitCount = 0
+        while(i.hasNext && commitCount <= 1000){
+          i.next
+          commitCount = commitCount + 1
+        }
 
-      RepositoryInfo(
-        owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository),
-        // commit count
-        commitCount,
-        // branches
-        git.branchList.call.asScala.map { ref =>
-          ref.getName.replaceFirst("^refs/heads/", "")
-        }.toList,
-        // tags
-        git.tagList.call.asScala.map { ref =>
-          val revCommit = getRevCommitFromId(git, ref.getObjectId)
-          TagInfo(ref.getName.replaceFirst("^refs/tags/", ""), revCommit.getCommitterIdent.getWhen, revCommit.getName)
-        }.toList
-      )
+        RepositoryInfo(
+          owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository),
+          // commit count
+          commitCount,
+          // branches
+          git.branchList.call.asScala.map { ref =>
+            ref.getName.replaceFirst("^refs/heads/", "")
+          }.toList,
+          // tags
+          git.tagList.call.asScala.map { ref =>
+            val revCommit = getRevCommitFromId(git, ref.getObjectId)
+            TagInfo(ref.getName.replaceFirst("^refs/tags/", ""), revCommit.getCommitterIdent.getWhen, revCommit.getName)
+          }.toList
+        )
+      } catch {
+        // not initialized
+        case e: NoHeadException => RepositoryInfo(
+          owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository), 0, Nil, Nil)
+
+      }
     }
   }
   

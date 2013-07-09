@@ -193,6 +193,19 @@ hr {
   margin-bottom: 4px;
 }
 
+span.note {
+  margin-left: 20px;
+}
+
+fieldset.margin {
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+/****************************************************************************/
+/* Sign-in form */
+/****************************************************************************/
 div.signin-form {
   width: 350px;
   margin: 30px auto;

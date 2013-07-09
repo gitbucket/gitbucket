@@ -11,19 +11,17 @@ trait RepositoryService { self: AccountService =>
   /**
    * Creates a new repository.
    *
-   * The project is created as public repository at first. Users can modify the project type at the repository settings
-   * page after the project creation to configure the project as the private repository.
-   *
    * @param repositoryName the repository name
    * @param userName the user name of the repository owner
    * @param description the repository description
+   * @param isPrivate the repository type (private is true, otherwise false)
    */
-  def createRepository(repositoryName: String, userName: String, description: Option[String]): Unit = {
+  def createRepository(repositoryName: String, userName: String, description: Option[String], isPrivate: Boolean): Unit = {
     Repositories insert
       Repository(
         userName         = userName,
         repositoryName   = repositoryName,
-        isPrivate        = false,
+        isPrivate        = isPrivate,
         description      = description,
         defaultBranch    = "master",
         registeredDate   = currentDate,
