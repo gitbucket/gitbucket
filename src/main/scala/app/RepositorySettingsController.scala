@@ -7,10 +7,10 @@ import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
 
-class SettingsController extends SettingsControllerBase
+class RepositorySettingsController extends RepositorySettingsControllerBase
   with RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator
 
-trait SettingsControllerBase extends ControllerBase with FlashMapSupport {
+trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSupport {
   self: RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator =>
 
   case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
