@@ -5,11 +5,12 @@ import util.Directory._
 import util.{UsersAuthenticator, OwnerAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
+import org.scalatra.FlashMapSupport
 
 class SettingsController extends SettingsControllerBase
   with RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator
 
-trait SettingsControllerBase extends ControllerBase {
+trait SettingsControllerBase extends ControllerBase with FlashMapSupport {
   self: RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator =>
 
   case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
@@ -37,7 +38,7 @@ trait SettingsControllerBase extends ControllerBase {
    * Display the Options page.
    */
   get("/:owner/:repository/settings/options")(ownerOnly {
-    settings.html.options(_)
+    settings.html.options(_, flash.get("info"))
   })
   
   /**
@@ -45,6 +46,7 @@ trait SettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
     saveRepositoryOptions(repository.owner, repository.name, form.description, form.defaultBranch, form.isPrivate)
+    flash += "info" -> "Settings updated."
     redirect("/%s/%s/settings/options".format(repository.owner, repository.name))
   })
   
