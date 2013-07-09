@@ -34,12 +34,15 @@ The default administrator account is **root** and password is **root**.
 
 Release Notes
 --------
-### 1.1 - 05 Jul 2013
+### 1.2 - 09 Jul 2013
+- Added activity timeline.
+- Bugfix for Git 1.8.1.5 or later.
+- Allows multi-byte characters as label.
+- Fixed some bugs.
 
+### 1.1 - 05 Jul 2013
 - Fixed some bugs.
 - Upgrade to JGit 3.0.
 
-
 ### 1.0 - 04 Jul 2013
-
 - This is a first public release.
