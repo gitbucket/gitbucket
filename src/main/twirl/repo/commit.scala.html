@@ -72,11 +72,14 @@
     <div class="pull-right" style="margin-bottom: 10px;">
       <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
     </div>
+    Showing @diffs.size changed @plural(diffs.size, "file")
+    @*
     @if(diffs.size == 1){
-      Showing 1 changed files
+      Showing 1 changed file
     } else {
       Showing @diffs.size changed files
     }
+    *@
   </div>
   <ul id="commit-file-list" style="display: none;">
   @diffs.zipWithIndex.map { case (diff, i) =>
