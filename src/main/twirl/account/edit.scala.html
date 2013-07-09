@@ -35,6 +35,13 @@
       <span id="error-url" class="error"></span>
     </fieldset>
     <fieldset>
+      <label for="avatar"><strong>Image (Optional)</strong></label>
+      <div id="avatar" class="muted small">
+        <div id="clickable">No Image</div>
+      </div>
+      <input type="hidden" name="avatarFileKey" value=""/>
+    </fieldset>
+    <fieldset>
       @if(account.isDefined){
         <input type="submit" class="btn btn-success" value="Save"/>
         <a href="@url(account.get.userName)" class="btn">Cancel</a>
@@ -44,3 +51,38 @@
     </fieldset>
   </form>
 }
+<script>
+$(function(){
+  var dropzone = new Dropzone('div#clickable', {
+    url: '@path/upload',
+    previewsContainer: 'div#avatar',
+    paramName: 'file',
+    parallelUploads: 1,
+    thumbnailWidth: 120,
+    thumbnailHeight: 120
+  });
+
+  dropzone.on("addedfile", function(){
+    $('div#clickable').remove();
+  });
+});
+</script>
+<style type="text/css">
+div.dz-filename, div.dz-size, div.dz-progress, div.dz-success-mark, div.dz-error-mark, div.dz-error-message {
+  display: none;
+}
+
+div#clickable {
+  width: 100%;
+  text-align: center;
+  line-height: 120px;
+}
+
+div#avatar {
+  background-color: #f8f8f8;
+  border: 1px dashed silver;
+  margin-bottom: 10px;
+  width: 120px;
+  height: 120px;
+}
+</style>
