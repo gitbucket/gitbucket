@@ -105,6 +105,7 @@ trait AccountControllerBase extends ControllerBase with FlashMapSupport {
     } else NotFound
   }
 
+  // TODO Merge with UserManagementController
   private def updateImage(userName: String, fileId: Option[String]): Unit = {
     fileId.map { fileId =>
       val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)

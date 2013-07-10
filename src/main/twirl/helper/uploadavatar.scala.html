@@ -1,0 +1,50 @@
+@(account: Option[model.Account])(implicit context: app.Context)
+@import context._
+<div id="avatar" class="muted">
+  @if(account.nonEmpty && account.get.image.nonEmpty){
+    <img src="@path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
+  } else {
+    <div id="clickable">No Image</div>
+  }
+</div>
+@if(account.nonEmpty && account.get.image.nonEmpty){
+  <label>
+    <input type="checkbox" name="clearImage"/> Clear image
+  </label>
+}
+<input type="hidden" name="fileId" value=""/>
+<script>
+$(function(){
+  var dropzone = new Dropzone('div#clickable', {
+    url: '@path/upload/image',
+    previewsContainer: 'div#avatar',
+    paramName: 'file',
+    parallelUploads: 1,
+    thumbnailWidth: 120,
+    thumbnailHeight: 120
+  });
+
+  dropzone.on("success", function(file, id){
+    $('div#clickable').remove();
+    $('input[name=fileId]').val(id);
+  });
+});
+</script>
+<style type="text/css">
+div.dz-filename, div.dz-size, div.dz-progress, div.dz-success-mark, div.dz-error-mark, div.dz-error-message {
+  display: none;
+}
+
+div#clickable {
+  width: 100%;
+  text-align: center;
+  line-height: 120px;
+}
+
+div#avatar {
+  background-color: #f8f8f8;
+  border: 1px dashed silver;
+  width: 120px;
+  height: 120px;
+}
+</style>

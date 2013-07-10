@@ -8,9 +8,7 @@
     <div class="block">
       <div class="muted small">@datetime(activity.activityDate)</div>
       <div class="strong">
-        @if(avatar){
-          @helper.html.avatar(activity.activityUserName, 16)
-        }
+        @helper.html.avatar(activity.activityUserName, 16)
         @activityMessage(activity.message)
       </div>
       @activity.additionalInfo.map { additionalInfo =>
