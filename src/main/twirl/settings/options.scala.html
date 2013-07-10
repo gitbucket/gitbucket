@@ -4,12 +4,7 @@
 @html.main("Settings"){
   @html.header("settings", repository)
   @menu("options", repository){
-    @if(info.isDefined){
-      <div class="alert alert-info">
-        <button type="button" class="close" data-dismiss="alert">×</button>
-        @info
-      </div>
-    }
+    @helper.html.information(info)
     <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
       <div class="box">
         <div class="box-header">Settings</div>

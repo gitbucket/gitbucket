@@ -16,8 +16,8 @@ object FileUploadUtil {
   def getTemporaryFile(fileId: String)(implicit session: HttpSession): java.io.File =
     new java.io.File(TemporaryDir, fileId)
 
-  def removeTemporaryFile(fileId: String)(implicit session: HttpSession): Unit =
-    getTemporaryFile(fileId).delete()
+//  def removeTemporaryFile(fileId: String)(implicit session: HttpSession): Unit =
+//    getTemporaryFile(fileId).delete()
 
   def removeTemporaryFiles()(implicit session: HttpSession): Unit =
     FileUtils.deleteDirectory(TemporaryDir)

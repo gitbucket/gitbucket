@@ -25,7 +25,7 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
 
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(SystemSettings(form.allowAccountRegistration))
-    flash += "info" -> "Settings updated."
+    flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
   })
 

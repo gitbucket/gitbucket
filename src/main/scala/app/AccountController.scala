@@ -6,25 +6,28 @@ import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
+import org.scalatra.FlashMapSupport
 
 class AccountController extends AccountControllerBase
   with SystemSettingsService with AccountService with RepositoryService with ActivityService
   with OneselfAuthenticator
 
-trait AccountControllerBase extends ControllerBase {
+trait AccountControllerBase extends ControllerBase with FlashMapSupport {
   self: SystemSettingsService with AccountService with RepositoryService with ActivityService
     with OneselfAuthenticator =>
 
-  case class AccountNewForm(userName: String, password: String,mailAddress: String, url: Option[String])
+  case class AccountNewForm(userName: String, password: String,mailAddress: String,
+                            url: Option[String], fileId: Option[String])
 
-  case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String],
-                             fileId: Option[String], clearImage: Boolean)
+  case class AccountEditForm(password: Option[String], mailAddress: String,
+                             url: Option[String], fileId: Option[String], clearImage: Boolean)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
-    "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
+    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"      , optional(text())))
   )(AccountNewForm.apply)
 
   val editForm = mapping(
@@ -63,7 +66,7 @@ trait AccountControllerBase extends ControllerBase {
 
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
-    getAccountByUserName(userName).map(x => account.html.edit(Some(x))) getOrElse NotFound
+    getAccountByUserName(userName).map(x => account.html.edit(Some(x), flash.get("info"))) getOrElse NotFound
   })
 
   post("/:userName/_edit", editForm)(oneselfOnly { form =>
@@ -80,31 +83,37 @@ trait AccountControllerBase extends ControllerBase {
           updateAvatarImage(userName, None)
         }
       } else {
-        form.fileId.map { fileId =>
-          val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
-          FileUtils.moveFile(
-            FileUploadUtil.getTemporaryFile(fileId),
-            new java.io.File(getUserUploadDir(userName), filename)
-          )
-          updateAvatarImage(userName, Some(filename))
-        }
+        updateImage(userName, form.fileId)
       }
 
-      redirect("/%s".format(userName))
+      flash += "info" -> "Account information has been updated."
+      redirect("/%s/_edit".format(userName))
     } getOrElse NotFound
   })
 
   get("/register"){
     if(loadSystemSettings().allowAccountRegistration){
-      account.html.edit(None)
+      account.html.edit(None, None)
     } else NotFound
   }
 
-  post("/register", newForm){ newForm =>
+  post("/register", newForm){ form =>
     if(loadSystemSettings().allowAccountRegistration){
-      createAccount(newForm.userName, encrypt(newForm.password), newForm.mailAddress, false, newForm.url)
+      createAccount(form.userName, encrypt(form.password), form.mailAddress, false, form.url)
+      updateImage(form.userName, form.fileId)
       redirect("/signin")
     } else NotFound
+  }
+
+  private def updateImage(userName: String, fileId: Option[String]): Unit = {
+    fileId.map { fileId =>
+      val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
+      FileUtils.moveFile(
+        FileUploadUtil.getTemporaryFile(fileId),
+        new java.io.File(getUserUploadDir(userName), filename)
+      )
+      updateAvatarImage(userName, Some(filename))
+    }
   }
 
   // TODO Merge with UserManagementController

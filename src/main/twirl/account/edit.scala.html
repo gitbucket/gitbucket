@@ -1,4 +1,4 @@
-@(account: Option[model.Account])(implicit context: app.Context)
+@(account: Option[model.Account], info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main((if(account.isDefined) "Edit your profile" else "Create your account")){
@@ -7,49 +7,56 @@
   } else {
     <h3>Create your account</h3>
   }
+  @helper.html.information(info)
   <form action="@if(account.isDefined){@url(account.get.userName)/_edit}else{@path/register}" method="POST" validate="true">
-    @if(account.isEmpty){
-      <fieldset>
-        <label for="userName"><strong>User name</strong></label>
-        <input type="text" name="userName" id="userName" value=""/>
-        <span id="error-userName" class="error"></span>
-      </fieldset>
-    }
-    <fieldset>
-      <label for="password"><strong>Password</strong>
-        @if(account.nonEmpty){
-          (Input to change password)
+    <div class="row-fluid">
+      <div class="span6">
+        @if(account.isEmpty){
+          <fieldset>
+            <label for="userName"><strong>User name</strong></label>
+            <input type="text" name="userName" id="userName" value=""/>
+            <span id="error-userName" class="error"></span>
+          </fieldset>
         }
-      </label>
-      <input type="password" name="password" id="password" value=""/>
-      <span id="error-password" class="error"></span>
-    </fieldset>
-    <fieldset>
-      <label for="mailAddress"><strong>Mail Address</strong></label>
-      <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
-      <span id="error-mailAddress" class="error"></span>
-    </fieldset>
-    <fieldset>
-      <label for="url"><strong>URL (Optional)</strong></label>
-      <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
-      <span id="error-url" class="error"></span>
-    </fieldset>
-    <fieldset>
-      <label for="avatar"><strong>Image (Optional)</strong></label>
-      <div id="avatar" class="muted">
-        @if(account.nonEmpty && account.get.image.nonEmpty){
-          <img src="@path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
-        } else {
-          <div id="clickable">No Image</div>
-        }
+        <fieldset>
+          <label for="password"><strong>Password</strong>
+            @if(account.nonEmpty){
+              (Input to change password)
+            }
+          </label>
+          <input type="password" name="password" id="password" value=""/>
+          <span id="error-password" class="error"></span>
+        </fieldset>
+        <fieldset>
+          <label for="mailAddress"><strong>Mail Address</strong></label>
+          <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
+          <span id="error-mailAddress" class="error"></span>
+        </fieldset>
+        <fieldset>
+          <label for="url"><strong>URL (Optional)</strong></label>
+          <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
+          <span id="error-url" class="error"></span>
+        </fieldset>
       </div>
-      @if(account.nonEmpty && account.get.image.nonEmpty){
-        <label>
-          <input type="checkbox" name="clearImage"/> Clear image
-        </label>
-      }
-      <input type="hidden" name="fileId" value=""/>
-    </fieldset>
+      <div class="span6">
+        <fieldset>
+          <label for="avatar"><strong>Image (Optional)</strong></label>
+          <div id="avatar" class="muted">
+            @if(account.nonEmpty && account.get.image.nonEmpty){
+              <img src="@path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
+            } else {
+              <div id="clickable">No Image</div>
+            }
+          </div>
+          @if(account.nonEmpty && account.get.image.nonEmpty){
+            <label>
+              <input type="checkbox" name="clearImage"/> Clear image
+            </label>
+          }
+          <input type="hidden" name="fileId" value=""/>
+        </fieldset>
+      </div>
+    </div>
     <fieldset class="margin">
       @if(account.isDefined){
         <input type="submit" class="btn btn-success" value="Save"/>

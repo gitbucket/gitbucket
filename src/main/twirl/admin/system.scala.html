@@ -3,12 +3,7 @@
 @import view.helpers._
 @html.main("System Settings"){
   @menu("system"){
-    @if(info.isDefined){
-      <div class="alert alert-info">
-        <button type="button" class="close" data-dismiss="alert">×</button>
-        @info
-      </div>
-    }
+    @helper.html.information(info)
     <form action="@path/admin/system" method="POST" validate="true">
       <div class="box">
         <div class="box-header">System Settings</div>

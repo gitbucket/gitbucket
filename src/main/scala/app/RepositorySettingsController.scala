@@ -46,7 +46,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
     saveRepositoryOptions(repository.owner, repository.name, form.description, form.defaultBranch, form.isPrivate)
-    flash += "info" -> "Settings updated."
+    flash += "info" -> "Repository settings has been updated."
     redirect("/%s/%s/settings/options".format(repository.owner, repository.name))
   })
   
