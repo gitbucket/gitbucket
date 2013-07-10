@@ -3,7 +3,9 @@ package app
 import service._
 import util.OneselfAuthenticator
 import util.StringUtil._
+import util.Directory._
 import jp.sf.amateras.scalatra.forms._
+import org.apache.commons.io.FileSystemUtils
 
 class AccountController extends AccountControllerBase
   with SystemSettingsService with AccountService with RepositoryService with ActivityService
@@ -15,7 +17,7 @@ trait AccountControllerBase extends ControllerBase {
 
   case class AccountNewForm(userName: String, password: String,mailAddress: String, url: Option[String])
 
-  case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String])
+  case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String], fileId: Option[String])
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -27,7 +29,8 @@ trait AccountControllerBase extends ControllerBase {
   val editForm = mapping(
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
-    "url"         -> trim(label("URL"          , optional(text(maxlength(200)))))
+    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"      , optional(text())))
   )(AccountEditForm.apply)
 
   /**
@@ -57,6 +60,16 @@ trait AccountControllerBase extends ControllerBase {
         password    = form.password.map(encrypt).getOrElse(account.password),
         mailAddress = form.mailAddress,
         url         = form.url))
+
+      form.fileId.map { fileId =>
+        val filename = app.FileUploadUtil.getFilename(fileId)
+        org.apache.commons.io.FileUtils.moveFile(
+          app.FileUploadUtil.getTemporaryFile(fileId),
+          new java.io.File(getUserUploadDir(userName), filename.get)
+        )
+        updateAvatarImage(userName, filename)
+      }
+
       redirect("/%s".format(userName))
     } getOrElse NotFound
   })

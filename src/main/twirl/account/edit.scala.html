@@ -39,7 +39,7 @@
       <div id="avatar" class="muted small">
         <div id="clickable">No Image</div>
       </div>
-      <input type="hidden" name="avatarFileKey" value=""/>
+      <input type="hidden" name="fileId" value=""/>
     </fieldset>
     <fieldset>
       @if(account.isDefined){
@@ -62,8 +62,10 @@ $(function(){
     thumbnailHeight: 120
   });
 
-  dropzone.on("addedfile", function(){
+  dropzone.on("success", function(file, id){
     $('div#clickable').remove();
+    $('input[name=fileId]').val(id);
+    alert(id);
   });
 });
 </script>

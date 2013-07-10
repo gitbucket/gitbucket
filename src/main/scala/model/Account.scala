@@ -11,7 +11,8 @@ object Accounts extends Table[Account]("ACCOUNT") {
   def registeredDate = column[java.util.Date]("REGISTERED_DATE")
   def updatedDate = column[java.util.Date]("UPDATED_DATE")
   def lastLoginDate = column[java.util.Date]("LAST_LOGIN_DATE")
-  def * = userName ~ mailAddress ~ password ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? <> (Account, Account.unapply _)
+  def image = column[String]("IMAGE")
+  def * = userName ~ mailAddress ~ password ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? ~ image.? <> (Account, Account.unapply _)
 }
 
 case class Account(
@@ -22,5 +23,6 @@ case class Account(
     url: Option[String],
     registeredDate: java.util.Date,
     updatedDate: java.util.Date,
-    lastLoginDate: Option[java.util.Date]
+    lastLoginDate: Option[java.util.Date],
+    image: Option[String]
 )

@@ -23,7 +23,8 @@ trait AccountService {
       url            = url,
       registeredDate = currentDate,
       updatedDate    = currentDate,
-      lastLoginDate  = None)
+      lastLoginDate  = None,
+      image          = None)
 
   def updateAccount(account: Account): Unit = 
     Accounts
@@ -37,7 +38,10 @@ trait AccountService {
         account.registeredDate,
         currentDate,
         account.lastLoginDate)
-  
+
+  def updateAvatarImage(userName: String, image: Option[String]): Unit =
+    Accounts.filter(_.userName is userName.bind).map(_.image.?).update(image)
+
   def updateLastLoginDate(userName: String): Unit =
     Accounts.filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
   

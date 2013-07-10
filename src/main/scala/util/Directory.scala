@@ -36,6 +36,11 @@ object Directory {
     new File("%s/%s/%s.git".format(RepositoryHome, owner, repository))
 
   /**
+   * Directory for uploaded files by the specified user.
+   */
+  def getUserUploadDir(userName: String): File = new File("%s/%s/_files".format(GitBucketHome, userName))
+
+  /**
    * Root of temporary directories for the specified repository.
    */
   def getTemporaryDir(owner: String, repository: String): File =
