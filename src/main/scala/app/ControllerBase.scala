@@ -1,14 +1,18 @@
 package app
 
-import model.Account
-import util.Validations
+import _root_.util.Directory._
+import _root_.util.{FileUploadUtil, FileUtil, Validations}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
 import jp.sf.amateras.scalatra.forms._
+import org.apache.commons.io.FileUtils
+import model.Account
+import scala.Some
+import service.AccountService
 
 /**
- * Provides generic features for ScalatraServlet implementations.
+ * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with Validations {
@@ -87,4 +91,37 @@ abstract class ControllerBase extends ScalatraFilter
 
 }
 
+/**
+ * Context object for the current request.
+ */
 case class Context(path: String, loginAccount: Option[Account], currentUrl: String)
+
+/**
+ * Base trait for controllers which manages account information.
+ */
+trait AccountManagementControllerBase extends ControllerBase { self: AccountService =>
+
+  protected def updateImage(userName: String, fileId: Option[String]): Unit = {
+    fileId.map { fileId =>
+      val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
+      FileUtils.moveFile(
+        FileUploadUtil.getTemporaryFile(fileId),
+        new java.io.File(getUserUploadDir(userName), filename)
+      )
+      updateAvatarImage(userName, Some(filename))
+    }
+  }
+
+  protected def uniqueUserName: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      getAccountByUserName(value).map { _ => "User already exists." }
+  }
+
+  protected def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      getAccountByMailAddress(value)
+        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
+        .map    { _ => "Mail address is already registered." }
+  }
+
+}

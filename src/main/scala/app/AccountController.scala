@@ -12,7 +12,7 @@ class AccountController extends AccountControllerBase
   with SystemSettingsService with AccountService with RepositoryService with ActivityService
   with OneselfAuthenticator
 
-trait AccountControllerBase extends ControllerBase with FlashMapSupport {
+trait AccountControllerBase extends AccountManagementControllerBase with FlashMapSupport {
   self: SystemSettingsService with AccountService with RepositoryService with ActivityService
     with OneselfAuthenticator =>
 
@@ -103,32 +103,6 @@ trait AccountControllerBase extends ControllerBase with FlashMapSupport {
       updateImage(form.userName, form.fileId)
       redirect("/signin")
     } else NotFound
-  }
-
-  // TODO Merge with UserManagementController
-  private def updateImage(userName: String, fileId: Option[String]): Unit = {
-    fileId.map { fileId =>
-      val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
-      FileUtils.moveFile(
-        FileUploadUtil.getTemporaryFile(fileId),
-        new java.io.File(getUserUploadDir(userName), filename)
-      )
-      updateAvatarImage(userName, Some(filename))
-    }
-  }
-
-  // TODO Merge with UserManagementController
-  private def uniqueUserName: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
-      getAccountByUserName(value).map { _ => "User already exists." }
-  }
-
-  // TODO Merge with UserManagementController
-  private def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
-      getAccountByMailAddress(value)
-        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
-        .map    { _ => "Mail address is already registered." }
   }
 
 }

@@ -10,7 +10,8 @@ import scala.Some
 
 class UserManagementController extends UserManagementControllerBase with AccountService with AdminAuthenticator
 
-trait UserManagementControllerBase extends ControllerBase { self: AccountService with AdminAuthenticator =>
+trait UserManagementControllerBase extends AccountManagementControllerBase {
+  self: AccountService with AdminAuthenticator =>
   
   case class UserNewForm(userName: String, password: String, mailAddress: String, isAdmin: Boolean,
                          url: Option[String], fileId: Option[String])
@@ -77,31 +78,5 @@ trait UserManagementControllerBase extends ControllerBase { self: AccountService
       redirect("/admin/users")
     } getOrElse NotFound
   })
-
-  // TODO Merge with AccountController?
-  private def updateImage(userName: String, fileId: Option[String]): Unit = {
-    fileId.map { fileId =>
-      val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
-      FileUtils.moveFile(
-        FileUploadUtil.getTemporaryFile(fileId),
-        new java.io.File(getUserUploadDir(userName), filename)
-      )
-      updateAvatarImage(userName, Some(filename))
-    }
-  }
-
-  // TODO Merge with AccountController?
-  private def uniqueUserName: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
-      getAccountByUserName(value).map { _ => "User already exists." }
-  }
-
-  // TODO Merge with AccountController?
-  private def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
-      getAccountByMailAddress(value)
-        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
-        .map    { _ => "Mail address is already registered." }
-  }
   
 }
