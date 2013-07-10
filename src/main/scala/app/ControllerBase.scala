@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils
 import model.Account
 import scala.Some
 import service.AccountService
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Provides generic features for controller implementations.
@@ -22,7 +23,7 @@ abstract class ControllerBase extends ScalatraFilter
   /**
    * Returns the context object for the request.
    */
-  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, currentURL)
+  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, currentURL, request)
 
   private def currentURL: String = {
     val queryString = request.getQueryString
@@ -94,7 +95,7 @@ abstract class ControllerBase extends ScalatraFilter
 /**
  * Context object for the current request.
  */
-case class Context(path: String, loginAccount: Option[Account], currentUrl: String)
+case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest)
 
 /**
  * Base trait for controllers which manages account information.

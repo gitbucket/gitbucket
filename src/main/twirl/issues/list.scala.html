@@ -219,7 +219,7 @@
               }
               <span class="pull-right muted">
                 @issue.assignedUserName.map { userName =>
-                  @helper.html.avatar(userName, 20, true)
+                  @avatar(userName, 20, true)
                 }
                 #@issue.issueId
               </span>

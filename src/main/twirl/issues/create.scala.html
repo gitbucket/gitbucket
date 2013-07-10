@@ -23,7 +23,7 @@
                 <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
                 <li class="divider"></li>
                 @collaborators.map { collaborator =>
-                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator"><i class="icon-while"></i>@helper.html.avatar(collaborator, 20) @collaborator</a></li>
+                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator"><i class="icon-while"></i>@avatar(collaborator, 20) @collaborator</a></li>
                 }
               }
             }

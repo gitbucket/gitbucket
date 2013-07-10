@@ -58,10 +58,10 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     getAccountByUserName(userName).flatMap(_.image).map { image =>
       contentType = FileUtil.getMimeType(image)
       new java.io.File(getUserUploadDir(userName), image)
-    } getOrElse {
-      contentType = "image/png"
-      Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
-    }
+//    } getOrElse {
+//      contentType = "image/png"
+//      Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
+    } getOrElse NotFound
   }
 
   get("/:userName/_edit")(oneselfOnly {

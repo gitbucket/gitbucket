@@ -2,6 +2,8 @@ package view
 import java.util.Date
 import java.text.SimpleDateFormat
 import twirl.api.Html
+import util.StringUtil
+import service.AccountService
 
 /**
  * Provides helper methods for Twirl templates.
@@ -72,6 +74,29 @@ object helpers {
       .replaceAll("(^|\\W)#(\\d+)(\\W|$)", "$1<a href=\"%s/%s/%s/issues/$2\">#$2</a>$3".format(context.path, repository.owner, repository.name))
       // convert commit id to link
       .replaceAll("(^|\\W)([a-f0-9]{40})(\\W|$)", "$1<a href=\"%s/%s/%s/commit/$2\">$2</a>$3").format(context.path, repository.owner, repository.name))
+
+  /**
+   * Returns &lt;img&gt; which displays the avatar icon.
+   * Looks up Gravatar if avatar icon has not been configured in user settings.
+   */
+  def avatar(userName: String, size: Int, tooltip: Boolean = false)(implicit context: app.Context): Html = {
+    val account = Option(context.request.getAttribute("cache.account." + userName).asInstanceOf[model.Account]).orElse {
+      new AccountService {}.getAccountByUserName(userName).map { account =>
+        context.request.setAttribute("cache.account." + userName, account)
+        account
+      }
+    }
+    val src = account.collect { case account if(account.image.isEmpty) =>
+      s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
+    } getOrElse {
+      s"""${context.path}/${userName}/_avatar"""
+    }
+    if(tooltip){
+      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}:px" data-toggle="tooltip" title=${userName}/>""")
+    } else {
+      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}:px" />""")
+    }
+  }
 
   /**
    * Implicit conversion to add mkHtml() to Seq[Html].

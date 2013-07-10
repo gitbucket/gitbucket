@@ -31,7 +31,7 @@
           <div class="issue-info">
             <span id="label-assigned">
               @issue.assignedUserName.map { userName =>
-                @helper.html.avatar(userName, 20) <a href="@url(userName)" class="username strong">@userName</a> is assigned
+                @avatar(userName, 20) <a href="@url(userName)" class="username strong">@userName</a> is assigned
               }.getOrElse("No one is assigned")
             </span>
             @if(hasWritePermission){
@@ -39,7 +39,7 @@
                 <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
                 <li class="divider"></li>
                 @collaborators.map { collaborator =>
-                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator"><i class="icon-white"></i>@helper.html.avatar(collaborator, 20) @collaborator</a></li>
+                  <li><a href="javascript:void(0);" class="assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
                 }
               }
             }

@@ -14,7 +14,7 @@
               <a href="@path/admin/users/@account.userName/_edit">Edit</a>
             </div>
             <div class="strong">
-              @helper.html.avatar(account.userName, 20)
+              @avatar(account.userName, 20)
               <a href="@url(account.userName)">@account.userName</a>
               @if(account.isAdmin){
                 (Administrator)
