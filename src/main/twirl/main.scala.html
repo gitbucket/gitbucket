@@ -39,7 +39,7 @@
           <a class="brand" href="@path/">GitBucket</a>
           <div class="nav-collapse collapse pull-right">
             @if(loginAccount.isDefined){
-              <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20)@loginAccount.get.userName</a>
+              <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
               <a href="@path/new" class="menu" data-toggle="tooltip" data-placement="bottom" title="Create a new repo"><i class="icon-plus"></i></a>
               <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
               @if(loginAccount.get.isAdmin){
