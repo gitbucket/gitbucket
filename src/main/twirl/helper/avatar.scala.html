@@ -1,4 +1,4 @@
-@(userName: String, size: Int)(implicit context: app.Context)
+@(userName: String, size: Int, styles: String = "")(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<img src="@url(userName)/_avatar" style="width: @(size)px; height: @(size)px;"/>
+<img src="@url(userName)/_avatar" class="avatar" style="width: @(size)px; height: @(size)px; @styles"/>

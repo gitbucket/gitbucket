@@ -8,19 +8,21 @@
     <div class="block">
       <div class="muted small">@datetime(activity.activityDate)</div>
       <div class="strong">
-        @helper.html.avatar(activity.activityUserName, 16)
+        @if(avatar){
+          @helper.html.avatar(activity.activityUserName, 16)
+        }
         @activityMessage(activity.message)
       </div>
       @activity.additionalInfo.map { additionalInfo =>
         @(activity.activityType match {
           case "create_wiki" => {
-            <div class="small">Created <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
+            <div class="small activity-message">Created <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
           }
           case "edit_wiki" => {
-            <div class="small">Edited <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
+            <div class="small activity-message">Edited <a href={"%s/%s/%s/wiki/%s".format(path, activity.userName, activity.repositoryName, additionalInfo)}>{additionalInfo}</a>.</div>
           }
           case "push" => {
-            <div class="small">
+            <div class="small activity-message">
               {additionalInfo.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
                 if(i == 3){
                   <div>...</div>
@@ -34,7 +36,7 @@
             </div>
           }
           case _ => {
-            <div>{additionalInfo}</div>
+            <div class=" activity-message">{additionalInfo}</div>
           }
         })
       }

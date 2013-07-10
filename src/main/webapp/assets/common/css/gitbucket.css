@@ -197,6 +197,16 @@ span.note {
   margin-left: 20px;
 }
 
+img.avatar {
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+}
+
+div.activity-message {
+  margin-left: 20px;
+}
+
 fieldset.margin {
   border-top: 1px solid #eee;
   margin-top: 10px;
