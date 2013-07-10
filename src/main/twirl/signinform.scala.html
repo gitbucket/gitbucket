@@ -2,7 +2,14 @@
 @import context._
 <table class="table table-bordered">
   <tr>
-    <th class="metal">Sign in</th>
+    <th class="metal">
+      @if(systemSettings.allowAccountRegistration){
+        <div class="pull-right">
+          <a href="@path/register" class="btn btn-mini">Create new account</a>
+        </div>
+      }
+      Sign in
+    </th>
   </tr>
   <tr>
     <td>
@@ -15,9 +22,6 @@
         <input type="password" name="password" id="password" style="width: 95%"/>
         <div>
           <input type="submit" class="btn btn-success" value="Sign in"/>
-          @if(systemSettings.allowAccountRegistration){
-            <a href="@path/register" class="btn">Create new account</a>
-          }
         </div>
       </form>
     </td>

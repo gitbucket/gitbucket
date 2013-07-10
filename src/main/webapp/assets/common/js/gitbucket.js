@@ -6,6 +6,7 @@ $(function(){
   });
 
   $('img[data-toggle=tooltip]').tooltip();
+  $('a[data-toggle=tooltip]').tooltip();
 
   prettyPrint();
 });

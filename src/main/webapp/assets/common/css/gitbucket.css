@@ -5,6 +5,31 @@ body {
   color: #333;
 }
 
+div.navbar-inner {
+  border-radius: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 1px solid #d4d4d4;
+  padding-right: 0px;
+}
+
+div.nav-collapse a.menu {
+  margin-right: 12px;
+  line-height: 40px;
+}
+
+div.nav-collapse a.btn-last {
+  margin-right: 30px;
+}
+
+div.nav-collapse a.menu-last {
+  margin-right: 30px;
+  line-height: 40px;
+}
+
 div.gitbucket-version {
   font-size: small;
   color: silver;

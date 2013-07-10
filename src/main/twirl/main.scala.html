@@ -28,7 +28,7 @@
     <script src="@assets/google-code-prettify/prettify.js"></script>
   </head>
   <body>
-    <div class="navbar navbar-inverse">
+    <div class="navbar">
       <div class="navbar-inner">
         <div class="container">
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -37,19 +37,18 @@
             <span class="icon-bar"></span>
           </button>
           <a class="brand" href="@path/">GitBucket</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav pull-right">
-              @if(loginAccount.isDefined){
-                <li><a href="@path/new">New repo</a></li>
-                <li><a href="@url(loginAccount.get.userName)">Account</a></li>
-                @if(loginAccount.get.isAdmin){
-                  <li><a href="@path/admin/users">Administration</a></li>
-                }
-                <li><a href="@path/signout">Sign out</a></li>
-              } else {
-                <li><a href="@path/signin?@currentUrl">Sign in</a></li>
+          <div class="nav-collapse collapse pull-right">
+            @if(loginAccount.isDefined){
+              <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20)@loginAccount.get.userName</a>
+              <a href="@path/new" class="menu" data-toggle="tooltip" data-placement="bottom" title="Create a new repo"><i class="icon-plus"></i></a>
+              <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
+              @if(loginAccount.get.isAdmin){
+                <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="icon-wrench"></i></a>
               }
-            </ul>
+              <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
+            } else {
+              <a href="@path/signin?@currentUrl" class="btn btn-last">Sign in</a>
+            }
           </div><!--/.nav-collapse -->
         </div>
       </div>
