@@ -1,11 +1,11 @@
 package app
 
 import service._
-import util.OneselfAuthenticator
+import util.{FileUtil, FileUploadUtil, OneselfAuthenticator}
 import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
-import org.apache.commons.io.FileSystemUtils
+import org.apache.commons.io.FileUtils
 
 class AccountController extends AccountControllerBase
   with SystemSettingsService with AccountService with RepositoryService with ActivityService
@@ -17,7 +17,8 @@ trait AccountControllerBase extends ControllerBase {
 
   case class AccountNewForm(userName: String, password: String,mailAddress: String, url: Option[String])
 
-  case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String], fileId: Option[String])
+  case class AccountEditForm(password: Option[String], mailAddress: String, url: Option[String],
+                             fileId: Option[String], clearImage: Boolean)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -30,7 +31,8 @@ trait AccountControllerBase extends ControllerBase {
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
-    "fileId"      -> trim(label("File ID"      , optional(text())))
+    "fileId"      -> trim(label("File ID"      , optional(text()))),
+    "clearImage"  -> trim(label("Clear image"  , boolean()))
   )(AccountEditForm.apply)
 
   /**
@@ -48,6 +50,14 @@ trait AccountControllerBase extends ControllerBase {
     } getOrElse NotFound
   }
 
+  get("/:userName/_avatar"){
+    val userName = params("userName")
+    getAccountByUserName(userName).flatMap(_.image).map { image =>
+      contentType = FileUtil.getMimeType(image)
+      new java.io.File(getUserUploadDir(userName), image)
+    } getOrElse NotFound
+  }
+
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map(x => account.html.edit(Some(x))) getOrElse NotFound
@@ -61,13 +71,20 @@ trait AccountControllerBase extends ControllerBase {
         mailAddress = form.mailAddress,
         url         = form.url))
 
-      form.fileId.map { fileId =>
-        val filename = app.FileUploadUtil.getFilename(fileId)
-        org.apache.commons.io.FileUtils.moveFile(
-          app.FileUploadUtil.getTemporaryFile(fileId),
-          new java.io.File(getUserUploadDir(userName), filename.get)
-        )
-        updateAvatarImage(userName, filename)
+      if(form.clearImage){
+        account.image.map { image =>
+          new java.io.File(getUserUploadDir(userName), image).delete()
+          updateAvatarImage(userName, None)
+        }
+      } else {
+        form.fileId.map { fileId =>
+          val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
+          FileUtils.moveFile(
+            FileUploadUtil.getTemporaryFile(fileId),
+            new java.io.File(getUserUploadDir(userName), filename)
+          )
+          updateAvatarImage(userName, Some(filename))
+        }
       }
 
       redirect("/%s".format(userName))

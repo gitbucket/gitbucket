@@ -36,12 +36,21 @@
     </fieldset>
     <fieldset>
       <label for="avatar"><strong>Image (Optional)</strong></label>
-      <div id="avatar" class="muted small">
-        <div id="clickable">No Image</div>
+      <div id="avatar" class="muted">
+        @if(account.nonEmpty && account.get.image.nonEmpty){
+          <img src="@path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
+        } else {
+          <div id="clickable">No Image</div>
+        }
       </div>
+      @if(account.nonEmpty && account.get.image.nonEmpty){
+        <label>
+          <input type="checkbox" name="clearImage"/> Clear image
+        </label>
+      }
       <input type="hidden" name="fileId" value=""/>
     </fieldset>
-    <fieldset>
+    <fieldset class="buttons">
       @if(account.isDefined){
         <input type="submit" class="btn btn-success" value="Save"/>
         <a href="@url(account.get.userName)" class="btn">Cancel</a>
@@ -54,7 +63,7 @@
 <script>
 $(function(){
   var dropzone = new Dropzone('div#clickable', {
-    url: '@path/upload',
+    url: '@path/upload/image',
     previewsContainer: 'div#avatar',
     paramName: 'file',
     parallelUploads: 1,
@@ -65,7 +74,6 @@ $(function(){
   dropzone.on("success", function(file, id){
     $('div#clickable').remove();
     $('input[name=fileId]').val(id);
-    alert(id);
   });
 });
 </script>
@@ -83,8 +91,11 @@ div#clickable {
 div#avatar {
   background-color: #f8f8f8;
   border: 1px dashed silver;
-  margin-bottom: 10px;
   width: 120px;
   height: 120px;
+}
+
+fieldset.buttons {
+  margin-top: 20px;
 }
 </style>

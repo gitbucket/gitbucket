@@ -44,4 +44,13 @@ object FileUtil {
     }
   }
 
+  def getExtension(name: String): String = {
+    val index = name.lastIndexOf('.')
+    if(index >= 0){
+      name.substring(index + 1)
+    } else {
+      ""
+    }
+  }
+
 }
