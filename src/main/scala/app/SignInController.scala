@@ -35,7 +35,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
         session.removeAttribute("REDIRECT")
         redirect(redirectUrl.asInstanceOf[String])
       }.getOrElse {
-        redirect("/%s".format(account.get.userName))
+        redirect("/")
       }
     }
   }
