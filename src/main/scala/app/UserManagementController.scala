@@ -48,7 +48,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   
   post("/admin/users/_new", newForm)(adminOnly { form =>
     createAccount(form.userName, encrypt(form.password), form.mailAddress, form.isAdmin, form.url)
-    updateImage(form.userName, form.fileId)
+    updateImage(form.userName, form.fileId, false)
     redirect("/admin/users")
   })
   
@@ -66,16 +66,9 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
         isAdmin      = form.isAdmin,
         url          = form.url))
 
-      if(form.clearImage){
-        account.image.map { image =>
-          new java.io.File(getUserUploadDir(userName), image).delete()
-          updateAvatarImage(userName, None)
-        }
-      } else {
-        updateImage(userName, form.fileId)
-      }
-
+      updateImage(userName, form.fileId, form.clearImage)
       redirect("/admin/users")
+
     } getOrElse NotFound
   })
   

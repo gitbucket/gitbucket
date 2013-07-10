@@ -101,14 +101,21 @@ case class Context(path: String, loginAccount: Option[Account], currentUrl: Stri
  */
 trait AccountManagementControllerBase extends ControllerBase { self: AccountService =>
 
-  protected def updateImage(userName: String, fileId: Option[String]): Unit = {
-    fileId.map { fileId =>
-      val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
-      FileUtils.moveFile(
-        FileUploadUtil.getTemporaryFile(fileId),
-        new java.io.File(getUserUploadDir(userName), filename)
-      )
-      updateAvatarImage(userName, Some(filename))
+  protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit = {
+    if(clearImage){
+      getAccountByUserName(userName).flatMap(_.image).map { image =>
+        new java.io.File(getUserUploadDir(userName), image).delete()
+        updateAvatarImage(userName, None)
+      }
+    } else {
+      fileId.map { fileId =>
+        val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
+        FileUtils.moveFile(
+          FileUploadUtil.getTemporaryFile(fileId),
+          new java.io.File(getUserUploadDir(userName), filename)
+        )
+        updateAvatarImage(userName, Some(filename))
+      }
     }
   }
 

@@ -77,17 +77,10 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
         mailAddress = form.mailAddress,
         url         = form.url))
 
-      if(form.clearImage){
-        account.image.map { image =>
-          new java.io.File(getUserUploadDir(userName), image).delete()
-          updateAvatarImage(userName, None)
-        }
-      } else {
-        updateImage(userName, form.fileId)
-      }
-
+      updateImage(userName, form.fileId, form.clearImage)
       flash += "info" -> "Account information has been updated."
       redirect("/%s/_edit".format(userName))
+
     } getOrElse NotFound
   })
 
@@ -100,7 +93,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
   post("/register", newForm){ form =>
     if(loadSystemSettings().allowAccountRegistration){
       createAccount(form.userName, encrypt(form.password), form.mailAddress, false, form.url)
-      updateImage(form.userName, form.fileId)
+      updateImage(form.userName, form.fileId, false)
       redirect("/signin")
     } else NotFound
   }
