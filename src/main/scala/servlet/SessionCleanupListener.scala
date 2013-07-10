@@ -11,7 +11,6 @@ class SessionCleanupListener extends HttpSessionListener {
   def sessionCreated(se: HttpSessionEvent): Unit = {}
 
   def sessionDestroyed(se: HttpSessionEvent): Unit = {
-    println("** session destroyed: " + se.getSession.getId)
     FileUploadUtil.removeTemporaryFiles()(se.getSession)
   }
 
