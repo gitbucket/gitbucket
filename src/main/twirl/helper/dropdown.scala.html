@@ -1,7 +1,11 @@
-@(body: Html)
+@(buttonValue: String = "")(body: Html)
 <div class="btn-group">
   <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-    <i class="icon-cog"></i>
+    @if(buttonValue == ""){
+      <i class="icon-cog"></i>
+    } else {
+      <strong>@buttonValue</strong>
+    }
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu">

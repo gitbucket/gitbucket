@@ -35,7 +35,7 @@
               }.getOrElse("No one is assigned")
             </span>
             @if(hasWritePermission){
-              @helper.html.dropdown {
+              @helper.html.dropdown() {
                 <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
                 <li class="divider"></li>
                 @collaborators.map { collaborator =>
@@ -52,7 +52,7 @@
                 }.getOrElse("No milestone")
               </span>
               @if(hasWritePermission){
-                @helper.html.dropdown {
+                @helper.html.dropdown() {
                   <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> No milestone</a></li>
                   <li class="divider"></li>
                   @milestones.map { milestone =>
@@ -124,7 +124,7 @@
       <strong>Labels</strong>
       @if(hasWritePermission){
         <div class="pull-right">
-          @helper.html.dropdown {
+          @helper.html.dropdown() {
             @labels.map { label =>
               <li>
                 <a href="#" class="toggle-label" data-label-id="@label.labelId">
@@ -134,7 +134,6 @@
                 </a>
               </li>
             }
-            </ul>
           }
         </div>
       }

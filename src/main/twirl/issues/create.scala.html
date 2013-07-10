@@ -19,7 +19,7 @@
             <span id="label-assigned">No one is assigned</span>
             @if(hasWritePermission){
               <input type="hidden" name="assignedUserName" value=""/>
-              @helper.html.dropdown {
+              @helper.html.dropdown() {
                 <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
                 <li class="divider"></li>
                 @collaborators.map { collaborator =>
@@ -31,7 +31,7 @@
               <span id="label-milestone">No milestone</span>
               @if(hasWritePermission){
                 <input type="hidden" name="milestoneId" value=""/>
-                @helper.html.dropdown {
+                @helper.html.dropdown() {
                   <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> No milestone</a></li>
                   <li class="divider"></li>
                   @milestones.map { milestone =>
