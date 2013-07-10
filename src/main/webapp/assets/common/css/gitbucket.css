@@ -305,6 +305,11 @@ th, td, .table th, .table td {
   padding-bottom: 4px;
 }
 
+div.commit-avatar-image {
+  float: left;
+  margin-right: 4px;
+}
+
 pre.commit-description {
   font-weight: normal;
   border: none;
