@@ -7,7 +7,10 @@
   @activities.map { activity =>
     <div class="block">
       <div class="muted small">@datetime(activity.activityDate)</div>
-      <div class="strong">@activityMessage(activity.message)</div>
+      <div class="strong">
+        @helper.html.avatar(activity.activityUserName, 16)
+        @activityMessage(activity.message)
+      </div>
       @activity.additionalInfo.map { additionalInfo =>
         @(activity.activityType match {
           case "create_wiki" => {

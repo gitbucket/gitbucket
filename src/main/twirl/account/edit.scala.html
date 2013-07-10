@@ -50,7 +50,7 @@
       }
       <input type="hidden" name="fileId" value=""/>
     </fieldset>
-    <fieldset class="buttons">
+    <fieldset class="margin">
       @if(account.isDefined){
         <input type="submit" class="btn btn-success" value="Save"/>
         <a href="@url(account.get.userName)" class="btn">Cancel</a>
@@ -93,9 +93,5 @@ div#avatar {
   border: 1px dashed silver;
   width: 120px;
   height: 120px;
-}
-
-fieldset.buttons {
-  margin-top: 20px;
 }
 </style>
