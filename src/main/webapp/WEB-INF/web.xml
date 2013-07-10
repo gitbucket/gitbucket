@@ -5,12 +5,19 @@
       version="3.0">
 
   <!-- ===================================================================== -->
+  <!-- Session configuration -->
+  <!-- ===================================================================== -->
+  <listener>
+    <listener-class>servlet.SessionCleanipListener</listener-class>
+  </listener>
+
+  <!-- ===================================================================== -->
   <!-- Scalatra configuration -->
   <!-- ===================================================================== -->
   <listener>
     <listener-class>org.scalatra.servlet.ScalatraListener</listener-class>
   </listener>
-  
+
   <servlet>
     <servlet-name>GitRepositoryServlet</servlet-name>
     <servlet-class>servlet.GitRepositoryServlet</servlet-class>
