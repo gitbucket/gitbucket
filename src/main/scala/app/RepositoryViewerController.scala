@@ -218,8 +218,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     } else {
       JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
         val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
-        //val objectId = git.getRepository.resolve(revstr2)
-
         // get specified commit
         revisions.map { rev => (git.getRepository.resolve(rev), rev)}.find(_._1 != null).map { case (objectId, revision) =>
           val revCommit = JGitUtil.getRevCommitFromId(git, objectId)
