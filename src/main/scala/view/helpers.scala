@@ -81,11 +81,8 @@ object helpers {
    * Looks up Gravatar if avatar icon has not been configured in user settings.
    */
   def avatar(userName: String, size: Int, tooltip: Boolean = false)(implicit context: app.Context): Html = {
-    val account = Option(context.request.getAttribute("cache.account." + userName).asInstanceOf[model.Account]).orElse {
-      new AccountService {}.getAccountByUserName(userName).map { account =>
-        context.request.setAttribute("cache.account." + userName, account)
-        account
-      }
+    val account = context.cache(s"account.${userName}"){
+      new AccountService {}.getAccountByUserName(userName)
     }
     val src = account.collect { case account if(account.image.isEmpty) =>
       s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""

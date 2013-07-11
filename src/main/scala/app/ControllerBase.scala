@@ -95,7 +95,23 @@ abstract class ControllerBase extends ScalatraFilter
 /**
  * Context object for the current request.
  */
-case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest)
+case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest){
+
+  /**
+   * Get object from cache.
+   *
+   * If object has not been cached with the specified key then retrieves by given action.
+   * Cached object are available during a request.
+   */
+  def cache[A](key: String)(action: => A): A = {
+    Option(request.getAttribute("cache." + key).asInstanceOf[A]).getOrElse {
+      val newObject = action
+      request.setAttribute("cache." + key, newObject)
+      newObject
+    }
+  }
+
+}
 
 /**
  * Base trait for controllers which manages account information.
