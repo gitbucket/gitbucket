@@ -47,7 +47,10 @@ trait WikiControllerBase extends ControllerBase {
     val pageName = params("page")
 
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
-      wiki.html.history(Some(pageName), JGitUtil.getCommitLog(git, "master", path = pageName + ".md")._1, repository)
+      JGitUtil.getCommitLog(git, "master", path = pageName + ".md") match {
+        case Right((logs, hasNext)) => wiki.html.history(Some(pageName), logs, repository)
+        case Left(_) => NotFound
+      }
     }
   })
   
@@ -117,7 +120,10 @@ trait WikiControllerBase extends ControllerBase {
   
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
-      wiki.html.history(None, JGitUtil.getCommitLog(git, "master")._1, repository)
+      JGitUtil.getCommitLog(git, "master") match {
+        case Right((logs, hasNext)) => wiki.html.history(None, logs, repository)
+        case Left(_) => NotFound
+      }
     }
   })
 
