@@ -52,7 +52,6 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     } catch {
       case ex: Exception => {
         logger.error("error", ex)
-        ex.printStackTrace()
         requireAuth(response)
       }
     }
