@@ -105,8 +105,6 @@ class GitBucketHtmlSerializer(
       .replaceAll("(^|\\W)@([a-zA-Z0-9\\-_]+)(\\W|$)", s"""$$1<a href="${context.path}/$$2">@$$2</a>$$3""")
     else node.getText
 
-    println(text)
-
     if (abbreviations.isEmpty) {
       printer.print(text)
     } else {
