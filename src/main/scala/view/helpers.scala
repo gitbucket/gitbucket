@@ -90,9 +90,9 @@ object helpers {
       s"""${context.path}/${userName}/_avatar"""
     }
     if(tooltip){
-      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}:px" data-toggle="tooltip" title=${userName}/>""")
+      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}px;" data-toggle="tooltip" title=${userName}/>""")
     } else {
-      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}:px" />""")
+      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}px;" />""")
     }
   }
 
