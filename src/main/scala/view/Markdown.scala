@@ -99,10 +99,13 @@ class GitBucketHtmlSerializer(
   }
 
   override def visit(node: TextNode) {
-    // convert commit id to link.
-    val text = if(enableCommitLink) node.getText.replaceAll("(^|\\W)([0-9a-f]{40})(\\W|$)",
-      s"""<a href="${context.path}/${repository.owner}/${repository.name}/commit/$$2">$$2</a>""")
+    // convert commit id and username to link.
+    val text = if(enableCommitLink) node.getText
+      .replaceAll("(^|\\W)([0-9a-f]{40})(\\W|$)", s"""$$1<a href="${context.path}/${repository.owner}/${repository.name}/commit/$$2">$$2</a>$$3""")
+      .replaceAll("(^|\\W)@([a-zA-Z0-9\\-_]+)(\\W|$)", s"""$$1<a href="${context.path}/$$2">@$$2</a>$$3""")
     else node.getText
+
+    println(text)
 
     if (abbreviations.isEmpty) {
       printer.print(text)
