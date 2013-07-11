@@ -11,10 +11,11 @@
   <form action="@url(repository)/issues/new" method="POST" validate="true">
   <div class="row-fluid">
     <div class="span9">
-      <div class="box">
+      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+      <div class="box issue-box">
         <div class="box-content">
           <span id="error-title" class="error"></span>
-          <input type="text" name="title" value="" placeholder="Title" style="width: 650px;"/>
+          <input type="text" name="title" value="" placeholder="Title" style="width: 600px;"/>
           <div>
             <span id="label-assigned">No one is assigned</span>
             @if(hasWritePermission){
@@ -42,10 +43,12 @@
             </div>
           </div>
           <hr>
-          @helper.html.preview(repository, "", false, true, true, "width: 650px; height: 200px;")
+          @helper.html.preview(repository, "", false, true, true, "width: 600px; height: 200px;")
         </div>
       </div>
-      <input type="submit" class="btn btn-success" value="Submit new issue"/>
+      <div class="pull-right">
+        <input type="submit" class="btn btn-success" value="Submit new issue"/>
+      </div>
     </div>
     <div class="span3">
       @if(hasWritePermission){
