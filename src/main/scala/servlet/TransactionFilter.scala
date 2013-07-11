@@ -21,7 +21,6 @@ class TransactionFilter extends Filter {
       // assets don't need transaction
       chain.doFilter(req, res)
     } else {
-      // TODO begin transaction!
       val context = req.getServletContext
       Database.forURL(context.getInitParameter("db.url"),
           context.getInitParameter("db.user"),
