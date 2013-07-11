@@ -1,7 +1,7 @@
 package app
 
 import util.Directory._
-import util.UsersAuthenticator
+import util.{JGitUtil, UsersAuthenticator, ReferrerAuthenticator}
 import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
@@ -11,23 +11,30 @@ import jp.sf.amateras.scalatra.forms._
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-  with UsersAuthenticator
+  with UsersAuthenticator with ReferrerAuthenticator
 
 /**
  * Creates new repository.
  */
 trait CreateRepositoryControllerBase extends ControllerBase {
   self: RepositoryService with WikiService with LabelsService with ActivityService
-    with UsersAuthenticator =>
+    with UsersAuthenticator with ReferrerAuthenticator =>
 
   case class RepositoryCreationForm(name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
 
-  val form = mapping(
+  case class ForkRepositoryForm(owner: String, name: String)
+
+  val newForm = mapping(
     "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
     "createReadme" -> trim(label("Create README"  , boolean()))
   )(RepositoryCreationForm.apply)
+
+  val forkForm = mapping(
+    "owner" -> trim(label("Repository owner", text(required))),
+    "name"  -> trim(label("Repository name",  text(required)))
+  )(ForkRepositoryForm.apply)
 
   /**
    * Show the new repository form.
@@ -39,7 +46,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   /**
    * Create new repository.
    */
-  post("/new", form)(usersOnly { form =>
+  post("/new", newForm)(usersOnly { form =>
     val loginAccount  = context.loginAccount.get
     val loginUserName = loginAccount.userName
 
@@ -47,12 +54,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     createRepository(form.name, loginUserName, form.description, form.isPrivate)
 
     // Insert default labels
-    createLabel(loginUserName, form.name, "bug", "fc2929")
-    createLabel(loginUserName, form.name, "duplicate", "cccccc")
-    createLabel(loginUserName, form.name, "enhancement", "84b6eb")
-    createLabel(loginUserName, form.name, "invalid", "e6e6e6")
-    createLabel(loginUserName, form.name, "question", "cc317c")
-    createLabel(loginUserName, form.name, "wontfix", "ffffff")
+    insertDefaultLabels(loginUserName, form.name)
 
     // Create the actual repository
     val gitdir = getRepositoryDir(loginUserName, form.name)
@@ -97,7 +99,50 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     // redirect to the repository
     redirect("/%s/%s".format(loginUserName, form.name))
   })
-  
+
+  post("/:owner/:repository/_fork")(referrersOnly { repository =>
+    val loginAccount   = context.loginAccount.get
+    val loginUserName  = loginAccount.userName
+
+    if(getRepository(loginUserName, repository.name, baseUrl).isEmpty){
+      // Insert to the database at first
+      // TODO Is private repository cloneable?
+      createRepository(repository.name, loginUserName, repository.repository.description,
+        repository.repository.isPrivate, Some(repository.name), Some(repository.owner))
+
+      // Insert default labels
+      insertDefaultLabels(loginUserName, repository.name)
+
+      // clone repository actually
+      val git = Git.cloneRepository
+        .setURI(getRepositoryDir(repository.owner, repository.name).toURI.toString)
+        .setDirectory(getRepositoryDir(loginUserName, repository.name))
+        .setBare(true).call
+
+      val config = git.getRepository.getConfig
+      config.setBoolean("http", null, "receivepack", true)
+      config.save
+
+      // Create Wiki repository
+      // TODO Wiki repository should be cloned also!!
+      createWikiRepository(loginAccount, repository.name)
+
+      // TODO Record activity!!
+      //recordCreateRepositoryActivity(loginUserName, repositoryName, loginUserName)
+    }
+    // redirect to the repository
+    redirect("/%s/%s".format(loginUserName, repository.name))
+  })
+
+  private def insertDefaultLabels(userName: String, repositoryName: String): Unit = {
+    createLabel(userName, repositoryName, "bug", "fc2929")
+    createLabel(userName, repositoryName, "duplicate", "cccccc")
+    createLabel(userName, repositoryName, "enhancement", "84b6eb")
+    createLabel(userName, repositoryName, "invalid", "e6e6e6")
+    createLabel(userName, repositoryName, "question", "cc317c")
+    createLabel(userName, repositoryName, "wontfix", "ffffff")
+  }
+
   /**
    * Duplicate check for the repository name.
    */

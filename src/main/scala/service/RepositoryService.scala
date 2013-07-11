@@ -15,18 +15,23 @@ trait RepositoryService { self: AccountService =>
    * @param userName the user name of the repository owner
    * @param description the repository description
    * @param isPrivate the repository type (private is true, otherwise false)
+   * @param originRepositoryName specify for the forked repository. (default is None)
+   * @param originUserName specify for the forked repository. (default is None)
    */
-  def createRepository(repositoryName: String, userName: String, description: Option[String], isPrivate: Boolean): Unit = {
+  def createRepository(repositoryName: String, userName: String, description: Option[String], isPrivate: Boolean,
+                       originRepositoryName: Option[String] = None, originUserName: Option[String] = None): Unit = {
     Repositories insert
       Repository(
-        userName         = userName,
-        repositoryName   = repositoryName,
-        isPrivate        = isPrivate,
-        description      = description,
-        defaultBranch    = "master",
-        registeredDate   = currentDate,
-        updatedDate      = currentDate,
-        lastActivityDate = currentDate)
+        userName             = userName,
+        repositoryName       = repositoryName,
+        isPrivate            = isPrivate,
+        description          = description,
+        defaultBranch        = "master",
+        registeredDate       = currentDate,
+        updatedDate          = currentDate,
+        lastActivityDate     = currentDate,
+        originUserName       = originUserName,
+        originRepositoryName = originRepositoryName)
     
     IssueId insert (userName, repositoryName, 0)
   }

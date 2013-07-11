@@ -6,6 +6,7 @@
   @if(repository.repository.isPrivate){
     <i class="icon-lock"></i>
   }
+  <input type="button" id="fork" class="btn" value="Fork"/>
 </div>
 <table class="global-nav box-header">
   <tr>
@@ -25,11 +26,21 @@
     }
   </tr>  
 </table>
+<form method="POST" id="repository_form">
+  <input type="hidden" name="owner" value="@repository.owner"/>
+  <input type="hidden" name="name" value="@repository.name"/>
+</form>
 <script type="text/javascript">
 $(function(){
   $('table.global-nav th.box-header').click(function(){
     location.href = $(this).find('a').attr('href');
     return false;
+  });
+
+  $('#fork').click(function(){
+    var form = $('form#repository_form');
+    form.attr('action', '@path/_fork');
+    form.submit();
   });
 });
 </script>
