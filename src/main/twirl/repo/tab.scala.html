@@ -1,14 +1,20 @@
-@(id: String, repository: service.RepositoryService.RepositoryInfo, active: String)(implicit context: app.Context)
+@(id: String, repository: service.RepositoryService.RepositoryInfo, active: String,
+  hideBranchPulldown: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 <ul class="nav nav-tabs">
+  @if(!hideBranchPulldown){
   <li>
     <div class="btn-group" style="margin-right: 20px;">
       <button class="btn dropdown-toggle" data-toggle="dropdown">
         @if(id.length == 40){
           tree: <strong>@id.substring(0, 10)</strong>
-        } else {
+        }
+        @if(repository.branchList.contains(id)){
           branch: <strong>@id</strong>
+        }
+        @if(repository.tags.exists(_.name == id)){
+          tag: <strong>@id</strong>
         }
         <span class="caret"></span>
       </button>
@@ -19,6 +25,7 @@
       </ul>
     </div>
   </li>
+  }
   <li@if(active=="files"){ class="active"}><a href="@url(repository)/tree/@id">Files</a></li>
   <li@if(active=="commits"){ class="active"}><a href="@url(repository)/commits/@id">Commits</a></li>
   <li@if(active=="tags"){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
