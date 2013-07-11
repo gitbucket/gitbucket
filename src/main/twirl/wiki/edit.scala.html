@@ -13,9 +13,9 @@
     <li class="pull-right">
       <div class="btn-group">
       @if(pageName != ""){
-        <a class="btn" href="@url(repository)/wiki/@pageName">View Page</a>
-        <a class="btn" href="@url(repository)/wiki/@pageName/_delete" id="delete">Delete Page</a>
-        <a class="btn" href="@url(repository)/wiki/@pageName/_history">Page History</a>
+        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
+        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_delete" id="delete">Delete Page</a>
+        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
       }
       </div>
     </li>

@@ -1,7 +1,7 @@
 package app
 
 import service._
-import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, JGitUtil}
+import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, JGitUtil, StringUtil}
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 
@@ -16,14 +16,14 @@ trait WikiControllerBase extends ControllerBase {
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
   
   val newForm = mapping(
-    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), identifier, unique))),
+    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pagename, unique))),
     "content"         -> trim(label("Content"            , text(required))),
     "message"         -> trim(label("Message"            , optional(text()))),
     "currentPageName" -> trim(label("Current page name"  , text()))
   )(WikiPageEditForm.apply)
   
   val editForm = mapping(
-    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), identifier))),
+    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pagename))),
     "content"         -> trim(label("Content"            , text(required))),
     "message"         -> trim(label("Message"            , optional(text()))),
     "currentPageName" -> trim(label("Current page name"  , text(required)))
@@ -36,7 +36,7 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/:page")(referrersOnly { repository =>
-    val pageName = params("page")
+    val pageName = StringUtil.urlDecode(params("page"))
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       wiki.html.page(pageName, page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
@@ -44,7 +44,7 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/:page/_history")(referrersOnly { repository =>
-    val pageName = params("page")
+    val pageName = StringUtil.urlDecode(params("page"))
 
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
       JGitUtil.getCommitLog(git, "master", path = pageName + ".md") match {
@@ -55,7 +55,7 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/:page/_compare/:commitId")(referrersOnly { repository =>
-    val pageName = params("page")
+    val pageName = StringUtil.urlDecode(params("page"))
     val commitId = params("commitId").split("\\.\\.\\.")
 
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
@@ -72,7 +72,7 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/:page/_edit")(collaboratorsOnly { repository =>
-    val pageName = params("page")
+    val pageName = StringUtil.urlDecode(params("page"))
     wiki.html.edit(pageName, getWikiPage(repository.owner, repository.name, pageName), repository)
   })
   
@@ -85,7 +85,7 @@ trait WikiControllerBase extends ControllerBase {
     updateLastActivityDate(repository.owner, repository.name)
     recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
-    redirect(s"/${repository.owner}/${repository.name}/wiki/${form.pageName}")
+    redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
   })
   
   get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
@@ -101,11 +101,11 @@ trait WikiControllerBase extends ControllerBase {
     updateLastActivityDate(repository.owner, repository.name)
     recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
-    redirect(s"/${repository.owner}/${repository.name}/wiki/${form.pageName}")
+    redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
   })
   
   get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly { repository =>
-    val pageName = params("page")
+      val pageName = StringUtil.urlDecode(params("page"))
     
     deleteWikiPage(repository.owner, repository.name, pageName, context.loginAccount.get.userName, s"Delete ${pageName}")
     updateLastActivityDate(repository.owner, repository.name)
@@ -138,5 +138,17 @@ trait WikiControllerBase extends ControllerBase {
     def validate(name: String, value: String): Option[String] =
       getWikiPageList(params("owner"), params("repository")).find(_ == value).map(_ => "Page already exists.")
   }
+
+  private def pagename: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      if(value.exists("\\/:*?\"<>|".contains(_))){
+        Some(s"${name} contains invalid character.")
+      } else if(value.startsWith("_") || value.startsWith("-")){
+        Some(s"${name} starts with invalid character.")
+      } else {
+        None
+      }
+  }
+
 
 }

@@ -23,9 +23,9 @@
             <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
           }
         } else {
-          <a class="btn" href="@url(repository)/wiki/@pageName">View Page</a>
+          <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
           @if(loginAccount.isDefined){
-            <a class="btn" href="@url(repository)/wiki/@pageName/_edit">Edit Page</a>
+            <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
           }
         }
       </div>
@@ -58,7 +58,7 @@
           location.href = '@url(repository)/wiki/_compare/' +
             $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
         } else {
-          location.href = '@url(repository)/wiki/@pageName.get/_compare/' +
+          location.href = '@url(repository)/wiki/@urlEncode(pageName.get)/_compare/' +
             $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
         }
       }

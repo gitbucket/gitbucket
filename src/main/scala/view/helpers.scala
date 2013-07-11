@@ -44,6 +44,10 @@ object helpers {
       .replaceAll("\\[user:([^\\s]+?)\\]"                        , s"""<a href="${context.path}/$$1">$$1</a>""")
     )
 
+  def urlEncode(value: String): String = StringUtil.urlEncode(value)
+
+  def urlEncode(value: Option[String]): String = value.map(urlEncode).getOrElse("")
+
   /**
    * Generates the url to the repository.
    */
