@@ -8,7 +8,7 @@
   <!-- Session configuration -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>servlet.SessionCleanipListener</listener-class>
+    <listener-class>servlet.SessionCleanupListener</listener-class>
   </listener>
 
   <!-- ===================================================================== -->
