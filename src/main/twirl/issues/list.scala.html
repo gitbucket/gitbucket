@@ -179,6 +179,7 @@
           </td>
         </tr>
       } else {
+        @if(hasWritePermission){
         <tr>
           <td style="background-color: #eee;">
             <div class="btn-group">
@@ -211,6 +212,7 @@
             }
           </td>
         </tr>
+        }
       }
       @issues.map { case (issue, labels, commentCount) =>
         <tr>
