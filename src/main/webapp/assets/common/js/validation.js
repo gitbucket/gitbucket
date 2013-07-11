@@ -2,6 +2,12 @@ $(function(){
   $.each($('form[validate=true]'), function(i, form){
     $(form).submit(validate);
   });
+  $.each($('input[formaction]'), function(i, input){
+    $(input).click(function(){
+      var form = $(input).parents('form')
+      $(form).attr('action', $(input).attr('formaction'))
+    });
+  });
 });
 
 function validate(e){
@@ -19,6 +25,7 @@ function validate(e){
       form.data('validated', true);
       form.submit();
     } else {
+      form.data('validated', false);
       displayErrors(data);
     }
   }, 'json');
