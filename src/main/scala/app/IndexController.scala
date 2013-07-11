@@ -9,10 +9,13 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
   with SystemSettingsService with ActivityService =>
   
   get("/"){
+    val loginAccount = context.loginAccount
+
     html.index(getRecentActivities(),
-      getAccessibleRepositories(context.loginAccount, baseUrl),
+      getAccessibleRepositories(loginAccount, baseUrl),
       loadSystemSettings(),
-      context.loginAccount.map{ account => getRepositoryNamesOfUser(account.userName) }.getOrElse(Nil))
+      loginAccount.map{ account => getRepositoryNamesOfUser(account.userName) }.getOrElse(Nil)
+    )
   }
 
 }

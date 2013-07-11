@@ -76,7 +76,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
 
       updateImage(userName, form.fileId, form.clearImage)
       flash += "info" -> "Account information has been updated."
-      redirect("/%s/_edit".format(userName))
+      redirect(s"/${userName}/_edit")
 
     } getOrElse NotFound
   })

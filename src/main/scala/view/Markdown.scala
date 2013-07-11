@@ -101,7 +101,7 @@ class GitBucketHtmlSerializer(
   override def visit(node: TextNode) {
     // convert commit id to link.
     val text = if(enableCommitLink) node.getText.replaceAll("(^|\\W)([0-9a-f]{40})(\\W|$)",
-      "<a href=\"%s/%s/%s/commit/$2\">$2</a>".format(context.path, repository.owner, repository.name))
+      s"""<a href="${context.path}/${repository.owner}/${repository.name}/commit/$$2">$$2</a>""")
     else node.getText
 
     if (abbreviations.isEmpty) {
@@ -116,7 +116,7 @@ class GitBucketHtmlSerializer(
     if(enableIssueLink && text.matches("#[\\d]+")){
       // convert issue id to link
       val issueId = text.substring(1).toInt
-      printer.print("<a href=\"%s/%s/%s/issues/%d\">#%d</a>".format(context.path, repository.owner, repository.name, issueId, issueId))
+      printer.print(s"""<a href="${context.path}/${repository.owner}/${repository.name}/issues/${issueId}">#${issueId}</a>""")
     } else {
       printTag(node, "h" + node.getLevel)
     }

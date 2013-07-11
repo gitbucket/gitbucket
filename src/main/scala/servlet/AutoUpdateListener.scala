@@ -25,7 +25,7 @@ object AutoUpdate {
      * If corresponding SQL file does not exist, this method do nothing.
      */
     def update(conn: Connection): Unit = {
-      val sqlPath = "update/%d_%d.sql".format(majorVersion, minorVersion)
+      val sqlPath = s"update/${majorVersion}_${minorVersion}.sql"
       val in = Thread.currentThread.getContextClassLoader.getResourceAsStream(sqlPath)
       if(in != null){
         val sql = IOUtils.toString(in, "UTF-8")
@@ -42,7 +42,7 @@ object AutoUpdate {
     /**
      * MAJOR.MINOR
      */
-    val versionString = "%d.%d".format(majorVersion, minorVersion)
+    val versionString = s"${majorVersion}.${minorVersion}"
   }
   
   /**

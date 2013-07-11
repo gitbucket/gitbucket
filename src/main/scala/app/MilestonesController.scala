@@ -35,7 +35,7 @@ trait MilestonesControllerBase extends ControllerBase {
 
   post("/:owner/:repository/issues/milestones/new", milestoneForm)(collaboratorsOnly { (form, repository) =>
     createMilestone(repository.owner, repository.name, form.title, form.description, form.dueDate)
-    redirect("/%s/%s/issues/milestones".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/edit")(collaboratorsOnly { repository =>
@@ -45,28 +45,28 @@ trait MilestonesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(collaboratorsOnly { (form, repository) =>
     getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
       updateMilestone(milestone.copy(title = form.title, description = form.description, dueDate = form.dueDate))
-      redirect("/%s/%s/issues/milestones".format(repository.owner, repository.name))
+      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
     } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/close")(collaboratorsOnly { repository =>
     getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
       closeMilestone(milestone)
-      redirect("/%s/%s/issues/milestones".format(repository.owner, repository.name))
+      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
     } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/open")(collaboratorsOnly { repository =>
     getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
       openMilestone(milestone)
-      redirect("/%s/%s/issues/milestones".format(repository.owner, repository.name))
+      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
     } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/delete")(collaboratorsOnly { repository =>
     getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
       deleteMilestone(repository.owner, repository.name, milestone.milestoneId)
-      redirect("/%s/%s/issues/milestones".format(repository.owner, repository.name))
+      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
     } getOrElse NotFound
   })
 

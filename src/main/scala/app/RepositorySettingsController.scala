@@ -31,7 +31,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Redirect to the Options page.
    */
   get("/:owner/:repository/settings")(ownerOnly { repository =>
-    redirect("/%s/%s/settings/options".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/settings/options")
   })
   
   /**
@@ -47,7 +47,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
     saveRepositoryOptions(repository.owner, repository.name, form.description, form.defaultBranch, form.isPrivate)
     flash += "info" -> "Repository settings has been updated."
-    redirect("/%s/%s/settings/options".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/settings/options")
   })
   
   /**
@@ -70,7 +70,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { (form, repository) =>
     addCollaborator(repository.owner, repository.name, form.userName)
-    redirect("/%s/%s/settings/collaborators".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 
   /**
@@ -78,7 +78,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   get("/:owner/:repository/settings/collaborators/remove")(ownerOnly { repository =>
     removeCollaborator(repository.owner, repository.name, params("name"))
-    redirect("/%s/%s/settings/collaborators".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 
   /**
@@ -98,7 +98,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
     FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
 
-    redirect("/%s".format(repository.owner))
+    redirect(s"/${repository.owner}")
   })
 
   /**

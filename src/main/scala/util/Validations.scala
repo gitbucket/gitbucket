@@ -11,9 +11,9 @@ trait Validations {
   def identifier: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
       if(!value.matches("^[a-zA-Z0-9\\-_]+$")){
-        Some("%s contains invalid character.".format(name))
+        Some(s"${name} contains invalid character.")
       } else if(value.startsWith("_") || value.startsWith("-")){
-        Some("%s starts with invalid character.".format(name))
+        Some(s"${name} starts with invalid character.")
       } else {
         None
       }

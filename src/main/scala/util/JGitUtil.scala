@@ -153,7 +153,7 @@ object JGitUtil {
         }
 
         RepositoryInfo(
-          owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository),
+          owner, repository, s"${baseUrl}/git/${owner}/${repository}.git",
           // commit count
           commitCount,
           // branches
@@ -169,7 +169,7 @@ object JGitUtil {
       } catch {
         // not initialized
         case e: NoHeadException => RepositoryInfo(
-          owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository), 0, Nil, Nil)
+          owner, repository, s"${baseUrl}/git/${owner}/${repository}.git", 0, Nil, Nil)
 
       }
     }
