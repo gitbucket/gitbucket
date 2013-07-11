@@ -58,13 +58,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
 
     // Create the actual repository
     val gitdir = getRepositoryDir(loginUserName, form.name)
-    val repository = new RepositoryBuilder().setGitDir(gitdir).setBare.build
-
-    repository.create
-
-    val config = repository.getConfig
-    config.setBoolean("http", null, "receivepack", true)
-    config.save
+    JGitUtil.initRepository(gitdir)
 
     if(form.createReadme){
       val tmpdir = getInitRepositoryDir(loginUserName, form.name)
@@ -114,21 +108,17 @@ trait CreateRepositoryControllerBase extends ControllerBase {
       insertDefaultLabels(loginUserName, repository.name)
 
       // clone repository actually
-      val git = Git.cloneRepository
-        .setURI(getRepositoryDir(repository.owner, repository.name).toURI.toString)
-        .setDirectory(getRepositoryDir(loginUserName, repository.name))
-        .setBare(true).call
-
-      val config = git.getRepository.getConfig
-      config.setBoolean("http", null, "receivepack", true)
-      config.save
+      JGitUtil.cloneRepository(
+        getRepositoryDir(repository.owner, repository.name),
+        getRepositoryDir(loginUserName, repository.name))
 
       // Create Wiki repository
-      // TODO Wiki repository should be cloned also!!
-      createWikiRepository(loginAccount, repository.name)
+      JGitUtil.cloneRepository(
+        getWikiRepositoryDir(repository.owner, repository.name),
+        getWikiRepositoryDir(loginUserName, repository.name))
 
-      // TODO Record activity!!
-      //recordCreateRepositoryActivity(loginUserName, repositoryName, loginUserName)
+      // Record activity
+      recordForkActivity(repository.owner, repository.name, loginUserName)
     }
     // redirect to the repository
     redirect("/%s/%s".format(loginUserName, repository.name))

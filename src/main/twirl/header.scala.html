@@ -1,12 +1,21 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
+<div class="pull-right">
+  <input type="button" id="fork" class="btn" value="Fork" style="margin-bottom: 10px;"/>
+</div>
 <div class="head">
   <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)">@repository.name</a>
   @if(repository.repository.isPrivate){
     <i class="icon-lock"></i>
   }
-  <input type="button" id="fork" class="btn" value="Fork"/>
+  @defining(repository.repository){ x =>
+    @if(repository.repository.originRepositoryName.isDefined){
+      <div class="forked">
+        forked from <a href="@path/@x.originUserName/@x.originRepositoryName">@x.originUserName/@x.originRepositoryName</a>
+      </div>
+    }
+  }
 </div>
 <table class="global-nav box-header">
   <tr>
@@ -27,8 +36,6 @@
   </tr>  
 </table>
 <form method="POST" id="repository_form">
-  <input type="hidden" name="owner" value="@repository.owner"/>
-  <input type="hidden" name="name" value="@repository.name"/>
 </form>
 <script type="text/javascript">
 $(function(){
@@ -39,7 +46,7 @@ $(function(){
 
   $('#fork').click(function(){
     var form = $('form#repository_form');
-    form.attr('action', '@path/_fork');
+    form.attr('action', '@path/@repository.owner/@repository.name/_fork');
     form.submit();
   });
 });

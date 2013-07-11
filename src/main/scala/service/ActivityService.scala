@@ -102,7 +102,14 @@ trait ActivityService {
       s"[user:${activityUserName}] created branch [tag:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
       None,
       currentDate)
-  
+
+  def recordForkActivity(userName: String, repositoryName: String, activityUserName: String) =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "forkk",
+      s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${activityUserName}/${repositoryName}]",
+      None,
+      currentDate)
+
   def insertCommitId(userName: String, repositoryName: String, commitId: String) = {
     CommitLog insert (userName, repositoryName, commitId)
   }

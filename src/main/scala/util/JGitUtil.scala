@@ -502,4 +502,29 @@ object JGitUtil {
     }
   }
 
+  def initRepository(dir: java.io.File): Unit = {
+    val repository = new RepositoryBuilder().setGitDir(dir).setBare.build
+    try {
+      repository.create
+      setReceivePack(repository)
+    } finally {
+      repository.close
+    }
+  }
+
+  def cloneRepository(from: java.io.File, to: java.io.File): Unit = {
+    val git = Git.cloneRepository.setURI(from.toURI.toString).setDirectory(to).setBare(true).call
+    try {
+      setReceivePack(git.getRepository)
+    } finally {
+      git.getRepository.close
+    }
+  }
+
+  private def setReceivePack(repository: org.eclipse.jgit.lib.Repository): Unit = {
+    val config = repository.getConfig
+    config.setBoolean("http", null, "receivepack", true)
+    config.save
+  }
+
 }
