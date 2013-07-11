@@ -70,7 +70,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       updateAccount(account.copy(
-        password    = form.password.map(encrypt).getOrElse(account.password),
+        password    = form.password.map(sha1).getOrElse(account.password),
         mailAddress = form.mailAddress,
         url         = form.url))
 
@@ -93,7 +93,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
 
   post("/register", newForm){ form =>
     if(loadSystemSettings().allowAccountRegistration){
-      createAccount(form.userName, encrypt(form.password), form.mailAddress, false, form.url)
+      createAccount(form.userName, sha1(form.password), form.mailAddress, false, form.url)
       updateImage(form.userName, form.fileId, false)
       redirect("/signin")
     } else NotFound

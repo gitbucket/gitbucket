@@ -47,7 +47,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   })
   
   post("/admin/users/_new", newForm)(adminOnly { form =>
-    createAccount(form.userName, encrypt(form.password), form.mailAddress, form.isAdmin, form.url)
+    createAccount(form.userName, sha1(form.password), form.mailAddress, form.isAdmin, form.url)
     updateImage(form.userName, form.fileId, false)
     redirect("/admin/users")
   })
@@ -61,7 +61,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       updateAccount(getAccountByUserName(userName).get.copy(
-        password     = form.password.map(encrypt).getOrElse(account.password),
+        password     = form.password.map(sha1).getOrElse(account.password),
         mailAddress  = form.mailAddress,
         isAdmin      = form.isAdmin,
         url          = form.url))

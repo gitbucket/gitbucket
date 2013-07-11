@@ -25,7 +25,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
 
   post("/signin", form){ form =>
     val account = getAccountByUserName(form.userName)
-    if(account.isEmpty || account.get.password != encrypt(form.password)){
+    if(account.isEmpty || account.get.password != sha1(form.password)){
       redirect("/signin")
     } else {
       session.setAttribute("LOGIN_ACCOUNT", account.get)

@@ -59,7 +59,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
 
   private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean = {
     getAccountByUserName(username).map { account =>
-      account.password == encrypt(password) && hasWritePermission(repository.owner, repository.name, Some(account))
+      account.password == sha1(password) && hasWritePermission(repository.owner, repository.name, Some(account))
     } getOrElse false
   }
   
