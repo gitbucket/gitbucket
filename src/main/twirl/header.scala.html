@@ -44,6 +44,7 @@ $(function(){
     return false;
   });
 
+  // TODO Execute by Ajax?
   $('#fork').click(function(){
     var form = $('form#repository_form');
     form.attr('action', '@path/@repository.owner/@repository.name/_fork');
