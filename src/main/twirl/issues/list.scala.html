@@ -217,8 +217,10 @@
       @issues.map { case (issue, labels, commentCount) =>
         <tr>
           <td>
+            @if(hasWritePermission){
             <label class="checkbox" style="cursor: default;">
               <input type="checkbox" value="@issue.issueId"/>
+            }
               <a href="@url(repository)/issues/@issue.issueId" class="issue-title">@issue.title</a>
               @labels.map { label =>
                 <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
