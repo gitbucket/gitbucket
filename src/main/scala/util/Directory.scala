@@ -13,13 +13,13 @@ object Directory {
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
   
-  val RepositoryHome = "%s/repositories".format(GitBucketHome)
+  val RepositoryHome = s"${GitBucketHome}/repositories"
   
   /**
    * Repository names of the specified user.
    */
   def getRepositories(owner: String): List[String] = {
-    val dir = new File("%s/%s".format(RepositoryHome, owner))
+    val dir = new File(s"${RepositoryHome}/${owner}")
     if(dir.exists){
       dir.listFiles.filter { file =>
         file.isDirectory && !file.getName.endsWith(".wiki.git") 
@@ -33,24 +33,24 @@ object Directory {
    * Substance directory of the repository.
    */
   def getRepositoryDir(owner: String, repository: String): File =
-    new File("%s/%s/%s.git".format(RepositoryHome, owner, repository))
+    new File(s"${RepositoryHome}/${owner}/${repository}.git")
 
   /**
    * Directory for uploaded files by the specified user.
    */
-  def getUserUploadDir(userName: String): File = new File("%s/data/%s/files".format(GitBucketHome, userName))
+  def getUserUploadDir(userName: String): File = new File(s"${GitBucketHome}/data/${userName}/files")
 
   /**
    * Root of temporary directories for the specified repository.
    */
   def getTemporaryDir(owner: String, repository: String): File =
-    new File("%s/tmp/%s/%s".format(GitBucketHome, owner, repository))
+    new File(s"${GitBucketHome}/tmp/${owner}/${repository}")
 
   /**
    * Temporary directory which is used to create an archive to download repository contents.
    */
   def getDownloadWorkDir(owner: String, repository: String, sessionId: String): File = 
-    new File(getTemporaryDir(owner, repository), "download/%s".format(sessionId))
+    new File(getTemporaryDir(owner, repository), s"download/${sessionId}")
   
   /**
    * Temporary directory which is used in the repository creation.
@@ -65,7 +65,7 @@ object Directory {
    * Substance directory of the wiki repository.
    */
   def getWikiRepositoryDir(owner: String, repository: String): File =
-    new File("%s/%s/%s.wiki.git".format(Directory.RepositoryHome, owner, repository))
+    new File(s"${RepositoryHome}/${owner}/${repository}.wiki.git")
   
   /**
    * Wiki working directory which is cloned from the wiki repository.

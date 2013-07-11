@@ -32,7 +32,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki")(referrersOnly { repository =>
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
       wiki.html.page("Home", page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
-    } getOrElse redirect("/%s/%s/wiki/Home/_edit".format(repository.owner, repository.name))
+    } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
   get("/:owner/:repository/wiki/:page")(referrersOnly { repository =>
@@ -40,14 +40,17 @@ trait WikiControllerBase extends ControllerBase {
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       wiki.html.page(pageName, page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
-    } getOrElse redirect("/%s/%s/wiki/%s/_edit".format(repository.owner, repository.name, pageName)) // TODO URLEncode
+    } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${pageName}/_edit") // TODO URLEncode
   })
   
   get("/:owner/:repository/wiki/:page/_history")(referrersOnly { repository =>
     val pageName = params("page")
 
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
-      wiki.html.history(Some(pageName), JGitUtil.getCommitLog(git, "master", path = pageName + ".md")._1, repository)
+      JGitUtil.getCommitLog(git, "master", path = pageName + ".md") match {
+        case Right((logs, hasNext)) => wiki.html.history(Some(pageName), logs, repository)
+        case Left(_) => NotFound
+      }
     }
   })
   
@@ -82,7 +85,7 @@ trait WikiControllerBase extends ControllerBase {
     updateLastActivityDate(repository.owner, repository.name)
     recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
-    redirect("/%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
+    redirect(s"/${repository.owner}/${repository.name}/wiki/${form.pageName}")
   })
   
   get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
@@ -98,16 +101,16 @@ trait WikiControllerBase extends ControllerBase {
     updateLastActivityDate(repository.owner, repository.name)
     recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
-    redirect("/%s/%s/wiki/%s".format(repository.owner, repository.name, form.pageName))
+    redirect(s"/${repository.owner}/${repository.name}/wiki/${form.pageName}")
   })
   
   get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly { repository =>
     val pageName = params("page")
     
-    deleteWikiPage(repository.owner, repository.name, pageName, context.loginAccount.get.userName, "Delete %s".format(pageName))
+    deleteWikiPage(repository.owner, repository.name, pageName, context.loginAccount.get.userName, s"Delete ${pageName}")
     updateLastActivityDate(repository.owner, repository.name)
 
-    redirect("/%s/%s/wiki".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/wiki")
   })
   
   get("/:owner/:repository/wiki/_pages")(referrersOnly { repository =>
@@ -117,7 +120,10 @@ trait WikiControllerBase extends ControllerBase {
   
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
-      wiki.html.history(None, JGitUtil.getCommitLog(git, "master")._1, repository)
+      JGitUtil.getCommitLog(git, "master") match {
+        case Right((logs, hasNext)) => wiki.html.history(None, logs, repository)
+        case Left(_) => NotFound
+      }
     }
   })
 

@@ -153,7 +153,7 @@ object JGitUtil {
         }
 
         RepositoryInfo(
-          owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository),
+          owner, repository, s"${baseUrl}/git/${owner}/${repository}.git",
           // commit count
           commitCount,
           // branches
@@ -169,7 +169,7 @@ object JGitUtil {
       } catch {
         // not initialized
         case e: NoHeadException => RepositoryInfo(
-          owner, repository, baseUrl + "/git/%s/%s.git".format(owner, repository), 0, Nil, Nil)
+          owner, repository, s"${baseUrl}/git/${owner}/${repository}.git", 0, Nil, Nil)
 
       }
     }
@@ -253,7 +253,7 @@ object JGitUtil {
    * @param path filters by this path. default is no filter.
    * @return a tuple of the commit list and whether has next
    */
-  def getCommitLog(git: Git, revision: String, page: Int = 1, limit: Int = 0, path: String = ""): (List[CommitInfo], Boolean) = {
+  def getCommitLog(git: Git, revision: String, page: Int = 1, limit: Int = 0, path: String = ""): Either[String, (List[CommitInfo], Boolean)] = {
     val fixedPage = if(page <= 0) 1 else page
     
     @scala.annotation.tailrec
@@ -267,20 +267,25 @@ object JGitUtil {
       }
     
     val revWalk = new RevWalk(git.getRepository)
-    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
-    if(path.nonEmpty){
-      revWalk.setRevFilter(new RevFilter(){
-        def include(walk: RevWalk, commit: RevCommit): Boolean = {
-          getDiffs(git, commit.getName, false).find(_.newPath == path).nonEmpty
-        }
-        override def clone(): RevFilter = this
-      })
+    val objectId = git.getRepository.resolve(revision)
+    if(objectId == null){
+      Left(s"${revision} can't be resolved.")
+    } else {
+      revWalk.markStart(revWalk.parseCommit(objectId))
+      if(path.nonEmpty){
+        revWalk.setRevFilter(new RevFilter(){
+          def include(walk: RevWalk, commit: RevCommit): Boolean = {
+            getDiffs(git, commit.getName, false).find(_.newPath == path).nonEmpty
+          }
+          override def clone(): RevFilter = this
+        })
+      }
+
+      val commits = getCommitLog(revWalk.iterator, 0, Nil)
+      revWalk.release
+
+      Right(commits)
     }
-    
-    val commits = getCommitLog(revWalk.iterator, 0, Nil)
-    revWalk.release
-    
-    commits
   }
   
   /**
@@ -500,6 +505,22 @@ object JGitUtil {
     } finally {
       walk.release
     }
+  }
+
+  def initRepository(dir: java.io.File): Unit = {
+    val repository = new RepositoryBuilder().setGitDir(dir).setBare.build
+    try {
+      repository.create
+      setReceivePack(repository)
+    } finally {
+      repository.close
+    }
+  }
+
+  private def setReceivePack(repository: org.eclipse.jgit.lib.Repository): Unit = {
+    val config = repository.getConfig
+    config.setBoolean("http", null, "receivepack", true)
+    config.save
   }
 
 }

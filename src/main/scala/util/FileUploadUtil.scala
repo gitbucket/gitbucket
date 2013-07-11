@@ -11,7 +11,7 @@ object FileUploadUtil {
     new SimpleDateFormat("yyyyMMddHHmmSSsss").format(new java.util.Date(System.currentTimeMillis))
 
   def TemporaryDir(implicit session: HttpSession): java.io.File =
-    new java.io.File(GitBucketHome, "tmp/_upload/%s".format(session.getId))
+    new java.io.File(GitBucketHome, s"tmp/_upload/${session.getId}")
 
   def getTemporaryFile(fileId: String)(implicit session: HttpSession): java.io.File =
     new java.io.File(TemporaryDir, fileId)

@@ -58,13 +58,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/commits/:branch")(referrersOnly { repository =>
     val branchName = params("branch")
     val page       = params.getOrElse("page", "1").toInt
-
     JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-      val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30)
-
-      repo.html.commits(Nil, branchName, repository, logs.splitWith{ (commit1, commit2) =>
-        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-      }, page, hasNext)
+      JGitUtil.getCommitLog(git, branchName, page, 30) match {
+        case Right((logs, hasNext)) =>
+          repo.html.commits(Nil, branchName, repository, logs.splitWith{ (commit1, commit2) =>
+            view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+          }, page, hasNext)
+        case Left(_) => NotFound
+      }
     }
   })
   
@@ -77,12 +78,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val page       = params.getOrElse("page", "1").toInt
 
     JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-      val (logs, hasNext) = JGitUtil.getCommitLog(git, branchName, page, 30, path)
-
-      repo.html.commits(path.split("/").toList, branchName, repository,
-        logs.splitWith{ (commit1, commit2) =>
-          view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-        }, page, hasNext)
+      JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
+        case Right((logs, hasNext)) =>
+          repo.html.commits(path.split("/").toList, branchName, repository,
+            logs.splitWith{ (commit1, commit2) =>
+              view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+            }, page, hasNext)
+        case Left(_) => NotFound
+      }
     }
   })
 
@@ -214,27 +217,23 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repo.html.guide(repository)
     } else {
       JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+        val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
-        val (revCommit, revision) = try {
-          val revision = if(revstr.isEmpty) repository.repository.defaultBranch else revstr
-          (JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision)), revision)
-        } catch {
-          case e: NullPointerException => {
-            val revision = repository.branchList.head
-            (JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision)), revision)
-          }
-        }
-        // get files
-        val files = JGitUtil.getFileList(git, revision, path)
-        // process README.md
-        val readme = files.find(_.name == "README.md").map { file =>
-          new String(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get, "UTF-8")
-        }
+        revisions.map { rev => (git.getRepository.resolve(rev), rev)}.find(_._1 != null).map { case (objectId, revision) =>
+          val revCommit = JGitUtil.getRevCommitFromId(git, objectId)
 
-        repo.html.files(revision, repository,
-          if(path == ".") Nil else path.split("/").toList, // current path
-          new JGitUtil.CommitInfo(revCommit), // latest commit
-          files, readme)
+          // get files
+          val files = JGitUtil.getFileList(git, revision, path)
+          // process README.md
+          val readme = files.find(_.name == "README.md").map { file =>
+            new String(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get, "UTF-8")
+          }
+
+          repo.html.files(revision, repository,
+            if(path == ".") Nil else path.split("/").toList, // current path
+            new JGitUtil.CommitInfo(revCommit), // latest commit
+            files, readme)
+        } getOrElse NotFound
       }
     }
   }

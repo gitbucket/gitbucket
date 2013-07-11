@@ -35,9 +35,7 @@ object helpers {
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableCommitLink, enableIssueLink))
   }
 
-  def activityMessage(message: String)(implicit context: app.Context): Html = {
-    val a = s"a $message aa $$1 a"
-    
+  def activityMessage(message: String)(implicit context: app.Context): Html =
     Html(message
       .replaceAll("\\[issue:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"   , s"""<a href="${context.path}/$$1/$$2/issues/$$3">$$1/$$2#$$3</a>""")
       .replaceAll("\\[repo:([^\\s]+?)/([^\\s]+?)\\]"             , s"""<a href="${context.path}/$$1/$$2\">$$1/$$2</a>""")
@@ -45,23 +43,24 @@ object helpers {
       .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")
       .replaceAll("\\[user:([^\\s]+?)\\]"                        , s"""<a href="${context.path}/$$1">$$1</a>""")
     )
-  }
 
   /**
    * Generates the url to the repository.
    */
   def url(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String =
-    "%s/%s/%s".format(context.path, repository.owner, repository.name)
+    s"${context.path}/${repository.owner}/${repository.name}"
 
   /**
    * Generates the url to the account page.
    */
-  def url(userName: String)(implicit context: app.Context): String = "%s/%s".format(context.path, userName)
+  def url(userName: String)(implicit context: app.Context): String =
+    s"${context.path}/${userName}"
 
   /**
    * Returns the url to the root of assets.
    */
-  def assets(implicit context: app.Context): String = "%s/assets".format(context.path)
+  def assets(implicit context: app.Context): String =
+    s"${context.path}/assets"
 
   /**
    * Converts issue id and commit id to link.
@@ -71,9 +70,9 @@ object helpers {
       // escape HTML tags
       .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;")
       // convert issue id to link
-      .replaceAll("(^|\\W)#(\\d+)(\\W|$)", "$1<a href=\"%s/%s/%s/issues/$2\">#$2</a>$3".format(context.path, repository.owner, repository.name))
+      .replaceAll("(^|\\W)#(\\d+)(\\W|$)", s"""$$1<a href="${context.path}/${repository.owner}/${repository.name}/issues/$$2">#$$2</a>$$3""")
       // convert commit id to link
-      .replaceAll("(^|\\W)([a-f0-9]{40})(\\W|$)", "$1<a href=\"%s/%s/%s/commit/$2\">$2</a>$3").format(context.path, repository.owner, repository.name))
+      .replaceAll("(^|\\W)([a-f0-9]{40})(\\W|$)", s"""$$1<a href="${context.path}/${repository.owner}/${repository.name}/commit/$$2">$$2</a>$$3"""))
 
 
   /**
