@@ -7,8 +7,8 @@ import scala.slick.driver.H2Driver.simple._
  * Provides some usable implicit conversions.
  */
 object Implicits {
-  
-  implicit def extendsSeq[A](seq: Seq[A]) = new {
+
+  implicit class RichSeq[A](seq: Seq[A]) {
 
     def splitWith(condition: (A, A) => Boolean): Seq[Seq[A]] = split(seq)(condition)
 
@@ -26,7 +26,7 @@ object Implicits {
   }
 
   // TODO Should this implicit conversion move to model.Functions?
-  implicit def extendsColumn(c1: Column[Boolean]) = new {
+  implicit class RichColumn(c1: Column[Boolean]){
     def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
   }
 
