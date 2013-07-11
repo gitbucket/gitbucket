@@ -1,5 +1,6 @@
 package view
 
+import util.StringUtil
 import org.parboiled.common.StringUtils
 import org.pegdown._
 import org.pegdown.ast._
@@ -33,11 +34,10 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
         } else {
           (text, text)
         }
-        val url = repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") +
-          "/wiki/" + java.net.URLEncoder.encode(page.replace(' ', '-'), "UTF-8")
+        val url = repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/" + StringUtil.urlEncode(page)
         new Rendering(url, label)
       } catch {
-        case e: java.io.UnsupportedEncodingException => throw new IllegalStateException();
+        case e: java.io.UnsupportedEncodingException => throw new IllegalStateException
       }
     } else {
       super.render(node)

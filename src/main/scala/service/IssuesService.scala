@@ -6,6 +6,7 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 import model._
+import util.StringUtil._
 import util.Implicits._
 
 trait IssuesService {
@@ -236,7 +237,6 @@ trait IssuesService {
 }
 
 object IssuesService {
-  import java.net.URLEncoder
   import javax.servlet.http.HttpServletRequest
 
   val IssueLimit = 30
@@ -247,8 +247,6 @@ object IssuesService {
       state: String = "open",
       sort: String = "created",
       direction: String = "desc"){
-
-    import IssueSearchCondition._
 
     def toURL: String =
       "?" + List(
@@ -264,8 +262,6 @@ object IssuesService {
   }
 
   object IssueSearchCondition {
-
-    private def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8")
 
     private def param(request: HttpServletRequest, name: String, allow: Seq[String] = Nil): Option[String] = {
       val value = request.getParameter(name)
