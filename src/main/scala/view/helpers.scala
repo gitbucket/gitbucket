@@ -79,13 +79,26 @@ object helpers {
       .replaceAll("(^|\\W)([a-f0-9]{40})(\\W|$)", s"""$$1<a href="${context.path}/${repository.owner}/${repository.name}/commit/$$2">$$2</a>$$3"""))
 
 
+  def user(userName: String, mailAddress: String, styleClass: String = "")(implicit context: app.Context): Html = {
+    val account = context.cache(s"account.${mailAddress}"){
+      new AccountService {}.getAccountByMailAddress(mailAddress)
+    }
+    account.map { account =>
+      Html(s"""<a href="${url(account.userName)}" class="${styleClass}">${userName}</a>""")
+    } getOrElse Html(userName)
+  }
+
   /**
    * Returns &lt;img&gt; which displays the avatar icon.
    * Looks up Gravatar if avatar icon has not been configured in user settings.
    */
   def avatar(userName: String, size: Int, tooltip: Boolean = false)(implicit context: app.Context): Html = {
     val account = context.cache(s"account.${userName}"){
-      new AccountService {}.getAccountByUserName(userName)
+      if(userName.contains("@")){
+        new AccountService {}.getAccountByMailAddress(userName)
+      } else {
+        new AccountService {}.getAccountByUserName(userName)
+      }
     }
     val src = account.collect { case account if(account.image.isEmpty) =>
       s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""

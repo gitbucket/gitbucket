@@ -38,7 +38,7 @@
             <a href="@url(repository)/tree/@commit.id" class="small">Browse code</a>
           </div>
           <div>
-            <div class="commit-avatar-image">@avatar(commit.committer, 40)</div>
+            <div class="commit-avatar-image">@avatar(commit.mailAddress, 40)</div>
             <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
             @if(commit.description.isDefined){
               <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
@@ -48,7 +48,7 @@
               <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
             }
             <div class="small">
-              <a href="@url(commit.committer)" class="username">@commit.committer</a>
+              @user(commit.committer, commit.mailAddress, "username")
               <span class="muted">@datetime(commit.time)</span>
             </div>
           </div>

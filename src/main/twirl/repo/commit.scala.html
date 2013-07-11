@@ -43,8 +43,8 @@
     </tr>
     <tr>
       <td>
-        @avatar(commit.committer, 20)
-        <a href="@url(commit.committer)" class="username strong">@commit.committer</a>
+        @avatar(commit.mailAddress, 20)
+        @user(commit.committer, commit.mailAddress, "username strong")
         <span class="muted">@datetime(commit.time)</span>
         <div class="pull-right monospace small" style="text-align: right;">
           <div>

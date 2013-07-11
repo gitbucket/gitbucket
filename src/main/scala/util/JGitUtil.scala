@@ -43,8 +43,10 @@ object JGitUtil {
    * @param message the last commit message
    * @param commitId the last commit id
    * @param committer the last committer name
+   * @param mailAddress the committer's mail address
    */
-  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String, committer: String)
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String,
+                      committer: String, mailAddress: String)
 
   /**
    * The commit data.
@@ -52,14 +54,18 @@ object JGitUtil {
    * @param id the commit id
    * @param time the commit time
    * @param committer  the committer name
+   * @param mailAddress the committer's mail address
    * @param shortMessage the short message
    * @param fullMessage the full message
    * @param parents the list of parent commit id
    */
-  case class CommitInfo(id: String, time: Date, committer: String, shortMessage: String, fullMessage: String, parents: List[String]){
+  case class CommitInfo(id: String, time: Date, committer: String, mailAddress: String,
+                        shortMessage: String, fullMessage: String, parents: List[String]){
     
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) = this(
-        rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getShortMessage, rev.getFullMessage,
+        rev.getName, rev.getCommitterIdent.getWhen,
+        rev.getCommitterIdent.getName, rev.getCommitterIdent.getEmailAddress,
+        rev.getShortMessage, rev.getFullMessage,
         rev.getParents().map(_.name).toList)
 
     val summary = {
@@ -233,7 +239,8 @@ object JGitUtil {
         commits(path).getCommitterIdent.getWhen,
         commits(path).getShortMessage,
         commits(path).getName,
-        commits(path).getCommitterIdent.getName)
+        commits(path).getCommitterIdent.getName,
+        commits(path).getCommitterIdent.getEmailAddress)
     }.sortWith { (file1, file2) =>
       (file1.isDirectory, file2.isDirectory) match {
         case (true , false) => true
