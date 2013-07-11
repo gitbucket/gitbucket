@@ -35,6 +35,9 @@ trait IssuesService {
       .map    ( _._2 )
       .list
 
+  def getIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int) =
+    Query(IssueLabels) filter (_.byPrimaryKey(owner, repository, issueId, labelId)) firstOption
+
   /**
    * Returns the count of the search result against  issues.
    *

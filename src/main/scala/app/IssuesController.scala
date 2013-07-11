@@ -222,6 +222,53 @@ trait IssuesControllerBase extends ControllerBase {
     Ok("updated")
   })
 
+  post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
+    val owner = repository.owner
+    val name = repository.name
+    val userName = context.loginAccount.get.userName
+
+    params.get("value") collect {
+      case s if s == "close"  => (s.capitalize, Some(s), true)
+      case s if s == "reopen" => (s.capitalize, Some(s), false)
+    } map { case (content, action, closed) =>
+      params("checked").split(',') foreach { issueId =>
+        createComment(owner, name, userName, issueId.toInt, content, action)
+        updateClosed(owner, name, issueId.toInt, closed)
+      }
+      redirect("/%s/%s/issues".format(owner, name))
+    } getOrElse NotFound
+  })
+
+  post("/:owner/:repository/issues/batchedit/label")(collaboratorsOnly { repository =>
+    val owner = repository.owner
+    val name = repository.name
+
+    params.get("value").map(_.toInt) map { labelId =>
+      params("checked").split(',') foreach { issueId =>
+        getIssueLabel(owner, name, issueId.toInt, labelId) getOrElse {
+          registerIssueLabel(owner, name, issueId.toInt, labelId)
+        }
+      }
+      redirect("/%s/%s/issues".format(owner, name))
+    } getOrElse NotFound
+  })
+
+  post("/:owner/:repository/issues/batchedit/assign")(collaboratorsOnly { repository =>
+    params("checked").split(',') foreach { issueId =>
+      updateAssignedUserName(repository.owner, repository.name, issueId.toInt,
+          params.get("value") filter (_.trim != ""))
+    }
+    redirect("/%s/%s/issues".format(repository.owner, repository.name))
+  })
+
+  post("/:owner/:repository/issues/batchedit/milestone")(collaboratorsOnly { repository =>
+    params("checked").split(',') foreach { issueId =>
+      updateMilestoneId(repository.owner, repository.name, issueId.toInt,
+          params.get("value") collect { case x if x.trim != "" => x.toInt })
+    }
+    redirect("/%s/%s/issues".format(repository.owner, repository.name))
+  })
+
   private def isEditable(owner: String, repository: String, author: String)(implicit context: app.Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
@@ -248,8 +295,9 @@ trait IssuesControllerBase extends ControllerBase {
     issues.html.list(
         searchIssue(owner, repoName, condition, filter, userName, (page - 1) * IssueLimit, IssueLimit),
         page,
-        getLabels(owner, repoName),
+        (getCollaborators(owner, repoName) :+ owner).sorted,
         getMilestones(owner, repoName).filter(_.closedDate.isEmpty),
+        getLabels(owner, repoName),
         countIssue(owner, repoName, condition.copy(state = "open"), filter, userName),
         countIssue(owner, repoName, condition.copy(state = "closed"), filter, userName),
         countIssue(owner, repoName, condition, "all", None),
