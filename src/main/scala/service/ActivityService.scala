@@ -55,7 +55,7 @@ trait ActivityService {
   def recordReopenIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "reopen_issue",
-      s"[user:${activityUserName}] closed reopened [issue:${userName}/${repositoryName}#${issueId}]",
+      s"[user:${activityUserName}] reopened issue [issue:${userName}/${repositoryName}#${issueId}]",
       Some(title),
       currentDate)
 
