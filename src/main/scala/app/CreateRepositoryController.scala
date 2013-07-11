@@ -1,7 +1,7 @@
 package app
 
 import util.Directory._
-import util.UsersAuthenticator
+import util.{JGitUtil, UsersAuthenticator}
 import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
@@ -56,13 +56,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
 
     // Create the actual repository
     val gitdir = getRepositoryDir(loginUserName, form.name)
-    val repository = new RepositoryBuilder().setGitDir(gitdir).setBare.build
-
-    repository.create
-
-    val config = repository.getConfig
-    config.setBoolean("http", null, "receivepack", true)
-    config.save
+    JGitUtil.initRepository(gitdir)
 
     if(form.createReadme){
       val tmpdir = getInitRepositoryDir(loginUserName, form.name)
@@ -73,9 +67,13 @@ trait CreateRepositoryControllerBase extends ControllerBase {
         // Create README.md
         FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
           if(form.description.nonEmpty){
-            form.name + "\n===============\n\n" + form.description.get
+            form.name + "\n" +
+            "===============\n" +
+            "\n" +
+            form.description.get
           } else {
-            form.name + "\n===============\n"
+            form.name + "\n" +
+            "===============\n"
           }, "UTF-8")
 
         val git = Git.open(tmpdir)
@@ -95,7 +93,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     recordCreateRepositoryActivity(loginUserName, form.name, loginUserName)
 
     // redirect to the repository
-    redirect("/%s/%s".format(loginUserName, form.name))
+    redirect(s"/${loginUserName}/${form.name}")
   })
   
   /**

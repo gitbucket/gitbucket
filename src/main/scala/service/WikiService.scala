@@ -68,12 +68,10 @@ trait WikiService {
     lock(owner.userName, repository){
       val dir = Directory.getWikiRepositoryDir(owner.userName, repository)
       if(!dir.exists){
-        val repo = new RepositoryBuilder().setGitDir(dir).setBare.build
         try {
-          repo.create
-          saveWikiPage(owner.userName, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
+          JGitUtil.initRepository(dir)
+          saveWikiPage(owner.userName, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", owner, "Initial Commit")
         } finally {
-          repo.close
           // once delete cloned repository because initial cloned repository does not have 'branch.master.merge'
           FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner.userName, repository))
         }

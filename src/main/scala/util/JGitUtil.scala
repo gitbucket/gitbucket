@@ -502,4 +502,20 @@ object JGitUtil {
     }
   }
 
+  def initRepository(dir: java.io.File): Unit = {
+    val repository = new RepositoryBuilder().setGitDir(dir).setBare.build
+    try {
+      repository.create
+      setReceivePack(repository)
+    } finally {
+      repository.close
+    }
+  }
+
+  private def setReceivePack(repository: org.eclipse.jgit.lib.Repository): Unit = {
+    val config = repository.getConfig
+    config.setBoolean("http", null, "receivepack", true)
+    config.save
+  }
+
 }
