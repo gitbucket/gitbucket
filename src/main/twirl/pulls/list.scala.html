@@ -1,0 +1,8 @@
+@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Pull Requests - " + repository.owner + "/" + repository.name){
+  @html.header("pulls", repository)
+  <a href="@url(repository)/pulls/compare" class="btn btn-success">New pull request</a>
+}
+

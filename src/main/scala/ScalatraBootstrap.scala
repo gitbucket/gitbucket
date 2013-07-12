@@ -16,6 +16,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new LabelsController, "/*")
     context.mount(new MilestonesController, "/*")
     context.mount(new IssuesController, "/*")
+    context.mount(new PullRequestsController, "/*")
     context.mount(new RepositorySettingsController, "/*")
 
     val dir = new java.io.File(_root_.util.Directory.GitBucketHome)

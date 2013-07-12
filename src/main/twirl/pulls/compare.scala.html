@@ -1,0 +1,75 @@
+@(commits: Seq[Seq[util.JGitUtil.CommitInfo]], diffs: List[util.JGitUtil.DiffInfo],
+  origin: String, originId: String, forkedId: String, commitId: String,
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@import org.eclipse.jgit.diff.DiffEntry.ChangeType
+@html.main("Pull Requests - " + repository.owner + "/" + repository.name){
+  @html.header("pulls", repository)
+  <div style="border: 1px solid #eee; background-color: #f8f8f8; margin-bottom: 10px; padding: 8px;">
+    <span class="label label-info monospace">@origin:@originId</span> ... <span class="label label-info monospace">@repository.owner:@forkedId</span>
+  </div>
+  <div style="margin-bottom: 10px;">
+    <a href="#" class="btn">Click to create a pull request for this comparison</a>
+  </div>
+  <div class="box">
+    <table class="table table-file-list" style="border: 1px solid silver;">
+      @commits.map { day =>
+      <tr>
+        <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
+      </tr>
+      @day.map { commit =>
+        <tr>
+          <td style="width: 20%;">
+            @avatar(commit.committer, 20)
+            <a href="@url(commit.committer)" class="username">@commit.committer</a>
+          </td>
+          <td>@commit.shortMessage</td>
+          <td style="width: 10%; text-align: right;">
+            <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+          </td>
+        </tr>
+      }
+      }
+    </table>
+  </div>
+  <div>
+    <div class="pull-right" style="margin-bottom: 10px;">
+      <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
+    </div>
+    Showing @diffs.size changed @plural(diffs.size, "file")
+  </div>
+  <ul id="commit-file-list" style="display: none;">
+  @diffs.zipWithIndex.map { case (diff, i) =>
+    <li@if(i > 0){ class="border"}>
+      <a href="#diff-@i">
+        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.ADD){
+          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.MODIFY){
+          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+        }
+      </a>
+    </li>
+    }
+  </ul>
+  @helper.html.diff(diffs, repository, Some(commitId))
+}
+<script>
+$(function(){
+  $('#toggle-file-list').click(function(){
+    $('#commit-file-list').toggle();
+    if($(this).val() == 'Show file list'){
+      $(this).val('Hide file list');
+    } else {
+      $(this).val('Show file list');
+    }
+  });
+});
+</script>
