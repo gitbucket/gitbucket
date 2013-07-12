@@ -64,7 +64,7 @@
             </div>
           </div>
           <div class="issue-content" id="issueContent">
-            @markdown(issue.content getOrElse "No description given.", repository, false, true, true)
+            @markdown(issue.content getOrElse "No description given.", repository, false, true)
           </div>
         </div>
       </div>
@@ -82,7 +82,7 @@
             </span>
           </div>
           <div class="box-content"class="issue-content" id="commentContent-@comment.commentId">
-            @markdown(comment.content, repository, false, true, true)
+            @markdown(comment.content, repository, false, true)
           </div>
         </div>
         @comment.action.map { action =>
@@ -102,7 +102,7 @@
           <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
           <div class="box issue-comment-box">
             <div class="box-content">
-              @helper.html.preview(repository, "", false, true, true, "width: 680px; height: 100px;")
+              @helper.html.preview(repository, "", false, true, "width: 680px; height: 100px;")
             </div>
           </div>
           <div class="pull-right">

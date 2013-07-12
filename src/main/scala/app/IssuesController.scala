@@ -158,7 +158,7 @@ trait IssuesControllerBase extends ControllerBase {
           org.json4s.jackson.Serialization.write(
               Map("title"   -> x.title,
                   "content" -> view.Markdown.toHtml(x.content getOrElse "No description given.",
-                      repository, false, true, true)
+                      repository, false, true)
               ))
         }
       } else Unauthorized
@@ -175,7 +175,7 @@ trait IssuesControllerBase extends ControllerBase {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
               Map("content" -> view.Markdown.toHtml(x.content,
-                  repository, false, true, true)
+                  repository, false, true)
               ))
         }
       } else Unauthorized

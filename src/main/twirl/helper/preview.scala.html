@@ -1,5 +1,5 @@
-@(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean,
-  enableCommitLink: Boolean, enableIssueLink: Boolean, style: String = "", placeholder: String = "Leave a comment")(implicit context: app.Context)
+@(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean, enableRefsLink: Boolean,
+  style: String = "", placeholder: String = "Leave a comment")(implicit context: app.Context)
 @import context._
 @import view.helpers._
 <div class="tabbable">
@@ -30,10 +30,9 @@ $(function(){
   $('#preview').click(function(){
     $('#preview-area').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
     $.post('@url(repository)/_preview', {
-      content          : $('#content').val(),
-      enableWikiLink   : @enableWikiLink,
-      enableCommitLink : @enableCommitLink,
-      enableIssueLink  : @enableIssueLink
+      content        : $('#content').val(),
+      enableWikiLink : @enableWikiLink,
+      enableRefsLink : @enableRefsLink
     }, function(data){
       $('#preview-area').html(data);
       prettyPrint();

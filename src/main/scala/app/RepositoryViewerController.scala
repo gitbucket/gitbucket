@@ -27,8 +27,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     contentType = "text/html"
     view.helpers.markdown(params("content"), repository,
       params("enableWikiLink").toBoolean,
-      params("enableCommitLink").toBoolean,
-      params("enableIssueLink").toBoolean)
+      params("enableRefsLink").toBoolean)
   })
 
   /**

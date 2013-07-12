@@ -1,7 +1,7 @@
 package util
 
-import twirl.api.Html
 import scala.slick.driver.H2Driver.simple._
+import scala.util.matching.Regex
 
 /**
  * Provides some usable implicit conversions.
@@ -28,6 +28,25 @@ object Implicits {
   // TODO Should this implicit conversion move to model.Functions?
   implicit class RichColumn(c1: Column[Boolean]){
     def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
+  }
+
+  implicit class RichString(value: String){
+    def replaceBy(regex: Regex)(replace: Regex.MatchData => Option[String]): String = {
+      val sb = new StringBuilder()
+      var i = 0
+      regex.findAllIn(value).matchData.foreach { m =>
+        sb.append(value.substring(i, m.start))
+        i = m.end
+        replace(m) match {
+          case Some(s) => sb.append(s)
+          case None    => sb.append(m.matched)
+        }
+      }
+      if(i < value.length){
+        sb.append(value.substring(i))
+      }
+      sb.toString
+    }
   }
 
 }

@@ -27,8 +27,6 @@
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
           @if(latestCommit.description.isDefined){
             <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
-          }
-          @if(latestCommit.description.isDefined){
             <pre id="description-@latestCommit.id" class="commit-description" style="display: none;">@link(latestCommit.description.get, repository)</pre>
           }
         </th>
@@ -79,7 +77,7 @@
   @readme.map { content =>
   <div class="box">
     <div class="box-header">README.md</div>
-    <div class="box-content">@markdown(content, repository, false, false, false)</div>
+    <div class="box-content">@markdown(content, repository, false, false)</div>
   </div>
   }
 }
