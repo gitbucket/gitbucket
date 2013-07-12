@@ -1,7 +1,6 @@
 package view
 
 import util.StringUtil
-import util.Implicits._
 import org.parboiled.common.StringUtils
 import org.pegdown._
 import org.pegdown.ast._
