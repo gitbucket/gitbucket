@@ -24,7 +24,7 @@ trait LabelsControllerBase extends ControllerBase {
 
   post("/:owner/:repository/issues/label/new", newForm)(collaboratorsOnly { (form, repository) =>
     createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
-    redirect("/%s/%s/issues".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/issues")
   })
 
   ajaxGet("/:owner/:repository/issues/label/edit")(collaboratorsOnly { repository =>
@@ -53,9 +53,9 @@ trait LabelsControllerBase extends ControllerBase {
   private def labelName: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
       if(!value.matches("^[^,]+$")){
-        Some("%s contains invalid character.".format(name))
+        Some(s"${name} contains invalid character.")
       } else if(value.startsWith("_") || value.startsWith("-")){
-        Some("%s starts with invalid character.".format(name))
+        Some(s"${name} starts with invalid character.")
       } else {
         None
       }

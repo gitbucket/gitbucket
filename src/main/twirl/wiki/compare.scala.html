@@ -14,8 +14,8 @@
     <li class="pull-right">
       <div class="btn-group">
       @if(pageName.isDefined){
-        <a class="btn" href="@url(repository)/wiki/@pageName">View Page</a>
-        <a class="btn" href="@url(repository)/wiki/@pageName/_history">Back to Page History</a>
+        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
+        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Back to Page History</a>
       } else {
         <a class="btn" href="@url(repository)/wiki/_history">Back to Wiki History</a>
       }

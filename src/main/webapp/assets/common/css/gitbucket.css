@@ -345,6 +345,10 @@ div.commit-avatar-image {
   margin-right: 4px;
 }
 
+div.commit-message-box {
+  margin-left: 42px;
+}
+
 pre.commit-description {
   font-weight: normal;
   border: none;

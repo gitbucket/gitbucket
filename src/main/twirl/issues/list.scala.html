@@ -1,7 +1,8 @@
 @(issues: List[(model.Issue, List[model.Label], Int)],
   page: Int,
-  labels: List[model.Label],
+  collaborators: List[String],
   milestones: List[model.Milestone],
+  labels: List[model.Label],
   openCount: Int,
   closedCount: Int,
   allCount: Int,
@@ -178,15 +179,16 @@
           </td>
         </tr>
       } else {
+        @if(hasWritePermission){
         <tr>
           <td style="background-color: #eee;">
             <div class="btn-group">
-              <button class="btn btn-mini"><strong>@if(condition.state == "open"){ Close } else { Reopen }</strong></button>
+              <button class="btn btn-mini" id="state"><strong>@{if(condition.state == "open") "Close" else "Reopen"}</strong></button>
             </div>
             @helper.html.dropdown("Label") {
               @labels.map { label =>
                 <li>
-                  <a href="javascript:void(0);" class="toggle-label" data-label-id="@label.labelId">
+                  <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
                     <i class="icon-white"></i>
                     <span class="label" style="background-color: #@label.color;">&nbsp;</span>
                     @label.labelName
@@ -195,24 +197,30 @@
               }
             }
             @helper.html.dropdown("Assignee") {
-              <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+              <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
               <li class="divider"></li>
+              @collaborators.map { collaborator =>
+                <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
+              }
             }
             @helper.html.dropdown("Milestone") {
-              <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
+              <li><a href="javascript:void(0);" class="toggle-milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
               <li class="divider"></li>
               @milestones.map { milestone =>
-                <li><a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId"><i class="icon-white"></i> @milestone.title</a></li>
+                <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId"><i class="icon-white"></i> @milestone.title</a></li>
               }
             }
           </td>
         </tr>
+        }
       }
       @issues.map { case (issue, labels, commentCount) =>
         <tr>
           <td>
+            @if(hasWritePermission){
             <label class="checkbox" style="cursor: default;">
               <input type="checkbox" value="@issue.issueId"/>
+            }
               <a href="@url(repository)/issues/@issue.issueId" class="issue-title">@issue.title</a>
               @labels.map { label =>
                 <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
@@ -257,7 +265,28 @@ $(function(){
   $('.table-issues input[type=checkbox]').change(function(){
     $('.table-issues button').prop('disabled',
             !$('.table-issues input[type=checkbox]').filter(':checked').length);
-  }).change();
+  }).filter(':first').change();
+
+  var submitBatchEdit = function(action, value) {
+    var checked = $('.table-issues input[type=checkbox]').filter(':checked').map(function(){ return this.value; }).get().join();
+    $('<form>').attr({action : action, method : 'POST'})
+        .append($('<input type="hidden">').attr('name', 'value').val(value))
+        .append($('<input type="hidden">').attr('name', 'checked').val(checked))
+        .submit();
+  };
+
+  $('#state').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/state', $(this).text().toLowerCase());
+  });
+  $('a.toggle-label').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/label', $(this).data('id'));
+  });
+  $('a.toggle-assign').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/assign', $(this).data('name'));
+  });
+  $('a.toggle-milestone').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/milestone', $(this).data('id'));
+  });
 });
 </script>
 }

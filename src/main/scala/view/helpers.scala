@@ -3,12 +3,12 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import twirl.api.Html
 import util.StringUtil
-import service.AccountService
+import service.RequestCache
 
 /**
  * Provides helper methods for Twirl templates.
  */
-object helpers {
+object helpers extends AvatarImageProvider with LinkConverter with RequestCache {
   
   /**
    * Format java.util.Date to "yyyy-MM-dd HH:mm:ss".
@@ -31,13 +31,24 @@ object helpers {
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,
-               enableWikiLink: Boolean, enableCommitLink: Boolean, enableIssueLink: Boolean)(implicit context: app.Context): Html = {
-    Html(Markdown.toHtml(value, repository, enableWikiLink, enableCommitLink, enableIssueLink))
+               enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html = {
+    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
   }
 
-  def activityMessage(message: String)(implicit context: app.Context): Html = {
-    val a = s"a $message aa $$1 a"
-    
+  /**
+   * Returns &lt;img&gt; which displays the avatar icon.
+   * Looks up Gravatar if avatar icon has not been configured in user settings.
+   */
+  def avatar(userName: String, size: Int, tooltip: Boolean = false)(implicit context: app.Context): Html =
+    getAvatarImageHtml(userName, size, tooltip)
+
+  /**
+   * Converts commit id, issue id and username to the link.
+   */
+  def link(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =
+    Html(convertRefsLinks(value, repository))
+
+  def activityMessage(message: String)(implicit context: app.Context): Html =
     Html(message
       .replaceAll("\\[issue:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"   , s"""<a href="${context.path}/$$1/$$2/issues/$$3">$$1/$$2#$$3</a>""")
       .replaceAll("\\[repo:([^\\s]+?)/([^\\s]+?)\\]"             , s"""<a href="${context.path}/$$1/$$2\">$$1/$$2</a>""")
@@ -45,56 +56,29 @@ object helpers {
       .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")
       .replaceAll("\\[user:([^\\s]+?)\\]"                        , s"""<a href="${context.path}/$$1">$$1</a>""")
     )
-  }
+
+  def urlEncode(value: String): String = StringUtil.urlEncode(value)
+
+  def urlEncode(value: Option[String]): String = value.map(urlEncode).getOrElse("")
 
   /**
    * Generates the url to the repository.
    */
   def url(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): String =
-    "%s/%s/%s".format(context.path, repository.owner, repository.name)
+    s"${context.path}/${repository.owner}/${repository.name}"
 
   /**
    * Generates the url to the account page.
    */
-  def url(userName: String)(implicit context: app.Context): String = "%s/%s".format(context.path, userName)
+  def url(userName: String)(implicit context: app.Context): String =
+    s"${context.path}/${userName}"
 
   /**
    * Returns the url to the root of assets.
    */
-  def assets(implicit context: app.Context): String = "%s/assets".format(context.path)
+  def assets(implicit context: app.Context): String =
+    s"${context.path}/assets"
 
-  /**
-   * Converts issue id and commit id to link.
-   */
-  def link(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =
-    Html(value
-      // escape HTML tags
-      .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;")
-      // convert issue id to link
-      .replaceAll("(^|\\W)#(\\d+)(\\W|$)", "$1<a href=\"%s/%s/%s/issues/$2\">#$2</a>$3".format(context.path, repository.owner, repository.name))
-      // convert commit id to link
-      .replaceAll("(^|\\W)([a-f0-9]{40})(\\W|$)", "$1<a href=\"%s/%s/%s/commit/$2\">$2</a>$3").format(context.path, repository.owner, repository.name))
-
-
-  /**
-   * Returns &lt;img&gt; which displays the avatar icon.
-   * Looks up Gravatar if avatar icon has not been configured in user settings.
-   */
-  def avatar(userName: String, size: Int, tooltip: Boolean = false)(implicit context: app.Context): Html = {
-    val account = context.cache(s"account.${userName}"){
-      new AccountService {}.getAccountByUserName(userName)
-    }
-    val src = account.collect { case account if(account.image.isEmpty) =>
-      s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
-    } getOrElse {
-      s"""${context.path}/${userName}/_avatar"""
-    }
-    if(tooltip){
-      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}px;" data-toggle="tooltip" title=${userName}/>""")
-    } else {
-      Html(s"""<img src=${src} class="avatar" style="width: ${size}px; height: ${size}px;" />""")
-    }
-  }
 
   /**
    * Implicit conversion to add mkHtml() to Seq[Html].

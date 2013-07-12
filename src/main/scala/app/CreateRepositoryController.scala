@@ -69,9 +69,13 @@ trait CreateRepositoryControllerBase extends ControllerBase {
         // Create README.md
         FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
           if(form.description.nonEmpty){
-            form.name + "\n===============\n\n" + form.description.get
+            form.name + "\n" +
+            "===============\n" +
+            "\n" +
+            form.description.get
           } else {
-            form.name + "\n===============\n"
+            form.name + "\n" +
+            "===============\n"
           }, "UTF-8")
 
         val git = Git.open(tmpdir)
@@ -91,7 +95,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     recordCreateRepositoryActivity(loginUserName, form.name, loginUserName)
 
     // redirect to the repository
-    redirect("/%s/%s".format(loginUserName, form.name))
+    redirect(s"/${loginUserName}/${form.name}")
   })
 
   post("/:owner/:repository/_fork")(referrersOnly { repository =>

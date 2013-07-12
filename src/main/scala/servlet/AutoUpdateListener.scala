@@ -25,7 +25,7 @@ object AutoUpdate {
      * If corresponding SQL file does not exist, this method do nothing.
      */
     def update(conn: Connection): Unit = {
-      val sqlPath = "update/%d_%d.sql".format(majorVersion, minorVersion)
+      val sqlPath = s"update/${majorVersion}_${minorVersion}.sql"
       val in = Thread.currentThread.getContextClassLoader.getResourceAsStream(sqlPath)
       if(in != null){
         val sql = IOUtils.toString(in, "UTF-8")
@@ -42,14 +42,30 @@ object AutoUpdate {
     /**
      * MAJOR.MINOR
      */
-    val versionString = "%d.%d".format(majorVersion, minorVersion)
+    val versionString = s"${majorVersion}.${minorVersion}"
   }
-  
+
   /**
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
-    Version(1, 3),
+    new Version(1, 3){
+      override def update(conn: Connection): Unit = {
+        super.update(conn)
+        // Fix wiki repository configuration
+        val rs = conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")
+        while(rs.next){
+          val wikidir = Directory.getWikiRepositoryDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))
+          val repository = org.eclipse.jgit.api.Git.open(wikidir).getRepository
+          val config = repository.getConfig
+          if(!config.getBoolean("http", "receivepack", false)){
+            config.setBoolean("http", null, "receivepack", true)
+            config.save
+          }
+          repository.close
+        }
+      }
+    },
     Version(1, 2),
     Version(1, 1),
     Version(1, 0)

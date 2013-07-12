@@ -58,7 +58,10 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     getAccountByUserName(userName).flatMap(_.image).map { image =>
       contentType = FileUtil.getMimeType(image)
       new java.io.File(getUserUploadDir(userName), image)
-    } getOrElse NotFound
+    } getOrElse {
+      contentType = "image/png"
+      Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
+    }
   }
 
   get("/:userName/_edit")(oneselfOnly {
@@ -76,7 +79,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
 
       updateImage(userName, form.fileId, form.clearImage)
       flash += "info" -> "Account information has been updated."
-      redirect("/%s/_edit".format(userName))
+      redirect(s"/${userName}/_edit")
 
     } getOrElse NotFound
   })
