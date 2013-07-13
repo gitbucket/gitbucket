@@ -12,7 +12,7 @@
       <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>
       <span class="label label-info monospace">@origin:@originId</span> ... <span class="label label-info monospace">@repository.owner:@forkedId</span>
     </div>
-    <div id="compare-edit" style="display: none;">
+    <div id="compare-edit" style="display: none; width: 620px;">
       <a href="#" id="refresh-compare" class="pull-right"><i class="icon-remove-circle"></i></a>
       <span class="label label-info monospace">@origin/@repository.name:</span>
       @helper.html.dropdown(originId) {
@@ -29,57 +29,81 @@
       }
     </div>
   </div>
-  <div style="margin-bottom: 10px;">
-    <a href="#" class="btn">Click to create a pull request for this comparison</a>
-  </div>
-  <div class="box">
-    <table class="table table-file-list" style="border: 1px solid silver;">
-      @commits.map { day =>
-      <tr>
-        <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
-      </tr>
-      @day.map { commit =>
-        <tr>
-          <td style="width: 20%;">
-            @avatar(commit.committer, 20)
-            <a href="@url(commit.committer)" class="username">@commit.committer</a>
-          </td>
-          <td>@commit.shortMessage</td>
-          <td style="width: 10%; text-align: right;">
-            <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
-          </td>
-        </tr>
-      }
-      }
-    </table>
-  </div>
-  <div>
-    <div class="pull-right" style="margin-bottom: 10px;">
-      <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
+  @if(commits.nonEmpty){
+    <div style="margin-bottom: 10px;" id="create-pull-request">
+      <a href="#" class="btn" id="show-form">Click to create a pull request for this comparison</a>
     </div>
-    Showing @diffs.size changed @plural(diffs.size, "file")
-  </div>
-  <ul id="commit-file-list" style="display: none;">
-  @diffs.zipWithIndex.map { case (diff, i) =>
-    <li@if(i > 0){ class="border"}>
-      <a href="#diff-@i">
-        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+    <div id="pull-request-form" style="display: none; width: 600px;">
+      <form method="POST" action="@path/@origin/@repository.name/pulls/new" validate="true">
+        <span class="error" id="error-title"></span>
+        <input type="text" name="title" style="width: 600px" placeholder="Title"/>
+        @helper.html.preview(repository, "", false, true, "width: 600px; height: 200px;")
+        <input type="hidden" name="branch" value="@originId"/>
+        <input type="hidden" name="requestUserName" value="@repository.owner"/>
+        <input type="hidden" name="requestCommitId" value="@commitId"/>
+        <input type="submit" class="btn btn-success" value="Send pull request"/>
+      </form>
+    </div>
+  }
+  @if(commits.isEmpty){
+    <table class="table table-bordered table-hover table-issues">
+      <tr>
+        <td style="padding: 20px; background-color: #eee; text-align: center;">
+          <h4>There isn't anything to compare.</h4>
+          <strong>@origin:@originId</strong> and <strong>@repository.owner:@forkedId</strong> are identical.
+        </td>
+      </tr>
+    </table>
+  } else {
+    <div class="box">
+      <table class="table table-file-list" style="border: 1px solid silver;">
+        @commits.map { day =>
+          <tr>
+            <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
+          </tr>
+          @day.map { commit =>
+            <tr>
+              <td style="width: 20%;">
+                @avatar(commit.committer, 20)
+                <a href="@url(commit.committer)" class="username">@commit.committer</a>
+              </td>
+              <td>@commit.shortMessage</td>
+              <td style="width: 10%; text-align: right;">
+                <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+              </td>
+            </tr>
+          }
         }
-        @if(diff.changeType == ChangeType.ADD){
-          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.MODIFY){
-          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.DELETE){
-          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
-        }
-      </a>
-    </li>
-    }
-  </ul>
-  @helper.html.diff(diffs, repository, Some(commitId))
+      </table>
+    </div>
+    <div>
+      <div class="pull-right" style="margin-bottom: 10px;">
+        <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
+      </div>
+      Showing @diffs.size changed @plural(diffs.size, "file")
+    </div>
+    <ul id="commit-file-list" style="display: none;">
+    @diffs.zipWithIndex.map { case (diff, i) =>
+      <li@if(i > 0){ class="border"}>
+        <a href="#diff-@i">
+          @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+            <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+          }
+          @if(diff.changeType == ChangeType.ADD){
+            <img src="@assets/common/images/diff_add.png"/> @diff.newPath
+          }
+          @if(diff.changeType == ChangeType.MODIFY){
+            <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
+          }
+          @if(diff.changeType == ChangeType.DELETE){
+            <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+          }
+        </a>
+      </li>
+      }
+    </ul>
+    @helper.html.diff(diffs, repository, Some(commitId))
+  }
 }
 <script>
 $(function(){
@@ -99,6 +123,11 @@ $(function(){
     location.href = '@url(repository)/pulls/compare/@origin:' +
       $.trim($('i.icon-ok').parents('a.origin-branch').text()) + '...' +
       $.trim($('i.icon-ok').parents('a.forked-branch').text());
+  });
+
+  $('#show-form').click(function(){
+    $(this).hide();
+    $('#pull-request-form').show();
   });
 
   $('#toggle-file-list').click(function(){

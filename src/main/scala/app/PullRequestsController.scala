@@ -1,26 +1,42 @@
 package app
 
-import util.{FileUtil, JGitUtil, ReferrerAuthenticator}
+import util.{CollaboratorsAuthenticator, FileUtil, JGitUtil, ReferrerAuthenticator}
 import util.Directory._
 import service._
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import util.JGitUtil.{DiffInfo, CommitInfo}
 import scala.collection.mutable.ArrayBuffer
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.ObjectId
+import jp.sf.amateras.scalatra.forms._
+import util.JGitUtil.DiffInfo
+import scala.Some
+import util.JGitUtil.CommitInfo
 
 class PullRequestsController extends PullRequestsControllerBase
-  with RepositoryService with AccountService with ReferrerAuthenticator
+  with RepositoryService with AccountService with IssuesService with PullRequestService
+  with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator with RepositoryService =>
+  self: ReferrerAuthenticator with RepositoryService with IssuesService
+    with PullRequestService with CollaboratorsAuthenticator =>
+
+  val form = mapping(
+    "title"           -> trim(label("Title"  , text(required, maxlength(100)))),
+    "content"         -> trim(label("Content", optional(text()))),
+    "branch"          -> trim(text(required, maxlength(100))),
+    "requestUserName" -> trim(text(required, maxlength(100))),
+    "requestCommitId" -> trim(text(required, maxlength(40)))
+  )(PullRequestForm.apply)
+
+  case class PullRequestForm(title: String, content: Option[String], branch: String,
+                             requestUserName: String, requestCommitId: String)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     pulls.html.list(repository)
   })
 
   // TODO Replace correct authenticator
-  get("/:owner/:repository/pulls/compare")(referrersOnly { newRepo =>
+  get("/:owner/:repository/pulls/compare")(collaboratorsOnly { newRepo =>
     (newRepo.repository.originUserName, newRepo.repository.originRepositoryName) match {
       case (None,_)|(_, None) => NotFound // TODO BadRequest?
       case (Some(originUserName), Some(originRepositoryName)) => {
@@ -40,7 +56,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   // TODO Replace correct authenticator
-  get("/:owner/:repository/pulls/compare/*:*...*")(referrersOnly { repository =>
+  get("/:owner/:repository/pulls/compare/*:*...*")(collaboratorsOnly { repository =>
     if(repository.repository.originUserName.isEmpty || repository.repository.originRepositoryName.isEmpty){
       NotFound // TODO BadRequest?
     } else {
@@ -92,6 +108,29 @@ trait PullRequestsControllerBase extends ControllerBase {
         }
       } getOrElse NotFound
     }
+  })
+
+  post("/:owner/:repository/pulls/new", form)(referrersOnly { (form, repository) =>
+    val loginUserName = context.loginAccount.get.userName
+
+    val issueId = createIssue(
+      repository.owner,
+      repository.name,
+      loginUserName,
+      form.title,
+      form.content,
+      None, None)
+
+    createPullRequest(
+      repository.owner,
+      repository.name,
+      issueId,
+      form.branch,
+      form.requestUserName,
+      repository.name,
+      form.requestCommitId)
+
+    redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
   })
 
   private def withGit[T](oldDir: java.io.File, newDir: java.io.File)(action: (Git, Git) => T): T = {
