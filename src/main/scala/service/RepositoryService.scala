@@ -185,6 +185,17 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
+//  def getBaseRepositories(userName: String, repositoryName: String, repositories: List[String] = Nil): List[String] = {
+//    Query(Repositories).filter { t =>
+//      (t.originUserName is userName.bind) && (t.originRepositoryName is repositoryName.bind)
+//    }.map(_.userName).list match {
+//      case Nil  => repositories.sorted
+//      case list => list.map { x =>
+//        getBaseRepositories(x, repositoryName, x :: repositories)
+//      }.flatten
+//    }
+//  }
+
 }
 
 object RepositoryService {

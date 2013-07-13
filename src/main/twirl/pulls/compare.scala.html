@@ -1,13 +1,33 @@
 @(commits: Seq[Seq[util.JGitUtil.CommitInfo]], diffs: List[util.JGitUtil.DiffInfo],
   origin: String, originId: String, forkedId: String, commitId: String,
-  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo,
+  originRepository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main("Pull Requests - " + repository.owner + "/" + repository.name){
   @html.header("pulls", repository)
   <div style="border: 1px solid #eee; background-color: #f8f8f8; margin-bottom: 10px; padding: 8px;">
-    <span class="label label-info monospace">@origin:@originId</span> ... <span class="label label-info monospace">@repository.owner:@forkedId</span>
+    <div id="compare-info">
+      <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>
+      <span class="label label-info monospace">@origin:@originId</span> ... <span class="label label-info monospace">@repository.owner:@forkedId</span>
+    </div>
+    <div id="compare-edit" style="display: none;">
+      <a href="#" id="refresh-compare" class="pull-right"><i class="icon-remove-circle"></i></a>
+      <span class="label label-info monospace">@origin/@repository.name:</span>
+      @helper.html.dropdown(originId) {
+        @originRepository.branchList.map { branch =>
+          <li><a href="#">@helper.html.checkicon(branch == originId) @branch</a></li>
+        }
+      }
+      ...
+      <span class="label label-info monospace">@repository.owner/@repository.name:</span>
+      @helper.html.dropdown(forkedId) {
+        @repository.branchList.map { branch =>
+          <li><a href="#">@helper.html.checkicon(branch == forkedId) @branch</a></li>
+        }
+      }
+    </div>
   </div>
   <div style="margin-bottom: 10px;">
     <a href="#" class="btn">Click to create a pull request for this comparison</a>
@@ -63,6 +83,15 @@
 }
 <script>
 $(function(){
+  $('#edit-compare-condition').click(function(){
+    $('#compare-info').hide();
+    $('#compare-edit').show();
+  });
+
+  $('#refresh-compare').click(function(){
+    // TODO send request
+  });
+
   $('#toggle-file-list').click(function(){
     $('#commit-file-list').toggle();
     if($(this).val() == 'Show file list'){

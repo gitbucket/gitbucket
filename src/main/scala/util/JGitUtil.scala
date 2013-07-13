@@ -15,6 +15,7 @@ import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.eclipse.jgit.errors.MissingObjectException
 import java.util.Date
 import org.eclipse.jgit.api.errors.NoHeadException
+import service.RepositoryService
 
 /**
  * Provides complex JGit operations.
@@ -419,7 +420,7 @@ object JGitUtil {
         case true if(logs.size < 2) => getCommitLog(i, logs :+ i.next)
         case _ => logs
       }
-    
+
     val revWalk = new RevWalk(git.getRepository)
     revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(id)))
     
@@ -530,6 +531,16 @@ object JGitUtil {
     val config = repository.getConfig
     config.setBoolean("http", null, "receivepack", true)
     config.save
+  }
+
+  def getDefaultBranch(git: Git, repository: RepositoryService.RepositoryInfo,
+                       revstr: String = ""): Option[(ObjectId, String)] = {
+    Seq(
+      if(revstr.isEmpty) repository.repository.defaultBranch else revstr,
+      repository.branchList.head
+    ).map { rev =>
+      (git.getRepository.resolve(rev), rev)
+    }.find(_._1 != null)
   }
 
 }
