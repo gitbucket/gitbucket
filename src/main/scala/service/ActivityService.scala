@@ -105,7 +105,7 @@ trait ActivityService {
 
   def recordForkActivity(userName: String, repositoryName: String, activityUserName: String) =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
-      "forkk",
+      "fork",
       s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${activityUserName}/${repositoryName}]",
       None,
       currentDate)
