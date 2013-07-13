@@ -13,11 +13,11 @@ import scala.Some
 import util.JGitUtil.CommitInfo
 
 class PullRequestsController extends PullRequestsControllerBase
-  with RepositoryService with AccountService with IssuesService with PullRequestService
+  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService
   with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator with RepositoryService with IssuesService
+  self: ReferrerAuthenticator with RepositoryService with IssuesService with MilestonesService
     with PullRequestService with CollaboratorsAuthenticator =>
 
   val form = mapping(
@@ -131,6 +131,28 @@ trait PullRequestsControllerBase extends ControllerBase {
       form.requestCommitId)
 
     redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
+  })
+
+  get("/:owner/:repository/pulls/:id")(referrersOnly { repository =>
+    val owner   = repository.owner
+    val name    = repository.name
+    val issueId = params("id")
+
+    getIssue(owner, name, issueId) map {
+      issues.html.issue(
+        _,
+        getComments(owner, name, issueId.toInt),
+        getIssueLabels(owner, name, issueId.toInt),
+        (getCollaborators(owner, name) :+ owner).sorted,
+        getMilestones(owner, name),
+        Nil,
+        hasWritePermission(owner, name, context.loginAccount),
+        repository)
+    } getOrElse NotFound
+  })
+
+  post("/:owner/:repository/pulls/:id/merge")(collaboratorsOnly { repository =>
+    // TODO Not implemented yet.
   })
 
   private def withGit[T](oldDir: java.io.File, newDir: java.io.File)(action: (Git, Git) => T): T = {
