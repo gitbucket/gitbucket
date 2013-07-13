@@ -17,14 +17,14 @@
       <span class="label label-info monospace">@origin/@repository.name:</span>
       @helper.html.dropdown(originId) {
         @originRepository.branchList.map { branch =>
-          <li><a href="#">@helper.html.checkicon(branch == originId) @branch</a></li>
+          <li><a href="#" class="origin-branch" data-branch="@branch">@helper.html.checkicon(branch == originId) @branch</a></li>
         }
       }
       ...
       <span class="label label-info monospace">@repository.owner/@repository.name:</span>
       @helper.html.dropdown(forkedId) {
         @repository.branchList.map { branch =>
-          <li><a href="#">@helper.html.checkicon(branch == forkedId) @branch</a></li>
+          <li><a href="#" class="forked-branch" data-branch="@branch">@helper.html.checkicon(branch == forkedId) @branch</a></li>
         }
       }
     </div>
@@ -88,8 +88,17 @@ $(function(){
     $('#compare-edit').show();
   });
 
+  $('a.origin-branch, a.forked-branch').click(function(){
+    var e = $(this);
+    e.parents('ul').find('i').attr('class', 'icon-white');
+    e.find('i').attr('class', 'icon-ok');
+    e.parents('div.btn-group').find('button strong').text(e.data('branch'));
+  });
+
   $('#refresh-compare').click(function(){
-    // TODO send request
+    location.href = '@url(repository)/pulls/compare/@origin:' +
+      $.trim($('i.icon-ok').parents('a.origin-branch').text()) + '...' +
+      $.trim($('i.icon-ok').parents('a.forked-branch').text());
   });
 
   $('#toggle-file-list').click(function(){
