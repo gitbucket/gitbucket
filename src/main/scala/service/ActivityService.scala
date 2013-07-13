@@ -110,6 +110,13 @@ trait ActivityService {
       None,
       currentDate)
 
+  def recordPullRequestActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "open_pullreq",
+      s"[user:${activityUserName}] opened pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+      Some(title),
+      currentDate)
+
   def insertCommitId(userName: String, repositoryName: String, commitId: String) = {
     CommitLog insert (userName, repositoryName, commitId)
   }

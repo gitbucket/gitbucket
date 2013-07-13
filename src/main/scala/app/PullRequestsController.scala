@@ -13,12 +13,12 @@ import scala.Some
 import util.JGitUtil.CommitInfo
 
 class PullRequestsController extends PullRequestsControllerBase
-  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService
+  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
   with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: ReferrerAuthenticator with RepositoryService with IssuesService with MilestonesService
-    with PullRequestService with CollaboratorsAuthenticator =>
+  self: RepositoryService with IssuesService with MilestonesService with ActivityService with PullRequestService
+    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   val form = mapping(
     "title"           -> trim(label("Title"  , text(required, maxlength(100)))),
@@ -129,6 +129,8 @@ trait PullRequestsControllerBase extends ControllerBase {
       form.requestUserName,
       repository.name,
       form.requestCommitId)
+
+    recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
     redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
   })
