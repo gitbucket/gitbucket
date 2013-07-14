@@ -5,10 +5,6 @@ import Database.threadLocalSession
 
 import model._
 
-//import scala.slick.jdbc.{StaticQuery => Q}
-//import Q.interpolation
-
-
 trait PullRequestService { self: IssuesService =>
 
   def getPullRequest(owner: String, repository: String, issueId: Int): Option[(Issue, PullRequest)] = {
@@ -30,6 +26,16 @@ trait PullRequestService { self: IssuesService =>
       originBranch,
       requestUserName,
       requestRepositoryName,
-      requestBranch))
+      requestBranch,
+      None,
+      None))
+
+  def mergePullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
+        mergeStartId: String, mergeEndId: String): Unit = {
+    Query(PullRequests)
+      .filter(_.byPrimaryKey(originUserName, originRepositoryName, issueId))
+      .map(t => t.mergeStartId ~ t.mergeEndId)
+      .update(mergeStartId, mergeEndId)
+  }
 
 }

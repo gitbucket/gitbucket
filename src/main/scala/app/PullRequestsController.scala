@@ -4,13 +4,9 @@ import util.{CollaboratorsAuthenticator, FileUtil, JGitUtil, ReferrerAuthenticat
 import util.Directory._
 import service._
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
-import util.JGitUtil.{DiffInfo, CommitInfo}
-import scala.collection.mutable.ArrayBuffer
 import org.eclipse.jgit.api.Git
 import jp.sf.amateras.scalatra.forms._
-import util.JGitUtil.DiffInfo
-import scala.Some
-import util.JGitUtil.CommitInfo
+import util.JGitUtil.{DiffInfo, CommitInfo}
 import org.eclipse.jgit.transport.RefSpec
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.lib.PersonIdent
@@ -50,6 +46,10 @@ trait PullRequestsControllerBase extends ControllerBase {
     val issueId = params("id").toInt
 
     getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+
+      println(pullreq.mergeStartId)
+      println(pullreq.mergeEndId)
+
       pulls.html.pullreq(
         issue, pullreq,
         getComments(owner, name, issueId.toInt),
@@ -60,6 +60,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
+  // TODO display in single page?
   get("/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
     val owner   = repository.owner
     val name    = repository.name
@@ -68,12 +69,17 @@ trait PullRequestsControllerBase extends ControllerBase {
     getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
       pulls.html.commits(
         issue, pullreq,
-        getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._1,
+        (if(pullreq.mergeStartId.isDefined){
+          getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)._1
+        } else {
+          getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._1
+        }),
         hasWritePermission(owner, name, context.loginAccount),
         repository)
     } getOrElse NotFound
   })
 
+  // TODO display in single page?
   get("/:owner/:repository/pulls/:id/files")(referrersOnly { repository =>
     val owner   = repository.owner
     val name    = repository.name
@@ -85,14 +91,17 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         pulls.html.files(
           issue, pullreq,
-          getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._2,
+          (if(pullreq.mergeStartId.isDefined){
+            getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)._2
+          } else {
+            getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._2
+          }),
           newId.getName,
           hasWritePermission(owner, name, context.loginAccount),
           repository)
       }
     } getOrElse NotFound
   })
-
 
   post("/:owner/:repository/pulls/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
     val issueId = params("id").toInt
@@ -104,6 +113,12 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       try {
         // TODO merge and close issue
+        val (commits, diffs) = getCompareInfo(repository.owner, repository.name, pullreq.branch,
+                                  pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+        mergePullRequest(repository.owner, repository.name, issueId,
+          git.getRepository.resolve("master").getName,
+          commits.head.head.id)
+
         val loginAccount = context.loginAccount.get
         recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
 
@@ -213,6 +228,10 @@ trait PullRequestsControllerBase extends ControllerBase {
    */
   private def getCompareInfo(userName: String, repositoryName: String, branch: String,
       requestUserName: String, requestRepositoryName: String, requestBranch: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
+
+    import scala.collection.JavaConverters._
+    import util.Implicits._
+
     withGit(
       getRepositoryDir(userName, repositoryName),
       getRepositoryDir(requestUserName, requestRepositoryName)
@@ -225,16 +244,12 @@ trait PullRequestsControllerBase extends ControllerBase {
       val newTreeIter = new CanonicalTreeParser
       newTreeIter.reset(newReader, newGit.getRepository.resolve(s"${requestBranch}^{tree}"))
 
-      import scala.collection.JavaConverters._
-      import util.Implicits._
-
       val oldId = oldGit.getRepository.resolve(branch)
       val newId = newGit.getRepository.resolve(requestBranch)
-      val i = newGit.log.addRange(oldId, newId).call.iterator.asScala
 
       val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
         new CommitInfo(revCommit)
-      }.toSeq.splitWith{ (commit1, commit2) =>
+      }.toList.splitWith{ (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }
 
