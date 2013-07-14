@@ -11,6 +11,9 @@ import jp.sf.amateras.scalatra.forms._
 import util.JGitUtil.DiffInfo
 import scala.Some
 import util.JGitUtil.CommitInfo
+import org.eclipse.jgit.transport.RefSpec
+import org.apache.commons.io.FileUtils
+import org.eclipse.jgit.lib.PersonIdent
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
@@ -20,7 +23,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with IssuesService with MilestonesService with ActivityService with PullRequestService
     with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
-  val form = mapping(
+  val pullRequestForm = mapping(
     "title"           -> trim(label("Title"  , text(required, maxlength(100)))),
     "content"         -> trim(label("Content", optional(text()))),
     "branch"          -> trim(text(required, maxlength(100))),
@@ -28,8 +31,14 @@ trait PullRequestsControllerBase extends ControllerBase {
     "requestBranch"   -> trim(text(required, maxlength(100)))
   )(PullRequestForm.apply)
 
+  val mergeForm = mapping(
+    "message" -> trim(label("Message", text(required)))
+  )(MergeForm.apply)
+
   case class PullRequestForm(title: String, content: Option[String], branch: String,
                              requestUserName: String, requestBranch: String)
+
+  case class MergeForm(message: String)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     pulls.html.list(repository)
@@ -85,11 +94,40 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
 
-  post("/:owner/:repository/pulls/:id/merge")(collaboratorsOnly { repository =>
-    // TODO Not implemented yet.
+  post("/:owner/:repository/pulls/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
+    val issueId = params("id").toInt
+
+    getPullRequest(repository.owner, repository.name, issueId).map { case (issue, pullreq) =>
+      val remote = getRepositoryDir(repository.owner, repository.name)
+      val tmpdir = new java.io.File(getTemporaryDir(repository.owner, repository.name), s"merge-${issueId}")
+      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+
+      try {
+        // TODO merge and close issue
+        val loginAccount = context.loginAccount.get
+        recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
+
+        git.checkout.setName(pullreq.branch).call
+
+        git.fetch
+          .setRemote(getRepositoryDir(pullreq.requestUserName, pullreq.requestRepositoryName).toURI.toString)
+          .setRefSpecs(new RefSpec(s"refs/heads/${pullreq.branch}:refs/heads/${pullreq.requestBranch}")).call
+
+        git.merge.include(git.getRepository.resolve("FETCH_HEAD")).setCommit(false).call
+
+        git.commit
+          .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
+          .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
+                     + form.message).call
+        git.push.call
+
+      } finally {
+        git.getRepository.close
+        FileUtils.deleteDirectory(tmpdir)
+      }
+    } getOrElse NotFound
   })
 
-  // TODO Replace correct authenticator
   get("/:owner/:repository/pulls/compare")(collaboratorsOnly { newRepo =>
     (newRepo.repository.originUserName, newRepo.repository.originRepositoryName) match {
       case (None,_)|(_, None) => NotFound // TODO BadRequest?
@@ -109,7 +147,6 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  // TODO Replace correct authenticator
   get("/:owner/:repository/pulls/compare/*:*...*")(collaboratorsOnly { repository =>
     if(repository.repository.originUserName.isEmpty || repository.repository.originRepositoryName.isEmpty){
       NotFound // TODO BadRequest?
@@ -135,7 +172,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/pulls/new", form)(referrersOnly { (form, repository) =>
+  post("/:owner/:repository/pulls/new", pullRequestForm)(referrersOnly { (form, repository) =>
     val loginUserName = context.loginAccount.get.userName
 
     val issueId = createIssue(
@@ -193,12 +230,12 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       val oldId = oldGit.getRepository.resolve(branch)
       val newId = newGit.getRepository.resolve(requestBranch)
-      val i = newGit.log.addRange(oldId, newId).call.iterator
+      val i = newGit.log.addRange(oldId, newId).call.iterator.asScala
 
-      val commits = new ArrayBuffer[CommitInfo]
-      while(i.hasNext){
-        val revCommit = i.next
-        commits += new CommitInfo(revCommit)
+      val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
+        new CommitInfo(revCommit)
+      }.toSeq.splitWith{ (commit1, commit2) =>
+        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }
 
       val diffs = newGit.diff.setOldTree(oldTreeIter).setNewTree(newTreeIter).call.asScala.map { diff =>
@@ -209,11 +246,9 @@ trait PullRequestsControllerBase extends ControllerBase {
             JGitUtil.getContent(oldGit, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")),
             JGitUtil.getContent(newGit, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")))
         }
-      }
+      }.toSeq
 
-      (commits.toList.splitWith{ (commit1, commit2) =>
-        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-      }, diffs.toSeq)
+      (commits, diffs)
     }
   }
 
