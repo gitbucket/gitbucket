@@ -117,6 +117,13 @@ trait ActivityService {
       Some(title),
       currentDate)
 
+  def recordMergeActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, message: String): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "merge_pullreq",
+      s"[user:${activityUserName}] merged pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+      Some(message),
+      currentDate)
+
   def insertCommitId(userName: String, repositoryName: String, commitId: String) = {
     CommitLog insert (userName, repositoryName, commitId)
   }

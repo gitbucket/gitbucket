@@ -98,59 +98,62 @@
         </div>
         }
       }
-
-      <div class="box issue-comment-box" style="background-color: #d8f5cd;">
-        <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
-          <div id="merge-pull-request">
-            <div class="pull-right">
-              <input type="button" class="btn btn-success" id="merge-pull-request-button" value="Merge pull request"/>
-            </div>
-            <div>
-              <strong>This pull request can be automatically merged.</strong>
-            </div>
-            <div class="small">
-              You can also merge branches on the <a href="#" id="show-command-line">command line</a>.
-            </div>
-            <div id="command-line" style="display: none;">
-              <hr>
-              <strong>Merging via command line</strong>
-              <p>
-                If you do not want to use the merge button or an automatic merge cannot be performed,
-                you can perform a manual merge on the command line.
-              </p>
-              <div class="input-prepend">
-                <span class="add-on">HTTP</span>
-                <input type="text" value="https://github.com/takezoen/test.git" id="repository-url" readonly>
+      @if(hasWritePermission){
+        <div class="box issue-comment-box" style="background-color: #d8f5cd;">
+          <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
+            <div id="merge-pull-request">
+              <div class="pull-right">
+                <input type="button" class="btn btn-success" id="merge-pull-request-button" value="Merge pull request"/>
               </div>
-              <p>
-                <strong>Step 1:</strong> Check out a new branch to test the changes — run this from your project directory
-              </p>
-              <pre>git checkout -b @{pullreq.requestUserName}-@{pullreq.requestBranch} @{pullreq.requestBranch}</pre>
-              <p>
-                <strong>Step 2:</strong> Bring in @{pullreq.requestUserName}'s changes and test
-              </p>
-              <pre>git pull https://github.com/@{pullreq.requestUserName}/@{repository.name}.git @{pullreq.requestBranch}</pre>
-              <p>
-                <strong>Step 3:</strong> Merge the changes and update the server
-              </p>
-              <pre>git checkout master
+              <div>
+                <strong>This pull request can be automatically merged.</strong>
+              </div>
+              <div class="small">
+                You can also merge branches on the <a href="#" id="show-command-line">command line</a>.
+              </div>
+              <div id="command-line" style="display: none;">
+                <hr>
+                <strong>Merging via command line</strong>
+                <p>
+                  If you do not want to use the merge button or an automatic merge cannot be performed,
+                  you can perform a manual merge on the command line.
+                </p>
+                <div class="input-prepend">
+                  <span class="add-on">HTTP</span>
+                  <input type="text" value="https://github.com/takezoen/test.git" id="repository-url" readonly>
+                </div>
+                <p>
+                  <strong>Step 1:</strong> Check out a new branch to test the changes — run this from your project directory
+                </p>
+                <pre>git checkout -b @{pullreq.requestUserName}-@{pullreq.requestBranch} @{pullreq.requestBranch}</pre>
+                <p>
+                  <strong>Step 2:</strong> Bring in @{pullreq.requestUserName}'s changes and test
+                </p>
+                <pre>git pull https://github.com/@{pullreq.requestUserName}/@{repository.name}.git @{pullreq.requestBranch}</pre>
+                <p>
+                  <strong>Step 3:</strong> Merge the changes and update the server
+                </p>
+                <pre>git checkout master
 git merge @{pullreq.requestUserName}-@{pullreq.branch}
 git push origin @{pullreq.branch}</pre>
+              </div>
             </div>
-          </div>
-          <div id="confirm-merge-form" style="display: none;">
-            <div>
-              <strong>Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}</strong>
-            </div>
-            <textarea name="content" style="width: 680px; height: 80px;">@issue.title</textarea>
-            <div>
-              <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
-              <input type="submit" class="btn btn-success" value="Confirm merge"/>
+            <div id="confirm-merge-form" style="display: none;">
+              <form method="POST" action="@url(repository)/pulls/@issue.issueId/merge">
+                <div>
+                  <strong>Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}</strong>
+                </div>
+                <span id="error-message" class="error"></span>
+                <textarea name="message" style="width: 680px; height: 80px;">@issue.title</textarea>
+                <div>
+                  <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
+                  <input type="submit" class="btn btn-success" value="Confirm merge"/>
+                </div>
+              </form>
             </div>
           </div>
         </div>
-      </div>
-
+      }
       @if(loginAccount.isDefined){
         <form method="POST" validate="true">
           <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
