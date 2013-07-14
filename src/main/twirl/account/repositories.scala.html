@@ -29,6 +29,9 @@
                   <i class="icon-lock"></i>
                 }
               </div>
+              @if(repository.repository.originUserName.isDefined){
+                <div class="small muted">forked from <a href="@path/@repository.repository.originUserName/@repository.repository.originRepositoryName">@repository.repository.originUserName/@repository.repository.originRepositoryName</a></div>
+              }
               @if(repository.repository.description.isDefined){
                 <div>@repository.repository.description</div>
               }
