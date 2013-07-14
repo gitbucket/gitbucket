@@ -40,7 +40,7 @@
         @helper.html.preview(repository, "", false, true, "width: 600px; height: 200px;")
         <input type="hidden" name="branch" value="@originId"/>
         <input type="hidden" name="requestUserName" value="@repository.owner"/>
-        <input type="hidden" name="requestCommitId" value="@commitId"/>
+        <input type="hidden" name="requestBranch" value="@forkedId"/>
         <input type="submit" class="btn btn-success" value="Send pull request"/>
       </form>
     </div>

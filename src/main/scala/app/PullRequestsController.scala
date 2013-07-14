@@ -25,11 +25,11 @@ trait PullRequestsControllerBase extends ControllerBase {
     "content"         -> trim(label("Content", optional(text()))),
     "branch"          -> trim(text(required, maxlength(100))),
     "requestUserName" -> trim(text(required, maxlength(100))),
-    "requestCommitId" -> trim(text(required, maxlength(40)))
+    "requestBranch"   -> trim(text(required, maxlength(100)))
   )(PullRequestForm.apply)
 
   case class PullRequestForm(title: String, content: Option[String], branch: String,
-                             requestUserName: String, requestCommitId: String)
+                             requestUserName: String, requestBranch: String)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
     pulls.html.list(repository)
@@ -128,7 +128,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       form.branch,
       form.requestUserName,
       repository.name,
-      form.requestCommitId)
+      form.requestBranch)
 
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
@@ -138,16 +138,14 @@ trait PullRequestsControllerBase extends ControllerBase {
   get("/:owner/:repository/pulls/:id")(referrersOnly { repository =>
     val owner   = repository.owner
     val name    = repository.name
-    val issueId = params("id")
+    val issueId = params("id").toInt
 
-    getIssue(owner, name, issueId) map {
-      issues.html.issue(
-        _,
+    getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+      pulls.html.pullreq(
+        issue, pullreq,
         getComments(owner, name, issueId.toInt),
-        getIssueLabels(owner, name, issueId.toInt),
         (getCollaborators(owner, name) :+ owner).sorted,
         getMilestones(owner, name),
-        Nil,
         hasWritePermission(owner, name, context.loginAccount),
         repository)
     } getOrElse NotFound
