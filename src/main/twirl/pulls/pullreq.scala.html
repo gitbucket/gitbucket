@@ -9,11 +9,13 @@
 @import view.helpers._
 @html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
   @html.header("issues", repository)
-  @issues.html.tab("issues", repository)
+  @tab("discussion", issue.issueId, repository)
+  @*
   <ul class="nav nav-tabs">
     <li class="pull-left"><a href="@url(repository)/issues"><i class="icon-arrow-left"></i> Back to issue list</a></li>
     <li class="pull-right">Issue #@issue.issueId</li>
   </ul>
+  *@
   <div class="row-fluid">
     <div class="span10">
       <div class="issue-avatar-image">@avatar(issue.openedUserName, 48)</div>
@@ -140,7 +142,7 @@ git push origin @{pullreq.branch}</pre>
             <div>
               <strong>Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}</strong>
             </div>
-            <textarea name="content" style="width: 680px; height: 100px;">@issue.title</textarea>
+            <textarea name="content" style="width: 680px; height: 80px;">@issue.title</textarea>
             <div>
               <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
               <input type="submit" class="btn btn-success" value="Confirm merge"/>

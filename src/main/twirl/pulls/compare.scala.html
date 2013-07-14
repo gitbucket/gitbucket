@@ -1,4 +1,4 @@
-@(commits: Seq[Seq[util.JGitUtil.CommitInfo]], diffs: List[util.JGitUtil.DiffInfo],
+@(commits: Seq[Seq[util.JGitUtil.CommitInfo]], diffs: Seq[util.JGitUtil.DiffInfo],
   origin: String, originId: String, forkedId: String, commitId: String,
   repository: service.RepositoryService.RepositoryInfo,
   originRepository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
@@ -33,7 +33,7 @@
     <div style="margin-bottom: 10px;" id="create-pull-request">
       <a href="#" class="btn" id="show-form">Click to create a pull request for this comparison</a>
     </div>
-    <div id="pull-request-form" style="display: none; width: 600px;">
+    <div id="pull-request-form" style="display: none; width: 620px;">
       <form method="POST" action="@path/@origin/@repository.name/pulls/new" validate="true">
         <span class="error" id="error-title"></span>
         <input type="text" name="title" style="width: 600px" placeholder="Title"/>
