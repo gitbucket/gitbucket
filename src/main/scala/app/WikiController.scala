@@ -59,7 +59,7 @@ trait WikiControllerBase extends ControllerBase {
     val commitId = params("commitId").split("\\.\\.\\.")
 
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
-      wiki.html.compare(Some(pageName), getWikiDiffs(git, commitId(0), commitId(1)), repository)
+      wiki.html.compare(Some(pageName), JGitUtil.getDiffs(git, commitId(0), commitId(1), true), repository)
     }
   })
   
@@ -67,7 +67,7 @@ trait WikiControllerBase extends ControllerBase {
     val commitId   = params("commitId").split("\\.\\.\\.")
 
     JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
-      wiki.html.compare(None, getWikiDiffs(git, commitId(0), commitId(1)), repository)
+      wiki.html.compare(None, JGitUtil.getDiffs(git, commitId(0), commitId(1), true), repository)
     }
   })
   

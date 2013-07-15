@@ -109,11 +109,15 @@ trait PullRequestsControllerBase extends ControllerBase {
       val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
 
       try {
-        val (commits, diffs) = getCompareInfo(repository.owner, repository.name, pullreq.branch,
+        val (commits, _) = getCompareInfo(repository.owner, repository.name, pullreq.branch,
                                   pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
         mergePullRequest(repository.owner, repository.name, issueId,
           git.getRepository.resolve("master").getName,
           commits.head.head.id)
+
+        commits.flatten.foreach { commit =>
+          insertCommitId(repository.owner, repository.name, commit.id)
+        }
 
         // TODO mark issue as 'merged'
         val loginAccount = context.loginAccount.get
@@ -235,16 +239,10 @@ trait PullRequestsControllerBase extends ControllerBase {
       getRepositoryDir(userName, repositoryName),
       getRepositoryDir(requestUserName, requestRepositoryName)
     ){ (oldGit, newGit) =>
-      val oldReader = oldGit.getRepository.newObjectReader
-      val oldTreeIter = new CanonicalTreeParser
-      oldTreeIter.reset(oldReader, oldGit.getRepository.resolve(s"${branch}^{tree}"))
-
-      val newReader = newGit.getRepository.newObjectReader
-      val newTreeIter = new CanonicalTreeParser
-      newTreeIter.reset(newReader, newGit.getRepository.resolve(s"${requestBranch}^{tree}"))
-
-      val oldId = oldGit.getRepository.resolve(branch)
       val newId = newGit.getRepository.resolve(requestBranch)
+      val oldId = newGit.getRepository.resolve(JGitUtil.getCommitLogFrom(newGit, newId.getName, true){ revCommit =>
+        existsCommitId(userName, repositoryName, revCommit.getName)
+      }.head.id)
 
       val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
         new CommitInfo(revCommit)
@@ -252,15 +250,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }
 
-      val diffs = newGit.diff.setOldTree(oldTreeIter).setNewTree(newTreeIter).call.asScala.map { diff =>
-        if(FileUtil.isImage(diff.getOldPath) || FileUtil.isImage(diff.getNewPath)){
-          DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
-        } else {
-          DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            JGitUtil.getContent(oldGit, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")),
-            JGitUtil.getContent(newGit, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")))
-        }
-      }.toSeq
+      val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true)
 
       (commits, diffs)
     }

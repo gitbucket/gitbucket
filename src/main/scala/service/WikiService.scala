@@ -187,27 +187,6 @@ trait WikiService {
     }
   }
 
-  /**
-   * Returns differences between specified commits.
-   */
-  def getWikiDiffs(git: Git, commitId1: String, commitId2: String): List[DiffInfo] = {
-      // get diff between specified commit and its previous commit
-      val reader = git.getRepository.newObjectReader
-      
-      val oldTreeIter = new CanonicalTreeParser
-      oldTreeIter.reset(reader, git.getRepository.resolve(commitId1 + "^{tree}"))
-      
-      val newTreeIter = new CanonicalTreeParser
-      newTreeIter.reset(reader, git.getRepository.resolve(commitId2 + "^{tree}"))
-      
-      import scala.collection.JavaConverters._
-      git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
-            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
-      }.toList
-  }
-
   private def cloneOrPullWorkingCopy(workDir: File, owner: String, repository: String): Unit = {
     if(!workDir.exists){
       Git.cloneRepository
