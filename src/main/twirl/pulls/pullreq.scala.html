@@ -4,7 +4,8 @@
   collaborators: List[String],
   milestones: List[model.Milestone],
   hasWritePermission: Boolean,
-  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo,
+  requestRepositoryUrl: String)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
@@ -120,7 +121,7 @@
                 </p>
                 <div class="input-prepend">
                   <span class="add-on">HTTP</span>
-                  <input type="text" value="https://github.com/takezoen/test.git" id="repository-url" readonly>
+                  <input type="text" value="@requestRepositoryUrl" id="repository-url" readonly>
                 </div>
                 <p>
                   <strong>Step 1:</strong> Check out a new branch to test the changes — run this from your project directory
@@ -129,7 +130,7 @@
                 <p>
                   <strong>Step 2:</strong> Bring in @{pullreq.requestUserName}'s changes and test
                 </p>
-                <pre>git pull https://github.com/@{pullreq.requestUserName}/@{repository.name}.git @{pullreq.requestBranch}</pre>
+                <pre>git pull @{requestRepositoryUrl} @{pullreq.requestBranch}</pre>
                 <p>
                   <strong>Step 3:</strong> Merge the changes and update the server
                 </p>

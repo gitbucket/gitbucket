@@ -46,17 +46,14 @@ trait PullRequestsControllerBase extends ControllerBase {
     val issueId = params("id").toInt
 
     getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-
-      println(pullreq.mergeStartId)
-      println(pullreq.mergeEndId)
-
       pulls.html.pullreq(
         issue, pullreq,
         getComments(owner, name, issueId.toInt),
         (getCollaborators(owner, name) :+ owner).sorted,
         getMilestones(owner, name),
         hasWritePermission(owner, name, context.loginAccount),
-        repository)
+        repository,
+        s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
     } getOrElse NotFound
   })
 
