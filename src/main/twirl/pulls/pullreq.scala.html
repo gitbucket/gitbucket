@@ -6,6 +6,7 @@
   commits: Seq[Seq[util.JGitUtil.CommitInfo]],
   diffs: Seq[util.JGitUtil.DiffInfo],
   commitId: String,
+  hasConflict: Boolean,
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo,
   requestRepositoryUrl: String)(implicit context: app.Context)
@@ -20,7 +21,7 @@
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" id="discussion">
-      @pulls.html.discussion(issue, pullreq, comments, collaborators, milestones, hasWritePermission, repository, requestRepositoryUrl)
+      @pulls.html.discussion(issue, pullreq, comments, collaborators, milestones, hasConflict, hasWritePermission, repository, requestRepositoryUrl)
     </div>
     <div class="tab-pane" id="commits">
       @pulls.html.commits(issue, pullreq, commits, hasWritePermission, repository)

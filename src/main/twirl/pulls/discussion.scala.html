@@ -3,6 +3,7 @@
   comments: List[model.IssueComment],
   collaborators: List[String],
   milestones: List[model.Milestone],
+  hasConflict: Boolean,
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo,
   requestRepositoryUrl: String)(implicit context: app.Context)
@@ -90,26 +91,42 @@
       </div>
       }
     }
-    @if(hasWritePermission){
+    @if(hasWritePermission && !issue.closed){
       <div class="box issue-comment-box" style="background-color: #d8f5cd;">
         <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
           <div id="merge-pull-request">
             <div class="pull-right">
-              <input type="button" class="btn btn-success" id="merge-pull-request-button" value="Merge pull request"/>
+              <input type="button" class="btn btn-success" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict){ disabled="true"}/>
             </div>
             <div>
-              <strong>This pull request can be automatically merged.</strong>
+              @if(hasConflict){
+                <strong>We can’t automatically merge this pull request.</strong>
+              } else {
+                <strong>This pull request can be automatically merged.</strong>
+              }
             </div>
             <div class="small">
-              You can also merge branches on the <a href="#" id="show-command-line">command line</a>.
+              @if(hasConflict){
+                <a href="#" id="show-command-line">Use the command line</a> to resolve conflicts before continuing.
+              } else {
+                You can also merge branches on the <a href="#" id="show-command-line">command line</a>.
+              }
             </div>
             <div id="command-line" style="display: none;">
               <hr>
-              <strong>Merging via command line</strong>
-              <p>
-                If you do not want to use the merge button or an automatic merge cannot be performed,
-                you can perform a manual merge on the command line.
-              </p>
+              @if(hasConflict){
+                <strong>Checkout via command line</strong>
+                <p>
+                  If you cannot merge a pull request automatically here, you have the option of checking
+                  it out via command line to resolve conflicts and perform a manual merge.
+                </p>
+              } else {
+                <strong>Merging via command line</strong>
+                <p>
+                  If you do not want to use the merge button or an automatic merge cannot be performed,
+                  you can perform a manual merge on the command line.
+                </p>
+              }
               <div class="input-prepend">
                 <span class="add-on">HTTP</span>
                 <input type="text" value="@requestRepositoryUrl" id="repository-url" readonly>

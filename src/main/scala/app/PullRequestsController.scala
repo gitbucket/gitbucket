@@ -3,7 +3,6 @@ package app
 import util.{CollaboratorsAuthenticator, FileUtil, JGitUtil, ReferrerAuthenticator}
 import util.Directory._
 import service._
-import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.api.Git
 import jp.sf.amateras.scalatra.forms._
 import util.JGitUtil.{DiffInfo, CommitInfo}
@@ -50,9 +49,9 @@ trait PullRequestsControllerBase extends ControllerBase {
         val requestCommitId = git.getRepository.resolve(pullreq.requestBranch)
 
         val (commits, diffs) = if(pullreq.mergeStartId.isDefined){
-          getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)
+          getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get, true)
         } else {
-          getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+          getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch, false)
         }
 
         pulls.html.pullreq(
@@ -63,6 +62,11 @@ trait PullRequestsControllerBase extends ControllerBase {
           commits,
           diffs,
           requestCommitId.getName,
+          if(pullreq.mergeStartId.isDefined){
+            false
+          } else {
+            checkConflict(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+          },
           hasWritePermission(owner, name, context.loginAccount),
           repository,
           s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
@@ -81,7 +85,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       try {
         val (commits, _) = getCompareInfo(repository.owner, repository.name, pullreq.branch,
-                                  pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+                                  pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch, false)
         mergePullRequest(repository.owner, repository.name, issueId,
           git.getRepository.resolve("master").getName,
           commits.head.head.id)
@@ -102,7 +106,10 @@ trait PullRequestsControllerBase extends ControllerBase {
           .setRemote(getRepositoryDir(pullreq.requestUserName, pullreq.requestRepositoryName).toURI.toString)
           .setRefSpecs(new RefSpec(s"refs/heads/${pullreq.branch}:refs/heads/${pullreq.requestBranch}")).call
 
-        git.merge.include(git.getRepository.resolve("FETCH_HEAD")).setCommit(false).call
+        val result = git.merge.include(git.getRepository.resolve("FETCH_HEAD")).setCommit(false).call
+        if(result.getConflicts != null){
+          throw new RuntimeException("This pull request can't merge automatically.")
+        }
 
         git.commit
           .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
@@ -110,12 +117,38 @@ trait PullRequestsControllerBase extends ControllerBase {
                      + form.message).call
         git.push.call
 
+        redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
+
       } finally {
         git.getRepository.close
         FileUtils.deleteDirectory(tmpdir)
       }
     } getOrElse NotFound
   })
+
+  private def checkConflict(userName: String, repositoryName: String, branch: String,
+                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
+    val remote = getRepositoryDir(userName, repositoryName)
+    val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
+    val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+    try {
+      git.checkout.setName(branch).call
+
+      git.fetch
+        .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
+        .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
+
+      val result = git.merge
+        .include(git.getRepository.resolve("FETCH_HEAD"))
+        .setCommit(false).call
+
+      result.getConflicts != null
+
+    } finally {
+      git.getRepository.close
+      FileUtils.deleteDirectory(tmpdir)
+    }
+  }
 
   get("/:owner/:repository/pulls/compare")(collaboratorsOnly { newRepo =>
     (newRepo.repository.originUserName, newRepo.repository.originRepositoryName) match {
@@ -140,22 +173,22 @@ trait PullRequestsControllerBase extends ControllerBase {
     if(repository.repository.originUserName.isEmpty || repository.repository.originRepositoryName.isEmpty){
       NotFound // TODO BadRequest?
     } else {
-      getRepository(
-        repository.repository.originUserName.get,
-        repository.repository.originRepositoryName.get, baseUrl
-      ).map{ originRepository =>
-        val Seq(origin, originId, forkedId) = multiParams("splat")
-        val userName       = params("owner")
-        val repositoryName = params("repository")
+      val originUserName       = repository.repository.originUserName.get
+      val originRepositoryName = repository.repository.originRepositoryName.get
 
-        JGitUtil.withGit(getRepositoryDir(userName, repositoryName)){ git =>
+      getRepository(originUserName, originRepositoryName, baseUrl).map{ originRepository =>
+        val Seq(origin, originId, forkedId) = multiParams("splat")
+
+        JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
           val newId = git.getRepository.resolve(forkedId)
 
-          val pullreq = getCompareInfo(
+          val (commits, diffs) = getCompareInfo(
             origin, repository.repository.originRepositoryName.get, originId,
-            params("owner"), params("repository"), forkedId)
+            repository.owner, repository.name, forkedId, false)
 
-          pulls.html.compare(pullreq._1, pullreq._2, origin, originId, forkedId, newId.getName, repository, originRepository)
+          pulls.html.compare(commits, diffs, origin, originId, forkedId, newId.getName,
+            checkConflict(originUserName, originRepositoryName, originId, repository.owner, repository.name, forkedId),
+            repository, originRepository)
         }
       } getOrElse NotFound
     }
@@ -201,7 +234,8 @@ trait PullRequestsControllerBase extends ControllerBase {
    * Returns the commits and diffs between specified repository and revision.
    */
   private def getCompareInfo(userName: String, repositoryName: String, branch: String,
-      requestUserName: String, requestRepositoryName: String, requestBranch: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
+      requestUserName: String, requestRepositoryName: String, requestBranch: String,
+      containsLastCommit: Boolean): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
 
     import scala.collection.JavaConverters._
     import util.Implicits._

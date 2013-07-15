@@ -1,5 +1,5 @@
 @(commits: Seq[Seq[util.JGitUtil.CommitInfo]], diffs: Seq[util.JGitUtil.DiffInfo],
-  origin: String, originId: String, forkedId: String, commitId: String,
+  origin: String, originId: String, forkedId: String, commitId: String, hasConflict: Boolean,
   repository: service.RepositoryService.RepositoryInfo,
   originRepository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -33,16 +33,29 @@
     <div style="margin-bottom: 10px;" id="create-pull-request">
       <a href="#" class="btn" id="show-form">Click to create a pull request for this comparison</a>
     </div>
-    <div id="pull-request-form" style="display: none; width: 620px;">
-      <form method="POST" action="@path/@origin/@repository.name/pulls/new" validate="true">
-        <span class="error" id="error-title"></span>
-        <input type="text" name="title" style="width: 600px" placeholder="Title"/>
-        @helper.html.preview(repository, "", false, true, "width: 600px; height: 200px;")
-        <input type="hidden" name="branch" value="@originId"/>
-        <input type="hidden" name="requestUserName" value="@repository.owner"/>
-        <input type="hidden" name="requestBranch" value="@forkedId"/>
-        <input type="submit" class="btn btn-success" value="Send pull request"/>
-      </form>
+    <div id="pull-request-form" class="box" style="display: none;">
+        <div class="box-content">
+          <form method="POST" action="@path/@origin/@repository.name/pulls/new" validate="true">
+            <div style="width: 260px; position: absolute; margin-left: 635px;">
+              @if(hasConflict){
+                <h4>We can’t automatically merge these branches</h4>
+                <p>Don't worry, you can still submit the pull request.</p>
+              } else {
+                <h4 style="color: #468847;">Able to merge</h4>
+                <p>These branches can be automatically merged.</p>
+              }
+              <input type="submit" class="btn btn-success btn-block" value="Send pull request"/>
+            </div>
+            <div style="width: 620px; border-right: 1px solid #d4d4d4;">
+              <span class="error" id="error-title"></span>
+              <input type="text" name="title" style="width: 600px" placeholder="Title"/>
+              @helper.html.preview(repository, "", false, true, "width: 600px; height: 200px;")
+              <input type="hidden" name="branch" value="@originId"/>
+              <input type="hidden" name="requestUserName" value="@repository.owner"/>
+              <input type="hidden" name="requestBranch" value="@forkedId"/>
+            </div>
+          </form>
+        </div>
     </div>
   }
   @if(commits.isEmpty){
