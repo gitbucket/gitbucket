@@ -318,7 +318,7 @@ object JGitUtil {
    * @return the commit list
    */
   def getCommitLog(git: Git, from: String, to: String): List[CommitInfo] =
-    getCommitLogFrom(git, from)(_.getName == from)
+    getCommitLogFrom(git, to)(_.getName == from)
   
   /**
    * Returns the latest RevCommit of the specified path.
