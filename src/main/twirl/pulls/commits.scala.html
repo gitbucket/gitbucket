@@ -5,28 +5,24 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
-  @html.header("issues", repository)
-  @tab("commits", issue.issueId, repository)
-  <div class="box">
-    <table class="table table-file-list" style="border: 1px solid silver;">
-      @commits.map { day =>
+<div class="box">
+  <table class="table table-file-list" style="border: 1px solid silver;">
+    @commits.map { day =>
+      <tr>
+        <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
+      </tr>
+      @day.map { commit =>
         <tr>
-          <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
+          <td style="width: 20%;">
+            @avatar(commit.committer, 20)
+            <a href="@url(commit.committer)" class="username">@commit.committer</a>
+          </td>
+          <td>@commit.shortMessage</td>
+          <td style="width: 10%; text-align: right;">
+            <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+          </td>
         </tr>
-        @day.map { commit =>
-          <tr>
-            <td style="width: 20%;">
-              @avatar(commit.committer, 20)
-              <a href="@url(commit.committer)" class="username">@commit.committer</a>
-            </td>
-            <td>@commit.shortMessage</td>
-            <td style="width: 10%; text-align: right;">
-              <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
-            </td>
-          </tr>
-        }
       }
-    </table>
-  </div>
-}
+    }
+  </table>
+</div>

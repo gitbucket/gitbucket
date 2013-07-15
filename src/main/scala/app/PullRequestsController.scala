@@ -46,59 +46,73 @@ trait PullRequestsControllerBase extends ControllerBase {
     val issueId = params("id").toInt
 
     getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-      pulls.html.pullreq(
-        issue, pullreq,
-        getComments(owner, name, issueId.toInt),
-        (getCollaborators(owner, name) :+ owner).sorted,
-        getMilestones(owner, name),
-        hasWritePermission(owner, name, context.loginAccount),
-        repository,
-        s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
-    } getOrElse NotFound
-  })
-
-  // TODO display in single page?
-  get("/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
-    val owner   = repository.owner
-    val name    = repository.name
-    val issueId = params("id").toInt
-
-    getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-      pulls.html.commits(
-        issue, pullreq,
-        (if(pullreq.mergeStartId.isDefined){
-          getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)._1
-        } else {
-          getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._1
-        }),
-        hasWritePermission(owner, name, context.loginAccount),
-        repository)
-    } getOrElse NotFound
-  })
-
-  // TODO display in single page?
-  get("/:owner/:repository/pulls/:id/files")(referrersOnly { repository =>
-    val owner   = repository.owner
-    val name    = repository.name
-    val issueId = params("id").toInt
-
-    getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
       JGitUtil.withGit(getRepositoryDir(owner, name)){ git =>
-        val newId = git.getRepository.resolve(pullreq.requestBranch)
+        val requestCommitId = git.getRepository.resolve(pullreq.requestBranch)
 
-        pulls.html.files(
+        val (commits, diffs) = if(pullreq.mergeStartId.isDefined){
+          getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)
+        } else {
+          getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+        }
+
+        pulls.html.pullreq(
           issue, pullreq,
-          (if(pullreq.mergeStartId.isDefined){
-            getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)._2
-          } else {
-            getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._2
-          }),
-          newId.getName,
+          getComments(owner, name, issueId.toInt),
+          (getCollaborators(owner, name) :+ owner).sorted,
+          getMilestones(owner, name),
+          commits,
+          diffs,
+          requestCommitId.getName,
           hasWritePermission(owner, name, context.loginAccount),
-          repository)
+          repository,
+          s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
       }
+
     } getOrElse NotFound
   })
+
+//  // TODO display in single page?
+//  get("/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
+//    val owner   = repository.owner
+//    val name    = repository.name
+//    val issueId = params("id").toInt
+//
+//    getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+//      pulls.html.commits(
+//        issue, pullreq,
+//        (if(pullreq.mergeStartId.isDefined){
+//          getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)._1
+//        } else {
+//          getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._1
+//        }),
+//        hasWritePermission(owner, name, context.loginAccount),
+//        repository)
+//    } getOrElse NotFound
+//  })
+
+//  // TODO display in single page?
+//  get("/:owner/:repository/pulls/:id/files")(referrersOnly { repository =>
+//    val owner   = repository.owner
+//    val name    = repository.name
+//    val issueId = params("id").toInt
+//
+//    getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+//      JGitUtil.withGit(getRepositoryDir(owner, name)){ git =>
+//        val newId = git.getRepository.resolve(pullreq.requestBranch)
+//
+//        pulls.html.files(
+//          issue, pullreq,
+//          (if(pullreq.mergeStartId.isDefined){
+//            getCompareInfo(owner, name, pullreq.mergeStartId.get, owner, name, pullreq.mergeEndId.get)._2
+//          } else {
+//            getCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)._2
+//          }),
+//          newId.getName,
+//          hasWritePermission(owner, name, context.loginAccount),
+//          repository)
+//      }
+//    } getOrElse NotFound
+//  })
 
   post("/:owner/:repository/pulls/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
     val issueId = params("id").toInt

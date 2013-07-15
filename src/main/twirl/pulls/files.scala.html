@@ -7,37 +7,33 @@
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
-@html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
-  @html.header("issues", repository)
-  @tab("files", issue.issueId, repository)
-  <div>
-    <div class="pull-right" style="margin-bottom: 10px;">
-      <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
-    </div>
-    Showing @diffs.size changed @plural(diffs.size, "file")
+<div>
+  <div class="pull-right" style="margin-bottom: 10px;">
+    <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
   </div>
-  <ul id="commit-file-list" style="display: none;">
-  @diffs.zipWithIndex.map { case (diff, i) =>
-    <li@if(i > 0){ class="border"}>
-      <a href="#diff-@i">
-        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.ADD){
-          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.MODIFY){
-          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.DELETE){
-          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
-        }
-      </a>
-    </li>
-  }
-  </ul>
-  @helper.html.diff(diffs, repository, Some(commitId))
+  Showing @diffs.size changed @plural(diffs.size, "file")
+</div>
+<ul id="commit-file-list" style="display: none;">
+@diffs.zipWithIndex.map { case (diff, i) =>
+  <li@if(i > 0){ class="border"}>
+    <a href="#diff-@i">
+      @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+        <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+      }
+      @if(diff.changeType == ChangeType.ADD){
+        <img src="@assets/common/images/diff_add.png"/> @diff.newPath
+      }
+      @if(diff.changeType == ChangeType.MODIFY){
+        <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
+      }
+      @if(diff.changeType == ChangeType.DELETE){
+        <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+      }
+    </a>
+  </li>
 }
+</ul>
+@helper.html.diff(diffs, repository, Some(commitId))
 <script>
 $(function(){
   $('#toggle-file-list').click(function(){
