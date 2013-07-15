@@ -112,14 +112,16 @@ trait PullRequestsControllerBase extends ControllerBase {
       val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
 
       try {
-        // TODO merge and close issue
         val (commits, diffs) = getCompareInfo(repository.owner, repository.name, pullreq.branch,
                                   pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
         mergePullRequest(repository.owner, repository.name, issueId,
           git.getRepository.resolve("master").getName,
           commits.head.head.id)
 
+        // TODO mark issue as 'merged'
         val loginAccount = context.loginAccount.get
+        createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Closed", Some("close"))
+        updateClosed(repository.owner, repository.name, issueId, true)
         recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
 
         git.checkout.setName(pullreq.branch).call
