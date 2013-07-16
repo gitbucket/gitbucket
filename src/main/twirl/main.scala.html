@@ -29,7 +29,7 @@
     <script src="@assets/zclip/ZeroClipboard.min.js"></script>
   </head>
   <body>
-    <form action="@path/search" method="GET">
+    <form id="search" action="@path/search" method="POST">
       <div class="navbar">
         <div class="navbar-inner">
           <div class="container">
@@ -41,7 +41,13 @@
             <a class="brand" href="@path/">GitBucket</a>
             <div class="nav-collapse collapse pull-right">
               @repository.map { repository =>
-                <input type="text" name="query" style="width: 300px;margin-top: 5px; margin-bottom: 0px;" placeholder="Search this repository"/>
+                @if(loginAccount.isDefined){
+                  <input type="text" name="query" style="width: 300px; margin-top: 0px; margin-bottom: 0px;" placeholder="Search this repository"/>
+                } else {
+                  <input type="text" name="query" style="width: 300px; margin-top: 5px; margin-bottom: 0px;" placeholder="Search this repository"/>
+                }
+                <input type="hidden" name="owner" value="@repository.owner"/>
+                <input type="hidden" name="repository" value="@repository.name"/>
               }
               @if(loginAccount.isDefined){
                 <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
@@ -65,5 +71,12 @@
     <div class="container body">
       @body
     </div>
+    <script>
+      $(function(){
+        $('#search').submit(function(){
+          return $.trim($(this).find('input[name=query]').val()) != '';
+        });
+      });
+    </script>
   </body>
 </html>

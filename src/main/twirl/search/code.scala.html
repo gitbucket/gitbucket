@@ -1,0 +1,16 @@
+@(files: List[app.FileSearchResult], query: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Search Results", Some(repository)){
+  @if(files.isEmpty){
+    <h4>We couldn't find any code matching '@query'</h4>
+  } else {
+    <h4>We've found @files.size code @plural(files.size, "result")</h4>
+  }
+  @files.map { file =>
+    <div>
+      <div><a href="@url(repository)/blob/@repository.repository.defaultBranch/@file.path">@file.path</a></div>
+      <div class="muted">@datetime(file.lastModified)</div>
+    </div>
+  }
+}
