@@ -11,6 +11,7 @@
     <div>
       <div><a href="@url(repository)/blob/@repository.repository.defaultBranch/@file.path">@file.path</a></div>
       <div class="muted">@datetime(file.lastModified)</div>
+      <pre>@Html(file.highlightText)</pre>
     </div>
   }
 }

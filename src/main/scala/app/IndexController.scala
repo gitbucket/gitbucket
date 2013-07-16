@@ -6,6 +6,11 @@ import service._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
+import org.eclipse.jgit.treewalk.TreeWalk
+import org.eclipse.jgit.revwalk.RevWalk
+import scala.collection.mutable.ListBuffer
+import org.eclipse.jgit.lib.FileMode
+import java.util.regex.Pattern
 
 class IndexController extends IndexControllerBase 
   with RepositoryService with AccountService with SystemSettingsService with ActivityService
@@ -50,29 +55,39 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
       }
       case _ => {
         JGitUtil.withGit(getRepositoryDir(owner, name)){ git =>
-        // TODO search code
-          val dir = new java.io.File(getTemporaryDir(owner, name), "search")
-          if(!dir.exists){
-            val git = Git
-                .cloneRepository.setDirectory(dir)
-                .setURI(getRepositoryDir(owner, name).toURI.toString)
-                .setBranch(repository.repository.defaultBranch)
-                .call
-            git.getRepository.close
-          } else {
-            val git = Git.open(dir)
-            git.pull.call
-            if(git.getRepository.getBranch != repository.repository.defaultBranch){
-              git.checkout.setName(repository.repository.defaultBranch).call
-            }
-            git.getRepository.close
-          }
+          val revWalk = new RevWalk(git.getRepository)
+          val objectId = git.getRepository.resolve("HEAD")
+          val revCommit = revWalk.parseCommit(objectId)
+          val treeWalk = new TreeWalk(git.getRepository)
+          treeWalk.setRecursive(true)
+          treeWalk.addTree(revCommit.getTree)
 
-          search.html.code(searchDirectory(query, dir).map { file =>
-            FileSearchResult(
-              file.getAbsolutePath.substring(dir.getAbsolutePath.length + 1).replace('\\', '/'),
-              new java.util.Date(file.lastModified)
-           )
+          val lowerQuery = query.toLowerCase
+          val list = new ListBuffer[(String, String)]
+          while (treeWalk.next()) {
+            if(treeWalk.getFileMode(0) != FileMode.TREE){
+              JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
+                if(FileUtil.isText(bytes)){
+                  val text = new String(bytes, "UTF-8")
+                  val index = text.toLowerCase.indexOf(lowerQuery)
+                  if(index >= 0){
+                    val lineNumber = text.substring(0, index).split("\n").size - 1
+                    val highlightText = text.split("\n").drop(lineNumber).take(5).mkString("\n")
+                      .replace("&", "&amp;").replace("<", "&gt;").replace(">", "&gt;").replace("\"", "&quot;")
+                      .replaceAll("(?i)(\\Q" + query + "\\E)", "<span style=\"background-color: yellow;\">$1</span>")
+                    list.append((treeWalk.getPathString, highlightText))
+                  }
+                }
+              }
+            }
+          }
+          treeWalk.release
+          revWalk.release
+
+          val commits = JGitUtil.getLatestCommitFromPaths(git, list.toList.map(_._1), "HEAD")
+
+          search.html.code(list.toList.map { case (path, highlightText) =>
+            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText)
           }, query, repository)
         }
       }
@@ -89,4 +104,4 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
 
 }
 
-case class FileSearchResult(path: String, lastModified: java.util.Date)
+case class FileSearchResult(path: String, lastModified: java.util.Date, highlightText: String)
