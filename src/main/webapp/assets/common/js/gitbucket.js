@@ -1,4 +1,5 @@
 $(function(){
+  // disable Ajax cache
   $.ajaxSetup({ cache: false });
 
   $('#repository-url').click(function(){
@@ -27,6 +28,7 @@ $(function(){
       moviePath: moviePath
     });
     var title = $('#repository-url-copy').attr('title');
+    $('#repository-url-copy').removeAttr('title')
     clip.on('complete', function(client, args) {
       $(clip.htmlBridge).attr('title', 'copied!').tooltip('fixTitle').tooltip('show');
       $(clip.htmlBridge).attr('title', title).tooltip('fixTitle');
@@ -37,5 +39,6 @@ $(function(){
     });
   })();
 
+  // syntax highlighting by google-code-prettify
   prettyPrint();
 });
