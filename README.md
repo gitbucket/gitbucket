@@ -9,12 +9,12 @@ The current version of GitBucket provides a basic features below:
 - Repository viewer (some advanced features are not implemented)
 - Wiki
 - Issues
+- Activity timeline
 - User management (for Administrators)
 
 Following features are not implemented, but we will make them in the future release!
 
 - Fork and pull request
-- Timeline
 - Search
 - Network graph
 - Statics
