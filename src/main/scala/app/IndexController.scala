@@ -47,7 +47,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
       case "issue" => if(query.isEmpty){
         search.html.issues(Nil, "", repository)
       } else {
-        search.html.issues(queryIssues(repository.owner, repository.name, query).map { case (issue, commentCount, content) =>
+        search.html.issues(searchIssuesByKeyword(repository.owner, repository.name, query).map { case (issue, commentCount, content) =>
           IssueSearchResult(
             issue.issueId,
             issue.title,
@@ -69,7 +69,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
           treeWalk.setRecursive(true)
           treeWalk.addTree(revCommit.getTree)
 
-          val lowerQueries = StringUtil.splitWords(query.toLowerCase)
+          val keywords = StringUtil.splitWords(query.toLowerCase)
           val list = new ListBuffer[(String, (String, Int))]
           while (treeWalk.next()) {
             if(treeWalk.getFileMode(0) != FileMode.TREE){
@@ -77,7 +77,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
                 if(FileUtil.isText(bytes)){
                   val text      = new String(bytes, "UTF-8")
                   val lowerText = text.toLowerCase
-                  val indices   = lowerQueries.map(lowerText.indexOf _)
+                  val indices   = keywords.map(lowerText.indexOf _)
                   if(!indices.exists(_ < 0)){
                     list.append((treeWalk.getPathString, getHighlightText(text, query)))
                   }
@@ -99,14 +99,14 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
   })
 
   private def getHighlightText(content: String, query: String): (String, Int) = {
-    val lowerQueries = StringUtil.splitWords(query.toLowerCase)
-    val lowerText    = content.toLowerCase
-    val indices      = lowerQueries.map(lowerText.indexOf _)
+    val keywords  = StringUtil.splitWords(query.toLowerCase)
+    val lowerText = content.toLowerCase
+    val indices   = keywords.map(lowerText.indexOf _)
 
     if(!indices.exists(_ < 0)){
       val lineNumber = content.substring(0, indices.min).split("\n").size - 1
       val highlightText = StringUtil.escapeHtml(content.split("\n").drop(lineNumber).take(5).mkString("\n"))
-        .replaceAll("(?i)(" + lowerQueries.map("\\Q" + _ + "\\E").mkString("|") +  ")",
+        .replaceAll("(?i)(" + keywords.map("\\Q" + _ + "\\E").mkString("|") +  ")",
         "<span style=\"background-color: yellow;\">$1</span>")
       (highlightText, lineNumber + 1)
     } else {

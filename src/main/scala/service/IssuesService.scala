@@ -236,13 +236,22 @@ trait IssuesService {
       }
       .update (closed, currentDate)
 
-  def queryIssues(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
-    val lowerQueries = StringUtil.splitWords(query.toLowerCase)
+  /**
+   * Search issues by keyword.
+   *
+   * @param owner the repository owner
+   * @param repository the repository name
+   * @param query the keywords separated by whitespace.
+   * @return issues with comment count and matched content of issue or comment
+   */
+  def searchIssuesByKeyword(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
+    import scala.slick.driver.H2Driver.likeEncode
+    val keywords = StringUtil.splitWords(query.toLowerCase)
 
     // Search Issue
     val issues = Query(Issues).filter { t =>
-      lowerQueries.map { query =>
-        (t.title.toLowerCase like '%' + query + '%') || (t.content.toLowerCase like '%' + query + '%') // TODO escape!!!!
+      keywords.map { keyword =>
+        (t.title.toLowerCase like (s"%${likeEncode(keyword)}%", '^')) || (t.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
       } .reduceLeft { (a, b) =>
         a && b
       }
@@ -252,8 +261,8 @@ trait IssuesService {
     val comments = Query(IssueComments).innerJoin(Issues).on { case (t1, t2) =>
       t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
     }.filter { case (t1, t2) =>
-      lowerQueries.map { query =>
-        t1.content.toLowerCase like '%' + query + '%' // TODO escape!!!!
+      keywords.map { query =>
+        t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
       }.reduceLeft { (a, b) =>
         a && b
       }
