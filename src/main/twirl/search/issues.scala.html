@@ -1,8 +1,8 @@
-@(issues: List[app.IssueSearchResult], query: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issues: List[app.IssueSearchResult], fileCount: Int, query: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Search Results", Some(repository)){
-  @menu("issue", query, repository){
+  @menu("issue", fileCount, issues.size, query, repository){
     @if(issues.isEmpty){
       <h4>We couldn't find any code matching '@query'</h4>
     } else {

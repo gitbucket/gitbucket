@@ -43,11 +43,12 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
     val query  = params("q").trim
     val target = params.getOrElse("type", "code")
 
+    val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(repository.owner, repository.name, query)
+    val files  = if(query.isEmpty) Nil else searchRepositoryFiles(repository.owner, repository.name, query)
+
     target.toLowerCase match {
-      case "issue" => if(query.isEmpty){
-        search.html.issues(Nil, "", repository)
-      } else {
-        search.html.issues(searchIssuesByKeyword(repository.owner, repository.name, query).map { case (issue, commentCount, content) =>
+      case "issue" =>
+        search.html.issues(issues.map { case (issue, commentCount, content) =>
           IssueSearchResult(
             issue.issueId,
             issue.title,
@@ -55,48 +56,51 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
             issue.registeredDate,
             commentCount,
             getHighlightText(content, query)._1)
-        }, query, repository)
-      }
-      case _ => if(query.isEmpty){
-        // TODO move to JGitUtil?
-        search.html.code(Nil, "", repository)
-      } else {
+        }, files.size, query, repository)
+      case _ =>
         JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-          val revWalk   = new RevWalk(git.getRepository)
-          val objectId  = git.getRepository.resolve("HEAD")
-          val revCommit = revWalk.parseCommit(objectId)
-          val treeWalk  = new TreeWalk(git.getRepository)
-          treeWalk.setRecursive(true)
-          treeWalk.addTree(revCommit.getTree)
+          val commits = JGitUtil.getLatestCommitFromPaths(git, files.toList.map(_._1), "HEAD")
 
-          val keywords = StringUtil.splitWords(query.toLowerCase)
-          val list = new ListBuffer[(String, (String, Int))]
-          while (treeWalk.next()) {
-            if(treeWalk.getFileMode(0) != FileMode.TREE){
-              JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
-                if(FileUtil.isText(bytes)){
-                  val text      = new String(bytes, "UTF-8")
-                  val lowerText = text.toLowerCase
-                  val indices   = keywords.map(lowerText.indexOf _)
-                  if(!indices.exists(_ < 0)){
-                    list.append((treeWalk.getPathString, getHighlightText(text, query)))
-                  }
-                }
+          search.html.code(files.toList.map { case (path, text) =>
+            val (highlightText, lineNumber)  = getHighlightText(text, query)
+            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText, lineNumber)
+          }, issues.size, query, repository)
+        }
+    }
+  })
+
+  private def searchRepositoryFiles(owner: String, repository: String, query: String): List[(String, String)] = {
+    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      val revWalk   = new RevWalk(git.getRepository)
+      val objectId  = git.getRepository.resolve("HEAD")
+      val revCommit = revWalk.parseCommit(objectId)
+      val treeWalk  = new TreeWalk(git.getRepository)
+      treeWalk.setRecursive(true)
+      treeWalk.addTree(revCommit.getTree)
+
+      val keywords = StringUtil.splitWords(query.toLowerCase)
+      val list = new ListBuffer[(String, String)]
+
+      while (treeWalk.next()) {
+        if(treeWalk.getFileMode(0) != FileMode.TREE){
+          JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
+            if(FileUtil.isText(bytes)){
+              val text      = new String(bytes, "UTF-8")
+              val lowerText = text.toLowerCase
+              val indices   = keywords.map(lowerText.indexOf _)
+              if(!indices.exists(_ < 0)){
+                list.append((treeWalk.getPathString, text))
               }
             }
           }
-          treeWalk.release
-          revWalk.release
-
-          val commits = JGitUtil.getLatestCommitFromPaths(git, list.toList.map(_._1), "HEAD")
-
-          search.html.code(list.toList.map { case (path, highlightText) =>
-            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText._1, highlightText._2)
-          }, query, repository)
         }
       }
+      treeWalk.release
+      revWalk.release
+
+      list.toList
     }
-  })
+  }
 
   private def getHighlightText(content: String, query: String): (String, Int) = {
     val keywords  = StringUtil.splitWords(query.toLowerCase)
