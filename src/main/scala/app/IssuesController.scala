@@ -201,57 +201,59 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/:id/assign")(collaboratorsOnly { repository =>
-    updateAssignedUserName(repository.owner, repository.name, params("id").toInt,
-        params.get("assignedUserName") filter (_.trim != ""))
+    updateAssignedUserName(repository.owner, repository.name, params("id").toInt, assignedUserName("assignedUserName"))
     Ok("updated")
   })
 
   ajaxPost("/:owner/:repository/issues/:id/milestone")(collaboratorsOnly { repository =>
-    updateMilestoneId(repository.owner, repository.name, params("id").toInt,
-        params.get("milestoneId") collect { case x if x.trim != "" => x.toInt })
+    updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"))
     Ok("updated")
   })
 
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
     val action = params.get("value")
-    params("checked").split(',') foreach { issueId =>
-      handleComment(issueId.toInt, None, repository)( _ => action)
+
+    executeBatch(repository) {
+      handleComment(_, None, repository)( _ => action)
     }
-    redirect("/%s/%s/issues".format(repository.owner, repository.name))
   })
 
   post("/:owner/:repository/issues/batchedit/label")(collaboratorsOnly { repository =>
-    val owner = repository.owner
-    val name = repository.name
+    val labelId = params("value").toInt
 
-    params.get("value").map(_.toInt) map { labelId =>
-      params("checked").split(',') foreach { issueId =>
-        getIssueLabel(owner, name, issueId.toInt, labelId) getOrElse {
-          registerIssueLabel(owner, name, issueId.toInt, labelId)
-        }
+    executeBatch(repository) { issueId =>
+      getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
+        registerIssueLabel(repository.owner, repository.name, issueId, labelId)
       }
-      redirect("/%s/%s/issues".format(owner, name))
-    } getOrElse NotFound
+    }
   })
 
   post("/:owner/:repository/issues/batchedit/assign")(collaboratorsOnly { repository =>
-    params("checked").split(',') foreach { issueId =>
-      updateAssignedUserName(repository.owner, repository.name, issueId.toInt,
-          params.get("value") filter (_.trim != ""))
+    val value = assignedUserName("value")
+
+    executeBatch(repository) {
+      updateAssignedUserName(repository.owner, repository.name, _, value)
     }
-    redirect("/%s/%s/issues".format(repository.owner, repository.name))
   })
 
   post("/:owner/:repository/issues/batchedit/milestone")(collaboratorsOnly { repository =>
-    params("checked").split(',') foreach { issueId =>
-      updateMilestoneId(repository.owner, repository.name, issueId.toInt,
-          params.get("value") collect { case x if x.trim != "" => x.toInt })
+    val value = milestoneId("value")
+
+    executeBatch(repository) {
+      updateMilestoneId(repository.owner, repository.name, _, value)
     }
-    redirect("/%s/%s/issues".format(repository.owner, repository.name))
   })
+
+  val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
+  val milestoneId      = (key: String) => params.get(key) collect { case x if x.trim != "" => x.toInt }
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: app.Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+
+  private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
+    params("checked").split(',') map(_.toInt) foreach execute
+    redirect("/%s/%s/issues".format(repository.owner, repository.name))
+  }
 
   /**
    * @see 
