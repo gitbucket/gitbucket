@@ -1,6 +1,6 @@
 package util
 
-import org.apache.commons.io.{IOUtils, FileUtils, FilenameUtils}
+import org.apache.commons.io.{IOUtils, FileUtils}
 import java.net.URLConnection
 import java.io.File
 import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream}
