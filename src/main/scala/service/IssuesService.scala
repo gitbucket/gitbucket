@@ -192,7 +192,7 @@ trait IssuesService {
     IssueLabels filter(_.byPrimaryKey(owner, repository, issueId, labelId)) delete
 
   def createComment(owner: String, repository: String, loginUser: String,
-      issueId: Int, content: String, action: Option[String]) =
+      issueId: Int, content: String, action: String) =
     IssueComments.autoInc insert (
         owner,
         repository,

@@ -85,7 +85,7 @@ class CommitLogHook(owner: String, repository: String, userName: String) extends
             "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
               val issueId = matchData.group(2)
               if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
-                createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, Some("commit"))
+                createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, "commit")
               }
             }
             Some(commit)
