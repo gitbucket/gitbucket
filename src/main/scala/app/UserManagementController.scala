@@ -1,12 +1,9 @@
 package app
 
 import service._
-import util.{FileUploadUtil, FileUtil, AdminAuthenticator}
+import util.AdminAuthenticator
 import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
-import org.apache.commons.io.FileUtils
-import util.Directory._
-import scala.Some
 
 class UserManagementController extends UserManagementControllerBase with AccountService with AdminAuthenticator
 

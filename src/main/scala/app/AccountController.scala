@@ -1,11 +1,10 @@
 package app
 
 import service._
-import util.{FileUtil, FileUploadUtil, OneselfAuthenticator}
+import util.{FileUtil, OneselfAuthenticator}
 import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
-import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
 
 class AccountController extends AccountControllerBase
