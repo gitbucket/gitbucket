@@ -102,7 +102,10 @@ trait IssuesService {
     // get issues and comment count
     val issues = searchIssueQuery(owner, repository, condition, filter, userName)
       .leftJoin(Query(IssueComments)
-        .filter  { _.byRepository(owner, repository) }
+        .filter  { t =>
+          (t.byRepository(owner, repository)) &&
+          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
+        }
         .groupBy { _.issueId }
         .map     { case (issueId, t) => issueId ~ t.length }).on((t1, t2) => t1.issueId is t2._1)
       .sortBy { case (t1, t2) =>
