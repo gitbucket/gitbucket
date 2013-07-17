@@ -20,4 +20,7 @@ object StringUtil {
 
   def urlDecode(value: String): String = URLDecoder.decode(value, "UTF-8")
 
+  def escapeHtml(value: String): String =
+    value.replace("&", "&amp;").replace("<", "&gt;").replace(">", "&gt;").replace("\"", "&quot;")
+
 }

@@ -62,21 +62,24 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
           treeWalk.setRecursive(true)
           treeWalk.addTree(revCommit.getTree)
 
-          val lowerQuery = query.toLowerCase
+          val lowerQueries = query.toLowerCase.split("[ \\t　]+")
           val list = new ListBuffer[(String, String)]
           while (treeWalk.next()) {
             if(treeWalk.getFileMode(0) != FileMode.TREE){
               JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
                 if(FileUtil.isText(bytes)){
                   val text = new String(bytes, "UTF-8")
-                  val index = text.toLowerCase.indexOf(lowerQuery)
-                  if(index >= 0){
-                    val lineNumber = text.substring(0, index).split("\n").size - 1
-                    val highlightText = text.split("\n").drop(lineNumber).take(5).mkString("\n")
-                      .replace("&", "&amp;").replace("<", "&gt;").replace(">", "&gt;").replace("\"", "&quot;")
-                      .replaceAll("(?i)(\\Q" + query + "\\E)", "<span style=\"background-color: yellow;\">$1</span>")
-                    list.append((treeWalk.getPathString, highlightText))
+                  val lowerText = text.toLowerCase
+                  val indices = lowerQueries.map { lowerQuery =>
+                    lowerText.indexOf(lowerQuery)
                   }
+                  if(!indices.exists(_ < 0)){
+                    val lineNumber = text.substring(0, indices.min).split("\n").size - 1
+                    val highlightText = StringUtil.escapeHtml(text.split("\n").drop(lineNumber).take(5).mkString("\n"))
+                      .replaceAll("(?i)(" + lowerQueries.map("\\Q" + _ + "\\E").mkString("|") +  ")",
+                                  "<span style=\"background-color: yellow;\">$1</span>")
+                    list.append((treeWalk.getPathString, highlightText))
+                }
                 }
               }
             }
