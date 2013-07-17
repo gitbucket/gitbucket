@@ -1,7 +1,7 @@
 GitBucket
 =========
 
-GitBucket is a Github clone by Scala, Easy to setup.
+GitBucket is the easily installable Github clone written with Scala.
 
 The current version of GitBucket provides a basic features below:
 
@@ -9,12 +9,12 @@ The current version of GitBucket provides a basic features below:
 - Repository viewer (some advanced features are not implemented)
 - Wiki
 - Issues
+- Activity timeline
 - User management (for Administrators)
 
 Following features are not implemented, but we will make them in the future release!
 
 - Fork and pull request
-- Timeline
 - Search
 - Network graph
 - Statics
@@ -31,6 +31,8 @@ Installation
 3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
 
 The default administrator account is **root** and password is **root**.
+
+To upgrade GitBucket, only replace gitbucket.war.
 
 Release Notes
 --------
