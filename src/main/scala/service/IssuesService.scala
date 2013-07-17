@@ -9,6 +9,7 @@ import model._
 import util.StringUtil._
 import util.Implicits._
 import scala.concurrent.duration.durationToPair
+import util.StringUtil
 
 trait IssuesService {
   import IssuesService._
@@ -236,7 +237,7 @@ trait IssuesService {
       .update (closed, currentDate)
 
   def queryIssues(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
-    val lowerQueries = query.toLowerCase.split("[ \\t　]+")
+    val lowerQueries = StringUtil.splitWords(query.toLowerCase)
 
     val issues = Query(Issues).filter { t =>
       lowerQueries.map { query =>

@@ -20,6 +20,8 @@ object StringUtil {
 
   def urlDecode(value: String): String = URLDecoder.decode(value, "UTF-8")
 
+  def splitWords(value: String): Array[String] = value.split("[ \\t　]+]")
+
   def escapeHtml(value: String): String =
     value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
 
