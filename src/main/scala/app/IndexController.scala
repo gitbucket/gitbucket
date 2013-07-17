@@ -40,11 +40,13 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
   }
 
   get("/:owner/:repository/search")(referrersOnly { repository =>
-    val query  = params("q")
+    val query  = params("q").trim
     val target = params.getOrElse("type", "code")
 
     target.toLowerCase match {
-      case "issue" => {
+      case "issue" => if(query.isEmpty){
+        search.html.issues(Nil, "", repository)
+      } else {
         search.html.issues(queryIssues(repository.owner, repository.name, query).map { case (issue, commentCount, content) =>
           IssueSearchResult(
             issue.issueId,
@@ -52,12 +54,13 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
             issue.openedUserName,
             issue.registeredDate,
             commentCount,
-            getHighlightText(content, query))
+            getHighlightText(content, query)._1)
         }, query, repository)
-
       }
-      case _ => {
+      case _ => if(query.isEmpty){
         // TODO move to JGitUtil?
+        search.html.code(Nil, "", repository)
+      } else {
         JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
           val revWalk   = new RevWalk(git.getRepository)
           val objectId  = git.getRepository.resolve("HEAD")
@@ -67,7 +70,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
           treeWalk.addTree(revCommit.getTree)
 
           val lowerQueries = StringUtil.splitWords(query.toLowerCase)
-          val list = new ListBuffer[(String, String)]
+          val list = new ListBuffer[(String, (String, Int))]
           while (treeWalk.next()) {
             if(treeWalk.getFileMode(0) != FileMode.TREE){
               JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
@@ -88,32 +91,42 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
           val commits = JGitUtil.getLatestCommitFromPaths(git, list.toList.map(_._1), "HEAD")
 
           search.html.code(list.toList.map { case (path, highlightText) =>
-            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText)
+            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText._1, highlightText._2)
           }, query, repository)
         }
       }
     }
   })
 
-  private def getHighlightText(content: String, query: String): String = {
+  private def getHighlightText(content: String, query: String): (String, Int) = {
     val lowerQueries = StringUtil.splitWords(query.toLowerCase)
     val lowerText    = content.toLowerCase
     val indices      = lowerQueries.map(lowerText.indexOf _)
 
     if(!indices.exists(_ < 0)){
       val lineNumber = content.substring(0, indices.min).split("\n").size - 1
-      StringUtil.escapeHtml(content.split("\n").drop(lineNumber).take(5).mkString("\n"))
+      val highlightText = StringUtil.escapeHtml(content.split("\n").drop(lineNumber).take(5).mkString("\n"))
         .replaceAll("(?i)(" + lowerQueries.map("\\Q" + _ + "\\E").mkString("|") +  ")",
         "<span style=\"background-color: yellow;\">$1</span>")
+      (highlightText, lineNumber + 1)
     } else {
-      content.split("\n").take(5).mkString("\n")
+      (content.split("\n").take(5).mkString("\n"), 1)
     }
   }
 
 }
 
 
-case class IssueSearchResult(issueId: Int, title: String, openedUserName: String, registeredDate: java.util.Date,
-                             commentCount: Int, highlightText: String)
+case class IssueSearchResult(
+  issueId: Int,
+  title: String,
+  openedUserName: String,
+  registeredDate: java.util.Date,
+  commentCount: Int,
+  highlightText: String)
 
-case class FileSearchResult(path: String, lastModified: java.util.Date, highlightText: String)
+case class FileSearchResult(
+  path: String,
+  lastModified: java.util.Date,
+  highlightText: String,
+  highlightLineNumber: Int)
