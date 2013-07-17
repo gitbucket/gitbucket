@@ -8,6 +8,7 @@ import Q.interpolation
 import model._
 import util.StringUtil._
 import util.Implicits._
+import scala.concurrent.duration.durationToPair
 
 trait IssuesService {
   import IssuesService._
@@ -234,6 +235,44 @@ trait IssuesService {
       }
       .update (closed, currentDate)
 
+  def queryIssues(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
+    val lowerQueries = query.toLowerCase.split("[ \\t　]+")
+
+    val issues = Query(Issues).filter { t =>
+      lowerQueries.map { query =>
+        (t.title.toLowerCase startsWith query) || (t.content.toLowerCase startsWith query)
+      } .reduceLeft { (a, b) =>
+        a && b
+      }
+    }.map { t => (t, 0, t.content) }
+
+    val comments = Query(IssueComments).innerJoin(Issues).on { case (t1, t2) =>
+      t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
+    }.filter { case (t1, t2) =>
+      lowerQueries.map { query =>
+        t1.content.toLowerCase startsWith query
+      }.reduceLeft { (a, b) =>
+        a && b
+      }
+    }.map { case (t1, t2) => (t2, t1.commentId, t1.content) }
+
+    def getCommentCount(issue: Issue): Int = {
+      Query(IssueComments)
+        .filter(_.byIssue(issue.userName, issue.repositoryName, issue.issueId))
+        .map(_.issueId)
+        .list.length
+    }
+
+    issues.union(comments).sortBy { case (issue, commentId, _) =>
+      issue.issueId ~ commentId
+    }.list.splitWith { case ((issue1, _, _), (issue2, _, _)) =>
+      issue1.issueId == issue2.issueId
+    }.map { result =>
+      val (issue, _, content) = result.head
+      (issue, getCommentCount(issue) , content)
+    }.toList
+  }
+
 }
 
 object IssuesService {
@@ -279,4 +318,5 @@ object IssuesService {
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))
   }
+
 }

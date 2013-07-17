@@ -1,0 +1,26 @@
+@(issues: List[app.IssueSearchResult], query: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Search Results", Some(repository)){
+  @menu("issue", query, repository){
+    @if(issues.isEmpty){
+      <h4>We couldn't find any code matching '@query'</h4>
+    } else {
+      <h4>We've found @issues.size code @plural(issues.size, "result")</h4>
+    }
+    @issues.map { issue =>
+      <div class="block">
+        <div class="pull-right muted">#@issue.issueId</div>
+        <h4><a href="@url(repository)/issues/@issue.issueId">@issue.title</a></h4>
+        <pre>@Html(issue.highlightText)</pre>
+        <div class="small muted">
+          Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a>
+          at @datetime(issue.registeredDate)
+          @if(issue.commentCount > 0){
+            &nbsp;&nbsp;<i class="icon-comment"></i><strong>@issue.commentCount</strong> @plural(issue.commentCount, "comment")
+          }
+        </div>
+      </div>
+    }
+  }
+}

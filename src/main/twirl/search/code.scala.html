@@ -10,7 +10,7 @@
     }
     @files.map { file =>
       <div>
-        <div><a href="@url(repository)/blob/@repository.repository.defaultBranch/@file.path">@file.path</a></div>
+        <h5><a href="@url(repository)/blob/@repository.repository.defaultBranch/@file.path">@file.path</a></h5>
         <div class="muted">@datetime(file.lastModified)</div>
         <pre>@Html(file.highlightText)</pre>
       </div>

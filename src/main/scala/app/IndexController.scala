@@ -4,20 +4,18 @@ import util._
 import util.Directory._
 import service._
 import jp.sf.amateras.scalatra.forms._
-import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.revwalk.RevWalk
 import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib.FileMode
-import java.util.regex.Pattern
 
 class IndexController extends IndexControllerBase 
-  with RepositoryService with AccountService with SystemSettingsService with ActivityService
+  with RepositoryService with AccountService with SystemSettingsService with ActivityService with IssuesService
   with ReferrerAuthenticator
 
 trait IndexControllerBase extends ControllerBase { self: RepositoryService 
-  with SystemSettingsService with ActivityService
+  with SystemSettingsService with ActivityService with IssuesService
   with ReferrerAuthenticator =>
 
   val searchForm = mapping(
@@ -44,21 +42,36 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
 
   // TODO readable only
   get("/:owner/:repository/search")(referrersOnly { repository =>
-    val owner  = params("owner")
-    val name   = params("repository")
     val query  = params("q")
     val target = params.getOrElse("type", "Code")
 
     target.toLowerCase match {
       case "issue" => {
         // TODO search issue
+        val lowerQueries = query.toLowerCase.split("[ \\t　]+")
+
+        search.html.issues(queryIssues(repository.owner, repository.name, query).map { case (issue, commentCount, content) =>
+          val lowerText = content.toLowerCase
+          val indices = lowerQueries.map { lowerQuery =>
+            lowerText.indexOf(lowerQuery)
+          }
+          val highlightText = if(!indices.exists(_ < 0)){
+            val lineNumber = content.substring(0, indices.min).split("\n").size - 1
+            StringUtil.escapeHtml(content.split("\n").drop(lineNumber).take(5).mkString("\n"))
+              .replaceAll("(?i)(" + lowerQueries.map("\\Q" + _ + "\\E").mkString("|") +  ")",
+              "<span style=\"background-color: yellow;\">$1</span>")
+          } else content.split("\n").take(5).mkString("\n")
+
+          IssueSearchResult(issue.issueId, issue.title, issue.openedUserName, issue.registeredDate, commentCount, highlightText)
+        }, query, repository)
+
       }
       case _ => {
-        JGitUtil.withGit(getRepositoryDir(owner, name)){ git =>
-          val revWalk = new RevWalk(git.getRepository)
-          val objectId = git.getRepository.resolve("HEAD")
+        JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+          val revWalk   = new RevWalk(git.getRepository)
+          val objectId  = git.getRepository.resolve("HEAD")
           val revCommit = revWalk.parseCommit(objectId)
-          val treeWalk = new TreeWalk(git.getRepository)
+          val treeWalk  = new TreeWalk(git.getRepository)
           treeWalk.setRecursive(true)
           treeWalk.addTree(revCommit.getTree)
 
@@ -79,7 +92,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
                       .replaceAll("(?i)(" + lowerQueries.map("\\Q" + _ + "\\E").mkString("|") +  ")",
                                   "<span style=\"background-color: yellow;\">$1</span>")
                     list.append((treeWalk.getPathString, highlightText))
-                }
+                  }
                 }
               }
             }
@@ -106,5 +119,9 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
   }
 
 }
+
+
+case class IssueSearchResult(issueId: Int, title: String, openedUserName: String, registeredDate: java.util.Date,
+                             commentCount: Int, highlightText: String)
 
 case class FileSearchResult(path: String, lastModified: java.util.Date, highlightText: String)
