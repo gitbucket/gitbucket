@@ -41,7 +41,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
 
   get("/:owner/:repository/search")(referrersOnly { repository =>
     val query  = params("q")
-    val target = params.getOrElse("type", "Code")
+    val target = params.getOrElse("type", "code")
 
     target.toLowerCase match {
       case "issue" => {
