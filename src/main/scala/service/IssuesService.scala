@@ -239,19 +239,21 @@ trait IssuesService {
   def queryIssues(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
     val lowerQueries = StringUtil.splitWords(query.toLowerCase)
 
+    // Search Issue
     val issues = Query(Issues).filter { t =>
       lowerQueries.map { query =>
-        (t.title.toLowerCase startsWith query) || (t.content.toLowerCase startsWith query)
+        (t.title.toLowerCase like '%' + query + '%') || (t.content.toLowerCase like '%' + query + '%') // TODO escape!!!!
       } .reduceLeft { (a, b) =>
         a && b
       }
     }.map { t => (t, 0, t.content) }
 
+    // Search IssueComment
     val comments = Query(IssueComments).innerJoin(Issues).on { case (t1, t2) =>
       t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
     }.filter { case (t1, t2) =>
       lowerQueries.map { query =>
-        t1.content.toLowerCase startsWith query
+        t1.content.toLowerCase like '%' + query + '%' // TODO escape!!!!
       }.reduceLeft { (a, b) =>
         a && b
       }
