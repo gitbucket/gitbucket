@@ -6,6 +6,7 @@ import org.pegdown._
 import org.pegdown.ast._
 import org.pegdown.LinkRenderer.Rendering
 import scala.collection.JavaConverters._
+import service.RequestCache
 
 object Markdown {
 
@@ -13,12 +14,17 @@ object Markdown {
    * Converts Markdown of Wiki pages to HTML.
    */
   def toHtml(markdown: String, repository: service.RepositoryService.RepositoryInfo,
-             enableWikiLink: Boolean, enableCommitLink: Boolean, enableIssueLink: Boolean)(implicit context: app.Context): String = {
+             enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): String = {
+    // escape issue id
+    val source = if(enableRefsLink){
+      markdown.replaceAll("(^|\\W)#([0-9]+)(\\W|$)", "$1issue:$2$3")
+    } else markdown
+
     val rootNode = new PegDownProcessor(
       Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES
-    ).parseMarkdown(markdown.toCharArray)
+    ).parseMarkdown(source.toCharArray)
 
-    new GitBucketHtmlSerializer(markdown, context, repository, enableWikiLink, enableCommitLink, enableIssueLink).toHtml(rootNode)
+    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink).toHtml(rootNode)
   }
 }
 
@@ -64,15 +70,13 @@ class GitBucketVerbatimSerializer extends VerbatimSerializer {
 
 class GitBucketHtmlSerializer(
     markdown: String,
-    context: app.Context,
     repository: service.RepositoryService.RepositoryInfo,
     enableWikiLink: Boolean,
-    enableCommitLink: Boolean,
-    enableIssueLink: Boolean
-  ) extends ToHtmlSerializer(
+    enableRefsLink: Boolean
+  )(implicit val context: app.Context) extends ToHtmlSerializer(
     new GitBucketLinkRender(context, repository, enableWikiLink),
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
-  ) {
+  ) with LinkConverter with RequestCache {
 
   override protected def printImageTag(imageNode: SuperNode, url: String): Unit =
     printer.print("<img src=\"").print(fixUrl(url)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/>")
@@ -100,26 +104,12 @@ class GitBucketHtmlSerializer(
 
   override def visit(node: TextNode) {
     // convert commit id and username to link.
-    val text = if(enableCommitLink) node.getText
-      .replaceAll("(^|\\W)([0-9a-f]{40})(\\W|$)", s"""$$1<a href="${context.path}/${repository.owner}/${repository.name}/commit/$$2">$$2</a>$$3""")
-      .replaceAll("(^|\\W)@([a-zA-Z0-9\\-_]+)(\\W|$)", s"""$$1<a href="${context.path}/$$2">@$$2</a>$$3""")
-    else node.getText
+    val text = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
 
     if (abbreviations.isEmpty) {
       printer.print(text)
     } else {
       printWithAbbreviations(text)
-    }
-  }
-
-  override def visit(node: HeaderNode) {
-    val text = markdown.substring(node.getStartIndex, node.getEndIndex - 1).trim
-    if(enableIssueLink && text.matches("#[\\d]+")){
-      // convert issue id to link
-      val issueId = text.substring(1).toInt
-      printer.print(s"""<a href="${context.path}/${repository.owner}/${repository.name}/issues/${issueId}">#${issueId}</a>""")
-    } else {
-      printTag(node, "h" + node.getLevel)
     }
   }
 
