@@ -33,6 +33,8 @@ object MyBuild extends Build {
         "org.apache.commons" % "commons-compress" % "1.5",
         "com.typesafe.slick" %% "slick" % "1.0.1",
         "com.h2database" % "h2" % "1.3.171",
+        "com.google.guava" % "guava" % "14.0.1",
+        "com.google.code.findbugs" % "jsr305" % "2.0.1",
         "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container",
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar"))
