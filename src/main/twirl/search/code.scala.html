@@ -1,4 +1,8 @@
-@(files: List[app.FileSearchResult], issueCount: Int, query: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(files: List[app.FileSearchResult],
+  issueCount: Int,
+  query: String,
+  page: Int,
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Search Results", Some(repository)){
@@ -8,12 +12,14 @@
     } else {
       <h4>We've found @files.size code @plural(files.size, "result")</h4>
     }
-    @files.map { file =>
+    @files.drop((page - 1) * app.RepositorySearch.CodeLimit).take(app.RepositorySearch.CodeLimit).map { file =>
       <div>
         <h5><a href="@url(repository)/blob/@repository.repository.defaultBranch/@file.path">@file.path</a></h5>
         <div class="small muted">Latest commit at @datetime(file.lastModified)</div>
         <pre class="prettyprint linenums:@file.highlightLineNumber" style="padding-left: 25px;">@Html(file.highlightText)</pre>
       </div>
     }
+    @helper.html.paginator(page, files.size, app.RepositorySearch.CodeLimit, 10,
+      s"${url(repository)}/search?q=${urlEncode(query)}&type=code")
   }
 }

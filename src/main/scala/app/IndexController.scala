@@ -43,9 +43,16 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
   }
 
   get("/:owner/:repository/search")(referrersOnly { repository =>
-    import SearchCache._
+    import RepositorySearch._
     val query  = params("q").trim
     val target = params.getOrElse("type", "code")
+    val page   = try {
+      val i = params.getOrElse("page", "1").toInt
+      if(i <= 0) 1 else i
+    } catch {
+      case e: NumberFormatException => 1
+    }
+
 
     val SearchResult(files, issues) = cache.get(repository.owner, repository.name, query)
 
@@ -59,15 +66,19 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
             issue.registeredDate,
             commentCount,
             getHighlightText(content, query)._1)
-        }, files.size, query, repository)
+        }, files.size, query, page, repository)
       case _ =>
         JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
           val commits = JGitUtil.getLatestCommitFromPaths(git, files.toList.map(_._1), "HEAD")
 
           search.html.code(files.toList.map { case (path, text) =>
             val (highlightText, lineNumber)  = getHighlightText(text, query)
-            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText, lineNumber)
-          }, issues.size, query, repository)
+            FileSearchResult(
+              path,
+              commits(path).getCommitterIdent.getWhen,
+              highlightText,
+              lineNumber)
+          }, issues.size, query, page, repository)
         }
     }
   })
@@ -104,7 +115,10 @@ case class FileSearchResult(
   highlightText: String,
   highlightLineNumber: Int)
 
-object SearchCache extends IssuesService {
+object RepositorySearch extends IssuesService {
+
+  val CodeLimit  = 10
+  val IssueLimit = 10
 
   case class SearchResult(
     files: List[(String, String)],
@@ -117,7 +131,6 @@ object SearchCache extends IssuesService {
     .build(
       new CacheLoader[(String, String, String), SearchResult]() {
         override def load(key: (String, String, String)) = {
-          println("** Cache is reloaded! **")
           val (owner, repository, query) = key
           val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(owner, repository, query)
           val files  = if(query.isEmpty) Nil else searchRepositoryFiles(owner, repository, query)
