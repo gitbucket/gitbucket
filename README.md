@@ -36,6 +36,16 @@ To upgrade GitBucket, only replace gitbucket.war.
 
 Release Notes
 --------
+### 1.3 - xx Jul 2013
+- Batch updating for issues.
+- Display assigned user on issue list.
+- User icon and Gravatar support.
+- Convert @xxxx to link to the account page.
+- Add copy to clipboard button for git clone URL.
+- Allows multi-byte characters as wiki page name.
+- Allows to create the empty repository.
+- Fixed some bugs.
+
 ### 1.2 - 09 Jul 2013
 - Added activity timeline.
 - Bugfix for Git 1.8.1.5 or later.
