@@ -39,13 +39,9 @@
               <span class="icon-bar"></span>
             </button>
             <a class="brand" href="@path/">GitBucket</a>
-            <div class="nav-collapse collapse pull-right">
+            <div class="nav-collapse collapse pull-right header-menu">
               @repository.map { repository =>
-                @if(loginAccount.isDefined){
-                  <input type="text" name="query" style="width: 300px; margin-top: 0px; margin-bottom: 0px;" placeholder="Search this repository"/>
-                } else {
-                  <input type="text" name="query" style="width: 300px; margin-top: 5px; margin-bottom: 0px;" placeholder="Search this repository"/>
-                }
+                <input type="text" name="query" style="width: 300px; margin-bottom: 0px;" placeholder="Search this repository"/>
                 <input type="hidden" name="owner" value="@repository.owner"/>
                 <input type="hidden" name="repository" value="@repository.name"/>
               }
