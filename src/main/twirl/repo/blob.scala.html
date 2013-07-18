@@ -23,7 +23,7 @@
     <tr>
       <th style="font-weight: normal;">
         <div class="pull-left">
-          @avatar(latestCommit.committer, 20)
+          @avatar(latestCommit, 20)
           <a href="@url(latestCommit.committer)" class="username strong">@latestCommit.committer</a>
           <span class="muted">@datetime(latestCommit.time)</span>
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>

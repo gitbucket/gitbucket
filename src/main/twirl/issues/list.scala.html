@@ -227,7 +227,7 @@
               }
               <span class="pull-right muted">
                 @issue.assignedUserName.map { userName =>
-                  @avatar(userName, 20, true)
+                  @avatar(userName, 20, tooltip = true)
                 }
                 #@issue.issueId
               </span>
@@ -247,6 +247,12 @@
       </div>
     </div>
   </div>
+  @if(hasWritePermission){
+    <form id="batcheditForm" method="POST">
+      <input type="hidden" name="value"/>
+      <input type="hidden" name="checked"/>
+    </form>
+  }
 }
 @if(hasWritePermission){
 <script>
@@ -269,10 +275,11 @@ $(function(){
 
   var submitBatchEdit = function(action, value) {
     var checked = $('.table-issues input[type=checkbox]').filter(':checked').map(function(){ return this.value; }).get().join();
-    $('<form>').attr({action : action, method : 'POST'})
-        .append($('<input type="hidden">').attr('name', 'value').val(value))
-        .append($('<input type="hidden">').attr('name', 'checked').val(checked))
-        .submit();
+    var form = $('#batcheditForm');
+    form.find('input[name=value]').val(value);
+    form.find('input[name=checked]').val(checked);
+    form.attr('action', action);
+    form.submit();
   };
 
   $('#state').click(function(){

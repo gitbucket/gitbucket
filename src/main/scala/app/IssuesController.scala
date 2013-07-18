@@ -128,11 +128,15 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, Some(form.content), repository)
+    handleComment(form.issueId, Some(form.content), repository)() map { id =>
+      redirect("/%s/%s/issues/%d#comment-%d".format(repository.owner, repository.name, form.issueId, id))
+    } getOrElse NotFound
   })
 
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, form.content, repository)
+    handleComment(form.issueId, form.content, repository)() map { id =>
+      redirect("/%s/%s/issues/%d#comment-%d".format(repository.owner, repository.name, form.issueId, id))
+    } getOrElse NotFound
   })
 
   ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
@@ -197,79 +201,76 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/:id/assign")(collaboratorsOnly { repository =>
-    updateAssignedUserName(repository.owner, repository.name, params("id").toInt,
-        params.get("assignedUserName") filter (_.trim != ""))
+    updateAssignedUserName(repository.owner, repository.name, params("id").toInt, assignedUserName("assignedUserName"))
     Ok("updated")
   })
 
   ajaxPost("/:owner/:repository/issues/:id/milestone")(collaboratorsOnly { repository =>
-    updateMilestoneId(repository.owner, repository.name, params("id").toInt,
-        params.get("milestoneId") collect { case x if x.trim != "" => x.toInt })
+    updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"))
     Ok("updated")
   })
 
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
-    val owner = repository.owner
-    val name = repository.name
-    val userName = context.loginAccount.get.userName
+    val action = params.get("value")
 
-    params.get("value") collect {
-      case s if s == "close"  => (s.capitalize, Some(s), true)
-      case s if s == "reopen" => (s.capitalize, Some(s), false)
-    } map { case (content, action, closed) =>
-      params("checked").split(',') foreach { issueId =>
-        createComment(owner, name, userName, issueId.toInt, content, action)
-        updateClosed(owner, name, issueId.toInt, closed)
-      }
-      redirect("/%s/%s/issues".format(owner, name))
-    } getOrElse NotFound
+    executeBatch(repository) {
+      handleComment(_, None, repository)( _ => action)
+    }
   })
 
   post("/:owner/:repository/issues/batchedit/label")(collaboratorsOnly { repository =>
-    val owner = repository.owner
-    val name = repository.name
+    val labelId = params("value").toInt
 
-    params.get("value").map(_.toInt) map { labelId =>
-      params("checked").split(',') foreach { issueId =>
-        getIssueLabel(owner, name, issueId.toInt, labelId) getOrElse {
-          registerIssueLabel(owner, name, issueId.toInt, labelId)
-        }
+    executeBatch(repository) { issueId =>
+      getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
+        registerIssueLabel(repository.owner, repository.name, issueId, labelId)
       }
-      redirect("/%s/%s/issues".format(owner, name))
-    } getOrElse NotFound
+    }
   })
 
   post("/:owner/:repository/issues/batchedit/assign")(collaboratorsOnly { repository =>
-    params("checked").split(',') foreach { issueId =>
-      updateAssignedUserName(repository.owner, repository.name, issueId.toInt,
-          params.get("value") filter (_.trim != ""))
+    val value = assignedUserName("value")
+
+    executeBatch(repository) {
+      updateAssignedUserName(repository.owner, repository.name, _, value)
     }
-    redirect("/%s/%s/issues".format(repository.owner, repository.name))
   })
 
   post("/:owner/:repository/issues/batchedit/milestone")(collaboratorsOnly { repository =>
-    params("checked").split(',') foreach { issueId =>
-      updateMilestoneId(repository.owner, repository.name, issueId.toInt,
-          params.get("value") collect { case x if x.trim != "" => x.toInt })
+    val value = milestoneId("value")
+
+    executeBatch(repository) {
+      updateMilestoneId(repository.owner, repository.name, _, value)
     }
-    redirect("/%s/%s/issues".format(repository.owner, repository.name))
   })
+
+  val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
+  val milestoneId      = (key: String) => params.get(key) collect { case x if x.trim != "" => x.toInt }
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: app.Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
-  private def handleComment(issueId: Int, content: Option[String], repository: RepositoryService.RepositoryInfo) = {
+  private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
+    params("checked").split(',') map(_.toInt) foreach execute
+    redirect("/%s/%s/issues".format(repository.owner, repository.name))
+  }
+
+  /**
+   * @see 
+   */
+  private def handleComment(issueId: Int, content: Option[String], repository: RepositoryService.RepositoryInfo)
+      (getAction: model.Issue => Option[String] =
+           p1 => params.get("action").filter(_ => isEditable(p1.userName, p1.repositoryName, p1.openedUserName))) = {
     val owner    = repository.owner
     val name     = repository.name
     val userName = context.loginAccount.get.userName
 
     getIssue(owner, name, issueId.toString) map { issue =>
       val (action, recordActivity) =
-        params.get("action")
-          .filter(_ => isEditable(owner, name, issue.openedUserName))
+        getAction(issue)
           .collect {
-            case s if s == "close"  => true  -> (Some(s) -> Some(recordCloseIssueActivity _))
-            case s if s == "reopen" => false -> (Some(s) -> Some(recordReopenIssueActivity _))
+            case "close"  => true  -> (Some("close")  -> Some(recordCloseIssueActivity _))
+            case "reopen" => false -> (Some("reopen") -> Some(recordReopenIssueActivity _))
           }
           .map { case (closed, t) =>
             updateClosed(owner, name, issueId, closed)
@@ -277,14 +278,19 @@ trait IssuesControllerBase extends ControllerBase {
           }
           .getOrElse(None -> None)
 
-      val commentId = createComment(owner, name, userName, issueId, content.getOrElse(action.get.capitalize), action)
+      val commentId = content
+          .map       ( _ -> action.map( _ + "_comment" ).getOrElse("comment") )
+          .getOrElse ( action.get.capitalize -> action.get )
+          match {
+            case (content, action) => createComment(owner, name, userName, issueId, content, action)
+          }
 
       // record activity
       content foreach ( recordCommentIssueActivity(owner, name, userName, issueId, _) )
       recordActivity foreach ( _ (owner, name, userName, issueId, issue.title) )
 
-      redirect("/%s/%s/issues/%d#comment-%d".format(owner, name, issueId, commentId))
-    } getOrElse NotFound
+      commentId
+    }
   }
 
   private def searchIssues(filter: String, repository: RepositoryService.RepositoryInfo) = {
