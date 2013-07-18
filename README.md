@@ -36,7 +36,7 @@ To upgrade GitBucket, only replace gitbucket.war.
 
 Release Notes
 --------
-### 1.3 - xx Jul 2013
+### 1.3 - 18 Jul 2013
 - Batch updating for issues.
 - Display assigned user on issue list.
 - User icon and Gravatar support.
