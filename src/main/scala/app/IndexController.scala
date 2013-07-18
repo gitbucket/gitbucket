@@ -8,13 +8,16 @@ import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.revwalk.RevWalk
 import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib.FileMode
+import com.google.common.cache.{CacheLoader, CacheBuilder}
+import java.util.concurrent.TimeUnit
+import model.Issue
 
 class IndexController extends IndexControllerBase 
-  with RepositoryService with AccountService with SystemSettingsService with ActivityService with IssuesService
+  with RepositoryService with AccountService with SystemSettingsService with ActivityService
   with ReferrerAuthenticator
 
 trait IndexControllerBase extends ControllerBase { self: RepositoryService 
-  with SystemSettingsService with ActivityService with IssuesService
+  with SystemSettingsService with ActivityService
   with ReferrerAuthenticator =>
 
   val searchForm = mapping(
@@ -40,11 +43,11 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
   }
 
   get("/:owner/:repository/search")(referrersOnly { repository =>
+    import SearchCache._
     val query  = params("q").trim
     val target = params.getOrElse("type", "code")
 
-    val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(repository.owner, repository.name, query)
-    val files  = if(query.isEmpty) Nil else searchRepositoryFiles(repository.owner, repository.name, query)
+    val SearchResult(files, issues) = cache.get(repository.owner, repository.name, query)
 
     target.toLowerCase match {
       case "issue" =>
@@ -68,6 +71,59 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
         }
     }
   })
+
+  private def getHighlightText(content: String, query: String): (String, Int) = {
+    val keywords  = StringUtil.splitWords(query.toLowerCase)
+    val lowerText = content.toLowerCase
+    val indices   = keywords.map(lowerText.indexOf _)
+
+    if(!indices.exists(_ < 0)){
+      val lineNumber = content.substring(0, indices.min).split("\n").size - 1
+      val highlightText = StringUtil.escapeHtml(content.split("\n").drop(lineNumber).take(5).mkString("\n"))
+        .replaceAll("(?i)(" + keywords.map("\\Q" + _ + "\\E").mkString("|") +  ")",
+        "<span style=\"background-color: yellow;\">$1</span>")
+      (highlightText, lineNumber + 1)
+    } else {
+      (content.split("\n").take(5).mkString("\n"), 1)
+    }
+  }
+
+}
+
+case class IssueSearchResult(
+  issueId: Int,
+  title: String,
+  openedUserName: String,
+  registeredDate: java.util.Date,
+  commentCount: Int,
+  highlightText: String)
+
+case class FileSearchResult(
+  path: String,
+  lastModified: java.util.Date,
+  highlightText: String,
+  highlightLineNumber: Int)
+
+object SearchCache extends IssuesService {
+
+  case class SearchResult(
+    files: List[(String, String)],
+    issues: List[(Issue, Int, String)]
+   )
+
+  val cache = CacheBuilder.newBuilder()
+    .maximumSize(100)
+    .expireAfterWrite(10, TimeUnit.MINUTES)
+    .build(
+      new CacheLoader[(String, String, String), SearchResult]() {
+        override def load(key: (String, String, String)) = {
+          println("** Cache is reloaded! **")
+          val (owner, repository, query) = key
+          val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(owner, repository, query)
+          val files  = if(query.isEmpty) Nil else searchRepositoryFiles(owner, repository, query)
+          SearchResult(files, issues)
+        }
+      })
 
   private def searchRepositoryFiles(owner: String, repository: String, query: String): List[(String, String)] = {
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
@@ -101,36 +157,4 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
       list.toList
     }
   }
-
-  private def getHighlightText(content: String, query: String): (String, Int) = {
-    val keywords  = StringUtil.splitWords(query.toLowerCase)
-    val lowerText = content.toLowerCase
-    val indices   = keywords.map(lowerText.indexOf _)
-
-    if(!indices.exists(_ < 0)){
-      val lineNumber = content.substring(0, indices.min).split("\n").size - 1
-      val highlightText = StringUtil.escapeHtml(content.split("\n").drop(lineNumber).take(5).mkString("\n"))
-        .replaceAll("(?i)(" + keywords.map("\\Q" + _ + "\\E").mkString("|") +  ")",
-        "<span style=\"background-color: yellow;\">$1</span>")
-      (highlightText, lineNumber + 1)
-    } else {
-      (content.split("\n").take(5).mkString("\n"), 1)
-    }
-  }
-
 }
-
-
-case class IssueSearchResult(
-  issueId: Int,
-  title: String,
-  openedUserName: String,
-  registeredDate: java.util.Date,
-  commentCount: Int,
-  highlightText: String)
-
-case class FileSearchResult(
-  path: String,
-  lastModified: java.util.Date,
-  highlightText: String,
-  highlightLineNumber: Int)
