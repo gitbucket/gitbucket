@@ -3,7 +3,6 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import twirl.api.Html
 import util.StringUtil
-import service.AccountService
 import service.RequestCache
 
 /**
@@ -83,11 +82,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def assets(implicit context: app.Context): String =
     s"${context.path}/assets"
 
+  /**
+   * Generates the link to the account page.
+   */
   def user(userName: String, mailAddress: String, styleClass: String = "")(implicit context: app.Context): Html = {
-    val account = context.cache(s"account.${mailAddress}"){
-      new AccountService {}.getAccountByMailAddress(mailAddress)
-    }
-    account.map { account =>
+    getAccountByMailAddress(mailAddress).map { account =>
       Html(s"""<a href="${url(account.userName)}" class="${styleClass}">${userName}</a>""")
     } getOrElse Html(userName)
   }
