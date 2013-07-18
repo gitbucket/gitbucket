@@ -1,7 +1,7 @@
 @(repository: service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Settings"){
+@html.main("Settings", Some(repository)){
   @html.header("settings", repository)
   @menu("options", repository){
     @helper.html.information(info)

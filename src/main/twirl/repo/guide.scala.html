@@ -1,7 +1,7 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(repository.owner + "/" + repository.name) {
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
 @html.header("code", repository)
 <h3 style="margin-top: 30px;">Create a new repository on the command line</h3>
 <pre>

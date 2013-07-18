@@ -1,7 +1,7 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(repository.owner + "/" + repository.name) {
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
   @tab(repository.repository.defaultBranch, repository, "tags", true)
   <h1>Tags</h1>

@@ -8,7 +8,7 @@
 @import view.helpers._
 @import util.Implicits._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
-@html.main(commit.shortMessage){
+@html.main(commit.shortMessage, Some(repository)){
   @html.header("code", repository)
   @tab(commitId, repository, "commits")
   <table class="table table-bordered">
