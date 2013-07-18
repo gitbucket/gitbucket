@@ -23,24 +23,24 @@
             </select>
           </fieldset>
           <hr>
-  <fieldset class="margin">
-    <label>
-      <input type="radio" name="isPrivate" value="false" checked>
-      <strong>Public</strong><br>
-      <div>
-        <span class="note">All users and guests can read this repository.</span>
-      </div>
-    </label>
-  </fieldset>
-  <fieldset>
-    <label>
-      <input type="radio" name="isPrivate" value="true">
-      <strong>Private</strong><br>
-      <div>
-        <span class="note">Only collaborators can read this repository.</span>
-      </div>
-    </label>
-  </fieldset>
+          <fieldset class="margin">
+            <label>
+              <input type="radio" name="isPrivate" value="false"@if(!repository.repository.isPrivate){ checked}>
+              <strong>Public</strong><br>
+              <div>
+                <span class="note">All users and guests can read this repository.</span>
+              </div>
+            </label>
+          </fieldset>
+          <fieldset>
+            <label>
+              <input type="radio" name="isPrivate" value="true"@if(repository.repository.isPrivate){ checked}>
+              <strong>Private</strong><br>
+              <div>
+                <span class="note">Only collaborators can read this repository.</span>
+              </div>
+            </label>
+          </fieldset>
         </div>
       </div>
       @*
