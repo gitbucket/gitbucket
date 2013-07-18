@@ -6,8 +6,6 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 import model._
-import util.StringUtil._
-import util.Implicits._
 
 trait IssuesService {
   import IssuesService._
@@ -241,6 +239,7 @@ trait IssuesService {
 
 object IssuesService {
   import javax.servlet.http.HttpServletRequest
+  import util.StringUtil._
 
   val IssueLimit = 30
 
