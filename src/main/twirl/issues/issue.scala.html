@@ -8,7 +8,7 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("%s - Issue #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
+@html.main(s"${issue.title} - Issue #${issue.issueId} - ${repository.owner}/${repository.name}"){
   @html.header("issues", repository)
   @tab("issues", repository)
   <ul class="nav nav-tabs">

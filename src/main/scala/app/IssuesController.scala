@@ -112,7 +112,7 @@ trait IssuesControllerBase extends ControllerBase {
     // record activity
     recordCreateIssueActivity(owner, name, userName, issueId, form.title)
 
-    redirect("/%s/%s/issues/%d".format(owner, name, issueId))
+    redirect(s"/${owner}/${name}/issues/${issueId}")
   })
 
   ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (form, repository) =>
@@ -122,20 +122,20 @@ trait IssuesControllerBase extends ControllerBase {
     getIssue(owner, name, params("id")).map { issue =>
       if(isEditable(owner, name, issue.openedUserName)){
         updateIssue(owner, name, issue.issueId, form.title, form.content)
-        redirect("/%s/%s/issues/_data/%d".format(owner, name, issue.issueId))
+        redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
       } else Unauthorized
     } getOrElse NotFound
   })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
     handleComment(form.issueId, Some(form.content), repository)() map { id =>
-      redirect("/%s/%s/issues/%d#comment-%d".format(repository.owner, repository.name, form.issueId, id))
+      redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
     } getOrElse NotFound
   })
 
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
     handleComment(form.issueId, form.content, repository)() map { id =>
-      redirect("/%s/%s/issues/%d#comment-%d".format(repository.owner, repository.name, form.issueId, id))
+      redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
     } getOrElse NotFound
   })
 
@@ -146,7 +146,7 @@ trait IssuesControllerBase extends ControllerBase {
     getComment(owner, name, params("id")).map { comment =>
       if(isEditable(owner, name, comment.commentedUserName)){
         updateComment(comment.commentId, form.content)
-        redirect("/%s/%s/issue_comments/_data/%d".format(owner, name, comment.commentId))
+        redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
       } else Unauthorized
     } getOrElse NotFound
   })
@@ -252,7 +252,7 @@ trait IssuesControllerBase extends ControllerBase {
 
   private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
     params("checked").split(',') map(_.toInt) foreach execute
-    redirect("/%s/%s/issues".format(repository.owner, repository.name))
+    redirect(s"/${repository.owner}/${repository.name}/issues")
   }
 
   /**
@@ -297,7 +297,7 @@ trait IssuesControllerBase extends ControllerBase {
     val owner      = repository.owner
     val repoName   = repository.name
     val userName   = if(filter != "all") Some(params("userName")) else None
-    val sessionKey = "%s/%s/issues".format(owner, repoName)
+    val sessionKey = s"${owner}/${repoName}/issues"
 
     val page = try {
       val i = params.getOrElse("page", "1").toInt
