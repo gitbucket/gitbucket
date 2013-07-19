@@ -5,6 +5,9 @@ body {
   color: #333;
 }
 
+/* ======================================================================== */
+/* Global Header */
+/* ======================================================================== */
 div.navbar-inner {
   border-radius: 0px;
   -webkit-border-radius: 0px;
@@ -16,18 +19,23 @@ div.navbar-inner {
   padding-right: 0px;
 }
 
+div.header-menu {
+  line-height: 40px;
+}
+
+div.header-menu input,
+div.header-menu a.btn {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 div.nav-collapse a.menu {
   margin-right: 12px;
-  line-height: 40px;
 }
 
-div.nav-collapse a.btn-last {
-  margin-right: 30px;
-}
-
+div.nav-collapse a.btn-last,
 div.nav-collapse a.menu-last {
   margin-right: 30px;
-  line-height: 40px;
 }
 
 div.gitbucket-version {
@@ -37,6 +45,9 @@ div.gitbucket-version {
   margin-right: 10px;
 }
 
+/* ======================================================================== */
+/* Repository Header */
+/* ======================================================================== */
 table.global-nav {
   width: 920px;
   margin-bottom: 10px;
@@ -59,6 +70,9 @@ table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:v
   text-decoration: none;
 }
 
+/* ======================================================================== */
+/* General Styles */
+/* ======================================================================== */
 div.head {
   font-size: large;
   margin-bottom: 10px;

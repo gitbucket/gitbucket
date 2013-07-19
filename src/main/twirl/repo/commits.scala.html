@@ -6,7 +6,7 @@
   hasNext: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(repository.owner+"/"+repository.name) {
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
   @tab(branch, repository, if(pathList.isEmpty) "commits" else "files")
   <div class="head">

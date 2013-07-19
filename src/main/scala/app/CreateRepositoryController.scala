@@ -5,7 +5,6 @@ import util.{JGitUtil, UsersAuthenticator}
 import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib._
 import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 

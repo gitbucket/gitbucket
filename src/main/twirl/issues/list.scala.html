@@ -15,7 +15,7 @@
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Issues - " + repository.owner + "/" + repository.name){
+@html.main(s"Issues - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("issues", repository)
   @tab("issues", repository)
   <div class="row-fluid">

@@ -5,7 +5,7 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("New Issue - " + repository.owner + "/" + repository.name){
+@html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("issues", repository)
   @tab("", repository)
   <form action="@url(repository)/issues/new" method="POST" validate="true">

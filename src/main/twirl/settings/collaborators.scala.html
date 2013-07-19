@@ -1,7 +1,7 @@
 @(collaborators: List[String], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Settings"){
+@html.main("Settings", Some(repository)){
   @html.header("settings", repository)
   @menu("collaborators", repository){
     <h3>Manage Collaborators</h3>

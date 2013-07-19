@@ -6,7 +6,6 @@ import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
 import util.JGitUtil.DiffInfo
 import util.{Directory, JGitUtil}
-import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import java.util.concurrent.ConcurrentHashMap
 

@@ -1,4 +1,4 @@
-@(title: String)(body: Html)(implicit context: app.Context)
+@(title: String, repository: Option[service.RepositoryService.RepositoryInfo] = None)(body: Html)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 <!DOCTYPE html>
@@ -29,30 +29,37 @@
     <script src="@assets/zclip/ZeroClipboard.min.js"></script>
   </head>
   <body>
-    <div class="navbar">
-      <div class="navbar-inner">
-        <div class="container">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="@path/">GitBucket</a>
-          <div class="nav-collapse collapse pull-right">
-            @if(loginAccount.isDefined){
-              <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
-              <a href="@path/new" class="menu" data-toggle="tooltip" data-placement="bottom" title="Create a new repo"><i class="icon-plus"></i></a>
-              <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
-              @if(loginAccount.get.isAdmin){
-                <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="icon-wrench"></i></a>
+    <form id="search" action="@path/search" method="POST">
+      <div class="navbar">
+        <div class="navbar-inner">
+          <div class="container">
+            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="brand" href="@path/">GitBucket</a>
+            <div class="nav-collapse collapse pull-right header-menu">
+              @repository.map { repository =>
+                <input type="text" name="query" style="width: 300px; margin-bottom: 0px;" placeholder="Search this repository"/>
+                <input type="hidden" name="owner" value="@repository.owner"/>
+                <input type="hidden" name="repository" value="@repository.name"/>
               }
-              <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
-            } else {
-              <a href="@path/signin?@currentUrl" class="btn btn-last">Sign in</a>
-            }
-          </div><!--/.nav-collapse -->
+              @if(loginAccount.isDefined){
+                <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
+                <a href="@path/new" class="menu" data-toggle="tooltip" data-placement="bottom" title="Create a new repo"><i class="icon-plus"></i></a>
+                <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
+                @if(loginAccount.get.isAdmin){
+                  <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="icon-wrench"></i></a>
+                }
+                <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
+              } else {
+                <a href="@path/signin?@currentUrl" class="btn btn-last">Sign in</a>
+              }
+            </div><!--/.nav-collapse -->
+          </div>
         </div>
-      </div>
+      </form>
       @defining(servlet.AutoUpdate.getCurrentVersion){ version =>
         <div class="gitbucket-version">version @version.majorVersion.@version.minorVersion</div>
       }
@@ -60,5 +67,12 @@
     <div class="container body">
       @body
     </div>
+    <script>
+      $(function(){
+        $('#search').submit(function(){
+          return $.trim($(this).find('input[name=query]').val()) != '';
+        });
+      });
+    </script>
   </body>
 </html>
