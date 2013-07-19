@@ -1,7 +1,7 @@
 package app
 
 import service._
-import util.{FileUploadUtil, FileUtil, AdminAuthenticator}
+import util.{FileUtil, AdminAuthenticator}
 import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils

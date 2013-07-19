@@ -1,7 +1,7 @@
 package app
 
 import _root_.util.Directory._
-import _root_.util.{FileUploadUtil, FileUtil, Validations}
+import _root_.util.{FileUtil, Validations}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
@@ -10,7 +10,8 @@ import org.apache.commons.io.FileUtils
 import model.Account
 import scala.Some
 import service.AccountService
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpSession, HttpServletRequest}
+import java.text.SimpleDateFormat
 
 /**
  * Provides generic features for controller implementations.
@@ -116,7 +117,8 @@ case class Context(path: String, loginAccount: Option[Account], currentUrl: Stri
 /**
  * Base trait for controllers which manages account information.
  */
-trait AccountManagementControllerBase extends ControllerBase { self: AccountService =>
+trait AccountManagementControllerBase extends ControllerBase with FileUploadControllerBase {
+  self: AccountService  =>
 
   protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit = {
     if(clearImage){
@@ -126,9 +128,9 @@ trait AccountManagementControllerBase extends ControllerBase { self: AccountServ
       }
     } else {
       fileId.map { fileId =>
-        val filename = "avatar." + FileUtil.getExtension(FileUploadUtil.getUploadedFilename(fileId).get)
+        val filename = "avatar." + FileUtil.getExtension(getUploadedFilename(fileId).get)
         FileUtils.moveFile(
-          FileUploadUtil.getTemporaryFile(fileId),
+          getTemporaryFile(fileId),
           new java.io.File(getUserUploadDir(userName), filename)
         )
         updateAvatarImage(userName, Some(filename))
@@ -146,6 +148,36 @@ trait AccountManagementControllerBase extends ControllerBase { self: AccountServ
       getAccountByMailAddress(value)
         .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
         .map    { _ => "Mail address is already registered." }
+  }
+
+}
+
+/**
+ * Base trait for controllers which needs file uploading feature.
+ */
+trait FileUploadControllerBase {
+
+  def generateFileId: String =
+    new SimpleDateFormat("yyyyMMddHHmmSSsss").format(new java.util.Date(System.currentTimeMillis))
+
+  def TemporaryDir(implicit session: HttpSession): java.io.File =
+    new java.io.File(GitBucketHome, s"tmp/_upload/${session.getId}")
+
+  def getTemporaryFile(fileId: String)(implicit session: HttpSession): java.io.File =
+    new java.io.File(TemporaryDir, fileId)
+
+  //  def removeTemporaryFile(fileId: String)(implicit session: HttpSession): Unit =
+  //    getTemporaryFile(fileId).delete()
+
+  def removeTemporaryFiles()(implicit session: HttpSession): Unit =
+    FileUtils.deleteDirectory(TemporaryDir)
+
+  def getUploadedFilename(fileId: String)(implicit session: HttpSession): Option[String] = {
+    val filename = Option(session.getAttribute("upload_" + fileId).asInstanceOf[String])
+    if(filename.isDefined){
+      session.removeAttribute("upload_" + fileId)
+    }
+    filename
   }
 
 }
