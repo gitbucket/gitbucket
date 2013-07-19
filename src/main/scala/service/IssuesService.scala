@@ -252,7 +252,8 @@ trait IssuesService {
     // Search Issue
     val issues = Query(Issues).filter { t =>
       keywords.map { keyword =>
-        (t.title.toLowerCase like (s"%${likeEncode(keyword)}%", '^')) || (t.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
+        (t.title.toLowerCase   like (s"%${likeEncode(keyword)}%", '^')) ||
+        (t.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
       } .reduceLeft(_ && _)
     }.map { t => (t, 0, t.content) }
 
@@ -265,10 +266,12 @@ trait IssuesService {
       }.reduceLeft(_ && _)
     }.map { case (t1, t2) => (t2, t1.commentId, t1.content) }
 
-    // TODO Excludes some actions which should be ignored.
     def getCommentCount(issue: Issue): Int = {
       Query(IssueComments)
-        .filter(_.byIssue(issue.userName, issue.repositoryName, issue.issueId))
+        .filter { t =>
+          t.byIssue(issue.userName, issue.repositoryName, issue.issueId) &&
+          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
+        }
         .map(_.issueId)
         .list.length
     }
