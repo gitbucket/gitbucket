@@ -1,4 +1,8 @@
-@(issues: List[app.IssueSearchResult], fileCount: Int, query: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issues: List[app.IssueSearchResult],
+  fileCount: Int,
+  query: String,
+  page: Int,
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Search Results", Some(repository)){
@@ -8,10 +12,10 @@
     } else {
       <h4>We've found @issues.size code @plural(issues.size, "result")</h4>
     }
-    @issues.map { issue =>
+    @issues.drop((page - 1) * app.RepositorySearch.IssueLimit).take(app.RepositorySearch.IssueLimit).map { issue =>
       <div class="block">
         <div class="pull-right muted">#@issue.issueId</div>
-        <h4><a href="@url(repository)/issues/@issue.issueId">@issue.title</a></h4>
+        <h4 style="margin-top: 0px;"><a href="@url(repository)/issues/@issue.issueId">@issue.title</a></h4>
         <pre>@Html(issue.highlightText)</pre>
         <div class="small muted">
           Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a>
@@ -22,5 +26,7 @@
         </div>
       </div>
     }
+    @helper.html.paginator(page, issues.size, app.RepositorySearch.IssueLimit, 10,
+      s"${url(repository)}/search?q=${urlEncode(query)}&type=issue")
   }
 }

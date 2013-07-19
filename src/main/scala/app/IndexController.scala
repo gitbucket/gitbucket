@@ -8,6 +8,7 @@ import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.revwalk.RevWalk
 import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib.FileMode
+import model.Issue
 
 class IndexController extends IndexControllerBase 
   with RepositoryService with AccountService with SystemSettingsService with ActivityService with IssuesService
@@ -40,11 +41,18 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
   }
 
   get("/:owner/:repository/search")(referrersOnly { repository =>
+    import RepositorySearch._
     val query  = params("q").trim
     val target = params.getOrElse("type", "code")
+    val page   = try {
+      val i = params.getOrElse("page", "1").toInt
+      if(i <= 0) 1 else i
+    } catch {
+      case e: NumberFormatException => 1
+    }
 
-    val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(repository.owner, repository.name, query)
-    val files  = if(query.isEmpty) Nil else searchRepositoryFiles(repository.owner, repository.name, query)
+
+    val SearchResult(files, issues) = searchRepository(repository.owner, repository.name, query)
 
     target.toLowerCase match {
       case "issue" =>
@@ -56,18 +64,33 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
             issue.registeredDate,
             commentCount,
             getHighlightText(content, query)._1)
-        }, files.size, query, repository)
+        }, files.size, query, page, repository)
       case _ =>
         JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
           val commits = JGitUtil.getLatestCommitFromPaths(git, files.toList.map(_._1), "HEAD")
 
           search.html.code(files.toList.map { case (path, text) =>
             val (highlightText, lineNumber)  = getHighlightText(text, query)
-            FileSearchResult(path, commits(path).getCommitterIdent.getWhen, highlightText, lineNumber)
-          }, issues.size, query, repository)
+            FileSearchResult(
+              path,
+              commits(path).getCommitterIdent.getWhen,
+              highlightText,
+              lineNumber)
+          }, issues.size, query, page, repository)
         }
     }
   })
+
+  case class SearchResult(
+    files: List[(String, String)],
+    issues: List[(Issue, Int, String)]
+  )
+
+  def searchRepository(owner: String, repository: String, query: String): SearchResult = {
+    val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(owner, repository, query)
+    val files  = if(query.isEmpty) Nil else searchRepositoryFiles(owner, repository, query)
+    SearchResult(files, issues)
+  }
 
   private def searchRepositoryFiles(owner: String, repository: String, query: String): List[(String, String)] = {
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
@@ -102,6 +125,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
     }
   }
 
+
   private def getHighlightText(content: String, query: String): (String, Int) = {
     val keywords  = StringUtil.splitWords(query.toLowerCase)
     val lowerText = content.toLowerCase
@@ -120,7 +144,6 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
 
 }
 
-
 case class IssueSearchResult(
   issueId: Int,
   title: String,
@@ -134,3 +157,8 @@ case class FileSearchResult(
   lastModified: java.util.Date,
   highlightText: String,
   highlightLineNumber: Int)
+
+object RepositorySearch extends IssuesService {
+  val CodeLimit  = 10
+  val IssueLimit = 10
+}
