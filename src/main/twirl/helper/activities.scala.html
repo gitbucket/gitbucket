@@ -12,31 +12,33 @@
         @activityMessage(activity.message)
       </div>
       @activity.additionalInfo.map { additionalInfo =>
-        @(activity.activityType match {
-          case "create_wiki" => {
-            <div class="small activity-message">Created <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${additionalInfo}"}>{additionalInfo}</a>.</div>
-          }
-          case "edit_wiki" => {
-            <div class="small activity-message">Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${additionalInfo}"}>{additionalInfo}</a>.</div>
-          }
-          case "push" => {
-            <div class="small activity-message">
-              {additionalInfo.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
-                if(i == 3){
-                  <div>...</div>
-                } else {
-                  <div>
-                    <a href={s"${path}/${activity.userName}/${activity.repositoryName}/commit/${commit.substring(0, 40)}"} class="monospace">{commit.substring(0, 7)}</a>
-                    <span>{commit.substring(41)}</span>
-                  </div>
-                }
-              }}
-            </div>
-          }
-          case _ => {
-            <div class=" activity-message">{additionalInfo}</div>
-          }
-        })
+        @if(additionalInfo.nonEmpty){
+          @(activity.activityType match {
+            case "create_wiki" => {
+              <div class="small activity-message">Created <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${additionalInfo}"}>{additionalInfo}</a>.</div>
+            }
+            case "edit_wiki" => {
+              <div class="small activity-message">Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${additionalInfo}"}>{additionalInfo}</a>.</div>
+            }
+            case "push" => {
+              <div class="small activity-message">
+                {additionalInfo.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
+                  if(i == 3){
+                    <div>...</div>
+                  } else {
+                    <div>
+                      <a href={s"${path}/${activity.userName}/${activity.repositoryName}/commit/${commit.substring(0, 40)}"} class="monospace">{commit.substring(0, 7)}</a>
+                      <span>{commit.substring(41)}</span>
+                    </div>
+                  }
+                }}
+              </div>
+            }
+            case _ => {
+              <div class=" activity-message">{additionalInfo}</div>
+            }
+          })
+        }
       }
     </div>
   }
