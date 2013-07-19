@@ -8,16 +8,14 @@ import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.revwalk.RevWalk
 import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib.FileMode
-import com.google.common.cache.{CacheLoader, CacheBuilder}
-import java.util.concurrent.TimeUnit
 import model.Issue
 
 class IndexController extends IndexControllerBase 
-  with RepositoryService with AccountService with SystemSettingsService with ActivityService
+  with RepositoryService with AccountService with SystemSettingsService with ActivityService with IssuesService
   with ReferrerAuthenticator
 
 trait IndexControllerBase extends ControllerBase { self: RepositoryService 
-  with SystemSettingsService with ActivityService
+  with SystemSettingsService with ActivityService with IssuesService
   with ReferrerAuthenticator =>
 
   val searchForm = mapping(
@@ -54,7 +52,7 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
     }
 
 
-    val SearchResult(files, issues) = cache.get(repository.owner, repository.name, query)
+    val SearchResult(files, issues) = searchRepository(repository.owner, repository.name, query)
 
     target.toLowerCase match {
       case "issue" =>
@@ -82,6 +80,51 @@ trait IndexControllerBase extends ControllerBase { self: RepositoryService
         }
     }
   })
+
+  case class SearchResult(
+    files: List[(String, String)],
+    issues: List[(Issue, Int, String)]
+  )
+
+  def searchRepository(owner: String, repository: String, query: String): SearchResult = {
+    val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(owner, repository, query)
+    val files  = if(query.isEmpty) Nil else searchRepositoryFiles(owner, repository, query)
+    SearchResult(files, issues)
+  }
+
+  private def searchRepositoryFiles(owner: String, repository: String, query: String): List[(String, String)] = {
+    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+      val revWalk   = new RevWalk(git.getRepository)
+      val objectId  = git.getRepository.resolve("HEAD")
+      val revCommit = revWalk.parseCommit(objectId)
+      val treeWalk  = new TreeWalk(git.getRepository)
+      treeWalk.setRecursive(true)
+      treeWalk.addTree(revCommit.getTree)
+
+      val keywords = StringUtil.splitWords(query.toLowerCase)
+      val list = new ListBuffer[(String, String)]
+
+      while (treeWalk.next()) {
+        if(treeWalk.getFileMode(0) != FileMode.TREE){
+          JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
+            if(FileUtil.isText(bytes)){
+              val text      = new String(bytes, "UTF-8")
+              val lowerText = text.toLowerCase
+              val indices   = keywords.map(lowerText.indexOf _)
+              if(!indices.exists(_ < 0)){
+                list.append((treeWalk.getPathString, text))
+              }
+            }
+          }
+        }
+      }
+      treeWalk.release
+      revWalk.release
+
+      list.toList
+    }
+  }
+
 
   private def getHighlightText(content: String, query: String): (String, Int) = {
     val keywords  = StringUtil.splitWords(query.toLowerCase)
@@ -116,58 +159,6 @@ case class FileSearchResult(
   highlightLineNumber: Int)
 
 object RepositorySearch extends IssuesService {
-
   val CodeLimit  = 10
   val IssueLimit = 10
-
-  case class SearchResult(
-    files: List[(String, String)],
-    issues: List[(Issue, Int, String)]
-   )
-
-  val cache = CacheBuilder.newBuilder()
-    .maximumSize(100)
-    .expireAfterWrite(10, TimeUnit.MINUTES)
-    .build(
-      new CacheLoader[(String, String, String), SearchResult]() {
-        override def load(key: (String, String, String)) = {
-          val (owner, repository, query) = key
-          val issues = if(query.isEmpty) Nil else searchIssuesByKeyword(owner, repository, query)
-          val files  = if(query.isEmpty) Nil else searchRepositoryFiles(owner, repository, query)
-          SearchResult(files, issues)
-        }
-      })
-
-  private def searchRepositoryFiles(owner: String, repository: String, query: String): List[(String, String)] = {
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      val revWalk   = new RevWalk(git.getRepository)
-      val objectId  = git.getRepository.resolve("HEAD")
-      val revCommit = revWalk.parseCommit(objectId)
-      val treeWalk  = new TreeWalk(git.getRepository)
-      treeWalk.setRecursive(true)
-      treeWalk.addTree(revCommit.getTree)
-
-      val keywords = StringUtil.splitWords(query.toLowerCase)
-      val list = new ListBuffer[(String, String)]
-
-      while (treeWalk.next()) {
-        if(treeWalk.getFileMode(0) != FileMode.TREE){
-          JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
-            if(FileUtil.isText(bytes)){
-              val text      = new String(bytes, "UTF-8")
-              val lowerText = text.toLowerCase
-              val indices   = keywords.map(lowerText.indexOf _)
-              if(!indices.exists(_ < 0)){
-                list.append((treeWalk.getPathString, text))
-              }
-            }
-          }
-        }
-      }
-      treeWalk.release
-      revWalk.release
-
-      list.toList
-    }
-  }
 }
