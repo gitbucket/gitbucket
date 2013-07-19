@@ -119,10 +119,12 @@ trait WikiService {
    * Returns the list of wiki page names.
    */
   def getWikiPageList(owner: String, repository: String): List[String] = {
-    JGitUtil.getFileList(Git.open(Directory.getWikiRepositoryDir(owner, repository)), "master", ".")
-      .filter(_.name.endsWith(".md"))
-      .map(_.name.replaceFirst("\\.md$", ""))
-      .sortBy(x => x)
+    JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
+      JGitUtil.getFileList(git, "master", ".")
+        .filter(_.name.endsWith(".md"))
+        .map(_.name.replaceFirst("\\.md$", ""))
+        .sortBy(x => x)
+    }
   }
   
   /**
@@ -210,12 +212,16 @@ trait WikiService {
 
   private def cloneOrPullWorkingCopy(workDir: File, owner: String, repository: String): Unit = {
     if(!workDir.exists){
-      Git.cloneRepository
-        .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
-        .setDirectory(workDir)
-        .call
+      val git =
+        Git.cloneRepository
+          .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
+          .setDirectory(workDir)
+          .call
+      git.getRepository.close  // close .git resources.
     } else {
-      Git.open(workDir).pull.call
+      JGitUtil.withGit(workDir){ git =>
+        git.pull.call
+      }
     }
   }
 
