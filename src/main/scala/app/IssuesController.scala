@@ -256,7 +256,7 @@ trait IssuesControllerBase extends ControllerBase {
   }
 
   /**
-   * @see 
+   * @see [[https://github.com/takezoe/gitbucket/wiki/CommentAction]]
    */
   private def handleComment(issueId: Int, content: Option[String], repository: RepositoryService.RepositoryInfo)
       (getAction: model.Issue => Option[String] =
