@@ -257,6 +257,15 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+ul.dropdown-menu li {
+  border-bottom: 1px solid #eee;
+}
+
+ul.dropdown-menu :last-child {
+  border-bottom: none;
+}
+
+
 /****************************************************************************/
 /* Sign-in form */
 /****************************************************************************/
