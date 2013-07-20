@@ -82,6 +82,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def assets(implicit context: app.Context): String =
     s"${context.path}/assets"
 
+  def isPast(date: Date): Boolean = System.currentTimeMillis > date.getTime
 
   /**
    * Implicit conversion to add mkHtml() to Seq[Html].

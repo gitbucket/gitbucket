@@ -65,7 +65,7 @@
              @helper.html.checkicon(condition.milestoneId == Some(None)) Issues with no milestone
            </a>
         </li>
-        @milestones.map { milestone =>
+        @milestones.filter(_.closedDate.isEmpty).map { milestone =>
           <li>
              <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
                @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
@@ -74,12 +74,27 @@
         }
       }
       @if(condition.milestoneId.isDefined && condition.milestoneId.get.isDefined){
-        <div class="milestone-progress" style="margin-top: 8px;">
-          @if(closedCount > 0){
-            <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
+        @milestones.find(_.milestoneId == condition.milestoneId.get.get).map { milestone =>
+          <div class="milestone-progress" style="margin-top: 8px;">
+            @if(closedCount > 0){
+              <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
+            }
+          </div>
+          <span class="muted small">@openCount open issues</span>
+          @if(milestone.closedDate.isDefined){
+            @milestone.closedDate.map { closedDate =>
+              <span class="small">Closed in @date(closedDate)</span>
+            }
+          } else {
+            @milestone.dueDate.map { dueDate =>
+              @if(isPast(dueDate)){
+                <img src="@assets/common/images/alert.png"/><span class="small milestone-alert">Due in @date(dueDate)</span>
+              } else {
+                <span class="small">Due in @date(dueDate)</span>
+              }
+            }
           }
-        </div>
-        <span class="muted small">@openCount open issues</span>
+        }
       }
       <hr/>
       <strong>Labels</strong>

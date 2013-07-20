@@ -317,7 +317,7 @@ trait IssuesControllerBase extends ControllerBase {
         searchIssue(owner, repoName, condition, filter, userName, (page - 1) * IssueLimit, IssueLimit),
         page,
         (getCollaborators(owner, repoName) :+ owner).sorted,
-        getMilestones(owner, repoName).filter(_.closedDate.isEmpty),
+        getMilestones(owner, repoName),
         getLabels(owner, repoName),
         countIssue(owner, repoName, condition.copy(state = "open"), filter, userName),
         countIssue(owner, repoName, condition.copy(state = "closed"), filter, userName),

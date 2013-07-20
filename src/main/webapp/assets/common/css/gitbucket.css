@@ -441,10 +441,16 @@ a#clear-filter {
   margin-bottom: 10px;
 }
 
+span.milestone-alert {
+  font-weight: bold;
+  color: #bd2c00;
+}
+
 a.milestone-title {
   font-size: 120%;
   font-weight: bold;
 }
+
 div.milestone-description {
   border-top: 1px solid #eee;
   color: #666;
