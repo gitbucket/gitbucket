@@ -48,12 +48,15 @@
                 @milestones.find(_._1.milestoneId == milestoneId).map { case (milestone, openCount, closedCount) =>
                   <span id="label-milestone">Milestone: <strong>@milestone.title</strong></span>
                   <div class="milestone-progress inline">
-                    @if(closedCount > 0){
-                      <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
-                    }
+                    <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
                   </div>
                 }
-              }.getOrElse("<span id=\"label-milestone\">No milestone</span>")
+              }.getOrElse {
+                <span id="label-milestone">No milestone</span>
+                <div class="milestone-progress inline" style="display: none">
+                  <span class="milestone-progress" style="width: 0%;"></span>
+                </div>
+              }
 
               @if(hasWritePermission){
                 @helper.html.dropdown() {
@@ -217,12 +220,17 @@ $(function(){
     {
       milestoneId: milestoneId
     },
-    function(){
+    function(data){
+      var $label = $('#label-milestone');
+      var $progress = $label.siblings('.milestone-progress');
       $('a.milestone i.icon-ok').attr('class', 'icon-white');
-      if(milestoneId == ''){
+      if (milestoneId == '' || data['milestone'] == null){
         $('#label-milestone').text('No milestone');
+        $progress.hide();
       } else {
-        $('#label-milestone').html($('<span>').append('Milestone: ').append($('<strong>').text(title)));
+        var ratio = (100 * data['closedCount'] / (data['openCount'] + data['closedCount'])) + '%';
+        $label.empty().append('Milestone: ').append($('<strong>').text(title));
+        $progress.show().find('span.milestone-progress').css('width', ratio);
         $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
       }
     });

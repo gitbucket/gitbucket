@@ -206,8 +206,13 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/:id/milestone")(collaboratorsOnly { repository =>
-    updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"))
-    Ok("updated")
+    val newId = milestoneId("milestoneId")
+    updateMilestoneId(repository.owner, repository.name, params("id").toInt, newId)
+    getMilestonesWithIssueCount(repository.owner, repository.name) find { m => Some(m._1.milestoneId) == newId } map {
+      case (id, open, close) =>
+        contentType = formats("json")
+        org.json4s.jackson.Serialization.write(Map("milestone" -> id, "openCount" -> open, "closedCount" -> close))
+    } getOrElse Ok("{}")
   })
 
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
