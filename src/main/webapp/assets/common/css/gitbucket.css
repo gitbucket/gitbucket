@@ -540,6 +540,11 @@ div.issue-avatar-image {
 }
 
 div.issue-box {
+  margin-bottom: 5px;
+  margin-left: 50px;
+}
+
+div.issue-participants {
   margin-bottom: 15px;
   margin-left: 50px;
 }
