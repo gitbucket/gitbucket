@@ -62,9 +62,12 @@ trait IssuesControllerBase extends ControllerBase {
     val issueId = params("id")
 
     getIssue(owner, name, issueId) map {
+      val comments = getComments(owner, name, issueId.toInt)
+      val participantSet = comments.foldRight(Set(owner)) { (comment, set) => set + comment.commentedUserName }
       issues.html.issue(
           _,
-          getComments(owner, name, issueId.toInt),
+          comments,
+          participantSet,
           getIssueLabels(owner, name, issueId.toInt),
           (getCollaborators(owner, name) :+ owner).sorted,
           getMilestones(owner, name),
