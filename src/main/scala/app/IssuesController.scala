@@ -67,7 +67,7 @@ trait IssuesControllerBase extends ControllerBase {
           getComments(owner, name, issueId.toInt),
           getIssueLabels(owner, name, issueId.toInt),
           (getCollaborators(owner, name) :+ owner).sorted,
-          getMilestones(owner, name),
+          getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
           repository)

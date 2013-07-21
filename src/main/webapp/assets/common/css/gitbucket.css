@@ -492,6 +492,12 @@ div.milestone-progress {
   -moz-border-radius: 4px;
 }
 
+div.milestone-progress.inline {
+  display: inline-block;
+  width: 100px;
+  margin-bottom: -6px;
+}
+
 span.milestone-progress {
   position: absolute;
   height: 100%;
