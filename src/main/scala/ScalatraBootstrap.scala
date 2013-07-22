@@ -5,6 +5,7 @@ import javax.servlet._
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     context.mount(new IndexController, "/")
+    context.mount(new SearchController, "/")
     context.mount(new FileUploadController, "/upload")
     context.mount(new SignInController, "/*")
     context.mount(new UserManagementController, "/*")
