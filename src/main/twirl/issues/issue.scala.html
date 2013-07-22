@@ -194,7 +194,8 @@ $(function(){
   });
 
   $('a.assign').click(function(){
-    var userName = $(this).data('name');
+    var $this = $(this);
+    var userName = $this.data('name');
     $.post('@url(repository)/issues/@issue.issueId/assign',
     {
       assignedUserName: userName
@@ -204,9 +205,10 @@ $(function(){
       if(userName == ''){
         $('#label-assigned').text('No one is assigned');
       } else {
-        $('#label-assigned').html($('<span>')
+        $('#label-assigned').empty()
+          .append($this.find('img.avatar').clone(false)).append(' ')
           .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
-          .append(' is assigned'));
+          .append(' is assigned');
         $('a.assign[data-name=' + userName + '] i').attr('class', 'icon-ok');
       }
     });
