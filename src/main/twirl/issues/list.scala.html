@@ -266,7 +266,7 @@
               }
               <span class="pull-right muted">
                 @issue.assignedUserName.map { userName =>
-                  @avatar(userName, 20, tooltip = true)
+                  <a href="@url(userName)">@avatar(userName, 20, tooltip = true)</a>
                 }
                 #@issue.issueId
               </span>
