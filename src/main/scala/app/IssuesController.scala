@@ -67,7 +67,7 @@ trait IssuesControllerBase extends ControllerBase {
           getComments(owner, name, issueId.toInt),
           getIssueLabels(owner, name, issueId.toInt),
           (getCollaborators(owner, name) :+ owner).sorted,
-          getMilestones(owner, name),
+          getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
           repository)
@@ -207,7 +207,12 @@ trait IssuesControllerBase extends ControllerBase {
 
   ajaxPost("/:owner/:repository/issues/:id/milestone")(collaboratorsOnly { repository =>
     updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"))
-    Ok("updated")
+    milestoneId("milestoneId").map { milestoneId =>
+      getMilestonesWithIssueCount(repository.owner, repository.name)
+          .find(_._1.milestoneId == milestoneId).map { case (_, openCount, closeCount) =>
+        issues.milestones.html.progress(openCount + closeCount, closeCount, false)
+      } getOrElse NotFound
+    } getOrElse Ok()
   })
 
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>

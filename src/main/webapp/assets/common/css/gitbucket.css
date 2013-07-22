@@ -478,6 +478,15 @@ div.milestone-menu a.delete {
   color: #b00;
 }
 
+div#milestone-progress-area {
+  display: inline-block;
+}
+
+div#milestone-progress-area div.milestone-progress {
+  width: 150px;
+  margin-bottom: -6px;
+}
+
 div.milestone-progress {
   position: relative;
   height: 20px;

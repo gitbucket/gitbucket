@@ -86,10 +86,8 @@
       }
       @if(condition.milestoneId.isDefined && condition.milestoneId.get.isDefined){
         @milestones.find(_.milestoneId == condition.milestoneId.get.get).map { milestone =>
-          <div class="milestone-progress" style="margin-top: 8px;">
-            @if(closedCount > 0){
-              <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
-            }
+          <div style="margin-top: 4px;">
+            @_root_.issues.milestones.html.progress(openCount + closedCount, closedCount, false)
           </div>
           <span class="muted small">@openCount open issues</span>
           @if(milestone.closedDate.isDefined){

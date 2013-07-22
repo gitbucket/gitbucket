@@ -69,18 +69,7 @@
                     </div>
                     <span class="muted">@closedCount closed - @openCount open</span>
                   </div>
-                  <div class="milestone-progress">
-                    @if(closedCount > 0){
-                      <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
-                    }
-                    <span class="milestone-percentage">
-                    @if(closedCount == 0){
-                      0%
-                    } else {
-                      @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%
-                    }
-                    </span>
-                  </div>
+                  @progress(openCount + closedCount, closedCount, true)
                 </div>
               </div>
               @if(milestone.description.isDefined){
