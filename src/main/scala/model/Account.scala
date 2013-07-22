@@ -12,7 +12,8 @@ object Accounts extends Table[Account]("ACCOUNT") {
   def updatedDate = column[java.util.Date]("UPDATED_DATE")
   def lastLoginDate = column[java.util.Date]("LAST_LOGIN_DATE")
   def image = column[String]("IMAGE")
-  def * = userName ~ mailAddress ~ password ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? ~ image.? <> (Account, Account.unapply _)
+  def groupAccount = column[Boolean]("GROUP_ACCOUNT")
+  def * = userName ~ mailAddress ~ password ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? ~ image.? ~ groupAccount <> (Account, Account.unapply _)
 }
 
 case class Account(
@@ -24,5 +25,6 @@ case class Account(
     registeredDate: java.util.Date,
     updatedDate: java.util.Date,
     lastLoginDate: Option[java.util.Date],
-    image: Option[String]
+    image: Option[String],
+    isGroupAccount: Boolean
 )

@@ -1,0 +1,60 @@
+@(account: Option[model.Account])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main(if(account.isEmpty) "New User" else "Update User"){
+  @admin.html.menu("users"){
+    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_new} else {@path/admin/users/@account.get.userName/_edit}" validate="true">
+      <div class="row-fluid">
+        <div class="span5">
+          <fieldset>
+            <label for="userName"><strong>Group name</strong></label>
+            <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+            <span id="error-userName" class="error"></span>
+          </fieldset>
+          <fieldset>
+            <label for="avatar"><strong>Image (Optional)</strong></label>
+            @helper.html.uploadavatar(account)
+          </fieldset>
+        </div>
+        <div class="span7">
+          <fieldset>
+            <label><strong>Members</strong></label>
+            <ul id="members" class="collaborator">
+            </ul>
+            <input type="text" id="memberName" style="width: 300px; margin-bottom: 0px;"/>
+            <input type="button" class="btn" value="Add" id="addMember">
+          </fieldset>
+        </div>
+      </div>
+      <fieldset class="margin">
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
+        <a href="@path/admin/users" class="btn">Cancel</a>
+      </fieldset>
+    </form>
+  }
+}
+<script>
+$(function(){
+  $('#memberName').typeahead({
+    source: function (query, process) {
+      return $.get('@path/admin/users/_members', { query: query },
+        function (data) {
+          return process(data.options);
+        });
+    }
+  });
+
+  $('#addMember').click(function(){
+    var userName = $('#memberName').val();
+    $('#members').append($('<li>')
+      .append($('<a>').attr('href', '#').text(userName))
+      .append(' ')
+      .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
+    $('#memberName').val('');
+  });
+
+  $(document).on('click', '.remove', function(){
+    $(this).parent().remove();
+  });
+});
+</script>

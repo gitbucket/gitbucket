@@ -60,9 +60,10 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   /**
    * JSON API for collaborator completion.
    */
+  // TODO Merge with UserManagementController
   get("/:owner/:repository/settings/collaborators/proposals")(usersOnly {
     contentType = formats("json")
-    org.json4s.jackson.Serialization.write(Map("options" -> getAllUsers.map(_.userName).toArray))
+    org.json4s.jackson.Serialization.write(Map("options" -> getAllUsers.filter(!_.isGroupAccount).map(_.userName).toArray))
   })
 
   /**

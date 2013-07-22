@@ -24,7 +24,8 @@ trait AccountService {
       registeredDate = currentDate,
       updatedDate    = currentDate,
       lastLoginDate  = None,
-      image          = None)
+      image          = None,
+      isGroupAccount = false)
 
   def updateAccount(account: Account): Unit = 
     Accounts
