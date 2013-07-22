@@ -49,6 +49,7 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    Version(1, 4),
     new Version(1, 3){
       override def update(conn: Connection): Unit = {
         super.update(conn)
@@ -128,6 +129,7 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
     } catch {
       case ex: Throwable => {
         logger.error("Failed to schema update", ex)
+        ex.printStackTrace()
         conn.rollback()
       }
     }
