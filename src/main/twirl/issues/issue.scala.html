@@ -1,5 +1,6 @@
 @(issue: model.Issue,
   comments: List[model.IssueComment],
+  participants: Set[String],
   issueLabels: List[model.Label],
   collaborators: List[String],
   milestones: List[model.Milestone],
@@ -80,6 +81,10 @@
             @markdown(issue.content getOrElse "No description given.", repository, false, true)
           </div>
         </div>
+      </div>
+      <div class="issue-participants">
+        @participants.size participants
+        @participants.map { participant => @avatar(participant, 20) }
       </div>
       @comments.map { comment =>
         @if(comment.action != "close" && comment.action != "reopen"){
