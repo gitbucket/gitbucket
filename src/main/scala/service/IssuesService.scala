@@ -255,7 +255,7 @@ trait IssuesService {
         (t.title.toLowerCase   like (s"%${likeEncode(keyword)}%", '^')) ||
         (t.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
       } .reduceLeft(_ && _)
-    }.map { t => (t, 0, t.content) }
+    }.map { t => (t, 0, t.content.?) }
 
     // Search IssueComment
     val comments = Query(IssueComments).innerJoin(Issues).on { case (t1, t2) =>
@@ -264,7 +264,7 @@ trait IssuesService {
       keywords.map { query =>
         t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
       }.reduceLeft(_ && _)
-    }.map { case (t1, t2) => (t2, t1.commentId, t1.content) }
+    }.map { case (t1, t2) => (t2, t1.commentId, t1.content.?) }
 
     def getCommentCount(issue: Issue): Int = {
       Query(IssueComments)
@@ -282,7 +282,7 @@ trait IssuesService {
       issue1.issueId == issue2.issueId
     }.map { result =>
       val (issue, _, content) = result.head
-      (issue, getCommentCount(issue) , content)
+      (issue, getCommentCount(issue) , content.getOrElse(""))
     }.toList
   }
 

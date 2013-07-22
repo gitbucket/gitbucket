@@ -17,7 +17,9 @@
       <div class="block">
         <div class="pull-right muted">#@issue.issueId</div>
         <h4 style="margin-top: 0px;"><a href="@url(repository)/issues/@issue.issueId">@issue.title</a></h4>
-        <pre>@Html(issue.highlightText)</pre>
+        @if(issue.highlightText.nonEmpty){
+          <pre>@Html(issue.highlightText)</pre>
+        }
         <div class="small muted">
           Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a>
           at @datetime(issue.registeredDate)
