@@ -12,6 +12,7 @@ import scala.Some
 import service.AccountService
 import javax.servlet.http.{HttpSession, HttpServletRequest}
 import java.text.SimpleDateFormat
+import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
 
 /**
  * Provides generic features for controller implementations.
@@ -20,6 +21,21 @@ abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with Validations {
 
   implicit val jsonFormats = DefaultFormats
+
+  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+    val httpRequest = request.asInstanceOf[HttpServletRequest]
+    val path = httpRequest.getRequestURI.substring(request.getServletContext.getContextPath.length)
+
+    if(path.startsWith("/console/")){
+      Option(httpRequest.getSession.getAttribute("LOGIN_ACCOUNT").asInstanceOf[Account]).collect {
+        case account if(account.isAdmin) => chain.doFilter(request, response)
+      }
+    } else if(path.startsWith("/git/")){
+      chain.doFilter(request, response)
+    } else {
+      super.doFilter(request, response, chain)
+    }
+  }
 
   /**
    * Returns the context object for the request.
