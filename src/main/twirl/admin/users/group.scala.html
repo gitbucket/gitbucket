@@ -8,8 +8,8 @@
         <div class="span5">
           <fieldset>
             <label for="groupName"><strong>Group name</strong></label>
-            <input type="text" name="groupName" id="groupName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
             <span id="error-groupName" class="error"></span>
+            <input type="text" name="groupName" id="groupName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
           </fieldset>
           <fieldset>
             <label for="avatar"><strong>Image (Optional)</strong></label>
@@ -30,7 +30,9 @@
             <input type="text" id="memberName" style="width: 300px; margin-bottom: 0px;"/>
             <input type="button" class="btn" value="Add" id="addMember"/>
             <input type="hidden" id="memberNames" name="memberNames" value=""/>
-            <span class="error" id="error-memberName"></span>
+            <div>
+              <span class="error" id="error-memberName"></span>
+            </div>
           </fieldset>
         </div>
       </div>
