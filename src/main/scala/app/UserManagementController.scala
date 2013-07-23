@@ -126,4 +126,8 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound
   })
 
+  post("/admin/users/_usercheck")(adminOnly {
+    getAccountByUserName(params("userName")).isDefined
+  })
+
 }

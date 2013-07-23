@@ -61,9 +61,6 @@ $(function(){
       return false;
     }
 
-    // TODO check existence
-
-
     // check duplication
     var exists = $('#members li').filter(function(){
       return $(this).data('name') == userName;
@@ -73,19 +70,28 @@ $(function(){
       return false;
     }
 
-    // add member
-    $('#members').append($('<li>')
-      .data('name', userName)
-      .append($('<a>').attr('href', '@path/' + userName).text(userName))
-      .append(' ')
-      .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
-    $('#memberName').val('');
+    // check existence
+    $.post('@path/admin/users/_usercheck', {
+      'userName': userName
+    }, function(data, status){
+      if(data == 'true'){
+        // add member
+        $('#members').append($('<li>')
+          .data('name', userName)
+          .append($('<a>').attr('href', '@path/' + userName).text(userName))
+          .append(' ')
+          .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
+        $('#memberName').val('');
 
-    // update hidden value
-    var userNames = $('#members li').map(function(i, e){
-      return $(e).data('name');
-    }).get().join(',');
-    $('#memberNames').val(userNames);
+        // update hidden value
+        var userNames = $('#members li').map(function(i, e){
+          return $(e).data('name');
+        }).get().join(',');
+        $('#memberNames').val(userNames);
+      } else {
+        $('#error-memberName').text('User does not exist.');
+      }
+    });
   });
 
   $(document).on('click', '.remove', function(){
@@ -97,6 +103,12 @@ $(function(){
       return $(e).data('name');
     }).get().join(',');
     $('#memberNames').val(userNames);
+  });
+
+  // Don't submit form by ENTER key
+  $('#memberName').keypress(function(e){
+    console.log(e.keyCode);
+    return !(e.keyCode == 13);
   });
 });
 </script>
