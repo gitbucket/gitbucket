@@ -24,20 +24,19 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
   }
 
   post("/signin", form){ form =>
-    val account = getAccountByUserName(form.userName)
-    if(account.isEmpty || account.get.password != sha1(form.password)){
-      redirect("/signin")
-    } else {
-      session.setAttribute("LOGIN_ACCOUNT", account.get)
-      updateLastLoginDate(account.get.userName)
+    getAccountByUserName(form.userName).collect {
+      case account if(!account.isGroupAccount && account.password == sha1(form.password)) => {
+        session.setAttribute("LOGIN_ACCOUNT", account)
+        updateLastLoginDate(account.userName)
 
-      session.get("REDIRECT").map { redirectUrl =>
-        session.removeAttribute("REDIRECT")
-        redirect(redirectUrl.asInstanceOf[String])
-      }.getOrElse {
-        redirect("/")
+        session.get("REDIRECT").map { redirectUrl =>
+          session.removeAttribute("REDIRECT")
+          redirect(redirectUrl.asInstanceOf[String])
+        }.getOrElse {
+          redirect("/")
+        }
       }
-    }
+    } getOrElse redirect("/signin")
   }
 
   get("/signout"){

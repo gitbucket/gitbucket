@@ -63,16 +63,16 @@ object WikiService {
 trait WikiService {
   import WikiService._
 
-  def createWikiRepository(owner: model.Account, repository: String): Unit = {
-    lock(owner.userName, repository){
-      val dir = Directory.getWikiRepositoryDir(owner.userName, repository)
+  def createWikiRepository(loginAccount: model.Account, owner: String, repository: String): Unit = {
+    lock(owner, repository){
+      val dir = Directory.getWikiRepositoryDir(owner, repository)
       if(!dir.exists){
         try {
           JGitUtil.initRepository(dir)
-          saveWikiPage(owner.userName, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", owner, "Initial Commit")
+          saveWikiPage(owner, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", loginAccount, "Initial Commit")
         } finally {
           // once delete cloned repository because initial cloned repository does not have 'branch.master.merge'
-          FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner.userName, repository))
+          FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner, repository))
         }
       }
     }

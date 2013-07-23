@@ -74,4 +74,11 @@ trait AccountService {
       .map(_.userName)
       .list
 
+  def getGroupsByUserName(userName: String): List[String] =
+    Query(GroupMembers)
+      .filter(_.userName is userName.bind)
+      .sortBy(_.groupName)
+      .map(_.groupName)
+      .list
+
 }

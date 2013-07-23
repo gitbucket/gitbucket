@@ -16,12 +16,13 @@ class CreateRepositoryController extends CreateRepositoryControllerBase
  * Creates new repository.
  */
 trait CreateRepositoryControllerBase extends ControllerBase {
-  self: RepositoryService with WikiService with LabelsService with ActivityService
+  self: RepositoryService with AccountService with WikiService with LabelsService with ActivityService
     with UsersAuthenticator =>
 
-  case class RepositoryCreationForm(name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
+  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
 
   val form = mapping(
+    "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier))), // TODO check existence.
     "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
@@ -32,7 +33,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
    * Show the new repository form.
    */
   get("/new")(usersOnly {
-    html.newrepo()
+    html.newrepo(getGroupsByUserName(context.loginAccount.get.userName))
   })
   
   /**
@@ -43,22 +44,22 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     val loginUserName = loginAccount.userName
 
     // Insert to the database at first
-    createRepository(form.name, loginUserName, form.description, form.isPrivate)
+    createRepository(form.name, form.owner, form.description, form.isPrivate)
 
     // Insert default labels
-    createLabel(loginUserName, form.name, "bug", "fc2929")
-    createLabel(loginUserName, form.name, "duplicate", "cccccc")
-    createLabel(loginUserName, form.name, "enhancement", "84b6eb")
-    createLabel(loginUserName, form.name, "invalid", "e6e6e6")
-    createLabel(loginUserName, form.name, "question", "cc317c")
-    createLabel(loginUserName, form.name, "wontfix", "ffffff")
+    createLabel(form.owner, form.name, "bug", "fc2929")
+    createLabel(form.owner, form.name, "duplicate", "cccccc")
+    createLabel(form.owner, form.name, "enhancement", "84b6eb")
+    createLabel(form.owner, form.name, "invalid", "e6e6e6")
+    createLabel(form.owner, form.name, "question", "cc317c")
+    createLabel(form.owner, form.name, "wontfix", "ffffff")
 
     // Create the actual repository
-    val gitdir = getRepositoryDir(loginUserName, form.name)
+    val gitdir = getRepositoryDir(form.owner, form.name)
     JGitUtil.initRepository(gitdir)
 
     if(form.createReadme){
-      val tmpdir = getInitRepositoryDir(loginUserName, form.name)
+      val tmpdir = getInitRepositoryDir(form.owner, form.name)
       try {
         // Clone the repository
         Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
@@ -86,21 +87,23 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     }
 
     // Create Wiki repository
-    createWikiRepository(loginAccount, form.name)
+    createWikiRepository(loginAccount, form.owner, form.name)
 
     // Record activity
-    recordCreateRepositoryActivity(loginUserName, form.name, loginUserName)
+    recordCreateRepositoryActivity(loginUserName, form.name, form.owner)
 
     // redirect to the repository
-    redirect(s"/${loginUserName}/${form.name}")
+    redirect(s"/${form.owner}/${form.name}")
   })
   
   /**
    * Duplicate check for the repository name.
    */
   private def unique: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
+    def validate(name: String, value: String): Option[String] = {
+      // TODO fix to retreive user name from request parameter
       getRepositoryNamesOfUser(context.loginAccount.get.userName).find(_ == value).map(_ => "Repository already exists.")
+    }
   }
   
 }
