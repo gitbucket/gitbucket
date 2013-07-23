@@ -50,7 +50,7 @@ trait AccountService {
     Accounts insert Account(
       userName       = groupName,
       password       = "",
-      mailAddress    = "",
+      mailAddress    = groupName + "@devnull",
       isAdmin        = false,
       url            = None,
       registeredDate = currentDate,

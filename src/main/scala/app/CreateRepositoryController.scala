@@ -22,7 +22,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
 
   val form = mapping(
-    "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier))), // TODO check existence.
+    "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier, existsAccount))),
     "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
@@ -40,11 +40,19 @@ trait CreateRepositoryControllerBase extends ControllerBase {
    * Create new repository.
    */
   post("/new", form)(usersOnly { form =>
+    val ownerAccount  = getAccountByUserName(form.owner).get
     val loginAccount  = context.loginAccount.get
     val loginUserName = loginAccount.userName
 
     // Insert to the database at first
     createRepository(form.name, form.owner, form.description, form.isPrivate)
+
+    // Add collaborators for group repository
+    if(ownerAccount.isGroupAccount){
+      getGroupMembers(form.owner).foreach { userName =>
+        addCollaborator(form.owner, form.name, userName)
+      }
+    }
 
     // Insert default labels
     createLabel(form.owner, form.name, "bug", "fc2929")
@@ -90,20 +98,26 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     createWikiRepository(loginAccount, form.owner, form.name)
 
     // Record activity
-    recordCreateRepositoryActivity(loginUserName, form.name, form.owner)
+    recordCreateRepositoryActivity(form.owner, form.name, loginUserName)
 
     // redirect to the repository
     redirect(s"/${form.owner}/${form.name}")
   })
+
+  private def existsAccount: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      if(getAccountByUserName(value).isEmpty) Some("User or group does not exist.") else None
+  }
+
   
   /**
    * Duplicate check for the repository name.
    */
   private def unique: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] = {
-      // TODO fix to retreive user name from request parameter
-      getRepositoryNamesOfUser(context.loginAccount.get.userName).find(_ == value).map(_ => "Repository already exists.")
-    }
+    def validate(name: String, value: String): Option[String] =
+      params.get("owner").flatMap { userName =>
+        getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
+      }
   }
   
 }
