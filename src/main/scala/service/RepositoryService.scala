@@ -162,6 +162,15 @@ trait RepositoryService { self: AccountService =>
     Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
 
   /**
+   * Remove all collaborators from the repository.
+   *
+   * @param userName the user name of the repository owner
+   * @param repositoryName the repository name
+   */
+  def removeCollaborators(userName: String, repositoryName: String): Unit =
+    Collaborators.filter(_.byRepository(userName, repositoryName)).delete
+
+  /**
    * Returns the list of collaborators name which is sorted with ascending order.
    * 
    * @param userName the user name of the repository owner

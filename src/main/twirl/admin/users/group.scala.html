@@ -1,15 +1,15 @@
-@(account: Option[model.Account])(implicit context: app.Context)
+@(account: Option[model.Account], members: List[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(if(account.isEmpty) "New User" else "Update User"){
   @admin.html.menu("users"){
-    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_new} else {@path/admin/users/@account.get.userName/_edit}" validate="true">
+    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newgroup} else {@path/admin/users/@account.get.userName/_editgroup}" validate="true">
       <div class="row-fluid">
         <div class="span5">
           <fieldset>
-            <label for="userName"><strong>Group name</strong></label>
-            <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
-            <span id="error-userName" class="error"></span>
+            <label for="groupName"><strong>Group name</strong></label>
+            <input type="text" name="groupName" id="groupName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+            <span id="error-groupName" class="error"></span>
           </fieldset>
           <fieldset>
             <label for="avatar"><strong>Image (Optional)</strong></label>
@@ -20,14 +20,22 @@
           <fieldset>
             <label><strong>Members</strong></label>
             <ul id="members" class="collaborator">
+              @members.map { userName =>
+                <li data-userName="@userName">
+                  <a href="@path/@url(userName)">@userName</a>
+                  <a href="#" class="remove">(remove)</a>
+                </li>
+              }
             </ul>
             <input type="text" id="memberName" style="width: 300px; margin-bottom: 0px;"/>
-            <input type="button" class="btn" value="Add" id="addMember">
+            <input type="button" class="btn" value="Add" id="addMember"/>
+            <input type="hidden" id="memberNames" name="memberNames" value=""/>
+            <span class="error" id="error-memberName"></span>
           </fieldset>
         </div>
       </div>
       <fieldset class="margin">
-        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
+        <input type="submit" class="btn btn-success" id="submit" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
         <a href="@path/admin/users" class="btn">Cancel</a>
       </fieldset>
     </form>
@@ -45,9 +53,23 @@ $(function(){
   });
 
   $('#addMember').click(function(){
+    $('#error-memberName').text('');
     var userName = $('#memberName').val();
+
+    // TODO check existence
+
+    // check duplication
+    var exists = $('#members li').filter(function(){
+      return $(this).data('userName') == userName;
+    }).length > 0;
+    if(exists){
+      $('#error-memberName').text('User has been already added.');
+      return false;
+    }
+
     $('#members').append($('<li>')
-      .append($('<a>').attr('href', '#').text(userName))
+      .data('userName', userName)
+      .append($('<a>').attr('href', '@path/' + userName).text(userName))
       .append(' ')
       .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
     $('#memberName').val('');
@@ -55,6 +77,14 @@ $(function(){
 
   $(document).on('click', '.remove', function(){
     $(this).parent().remove();
+  });
+
+  $('#submit').click(function(){
+    var userNames = $('#members li').map(function(i, e){
+      return $(e).data('userName');
+    }).get().join(',');
+    $('#memberNames').val(userNames);
+    return true;
   });
 });
 </script>

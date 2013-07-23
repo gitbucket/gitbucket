@@ -45,5 +45,33 @@ trait AccountService {
 
   def updateLastLoginDate(userName: String): Unit =
     Accounts.filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
-  
+
+  def createGroup(groupName: String): Unit =
+    Accounts insert Account(
+      userName       = groupName,
+      password       = "",
+      mailAddress    = "",
+      isAdmin        = false,
+      url            = None,
+      registeredDate = currentDate,
+      updatedDate    = currentDate,
+      lastLoginDate  = None,
+      image          = None,
+      isGroupAccount = true)
+
+  def updateGroupMembers(groupName: String, members: List[String]): Unit = {
+    Query(GroupMembers).filter(_.groupName is groupName.bind).delete
+
+    members.foreach { userName =>
+      GroupMembers insert GroupMember (groupName, userName)
+    }
+  }
+
+  def getGroupMembers(groupName: String): List[String] =
+    Query(GroupMembers)
+      .filter(_.groupName is groupName.bind)
+      .sortBy(_.userName)
+      .map(_.userName)
+      .list
+
 }
