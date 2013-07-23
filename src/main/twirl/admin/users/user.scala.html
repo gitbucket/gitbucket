@@ -2,7 +2,7 @@
 @import context._
 @html.main(if(account.isEmpty) "New User" else "Update User"){
   @admin.html.menu("users"){
-    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_new} else {@path/admin/users/@account.get.userName/_edit}" validate="true">
+    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newuser} else {@path/admin/users/@account.get.userName/_edituser}" validate="true">
       <div class="row-fluid">
         <div class="span6">
           <fieldset>
