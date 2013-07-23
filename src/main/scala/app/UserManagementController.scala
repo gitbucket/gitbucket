@@ -61,22 +61,22 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     admin.users.html.list(users, members)
   })
   
-  get("/admin/users/_new")(adminOnly {
-    admin.users.html.edit(None)
+  get("/admin/users/_newuser")(adminOnly {
+    admin.users.html.user(None)
   })
   
-  post("/admin/users/_new", newUserForm)(adminOnly { form =>
+  post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
     createAccount(form.userName, sha1(form.password), form.mailAddress, form.isAdmin, form.url)
     updateImage(form.userName, form.fileId, false)
     redirect("/admin/users")
   })
   
-  get("/admin/users/:userName/_edit")(adminOnly {
+  get("/admin/users/:userName/_edituser")(adminOnly {
     val userName = params("userName")
-    admin.users.html.edit(getAccountByUserName(userName))
+    admin.users.html.user(getAccountByUserName(userName))
   })
   
-  post("/admin/users/:name/_edit", editUserForm)(adminOnly { form =>
+  post("/admin/users/:name/_edituser", editUserForm)(adminOnly { form =>
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       updateAccount(getAccountByUserName(userName).get.copy(
