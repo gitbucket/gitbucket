@@ -15,7 +15,7 @@
               @if(account.isGroupAccount){
                 <a href="@path/admin/users/@account.userName/_editgroup">Edit</a>
               } else {
-                <a href="@path/admin/users/@account.userName/_edit">Edit</a>
+                <a href="@path/admin/users/@account.userName/_edituser">Edit</a>
               }
             </div>
             <div class="strong">
@@ -30,23 +30,19 @@
                   (Normal)
                 }
               }
+              @if(account.isGroupAccount){
+                @members(account.userName).map { userName =>
+                  @avatar(userName, 20, tooltip = true)
+                }
+              }
             </div>
             <div>
               <hr>
-              @if(account.isGroupAccount){
-                @if(members(account.userName).isEmpty){
-                  No members
-                } else {
-                  Members:
-                  @members(account.userName).map { userName =>
-                    @avatar(userName, 20, tooltip = true)
-                  }
-                }
-              } else {
+              @if(!account.isGroupAccount){
                 <i class="icon-envelope"></i> @account.mailAddress
-                @account.url.map { url =>
-                  <i class="icon-home"></i> @url
-                }
+              }
+              @account.url.map { url =>
+                <i class="icon-home"></i> @url
               }
             </div>
             <div>

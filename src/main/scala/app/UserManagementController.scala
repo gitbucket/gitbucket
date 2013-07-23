@@ -17,9 +17,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   case class EditUserForm(userName: String, password: Option[String], mailAddress: String, isAdmin: Boolean,
                           url: Option[String], fileId: Option[String], clearImage: Boolean)
 
-  case class NewGroupForm(groupName: String, fileId: Option[String], memberNames: Option[String])
+  case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String],
+                          memberNames: Option[String])
 
-  case class EditGroupForm(groupName: String, fileId: Option[String], memberNames: Option[String], clearImage: Boolean)
+  case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String],
+                           memberNames: Option[String], clearImage: Boolean)
 
   val newUserForm = mapping(
     "userName"    -> trim(label("Username"     , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -42,12 +44,14 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
 
   val newGroupForm = mapping(
     "groupName"   -> trim(label("Group name"   , text(required, maxlength(100), identifier))),
+    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "memberNames" -> trim(label("Member Names" , optional(text())))
   )(NewGroupForm.apply)
 
   val editGroupForm = mapping(
     "groupName"   -> trim(label("Group name"   , text(required, maxlength(100), identifier))),
+    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "memberNames" -> trim(label("Member Names" , optional(text()))),
     "clearImage"  -> trim(label("Clear image"  , boolean()))
@@ -96,7 +100,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/users/_newgroup", newGroupForm)(adminOnly { form =>
-    createGroup(form.groupName)
+    createGroup(form.groupName, form.url)
     updateGroupMembers(form.groupName, form.memberNames.map(_.split(",").toList).getOrElse(Nil))
     updateImage(form.groupName, form.fileId, false)
     redirect("/admin/users")
@@ -110,6 +114,8 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
     val groupName = params("groupName")
     getAccountByUserName(groupName).map { account =>
+      updateGroup(groupName, form.url)
+
       val memberNames = form.memberNames.map(_.split(",").toList).getOrElse(Nil)
       updateGroupMembers(form.groupName, memberNames)
 

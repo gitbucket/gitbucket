@@ -42,14 +42,23 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
    */
   get("/:userName") {
     val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
+    getAccountByUserName(userName).map { account =>
       params.getOrElse("tab", "repositories") match {
         // Public Activity
-        case "activity" => account.html.activity(x, getActivitiesByUser(userName, true))
+        case "activity" =>
+          _root_.account.html.activity(account,
+            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            getActivitiesByUser(userName, true))
+
         // Members
-        case "members" if(x.isGroupAccount) => account.html.members(x, getGroupMembers(x.userName))
+        case "members" if(account.isGroupAccount) =>
+          _root_.account.html.members(account, getGroupMembers(account.userName))
+
         // Repositories
-        case _ => account.html.repositories(x, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
+        case _ =>
+          _root_.account.html.repositories(account,
+            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
       }
     } getOrElse NotFound
   }

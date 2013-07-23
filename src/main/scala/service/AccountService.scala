@@ -46,22 +46,24 @@ trait AccountService {
   def updateLastLoginDate(userName: String): Unit =
     Accounts.filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
 
-  def createGroup(groupName: String): Unit =
+  def createGroup(groupName: String, url: Option[String]): Unit =
     Accounts insert Account(
       userName       = groupName,
       password       = "",
       mailAddress    = groupName + "@devnull",
       isAdmin        = false,
-      url            = None,
+      url            = url,
       registeredDate = currentDate,
       updatedDate    = currentDate,
       lastLoginDate  = None,
       image          = None,
       isGroupAccount = true)
 
+  def updateGroup(groupName: String, url: Option[String]): Unit =
+    Accounts.filter(_.userName is groupName.bind).map(_.url.?).update(url)
+
   def updateGroupMembers(groupName: String, members: List[String]): Unit = {
     Query(GroupMembers).filter(_.groupName is groupName.bind).delete
-
     members.foreach { userName =>
       GroupMembers insert GroupMember (groupName, userName)
     }
