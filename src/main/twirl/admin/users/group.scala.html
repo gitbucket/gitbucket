@@ -45,7 +45,7 @@
 $(function(){
   $('#memberName').typeahead({
     source: function (query, process) {
-      return $.get('@path/admin/users/_members', { query: query },
+      return $.get('@path/_user/proposals', { query: query },
         function (data) {
           return process(data.options);
         });

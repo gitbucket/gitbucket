@@ -126,13 +126,13 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound
   })
 
-  /**
-   * JSON API for collaborator completion.
-   */
-  // TODO Merge with RepositorySettingsController
-  get("/admin/users/_members"){
-    contentType = formats("json")
-    org.json4s.jackson.Serialization.write(Map("options" -> getAllUsers.filter(!_.isGroupAccount).map(_.userName).toArray))
-  }
+//  /**
+//   * JSON API for collaborator completion.
+//   */
+//  // TODO Merge with RepositorySettingsController
+//  get("/admin/users/_members"){
+//    contentType = formats("json")
+//    org.json4s.jackson.Serialization.write(Map("options" -> getAllUsers.filter(!_.isGroupAccount).map(_.userName).toArray))
+//  }
 
 }

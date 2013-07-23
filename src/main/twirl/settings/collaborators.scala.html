@@ -26,7 +26,7 @@
 $(function(){
   $('#userName').typeahead({
     source: function (query, process) {
-      return $.get('@url(repository)/settings/collaborators/proposals', { query: query },
+      return $.get('@path/_user/proposals', { query: query },
         function (data) {
           return process(data.options);
         });
