@@ -54,7 +54,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   )(EditGroupForm.apply)
 
   get("/admin/users")(adminOnly {
-    admin.users.html.list(getAllUsers())
+    val users = getAllUsers()
+    val members = users.collect { case account if(account.isGroupAccount) =>
+      account.userName -> getGroupMembers(account.userName)
+    }.toMap
+    admin.users.html.list(users, members)
   })
   
   get("/admin/users/_new")(adminOnly {

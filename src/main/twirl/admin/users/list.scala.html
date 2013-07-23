@@ -1,4 +1,4 @@
-@(users: List[model.Account])(implicit context: app.Context)
+@(users: List[model.Account], members: Map[String, List[String]])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Manage Users"){
@@ -33,7 +33,16 @@
             </div>
             <div>
               <hr>
-              @if(!account.isGroupAccount){
+              @if(account.isGroupAccount){
+                @if(members(account.userName).isEmpty){
+                  No members
+                } else {
+                  Members:
+                  @members(account.userName).map { userName =>
+                    @avatar(userName, 20, tooltip = true)
+                  }
+                }
+              } else {
                 <i class="icon-envelope"></i> @account.mailAddress
                 @account.url.map { url =>
                   <i class="icon-home"></i> @url

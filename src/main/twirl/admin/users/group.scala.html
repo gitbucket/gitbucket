@@ -1,7 +1,7 @@
 @(account: Option[model.Account], members: List[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(if(account.isEmpty) "New User" else "Update User"){
+@html.main(if(account.isEmpty) "New Group" else "Update Group"){
   @admin.html.menu("users"){
     <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newgroup} else {@path/admin/users/@account.get.userName/_editgroup}" validate="true">
       <div class="row-fluid">
@@ -21,7 +21,7 @@
             <label><strong>Members</strong></label>
             <ul id="members" class="collaborator">
               @members.map { userName =>
-                <li data-userName="@userName">
+                <li data-name="@userName">
                   <a href="@path/@url(userName)">@userName</a>
                   <a href="#" class="remove">(remove)</a>
                 </li>
@@ -35,7 +35,7 @@
         </div>
       </div>
       <fieldset class="margin">
-        <input type="submit" class="btn btn-success" id="submit" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
         <a href="@path/admin/users" class="btn">Cancel</a>
       </fieldset>
     </form>
@@ -56,35 +56,47 @@ $(function(){
     $('#error-memberName').text('');
     var userName = $('#memberName').val();
 
+    // check empty
+    if($.trim(userName) == ''){
+      return false;
+    }
+
     // TODO check existence
+
 
     // check duplication
     var exists = $('#members li').filter(function(){
-      return $(this).data('userName') == userName;
+      return $(this).data('name') == userName;
     }).length > 0;
     if(exists){
       $('#error-memberName').text('User has been already added.');
       return false;
     }
 
+    // add member
     $('#members').append($('<li>')
-      .data('userName', userName)
+      .data('name', userName)
       .append($('<a>').attr('href', '@path/' + userName).text(userName))
       .append(' ')
       .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
     $('#memberName').val('');
+
+    // update hidden value
+    var userNames = $('#members li').map(function(i, e){
+      return $(e).data('name');
+    }).get().join(',');
+    $('#memberNames').val(userNames);
   });
 
   $(document).on('click', '.remove', function(){
+    // remove member
     $(this).parent().remove();
-  });
 
-  $('#submit').click(function(){
+    // update hidden value
     var userNames = $('#members li').map(function(i, e){
-      return $(e).data('userName');
+      return $(e).data('name');
     }).get().join(',');
     $('#memberNames').val(userNames);
-    return true;
   });
 });
 </script>
