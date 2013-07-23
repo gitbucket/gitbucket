@@ -46,6 +46,8 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
       params.getOrElse("tab", "repositories") match {
         // Public Activity
         case "activity" => account.html.activity(x, getActivitiesByUser(userName, true))
+        // Members
+        case "members" if(x.isGroupAccount) => account.html.members(x, getGroupMembers(x.userName))
         // Repositories
         case _ => account.html.repositories(x, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
       }
