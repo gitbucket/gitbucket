@@ -29,7 +29,7 @@
             </ul>
             <input type="text" id="memberName" style="width: 300px; margin-bottom: 0px;"/>
             <input type="button" class="btn" value="Add" id="addMember"/>
-            <input type="hidden" id="memberNames" name="memberNames" value=""/>
+            <input type="hidden" id="memberNames" name="memberNames" value="@members.mkString(",")"/>
             <div>
               <span class="error" id="error-memberName"></span>
             </div>
