@@ -83,14 +83,11 @@ trait WikiService {
    */
   def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
     JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
-      try {
+      if(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
           WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time)
         }
-      } catch {
-        // TODO no commit, but it should not judge by exception.
-        case e: NullPointerException => None
-      }
+      } else None
     }
   }
 
@@ -99,7 +96,7 @@ trait WikiService {
    */
   def getFileContent(owner: String, repository: String, path: String): Option[Array[Byte]] = {
     JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
-      try {
+      if(!JGitUtil.isEmpty(git)){
         val index = path.lastIndexOf('/')
         val parentPath = if(index < 0) "."  else path.substring(0, index)
         val fileName   = if(index < 0) path else path.substring(index + 1)
@@ -107,10 +104,7 @@ trait WikiService {
         JGitUtil.getFileList(git, "master", parentPath).find(_.name == fileName).map { file =>
           git.getRepository.open(file.id).getBytes
         }
-      } catch {
-        // TODO no commit, but it should not judge by exception.
-        case e: NullPointerException => None
-      }
+      } else None
     }
   }
 
