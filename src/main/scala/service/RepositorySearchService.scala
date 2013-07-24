@@ -29,20 +29,24 @@ trait RepositorySearchService { self: IssuesService =>
 
   def countFiles(owner: String, repository: String, query: String): Int =
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      searchRepositoryFiles(git, query).length
+      if(JGitUtil.isEmpty(git)) 0 else searchRepositoryFiles(git, query).length
     }
 
   def searchFiles(owner: String, repository: String, query: String): List[FileSearchResult] =
     JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
-      val files = searchRepositoryFiles(git, query)
-      val commits = JGitUtil.getLatestCommitFromPaths(git, files.toList.map(_._1), "HEAD")
-      files.map { case (path, text) =>
-        val (highlightText, lineNumber)  = getHighlightText(text, query)
-        FileSearchResult(
-          path,
-          commits(path).getCommitterIdent.getWhen,
-          highlightText,
-          lineNumber)
+      if(JGitUtil.isEmpty(git)){
+        Nil
+      } else {
+        val files = searchRepositoryFiles(git, query)
+        val commits = JGitUtil.getLatestCommitFromPaths(git, files.toList.map(_._1), "HEAD")
+        files.map { case (path, text) =>
+          val (highlightText, lineNumber)  = getHighlightText(text, query)
+          FileSearchResult(
+            path,
+            commits(path).getCommitterIdent.getWhen,
+            highlightText,
+            lineNumber)
+        }
       }
     }
 
