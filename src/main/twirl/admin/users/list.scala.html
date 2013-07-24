@@ -1,30 +1,46 @@
-@(users: List[model.Account])(implicit context: app.Context)
+@(users: List[model.Account], members: Map[String, List[String]])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Manage Users"){
   @admin.html.menu("users"){
     <div style="text-align: right; margin-bottom: 4px;">
-      <a href="@path/admin/users/_new" class="btn">New User</a>
+      <a href="@path/admin/users/_newuser" class="btn">New User</a>
+      <a href="@path/admin/users/_newgroup" class="btn">New Group</a>
     </div>
     <table class="table table-bordered table-hover">
       @users.map { account =>
         <tr>
           <td>
             <div class="pull-right">
-              <a href="@path/admin/users/@account.userName/_edit">Edit</a>
+              @if(account.isGroupAccount){
+                <a href="@path/admin/users/@account.userName/_editgroup">Edit</a>
+              } else {
+                <a href="@path/admin/users/@account.userName/_edituser">Edit</a>
+              }
             </div>
             <div class="strong">
               @avatar(account.userName, 20)
               <a href="@url(account.userName)">@account.userName</a>
-              @if(account.isAdmin){
-                (Administrator)
+              @if(account.isGroupAccount){
+                (Group)
               } else {
-                (Normal)
+                @if(account.isAdmin){
+                  (Administrator)
+                } else {
+                  (Normal)
+                }
+              }
+              @if(account.isGroupAccount){
+                @members(account.userName).map { userName =>
+                  @avatar(userName, 20, tooltip = true)
+                }
               }
             </div>
             <div>
               <hr>
-              <i class="icon-envelope"></i> @account.mailAddress
+              @if(!account.isGroupAccount){
+                <i class="icon-envelope"></i> @account.mailAddress
+              }
               @account.url.map { url =>
                 <i class="icon-home"></i> @url
               }
@@ -32,7 +48,9 @@
             <div>
               <span class="muted">Registered:</span> @datetime(account.registeredDate)
               <span class="muted">Updated:</span> @datetime(account.updatedDate)
-              <span class="muted">Last Login:</span> @account.lastLoginDate.map(datetime)
+              @if(!account.isGroupAccount){
+                <span class="muted">Last Login:</span> @account.lastLoginDate.map(datetime)
+              }
             </div>
           </td>
         </tr>

@@ -2,27 +2,28 @@
 @import context._
 @html.main(if(account.isEmpty) "New User" else "Update User"){
   @admin.html.menu("users"){
-    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_new} else {@path/admin/users/@account.get.userName/_edit}" validate="true">
+    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newuser} else {@path/admin/users/@account.get.userName/_edituser}" validate="true">
       <div class="row-fluid">
         <div class="span6">
           <fieldset>
             <label for="userName"><strong>Username</strong></label>
-            <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
             <span id="error-userName" class="error"></span>
+            <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
           </fieldset>
           <fieldset>
-            <label for="password"><strong>Password</strong>
+            <label for="password">
+              <strong>Password</strong>
               @if(account.isDefined){
                 (Input to change password)
               }
             </label>
-            <input type="password" name="password" id="password" value="" autocomplete="off"/>
             <span id="error-password" class="error"></span>
+            <input type="password" name="password" id="password" value="" autocomplete="off"/>
           </fieldset>
           <fieldset>
             <label for="mailAddress"><strong>Mail Address</strong></label>
-            <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
             <span id="error-mailAddress" class="error"></span>
+            <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
           </fieldset>
           <fieldset>
             <label><strong>User Type</strong></label>
@@ -35,8 +36,8 @@
           </fieldset>
           <fieldset>
             <label><strong>URL (Optional)</strong></label>
-            <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
             <span id="error-url" class="error"></span>
+            <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
           </fieldset>
         </div>
         <div class="span6">

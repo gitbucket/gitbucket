@@ -53,14 +53,21 @@ object JGitUtil {
    * @param id the commit id
    * @param time the commit time
    * @param committer  the committer name
+   * @param mailAddress the mail address of the committer
    * @param shortMessage the short message
    * @param fullMessage the full message
    * @param parents the list of parent commit id
    */
-  case class CommitInfo(id: String, time: Date, committer: String, shortMessage: String, fullMessage: String, parents: List[String]){
+  case class CommitInfo(id: String, time: Date, committer: String, mailAddress: String,
+                        shortMessage: String, fullMessage: String, parents: List[String]){
     
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) = this(
-        rev.getName, rev.getCommitterIdent.getWhen, rev.getCommitterIdent.getName, rev.getShortMessage, rev.getFullMessage,
+        rev.getName,
+        rev.getCommitterIdent.getWhen,
+        rev.getCommitterIdent.getName,
+        rev.getCommitterIdent.getEmailAddress,
+        rev.getShortMessage,
+        rev.getFullMessage,
         rev.getParents().map(_.name).toList)
 
     val summary = {

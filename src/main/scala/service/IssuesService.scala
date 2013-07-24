@@ -6,8 +6,8 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 import model._
-import util.StringUtil._
 import util.Implicits._
+import util.StringUtil
 
 trait IssuesService {
   import IssuesService._
@@ -102,7 +102,10 @@ trait IssuesService {
     // get issues and comment count
     val issues = searchIssueQuery(owner, repository, condition, filter, userName)
       .leftJoin(Query(IssueComments)
-        .filter  { _.byRepository(owner, repository) }
+        .filter  { t =>
+          (t.byRepository(owner, repository)) &&
+          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
+        }
         .groupBy { _.issueId }
         .map     { case (issueId, t) => issueId ~ t.length }).on((t1, t2) => t1.issueId is t2._1)
       .sortBy { case (t1, t2) =>
@@ -192,7 +195,7 @@ trait IssuesService {
     IssueLabels filter(_.byPrimaryKey(owner, repository, issueId, labelId)) delete
 
   def createComment(owner: String, repository: String, loginUser: String,
-      issueId: Int, content: String, action: Option[String]) =
+      issueId: Int, content: String, action: String) =
     IssueComments.autoInc insert (
         owner,
         repository,
@@ -234,10 +237,60 @@ trait IssuesService {
       }
       .update (closed, currentDate)
 
+  /**
+   * Search issues by keyword.
+   *
+   * @param owner the repository owner
+   * @param repository the repository name
+   * @param query the keywords separated by whitespace.
+   * @return issues with comment count and matched content of issue or comment
+   */
+  def searchIssuesByKeyword(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
+    import scala.slick.driver.H2Driver.likeEncode
+    val keywords = StringUtil.splitWords(query.toLowerCase)
+
+    // Search Issue
+    val issues = Query(Issues).filter { t =>
+      keywords.map { keyword =>
+        (t.title.toLowerCase   like (s"%${likeEncode(keyword)}%", '^')) ||
+        (t.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
+      } .reduceLeft(_ && _)
+    }.map { t => (t, 0, t.content.?) }
+
+    // Search IssueComment
+    val comments = Query(IssueComments).innerJoin(Issues).on { case (t1, t2) =>
+      t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
+    }.filter { case (t1, t2) =>
+      keywords.map { query =>
+        t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
+      }.reduceLeft(_ && _)
+    }.map { case (t1, t2) => (t2, t1.commentId, t1.content.?) }
+
+    def getCommentCount(issue: Issue): Int = {
+      Query(IssueComments)
+        .filter { t =>
+          t.byIssue(issue.userName, issue.repositoryName, issue.issueId) &&
+          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
+        }
+        .map(_.issueId)
+        .list.length
+    }
+
+    issues.union(comments).sortBy { case (issue, commentId, _) =>
+      issue.issueId ~ commentId
+    }.list.splitWith { case ((issue1, _, _), (issue2, _, _)) =>
+      issue1.issueId == issue2.issueId
+    }.map { result =>
+      val (issue, _, content) = result.head
+      (issue, getCommentCount(issue) , content.getOrElse(""))
+    }.toList
+  }
+
 }
 
 object IssuesService {
   import javax.servlet.http.HttpServletRequest
+  import util.StringUtil._
 
   val IssueLimit = 30
 
@@ -279,4 +332,5 @@ object IssuesService {
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))
   }
+
 }

@@ -1,0 +1,121 @@
+@(account: Option[model.Account], members: List[String])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main(if(account.isEmpty) "New Group" else "Update Group"){
+  @admin.html.menu("users"){
+    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newgroup} else {@path/admin/users/@account.get.userName/_editgroup}" validate="true">
+      <div class="row-fluid">
+        <div class="span7">
+          <fieldset>
+            <label for="groupName"><strong>Group name</strong></label>
+            <span id="error-groupName" class="error"></span>
+            <input type="text" name="groupName" id="groupName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+          </fieldset>
+          <fieldset>
+            <label><strong>URL (Optional)</strong></label>
+            <span id="error-url" class="error"></span>
+            <input type="text" name="url" id="url" style="width: 300px;" value="@account.map(_.url)"/>
+          </fieldset>
+          <fieldset>
+            <label for="avatar"><strong>Image (Optional)</strong></label>
+            @helper.html.uploadavatar(account)
+          </fieldset>
+        </div>
+        <div class="span5">
+          <fieldset>
+            <label><strong>Members</strong></label>
+            <ul id="members" class="collaborator">
+              @members.map { userName =>
+                <li data-name="@userName">
+                  <a href="@path/@url(userName)">@userName</a>
+                  <a href="#" class="remove">(remove)</a>
+                </li>
+              }
+            </ul>
+            <input type="text" id="memberName" style="width: 200px; margin-bottom: 0px;"/>
+            <input type="button" class="btn" value="Add" id="addMember"/>
+            <input type="hidden" id="memberNames" name="memberNames" value="@members.mkString(",")"/>
+            <div>
+              <span class="error" id="error-memberName"></span>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <fieldset class="margin">
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
+        <a href="@path/admin/users" class="btn">Cancel</a>
+      </fieldset>
+    </form>
+  }
+}
+<script>
+$(function(){
+  $('#memberName').typeahead({
+    source: function (query, process) {
+      return $.get('@path/_user/proposals', { query: query },
+        function (data) {
+          return process(data.options);
+        });
+    }
+  });
+
+  $('#addMember').click(function(){
+    $('#error-memberName').text('');
+    var userName = $('#memberName').val();
+
+    // check empty
+    if($.trim(userName) == ''){
+      return false;
+    }
+
+    // check duplication
+    var exists = $('#members li').filter(function(){
+      return $(this).data('name') == userName;
+    }).length > 0;
+    if(exists){
+      $('#error-memberName').text('User has been already added.');
+      return false;
+    }
+
+    // check existence
+    $.post('@path/admin/users/_usercheck', {
+      'userName': userName
+    }, function(data, status){
+      if(data == 'true'){
+        // add member
+        $('#members').append($('<li>')
+          .data('name', userName)
+          .append($('<a>').attr('href', '@path/' + userName).text(userName))
+          .append(' ')
+          .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
+        $('#memberName').val('');
+
+        // update hidden value
+        var userNames = $('#members li').map(function(i, e){
+          return $(e).data('name');
+        }).get().join(',');
+        $('#memberNames').val(userNames);
+      } else {
+        $('#error-memberName').text('User does not exist.');
+      }
+    });
+  });
+
+  $(document).on('click', '.remove', function(){
+    // remove member
+    $(this).parent().remove();
+
+    // update hidden value
+    var userNames = $('#members li').map(function(i, e){
+      return $(e).data('name');
+    }).get().join(',');
+    $('#memberNames').val(userNames);
+  });
+
+  // Don't submit form by ENTER key
+  $('#memberName').keypress(function(e){
+    console.log(e.keyCode);
+    return !(e.keyCode == 13);
+  });
+});
+</script>

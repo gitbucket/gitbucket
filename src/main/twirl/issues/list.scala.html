@@ -15,7 +15,7 @@
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Issues - " + repository.owner + "/" + repository.name){
+@html.main(s"Issues - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("issues", repository)
   @tab("issues", repository)
   <div class="row-fluid">
@@ -65,21 +65,45 @@
              @helper.html.checkicon(condition.milestoneId == Some(None)) Issues with no milestone
            </a>
         </li>
-        @milestones.map { milestone =>
+        @milestones.filter(_.closedDate.isEmpty).map { milestone =>
           <li>
-             <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
-               @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
-             </a>
+            <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
+              @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
+              <div class="small" style="padding-left: 20px;">
+                @milestone.dueDate.map { dueDate =>
+                  @if(isPast(dueDate)){
+                    <img src="@assets/common/images/alert_mono.png"/>Due in @date(dueDate)
+                  } else {
+                    <span class="muted">Due in @date(dueDate)</span>
+                  }
+                }.getOrElse {
+                  <span class="muted">No due date</span>
+                }
+              </div>
+            </a>
           </li>
         }
       }
       @if(condition.milestoneId.isDefined && condition.milestoneId.get.isDefined){
-        <div class="milestone-progress" style="margin-top: 8px;">
-          @if(closedCount > 0){
-            <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
+        @milestones.find(_.milestoneId == condition.milestoneId.get.get).map { milestone =>
+          <div style="margin-top: 4px;">
+            @_root_.issues.milestones.html.progress(openCount + closedCount, closedCount, false)
+          </div>
+          <span class="muted small">@openCount open issues</span>
+          @if(milestone.closedDate.isDefined){
+            @milestone.closedDate.map { closedDate =>
+              <span class="small">Closed in @date(closedDate)</span>
+            }
+          } else {
+            @milestone.dueDate.map { dueDate =>
+              @if(isPast(dueDate)){
+                <img src="@assets/common/images/alert.png"/><span class="small milestone-alert">Due in @date(dueDate)</span>
+              } else {
+                <span class="small">Due in @date(dueDate)</span>
+              }
+            }
           }
-        </div>
-        <span class="muted small">@openCount open issues</span>
+        }
       }
       <hr/>
       <strong>Labels</strong>
@@ -198,16 +222,29 @@
             }
             @helper.html.dropdown("Assignee") {
               <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
-              <li class="divider"></li>
               @collaborators.map { collaborator =>
                 <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
               }
             }
             @helper.html.dropdown("Milestone") {
               <li><a href="javascript:void(0);" class="toggle-milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
-              <li class="divider"></li>
               @milestones.map { milestone =>
-                <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId"><i class="icon-white"></i> @milestone.title</a></li>
+                <li>
+                  <a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">
+                    <i class="icon-white"></i> @milestone.title
+                    <div class="small" style="padding-left: 20px;">
+                      @milestone.dueDate.map { dueDate =>
+                        @if(isPast(dueDate)){
+                          <img src="@assets/common/images/alert_mono.png"/>Due in @date(dueDate)
+                        } else {
+                          <span class="muted">Due in @date(dueDate)</span>
+                        }
+                      }.getOrElse {
+                        <span class="muted">No due date</span>
+                      }
+                    </div>
+                  </a>
+                </li>
               }
             }
           </td>
@@ -227,7 +264,7 @@
               }
               <span class="pull-right muted">
                 @issue.assignedUserName.map { userName =>
-                  @avatar(userName, 20, true)
+                  <a href="@url(userName)">@avatar(userName, 20, tooltip = true)</a>
                 }
                 #@issue.issueId
               </span>
@@ -247,6 +284,12 @@
       </div>
     </div>
   </div>
+  @if(hasWritePermission){
+    <form id="batcheditForm" method="POST">
+      <input type="hidden" name="value"/>
+      <input type="hidden" name="checked"/>
+    </form>
+  }
 }
 @if(hasWritePermission){
 <script>
@@ -269,10 +312,11 @@ $(function(){
 
   var submitBatchEdit = function(action, value) {
     var checked = $('.table-issues input[type=checkbox]').filter(':checked').map(function(){ return this.value; }).get().join();
-    $('<form>').attr({action : action, method : 'POST'})
-        .append($('<input type="hidden">').attr('name', 'value').val(value))
-        .append($('<input type="hidden">').attr('name', 'checked').val(checked))
-        .submit();
+    var form = $('#batcheditForm');
+    form.find('input[name=value]').val(value);
+    form.find('input[name=checked]').val(checked);
+    form.attr('action', action);
+    form.submit();
   };
 
   $('#state').click(function(){

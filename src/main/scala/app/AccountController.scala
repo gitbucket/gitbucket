@@ -1,11 +1,10 @@
 package app
 
 import service._
-import util.{FileUtil, FileUploadUtil, OneselfAuthenticator}
+import util.{FileUtil, OneselfAuthenticator}
 import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
-import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
 
 class AccountController extends AccountControllerBase
@@ -43,12 +42,23 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
    */
   get("/:userName") {
     val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
+    getAccountByUserName(userName).map { account =>
       params.getOrElse("tab", "repositories") match {
         // Public Activity
-        case "activity" => account.html.activity(x, getActivitiesByUser(userName, true))
+        case "activity" =>
+          _root_.account.html.activity(account,
+            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            getActivitiesByUser(userName, true))
+
+        // Members
+        case "members" if(account.isGroupAccount) =>
+          _root_.account.html.members(account, getGroupMembers(account.userName))
+
         // Repositories
-        case _ => account.html.repositories(x, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
+        case _ =>
+          _root_.account.html.repositories(account,
+            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
       }
     } getOrElse NotFound
   }

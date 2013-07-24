@@ -1,0 +1,15 @@
+@(total: Int, progress: Int, showPercentage: Boolean)
+<div class="milestone-progress">
+  @if(progress > 0){
+    <span class="milestone-progress" style="width: @((progress.toDouble / total.toDouble * 100).toInt)%;"></span>
+  }
+  @if(showPercentage){
+    <span class="milestone-percentage">
+      @if(progress == 0){
+        0%
+      } else {
+        @((progress.toDouble / total.toDouble * 100).toInt)%
+      }
+    </span>
+  }
+</div>

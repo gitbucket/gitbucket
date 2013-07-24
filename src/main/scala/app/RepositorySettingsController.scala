@@ -54,22 +54,19 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Display the Collaborators page.
    */
   get("/:owner/:repository/settings/collaborators")(ownerOnly { repository =>
-    settings.html.collaborators(getCollaborators(repository.owner, repository.name), repository)
-  })
-
-  /**
-   * JSON API for collaborator completion.
-   */
-  get("/:owner/:repository/settings/collaborators/proposals")(usersOnly {
-    contentType = formats("json")
-    org.json4s.jackson.Serialization.write(Map("options" -> getAllUsers.map(_.userName).toArray))
+    settings.html.collaborators(
+      getCollaborators(repository.owner, repository.name),
+      getAccountByUserName(repository.owner).get.isGroupAccount,
+      repository)
   })
 
   /**
    * Add the collaborator.
    */
   post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { (form, repository) =>
-    addCollaborator(repository.owner, repository.name, form.userName)
+    if(!getAccountByUserName(repository.owner).get.isGroupAccount){
+      addCollaborator(repository.owner, repository.name, form.userName)
+    }
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 
@@ -77,7 +74,9 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Add the collaborator.
    */
   get("/:owner/:repository/settings/collaborators/remove")(ownerOnly { repository =>
-    removeCollaborator(repository.owner, repository.name, params("name"))
+    if(!getAccountByUserName(repository.owner).get.isGroupAccount){
+      removeCollaborator(repository.owner, repository.name, params("name"))
+    }
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 

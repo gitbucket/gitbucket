@@ -1,7 +1,6 @@
 package util
 
 import jp.sf.amateras.scalatra.forms._
-import scala.Some
 
 trait Validations {
 

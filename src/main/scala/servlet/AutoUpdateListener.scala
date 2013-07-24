@@ -129,6 +129,7 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
     } catch {
       case ex: Throwable => {
         logger.error("Failed to schema update", ex)
+        ex.printStackTrace()
         conn.rollback()
       }
     }

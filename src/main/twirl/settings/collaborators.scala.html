@@ -1,7 +1,9 @@
-@(collaborators: List[String], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(collaborators: List[String],
+  isGroupRepository: Boolean,
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Settings"){
+@html.main("Settings", Some(repository)){
   @html.header("settings", repository)
   @menu("collaborators", repository){
     <h3>Manage Collaborators</h3>
@@ -9,26 +11,32 @@
       @collaborators.map { collaboratorName =>
         <li>
           <a href="@url(collaboratorName)">@collaboratorName</a>
-          <a href="@url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
+          @if(!isGroupRepository){
+            <a href="@url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
+          }
         </li>
       }
     </ul>
-    <form method="POST" action="@url(repository)/settings/collaborators/add" validate="true">
-      <div>
-        <span class="error" id="error-userName"></span>
-      </div>
-      <input type="text" name="userName" id="userName" style="width: 300px; margin-bottom: 0px;"/>
-      <input type="submit" class="btn" value="Add"/>
-    </form>
+    @if(!isGroupRepository){
+      <form method="POST" action="@url(repository)/settings/collaborators/add" validate="true">
+        <div>
+          <span class="error" id="error-userName"></span>
+        </div>
+        <input type="text" name="userName" id="userName" style="width: 300px; margin-bottom: 0px;"/>
+        <input type="submit" class="btn" value="Add"/>
+      </form>
+    }
   }
 }
 <script>
-$('#userName').typeahead({
-  source: function (query, process) {
-    return $.get('@url(repository)/settings/collaborators/proposals', { query: query },
-      function (data) {
-        return process(data.options);
-      });
-  }
+$(function(){
+  $('#userName').typeahead({
+    source: function (query, process) {
+      return $.get('@path/_user/proposals', { query: query },
+        function (data) {
+          return process(data.options);
+        });
+    }
+  });
 });
 </script>

@@ -5,6 +5,9 @@ body {
   color: #333;
 }
 
+/* ======================================================================== */
+/* Global Header */
+/* ======================================================================== */
 div.navbar-inner {
   border-radius: 0px;
   -webkit-border-radius: 0px;
@@ -16,18 +19,23 @@ div.navbar-inner {
   padding-right: 0px;
 }
 
+div.header-menu {
+  line-height: 40px;
+}
+
+div.header-menu input,
+div.header-menu a.btn {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 div.nav-collapse a.menu {
   margin-right: 12px;
-  line-height: 40px;
 }
 
-div.nav-collapse a.btn-last {
-  margin-right: 30px;
-}
-
+div.nav-collapse a.btn-last,
 div.nav-collapse a.menu-last {
   margin-right: 30px;
-  line-height: 40px;
 }
 
 div.gitbucket-version {
@@ -37,6 +45,9 @@ div.gitbucket-version {
   margin-right: 10px;
 }
 
+/* ======================================================================== */
+/* Repository Header */
+/* ======================================================================== */
 table.global-nav {
   width: 920px;
   margin-bottom: 10px;
@@ -59,6 +70,9 @@ table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:v
   text-decoration: none;
 }
 
+/* ======================================================================== */
+/* General Styles */
+/* ======================================================================== */
 div.head {
   font-size: large;
   margin-bottom: 10px;
@@ -253,6 +267,15 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+ul.dropdown-menu li {
+  border-bottom: 1px solid #eee;
+}
+
+ul.dropdown-menu :last-child {
+  border-bottom: none;
+}
+
+
 /****************************************************************************/
 /* Sign-in form */
 /****************************************************************************/
@@ -437,10 +460,16 @@ a#clear-filter {
   margin-bottom: 10px;
 }
 
+span.milestone-alert {
+  font-weight: bold;
+  color: #bd2c00;
+}
+
 a.milestone-title {
   font-size: 120%;
   font-weight: bold;
 }
+
 div.milestone-description {
   border-top: 1px solid #eee;
   color: #666;
@@ -457,6 +486,15 @@ div.milestone-menu a {
 
 div.milestone-menu a.delete {
   color: #b00;
+}
+
+div#milestone-progress-area {
+  display: inline-block;
+}
+
+div#milestone-progress-area div.milestone-progress {
+  width: 150px;
+  margin-bottom: -6px;
 }
 
 div.milestone-progress {
@@ -521,6 +559,11 @@ div.issue-avatar-image {
 }
 
 div.issue-box {
+  margin-bottom: 5px;
+  margin-left: 50px;
+}
+
+div.issue-participants {
   margin-bottom: 15px;
   margin-left: 50px;
 }

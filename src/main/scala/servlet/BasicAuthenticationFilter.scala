@@ -32,7 +32,8 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
 
       getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
         case Some(repository) => {
-          if(!request.getRequestURI.endsWith("/git-receive-pack") && !repository.repository.isPrivate){
+          if(!request.getRequestURI.endsWith("/git-receive-pack") &&
+              !"service=git-receive-pack".equals(request.getQueryString) && !repository.repository.isPrivate){
             chain.doFilter(req, wrappedResponse)
           } else {
             request.getHeader("Authorization") match {

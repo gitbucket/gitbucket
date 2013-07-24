@@ -6,7 +6,7 @@
   readme: Option[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(repository.owner + "/" + repository.name) {
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
   @tab(branch, repository, "files")
   <div class="head">
@@ -34,7 +34,7 @@
       <tr>
         <td colspan="4" class="latest-commit">
           <div>
-            @avatar(latestCommit.committer, 20)
+            @avatar(latestCommit, 20)
             <a href="@url(latestCommit.committer)" class="username strong">@latestCommit.committer</a>
             <span class="muted">@datetime(latestCommit.time)</span>
             <div class="pull-right align-right monospace">

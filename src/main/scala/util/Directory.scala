@@ -1,8 +1,6 @@
 package util
 
 import java.io.File
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.Ref
 
 /**
  * Provides directories used by GitBucket.

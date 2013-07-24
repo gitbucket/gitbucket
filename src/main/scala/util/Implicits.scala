@@ -1,6 +1,5 @@
 package util
 
-import scala.slick.driver.H2Driver.simple._
 import scala.util.matching.Regex
 
 /**
@@ -23,11 +22,6 @@ object Implicits {
         case Nil => result
       }
     }
-  }
-
-  // TODO Should this implicit conversion move to model.Functions?
-  implicit class RichColumn(c1: Column[Boolean]){
-    def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
   }
 
   implicit class RichString(value: String){

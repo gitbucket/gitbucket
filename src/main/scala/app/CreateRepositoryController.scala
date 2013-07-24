@@ -5,9 +5,9 @@ import util.{JGitUtil, UsersAuthenticator, ReferrerAuthenticator}
 import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib._
 import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
+import org.eclipse.jgit.lib.PersonIdent
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
@@ -17,14 +17,15 @@ class CreateRepositoryController extends CreateRepositoryControllerBase
  * Creates new repository.
  */
 trait CreateRepositoryControllerBase extends ControllerBase {
-  self: RepositoryService with WikiService with LabelsService with ActivityService
+  self: RepositoryService with AccountService with WikiService with LabelsService with ActivityService
     with UsersAuthenticator with ReferrerAuthenticator =>
 
-  case class RepositoryCreationForm(name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
+  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
 
   case class ForkRepositoryForm(owner: String, name: String)
 
   val newForm = mapping(
+    "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier, existsAccount))),
     "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
@@ -40,28 +41,36 @@ trait CreateRepositoryControllerBase extends ControllerBase {
    * Show the new repository form.
    */
   get("/new")(usersOnly {
-    html.newrepo()
+    html.newrepo(getGroupsByUserName(context.loginAccount.get.userName))
   })
   
   /**
    * Create new repository.
    */
   post("/new", newForm)(usersOnly { form =>
+    val ownerAccount  = getAccountByUserName(form.owner).get
     val loginAccount  = context.loginAccount.get
     val loginUserName = loginAccount.userName
 
     // Insert to the database at first
-    createRepository(form.name, loginUserName, form.description, form.isPrivate)
+    createRepository(form.name, form.owner, form.description, form.isPrivate)
+
+    // Add collaborators for group repository
+    if(ownerAccount.isGroupAccount){
+      getGroupMembers(form.owner).foreach { userName =>
+        addCollaborator(form.owner, form.name, userName)
+      }
+    }
 
     // Insert default labels
     insertDefaultLabels(loginUserName, form.name)
 
     // Create the actual repository
-    val gitdir = getRepositoryDir(loginUserName, form.name)
+    val gitdir = getRepositoryDir(form.owner, form.name)
     JGitUtil.initRepository(gitdir)
 
     if(form.createReadme){
-      val tmpdir = getInitRepositoryDir(loginUserName, form.name)
+      val tmpdir = getInitRepositoryDir(form.owner, form.name)
       try {
         // Clone the repository
         Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
@@ -91,13 +100,13 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     }
 
     // Create Wiki repository
-    createWikiRepository(loginAccount, form.name)
+    createWikiRepository(loginAccount, form.owner, form.name)
 
     // Record activity
-    recordCreateRepositoryActivity(loginUserName, form.name, loginUserName)
+    recordCreateRepositoryActivity(form.owner, form.name, loginUserName)
 
     // redirect to the repository
-    redirect(s"/${loginUserName}/${form.name}")
+    redirect(s"/${form.owner}/${form.name}")
   })
 
   post("/:owner/:repository/_fork")(referrersOnly { repository =>
@@ -153,12 +162,19 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     createLabel(userName, repositoryName, "wontfix", "ffffff")
   }
 
+  private def existsAccount: Constraint = new Constraint(){
+    def validate(name: String, value: String): Option[String] =
+      if(getAccountByUserName(value).isEmpty) Some("User or group does not exist.") else None
+  }
+
   /**
    * Duplicate check for the repository name.
    */
   private def unique: Constraint = new Constraint(){
     def validate(name: String, value: String): Option[String] =
-      getRepositoryNamesOfUser(context.loginAccount.get.userName).find(_ == value).map(_ => "Repository already exists.")
+      params.get("owner").flatMap { userName =>
+        getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
+      }
   }
   
 }

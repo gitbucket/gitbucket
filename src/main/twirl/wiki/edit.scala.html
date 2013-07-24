@@ -3,7 +3,7 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main((if(pageName == "") "New Page" else pageName) + " - " + repository.owner + "/" + repository.name){
+@html.main(s"${if(pageName == "") "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("wiki", repository)
   @tab("", repository)
   <ul class="nav nav-tabs">

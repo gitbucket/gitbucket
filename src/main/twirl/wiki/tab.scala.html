@@ -6,9 +6,9 @@
   <li@if(active == "pages"){ class="active"}><a href="@url(repository)/wiki/_pages">Pages</a></li>
   <li@if(active == "history"){ class="active"}><a href="@url(repository)/wiki/_history">Wiki History</a></li>
   <li class="pull-right">
-    <div class="input-prepend">
-      <span class="add-on">HTTP</span>
+    <div class="input-append">
       <input type="text" value="@repository.url.replaceFirst("\\.git$", ".wiki.git")" readonly id="repository-url">
+      <span id="repository-url-copy" class="add-on btn" data-clipboard-text="@repository.url.replaceFirst("\\.git$", ".wiki.git")" data-placement="bottom" title="copy to clipboard"><i class="icon-check"></i></span>
     </div>
   </li>
 </ul>

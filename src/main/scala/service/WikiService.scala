@@ -6,7 +6,6 @@ import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
 import util.JGitUtil.DiffInfo
 import util.{Directory, JGitUtil}
-import org.eclipse.jgit.lib.RepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import java.util.concurrent.ConcurrentHashMap
 
@@ -64,16 +63,16 @@ object WikiService {
 trait WikiService {
   import WikiService._
 
-  def createWikiRepository(owner: model.Account, repository: String): Unit = {
-    lock(owner.userName, repository){
-      val dir = Directory.getWikiRepositoryDir(owner.userName, repository)
+  def createWikiRepository(loginAccount: model.Account, owner: String, repository: String): Unit = {
+    lock(owner, repository){
+      val dir = Directory.getWikiRepositoryDir(owner, repository)
       if(!dir.exists){
         try {
           JGitUtil.initRepository(dir)
-          saveWikiPage(owner.userName, repository, "Home", "Home", "Welcome to the %s wiki!!".format(repository), owner, "Initial Commit")
+          saveWikiPage(owner, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", loginAccount, "Initial Commit")
         } finally {
           // once delete cloned repository because initial cloned repository does not have 'branch.master.merge'
-          FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner.userName, repository))
+          FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner, repository))
         }
       }
     }
@@ -119,10 +118,12 @@ trait WikiService {
    * Returns the list of wiki page names.
    */
   def getWikiPageList(owner: String, repository: String): List[String] = {
-    JGitUtil.getFileList(Git.open(Directory.getWikiRepositoryDir(owner, repository)), "master", ".")
-      .filter(_.name.endsWith(".md"))
-      .map(_.name.replaceFirst("\\.md$", ""))
-      .sortBy(x => x)
+    JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
+      JGitUtil.getFileList(git, "master", ".")
+        .filter(_.name.endsWith(".md"))
+        .map(_.name.replaceFirst("\\.md$", ""))
+        .sortBy(x => x)
+    }
   }
   
   /**
@@ -189,12 +190,16 @@ trait WikiService {
 
   private def cloneOrPullWorkingCopy(workDir: File, owner: String, repository: String): Unit = {
     if(!workDir.exists){
-      Git.cloneRepository
-        .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
-        .setDirectory(workDir)
-        .call
+      val git =
+        Git.cloneRepository
+          .setURI(Directory.getWikiRepositoryDir(owner, repository).toURI.toString)
+          .setDirectory(workDir)
+          .call
+      git.getRepository.close  // close .git resources.
     } else {
-      Git.open(workDir).pull.call
+      JGitUtil.withGit(workDir){ git =>
+        git.pull.call
+      }
     }
   }
 
