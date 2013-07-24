@@ -5,9 +5,9 @@
 @import context._
 @import view.helpers._
 @main("GitBucket"){
+@dashboard.html.tab()
 <div class="row-fluid">
   <div class="span8">
-    <h3>News Feed</h3>
     @helper.html.activities(activities)
   </div>
   <div class="span4">
