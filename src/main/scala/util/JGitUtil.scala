@@ -291,14 +291,15 @@ object JGitUtil {
     }
   }
 
-  def getCommitLogFrom(git: Git, to: String, containsLast: Boolean = false)(from: RevCommit => Boolean): List[CommitInfo] = {
+  def getCommitLogs(git: Git, begin: String, includesLastCommit: Boolean = false)
+                   (endCondition: RevCommit => Boolean): List[CommitInfo] = {
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[CommitInfo]): List[CommitInfo] =
       i.hasNext match {
         case true  => {
           val revCommit = i.next
-          if(from(revCommit)){
-            if(containsLast) logs :+ new CommitInfo(revCommit) else logs
+          if(endCondition(revCommit)){
+            if(includesLastCommit) logs :+ new CommitInfo(revCommit) else logs
           } else {
             getCommitLog(i, logs :+ new CommitInfo(revCommit))
           }
@@ -307,7 +308,7 @@ object JGitUtil {
       }
 
     val revWalk = new RevWalk(git.getRepository)
-    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(to)))
+    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(begin)))
 
     val commits = getCommitLog(revWalk.iterator, Nil)
     revWalk.release
@@ -324,8 +325,9 @@ object JGitUtil {
    * @param to the to revision
    * @return the commit list
    */
+  // TODO swap parameters 'from' and 'to'!?
   def getCommitLog(git: Git, from: String, to: String): List[CommitInfo] =
-    getCommitLogFrom(git, to)(_.getName == from)
+    getCommitLogs(git, to)(_.getName == from)
   
   /**
    * Returns the latest RevCommit of the specified path.

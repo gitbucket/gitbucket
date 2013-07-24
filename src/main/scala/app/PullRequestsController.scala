@@ -1,6 +1,6 @@
 package app
 
-import util.{CollaboratorsAuthenticator, FileUtil, JGitUtil, ReferrerAuthenticator}
+import util.{CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator}
 import util.Directory._
 import util.Implicits._
 import util.JGitUtil.{DiffInfo, CommitInfo}
@@ -9,7 +9,6 @@ import org.eclipse.jgit.api.Git
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.transport.RefSpec
 import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.lib.PersonIdent
 import scala.collection.JavaConverters._
 
 class PullRequestsController extends PullRequestsControllerBase
@@ -25,15 +24,23 @@ trait PullRequestsControllerBase extends ControllerBase {
     "content"         -> trim(label("Content", optional(text()))),
     "branch"          -> trim(text(required, maxlength(100))),
     "requestUserName" -> trim(text(required, maxlength(100))),
-    "requestBranch"   -> trim(text(required, maxlength(100)))
+    "requestCommitId" -> trim(text(required, maxlength(100))),
+    "commitIdFrom"    -> trim(text(required, maxlength(40))),
+    "commitIdTo"      -> trim(text(required, maxlength(40)))
   )(PullRequestForm.apply)
 
   val mergeForm = mapping(
     "message" -> trim(label("Message", text(required)))
   )(MergeForm.apply)
 
-  case class PullRequestForm(title: String, content: Option[String], branch: String,
-                             requestUserName: String, requestBranch: String)
+  case class PullRequestForm(
+    title: String,
+    content: Option[String],
+    branch: String,
+    requestUserName: String,
+    requestBranch: String,
+    commitIdFrom: String,
+    commitIdTo: String)
 
   case class MergeForm(message: String)
 
@@ -50,11 +57,8 @@ trait PullRequestsControllerBase extends ControllerBase {
       JGitUtil.withGit(getRepositoryDir(owner, name)){ git =>
         val requestCommitId = git.getRepository.resolve(pullreq.requestBranch)
 
-        val (commits, diffs) = if(pullreq.mergeStartId.isDefined){
-          getMergedCompareInfo(owner, name, pullreq.mergeStartId.get, pullreq.mergeEndId.get)
-        } else {
-          getRequestCompareInfo(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
-        }
+        val (commits, diffs) =
+          getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
         pulls.html.pullreq(
           issue, pullreq,
@@ -64,10 +68,10 @@ trait PullRequestsControllerBase extends ControllerBase {
           commits,
           diffs,
           requestCommitId.getName,
-          if(pullreq.mergeStartId.isDefined){
+          if(issue.closed){
             false
           } else {
-            checkConflict(owner, name, pullreq.branch, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+            checkConflict(owner, name, pullreq.branch, owner, name, pullreq.requestBranch)
           },
           hasWritePermission(owner, name, context.loginAccount),
           repository,
@@ -95,26 +99,25 @@ trait PullRequestsControllerBase extends ControllerBase {
         git.checkout.setName(pullreq.branch).call
 
         git.fetch
-          .setRemote(getRepositoryDir(pullreq.requestUserName, pullreq.requestRepositoryName).toURI.toString)
-          .setRefSpecs(new RefSpec(s"refs/heads/${pullreq.branch}:refs/heads/${pullreq.requestBranch}")).call
+          .setRemote(getRepositoryDir(repository.owner, repository.name).toURI.toString)
+          .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/${pullreq.branch}")).call
 
-        val result = git.merge.include(git.getRepository.resolve("FETCH_HEAD")).setCommit(false).call
+        val result = git.merge
+          .include(git.getRepository.resolve("FETCH_HEAD"))
+          .setCommit(false).call
+
         if(result.getConflicts != null){
           throw new RuntimeException("This pull request can't merge automatically.")
         }
 
-        git.commit
-          .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
-          .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
-                     + form.message).call
+//        git.commit
+//          .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
+//          .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
+//                     + form.message).call
         git.push.call
 
-        val (commits, _) = getRequestCompareInfo(repository.owner, repository.name, pullreq.branch,
-          pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
-
-        mergePullRequest(repository.owner, repository.name, issueId,
-          git.getRepository.resolve(pullreq.requestBranch).getName,
-          commits.head.head.id)
+        val (commits, _) = getRequestCompareInfo(repository.owner, repository.name, pullreq.commitIdFrom,
+          pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
 
         commits.flatten.foreach { commit =>
           insertCommitId(repository.owner, repository.name, commit.id)
@@ -180,17 +183,25 @@ trait PullRequestsControllerBase extends ControllerBase {
       val originRepositoryName = repository.repository.originRepositoryName.get
 
       getRepository(originUserName, originRepositoryName, baseUrl).map{ originRepository =>
-        val Seq(origin, originId, forkedId) = multiParams("splat")
+        val Seq(compareUserName, compareFrom, compareTo) = multiParams("splat")
 
-        JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-          val newId = git.getRepository.resolve(forkedId)
+        withGit(
+          getRepositoryDir(originUserName, originRepositoryName),
+          getRepositoryDir(repository.owner, repository.name)
+        ){ case (oldGit, newGit) =>
+
+          val forkedId = getForkedCommitId(oldGit, newGit, originUserName, originRepositoryName, compareFrom,
+            repository.owner, repository.name, compareTo)
+
+          val oldId = oldGit.getRepository.resolve(forkedId)
+          val newId = newGit.getRepository.resolve(compareTo)
 
           val (commits, diffs) = getRequestCompareInfo(
-            origin, repository.repository.originRepositoryName.get, originId,
-            repository.owner, repository.name, forkedId)
+            compareUserName, repository.repository.originRepositoryName.get, forkedId,
+            repository.owner, repository.name, compareTo)
 
-          pulls.html.compare(commits, diffs, origin, originId, forkedId, newId.getName,
-            checkConflict(originUserName, originRepositoryName, originId, repository.owner, repository.name, forkedId),
+          pulls.html.compare(commits, diffs, compareUserName, compareFrom, compareTo, oldId.getName, newId.getName,
+            checkConflict(originUserName, originRepositoryName, compareFrom, repository.owner, repository.name, compareTo),
             repository, originRepository)
         }
       } getOrElse NotFound
@@ -215,7 +226,17 @@ trait PullRequestsControllerBase extends ControllerBase {
       form.branch,
       form.requestUserName,
       repository.name,
-      form.requestBranch)
+      form.requestBranch,
+      form.commitIdFrom,
+      form.commitIdTo)
+
+    // fetch requested branch
+    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+      git.fetch
+        .setRemote(getRepositoryDir(form.requestUserName, repository.name).toURI.toString)
+        .setRefSpecs(new RefSpec(s"refs/heads/${form.requestBranch}:refs/pull/${issueId}/head"))
+        .call
+    }
 
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
@@ -233,17 +254,22 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   }
 
+  private def getForkedCommitId(oldGit: Git, newGit: Git, userName: String, repositoryName: String, branch: String,
+      requestUserName: String, requestRepositoryName: String, requestBranch: String): String =
+    JGitUtil.getCommitLogs(newGit, requestBranch, true){ commit =>
+      existsCommitId(userName, repositoryName, commit.getName) &&
+        JGitUtil.getBranchesOfCommit(oldGit, commit.getName).contains(branch)
+    }.head.id
+
   private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
-      requestUserName: String, requestRepositoryName: String, requestBranch: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
+      requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
 
     withGit(
       getRepositoryDir(userName, repositoryName),
       getRepositoryDir(requestUserName, requestRepositoryName)
     ){ (oldGit, newGit) =>
-      val newId = newGit.getRepository.resolve(requestBranch)
-      val oldId = newGit.getRepository.resolve(JGitUtil.getCommitLogFrom(newGit, newId.getName, true){ revCommit =>
-        existsCommitId(userName, repositoryName, revCommit.getName)
-      }.head.id)
+      val oldId = oldGit.getRepository.resolve(branch)
+      val newId = newGit.getRepository.resolve(requestCommitId)
 
       val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
         new CommitInfo(revCommit)
@@ -256,25 +282,5 @@ trait PullRequestsControllerBase extends ControllerBase {
       (commits, diffs)
     }
   }
-
-  private def getMergedCompareInfo(userName: String, repositoryName: String,
-                                   startId: String, endId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
-
-    JGitUtil.withGit(getRepositoryDir(userName, repositoryName)){ git =>
-      val oldId = git.getRepository.resolve(startId)
-      val newId = git.getRepository.resolve(endId)
-
-      val commits = git.log.addRange(newId, oldId).call.iterator.asScala.map { revCommit =>
-        new CommitInfo(revCommit)
-      }.toList.splitWith{ (commit1, commit2) =>
-        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-      }
-
-      val diffs = JGitUtil.getDiffs(git, oldId.getName, newId.getName, true)
-
-      (commits, diffs)
-    }
-  }
-
 
 }

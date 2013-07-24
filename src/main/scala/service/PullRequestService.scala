@@ -18,7 +18,8 @@ trait PullRequestService { self: IssuesService =>
   }
 
   def createPullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
-        originBranch: String, requestUserName: String, requestRepositoryName: String, requestBranch: String): Unit =
+        originBranch: String, requestUserName: String, requestRepositoryName: String, requestBranch: String,
+        commitIdFrom: String, commitIdTo: String): Unit =
     PullRequests insert (PullRequest(
       originUserName,
       originRepositoryName,
@@ -27,15 +28,15 @@ trait PullRequestService { self: IssuesService =>
       requestUserName,
       requestRepositoryName,
       requestBranch,
-      None,
-      None))
+      commitIdFrom,
+      commitIdTo))
 
-  def mergePullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
-        mergeStartId: String, mergeEndId: String): Unit = {
-    Query(PullRequests)
-      .filter(_.byPrimaryKey(originUserName, originRepositoryName, issueId))
-      .map(t => t.mergeStartId ~ t.mergeEndId)
-      .update(mergeStartId, mergeEndId)
-  }
+//  def mergePullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
+//        mergeStartId: String, mergeEndId: String): Unit = {
+//    Query(PullRequests)
+//      .filter(_.byPrimaryKey(originUserName, originRepositoryName, issueId))
+//      .map(t => t.mergeStartId ~ t.mergeEndId)
+//      .update(mergeStartId, mergeEndId)
+//  }
 
 }

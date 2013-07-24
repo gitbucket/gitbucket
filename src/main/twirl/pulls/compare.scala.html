@@ -1,5 +1,11 @@
-@(commits: Seq[Seq[util.JGitUtil.CommitInfo]], diffs: Seq[util.JGitUtil.DiffInfo],
-  origin: String, originId: String, forkedId: String, commitId: String, hasConflict: Boolean,
+@(commits: Seq[Seq[util.JGitUtil.CommitInfo]],
+  diffs: Seq[util.JGitUtil.DiffInfo],
+  origin: String,
+  originId: String,
+  forkedId: String,
+  sourceId: String,
+  commitId: String,
+  hasConflict: Boolean,
   repository: service.RepositoryService.RepositoryInfo,
   originRepository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -12,7 +18,7 @@
       <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>
       <span class="label label-info monospace">@origin:@originId</span> ... <span class="label label-info monospace">@repository.owner:@forkedId</span>
     </div>
-    <div id="compare-edit" style="display: none; width: 620px;">
+    <div id="compare-edit" style="display: none;">
       <a href="#" id="refresh-compare" class="pull-right"><i class="icon-remove-circle"></i></a>
       <span class="label label-info monospace">@origin/@repository.name:</span>
       @helper.html.dropdown(originId) {
@@ -52,7 +58,9 @@
               @helper.html.preview(repository, "", false, true, "width: 600px; height: 200px;")
               <input type="hidden" name="branch" value="@originId"/>
               <input type="hidden" name="requestUserName" value="@repository.owner"/>
-              <input type="hidden" name="requestBranch" value="@forkedId"/>
+              <input type="hidden" name="requestCommitId" value="@forkedId"/>
+              <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+              <input type="hidden" name="commitIdTo" value="@commitId"/>
             </div>
           </form>
         </div>
