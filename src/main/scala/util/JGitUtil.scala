@@ -524,6 +524,8 @@ object JGitUtil {
     }
   }
 
+  def isEmpty(git: Git): Boolean = git.getRepository.resolve(Constants.HEAD) == null
+
   private def setReceivePack(repository: org.eclipse.jgit.lib.Repository): Unit = {
     val config = repository.getConfig
     config.setBoolean("http", null, "receivepack", true)
