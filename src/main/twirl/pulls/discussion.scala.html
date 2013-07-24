@@ -79,17 +79,20 @@
           @markdown(comment.content, repository, false, true)
         </div>
       </div>
-      @comment.action.map { action =>
       <div class="small issue-comment-action">
-        @if(action == "close"){
+        @if(comment.action == "close" || comment.action == "close_comment"){
+        <div class="small issue-comment-action">
           <span class="label label-important">Closed</span>
           <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
-        } else {
+        </div>
+        }
+        @if(comment.action == "reopen" || comment.action == "reopen_comment"){
+        <div class="small issue-comment-action">
           <span class="label label-success">Reopened</span>
           <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
+        </div>
         }
       </div>
-      }
     }
     @if(hasWritePermission && !issue.closed){
       <div class="box issue-comment-box" style="background-color: #d8f5cd;">
