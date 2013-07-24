@@ -7,7 +7,7 @@ import Q.interpolation
 
 import model._
 import util.Implicits._
-import util.StringUtil
+import util.StringUtil._
 
 trait IssuesService {
   import IssuesService._
@@ -247,7 +247,7 @@ trait IssuesService {
    */
   def searchIssuesByKeyword(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
     import scala.slick.driver.H2Driver.likeEncode
-    val keywords = StringUtil.splitWords(query.toLowerCase)
+    val keywords = splitWords(query.toLowerCase)
 
     // Search Issue
     val issues = Query(Issues).filter { t =>
@@ -290,13 +290,13 @@ trait IssuesService {
 
 object IssuesService {
   import javax.servlet.http.HttpServletRequest
-  import util.StringUtil._
 
   val IssueLimit = 30
 
   case class IssueSearchCondition(
       labels: Set[String] = Set.empty,
       milestoneId: Option[Option[Int]] = None,
+      repo: Option[String] = None,
       state: String = "open",
       sort: String = "created",
       direction: String = "desc"){
@@ -308,6 +308,7 @@ object IssuesService {
           case Some(x) => x.toString
           case None    => "none"
         })},
+        repo.map("for="   + urlEncode(_)),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
         Some("direction=" + urlEncode(direction))).flatten.mkString("&")
@@ -328,6 +329,7 @@ object IssuesService {
           case "none" => None
           case x      => Some(x.toInt)
         }),
+        param(request, "for"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))

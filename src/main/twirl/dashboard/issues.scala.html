@@ -1,0 +1,48 @@
+@(listparts: twirl.api.Html,
+  allCount: Int,
+  assignedCount: Int,
+  createdByCount: Int,
+  repositories: List[service.RepositoryService.RepositoryInfo],
+  condition: service.IssuesService.IssueSearchCondition,
+  filter: String)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Your Issues"){
+@dashboard.html.tab("issues")
+<div class="row-fluid">
+  <div class="span3">
+    <ul class="nav nav-pills nav-stacked">
+      <li@if(filter == "all"){ class="active"}>
+        <a href="/dashboard/issues/repos@condition.toURL">
+          <span class="count-right">@allCount</span>
+          In your repositories
+        </a>
+      </li>
+      <li@if(filter == "assigned"){ class="active"}>
+        <a href="/dashboard/issues/assigned@condition.toURL">
+          <span class="count-right">@assignedCount</span>
+          Assigned to you
+        </a>
+      </li>
+      <li@if(filter == "created_by"){ class="active"}>
+        <a href="/dashboard/issues/created_by@condition.toURL">
+          <span class="count-right">@createdByCount</span>
+          Created by you
+        </a>
+      </li>
+    </ul>
+    <hr/>
+    <ul class="nav nav-pills nav-stacked small">
+      @repositories.map { repository =>
+      <li>
+        <a href="@condition.copy(repo = Some(repository.owner + "/" + repository.name)).toURL">
+          <span class="count-right">0</span>
+          @repository.owner/@repository.name
+        </a>
+      </li>
+      }
+    </ul>
+  </div>
+  @listparts
+</div>
+}
