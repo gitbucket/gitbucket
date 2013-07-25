@@ -99,47 +99,38 @@ trait IssuesService {
   def searchIssue(owner: String, repository: String, condition: IssueSearchCondition,
                   filter: String, userName: Option[String], offset: Int, limit: Int): List[(Issue, List[Label], Int)] = {
 
-    // get issues and comment count
-    val issues = searchIssueQuery(owner, repository, condition, filter, userName)
-      .leftJoin(Query(IssueComments)
-        .filter  { t =>
-          (t.byRepository(owner, repository)) &&
-          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
+    // get issues and comment count and labels
+    searchIssueQuery(owner, repository, condition, filter, userName)
+        .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
+        .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
+        .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
+        .map { case (((t1, t2), t3), t4) =>
+          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?)
         }
-        .groupBy { _.issueId }
-        .map     { case (issueId, t) => issueId ~ t.length }).on((t1, t2) => t1.issueId is t2._1)
-      .sortBy { case (t1, t2) =>
-        (condition.sort match {
-          case "created"  => t1.registeredDate
-          case "comments" => t2._2
-          case "updated"  => t1.updatedDate
-        }) match {
-          case sort => condition.direction match {
-            case "asc"  => sort asc
-            case "desc" => sort desc
+        .sortBy(_._4)	// labelName
+        .sortBy { case (t1, commentCount, _,_,_) =>
+          (condition.sort match {
+            case "created"  => t1.registeredDate
+            case "comments" => commentCount
+            case "updated"  => t1.updatedDate
+          }) match {
+            case sort => condition.direction match {
+              case "asc"  => sort asc
+              case "desc" => sort desc
+            }
           }
         }
-      }
-      .map { case (t1, t2) => (t1, t2._2.ifNull(0)) }
-      .drop(offset).take(limit)
-      .list
-
-    // get labels
-    val labels = Query(IssueLabels)
-      .innerJoin(Labels).on { (t1, t2) =>
-        t1.byLabel(t2.userName, t2.repositoryName, t2.labelId)
-      }
-      .filter { case (t1, t2) =>
-        (t1.byRepository(owner, repository)) &&
-        (t1.issueId inSetBind (issues.map(_._1.issueId)))
-      }
-      .sortBy { case (t1, t2) => t1.issueId ~ t2.labelName }
-      .map    { case (t1, t2) => (t1.issueId, t2) }
-      .list
-
-    issues.map { case (issue, commentCount) =>
-      (issue, labels.collect { case (issueId, labels) if(issueId == issue.issueId) => labels }, commentCount)
-    }
+        .drop(offset).take(limit)
+        .list
+        .splitWith(_._1.issueId == _._1.issueId)
+        .map { issues => issues.head match {
+          case (issue, commentCount, _,_,_) =>
+            (issue,
+             issues.flatMap { t => t._3.map (
+                 Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
+             )} toList,
+             commentCount)
+        }} toList
   }
 
   /**
