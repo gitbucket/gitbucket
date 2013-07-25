@@ -241,39 +241,44 @@ trait IssuesService {
     val keywords = splitWords(query.toLowerCase)
 
     // Search Issue
-    val issues = Query(Issues).filter { t =>
-      keywords.map { keyword =>
-        (t.title.toLowerCase   like (s"%${likeEncode(keyword)}%", '^')) ||
-        (t.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
-      } .reduceLeft(_ && _)
-    }.map { t => (t, 0, t.content.?) }
+    val issues = Issues
+      .innerJoin(IssueOutline).on { case (t1, t2) =>
+        t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
+      }
+      .filter { case (t1, t2) =>
+        keywords.map { keyword =>
+          (t1.title.toLowerCase   like (s"%${likeEncode(keyword)}%", '^')) ||
+          (t1.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
+        } .reduceLeft(_ && _)
+      }
+      .map { case (t1, t2) =>
+        (t1, 0, t1.content.?, t2.commentCount)
+      }
 
     // Search IssueComment
-    val comments = Query(IssueComments).innerJoin(Issues).on { case (t1, t2) =>
-      t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
-    }.filter { case (t1, t2) =>
-      keywords.map { query =>
-        t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
-      }.reduceLeft(_ && _)
-    }.map { case (t1, t2) => (t2, t1.commentId, t1.content.?) }
+    val comments = IssueComments
+      .innerJoin(Issues).on { case (t1, t2) =>
+        t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
+      }
+      .innerJoin(IssueOutline).on { case ((t1, t2), t3) =>
+        t2.byIssue(t3.userName, t3.repositoryName, t3.issueId)
+      }
+      .filter { case ((t1, t2), t3) =>
+        keywords.map { query =>
+          t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
+        }.reduceLeft(_ && _)
+      }
+      .map { case ((t1, t2), t3) =>
+        (t2, t1.commentId, t1.content.?, t3.commentCount)
+      }
 
-    def getCommentCount(issue: Issue): Int = {
-      Query(IssueComments)
-        .filter { t =>
-          t.byIssue(issue.userName, issue.repositoryName, issue.issueId) &&
-          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
-        }
-        .map(_.issueId)
-        .list.length
-    }
-
-    issues.union(comments).sortBy { case (issue, commentId, _) =>
+    issues.union(comments).sortBy { case (issue, commentId, _, _) =>
       issue.issueId ~ commentId
-    }.list.splitWith { case ((issue1, _, _), (issue2, _, _)) =>
+    }.list.splitWith { case ((issue1, _, _, _), (issue2, _, _, _)) =>
       issue1.issueId == issue2.issueId
-    }.map { result =>
-      val (issue, _, content) = result.head
-      (issue, getCommentCount(issue) , content.getOrElse(""))
+    }.map { _.head match {
+        case (issue, _, content, commentCount) => (issue, commentCount, content.getOrElse(""))
+      }
     }.toList
   }
 
