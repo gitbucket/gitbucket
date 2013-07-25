@@ -16,7 +16,7 @@
           }
         </div>
         @if(repository.repository.originUserName.isDefined){
-          <div class="small muted">forked from <a href="@path/@repository.repository.originUserName/@repository.repository.originRepositoryName">@repository.repository.originUserName/@repository.repository.originRepositoryName</a></div>
+          <div class="small muted">forked from <a href="@path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
         }
         @if(repository.repository.description.isDefined){
           <div>@repository.repository.description</div>

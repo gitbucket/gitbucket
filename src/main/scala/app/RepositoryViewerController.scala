@@ -202,6 +202,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       BadRequest
     }
   })
+
+  get("/:owner/:repository/network/members")(referrersOnly { repository =>
+    repo.html.forked(
+      getForkedRepositoryTree(
+        repository.repository.originUserName.getOrElse(repository.owner),
+        repository.repository.originRepositoryName.getOrElse(repository.name)),
+      repository)
+  })
   
   /**
    * Provides HTML of the file list.

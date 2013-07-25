@@ -2,7 +2,10 @@
 @import context._
 @import view.helpers._
 <div class="pull-right">
-  <input type="button" id="fork" class="btn" value="Fork" style="margin-bottom: 10px;"/>
+  <div class="input-prepend">
+    <input type="button" id="fork" class="btn" value="Fork" style="margin-bottom: 10px;"/>
+    <span class="add-on"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+  </div>
 </div>
 <div class="head">
   <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)">@repository.name</a>
@@ -12,7 +15,7 @@
   @defining(repository.repository){ x =>
     @if(repository.repository.originRepositoryName.isDefined){
       <div class="forked">
-        forked from <a href="@path/@x.originUserName/@x.originRepositoryName">@x.originUserName/@x.originRepositoryName</a>
+        forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
       </div>
     }
   }

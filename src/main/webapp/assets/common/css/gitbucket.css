@@ -70,6 +70,19 @@ table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:v
   text-decoration: none;
 }
 
+div.input-prepend span.add-on {
+  background-color: white;
+  -webkit-border-radius: 0 4px 4px 0;
+  -moz-border-radius: 0 4px 4px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/*
+div.input-prepend span.add-on a {
+  color: #333;
+}
+*/
+
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
