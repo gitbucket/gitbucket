@@ -10,6 +10,7 @@ import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.transport.RefSpec
 import org.apache.commons.io.FileUtils
 import scala.collection.JavaConverters._
+import service.RepositoryService.RepositoryTreeNode
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
@@ -137,37 +138,38 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   private def checkConflict(userName: String, repositoryName: String, branch: String,
                             requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
-      val remote = getRepositoryDir(userName, repositoryName)
-      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
-      if(tmpdir.exists()){
-        FileUtils.deleteDirectory(tmpdir)
-      }
-
-      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
-      try {
-        git.checkout.setName(branch).call
-
-        git.fetch
-          .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
-          .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
-
-        val result = git.merge
-          .include(git.getRepository.resolve("FETCH_HEAD"))
-          .setCommit(false).call
-
-        result.getConflicts != null
-
-      } finally {
-        git.getRepository.close
-        FileUtils.deleteDirectory(tmpdir)
-      }
-    }
+//    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
+//      val remote = getRepositoryDir(userName, repositoryName)
+//      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
+//      if(tmpdir.exists()){
+//        FileUtils.deleteDirectory(tmpdir)
+//      }
+//
+//      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+//      try {
+//        git.checkout.setName(branch).call
+//
+//        git.fetch
+//          .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
+//          .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
+//
+//        val result = git.merge
+//          .include(git.getRepository.resolve("FETCH_HEAD"))
+//          .setCommit(false).call
+//
+//        result.getConflicts != null
+//
+//      } finally {
+//        git.getRepository.close
+//        FileUtils.deleteDirectory(tmpdir)
+//      }
+//    }
+    true
   }
 
   get("/:owner/:repository/pulls/compare")(collaboratorsOnly { newRepo =>
     (newRepo.repository.originUserName, newRepo.repository.originRepositoryName) match {
-      case (None,_)|(_, None) => NotFound // TODO BadRequest?
+      case (None,_)|(_, None) => NotFound // TODO Compare to self branch?
       case (Some(originUserName), Some(originRepositoryName)) => {
         getRepository(originUserName, originRepositoryName, baseUrl).map { oldRepo =>
           withGit(
@@ -184,38 +186,62 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/pulls/compare/*:*...*")(collaboratorsOnly { repository =>
-    if(repository.repository.originUserName.isEmpty || repository.repository.originRepositoryName.isEmpty){
-      NotFound // TODO BadRequest?
+  private def parseCompareIdentifie(value: String, defaultOwner: String): (String, String) =
+    if(value.contains(':')){
+      val array = value.split(":")
+      (array(0), array(1))
     } else {
-      val originUserName       = repository.repository.originUserName.get
-      val originRepositoryName = repository.repository.originRepositoryName.get
+      (defaultOwner, value)
+    }
 
-      getRepository(originUserName, originRepositoryName, baseUrl).map{ originRepository =>
-        val Seq(compareUserName, compareFrom, compareTo) = multiParams("splat")
+  get("/:owner/:repository/pulls/compare/*...*")(collaboratorsOnly { repository =>
+    val Seq(origin, forked) = multiParams("splat")
+    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, repository.owner)
+    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, repository.owner)
 
+    (getRepository(originOwner, repository.name, baseUrl),
+     getRepository(forkedOwner,   repository.name, baseUrl)) match {
+      case (Some(originRepository), Some(forkedRepository)) => {
         withGit(
-          getRepositoryDir(originUserName, originRepositoryName),
-          getRepositoryDir(repository.owner, repository.name)
+          getRepositoryDir(originOwner, repository.name),
+          getRepositoryDir(forkedOwner,   repository.name)
         ){ case (oldGit, newGit) =>
+          val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
+          val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
 
-          val forkedId = getForkedCommitId(oldGit, newGit, originUserName, originRepositoryName, compareFrom,
-            repository.owner, repository.name, compareTo)
+          val forkedId = getForkedCommitId(oldGit, newGit,
+            originOwner, repository.name, originBranch,
+            forkedOwner, repository.name, forkedBranch)
 
           val oldId = oldGit.getRepository.resolve(forkedId)
-          val newId = newGit.getRepository.resolve(compareTo)
+          val newId = newGit.getRepository.resolve(forkedBranch)
 
           val (commits, diffs) = getRequestCompareInfo(
-            compareUserName, repository.repository.originRepositoryName.get, forkedId,
-            repository.owner, repository.name, compareTo)
+            originOwner, repository.name, oldId.getName,
+            forkedOwner, repository.name, newId.getName)
 
-          pulls.html.compare(commits, diffs, compareUserName, compareFrom, compareTo, oldId.getName, newId.getName,
-            checkConflict(originUserName, originRepositoryName, compareFrom, repository.owner, repository.name, compareTo),
-            repository, originRepository)
+          pulls.html.compare(
+            commits,
+            diffs,
+            repository.repository.originUserName.map { userName =>
+              getRepositoryNames(getForkedRepositoryTree(userName, repository.name))
+            } getOrElse Nil,
+            originBranch,
+            forkedBranch,
+            oldId.getName,
+            newId.getName,
+            checkConflict(originOwner, repository.name, originBranch, forkedOwner, repository.name, forkedBranch),
+            repository,
+            originRepository,
+            forkedRepository)
         }
-      } getOrElse NotFound
+      }
+      case _ => NotFound
     }
   })
+
+  private def getRepositoryNames(node: RepositoryTreeNode): List[String] =
+    node.owner :: node.children.map { child => getRepositoryNames(child) }.flatten
 
   post("/:owner/:repository/pulls/new", pullRequestForm)(referrersOnly { (form, repository) =>
     val loginUserName = context.loginAccount.get.userName

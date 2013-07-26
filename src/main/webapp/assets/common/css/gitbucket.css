@@ -280,14 +280,22 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+ul.dropdown-menu {
+  padding: 2px 0;
+}
+
 ul.dropdown-menu li {
   border-bottom: 1px solid #eee;
+  font-size: 85%;
+}
+
+ul.dropdown-menu li a {
+  padding: 2px 10px;
 }
 
 ul.dropdown-menu :last-child {
   border-bottom: none;
 }
-
 
 /****************************************************************************/
 /* Sign-in form */
