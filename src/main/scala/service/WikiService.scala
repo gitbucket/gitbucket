@@ -28,40 +28,6 @@ object WikiService {
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
 
-//  /**
-//   * lock objects
-//   */
-//  private val locks = new ConcurrentHashMap[String, Lock]()
-//
-//  /**
-//   * Returns the lock object for the specified repository.
-//   */
-//  private def getLockObject(owner: String, repository: String): Lock = synchronized {
-//    val key = owner + "/" + repository
-//    if(!locks.containsKey(key)){
-//      locks.put(key, new ReentrantLock())
-//    }
-//    locks.get(key)
-//  }
-//
-//  /**
-//   * Synchronizes a given function which modifies the working copy of the wiki repository.
-//   *
-//   * @param owner the repository owner
-//   * @param repository the repository name
-//   * @param f the function which modifies the working copy of the wiki repository
-//   * @tparam T the return type of the given function
-//   * @return the result of the given function
-//   */
-//  def lock[T](owner: String, repository: String)(f: => T): T = {
-//    val lock = getLockObject(owner, repository)
-//    try {
-//      f
-//    } finally {
-//      lock.unlock()
-//    }
-//  }
-
 }
 
 trait WikiService {
