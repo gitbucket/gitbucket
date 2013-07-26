@@ -140,11 +140,12 @@ trait PullRequestsControllerBase extends ControllerBase {
     LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
       val remote = getRepositoryDir(userName, repositoryName)
       val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
+      if(tmpdir.exists()){
+        FileUtils.deleteDirectory(tmpdir)
+      }
+
       val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
       try {
-        if(tmpdir.exists()){
-          FileUtils.deleteDirectory(tmpdir)
-        }
         git.checkout.setName(branch).call
 
         git.fetch
