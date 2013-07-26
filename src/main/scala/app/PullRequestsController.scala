@@ -138,6 +138,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   private def checkConflict(userName: String, repositoryName: String, branch: String,
                             requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
+// TODO Are there more quick way?
 //    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
 //      val remote = getRepositoryDir(userName, repositoryName)
 //      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
@@ -167,21 +168,26 @@ trait PullRequestsControllerBase extends ControllerBase {
     true
   }
 
-  get("/:owner/:repository/pulls/compare")(collaboratorsOnly { newRepo =>
-    (newRepo.repository.originUserName, newRepo.repository.originRepositoryName) match {
-      case (None,_)|(_, None) => NotFound // TODO Compare to self branch?
+  get("/:owner/:repository/pulls/compare")(collaboratorsOnly { forkedRepository =>
+    (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
       case (Some(originUserName), Some(originRepositoryName)) => {
-        getRepository(originUserName, originRepositoryName, baseUrl).map { oldRepo =>
+        getRepository(originUserName, originRepositoryName, baseUrl).map { originRepository =>
           withGit(
             getRepositoryDir(originUserName, originRepositoryName),
-            getRepositoryDir(params("owner"), params("repository"))
+            getRepositoryDir(forkedRepository.owner, forkedRepository.name)
           ){ (oldGit, newGit) =>
-            val oldBranch = JGitUtil.getDefaultBranch(oldGit, oldRepo).get._2
-            val newBranch = JGitUtil.getDefaultBranch(newGit, newRepo).get._2
+            val oldBranch = JGitUtil.getDefaultBranch(oldGit, originRepository).get._2
+            val newBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository).get._2
 
-            redirect(s"${context.path}/${newRepo.owner}/${newRepo.name}/pulls/compare/${originUserName}:${oldBranch}...${newBranch}")
+            redirect(s"${context.path}/${forkedRepository.owner}/${forkedRepository.name}/pulls/compare/${originUserName}:${oldBranch}...${newBranch}")
           }
         } getOrElse NotFound
+      }
+      case _ => {
+        JGitUtil.withGit(getRepositoryDir(forkedRepository.owner, forkedRepository.name)){ git =>
+          val defaultBranch = JGitUtil.getDefaultBranch(git, forkedRepository).get._2
+          redirect(s"${context.path}/${forkedRepository.owner}/${forkedRepository.name}/pulls/compare/${defaultBranch}...${defaultBranch}")
+        }
       }
     }
   })
