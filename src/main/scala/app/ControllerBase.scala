@@ -1,7 +1,7 @@
 package app
 
 import _root_.util.Directory._
-import _root_.util.{FileUtil, Validations}
+import _root_.util.{StringUtil, FileUtil, Validations}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
@@ -10,7 +10,7 @@ import org.apache.commons.io.FileUtils
 import model.Account
 import scala.Some
 import service.AccountService
-import javax.servlet.http.{HttpSession, HttpServletRequest}
+import javax.servlet.http.{HttpServletResponse, HttpSession, HttpServletRequest}
 import java.text.SimpleDateFormat
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
 
@@ -23,16 +23,28 @@ abstract class ControllerBase extends ScalatraFilter
   implicit val jsonFormats = DefaultFormats
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-    val httpRequest = request.asInstanceOf[HttpServletRequest]
-    val path = httpRequest.getRequestURI.substring(request.getServletContext.getContextPath.length)
+    val httpRequest  = request.asInstanceOf[HttpServletRequest]
+    val httpResponse = response.asInstanceOf[HttpServletResponse]
+    val context      = request.getServletContext.getContextPath
+    val path         = httpRequest.getRequestURI.substring(context.length)
 
     if(path.startsWith("/console/")){
-      Option(httpRequest.getSession.getAttribute("LOGIN_ACCOUNT").asInstanceOf[Account]).collect {
-        case account if(account.isAdmin) => chain.doFilter(request, response)
+      val account = httpRequest.getSession.getAttribute("LOGIN_ACCOUNT").asInstanceOf[Account]
+      if(account == null){
+        // Redirect to login form
+        httpResponse.sendRedirect(context + "/signin?" + path)
+      } else if(account.isAdmin){
+        // H2 Console (administrators only)
+        chain.doFilter(request, response)
+      } else {
+        // Redirect to dashboard
+        httpResponse.sendRedirect(context + "/")
       }
     } else if(path.startsWith("/git/")){
+      // Git repository
       chain.doFilter(request, response)
     } else {
+      // Scalatra actions
       super.doFilter(request, response, chain)
     }
   }

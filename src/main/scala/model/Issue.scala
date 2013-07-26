@@ -7,6 +7,11 @@ object IssueId extends Table[(String, String, Int)]("ISSUE_ID") with IssueTempla
   def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
 }
 
+object IssueOutline extends Table[(String, String, Int, Int)]("ISSUE_OUTLINE_VIEW") with IssueTemplate {
+  def commentCount = column[Int]("COMMENT_COUNT")
+  def * = userName ~ repositoryName ~ issueId ~ commentCount
+}
+
 object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTemplate {
   def openedUserName = column[String]("OPENED_USER_NAME")
   def assignedUserName = column[String]("ASSIGNED_USER_NAME")
