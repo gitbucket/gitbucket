@@ -115,8 +115,6 @@ trait CreateRepositoryControllerBase extends ControllerBase {
 
     if(getRepository(loginUserName, repository.name, baseUrl).isEmpty){
       // Insert to the database at first
-      // TODO Is private repository cloneable?
-
       val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
       val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
 
