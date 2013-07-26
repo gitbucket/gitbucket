@@ -1,7 +1,7 @@
 package app
 
 import util.Directory._
-import util.{JGitUtil, UsersAuthenticator, ReferrerAuthenticator}
+import util.{LockUtil, JGitUtil, UsersAuthenticator, ReferrerAuthenticator}
 import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
@@ -48,119 +48,125 @@ trait CreateRepositoryControllerBase extends ControllerBase {
    * Create new repository.
    */
   post("/new", newForm)(usersOnly { form =>
-    val ownerAccount  = getAccountByUserName(form.owner).get
-    val loginAccount  = context.loginAccount.get
-    val loginUserName = loginAccount.userName
+    LockUtil.lock(s"${form.owner}/${form.name}/create"){
+      if(getRepository(form.owner, form.name, baseUrl).isEmpty){
+        val ownerAccount  = getAccountByUserName(form.owner).get
+        val loginAccount  = context.loginAccount.get
+        val loginUserName = loginAccount.userName
 
-    // Insert to the database at first
-    createRepository(form.name, form.owner, form.description, form.isPrivate)
+        // Insert to the database at first
+        createRepository(form.name, form.owner, form.description, form.isPrivate)
 
-    // Add collaborators for group repository
-    if(ownerAccount.isGroupAccount){
-      getGroupMembers(form.owner).foreach { userName =>
-        addCollaborator(form.owner, form.name, userName)
+        // Add collaborators for group repository
+        if(ownerAccount.isGroupAccount){
+          getGroupMembers(form.owner).foreach { userName =>
+            addCollaborator(form.owner, form.name, userName)
+          }
+        }
+
+        // Insert default labels
+        insertDefaultLabels(loginUserName, form.name)
+
+        // Create the actual repository
+        val gitdir = getRepositoryDir(form.owner, form.name)
+        JGitUtil.initRepository(gitdir)
+
+        if(form.createReadme){
+          val tmpdir = getInitRepositoryDir(form.owner, form.name)
+          try {
+            // Clone the repository
+            Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
+
+            // Create README.md
+            FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
+              if(form.description.nonEmpty){
+                form.name + "\n" +
+                  "===============\n" +
+                  "\n" +
+                  form.description.get
+              } else {
+                form.name + "\n" +
+                  "===============\n"
+              }, "UTF-8")
+
+            val git = Git.open(tmpdir)
+            git.add.addFilepattern("README.md").call
+            git.commit
+              .setCommitter(new PersonIdent(loginUserName, loginAccount.mailAddress))
+              .setMessage("Initial commit").call
+            git.push.call
+
+          } finally {
+            FileUtils.deleteDirectory(tmpdir)
+          }
+        }
+
+        // Create Wiki repository
+        createWikiRepository(loginAccount, form.owner, form.name)
+
+        // Record activity
+        recordCreateRepositoryActivity(form.owner, form.name, loginUserName)
       }
+
+      // redirect to the repository
+      redirect(s"/${form.owner}/${form.name}")
     }
-
-    // Insert default labels
-    insertDefaultLabels(loginUserName, form.name)
-
-    // Create the actual repository
-    val gitdir = getRepositoryDir(form.owner, form.name)
-    JGitUtil.initRepository(gitdir)
-
-    if(form.createReadme){
-      val tmpdir = getInitRepositoryDir(form.owner, form.name)
-      try {
-        // Clone the repository
-        Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
-
-        // Create README.md
-        FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
-          if(form.description.nonEmpty){
-            form.name + "\n" +
-            "===============\n" +
-            "\n" +
-            form.description.get
-          } else {
-            form.name + "\n" +
-            "===============\n"
-          }, "UTF-8")
-
-        val git = Git.open(tmpdir)
-        git.add.addFilepattern("README.md").call
-        git.commit
-          .setCommitter(new PersonIdent(loginUserName, loginAccount.mailAddress))
-          .setMessage("Initial commit").call
-        git.push.call
-
-      } finally {
-        FileUtils.deleteDirectory(tmpdir)
-      }
-    }
-
-    // Create Wiki repository
-    createWikiRepository(loginAccount, form.owner, form.name)
-
-    // Record activity
-    recordCreateRepositoryActivity(form.owner, form.name, loginUserName)
-
-    // redirect to the repository
-    redirect(s"/${form.owner}/${form.name}")
   })
 
   post("/:owner/:repository/_fork")(referrersOnly { repository =>
     val loginAccount   = context.loginAccount.get
     val loginUserName  = loginAccount.userName
 
-    if(getRepository(loginUserName, repository.name, baseUrl).isEmpty){
-      // Insert to the database at first
-      val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
-      val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
+    LockUtil.lock(s"${loginUserName}/${repository.name}/create"){
+      if(getRepository(loginUserName, repository.name, baseUrl).isEmpty){
+        // Insert to the database at first
+        val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
+        val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
 
-      createRepository(
-        repositoryName       = repository.name,
-        userName             = loginUserName,
-        description          = repository.repository.description,
-        isPrivate            = repository.repository.isPrivate,
-        originRepositoryName = Some(originRepositoryName),
-        originUserName       = Some(originUserName),
-        parentRepositoryName = Some(repository.name),
-        parentUserName       = Some(repository.owner)
-      )
+        createRepository(
+          repositoryName       = repository.name,
+          userName             = loginUserName,
+          description          = repository.repository.description,
+          isPrivate            = repository.repository.isPrivate,
+          originRepositoryName = Some(originRepositoryName),
+          originUserName       = Some(originUserName),
+          parentRepositoryName = Some(repository.name),
+          parentUserName       = Some(repository.owner)
+        )
 
-      // Insert default labels
-      insertDefaultLabels(loginUserName, repository.name)
+        // Insert default labels
+        insertDefaultLabels(loginUserName, repository.name)
 
-      // clone repository actually
-      JGitUtil.cloneRepository(
-        getRepositoryDir(repository.owner, repository.name),
-        getRepositoryDir(loginUserName, repository.name))
+        // clone repository actually
+        JGitUtil.cloneRepository(
+          getRepositoryDir(repository.owner, repository.name),
+          getRepositoryDir(loginUserName, repository.name))
 
-      // Create Wiki repository
-      JGitUtil.cloneRepository(
-        getWikiRepositoryDir(repository.owner, repository.name),
-        getWikiRepositoryDir(loginUserName, repository.name))
+        // Create Wiki repository
+        JGitUtil.cloneRepository(
+          getWikiRepositoryDir(repository.owner, repository.name),
+          getWikiRepositoryDir(loginUserName, repository.name))
 
-      // insert commit id
-      JGitUtil.withGit(getRepositoryDir(loginUserName, repository.name)){ git =>
-        JGitUtil.getRepositoryInfo(loginUserName, repository.name, baseUrl).branchList.foreach { branch =>
-          JGitUtil.getCommitLog(git, branch) match {
-            case Right((commits, _)) => commits.foreach { commit =>
-              if(!existsCommitId(loginUserName, repository.name, commit.id)){
-                insertCommitId(loginUserName, repository.name, commit.id)
+        // insert commit id
+        JGitUtil.withGit(getRepositoryDir(loginUserName, repository.name)){ git =>
+          JGitUtil.getRepositoryInfo(loginUserName, repository.name, baseUrl).branchList.foreach { branch =>
+            JGitUtil.getCommitLog(git, branch) match {
+              case Right((commits, _)) => commits.foreach { commit =>
+                if(!existsCommitId(loginUserName, repository.name, commit.id)){
+                  insertCommitId(loginUserName, repository.name, commit.id)
+                }
               }
+              case Left(_) => ???
             }
-            case Left(_) => ???
           }
         }
-      }
 
-      // Record activity
-      recordForkActivity(repository.owner, repository.name, loginUserName)
+        // Record activity
+        recordForkActivity(repository.owner, repository.name, loginUserName)
+      }
+      // redirect to the repository
+      redirect("/%s/%s".format(loginUserName, repository.name))
     }
-    // redirect to the repository
-    redirect("/%s/%s".format(loginUserName, repository.name))
   })
 
   private def insertDefaultLabels(userName: String, repositoryName: String): Unit = {

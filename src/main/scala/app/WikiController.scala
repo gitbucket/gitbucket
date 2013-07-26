@@ -105,9 +105,10 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly { repository =>
-      val pageName = StringUtil.urlDecode(params("page"))
+    val pageName = StringUtil.urlDecode(params("page"))
+    val account  = context.loginAccount.get
     
-    deleteWikiPage(repository.owner, repository.name, pageName, context.loginAccount.get.userName, s"Delete ${pageName}")
+    deleteWikiPage(repository.owner, repository.name, pageName, account.userName, account.mailAddress, s"Delete ${pageName}")
     updateLastActivityDate(repository.owner, repository.name)
 
     redirect(s"/${repository.owner}/${repository.name}/wiki")

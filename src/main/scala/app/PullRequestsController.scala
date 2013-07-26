@@ -1,6 +1,6 @@
 package app
 
-import util.{CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator}
+import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator}
 import util.Directory._
 import util.Implicits._
 import util.JGitUtil.{DiffInfo, CommitInfo}
@@ -82,77 +82,85 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/pulls/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
-    val issueId = params("id").toInt
+    LockUtil.lock(s"${repository.owner}/${repository.name}/merge"){
+      val issueId = params("id").toInt
 
-    getPullRequest(repository.owner, repository.name, issueId).map { case (issue, pullreq) =>
-      val remote = getRepositoryDir(repository.owner, repository.name)
-      val tmpdir = new java.io.File(getTemporaryDir(repository.owner, repository.name), s"merge-${issueId}")
+      getPullRequest(repository.owner, repository.name, issueId).map { case (issue, pullreq) =>
+        val remote = getRepositoryDir(repository.owner, repository.name)
+        val tmpdir = new java.io.File(getTemporaryDir(repository.owner, repository.name), s"merge-${issueId}")
+        val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+
+        try {
+          // TODO mark issue as 'merged'
+          val loginAccount = context.loginAccount.get
+          createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Closed", "close")
+          updateClosed(repository.owner, repository.name, issueId, true)
+          recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
+
+          git.checkout.setName(pullreq.branch).call
+
+          git.fetch
+            .setRemote(getRepositoryDir(repository.owner, repository.name).toURI.toString)
+            .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/${pullreq.branch}")).call
+
+          val result = git.merge
+            .include(git.getRepository.resolve("FETCH_HEAD"))
+            .setCommit(false).call
+
+          if(result.getConflicts != null){
+            throw new RuntimeException("This pull request can't merge automatically.")
+          }
+
+          // TODO merge commit
+  //        git.commit
+  //          .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
+  //          .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
+  //                     + form.message).call
+          git.push.call
+
+          val (commits, _) = getRequestCompareInfo(repository.owner, repository.name, pullreq.commitIdFrom,
+            pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
+
+          commits.flatten.foreach { commit =>
+            insertCommitId(repository.owner, repository.name, commit.id)
+          }
+
+          redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
+
+        } finally {
+          git.getRepository.close
+          FileUtils.deleteDirectory(tmpdir)
+        }
+      } getOrElse NotFound
+    }
+  })
+
+  private def checkConflict(userName: String, repositoryName: String, branch: String,
+                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
+    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
+      val remote = getRepositoryDir(userName, repositoryName)
+      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
       val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
-
       try {
-        // TODO mark issue as 'merged'
-        val loginAccount = context.loginAccount.get
-        createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Closed", "close")
-        updateClosed(repository.owner, repository.name, issueId, true)
-        recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
-
-        git.checkout.setName(pullreq.branch).call
+        if(tmpdir.exists()){
+          FileUtils.deleteDirectory(tmpdir)
+        }
+        git.checkout.setName(branch).call
 
         git.fetch
-          .setRemote(getRepositoryDir(repository.owner, repository.name).toURI.toString)
-          .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/${pullreq.branch}")).call
+          .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
+          .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
 
         val result = git.merge
           .include(git.getRepository.resolve("FETCH_HEAD"))
           .setCommit(false).call
 
-        if(result.getConflicts != null){
-          throw new RuntimeException("This pull request can't merge automatically.")
-        }
-
-//        git.commit
-//          .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
-//          .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
-//                     + form.message).call
-        git.push.call
-
-        val (commits, _) = getRequestCompareInfo(repository.owner, repository.name, pullreq.commitIdFrom,
-          pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
-
-        commits.flatten.foreach { commit =>
-          insertCommitId(repository.owner, repository.name, commit.id)
-        }
-
-        redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
+        result.getConflicts != null
 
       } finally {
         git.getRepository.close
         FileUtils.deleteDirectory(tmpdir)
       }
-    } getOrElse NotFound
-  })
-
-  private def checkConflict(userName: String, repositoryName: String, branch: String,
-                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-    val remote = getRepositoryDir(userName, repositoryName)
-    val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
-    val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
-    try {
-      git.checkout.setName(branch).call
-
-      git.fetch
-        .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
-        .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
-
-      val result = git.merge
-        .include(git.getRepository.resolve("FETCH_HEAD"))
-        .setCommit(false).call
-
-      result.getConflicts != null
-
-    } finally {
-      git.getRepository.close
-      FileUtils.deleteDirectory(tmpdir)
     }
   }
 
