@@ -23,9 +23,10 @@ trait PullRequestsControllerBase extends ControllerBase {
   val pullRequestForm = mapping(
     "title"           -> trim(label("Title"  , text(required, maxlength(100)))),
     "content"         -> trim(label("Content", optional(text()))),
-    "branch"          -> trim(text(required, maxlength(100))),
+    "targetUserName"  -> trim(text(required, maxlength(100))),
+    "targetBranch"    -> trim(text(required, maxlength(100))),
     "requestUserName" -> trim(text(required, maxlength(100))),
-    "requestCommitId" -> trim(text(required, maxlength(100))),
+    "requestBranch"   -> trim(text(required, maxlength(100))),
     "commitIdFrom"    -> trim(text(required, maxlength(40))),
     "commitIdTo"      -> trim(text(required, maxlength(40)))
   )(PullRequestForm.apply)
@@ -37,7 +38,8 @@ trait PullRequestsControllerBase extends ControllerBase {
   case class PullRequestForm(
     title: String,
     content: Option[String],
-    branch: String,
+    targetUserName: String,
+    targetBranch: String,
     requestUserName: String,
     requestBranch: String,
     commitIdFrom: String,
@@ -123,7 +125,9 @@ trait PullRequestsControllerBase extends ControllerBase {
             pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
 
           commits.flatten.foreach { commit =>
-            insertCommitId(repository.owner, repository.name, commit.id)
+            if(!existsCommitId(repository.owner, repository.name, commit.id)){
+              insertCommitId(repository.owner, repository.name, commit.id)
+            }
           }
 
           redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
@@ -136,6 +140,10 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
+  /**
+   * Checks whether conflict will be caused in merging.
+   * Returns true if conflict will be caused.
+   */
   private def checkConflict(userName: String, repositoryName: String, branch: String,
                             requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
 // TODO Are there more quick way?
@@ -165,7 +173,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 //        FileUtils.deleteDirectory(tmpdir)
 //      }
 //    }
-    true
+    false
   }
 
   get("/:owner/:repository/pulls/compare")(collaboratorsOnly { forkedRepository =>
@@ -191,14 +199,6 @@ trait PullRequestsControllerBase extends ControllerBase {
       }
     }
   })
-
-  private def parseCompareIdentifie(value: String, defaultOwner: String): (String, String) =
-    if(value.contains(':')){
-      val array = value.split(":")
-      (array(0), array(1))
-    } else {
-      (defaultOwner, value)
-    }
 
   get("/:owner/:repository/pulls/compare/*...*")(collaboratorsOnly { repository =>
     val Seq(origin, forked) = multiParams("splat")
@@ -246,9 +246,6 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  private def getRepositoryNames(node: RepositoryTreeNode): List[String] =
-    node.owner :: node.children.map { child => getRepositoryNames(child) }.flatten
-
   post("/:owner/:repository/pulls/new", pullRequestForm)(referrersOnly { (form, repository) =>
     val loginUserName = context.loginAccount.get.userName
 
@@ -264,7 +261,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       repository.owner,
       repository.name,
       issueId,
-      form.branch,
+      form.targetBranch,
       form.requestUserName,
       repository.name,
       form.requestBranch,
@@ -284,6 +281,9 @@ trait PullRequestsControllerBase extends ControllerBase {
     redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
   })
 
+  /**
+   * Handles w Git object simultaneously.
+   */
   private def withGit[T](oldDir: java.io.File, newDir: java.io.File)(action: (Git, Git) => T): T = {
     val oldGit = Git.open(oldDir)
     val newGit = Git.open(newDir)
@@ -295,6 +295,29 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   }
 
+  /**
+   * Parses branch identifier and extracts owner and branch name as tuple.
+   *
+   * - "owner:branch" to ("owner", "branch")
+   * - "branch" to ("defaultOwner", "branch")
+   */
+  private def parseCompareIdentifie(value: String, defaultOwner: String): (String, String) =
+    if(value.contains(':')){
+      val array = value.split(":")
+      (array(0), array(1))
+    } else {
+      (defaultOwner, value)
+    }
+
+  /**
+   * Extracts all repository names from [[service.RepositoryService.RepositoryTreeNode]] as flat list.
+   */
+  private def getRepositoryNames(node: RepositoryTreeNode): List[String] =
+    node.owner :: node.children.map { child => getRepositoryNames(child) }.flatten
+
+  /**
+   * Returns the identifier of the root commit (or latest merge commit) of the specified branch.
+   */
   private def getForkedCommitId(oldGit: Git, newGit: Git, userName: String, repositoryName: String, branch: String,
       requestUserName: String, requestRepositoryName: String, requestBranch: String): String =
     JGitUtil.getCommitLogs(newGit, requestBranch, true){ commit =>
