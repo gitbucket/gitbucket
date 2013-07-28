@@ -11,6 +11,8 @@ import org.eclipse.jgit.transport.RefSpec
 import org.apache.commons.io.FileUtils
 import scala.collection.JavaConverters._
 import service.RepositoryService.RepositoryTreeNode
+import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.api.MergeCommand.FastForwardMode
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
@@ -108,17 +110,18 @@ trait PullRequestsControllerBase extends ControllerBase {
 
           val result = git.merge
             .include(git.getRepository.resolve("FETCH_HEAD"))
-            .setCommit(false).call
+            .setFastForward(FastForwardMode.NO_FF)
+            .setCommit(true).call
 
           if(result.getConflicts != null){
             throw new RuntimeException("This pull request can't merge automatically.")
           }
 
           // TODO merge commit
-  //        git.commit
-  //          .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
-  //          .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
-  //                     + form.message).call
+//          git.commit
+//            .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
+//            .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
+//                       + form.message).call
           git.push.call
 
           val (commits, _) = getRequestCompareInfo(repository.owner, repository.name, pullreq.commitIdFrom,
