@@ -38,48 +38,28 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
   
   /**
-   * Displays the file list of the repository root and the specified branch.
-   */
-  get("/:owner/:repository/tree/:id")(referrersOnly {
-    fileList(_, params("id"))
-  })
-  
-  /**
    * Displays the file list of the specified path and branch.
    */
-  get("/:owner/:repository/tree/:id/*")(referrersOnly {
-    fileList(_, params("id"), multiParams("splat").head)
-  })
-  
-  /**
-   * Displays the commit list of the specified branch.
-   */
-  get("/:owner/:repository/commits/:branch")(referrersOnly { repository =>
-    val branchName = params("branch")
-    val page       = params.getOrElse("page", "1").toInt
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-      JGitUtil.getCommitLog(git, branchName, page, 30) match {
-        case Right((logs, hasNext)) =>
-          repo.html.commits(Nil, branchName, repository, logs.splitWith{ (commit1, commit2) =>
-            view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-          }, page, hasNext)
-        case Left(_) => NotFound
-      }
+  get("/:owner/:repository/tree/*")(referrersOnly { repository =>
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+    if(path.isEmpty){
+      fileList(repository, id)
+    } else {
+      fileList(repository, id, path)
     }
   })
   
   /**
    * Displays the commit list of the specified resource.
    */
-  get("/:owner/:repository/commits/:branch/*")(referrersOnly { repository =>
-    val branchName = params("branch")
-    val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
-    val page       = params.getOrElse("page", "1").toInt
+  get("/:owner/:repository/commits/*")(referrersOnly { repository =>
+    val (branchName, path) = splitPath(repository, multiParams("splat").head)
+    val page = params.getOrElse("page", "1").toInt
 
     JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
       JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
         case Right((logs, hasNext)) =>
-          repo.html.commits(path.split("/").toList, branchName, repository,
+          repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
             }, page, hasNext)
@@ -88,13 +68,23 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
+  private def splitPath(repository: service.RepositoryService.RepositoryInfo, path: String): (String, String) = {
+    val id = repository.branchList.collectFirst {
+      case branch if(path == branch || path.startsWith(branch + "/")) => branch
+    } orElse repository.tags.collectFirst {
+      case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
+    } orElse Some(path) get
+
+    (id, path.substring(id.length).replaceFirst("^/", ""))
+  }
+
+
   /**
    * Displays the file content of the specified branch or commit.
    */
-  get("/:owner/:repository/blob/:id/*")(referrersOnly { repository =>
-    val id         = params("id") // branch name or commit id
-    val raw        = params.get("raw").getOrElse("false").toBoolean
-    val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
+  get("/:owner/:repository/blob/*")(referrersOnly { repository =>
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+    val raw = params.get("raw").getOrElse("false").toBoolean
 
     JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
