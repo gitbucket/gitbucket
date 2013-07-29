@@ -68,17 +68,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  private def splitPath(repository: service.RepositoryService.RepositoryInfo, path: String): (String, String) = {
-    val id = repository.branchList.collectFirst {
-      case branch if(path == branch || path.startsWith(branch + "/")) => branch
-    } orElse repository.tags.collectFirst {
-      case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
-    } orElse Some(path) get
-
-    (id, path.substring(id.length).replaceFirst("^/", ""))
-  }
-
-
   /**
    * Displays the file content of the specified branch or commit.
    */
@@ -192,7 +181,17 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       BadRequest
     }
   })
-  
+
+  private def splitPath(repository: service.RepositoryService.RepositoryInfo, path: String): (String, String) = {
+    val id = repository.branchList.collectFirst {
+      case branch if(path == branch || path.startsWith(branch + "/")) => branch
+    } orElse repository.tags.collectFirst {
+      case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
+    } orElse Some(path) get
+
+    (id, path.substring(id.length).replaceFirst("^/", ""))
+  }
+
   /**
    * Provides HTML of the file list.
    * 
