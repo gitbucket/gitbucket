@@ -33,7 +33,7 @@ trait DashboardControllerBase extends ControllerBase {
 
     session.put(sessionKey, condition)
 
-    val repositories = getAccessibleRepositories(context.loginAccount, baseUrl)
+    val repositories = getUserRepositories(context.loginAccount.get.userName, baseUrl)
     // 
     dashboard.html.issues(
         issues.html.listparts(Nil, 0, 0, 0, condition),
