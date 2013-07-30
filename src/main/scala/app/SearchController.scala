@@ -22,7 +22,7 @@ trait SearchControllerBase extends ControllerBase { self: RepositoryService
   case class SearchForm(query: String, owner: String, repository: String)
 
   post("/search", searchForm){ form =>
-    redirect(s"${form.owner}/${form.repository}/search?q=${StringUtil.urlEncode(form.query)}")
+    redirect(s"/${form.owner}/${form.repository}/search?q=${StringUtil.urlEncode(form.query)}")
   }
 
   get("/:owner/:repository/search")(referrersOnly { repository =>
