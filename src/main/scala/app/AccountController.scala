@@ -58,7 +58,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
         case _ =>
           _root_.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
+            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)))
       }
     } getOrElse NotFound
   }
