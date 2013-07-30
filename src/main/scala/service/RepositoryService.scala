@@ -90,8 +90,7 @@ trait RepositoryService { self: AccountService =>
    * @return the repository information which is sorted in descending order of lastActivityDate.
    */
   def getVisibleRepositories(loginAccount: Option[Account], baseUrl: String, repositoryUserName: Option[String] = None): List[RepositoryInfo] = {
-
-    val query = loginAccount match {
+    (loginAccount match {
       // for Administrators
       case Some(x) if(x.isAdmin) => Query(Repositories)
       // for Normal Users
@@ -101,11 +100,9 @@ trait RepositoryService { self: AccountService =>
         }
       // for Guests
       case None => Query(Repositories) filter(_.isPrivate is false.bind)
-    }
-
-    val filtered = repositoryUserName.map { userName => query.filter(_.userName is userName.bind) } getOrElse query
-
-    filtered.sortBy(_.lastActivityDate desc).list.map{ repository =>
+    }).filter { t =>
+      repositoryUserName.map { userName => t.userName is userName.bind } getOrElse ConstColumn.TRUE
+    }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl), repository)
     }
   }
