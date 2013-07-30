@@ -2,7 +2,7 @@
   allCount: Int,
   assignedCount: Int,
   createdByCount: Int,
-  repositories: List[(String, String)],
+  repositories: List[(String, String, Int)],
   condition: service.IssuesService.IssueSearchCondition,
   filter: String)(implicit context: app.Context)
 @import context._
@@ -33,10 +33,10 @@
     </ul>
     <hr/>
     <ul class="nav nav-pills nav-stacked small">
-      @repositories.map { case (owner, name) =>
-      <li>
+      @repositories.map { case (owner, name, count) =>
+      <li@if(condition.repo == Some(owner + "/" + name)){ class="active"}>
         <a href="@condition.copy(repo = Some(owner + "/" + name)).toURL">
-          <span class="count-right">0</span>
+          <span class="count-right">@count</span>
           @owner/@name
         </a>
       </li>

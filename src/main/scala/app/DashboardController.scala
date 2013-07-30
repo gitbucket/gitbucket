@@ -48,7 +48,7 @@ trait DashboardControllerBase extends ControllerBase {
         countIssue(condition, Map.empty, repositories: _*),
         countIssue(condition, Map("assigned" -> userName), repositories: _*),
         countIssue(condition, Map("created_by" -> userName), repositories: _*),
-        repositories,
+        countIssueGroupByRepository(condition, filterUser, repositories: _*),
         condition,
         filter)    
     

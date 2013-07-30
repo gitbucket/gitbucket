@@ -80,6 +80,27 @@ trait IssuesService {
       }
       .toMap
   }
+  /**
+   * Returns list which contains issue count for each repository.
+   * If the issue does not exist, its repository is not included in the result.
+   *
+   * @param condition the search condition
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param repos Tuple of the repository owner and the repository name
+   * @return list which contains issue count for each repository
+   */
+  def countIssueGroupByRepository(condition: IssueSearchCondition, filterUser: Map[String, String],
+                              repos: (String, String)*): List[(String, String, Int)] = {
+    searchIssueQuery(repos, condition.copy(repo = None), filterUser)
+      .groupBy { t =>
+        t.userName ~ t.repositoryName
+      }
+      .map { case (repo, t) =>
+        repo ~ t.length
+      }
+      .filter (_._3 > 0.bind)
+      .list
+  }
 
   /**
    * Returns the search result against  issues.
@@ -133,7 +154,10 @@ trait IssuesService {
    */
   private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition, filterUser: Map[String, String]) =
     Query(Issues) filter { t1 =>
-      (repos.map { case (owner, repository) => t1.byRepository(owner, repository) } reduceLeft ( _ || _ ) ) &&
+      (condition.repo
+          .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
+          .getOrElse (repos)
+          .map { case (owner, repository) => t1.byRepository(owner, repository) } reduceLeft ( _ || _ ) ) &&
       (t1.closed           is (condition.state == "closed").bind) &&
       (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
