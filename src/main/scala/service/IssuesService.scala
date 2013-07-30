@@ -138,7 +138,11 @@ trait IssuesService {
         }
         .drop(offset).take(limit)
         .list
-        .splitWith(_._1.issueId == _._1.issueId)
+        .splitWith { (c1, c2) =>
+          c1._1.userName == c2._1.userName &&
+          c1._1.repositoryName == c2._1.repositoryName &&
+          c1._1.issueId == c2._1.issueId
+        }
         .map { issues => issues.head match {
           case (issue, commentCount, _,_,_) =>
             (issue,
