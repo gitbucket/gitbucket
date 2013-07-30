@@ -97,6 +97,13 @@
   <servlet-mapping>
     <servlet-name>H2Console</servlet-name>
     <url-pattern>/console/*</url-pattern>
-  </servlet-mapping>  
-  
+  </servlet-mapping>
+
+  <!-- ===================================================================== -->
+  <!-- Session timeout -->
+  <!-- ===================================================================== -->
+  <session-config>
+    <session-timeout>1440</session-timeout>
+  </session-config>
+
 </web-app>
