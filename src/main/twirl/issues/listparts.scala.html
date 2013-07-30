@@ -146,7 +146,7 @@
               <input type="checkbox" value="@issue.issueId"/>
             }
               @if(repository.isEmpty){
-              <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;&nbsp;
+              <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
               }
               <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
               @labels.map { label =>
