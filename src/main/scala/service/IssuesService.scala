@@ -158,10 +158,11 @@ trait IssuesService {
    */
   private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition, filterUser: Map[String, String]) =
     Query(Issues) filter { t1 =>
-      (condition.repo
+      condition.repo
           .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
           .getOrElse (repos)
-          .map { case (owner, repository) => t1.byRepository(owner, repository) } reduceLeft ( _ || _ ) ) &&
+          .map { case (owner, repository) => t1.byRepository(owner, repository) }
+          .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           is (condition.state == "closed").bind) &&
       (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
