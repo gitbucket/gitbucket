@@ -132,15 +132,18 @@ object JGitUtil {
   }
   
   /**
-   * Returns RevCommit from the commit id.
+   * Returns RevCommit from the commit or tag id.
    * 
    * @param git the Git object
-   * @param commitId the ObjectId of the commit
-   * @return the RevCommit for the specified commit
+   * @param objectId the ObjectId of the commit or tag
+   * @return the RevCommit for the specified commit or tag
    */
-  def getRevCommitFromId(git: Git, commitId: ObjectId): RevCommit = {
+  def getRevCommitFromId(git: Git, objectId: ObjectId): RevCommit = {
     val revWalk = new RevWalk(git.getRepository)
-    val revCommit = revWalk.parseCommit(commitId)
+    val revCommit = revWalk.parseAny(objectId) match {
+      case r: RevTag => revWalk.parseCommit(r.getObject)
+      case _ => revWalk.parseCommit(objectId)
+    }
     revWalk.dispose
     revCommit
   }
@@ -348,7 +351,7 @@ object JGitUtil {
    * @return the list of latest commit
    */
   def getLatestCommitFromPaths(git: Git, paths: List[String], revision: String): Map[String, RevCommit] = {
-    val start = git.getRepository.resolve(revision)
+    val start = getRevCommitFromId(git, git.getRepository.resolve(revision))
     paths.map { path =>
       val commit = git.log.add(start).addPath(path).setMaxCount(1).call.iterator.next
       (path, commit)
