@@ -12,8 +12,13 @@ trait AvatarImageProvider { self: RequestCache =>
    */
   protected def getAvatarImageHtml(userName: String, size: Int,
       mailAddress: String = "", tooltip: Boolean = false)(implicit context: app.Context): Html = {
-    val src = getAccountByUserName(userName).collect { case account if(account.image.isEmpty) =>
-      s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
+
+    val src = getAccountByUserName(userName).map { account =>
+      if(account.image.isEmpty){
+        s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
+      } else {
+        s"""${context.path}/${userName}/_avatar"""
+      }
     } getOrElse {
       if(mailAddress.nonEmpty){
         s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress)}?s=${size}"""

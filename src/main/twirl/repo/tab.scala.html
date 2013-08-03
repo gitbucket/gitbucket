@@ -26,9 +26,9 @@
     </div>
   </li>
   }
-  <li@if(active=="files"){ class="active"}><a href="@url(repository)/tree/@id">Files</a></li>
+  <li@if(active=="files"  ){ class="active"}><a href="@url(repository)/tree/@id">Files</a></li>
   <li@if(active=="commits"){ class="active"}><a href="@url(repository)/commits/@id">Commits</a></li>
-  <li@if(active=="tags"){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
+  <li@if(active=="tags"   ){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
   <li class="pull-right">
     <div class="input-append">
       <input type="text" value="@repository.url" id="repository-url" readonly>

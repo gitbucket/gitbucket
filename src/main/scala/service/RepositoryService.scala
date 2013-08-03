@@ -62,45 +62,6 @@ trait RepositoryService { self: AccountService =>
     Query(Repositories) filter(_.userName is userName.bind) map (_.repositoryName) list
 
   /**
-   * Returns the list of specified user's repositories information.
-   *
-   * @param userName the user name
-   * @param baseUrl the base url of this application
-   * @param loginUserName the logged in user name
-   * @return the list of repository information which is sorted in descending order of lastActivityDate.
-   */
-  def getVisibleRepositories(userName: String, baseUrl: String, loginUserName: Option[String]): List[RepositoryInfo] = {
-    val q1 = Repositories
-      .filter { t => t.userName is userName.bind }
-      .map    { r => r }
-
-    val q2 = Collaborators
-      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter{ case (t1, t2) => t1.collaboratorName is userName.bind}
-      .map   { case (t1, t2) => t2 }
-
-    def visibleFor(t: Repositories.type, loginUserName: Option[String]) = {
-      loginUserName match {
-        case Some(x) => (t.isPrivate is false.bind) || (
-          (t.isPrivate is true.bind) && ((t.userName is x.bind) || (Collaborators.filter { c =>
-            c.byRepository(t.userName, t.repositoryName) && (c.collaboratorName is x.bind)
-          }.exists)))
-        case None    => (t.isPrivate is false.bind)
-      }
-    }
-
-    q1.union(q2).filter(visibleFor(_, loginUserName)).sortBy(_.lastActivityDate desc).list map { repository =>
-      new RepositoryInfo(
-        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
-        repository,
-        getForkedCount(
-          repository.originUserName.getOrElse(repository.userName),
-          repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ))
-    }
-  }
-
-  /**
    * Returns the specified repository information.
    * 
    * @param userName the user name of the repository owner
@@ -120,16 +81,11 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
-  /**
-   * Returns the list of accessible repositories information for the specified account user.
-   * 
-   * @param account the account
-   * @param baseUrl the base url of this application
-   * @return the repository informations which is sorted in descending order of lastActivityDate.
-   */
-  def getAccessibleRepositories(account: Option[Account], baseUrl: String): List[RepositoryInfo] = {
-
-    def newRepositoryInfo(repository: Repository): RepositoryInfo = {
+  def getUserRepositories(userName: String, baseUrl: String): List[RepositoryInfo] = {
+    Query(Repositories).filter { t1 =>
+      (t1.userName is userName.bind) ||
+        (Query(Collaborators).filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName is userName.bind)} exists)
+    }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
         JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
         repository,
@@ -138,18 +94,39 @@ trait RepositoryService { self: AccountService =>
           repository.originRepositoryName.getOrElse(repository.repositoryName)
         ))
     }
+  }
 
-    (account match {
+  /**
+   * Returns the list of visible repositories for the specified user.
+   * If repositoryUserName is given then filters results by repository owner.
+   *
+   * @param loginAccount the logged in account
+   * @param baseUrl the base url of this application
+   * @param repositoryUserName the repository owner (if None then returns all repositories which are visible for logged in user)
+   * @return the repository information which is sorted in descending order of lastActivityDate.
+   */
+  def getVisibleRepositories(loginAccount: Option[Account], baseUrl: String, repositoryUserName: Option[String] = None): List[RepositoryInfo] = {
+    (loginAccount match {
       // for Administrators
       case Some(x) if(x.isAdmin) => Query(Repositories)
       // for Normal Users
       case Some(x) if(!x.isAdmin) =>
         Query(Repositories) filter { t => (t.isPrivate is false.bind) ||
-          (Query(Collaborators).filter(t2 => t2.byRepository(t.userName, t.repositoryName) && (t2.collaboratorName is x.userName.bind)) exists)
+          (Query(Collaborators).filter { t2 => t2.byRepository(t.userName, t.repositoryName) && (t2.collaboratorName is x.userName.bind)} exists)
         }
       // for Guests
       case None => Query(Repositories) filter(_.isPrivate is false.bind)
-    }).sortBy(_.lastActivityDate desc).list.map(newRepositoryInfo _)
+    }).filter { t =>
+      repositoryUserName.map { userName => t.userName is userName.bind } getOrElse ConstColumn.TRUE
+    }.sortBy(_.lastActivityDate desc).list.map{ repository =>
+      new RepositoryInfo(
+        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
+        repository,
+        getForkedCount(
+          repository.originUserName.getOrElse(repository.userName),
+          repository.originRepositoryName.getOrElse(repository.repositoryName)
+        ))
+    }
   }
 
   /**

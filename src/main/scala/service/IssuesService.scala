@@ -42,18 +42,16 @@ trait IssuesService {
   /**
    * Returns the count of the search result against  issues.
    *
-   * @param owner the repository owner
-   * @param repository the repository name
    * @param condition the search condition
-   * @param filter the filter type ("all", "assigned" or "created_by")
-   * @param userName the filter user name required for "assigned" and "created_by"
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param repos Tuple of the repository owner and the repository name
    * @return the count of the search result
    */
-  def countIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]): Int = {
+  def countIssue(condition: IssueSearchCondition, filterUser: Map[String, String], repos: (String, String)*): Int = {
     // TODO It must be _.length instead of map (_.issueId) list).length.
     //       But it does not work on Slick 1.0.1 (worked on Slick 1.0.0).
     //       https://github.com/slick/slick/issues/170
-    (searchIssueQuery(owner, repository, condition, filter, userName) map (_.issueId) list).length
+    (searchIssueQuery(repos, condition, filterUser) map (_.issueId) list).length
   }
   /**
    * Returns the Map which contains issue count for each labels.
@@ -61,14 +59,13 @@ trait IssuesService {
    * @param owner the repository owner
    * @param repository the repository name
    * @param condition the search condition
-   * @param filter the filter type ("all", "assigned" or "created_by")
-   * @param userName the filter user name required for "assigned" and "created_by"
-   * @return the Map which contains issue count for each labels (key is label name, value is issue count),
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @return the Map which contains issue count for each labels (key is label name, value is issue count)
    */
   def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
-                              filter: String, userName: Option[String]): Map[String, Int] = {
+                              filterUser: Map[String, String]): Map[String, Int] = {
 
-    searchIssueQuery(owner, repository, condition.copy(labels = Set.empty), filter, userName)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), filterUser)
       .innerJoin(IssueLabels).on { (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
@@ -83,24 +80,43 @@ trait IssuesService {
       }
       .toMap
   }
+  /**
+   * Returns list which contains issue count for each repository.
+   * If the issue does not exist, its repository is not included in the result.
+   *
+   * @param condition the search condition
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param repos Tuple of the repository owner and the repository name
+   * @return list which contains issue count for each repository
+   */
+  def countIssueGroupByRepository(condition: IssueSearchCondition, filterUser: Map[String, String],
+                              repos: (String, String)*): List[(String, String, Int)] = {
+    searchIssueQuery(repos, condition.copy(repo = None), filterUser)
+      .groupBy { t =>
+        t.userName ~ t.repositoryName
+      }
+      .map { case (repo, t) =>
+        repo ~ t.length
+      }
+      .filter (_._3 > 0.bind)
+      .list
+  }
 
   /**
    * Returns the search result against  issues.
    *
-   * @param owner the repository owner
-   * @param repository the repository name
    * @param condition the search condition
-   * @param filter the filter type ("all", "assigned" or "created_by")
-   * @param userName the filter user name required for "assigned" and "created_by"
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
    * @param offset the offset for pagination
    * @param limit the limit for pagination
+   * @param repos Tuple of the repository owner and the repository name
    * @return the search result (list of tuples which contain issue, labels and comment count)
    */
-  def searchIssue(owner: String, repository: String, condition: IssueSearchCondition,
-                  filter: String, userName: Option[String], offset: Int, limit: Int): List[(Issue, List[Label], Int)] = {
+  def searchIssue(condition: IssueSearchCondition, filterUser: Map[String, String],
+                  offset: Int, limit: Int, repos: (String, String)*): List[(Issue, List[Label], Int)] = {
 
     // get issues and comment count and labels
-    searchIssueQuery(owner, repository, condition, filter, userName)
+    searchIssueQuery(repos, condition, filterUser)
         .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
         .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
         .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
@@ -122,7 +138,11 @@ trait IssuesService {
         }
         .drop(offset).take(limit)
         .list
-        .splitWith(_._1.issueId == _._1.issueId)
+        .splitWith { (c1, c2) =>
+          c1._1.userName == c2._1.userName &&
+          c1._1.repositoryName == c2._1.repositoryName &&
+          c1._1.issueId == c2._1.issueId
+        }
         .map { issues => issues.head match {
           case (issue, commentCount, _,_,_) =>
             (issue,
@@ -136,14 +156,18 @@ trait IssuesService {
   /**
    * Assembles query for conditional issue searching.
    */
-  private def searchIssueQuery(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
+  private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition, filterUser: Map[String, String]) =
     Query(Issues) filter { t1 =>
-      (t1.byRepository(owner, repository)) &&
+      condition.repo
+          .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
+          .getOrElse (repos)
+          .map { case (owner, repository) => t1.byRepository(owner, repository) }
+          .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           is (condition.state == "closed").bind) &&
       (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
-      (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
-      (t1.openedUserName   is userName.get.bind, filter == "created_by") &&
+      (t1.assignedUserName is filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
+      (t1.openedUserName   is filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
         (t2.labelId in
@@ -329,6 +353,13 @@ object IssuesService {
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))
+
+    def page(request: HttpServletRequest) = try {
+      val i = param(request, "page").getOrElse("1").toInt
+      if(i <= 0) 1 else i
+    } catch {
+      case e: NumberFormatException => 1
+    }
   }
 
 }

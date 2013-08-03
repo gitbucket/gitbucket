@@ -301,15 +301,9 @@ trait IssuesControllerBase extends ControllerBase {
   private def searchIssues(filter: String, repository: RepositoryService.RepositoryInfo) = {
     val owner      = repository.owner
     val repoName   = repository.name
-    val userName   = if(filter != "all") Some(params("userName")) else None
+    val filterUser = Map(filter -> params.getOrElse("userName", ""))
+    val page = IssueSearchCondition.page(request)
     val sessionKey = s"${owner}/${repoName}/issues"
-
-    val page = try {
-      val i = params.getOrElse("page", "1").toInt
-      if(i <= 0) 1 else i
-    } catch {
-      case e: NumberFormatException => 1
-    }
 
     // retrieve search condition
     val condition = if(request.getQueryString == null){
@@ -319,17 +313,17 @@ trait IssuesControllerBase extends ControllerBase {
     session.put(sessionKey, condition)
 
     issues.html.list(
-        searchIssue(owner, repoName, condition, filter, userName, (page - 1) * IssueLimit, IssueLimit),
+        searchIssue(condition, filterUser, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
         page,
         (getCollaborators(owner, repoName) :+ owner).sorted,
         getMilestones(owner, repoName),
         getLabels(owner, repoName),
-        countIssue(owner, repoName, condition.copy(state = "open"), filter, userName),
-        countIssue(owner, repoName, condition.copy(state = "closed"), filter, userName),
-        countIssue(owner, repoName, condition, "all", None),
-        context.loginAccount.map(x => countIssue(owner, repoName, condition, "assigned", Some(x.userName))),
-        context.loginAccount.map(x => countIssue(owner, repoName, condition, "created_by", Some(x.userName))),
-        countIssueGroupByLabels(owner, repoName, condition, filter, userName),
+        countIssue(condition.copy(state = "open"), filterUser, owner -> repoName),
+        countIssue(condition.copy(state = "closed"), filterUser, owner -> repoName),
+        countIssue(condition, Map.empty, owner -> repoName),
+        context.loginAccount.map(x => countIssue(condition, Map("assigned" -> x.userName), owner -> repoName)),
+        context.loginAccount.map(x => countIssue(condition, Map("created_by" -> x.userName), owner -> repoName)),
+        countIssueGroupByLabels(owner, repoName, condition, filterUser),
         condition,
         filter,
         repository,

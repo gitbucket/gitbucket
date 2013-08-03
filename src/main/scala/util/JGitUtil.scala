@@ -133,15 +133,18 @@ object JGitUtil {
   }
   
   /**
-   * Returns RevCommit from the commit id.
+   * Returns RevCommit from the commit or tag id.
    * 
    * @param git the Git object
-   * @param commitId the ObjectId of the commit
-   * @return the RevCommit for the specified commit
+   * @param objectId the ObjectId of the commit or tag
+   * @return the RevCommit for the specified commit or tag
    */
-  def getRevCommitFromId(git: Git, commitId: ObjectId): RevCommit = {
+  def getRevCommitFromId(git: Git, objectId: ObjectId): RevCommit = {
     val revWalk = new RevWalk(git.getRepository)
-    val revCommit = revWalk.parseCommit(commitId)
+    val revCommit = revWalk.parseAny(objectId) match {
+      case r: RevTag => revWalk.parseCommit(r.getObject)
+      case _ => revWalk.parseCommit(objectId)
+    }
     revWalk.dispose
     revCommit
   }
@@ -349,51 +352,11 @@ object JGitUtil {
    * @return the list of latest commit
    */
   def getLatestCommitFromPaths(git: Git, paths: List[String], revision: String): Map[String, RevCommit] = {
-
-    val map = new scala.collection.mutable.HashMap[String, RevCommit]
-
-    val revWalk = new RevWalk(git.getRepository)
-    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(revision)))
-    //revWalk.sort(RevSort.REVERSE);
-    val i = revWalk.iterator
-
-    while(i.hasNext && map.size != paths.length){
-      val commit = i.next
-      if(commit.getParentCount == 0){
-        // Initial commit
-        val treeWalk = new TreeWalk(git.getRepository)
-        treeWalk.reset()
-        treeWalk.setRecursive(true)
-        treeWalk.addTree(commit.getTree)
-        while (treeWalk.next) {
-          paths.foreach { path =>
-            if(treeWalk.getPathString.startsWith(path) && !map.contains(path)){
-              map.put(path, commit)
-            }
-          }
-        }
-        treeWalk.release
-      } else {
-        (0 to commit.getParentCount - 1).foreach { i =>
-          val parent = revWalk.parseCommit(commit.getParent(i).getId())
-          val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
-          df.setRepository(git.getRepository)
-          df.setDiffComparator(RawTextComparator.DEFAULT)
-          df.setDetectRenames(true)
-          val diffs = df.scan(parent.getTree(), commit.getTree)
-          diffs.asScala.foreach { diff =>
-            paths.foreach { path =>
-              if(diff.getChangeType != ChangeType.DELETE && diff.getNewPath.startsWith(path) && !map.contains(path)){
-                map.put(path, commit)
-              }
-            }
-          }
-        }
-      }
-
-      revWalk.release
-    }
-    map.toMap
+    val start = getRevCommitFromId(git, git.getRepository.resolve(revision))
+    paths.map { path =>
+      val commit = git.log.add(start).addPath(path).setMaxCount(1).call.iterator.next
+      (path, commit)
+    }.toMap
   }
 
   /**

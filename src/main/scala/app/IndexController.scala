@@ -16,19 +16,22 @@ trait IndexControllerBase extends ControllerBase {
     val loginAccount = context.loginAccount
 
     html.index(getRecentActivities(),
-      getAccessibleRepositories(loginAccount, baseUrl),
+      getVisibleRepositories(loginAccount, baseUrl),
       loadSystemSettings(),
-      loginAccount.map{ account => getRepositoryNamesOfUser(account.userName) }.getOrElse(Nil)
+      loginAccount.map{ account => getUserRepositories(account.userName, baseUrl) }.getOrElse(Nil)
     )
   }
 
   /**
    * JSON API for collaborator completion.
+   *
+   * TODO Move to other controller?
    */
-  // TODO Move to other controller?
   get("/_user/proposals")(usersOnly {
     contentType = formats("json")
-    org.json4s.jackson.Serialization.write(Map("options" -> getAllUsers.filter(!_.isGroupAccount).map(_.userName).toArray))
+    org.json4s.jackson.Serialization.write(
+      Map("options" -> getAllUsers.filter(!_.isGroupAccount).map(_.userName).toArray)
+    )
   })
 
 
