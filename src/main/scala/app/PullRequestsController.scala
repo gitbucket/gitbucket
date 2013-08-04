@@ -93,7 +93,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       getPullRequest(repository.owner, repository.name, issueId).map { case (issue, pullreq) =>
         val remote = getRepositoryDir(repository.owner, repository.name)
         val tmpdir = new java.io.File(getTemporaryDir(repository.owner, repository.name), s"merge-${issueId}")
-        val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+        val git    = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
 
         try {
           // TODO mark issue as 'merged'
@@ -102,26 +102,34 @@ trait PullRequestsControllerBase extends ControllerBase {
           updateClosed(repository.owner, repository.name, issueId, true)
           recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
 
-          git.checkout.setName(pullreq.branch).call
-
+          // fetch pull request to working repository
           git.fetch
             .setRemote(getRepositoryDir(repository.owner, repository.name).toURI.toString)
-            .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/${pullreq.branch}")).call
+            .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/gitbucket-merge-${issueId}")).call
+
+          // merge pull request
+          git.checkout.setName(pullreq.branch).call
 
           val result = git.merge
-            .include(git.getRepository.resolve("FETCH_HEAD"))
+            .include(git.getRepository.resolve(s"gitbucket-merge-${issueId}"))
             .setFastForward(FastForwardMode.NO_FF)
-            .setCommit(true).call
+            .setCommit(false)
+            .call
 
           if(result.getConflicts != null){
             throw new RuntimeException("This pull request can't merge automatically.")
           }
 
-          // TODO merge commit
-//          git.commit
-//            .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
-//            .setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
-//                       + form.message).call
+          // merge commit
+          git.getRepository.writeMergeCommitMsg(
+            s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
+            + form.message)
+
+          git.commit
+            .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
+            .call
+
+          // push
           git.push.call
 
           val (commits, _) = getRequestCompareInfo(repository.owner, repository.name, pullreq.commitIdFrom,
@@ -137,7 +145,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         } finally {
           git.getRepository.close
-          FileUtils.deleteDirectory(tmpdir)
+//          FileUtils.deleteDirectory(tmpdir)
         }
       } getOrElse NotFound
     }
