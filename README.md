@@ -7,19 +7,20 @@ The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http access only)
 - Repository viewer (some advanced features are not implemented)
+- Repository search (Code and Issues)
 - Wiki
 - Issues
 - Activity timeline
 - User management (for Administrators)
+- Group (like Organization in Github)
 
 Following features are not implemented, but we will make them in the future release!
 
 - Fork and pull request
-- Search
 - Network graph
 - Statics
 - Watch / Star
-- Team management (like Organization in Github)
+- Notification
 
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
 
