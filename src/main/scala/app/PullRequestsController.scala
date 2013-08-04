@@ -103,15 +103,17 @@ trait PullRequestsControllerBase extends ControllerBase {
           recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
 
           // fetch pull request to working repository
+          val pullRequestBranchName = s"gitbucket-pullrequest-${issueId}"
+
           git.fetch
             .setRemote(getRepositoryDir(repository.owner, repository.name).toURI.toString)
-            .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/gitbucket-merge-${issueId}")).call
+            .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/${pullRequestBranchName}")).call
 
           // merge pull request
           git.checkout.setName(pullreq.branch).call
 
           val result = git.merge
-            .include(git.getRepository.resolve(s"gitbucket-merge-${issueId}"))
+            .include(git.getRepository.resolve(pullRequestBranchName))
             .setFastForward(FastForwardMode.NO_FF)
             .setCommit(false)
             .call
