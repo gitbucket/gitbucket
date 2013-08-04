@@ -148,9 +148,13 @@
               @if(repository.isEmpty){
               <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
               }
+              @if(issue.isPullRequest){
+              <a href="@path/@issue.userName/@issue.repositoryName/pulls/@issue.issueId" class="issue-title">@issue.title</a>
+              } else {
               <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
+              }
               @labels.map { label =>
-                <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
+              <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
               }
               <span class="pull-right muted">
                 @issue.assignedUserName.map { userName =>
@@ -164,7 +168,9 @@
                   <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
                 }
               </div>
+            @if(hasWritePermission){
             </label>
+            }
           </td>
         </tr>
       }
