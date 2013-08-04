@@ -313,16 +313,16 @@ trait IssuesControllerBase extends ControllerBase {
     session.put(sessionKey, condition)
 
     issues.html.list(
-        searchIssue(condition, filterUser, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+        searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
         page,
         (getCollaborators(owner, repoName) :+ owner).sorted,
         getMilestones(owner, repoName),
         getLabels(owner, repoName),
-        countIssue(condition.copy(state = "open"), filterUser, owner -> repoName),
-        countIssue(condition.copy(state = "closed"), filterUser, owner -> repoName),
-        countIssue(condition, Map.empty, owner -> repoName),
-        context.loginAccount.map(x => countIssue(condition, Map("assigned" -> x.userName), owner -> repoName)),
-        context.loginAccount.map(x => countIssue(condition, Map("created_by" -> x.userName), owner -> repoName)),
+        countIssue(condition.copy(state = "open"), filterUser, false, owner -> repoName),
+        countIssue(condition.copy(state = "closed"), filterUser, false, owner -> repoName),
+        countIssue(condition, Map.empty, false, owner -> repoName),
+        context.loginAccount.map(x => countIssue(condition, Map("assigned" -> x.userName), false, owner -> repoName)),
+        context.loginAccount.map(x => countIssue(condition, Map("created_by" -> x.userName), false, owner -> repoName)),
         countIssueGroupByLabels(owner, repoName, condition, filterUser),
         condition,
         filter,

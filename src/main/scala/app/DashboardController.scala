@@ -40,14 +40,14 @@ trait DashboardControllerBase extends ControllerBase {
     // 
     dashboard.html.issues(
         issues.html.listparts(
-            searchIssue(condition, filterUser, (page - 1) * IssueLimit, IssueLimit, repositories: _*),
+            searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, repositories: _*),
             page,
-            countIssue(condition.copy(state = "open"), filterUser, repositories: _*),
-            countIssue(condition.copy(state = "closed"), filterUser, repositories: _*),
+            countIssue(condition.copy(state = "open"), filterUser, false, repositories: _*),
+            countIssue(condition.copy(state = "closed"), filterUser, false, repositories: _*),
             condition),
-        countIssue(condition, Map.empty, repositories: _*),
-        countIssue(condition, Map("assigned" -> userName), repositories: _*),
-        countIssue(condition, Map("created_by" -> userName), repositories: _*),
+        countIssue(condition, Map.empty, false, repositories: _*),
+        countIssue(condition, Map("assigned" -> userName), false, repositories: _*),
+        countIssue(condition, Map("created_by" -> userName), false, repositories: _*),
         countIssueGroupByRepository(condition, filterUser, repositories: _*),
         condition,
         filter)    

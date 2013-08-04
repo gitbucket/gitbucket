@@ -149,7 +149,7 @@ git push origin @{pullreq.branch}</pre>
             </div>
           </div>
           <div id="confirm-merge-form" style="display: none;">
-            <form method="POST" action="@url(repository)/pulls/@issue.issueId/merge">
+            <form method="POST" action="@url(repository)/pull/@issue.issueId/merge">
               <div>
                 <strong>Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}</strong>
               </div>

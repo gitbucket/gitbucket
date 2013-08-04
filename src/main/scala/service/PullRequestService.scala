@@ -31,12 +31,4 @@ trait PullRequestService { self: IssuesService =>
       commitIdFrom,
       commitIdTo))
 
-//  def mergePullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
-//        mergeStartId: String, mergeEndId: String): Unit = {
-//    Query(PullRequests)
-//      .filter(_.byPrimaryKey(originUserName, originRepositoryName, issueId))
-//      .map(t => t.mergeStartId ~ t.mergeEndId)
-//      .update(mergeStartId, mergeEndId)
-//  }
-
 }

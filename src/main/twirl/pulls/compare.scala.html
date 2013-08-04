@@ -159,11 +159,11 @@ $(function(){
     e.parents('div.btn-group').find('button strong').text(e.text());
 
     @if(members.isEmpty){
-      location.href = '@url(repository)/pulls/compare/' +
+      location.href = '@url(repository)/compare/' +
         $.trim($('i.icon-ok').parents('a.origin-branch').data('name')) + '...' +
         $.trim($('i.icon-ok').parents('a.forked-branch').data('name'));
     } else {
-      location.href = '@url(repository)/pulls/compare/' +
+      location.href = '@url(repository)/compare/' +
         $.trim($('i.icon-ok').parents('a.origin-owner' ).data('name')) + ':' +
         $.trim($('i.icon-ok').parents('a.origin-branch').data('name')) + '...' +
         $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) + ':' +

@@ -149,7 +149,7 @@
               <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
               }
               @if(issue.isPullRequest){
-              <a href="@path/@issue.userName/@issue.repositoryName/pulls/@issue.issueId" class="issue-title">@issue.title</a>
+              <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
               } else {
               <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
               }

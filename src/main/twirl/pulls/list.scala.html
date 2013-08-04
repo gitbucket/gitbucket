@@ -1,8 +1,132 @@
-@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(issues: List[(model.Issue, List[model.Label], Int)],
+  filter: Option[String],
+  page: Int,
+  openCount: Int,
+  closedCount: Int,
+  condition: service.IssuesService.IssueSearchCondition,
+  repository: service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Pull Requests - " + repository.owner + "/" + repository.name){
   @html.header("pulls", repository)
-  <a href="@url(repository)/pulls/compare" class="btn btn-success">New pull request</a>
+  <div class="row-fluid">
+    <div class="span3">
+      <ul class="nav nav-pills nav-stacked">
+        <li@if(filter.isEmpty){ class="active"}>
+          <a href="@url(repository)/pulls">
+            <span class="count-right">@(openCount + closedCount)</span>
+            All Requests
+          </a>
+        </li>
+        @if(loginAccount.isDefined){
+        <li@if(filter.isDefined && filter.get == loginAccount.get.userName){ class="active"}>
+          <a href="@url(repository)/pulls/@loginAccount.map(_.userName)">
+            <span class="count-right">0</span>
+            Yours
+          </a>
+        </li>
+        }
+      </ul>
+    </div>
+    <div class="span9">
+      @if(hasWritePermission){
+      <div class="pull-right">
+        <a href="@url(repository)/compare" class="btn btn-success">New pull request</a>
+      </div>
+      }
+      <div class="btn-group">
+        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
+        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
+      </div>
+      <div class="btn-group">
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+          Sort:
+          <strong>
+            @if(condition.sort == "created"  && condition.direction == "desc"){ Newest }
+            @if(condition.sort == "created"  && condition.direction == "asc" ){ Oldest }
+            @if(condition.sort == "comments" && condition.direction == "desc"){ Most commented }
+            @if(condition.sort == "comments" && condition.direction == "asc" ){ Least commented }
+            @if(condition.sort == "updated"  && condition.direction == "desc"){ Recently updated }
+            @if(condition.sort == "updated"  && condition.direction == "asc" ){ Least recently updated }
+          </strong>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="@condition.copy(sort="created",  direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+            </a>
+          </li>
+        </ul>
+      </div>
+      <table class="table table-bordered table-hover table-issues">
+      @if(issues.isEmpty){
+        <tr>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            No pull requests to show.
+          </td>
+        </tr>
+      }
+      @issues.map { case (issue, labels, commentCount) =>
+        <tr>
+          <td>
+            @if(hasWritePermission){
+            <label class="checkbox" style="cursor: default;">
+              <input type="checkbox" value="@issue.issueId"/>
+            }
+              <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+              @labels.map { label =>
+              <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
+              }
+              <span class="pull-right muted">
+                @issue.assignedUserName.map { userName =>
+                  @avatar(userName, 20, tooltip = true)
+                }
+                #@issue.issueId
+              </span>
+              <div class="small muted">
+                Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
+                @if(commentCount > 0){
+                  <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+                }
+              </div>
+            @if(hasWritePermission){
+            </label>
+            }
+          </td>
+        </tr>
+      }
+      </table>
+      <div class="pull-right">
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 10, condition.toURL)
+      </div>
+    </div>
+  </div>
 }
 
