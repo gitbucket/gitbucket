@@ -262,23 +262,25 @@ trait PullRequestsControllerBase extends ControllerBase {
     val loginUserName = context.loginAccount.get.userName
 
     val issueId = createIssue(
-      repository.owner,
-      repository.name,
-      loginUserName,
-      form.title,
-      form.content,
-      None, None)
+      owner            = repository.owner,
+      repository       = repository.name,
+      loginUser        = loginUserName,
+      title            = form.title,
+      content          = form.content,
+      assignedUserName = None,
+      milestoneId      = None,
+      isPullRequest    = true)
 
     createPullRequest(
-      repository.owner,
-      repository.name,
-      issueId,
-      form.targetBranch,
-      form.requestUserName,
-      repository.name,
-      form.requestBranch,
-      form.commitIdFrom,
-      form.commitIdTo)
+      originUserName        = repository.owner,
+      originRepositoryName  = repository.name,
+      issueId               = issueId,
+      originBranch          = form.targetBranch,
+      requestUserName       = form.requestUserName,
+      requestRepositoryName = repository.name,
+      requestBranch         = form.requestBranch,
+      commitIdFrom          = form.commitIdFrom,
+      commitIdTo            = form.commitIdTo)
 
     // fetch requested branch
     JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>

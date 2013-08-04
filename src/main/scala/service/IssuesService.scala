@@ -179,7 +179,7 @@ trait IssuesService {
     }
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
-                  assignedUserName: Option[String], milestoneId: Option[Int]) =
+                  assignedUserName: Option[String], milestoneId: Option[Int], isPullRequest: Boolean = false) =
     // next id number
     sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
         .firstOption.filter { id =>
@@ -194,7 +194,8 @@ trait IssuesService {
           content,
           false,
           currentDate,
-          currentDate)
+          currentDate,
+          isPullRequest)
 
       // increment issue id
       IssueId
