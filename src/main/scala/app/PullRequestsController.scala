@@ -147,7 +147,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         } finally {
           git.getRepository.close
-//          FileUtils.deleteDirectory(tmpdir)
+          FileUtils.deleteDirectory(tmpdir)
         }
       } getOrElse NotFound
     }
@@ -159,34 +159,33 @@ trait PullRequestsControllerBase extends ControllerBase {
    */
   private def checkConflict(userName: String, repositoryName: String, branch: String,
                             requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-// TODO Are there more quick way?
-//    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
-//      val remote = getRepositoryDir(userName, repositoryName)
-//      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
-//      if(tmpdir.exists()){
-//        FileUtils.deleteDirectory(tmpdir)
-//      }
-//
-//      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
-//      try {
-//        git.checkout.setName(branch).call
-//
-//        git.fetch
-//          .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
-//          .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
-//
-//        val result = git.merge
-//          .include(git.getRepository.resolve("FETCH_HEAD"))
-//          .setCommit(false).call
-//
-//        result.getConflicts != null
-//
-//      } finally {
-//        git.getRepository.close
-//        FileUtils.deleteDirectory(tmpdir)
-//      }
-//    }
-    false
+    // TODO Are there more quick way?
+    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
+      val remote = getRepositoryDir(userName, repositoryName)
+      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
+      if(tmpdir.exists()){
+        FileUtils.deleteDirectory(tmpdir)
+      }
+
+      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+      try {
+        git.checkout.setName(branch).call
+
+        git.fetch
+          .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
+          .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
+
+        val result = git.merge
+          .include(git.getRepository.resolve("FETCH_HEAD"))
+          .setCommit(false).call
+
+        result.getConflicts != null
+
+      } finally {
+        git.getRepository.close
+        FileUtils.deleteDirectory(tmpdir)
+      }
+    }
   }
 
   get("/:owner/:repository/pulls/compare")(collaboratorsOnly { forkedRepository =>
