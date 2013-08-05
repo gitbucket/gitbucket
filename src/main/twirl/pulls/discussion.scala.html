@@ -184,8 +184,8 @@ git push origin @{pullreq.branch}</pre>
         <div class="pull-right">
           <input type="hidden" name="issueId" value="@issue.issueId"/>
           <input type="submit" class="btn btn-success" formaction="@url(repository)/issue_comments/new" value="Comment"/>
-          @if(hasWritePermission || issue.openedUserName == loginAccount.get.userName){
-            <input type="submit" class="btn" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+          @if(!issue.closed && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
+            <input type="submit" class="btn" formaction="@url(repository)/issue_comments/state" value="Close" id="action"/>
           }
         </div>
       </form>
