@@ -61,6 +61,7 @@
       </div>
     </div>
     @comments.map { comment =>
+      @if(comment.action != "close" && comment.action != "reopen" && comment.action != "merge"){
       <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
       <div class="box issue-comment-box" id="comment-@comment.commentId">
         <div class="box-header-small">
@@ -77,20 +78,28 @@
           @markdown(comment.content, repository, false, true)
         </div>
       </div>
-      <div class="small issue-comment-action">
-        @if(comment.action == "close" || comment.action == "close_comment"){
-        <div class="small issue-comment-action">
-          <span class="label label-important">Closed</span>
-          <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
-        </div>
-        }
-        @if(comment.action == "reopen" || comment.action == "reopen_comment"){
-        <div class="small issue-comment-action">
-          <span class="label label-success">Reopened</span>
-          <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
-        </div>
-        }
+      }
+      @if(comment.action == "merge"){
+      <div class="small" style="margin-top: 10px; margin-bottom: 10px;">
+        <span class="label label-info">Merged</span>
+        @avatar(comment.commentedUserName, 20)
+        <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> merged the pull request @datetime(comment.registeredDate)
       </div>
+      }
+      @if(comment.action == "close" || comment.action == "close_comment"){
+      <div class="small issue-comment-action">
+        <span class="label label-important">Closed</span>
+        @avatar(comment.commentedUserName, 20)
+        <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> closed the pull request @datetime(comment.registeredDate)
+      </div>
+      }
+      @if(comment.action == "reopen" || comment.action == "reopen_comment"){
+      <div class="small issue-comment-action">
+        <span class="label label-success">Reopened</span>
+        @avatar(comment.commentedUserName, 20)
+        <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> reopened the issue @datetime(comment.registeredDate)
+      </div>
+      }
     }
     @if(hasWritePermission && !issue.closed){
       <div class="box issue-comment-box" style="background-color: #d8f5cd;">
@@ -184,7 +193,11 @@ git push origin @{pullreq.branch}</pre>
   </div>
   <div class="span2">
     @if(issue.closed) {
-      <span class="label label-important issue-status">Closed</span>
+      @if(comments.exists(_.action == "merge")){
+        <span class="label label-info issue-status">Merged</span>
+      } else {
+        <span class="label label-important issue-status">Closed</span>
+      }
     } else {
       <span class="label label-success issue-status">Open</span>
     }

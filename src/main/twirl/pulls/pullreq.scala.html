@@ -13,7 +13,7 @@
 @import context._
 @import view.helpers._
 @html.main("%s - Pull Request #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
-  @html.header("issues", repository)
+  @html.header("pulls", repository)
   <ul class="nav nav-tabs" id="pullreq-tab">
     <li class="active"><a href="#discussion">Discussion</a></li>
     <li><a href="#commits">Commits <span class="badge">@commits.flatten.size</span></a></li>

@@ -105,7 +105,8 @@ trait PullRequestsControllerBase extends ControllerBase {
         try {
           // TODO mark issue as 'merged'
           val loginAccount = context.loginAccount.get
-          createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Closed", "close")
+          createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Merge", "merge")
+          createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Close", "close")
           updateClosed(repository.owner, repository.name, issueId, true)
           recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
 
