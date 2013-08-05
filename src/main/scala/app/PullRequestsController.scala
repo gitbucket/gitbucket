@@ -12,6 +12,7 @@ import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode
 import service.IssuesService._
+import service.PullRequestService._
 import util.JGitUtil.DiffInfo
 import scala.Some
 import service.RepositoryService.RepositoryTreeNode
@@ -384,7 +385,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     session.put(sessionKey, condition)
 
     pulls.html.list(
-      searchIssue(condition, filterUser, true, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+      searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
       userName,
       page,
       countIssue(condition.copy(state = "open"), filterUser, true, owner -> repoName),

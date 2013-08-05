@@ -32,3 +32,7 @@ trait PullRequestService { self: IssuesService =>
       commitIdTo))
 
 }
+
+object PullRequestService {
+  val PullRequestLimit = 25
+}

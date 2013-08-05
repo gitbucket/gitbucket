@@ -145,14 +145,17 @@
             <label class="checkbox" style="cursor: default;">
               <input type="checkbox" value="@issue.issueId"/>
             }
+              @if(issue.isPullRequest){
+              <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
+              } else {
+              <img src="@assets/common/images/issue-@(if(issue.closed) "closed" else "open").png"/>
+              }
               @if(repository.isEmpty){
               <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
               }
               @if(issue.isPullRequest){
-              <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
               <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
               } else {
-              <img src="@assets/common/images/issue-@(if(issue.closed) "closed" else "open").png"/>
               <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
               }
               @labels.map { label =>

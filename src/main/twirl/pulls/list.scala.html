@@ -32,7 +32,7 @@
     <div class="span9">
       @if(hasWritePermission){
       <div class="pull-right">
-        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 7, condition.toURL)
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 7, condition.toURL)
         <a href="@url(repository)/compare" class="btn btn-success">New pull request</a>
       </div>
       }
@@ -118,7 +118,7 @@
       }
       </table>
       <div class="pull-right">
-        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 10, condition.toURL)
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 10, condition.toURL)
       </div>
     </div>
   </div>
