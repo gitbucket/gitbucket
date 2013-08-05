@@ -77,7 +77,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           issue, pullreq,
           getComments(owner, name, issueId.toInt),
           (getCollaborators(owner, name) :+ owner).sorted,
-          getMilestones(owner, name),
+          getMilestonesWithIssueCount(owner, name),
           commits,
           diffs,
           requestCommitId.getName,

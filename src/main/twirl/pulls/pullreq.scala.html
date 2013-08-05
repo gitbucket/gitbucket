@@ -2,7 +2,7 @@
   pullreq: model.PullRequest,
   comments: List[model.IssueComment],
   collaborators: List[String],
-  milestones: List[model.Milestone],
+  milestones: List[(model.Milestone, Int, Int)],
   commits: Seq[Seq[util.JGitUtil.CommitInfo]],
   diffs: Seq[util.JGitUtil.DiffInfo],
   commitId: String,
