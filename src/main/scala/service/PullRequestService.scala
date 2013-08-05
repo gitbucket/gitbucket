@@ -7,7 +7,6 @@ import model._
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._
-//  implicit val getPullRequestCount = GetResult(r => PullRequestCount(r.<<, r.<<))
 
   def getPullRequest(owner: String, repository: String, issueId: Int): Option[(Issue, PullRequest)] = {
     val issue = getIssue(owner, repository, issueId.toString)
@@ -19,7 +18,7 @@ trait PullRequestService { self: IssuesService =>
     } else None
   }
 
-  def getPullRequestCount(closed: Boolean, repository: Option[(String, String)]): List[PullRequestCount] = {
+  def getPullRequestCount(closed: Boolean, repository: Option[(String, String)]): List[PullRequestCount] =
     Query(PullRequests)
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
@@ -27,18 +26,11 @@ trait PullRequestService { self: IssuesService =>
         (t1.userName       is repository.get._1, repository.isDefined) &&
         (t1.repositoryName is repository.get._2, repository.isDefined)
       }
-      .groupBy { case (t1, t2) =>
-        t2.openedUserName
-      }
-      .map { case (userName, t) =>
-        userName ~ t.length
-      }
+      .groupBy { case (t1, t2) => t2.openedUserName }
+      .map { case (userName, t) => userName ~ t.length }
       .list
-      .map { x =>
-        PullRequestCount(x._1, x._2)
-      }
+      .map { x => PullRequestCount(x._1, x._2) }
       .sortBy(_.count).reverse
-  }
 
   def createPullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
         originBranch: String, requestUserName: String, requestRepositoryName: String, requestBranch: String,
