@@ -13,18 +13,18 @@ trait AvatarImageProvider { self: RequestCache =>
   protected def getAvatarImageHtml(userName: String, size: Int,
       mailAddress: String = "", tooltip: Boolean = false)(implicit context: app.Context): Html = {
 
-    val src = if(getSystemSettings().gravatar){
-      getAccountByUserName(userName).collect { case account if(account.image.isEmpty && !account.isGroupAccount) =>
+    val src = getAccountByUserName(userName).map { account =>
+      if(account.image.isEmpty && getSystemSettings().gravatar){
         s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
-      } getOrElse {
-        if(mailAddress.nonEmpty){
-          s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress)}?s=${size}"""
-        } else {
-          s"""${context.path}/${userName}/_avatar"""
-        }
+      } else {
+        s"""${context.path}/${userName}/_avatar"""
       }
-    } else {
-      s"""${context.path}/${userName}/_avatar"""
+    } getOrElse {
+      if(mailAddress.nonEmpty && getSystemSettings().gravatar){
+        s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress)}?s=${size}"""
+      } else {
+        s"""${context.path}/${userName}/_avatar"""
+      }
     }
 
     if(tooltip){

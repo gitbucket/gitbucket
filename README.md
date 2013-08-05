@@ -7,19 +7,20 @@ The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http access only)
 - Repository viewer (some advanced features are not implemented)
+- Repository search (Code and Issues)
 - Wiki
 - Issues
 - Activity timeline
 - User management (for Administrators)
+- Group (like Organization in Github)
 
 Following features are not implemented, but we will make them in the future release!
 
 - Fork and pull request
-- Search
 - Network graph
 - Statics
 - Watch / Star
-- Team management (like Organization in Github)
+- Notification
 
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
 
@@ -36,6 +37,16 @@ To upgrade GitBucket, only replace gitbucket.war.
 
 Release Notes
 --------
+### 1.4 - 31 Jul 2013
+- Group management.
+- Repository search for code and issues.
+- Display user related issues on the dashboard.
+- Display participants avatar of issues on the issue page.
+- Performance improvement for repository viewer.
+- Alert by milestone due date.
+- H2 database administration console.
+- Fixed some bugs.
+
 ### 1.3 - 18 Jul 2013
 - Batch updating for issues.
 - Display assigned user on issue list.

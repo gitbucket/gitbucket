@@ -42,18 +42,18 @@ trait IssuesService {
   /**
    * Returns the count of the search result against  issues.
    *
-   * @param owner the repository owner
-   * @param repository the repository name
    * @param condition the search condition
-   * @param filter the filter type ("all", "assigned" or "created_by")
-   * @param userName the filter user name required for "assigned" and "created_by"
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param onlyPullRequest if true then counts only pull request, false then counts both of issue and pull request.
+   * @param repos Tuple of the repository owner and the repository name
    * @return the count of the search result
    */
-  def countIssue(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]): Int = {
+  def countIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+                 repos: (String, String)*): Int = {
     // TODO It must be _.length instead of map (_.issueId) list).length.
     //       But it does not work on Slick 1.0.1 (worked on Slick 1.0.0).
     //       https://github.com/slick/slick/issues/170
-    (searchIssueQuery(owner, repository, condition, filter, userName) map (_.issueId) list).length
+    (searchIssueQuery(repos, condition, filterUser, onlyPullRequest) map (_.issueId) list).length
   }
   /**
    * Returns the Map which contains issue count for each labels.
@@ -61,14 +61,13 @@ trait IssuesService {
    * @param owner the repository owner
    * @param repository the repository name
    * @param condition the search condition
-   * @param filter the filter type ("all", "assigned" or "created_by")
-   * @param userName the filter user name required for "assigned" and "created_by"
-   * @return the Map which contains issue count for each labels (key is label name, value is issue count),
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @return the Map which contains issue count for each labels (key is label name, value is issue count)
    */
   def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
-                              filter: String, userName: Option[String]): Map[String, Int] = {
+                              filterUser: Map[String, String]): Map[String, Int] = {
 
-    searchIssueQuery(owner, repository, condition.copy(labels = Set.empty), filter, userName)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), filterUser, false)
       .innerJoin(IssueLabels).on { (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
@@ -83,76 +82,97 @@ trait IssuesService {
       }
       .toMap
   }
+  /**
+   * Returns list which contains issue count for each repository.
+   * If the issue does not exist, its repository is not included in the result.
+   *
+   * @param condition the search condition
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param repos Tuple of the repository owner and the repository name
+   * @return list which contains issue count for each repository
+   */
+  def countIssueGroupByRepository(
+      condition: IssueSearchCondition, filterUser: Map[String, String], repos: (String, String)*): List[(String, String, Int)] = {
+    searchIssueQuery(repos, condition.copy(repo = None), filterUser, false)
+      .groupBy { t =>
+        t.userName ~ t.repositoryName
+      }
+      .map { case (repo, t) =>
+        repo ~ t.length
+      }
+      .filter (_._3 > 0.bind)
+      .list
+  }
 
   /**
    * Returns the search result against  issues.
    *
-   * @param owner the repository owner
-   * @param repository the repository name
    * @param condition the search condition
-   * @param filter the filter type ("all", "assigned" or "created_by")
-   * @param userName the filter user name required for "assigned" and "created_by"
+   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
+   * @param repos Tuple of the repository owner and the repository name
    * @return the search result (list of tuples which contain issue, labels and comment count)
    */
-  def searchIssue(owner: String, repository: String, condition: IssueSearchCondition,
-                  filter: String, userName: Option[String], offset: Int, limit: Int): List[(Issue, List[Label], Int)] = {
+  def searchIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+                  offset: Int, limit: Int, repos: (String, String)*): List[(Issue, List[Label], Int)] = {
 
-    // get issues and comment count
-    val issues = searchIssueQuery(owner, repository, condition, filter, userName)
-      .leftJoin(Query(IssueComments)
-        .filter  { t =>
-          (t.byRepository(owner, repository)) &&
-          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
+    // get issues and comment count and labels
+    searchIssueQuery(repos, condition, filterUser, onlyPullRequest)
+        .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
+        .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
+        .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
+        .map { case (((t1, t2), t3), t4) =>
+          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?)
         }
-        .groupBy { _.issueId }
-        .map     { case (issueId, t) => issueId ~ t.length }).on((t1, t2) => t1.issueId is t2._1)
-      .sortBy { case (t1, t2) =>
-        (condition.sort match {
-          case "created"  => t1.registeredDate
-          case "comments" => t2._2
-          case "updated"  => t1.updatedDate
-        }) match {
-          case sort => condition.direction match {
-            case "asc"  => sort asc
-            case "desc" => sort desc
+        .sortBy(_._4)	// labelName
+        .sortBy { case (t1, commentCount, _,_,_) =>
+          (condition.sort match {
+            case "created"  => t1.registeredDate
+            case "comments" => commentCount
+            case "updated"  => t1.updatedDate
+          }) match {
+            case sort => condition.direction match {
+              case "asc"  => sort asc
+              case "desc" => sort desc
+            }
           }
         }
-      }
-      .map { case (t1, t2) => (t1, t2._2.ifNull(0)) }
-      .drop(offset).take(limit)
-      .list
-
-    // get labels
-    val labels = Query(IssueLabels)
-      .innerJoin(Labels).on { (t1, t2) =>
-        t1.byLabel(t2.userName, t2.repositoryName, t2.labelId)
-      }
-      .filter { case (t1, t2) =>
-        (t1.byRepository(owner, repository)) &&
-        (t1.issueId inSetBind (issues.map(_._1.issueId)))
-      }
-      .sortBy { case (t1, t2) => t1.issueId ~ t2.labelName }
-      .map    { case (t1, t2) => (t1.issueId, t2) }
-      .list
-
-    issues.map { case (issue, commentCount) =>
-      (issue, labels.collect { case (issueId, labels) if(issueId == issue.issueId) => labels }, commentCount)
-    }
+        .drop(offset).take(limit)
+        .list
+        .splitWith { (c1, c2) =>
+          c1._1.userName == c2._1.userName &&
+          c1._1.repositoryName == c2._1.repositoryName &&
+          c1._1.issueId == c2._1.issueId
+        }
+        .map { issues => issues.head match {
+          case (issue, commentCount, _,_,_) =>
+            (issue,
+             issues.flatMap { t => t._3.map (
+                 Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
+             )} toList,
+             commentCount)
+        }} toList
   }
 
   /**
    * Assembles query for conditional issue searching.
    */
-  private def searchIssueQuery(owner: String, repository: String, condition: IssueSearchCondition, filter: String, userName: Option[String]) =
+  private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition,
+                               filterUser: Map[String, String], onlyPullRequest: Boolean) =
     Query(Issues) filter { t1 =>
-      (t1.byRepository(owner, repository)) &&
+      condition.repo
+          .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
+          .getOrElse (repos)
+          .map { case (owner, repository) => t1.byRepository(owner, repository) }
+          .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           is (condition.state == "closed").bind) &&
       (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
-      (t1.assignedUserName is userName.get.bind, filter == "assigned") &&
-      (t1.openedUserName   is userName.get.bind, filter == "created_by") &&
+      (t1.assignedUserName is filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
+      (t1.openedUserName   is filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
+      (t1.pullRequest      is true.bind, onlyPullRequest) &&
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
         (t2.labelId in
@@ -164,7 +184,7 @@ trait IssuesService {
     }
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
-                  assignedUserName: Option[String], milestoneId: Option[Int]) =
+                  assignedUserName: Option[String], milestoneId: Option[Int], isPullRequest: Boolean = false) =
     // next id number
     sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
         .firstOption.filter { id =>
@@ -179,7 +199,8 @@ trait IssuesService {
           content,
           false,
           currentDate,
-          currentDate)
+          currentDate,
+          isPullRequest)
 
       // increment issue id
       IssueId
@@ -250,39 +271,44 @@ trait IssuesService {
     val keywords = splitWords(query.toLowerCase)
 
     // Search Issue
-    val issues = Query(Issues).filter { t =>
-      keywords.map { keyword =>
-        (t.title.toLowerCase   like (s"%${likeEncode(keyword)}%", '^')) ||
-        (t.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
-      } .reduceLeft(_ && _)
-    }.map { t => (t, 0, t.content.?) }
+    val issues = Issues
+      .innerJoin(IssueOutline).on { case (t1, t2) =>
+        t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
+      }
+      .filter { case (t1, t2) =>
+        keywords.map { keyword =>
+          (t1.title.toLowerCase   like (s"%${likeEncode(keyword)}%", '^')) ||
+          (t1.content.toLowerCase like (s"%${likeEncode(keyword)}%", '^'))
+        } .reduceLeft(_ && _)
+      }
+      .map { case (t1, t2) =>
+        (t1, 0, t1.content.?, t2.commentCount)
+      }
 
     // Search IssueComment
-    val comments = Query(IssueComments).innerJoin(Issues).on { case (t1, t2) =>
-      t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
-    }.filter { case (t1, t2) =>
-      keywords.map { query =>
-        t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
-      }.reduceLeft(_ && _)
-    }.map { case (t1, t2) => (t2, t1.commentId, t1.content.?) }
+    val comments = IssueComments
+      .innerJoin(Issues).on { case (t1, t2) =>
+        t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
+      }
+      .innerJoin(IssueOutline).on { case ((t1, t2), t3) =>
+        t2.byIssue(t3.userName, t3.repositoryName, t3.issueId)
+      }
+      .filter { case ((t1, t2), t3) =>
+        keywords.map { query =>
+          t1.content.toLowerCase like (s"%${likeEncode(query)}%", '^')
+        }.reduceLeft(_ && _)
+      }
+      .map { case ((t1, t2), t3) =>
+        (t2, t1.commentId, t1.content.?, t3.commentCount)
+      }
 
-    def getCommentCount(issue: Issue): Int = {
-      Query(IssueComments)
-        .filter { t =>
-          t.byIssue(issue.userName, issue.repositoryName, issue.issueId) &&
-          (t.action inSetBind Seq("comment", "close_comment", "reopen_comment"))
-        }
-        .map(_.issueId)
-        .list.length
-    }
-
-    issues.union(comments).sortBy { case (issue, commentId, _) =>
+    issues.union(comments).sortBy { case (issue, commentId, _, _) =>
       issue.issueId ~ commentId
-    }.list.splitWith { case ((issue1, _, _), (issue2, _, _)) =>
+    }.list.splitWith { case ((issue1, _, _, _), (issue2, _, _, _)) =>
       issue1.issueId == issue2.issueId
-    }.map { result =>
-      val (issue, _, content) = result.head
-      (issue, getCommentCount(issue) , content.getOrElse(""))
+    }.map { _.head match {
+        case (issue, _, content, commentCount) => (issue, commentCount, content.getOrElse(""))
+      }
     }.toList
   }
 
@@ -333,6 +359,13 @@ object IssuesService {
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))
+
+    def page(request: HttpServletRequest) = try {
+      val i = param(request, "page").getOrElse("1").toInt
+      if(i <= 0) 1 else i
+    } catch {
+      case e: NumberFormatException => 1
+    }
   }
 
 }

@@ -1,0 +1,28 @@
+@(issue: model.Issue,
+  pullreq: model.PullRequest,
+  commits: Seq[Seq[util.JGitUtil.CommitInfo]],
+  hasWritePermission: Boolean,
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+<div class="box">
+  <table class="table table-file-list" style="border: 1px solid silver;">
+    @commits.map { day =>
+      <tr>
+        <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
+      </tr>
+      @day.map { commit =>
+        <tr>
+          <td style="width: 20%;">
+            @avatar(commit.committer, 20)
+            <a href="@url(commit.committer)" class="username">@commit.committer</a>
+          </td>
+          <td>@commit.shortMessage</td>
+          <td style="width: 10%; text-align: right;">
+            <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+          </td>
+        </tr>
+      }
+    }
+  </table>
+</div>

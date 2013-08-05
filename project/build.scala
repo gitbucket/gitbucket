@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import org.scalatra.sbt._
 import org.scalatra.sbt.PluginKeys._
+import sbt.ScalaVersion
 import twirl.sbt.TwirlPlugin._
 import com.typesafe.sbteclipse.plugin.EclipsePlugin.EclipseKeys
 
@@ -20,7 +21,10 @@ object MyBuild extends Build {
       name := Name,
       version := Version,
       scalaVersion := ScalaVersion,
-      resolvers += Classpaths.typesafeReleases,
+      resolvers ++= Seq(
+        Classpaths.typesafeReleases,
+        "amateras-repo" at "http://amateras.sourceforge.jp/mvn/"
+      ),
       libraryDependencies ++= Seq(
         "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.0.0.201306101825-r",
         "org.apache.commons" % "commons-io" % "1.3.2",
@@ -28,6 +32,7 @@ object MyBuild extends Build {
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
         "org.scalatra" %% "scalatra-json" % ScalatraVersion,
         "org.json4s" %% "json4s-jackson" % "3.2.4",
+        "jp.sf.amateras" %% "scalatra-forms" % "0.0.1",
         "commons-io" % "commons-io" % "2.4",
         "org.pegdown" % "pegdown" % "1.3.0",
         "org.apache.commons" % "commons-compress" % "1.5",

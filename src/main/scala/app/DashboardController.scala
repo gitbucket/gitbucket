@@ -33,14 +33,22 @@ trait DashboardControllerBase extends ControllerBase {
 
     session.put(sessionKey, condition)
 
-    val repositories = getAccessibleRepositories(context.loginAccount, baseUrl)
+    val userName = context.loginAccount.get.userName
+    val repositories = getUserRepositories(userName, baseUrl).map(repo => repo.owner -> repo.name)
+    val filterUser = Map(filter -> userName)
+    val page = IssueSearchCondition.page(request)
     // 
     dashboard.html.issues(
-        issues.html.listparts(Nil, 0, 0, 0, condition),
-        0,
-        0,
-        0,
-        repositories,
+        issues.html.listparts(
+            searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, repositories: _*),
+            page,
+            countIssue(condition.copy(state = "open"), filterUser, false, repositories: _*),
+            countIssue(condition.copy(state = "closed"), filterUser, false, repositories: _*),
+            condition),
+        countIssue(condition, Map.empty, false, repositories: _*),
+        countIssue(condition, Map("assigned" -> userName), false, repositories: _*),
+        countIssue(condition, Map("created_by" -> userName), false, repositories: _*),
+        countIssueGroupByRepository(condition, filterUser, repositories: _*),
         condition,
         filter)    
     

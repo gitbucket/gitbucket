@@ -1,7 +1,7 @@
 @(activities: List[model.Activity],
-  repositories: List[service.RepositoryService.RepositoryInfo], 
+  recentRepositories: List[service.RepositoryService.RepositoryInfo],
   systemSettings: service.SystemSettingsService.SystemSettings,
-  userRepositories: List[String])(implicit context: app.Context)
+  userRepositories: List[service.RepositoryService.RepositoryInfo])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @main("GitBucket"){
@@ -28,9 +28,15 @@
             <td>No repositories</td>
           </tr>
         } else {
-          @userRepositories.map { repositoryName =>
+          @userRepositories.map { repository =>
             <tr>
-              <td><a href="@path/@loginAccount.get.userName/@repositoryName"><strong>@repositoryName</strong></a></td>
+              <td>
+                @if(repository.owner == loginAccount.get.userName){
+                  <a href="@url(repository)"><strong>@repository.name</strong></a>
+                } else {
+                  <a href="@url(repository)">@repository.owner/<strong>@repository.name</strong></a>
+                }
+              </td>
             </tr>
           }
         }
@@ -43,12 +49,12 @@
           Recent updated repositories
         </th>
       </tr>
-      @if(repositories.isEmpty){
+      @if(recentRepositories.isEmpty){
         <tr>
           <td>No repositories</td>
         </tr>
       } else {
-        @repositories.map { repository =>
+        @recentRepositories.map { repository =>
           <tr>
             <td>
               <a href="@url(repository)">@repository.owner/<strong>@repository.name</strong></a>
