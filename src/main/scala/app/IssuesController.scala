@@ -128,14 +128,22 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, Some(form.content), repository)() map { id =>
-      redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
+    handleComment(form.issueId, Some(form.content), repository)() map { case (issue, id) =>
+      if(issue.isPullRequest){
+        redirect(s"/${repository.owner}/${repository.name}/pull/${form.issueId}#comment-${id}")
+      } else {
+        redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
+      }
     } getOrElse NotFound
   })
 
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, form.content, repository)() map { id =>
-      redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
+    handleComment(form.issueId, form.content, repository)() map { case (issue, id) =>
+      if(issue.isPullRequest){
+        redirect(s"/${repository.owner}/${repository.name}/pull/${form.issueId}#comment-${id}")
+      } else {
+        redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
+      }
     } getOrElse NotFound
   })
 
@@ -294,7 +302,7 @@ trait IssuesControllerBase extends ControllerBase {
       content foreach ( recordCommentIssueActivity(owner, name, userName, issueId, _) )
       recordActivity foreach ( _ (owner, name, userName, issueId, issue.title) )
 
-      commentId
+      (issue, commentId)
     }
   }
 
