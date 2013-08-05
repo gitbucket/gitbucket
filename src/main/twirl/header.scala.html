@@ -1,10 +1,23 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
+<div class="pull-right">
+  <div class="input-prepend">
+    <input type="button" id="fork" class="btn" value="Fork" style="margin-bottom: 10px;"/>
+    <span class="add-on"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+  </div>
+</div>
 <div class="head">
   <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)">@repository.name</a>
   @if(repository.repository.isPrivate){
     <i class="icon-lock"></i>
+  }
+  @defining(repository.repository){ x =>
+    @if(repository.repository.originRepositoryName.isDefined){
+      <div class="forked">
+        forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+      </div>
+    }
   }
 </div>
 <table class="global-nav box-header">
@@ -14,6 +27,9 @@
     </th>
     <th class="box-header@if(active=="issues"){ active}">
       <a href="@url(repository)/issues">Issues</a>
+    </th>
+    <th class="box-header@if(active=="pulls"){ active}">
+      <a href="@url(repository)/pulls">Pull Requests</a>
     </th>
     <th class="box-header@if(active=="wiki"){ active}">
       <a href="@url(repository)/wiki">Wiki</a>
@@ -25,11 +41,20 @@
     }
   </tr>  
 </table>
+<form method="POST" id="repository_form">
+</form>
 <script type="text/javascript">
 $(function(){
   $('table.global-nav th.box-header').click(function(){
     location.href = $(this).find('a').attr('href');
     return false;
+  });
+
+  // TODO Execute by Ajax?
+  $('#fork').click(function(){
+    var form = $('form#repository_form');
+    form.attr('action', '@path/@repository.owner/@repository.name/_fork');
+    form.submit();
   });
 });
 </script>

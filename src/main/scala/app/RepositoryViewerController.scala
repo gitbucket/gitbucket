@@ -182,6 +182,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
+  get("/:owner/:repository/network/members")(referrersOnly { repository =>
+    repo.html.forked(
+      getForkedRepositoryTree(
+        repository.repository.originUserName.getOrElse(repository.owner),
+        repository.repository.originRepositoryName.getOrElse(repository.name)),
+      repository)
+  })
+  
   private def splitPath(repository: service.RepositoryService.RepositoryInfo, path: String): (String, String) = {
     val id = repository.branchList.collectFirst {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch
@@ -207,7 +215,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
         val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
-        revisions.map { rev => (git.getRepository.resolve(rev), rev)}.find(_._1 != null).map { case (objectId, revision) =>
+      JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           val revCommit = JGitUtil.getRevCommitFromId(git, objectId)
 
           // get files

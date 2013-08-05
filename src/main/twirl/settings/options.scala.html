@@ -23,7 +23,10 @@
           </fieldset>
           <fieldset class="margin">
             <label>
-              <input type="radio" name="isPrivate" value="false"@if(!repository.repository.isPrivate){ checked}>
+              <input type="radio" name="isPrivate" value="false"
+                @if(!repository.repository.isPrivate              ){ checked  }
+                @if(repository.repository.parentUserName.isDefined){ disabled }
+              >
               <strong>Public</strong><br>
               <div>
                 <span class="note">All users and guests can read this repository.</span>
@@ -32,7 +35,10 @@
           </fieldset>
           <fieldset>
             <label>
-              <input type="radio" name="isPrivate" value="true"@if(repository.repository.isPrivate){ checked}>
+              <input type="radio" name="isPrivate" value="true"
+                @if(repository.repository.isPrivate               ){ checked  }
+                @if(repository.repository.parentUserName.isDefined){ disabled }
+              >
               <strong>Private</strong><br>
               <div>
                 <span class="note">Only collaborators can read this repository.</span>

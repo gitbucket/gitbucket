@@ -20,7 +20,8 @@ object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTem
   def closed = column[Boolean]("CLOSED")
   def registeredDate = column[java.util.Date]("REGISTERED_DATE")
   def updatedDate = column[java.util.Date]("UPDATED_DATE")
-  def * = userName ~ repositoryName ~ issueId ~ openedUserName ~ milestoneId.? ~ assignedUserName.? ~ title ~ content.? ~ closed ~ registeredDate ~ updatedDate <> (Issue, Issue.unapply _)
+  def pullRequest = column[Boolean]("PULL_REQUEST")
+  def * = userName ~ repositoryName ~ issueId ~ openedUserName ~ milestoneId.? ~ assignedUserName.? ~ title ~ content.? ~ closed ~ registeredDate ~ updatedDate ~ pullRequest <> (Issue, Issue.unapply _)
 
   def byPrimaryKey(owner: String, repository: String, issueId: Int) = byIssue(owner, repository, issueId)
 }
@@ -36,4 +37,5 @@ case class Issue(
     content: Option[String],
     closed: Boolean,
     registeredDate: java.util.Date,
-    updatedDate: java.util.Date)
+    updatedDate: java.util.Date,
+    isPullRequest: Boolean)

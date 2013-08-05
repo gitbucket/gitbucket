@@ -1,9 +1,12 @@
-@(buttonValue: String = "")(body: Html)
+@(buttonValue: String = "", prefix: String = "")(body: Html)
 <div class="btn-group">
   <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-    @if(buttonValue == ""){
+    @if(buttonValue.isEmpty){
       <i class="icon-cog"></i>
     } else {
+      @if(prefix.nonEmpty){
+        <span class="muted">@prefix:</span>
+      }
       <strong>@buttonValue</strong>
     }
     <span class="caret"></span>
