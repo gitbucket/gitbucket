@@ -6,6 +6,7 @@
   <head>
     <meta charset="utf-8">
     <title>@title</title>
+    <link rel="icon" href="@assets/common/images/favicon.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Le styles -->
     <link href="@assets/bootstrap/css/bootstrap.css" rel="stylesheet">
@@ -38,7 +39,12 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="@path/">GitBucket</a>
+            <a class="brand" href="@path/">
+              <img src="@assets/common/images/gitbucket.png"/>GitBucket
+              @defining(servlet.AutoUpdate.getCurrentVersion){ version =>
+                <span class="header-version">@version.majorVersion.@version.minorVersion</span>
+              }
+            </a>
             <div class="nav-collapse collapse pull-right header-menu">
               @repository.map { repository =>
                 <input type="text" name="query" style="width: 300px; margin-bottom: 0px;" placeholder="Search this repository"/>
@@ -60,9 +66,6 @@
           </div>
         </div>
       </form>
-      @defining(servlet.AutoUpdate.getCurrentVersion){ version =>
-        <div class="gitbucket-version">version @version.majorVersion.@version.minorVersion</div>
-      }
     </div>
     <div class="container body">
       @body
