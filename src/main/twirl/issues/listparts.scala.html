@@ -149,8 +149,10 @@
               <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
               }
               @if(issue.isPullRequest){
+              <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
               <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
               } else {
+              <img src="@assets/common/images/issue-@(if(issue.closed) "closed" else "open").png"/>
               <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
               }
               @labels.map { label =>
@@ -162,7 +164,7 @@
                 }
                 #@issue.issueId
               </span>
-              <div class="small muted">
+              <div class="small muted" style="margin-left: 20px;">
                 Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
                 @if(commentCount > 0){
                   <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>

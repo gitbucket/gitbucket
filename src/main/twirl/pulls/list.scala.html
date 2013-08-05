@@ -32,6 +32,7 @@
     <div class="span9">
       @if(hasWritePermission){
       <div class="pull-right">
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 7, condition.toURL)
         <a href="@url(repository)/compare" class="btn btn-success">New pull request</a>
       </div>
       }
@@ -96,29 +97,22 @@
       @issues.map { case (issue, labels, commentCount) =>
         <tr>
           <td>
-            @if(hasWritePermission){
-            <label class="checkbox" style="cursor: default;">
-              <input type="checkbox" value="@issue.issueId"/>
-            }
-              <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
-              @labels.map { label =>
-              <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
-              }
-              <span class="pull-right muted">
-                @issue.assignedUserName.map { userName =>
-                  @avatar(userName, 20, tooltip = true)
-                }
-                #@issue.issueId
-              </span>
-              <div class="small muted">
-                Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
-                @if(commentCount > 0){
-                  <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+            <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
+            <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+            <span class="pull-right muted">#@issue.issueId</span>
+              <div style="margin-left: 20px;">
+                @issue.content.map { content =>
+                  @cut(content, 90)
+                }.getOrElse {
+                  <span class="muted">No description available</span>
                 }
               </div>
-            @if(hasWritePermission){
-            </label>
-            }
+            <div class="small muted" style="margin-left: 20px;">
+              @avatar(issue.openedUserName, 20) by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
+              @if(commentCount > 0){
+                <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+              }
+            </div>
           </td>
         </tr>
       }
