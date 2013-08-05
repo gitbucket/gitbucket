@@ -103,7 +103,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         val git    = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
 
         try {
-          // TODO mark issue as 'merged'
+          // mark issue as merged and close.
           val loginAccount = context.loginAccount.get
           createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Merge", "merge")
           createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Close", "close")
