@@ -386,10 +386,12 @@ trait PullRequestsControllerBase extends ControllerBase {
 
     pulls.html.list(
       searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
+      getPullRequestCount(condition.state == "closed", Some(owner, repoName)),
       userName,
       page,
       countIssue(condition.copy(state = "open"), filterUser, true, owner -> repoName),
       countIssue(condition.copy(state = "closed"), filterUser, true, owner -> repoName),
+      countIssue(condition, Map.empty, true, owner -> repoName),
       condition,
       repository,
       hasWritePermission(owner, repoName, context.loginAccount))

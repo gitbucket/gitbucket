@@ -1,8 +1,10 @@
 @(issues: List[(model.Issue, List[model.Label], Int)],
+  counts: List[service.PullRequestService.PullRequestCount],
   filter: Option[String],
   page: Int,
   openCount: Int,
   closedCount: Int,
+  allCount: Int,
   condition: service.IssuesService.IssueSearchCondition,
   repository: service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: app.Context)
@@ -15,18 +17,31 @@
       <ul class="nav nav-pills nav-stacked">
         <li@if(filter.isEmpty){ class="active"}>
           <a href="@url(repository)/pulls">
-            <span class="count-right">@(openCount + closedCount)</span>
+            <span class="count-right">@allCount</span>
             All Requests
           </a>
         </li>
         @if(loginAccount.isDefined){
-        <li@if(filter.isDefined && filter.get == loginAccount.get.userName){ class="active"}>
+        <li@if(filter.map(_ == loginAccount.get.userName).getOrElse(false)){ class="active"}>
           <a href="@url(repository)/pulls/@loginAccount.map(_.userName)">
-            <span class="count-right">0</span>
+            <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count)</span>
             Yours
           </a>
         </li>
         }
+      </ul>
+      <hr>
+      <ul class="nav nav-pills nav-stacked small">
+      @counts.map { user =>
+        @if(loginAccount.isEmpty || loginAccount.get.userName != user.userName){
+        <li@if(filter.map(_ == user.userName).getOrElse(false)){ class="active"}>
+          <a href="@url(repository)/pulls/@user.userName">
+           <span class="count-right">@user.count</span>
+            @user.userName
+          </a>
+        </li>
+        }
+      }
       </ul>
     </div>
     <div class="span9">
