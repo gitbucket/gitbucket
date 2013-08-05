@@ -51,9 +51,17 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def link(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =
     Html(convertRefsLinks(value, repository))
 
+  def cut(value: String, length: Int): String =
+    if(value.length > length){
+      value.substring(0, length) + "..."
+    } else {
+      value
+    }
+
   def activityMessage(message: String)(implicit context: app.Context): Html =
     Html(message
       .replaceAll("\\[issue:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"   , s"""<a href="${context.path}/$$1/$$2/issues/$$3">$$1/$$2#$$3</a>""")
+      .replaceAll("\\[pullreq:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]" , s"""<a href="${context.path}/$$1/$$2/pull/$$3">$$1/$$2#$$3</a>""")
       .replaceAll("\\[repo:([^\\s]+?)/([^\\s]+?)\\]"             , s"""<a href="${context.path}/$$1/$$2\">$$1/$$2</a>""")
       .replaceAll("\\[branch:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]", s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")
       .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")

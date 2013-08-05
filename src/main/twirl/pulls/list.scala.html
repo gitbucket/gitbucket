@@ -1,0 +1,141 @@
+@(issues: List[(model.Issue, List[model.Label], Int)],
+  counts: List[service.PullRequestService.PullRequestCount],
+  filter: Option[String],
+  page: Int,
+  openCount: Int,
+  closedCount: Int,
+  allCount: Int,
+  condition: service.IssuesService.IssueSearchCondition,
+  repository: service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Pull Requests - " + repository.owner + "/" + repository.name){
+  @html.header("pulls", repository)
+  <div class="row-fluid">
+    <div class="span3">
+      <ul class="nav nav-pills nav-stacked">
+        <li@if(filter.isEmpty){ class="active"}>
+          <a href="@url(repository)/pulls">
+            <span class="count-right">@allCount</span>
+            All Requests
+          </a>
+        </li>
+        @if(loginAccount.isDefined){
+        <li@if(filter.map(_ == loginAccount.get.userName).getOrElse(false)){ class="active"}>
+          <a href="@url(repository)/pulls/@loginAccount.map(_.userName)">
+            <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count)</span>
+            Yours
+          </a>
+        </li>
+        }
+      </ul>
+      <hr>
+      <ul class="nav nav-pills nav-stacked small">
+      @counts.map { user =>
+        @if(loginAccount.isEmpty || loginAccount.get.userName != user.userName){
+        <li@if(filter.map(_ == user.userName).getOrElse(false)){ class="active"}>
+          <a href="@url(repository)/pulls/@user.userName">
+           <span class="count-right">@user.count</span>
+            @user.userName
+          </a>
+        </li>
+        }
+      }
+      </ul>
+    </div>
+    <div class="span9">
+      @if(hasWritePermission){
+      <div class="pull-right">
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 7, condition.toURL)
+        <a href="@url(repository)/compare" class="btn btn-success">New pull request</a>
+      </div>
+      }
+      <div class="btn-group">
+        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
+        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
+      </div>
+      <div class="btn-group">
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+          Sort:
+          <strong>
+            @if(condition.sort == "created"  && condition.direction == "desc"){ Newest }
+            @if(condition.sort == "created"  && condition.direction == "asc" ){ Oldest }
+            @if(condition.sort == "comments" && condition.direction == "desc"){ Most commented }
+            @if(condition.sort == "comments" && condition.direction == "asc" ){ Least commented }
+            @if(condition.sort == "updated"  && condition.direction == "desc"){ Recently updated }
+            @if(condition.sort == "updated"  && condition.direction == "asc" ){ Least recently updated }
+          </strong>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="@condition.copy(sort="created",  direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="desc").toURL">
+              @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+              @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+            </a>
+          </li>
+        </ul>
+      </div>
+      <table class="table table-bordered table-hover table-issues">
+      @if(issues.isEmpty){
+        <tr>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            No pull requests to show.
+          </td>
+        </tr>
+      }
+      @issues.map { case (issue, labels, commentCount) =>
+        <tr>
+          <td>
+            <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
+            <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+            <span class="pull-right muted">#@issue.issueId</span>
+              <div style="margin-left: 20px;">
+                @issue.content.map { content =>
+                  @cut(content, 90)
+                }.getOrElse {
+                  <span class="muted">No description available</span>
+                }
+              </div>
+            <div class="small muted" style="margin-left: 20px;">
+              @avatar(issue.openedUserName, 20) by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> @datetime(issue.registeredDate)&nbsp;
+              @if(commentCount > 0){
+                <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+              }
+            </div>
+          </td>
+        </tr>
+      }
+      </table>
+      <div class="pull-right">
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 10, condition.toURL)
+      </div>
+    </div>
+  </div>
+}
+

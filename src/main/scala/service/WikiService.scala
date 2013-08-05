@@ -4,10 +4,7 @@ import java.io.File
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
-import util.JGitUtil.DiffInfo
-import util.{Directory, JGitUtil}
-import org.eclipse.jgit.treewalk.CanonicalTreeParser
-import java.util.concurrent.ConcurrentHashMap
+import util.{Directory, JGitUtil, LockUtil}
 
 object WikiService {
   
@@ -31,40 +28,13 @@ object WikiService {
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
 
-  /**
-   * lock objects
-   */
-  private val locks = new ConcurrentHashMap[String, AnyRef]()
-
-  /**
-   * Returns the lock object for the specified repository.
-   */
-  private def getLockObject(owner: String, repository: String): AnyRef = synchronized {
-    val key = owner + "/" + repository
-    if(!locks.containsKey(key)){
-      locks.put(key, new AnyRef())
-    }
-    locks.get(key)
-  }
-
-  /**
-   * Synchronizes a given function which modifies the working copy of the wiki repository.
-   *
-   * @param owner the repository owner
-   * @param repository the repository name
-   * @param f the function which modifies the working copy of the wiki repository
-   * @tparam T the return type of the given function
-   * @return the result of the given function
-   */
-  def lock[T](owner: String, repository: String)(f: => T): T = getLockObject(owner, repository).synchronized(f)
-
 }
 
 trait WikiService {
   import WikiService._
 
   def createWikiRepository(loginAccount: model.Account, owner: String, repository: String): Unit = {
-    lock(owner, repository){
+    LockUtil.lock(s"${owner}/${repository}/wiki"){
       val dir = Directory.getWikiRepositoryDir(owner, repository)
       if(!dir.exists){
         try {
@@ -126,7 +96,7 @@ trait WikiService {
   def saveWikiPage(owner: String, repository: String, currentPageName: String, newPageName: String,
       content: String, committer: model.Account, message: String): Unit = {
 
-    lock(owner, repository){
+    LockUtil.lock(s"${owner}/${repository}/wiki"){
       // clone working copy
       val workDir = Directory.getWikiWorkDir(owner, repository)
       cloneOrPullWorkingCopy(workDir, owner, repository)
@@ -162,8 +132,9 @@ trait WikiService {
   /**
    * Delete the wiki page.
    */
-  def deleteWikiPage(owner: String, repository: String, pageName: String, committer: String, message: String): Unit = {
-    lock(owner, repository){
+  def deleteWikiPage(owner: String, repository: String, pageName: String,
+                     committer: String, mailAddress: String, message: String): Unit = {
+    LockUtil.lock(s"${owner}/${repository}/wiki"){
       // clone working copy
       val workDir = Directory.getWikiWorkDir(owner, repository)
       cloneOrPullWorkingCopy(workDir, owner, repository)
@@ -175,32 +146,10 @@ trait WikiService {
         git.rm.addFilepattern(pageName + ".md").call
     
         // commit and push
-        // TODO committer's mail address
-        git.commit.setAuthor(committer, committer + "@devnull").setMessage(message).call
+        git.commit.setAuthor(committer, mailAddress).setMessage(message).call
         git.push.call
       }
     }
-  }
-
-  /**
-   * Returns differences between specified commits.
-   */
-  def getWikiDiffs(git: Git, commitId1: String, commitId2: String): List[DiffInfo] = {
-      // get diff between specified commit and its previous commit
-      val reader = git.getRepository.newObjectReader
-      
-      val oldTreeIter = new CanonicalTreeParser
-      oldTreeIter.reset(reader, git.getRepository.resolve(commitId1 + "^{tree}"))
-      
-      val newTreeIter = new CanonicalTreeParser
-      newTreeIter.reset(reader, git.getRepository.resolve(commitId2 + "^{tree}"))
-      
-      import scala.collection.JavaConverters._
-      git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-            JGitUtil.getContent(git, diff.getOldId.toObjectId, false).map(new String(_, "UTF-8")), 
-            JGitUtil.getContent(git, diff.getNewId.toObjectId, false).map(new String(_, "UTF-8")))
-      }.toList
   }
 
   private def cloneOrPullWorkingCopy(workDir: File, owner: String, repository: String): Unit = {

@@ -1,0 +1,188 @@
+@(commits: Seq[Seq[util.JGitUtil.CommitInfo]],
+  diffs: Seq[util.JGitUtil.DiffInfo],
+  members: List[String],
+  originId: String,
+  forkedId: String,
+  sourceId: String,
+  commitId: String,
+  hasConflict: Boolean,
+  repository: service.RepositoryService.RepositoryInfo,
+  originRepository: service.RepositoryService.RepositoryInfo,
+  forkedRepository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@import org.eclipse.jgit.diff.DiffEntry.ChangeType
+@html.main("Pull Requests - " + repository.owner + "/" + repository.name){
+  @html.header("pulls", repository)
+  <div style="border: 1px solid #eee; background-color: #f8f8f8; margin-bottom: 10px; padding: 8px;">
+    <div id="compare-info">
+      <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>
+      <span class="label label-info monospace">@originRepository.owner:@originId</span> ... <span class="label label-info monospace">@forkedRepository.owner:@forkedId</span>
+    </div>
+    <div id="compare-edit" style="display: none;">
+      <a href="#" id="cancel-condition-editing" class="pull-right"><i class="icon-remove-circle"></i></a>
+      @if(members.nonEmpty){
+        @helper.html.dropdown(originRepository.owner + "/" + repository.name, "base fork") {
+          @members.map { member =>
+            <li><a href="#" class="origin-owner" data-name="@member">@helper.html.checkicon(member == originRepository.owner) @member/@repository.name</a></li>
+          }
+        }
+      }
+      @helper.html.dropdown(originId, "base") {
+        @originRepository.branchList.map { branch =>
+          <li><a href="#" class="origin-branch" data-name="@branch">@helper.html.checkicon(branch == originId) @branch</a></li>
+        }
+      }
+      ...
+      @if(members.nonEmpty){
+        @helper.html.dropdown(forkedRepository.owner + "/" + repository.name, "head fork") {
+          @members.map { member =>
+            <li><a href="#" class="forked-owner" data-name="@member">@helper.html.checkicon(member == forkedRepository.owner) @member/@repository.name</a></li>
+          }
+        }
+      }
+      @helper.html.dropdown(forkedId, "compare") {
+        @forkedRepository.branchList.map { branch =>
+          <li><a href="#" class="forked-branch" data-name="@branch">@helper.html.checkicon(branch == forkedId) @branch</a></li>
+        }
+      }
+    </div>
+  </div>
+  @if(commits.nonEmpty){
+    <div style="margin-bottom: 10px;" id="create-pull-request">
+      <a href="#" class="btn" id="show-form">Click to create a pull request for this comparison</a>
+    </div>
+    <div id="pull-request-form" class="box" style="display: none;">
+        <div class="box-content">
+          <form method="POST" action="@path/@originRepository.owner/@repository.name/pulls/new" validate="true">
+            <div style="width: 260px; position: absolute; margin-left: 635px;">
+              @if(hasConflict){
+                <h4>We can’t automatically merge these branches</h4>
+                <p>Don't worry, you can still submit the pull request.</p>
+              } else {
+                <h4 style="color: #468847;">Able to merge</h4>
+                <p>These branches can be automatically merged.</p>
+              }
+              <input type="submit" class="btn btn-success btn-block" value="Send pull request"/>
+            </div>
+            <div style="width: 620px; border-right: 1px solid #d4d4d4;">
+              <span class="error" id="error-title"></span>
+              <input type="text" name="title" style="width: 600px" placeholder="Title"/>
+              @helper.html.preview(repository, "", false, true, "width: 600px; height: 200px;")
+              <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
+              <input type="hidden" name="targetBranch" value="@originId"/>
+              <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+              <input type="hidden" name="requestBranch" value="@forkedId"/>
+              <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+              <input type="hidden" name="commitIdTo" value="@commitId"/>
+            </div>
+          </form>
+        </div>
+    </div>
+  }
+  @if(commits.isEmpty){
+    <table class="table table-bordered table-hover table-issues">
+      <tr>
+        <td style="padding: 20px; background-color: #eee; text-align: center;">
+          <h4>There isn't anything to compare.</h4>
+          <strong>@originRepository.owner:@originId</strong> and <strong>@forkedRepository.owner:@forkedId</strong> are identical.
+        </td>
+      </tr>
+    </table>
+  } else {
+    <div class="box">
+      <table class="table table-file-list" style="border: 1px solid silver;">
+        @commits.map { day =>
+          <tr>
+            <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
+          </tr>
+          @day.map { commit =>
+            <tr>
+              <td style="width: 20%;">
+                @avatar(commit.committer, 20)
+                <a href="@url(commit.committer)" class="username">@commit.committer</a>
+              </td>
+              <td>@commit.shortMessage</td>
+              <td style="width: 10%; text-align: right;">
+                <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+              </td>
+            </tr>
+          }
+        }
+      </table>
+    </div>
+    <div>
+      <div class="pull-right" style="margin-bottom: 10px;">
+        <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
+      </div>
+      Showing @diffs.size changed @plural(diffs.size, "file")
+    </div>
+    <ul id="commit-file-list" style="display: none;">
+    @diffs.zipWithIndex.map { case (diff, i) =>
+      <li@if(i > 0){ class="border"}>
+        <a href="#diff-@i">
+          @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+            <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+          }
+          @if(diff.changeType == ChangeType.ADD){
+            <img src="@assets/common/images/diff_add.png"/> @diff.newPath
+          }
+          @if(diff.changeType == ChangeType.MODIFY){
+            <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
+          }
+          @if(diff.changeType == ChangeType.DELETE){
+            <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+          }
+        </a>
+      </li>
+      }
+    </ul>
+    @helper.html.diff(diffs, repository, Some(commitId))
+  }
+}
+<script>
+$(function(){
+  $('#edit-compare-condition').click(function(){
+    $('#compare-info').hide();
+    $('#compare-edit').show();
+  });
+
+  $('#cancel-condition-editing').click(function(){
+    $('#compare-info').show();
+    $('#compare-edit').hide();
+  });
+
+  $('a.origin-owner, a.forked-owner, a.origin-branch, a.forked-branch').click(function(){
+    var e = $(this);
+    e.parents('ul').find('i').attr('class', 'icon-white');
+    e.find('i').attr('class', 'icon-ok');
+    e.parents('div.btn-group').find('button strong').text(e.text());
+
+    @if(members.isEmpty){
+      location.href = '@url(repository)/compare/' +
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')) + '...' +
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'));
+    } else {
+      location.href = '@url(repository)/compare/' +
+        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('name')) + ':' +
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')) + '...' +
+        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) + ':' +
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'));
+    }
+  });
+
+  $('#show-form').click(function(){
+    $(this).hide();
+    $('#pull-request-form').show();
+  });
+
+  $('#toggle-file-list').click(function(){
+    $('#commit-file-list').toggle();
+    if($(this).val() == 'Show file list'){
+      $(this).val('Hide file list');
+    } else {
+      $(this).val('Show file list');
+    }
+  });
+});
+</script>

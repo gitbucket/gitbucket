@@ -1,0 +1,124 @@
+@(issue: model.Issue,
+  pullreq: model.PullRequest,
+  comments: List[model.IssueComment],
+  collaborators: List[String],
+  milestones: List[(model.Milestone, Int, Int)],
+  hasConflict: Boolean,
+  hasWritePermission: Boolean,
+  repository: service.RepositoryService.RepositoryInfo,
+  requestRepositoryUrl: String)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+<div class="row-fluid">
+  <div class="span10">
+    @issues.html.issuedetail(issue, comments, collaborators, milestones, hasWritePermission, repository)
+    @issues.html.commentlist(comments, hasWritePermission, repository)
+
+    @if(hasWritePermission && !issue.closed){
+      <div class="box issue-comment-box" style="background-color: #d8f5cd;">
+        <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
+          <div id="merge-pull-request">
+            <div class="pull-right">
+              <input type="button" class="btn btn-success" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict){ disabled="true"}/>
+            </div>
+            <div>
+              @if(hasConflict){
+                <strong>We can’t automatically merge this pull request.</strong>
+              } else {
+                <strong>This pull request can be automatically merged.</strong>
+              }
+            </div>
+            <div class="small">
+              @if(hasConflict){
+                <a href="#" id="show-command-line">Use the command line</a> to resolve conflicts before continuing.
+              } else {
+                You can also merge branches on the <a href="#" id="show-command-line">command line</a>.
+              }
+            </div>
+            <div id="command-line" style="display: none;">
+              <hr>
+              @if(hasConflict){
+                <strong>Checkout via command line</strong>
+                <p>
+                  If you cannot merge a pull request automatically here, you have the option of checking
+                  it out via command line to resolve conflicts and perform a manual merge.
+                </p>
+              } else {
+                <strong>Merging via command line</strong>
+                <p>
+                  If you do not want to use the merge button or an automatic merge cannot be performed,
+                  you can perform a manual merge on the command line.
+                </p>
+              }
+              <div class="input-prepend">
+                <span class="add-on">HTTP</span>
+                <input type="text" value="@requestRepositoryUrl" id="repository-url" readonly>
+              </div>
+              <p>
+                <strong>Step 1:</strong> Check out a new branch to test the changes — run this from your project directory
+              </p>
+              <pre>git checkout -b @{pullreq.requestUserName}-@{pullreq.requestBranch} @{pullreq.requestBranch}</pre>
+              <p>
+                <strong>Step 2:</strong> Bring in @{pullreq.requestUserName}'s changes and test
+              </p>
+              <pre>git pull @{requestRepositoryUrl} @{pullreq.requestBranch}</pre>
+              <p>
+                <strong>Step 3:</strong> Merge the changes and update the server
+              </p>
+              <pre>git checkout master
+git merge @{pullreq.requestUserName}-@{pullreq.branch}
+git push origin @{pullreq.branch}</pre>
+            </div>
+          </div>
+          <div id="confirm-merge-form" style="display: none;">
+            <form method="POST" action="@url(repository)/pull/@issue.issueId/merge">
+              <div>
+                <strong>Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}</strong>
+              </div>
+              <span id="error-message" class="error"></span>
+              <textarea name="message" style="width: 680px; height: 80px;">@issue.title</textarea>
+              <div>
+                <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
+                <input type="submit" class="btn btn-success" value="Confirm merge"/>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    }
+    @issues.html.commentform(issue, hasWritePermission, repository)
+  </div>
+  <div class="span2">
+    @if(issue.closed) {
+      @if(comments.exists(_.action == "merge")){
+        <span class="label label-info issue-status">Merged</span>
+      } else {
+        <span class="label label-important issue-status">Closed</span>
+      }
+    } else {
+      <span class="label label-success issue-status">Open</span>
+    }
+    <div class="small" style="text-align: center;">
+      <strong>@comments.size</strong> @plural(comments.size, "comment")
+    </div>
+    <hr/>
+  </div>
+</div>
+<script>
+$(function(){
+  $('#show-command-line').click(function(){
+    $('#command-line').show();
+    return false;
+  });
+
+  $('#merge-pull-request-button').click(function(){
+    $('#merge-pull-request').hide();
+    $('#confirm-merge-form').show();
+  });
+
+  $('#cancel-merge-pull-request').click(function(){
+    $('#confirm-merge-form').hide();
+    $('#merge-pull-request').show();
+  });
+});
+</script>

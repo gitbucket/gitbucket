@@ -56,7 +56,7 @@ table.global-nav {
 table.global-nav th {
   padding-top: 5px;
   padding-bottom: 8px;
-  width: 25%;
+  width: 20%;
   border-bottom: 2px solid silver;
   cursor: pointer;
 }
@@ -70,6 +70,19 @@ table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:v
   text-decoration: none;
 }
 
+div.input-prepend span.add-on {
+  background-color: white;
+  -webkit-border-radius: 0 4px 4px 0;
+  -moz-border-radius: 0 4px 4px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/*
+div.input-prepend span.add-on a {
+  color: #333;
+}
+*/
+
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
@@ -81,6 +94,16 @@ div.head {
 div.head a {
   font-weight: bold;
 }
+
+div.head div.forked {
+  font-size: 60%;
+  color: #999999;
+}
+
+div.head div.forked a {
+  font-weight: normal;
+}
+
 
 div.container {
   width: 920px;
@@ -257,14 +280,22 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+ul.dropdown-menu {
+  padding: 2px 0;
+}
+
 ul.dropdown-menu li {
   border-bottom: 1px solid #eee;
+  font-size: 85%;
+}
+
+ul.dropdown-menu li a {
+  padding: 2px 10px;
 }
 
 ul.dropdown-menu :last-child {
   border-bottom: none;
 }
-
 
 /****************************************************************************/
 /* Sign-in form */
