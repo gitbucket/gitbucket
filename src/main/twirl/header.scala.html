@@ -3,7 +3,7 @@
 @import view.helpers._
 <div class="pull-right">
   <div class="input-prepend">
-    <input type="button" id="fork" class="btn" value="Fork" style="margin-bottom: 10px;"/>
+    <a href="@path/@repository.owner/@repository.name/fork" class="btn" style="margin-bottom: 10px;">Fork</a>
     <span class="add-on"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
   </div>
 </div>
@@ -48,13 +48,6 @@ $(function(){
   $('table.global-nav th.box-header').click(function(){
     location.href = $(this).find('a').attr('href');
     return false;
-  });
-
-  // TODO Execute by Ajax?
-  $('#fork').click(function(){
-    var form = $('form#repository_form');
-    form.attr('action', '@path/@repository.owner/@repository.name/_fork');
-    form.submit();
   });
 });
 </script>

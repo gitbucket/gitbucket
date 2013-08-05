@@ -1,24 +1,25 @@
 package app
 
 import util.Directory._
-import util.{LockUtil, JGitUtil, UsersAuthenticator, ReferrerAuthenticator}
+import util._
 import service._
 import java.io.File
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.lib.PersonIdent
+import scala.Some
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-  with UsersAuthenticator with ReferrerAuthenticator
+  with UsersAuthenticator with ReadableUsersAuthenticator
 
 /**
  * Creates new repository.
  */
 trait CreateRepositoryControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-    with UsersAuthenticator with ReferrerAuthenticator =>
+    with UsersAuthenticator with ReadableUsersAuthenticator =>
 
   case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
 
@@ -113,7 +114,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/_fork")(referrersOnly { repository =>
+  get("/:owner/:repository/fork")(readableUsersOnly { repository =>
     val loginAccount   = context.loginAccount.get
     val loginUserName  = loginAccount.userName
 
