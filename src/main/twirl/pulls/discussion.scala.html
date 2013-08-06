@@ -12,8 +12,7 @@
 <div class="row-fluid">
   <div class="span10">
     @issues.html.issuedetail(issue, comments, collaborators, milestones, hasWritePermission, repository)
-    @issues.html.commentlist(comments, hasWritePermission, repository)
-
+    @issues.html.commentlist(issue, comments, hasWritePermission, repository, Some(pullreq))
     @if(hasWritePermission && !issue.closed){
       <div class="box issue-comment-box" style="background-color: #d8f5cd;">
         <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">

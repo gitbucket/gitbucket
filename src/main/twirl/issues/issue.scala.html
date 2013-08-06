@@ -18,7 +18,7 @@
   <div class="row-fluid">
     <div class="span10">
       @issuedetail(issue, comments, collaborators, milestones, hasWritePermission, repository)
-      @commentlist(comments, hasWritePermission, repository)
+      @commentlist(issue, comments, hasWritePermission, repository)
       @commentform(issue, hasWritePermission, repository)
     </div>
     <div class="span2">

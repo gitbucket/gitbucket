@@ -1,6 +1,8 @@
-@(comments: List[model.IssueComment],
+@(issue: model.Issue,
+  comments: List[model.IssueComment],
   hasWritePermission: Boolean,
-  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo,
+  pullreq: Option[model.PullRequest] = None)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @comments.map { comment =>
@@ -26,14 +28,20 @@
     <div class="small" style="margin-top: 10px; margin-bottom: 10px;">
       <span class="label label-info">Merged</span>
       @avatar(comment.commentedUserName, 20)
-      <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> merged the pull request @datetime(comment.registeredDate)
+      <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code>
+      <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span>
+      @datetime(comment.registeredDate)
     </div>
   }
   @if(comment.action == "close" || comment.action == "close_comment"){
     <div class="small issue-comment-action">
       <span class="label label-important">Closed</span>
       @avatar(comment.commentedUserName, 20)
-      <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
+      @if(issue.isPullRequest){
+        <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> closed the pull request @datetime(comment.registeredDate)
+      } else {
+        <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> closed the issue @datetime(comment.registeredDate)
+      }
     </div>
   }
   @if(comment.action == "reopen" || comment.action == "reopen_comment"){
