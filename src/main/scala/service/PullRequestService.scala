@@ -18,7 +18,7 @@ trait PullRequestService { self: IssuesService =>
     } else None
   }
 
-  def getPullRequestCount(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
+  def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
     Query(PullRequests)
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
@@ -28,9 +28,9 @@ trait PullRequestService { self: IssuesService =>
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
       .map { case (userName, t) => userName ~ t.length }
+      .sortBy(_._2 desc)
       .list
       .map { x => PullRequestCount(x._1, x._2) }
-      .sortBy(_.count).reverse
 
   def createPullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
         originBranch: String, requestUserName: String, requestRepositoryName: String, requestBranch: String,

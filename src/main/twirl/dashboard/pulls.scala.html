@@ -1,6 +1,6 @@
 @(listparts: twirl.api.Html,
-  allCount: Int,
   counts: List[service.PullRequestService.PullRequestCount],
+  repositories: List[(String, String, Int)],
   condition: service.IssuesService.IssueSearchCondition,
   filter: String)(implicit context: app.Context)
 @import context._
@@ -10,30 +10,28 @@
 <div class="row-fluid">
   <div class="span3">
     <ul class="nav nav-pills nav-stacked">
-      <li@if(filter == "all"){ class="active"}>
+      <li@if(filter == "created_by"){ class="active"}>
         <a href="@path/dashboard/pulls/owned@condition.toURL">
-          <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count)</span>
+          <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count).getOrElse(0)</span>
           Yours
         </a>
       </li>
-      <li>
+      <li@if(filter == "not_created_by"){ class="active"}>
         <a href="@path/dashboard/pulls/public@condition.toURL">
-          <span class="count-right">@allCount</span>
+          <span class="count-right">@counts.filter(_.userName != loginAccount.get.userName).map(_.count).sum</span>
           Public
         </a>
       </li>
     </ul>
     <hr/>
     <ul class="nav nav-pills nav-stacked small">
-      @counts.map { user =>
-        @if(user.userName != loginAccount.get.userName){
-        <li>
-          <a href="@path/dashboard/@user.userName@condition.toURL">
-            <span class="count-right">@user.count</span>
-            @user.userName
-          </a>
-        </li>
-        }
+      @repositories.map { case (owner, name, count) =>
+      <li@if(condition.repo == Some(owner + "/" + name)){ class="active"}>
+        <a href="@path/dashboard/pulls/for/@owner/@name">
+          <span class="count-right">@count</span>
+          @owner/@name
+        </a>
+      </li>
       }
     </ul>
   </div>

@@ -88,19 +88,21 @@ trait IssuesService {
    *
    * @param condition the search condition
    * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
    * @param repos Tuple of the repository owner and the repository name
    * @return list which contains issue count for each repository
    */
   def countIssueGroupByRepository(
-      condition: IssueSearchCondition, filterUser: Map[String, String], repos: (String, String)*): List[(String, String, Int)] = {
-    searchIssueQuery(repos, condition.copy(repo = None), filterUser, false)
+      condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+      repos: (String, String)*): List[(String, String, Int)] = {
+    searchIssueQuery(repos, condition.copy(repo = None), filterUser, onlyPullRequest)
       .groupBy { t =>
         t.userName ~ t.repositoryName
       }
       .map { case (repo, t) =>
         repo ~ t.length
       }
-      .filter (_._3 > 0.bind)
+      .sortBy(_._3 desc)
       .list
   }
 
@@ -108,7 +110,7 @@ trait IssuesService {
    * Returns the search result against  issues.
    *
    * @param condition the search condition
-   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
+   * @param filterUser the filter user name (key is "all", "assigned", "created_by" or "not_created_by", value is the user name)
    * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
@@ -172,6 +174,7 @@ trait IssuesService {
       (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
       (t1.assignedUserName is filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
       (t1.openedUserName   is filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
+      (t1.openedUserName   isNot filterUser("not_created_by").bind, filterUser.get("not_created_by").isDefined) &&
       (t1.pullRequest      is true.bind, onlyPullRequest) &&
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
