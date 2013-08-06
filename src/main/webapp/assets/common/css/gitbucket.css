@@ -38,11 +38,17 @@ div.nav-collapse a.menu-last {
   margin-right: 30px;
 }
 
-div.gitbucket-version {
+.navbar .brand {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.navbar .brand img {
+  vertical-align: bottom;
+}
+
+span.header-version {
   font-size: small;
-  color: silver;
-  float: right;
-  margin-right: 10px;
 }
 
 /* ======================================================================== */
