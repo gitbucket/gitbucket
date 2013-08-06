@@ -52,6 +52,13 @@ trait ActivityService {
       Some(title),
       currentDate)
 
+  def recordClosePullRequestActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "close_issue",
+      s"[user:${activityUserName}] closed pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+      Some(title),
+      currentDate)
+
   def recordReopenIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "reopen_issue",
@@ -65,7 +72,14 @@ trait ActivityService {
       s"[user:${activityUserName}] commented on issue [issue:${userName}/${repositoryName}#${issueId}]",
       Some(cut(comment, 200)),
       currentDate)
-  
+
+  def recordCommentPullRequestActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, comment: String): Unit =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "comment_issue",
+      s"[user:${activityUserName}] commented on pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
+      Some(cut(comment, 200)),
+      currentDate)
+
   def recordCreateWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String) =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "create_wiki",

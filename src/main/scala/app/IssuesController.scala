@@ -282,8 +282,9 @@ trait IssuesControllerBase extends ControllerBase {
       val (action, recordActivity) =
         getAction(issue)
           .collect {
-            case "close"  => true  -> (Some("close")  -> Some(recordCloseIssueActivity _))
-            case "reopen" => false -> (Some("reopen") -> Some(recordReopenIssueActivity _))
+            case "close" if(issue.isPullRequest)  => true  -> (Some("close")  -> Some(recordClosePullRequestActivity _))
+            case "close" if(!issue.isPullRequest) => true  -> (Some("close")  -> Some(recordCloseIssueActivity _))
+            case "reopen"                         => false -> (Some("reopen") -> Some(recordReopenIssueActivity _))
           }
           .map { case (closed, t) =>
             updateClosed(owner, name, issueId, closed)
@@ -299,7 +300,12 @@ trait IssuesControllerBase extends ControllerBase {
           }
 
       // record activity
-      content foreach ( recordCommentIssueActivity(owner, name, userName, issueId, _) )
+      content foreach { content =>
+        if(issue.isPullRequest)
+          recordCommentPullRequestActivity(owner, name, userName, issueId, content)
+        else
+          recordCommentIssueActivity(owner, name, userName, issueId, content)
+      }
       recordActivity foreach ( _ (owner, name, userName, issueId, issue.title) )
 
       (issue, commentId)
