@@ -1,0 +1,42 @@
+@(listparts: twirl.api.Html,
+  allCount: Int,
+  counts: List[service.PullRequestService.PullRequestCount],
+  condition: service.IssuesService.IssueSearchCondition,
+  filter: String)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Your Issues"){
+@dashboard.html.tab("pulls")
+<div class="row-fluid">
+  <div class="span3">
+    <ul class="nav nav-pills nav-stacked">
+      <li@if(filter == "all"){ class="active"}>
+        <a href="@path/dashboard/pulls/owned@condition.toURL">
+          <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count)</span>
+          Yours
+        </a>
+      </li>
+      <li>
+        <a href="@path/dashboard/pulls/public@condition.toURL">
+          <span class="count-right">@allCount</span>
+          Public
+        </a>
+      </li>
+    </ul>
+    <hr/>
+    <ul class="nav nav-pills nav-stacked small">
+      @counts.map { user =>
+        @if(user.userName != loginAccount.get.userName){
+        <li>
+          <a href="@path/dashboard/@user.userName@condition.toURL">
+            <span class="count-right">@user.count</span>
+            @user.userName
+          </a>
+        </li>
+        }
+      }
+    </ul>
+  </div>
+  @listparts
+</div>
+}

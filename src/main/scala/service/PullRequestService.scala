@@ -18,13 +18,13 @@ trait PullRequestService { self: IssuesService =>
     } else None
   }
 
-  def getPullRequestCount(closed: Boolean, repository: Option[(String, String)]): List[PullRequestCount] =
+  def getPullRequestCount(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
     Query(PullRequests)
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
         (t2.closed         is closed.bind) &&
-        (t1.userName       is repository.get._1, repository.isDefined) &&
-        (t1.repositoryName is repository.get._2, repository.isDefined)
+        (t1.userName       is owner.bind) &&
+        (t1.repositoryName is repository.get.bind, repository.isDefined)
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
       .map { case (userName, t) => userName ~ t.length }

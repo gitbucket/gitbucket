@@ -4,11 +4,11 @@ import service._
 import util.UsersAuthenticator
 
 class DashboardController extends DashboardControllerBase
-  with IssuesService with RepositoryService with AccountService
+  with IssuesService with PullRequestService with RepositoryService with AccountService
   with UsersAuthenticator
 
 trait DashboardControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with UsersAuthenticator =>
+  self: IssuesService with PullRequestService with RepositoryService with UsersAuthenticator =>
 
   get("/dashboard/issues/repos")(usersOnly {
     searchIssues("all")
@@ -20,6 +20,14 @@ trait DashboardControllerBase extends ControllerBase {
 
   get("/dashboard/issues/created_by")(usersOnly {
     searchIssues("created_by")
+  })
+
+  get("/dashboard/pulls")(usersOnly {
+    searchPullRequests("created_by")
+  })
+
+  get("/dashboard/pulls/public")(usersOnly {
+    searchPullRequests("all")
   })
 
   private def searchIssues(filter: String) = {
@@ -53,5 +61,37 @@ trait DashboardControllerBase extends ControllerBase {
         filter)    
     
   }
+
+  private def searchPullRequests(filter: String) = {
+    import IssuesService._
+    import PullRequestService._
+
+    // condition
+    val sessionKey = "dashboard/pulls"
+    val condition = if(request.getQueryString == null)
+      session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+    else IssueSearchCondition(request)
+
+    session.put(sessionKey, condition)
+
+    val userName = context.loginAccount.get.userName
+    val repositories = getUserRepositories(userName, baseUrl).map(repo => repo.owner -> repo.name)
+    val filterUser = Map(filter -> userName)
+    val page = IssueSearchCondition.page(request)
+
+    dashboard.html.pulls(
+      pulls.html.listparts(
+        searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, repositories: _*),
+        page,
+        countIssue(condition.copy(state = "open"), filterUser, false, repositories: _*),
+        countIssue(condition.copy(state = "closed"), filterUser, false, repositories: _*),
+        condition),
+      countIssue(condition, Map.empty, true, repositories: _*),
+      getPullRequestCount(condition.state == "closed", userName, None),
+      condition,
+      filter)
+
+  }
+
 
 }
