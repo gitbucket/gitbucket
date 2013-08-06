@@ -29,7 +29,11 @@
       <span class="label label-info">Merged</span>
       @avatar(comment.commentedUserName, 20)
       <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code>
-      <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span>
+      @if(pullreq.get.requestUserName == repository.owner){
+        <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.branch)</span>
+      } else {
+        <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span>
+      }
       @datetime(comment.registeredDate)
     </div>
   }
