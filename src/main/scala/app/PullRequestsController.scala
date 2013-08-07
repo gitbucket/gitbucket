@@ -305,7 +305,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
-    redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
+    redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
   })
 
   /**
