@@ -24,7 +24,7 @@
         @if(loginAccount.isDefined){
         <li@if(filter.map(_ == loginAccount.get.userName).getOrElse(false)){ class="active"}>
           <a href="@url(repository)/pulls/@loginAccount.map(_.userName)">
-            <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count)</span>
+            <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count).getOrElse(0)</span>
             Yours
           </a>
         </li>
@@ -44,7 +44,7 @@
       }
       </ul>
     </div>
-    @listparts(issues, page, openCount, closedCount, condition)
+    @listparts(issues, page, openCount, closedCount, condition, Some(repository), hasWritePermission)
   </div>
 }
 
