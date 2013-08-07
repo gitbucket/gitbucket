@@ -2,59 +2,22 @@
 @import context._
 @import view.helpers._
 
-@longActivity(activity: model.Activity, image: String) = {
-  <div style="position: absolute; padding-top: 8px;"><img src="@assets/common/images/@image"/></div>
-  <div style="margin-left: 40px;">
-    <div class="muted small">@datetime(activity.activityDate)</div>
-    <div class="strong">
-      @avatar(activity.activityUserName, 16)
-      @activityMessage(activity.message)
-    </div>
-    @activity.additionalInfo.map { additionalInfo =>
-      <div class=" activity-message">@additionalInfo</div>
-    }
-  </div>
-}
-
-@customActivity(activity: model.Activity, image: String)(additionalInfo: Any) = {
-  <div style="position: absolute; padding-top: 8px;"><img src="@assets/common/images/@image"/></div>
-  <div style="margin-left: 40px;">
-    <div class="muted small">@datetime(activity.activityDate)</div>
-    <div class="strong">
-      @avatar(activity.activityUserName, 16)
-      @activityMessage(activity.message)
-    </div>
-    @additionalInfo
-  </div>
-}
-
-@shortActivity(activity: model.Activity, image: String) = {
-  <div style="position: absolute; padding-left: 8px;"><img src="@assets/common/images/@image"/></div>
-  <div style="margin-left: 40px;">
-    <div>
-      @avatar(activity.activityUserName, 16)
-      @activityMessage(activity.message)
-      <span class="muted small">@datetime(activity.activityDate)</span>
-    </div>
-  </div>
-}
-
 @if(activities.isEmpty){
   No activity
 } else {
   @activities.map { activity =>
     <div class="block">
       @(activity.activityType match {
-        case "open_issue"        => longActivity(activity, "activity-issue.png")
-        case "comment_issue"     => longActivity(activity, "activity-comment.png")
-        case "close_issue"       => longActivity(activity, "activity-issue-close.png")
-        case "reopen_issue"      => longActivity(activity, "activity-issue-reopen.png")
-        case "open_pullreq"      => longActivity(activity, "activity-merge.png")
-        case "merge_pullreq"     => longActivity(activity, "activity-merge.png")
-        case "create_repository" => shortActivity(activity, "activity-create-repository.png")
-        case "create_branch"     => shortActivity(activity, "activity-branch.png")
-        case "create_tag"        => shortActivity(activity, "activity-tag.png")
-        case "fork"              => shortActivity(activity, "activity-fork.png")
+        case "open_issue"        => detailActivity(activity, "activity-issue.png")
+        case "comment_issue"     => detailActivity(activity, "activity-comment.png")
+        case "close_issue"       => detailActivity(activity, "activity-issue-close.png")
+        case "reopen_issue"      => detailActivity(activity, "activity-issue-reopen.png")
+        case "open_pullreq"      => detailActivity(activity, "activity-merge.png")
+        case "merge_pullreq"     => detailActivity(activity, "activity-merge.png")
+        case "create_repository" => simpleActivity(activity, "activity-create-repository.png")
+        case "create_branch"     => simpleActivity(activity, "activity-branch.png")
+        case "create_tag"        => simpleActivity(activity, "activity-tag.png")
+        case "fork"              => simpleActivity(activity, "activity-fork.png")
         case "push"  => customActivity(activity, "activity-commit.png"){
           <div class="small activity-message">
             {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
@@ -83,3 +46,41 @@
     </div>
   }
 }
+
+@detailActivity(activity: model.Activity, image: String) = {
+  <div style="position: absolute; padding-top: 8px;"><img src="@assets/common/images/@image"/></div>
+  <div style="margin-left: 40px;">
+    <div class="muted small">@datetime(activity.activityDate)</div>
+    <div class="strong">
+      @avatar(activity.activityUserName, 16)
+      @activityMessage(activity.message)
+    </div>
+    @activity.additionalInfo.map { additionalInfo =>
+      <div class=" activity-message">@additionalInfo</div>
+    }
+  </div>
+}
+
+@customActivity(activity: model.Activity, image: String)(additionalInfo: Any) = {
+  <div style="position: absolute; padding-top: 8px;"><img src="@assets/common/images/@image"/></div>
+  <div style="margin-left: 40px;">
+    <div class="muted small">@datetime(activity.activityDate)</div>
+    <div class="strong">
+      @avatar(activity.activityUserName, 16)
+      @activityMessage(activity.message)
+    </div>
+    @additionalInfo
+  </div>
+}
+
+@simpleActivity(activity: model.Activity, image: String) = {
+  <div style="position: absolute; padding-left: 8px;"><img src="@assets/common/images/@image"/></div>
+  <div style="margin-left: 40px;">
+    <div>
+      @avatar(activity.activityUserName, 16)
+      @activityMessage(activity.message)
+      <span class="muted small">@datetime(activity.activityDate)</span>
+    </div>
+  </div>
+}
+
