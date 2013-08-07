@@ -112,7 +112,7 @@ trait ActivityService {
   
   def recordCreateBranchActivity(userName: String, repositoryName: String, activityUserName: String, branchName: String) =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
-      "create_tag",
+      "create_branch",
       s"[user:${activityUserName}] created branch [tag:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
       None,
       currentDate)
