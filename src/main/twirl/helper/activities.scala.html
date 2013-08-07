@@ -57,7 +57,7 @@
         case "fork"              => shortActivity(activity, "activity-fork.png")
         case "push"  => customActivity(activity, "activity-commit.png"){
           <div class="small activity-message">
-            {activity.additionalInfo.map { additionalInfo => additionalInfo.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
+            {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
               if(i == 3){
                 <div>...</div>
               } else {
@@ -66,7 +66,7 @@
                     <span>{commit.substring(41)}</span>
                 </div>
               }
-            }}}
+            }}
           </div>
         }
         case "create_wiki" => customActivity(activity, "activity-wiki.png"){
