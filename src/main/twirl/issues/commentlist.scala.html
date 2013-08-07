@@ -6,7 +6,7 @@
 @import context._
 @import view.helpers._
 @comments.map { comment =>
-  @if(comment.action != "close" && comment.action != "reopen" && comment.action != "merge"){
+  @if(comment.action != "close" && comment.action != "reopen"){
     <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
     <div class="box issue-comment-box" id="comment-@comment.commentId">
       <div class="box-header-small">
@@ -14,7 +14,7 @@
         <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> commented
         <span class="pull-right">
           @datetime(comment.registeredDate)
-          @if(comment.action != "commit" && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+          @if(comment.action != "commit" && comment.action != "merge" && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
           }
         </span>
