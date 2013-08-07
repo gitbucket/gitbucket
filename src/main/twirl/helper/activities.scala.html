@@ -48,8 +48,8 @@
 }
 
 @detailActivity(activity: model.Activity, image: String) = {
-  <div style="position: absolute; padding-top: 8px;"><img src="@assets/common/images/@image"/></div>
-  <div style="margin-left: 40px;">
+  <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-content">
     <div class="muted small">@datetime(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
@@ -62,8 +62,8 @@
 }
 
 @customActivity(activity: model.Activity, image: String)(additionalInfo: Any) = {
-  <div style="position: absolute; padding-top: 8px;"><img src="@assets/common/images/@image"/></div>
-  <div style="margin-left: 40px;">
+  <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-content">
     <div class="muted small">@datetime(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
@@ -74,8 +74,8 @@
 }
 
 @simpleActivity(activity: model.Activity, image: String) = {
-  <div style="position: absolute; padding-left: 8px;"><img src="@assets/common/images/@image"/></div>
-  <div style="margin-left: 40px;">
+  <div class="activity-icon-small"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-content">
     <div>
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
