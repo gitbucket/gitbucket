@@ -14,7 +14,7 @@
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main("Pull Requests - " + repository.owner + "/" + repository.name){
   @html.header("pulls", repository)
-  <div style="border: 1px solid #eee; background-color: #f8f8f8; margin-bottom: 10px; padding: 8px;">
+  <div class="pullreq-info">
     <div id="compare-info">
       <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>
       <span class="label label-info monospace">@originRepository.owner:@originId</span> ... <span class="label label-info monospace">@forkedRepository.owner:@forkedId</span>
