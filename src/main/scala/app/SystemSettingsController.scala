@@ -12,15 +12,21 @@ class SystemSettingsController extends SystemSettingsControllerBase
 trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
   self: SystemSettingsService with AccountService with AdminAuthenticator =>
 
-  private case class SystemSettingsForm(
-    allowAccountRegistration: Boolean,
-    gravatar: Boolean
-  )
-
   private val form = mapping(
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
-    "gravatar"                 -> trim(label("Gravatar", boolean()))
-  )(SystemSettingsForm.apply)
+    "gravatar"                 -> trim(label("Gravatar", boolean())),
+    "notification"             -> trim(label("Notification", boolean())),
+    "smtp"                     -> mapping(
+        "host"     -> trim(label("SMTP Host", text(new Constraint(){
+          def validate(name: String, value: String): Option[String] =
+            if(params.get("notification").exists(_ == "on")) required.validate(name, value) else None
+        }))),
+        "port"     -> trim(label("SMTP Port", optional(number()))),
+        "user"     -> trim(label("SMTP User", optional(text()))),
+        "password" -> trim(label("SMTP Password", optional(text()))),
+        "ssl"      -> trim(label("Enable SSL", optional(boolean())))
+    )(Smtp.apply)
+  )(SystemSettings.apply)
 
 
   get("/admin/system")(adminOnly {
@@ -28,10 +34,7 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
   })
 
   post("/admin/system", form)(adminOnly { form =>
-    saveSystemSettings(SystemSettings(
-      form.allowAccountRegistration,
-      form.gravatar
-    ))
+    saveSystemSettings(form)
     flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
   })

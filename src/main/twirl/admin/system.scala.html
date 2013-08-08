@@ -27,6 +27,49 @@
               Gravatar
             </label>
           </fieldset>
+          <hr>
+          <label><strong>Notification email</strong></label>
+          <fieldset>
+            <label>
+              <input type="checkbox" id="notification" name="notification"@if(settings.notification){ checked}/>
+              Send notifications
+            </label>
+          </fieldset>
+          <div class="form-horizontal">
+            <div class="control-group">
+              <label class="control-label" for="smtpHost">SMTP Host</label>
+              <div class="controls">
+                <input type="text" id="smtpHost" name="host" value="@settings.smtp.host"/>
+                <span id="error-host" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="smtpPort">SMTP Port</label>
+              <div class="controls">
+                <input type="text" id="smtpPort" name="port" class="input-mini" value="@settings.smtp.port"/>
+                <span id="error-port" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="smtpUser">SMTP User</label>
+              <div class="controls">
+                <input type="text" id="smtpUser" name="user" value="@settings.smtp.user"/>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="smtpPassword">SMTP Password</label>
+              <div class="controls">
+                <input type="password" id="smtpPassword" name="password" value="@settings.smtp.password"/>
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox">
+                  <input type="checkbox" name="ssl"@if(settings.smtp.ssl == Some(true)){ checked}/> Enable SSL
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <fieldset>
@@ -35,3 +78,10 @@
     </form>
   }
 }
+<script>
+$(function(){
+  $('#notification').change(function(){
+    $('.form-horizontal input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+});
+</script>
