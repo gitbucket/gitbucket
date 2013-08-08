@@ -14,6 +14,24 @@
 @import view.helpers._
 @html.main("%s - Pull Request #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
   @html.header("pulls", repository)
+  <div class="pullreq-info">
+    @if(issue.closed) {
+      @comments.find(_.action == "merge").map{ comment =>
+        <span class="label label-info">Merged</span>
+        <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> merged @commits.flatten.size @plural(commits.flatten.size, "commit")
+        into <code>@pullreq.requestUserName:@pullreq.requestBranch</code> from <code>@pullreq.userName:@pullreq.branch</code>
+        at @datetime(comment.registeredDate)
+      }.getOrElse {
+        <span class="label label-important">Closed</span>
+        <a href="@url(issue.openedUserName)" class="username strong">@issue.openedUserName</a> wants to merge @commits.flatten.size @plural(commits.flatten.size, "commit")
+        into <code>@pullreq.requestUserName:@pullreq.requestBranch</code> from <code>@pullreq.userName:@pullreq.branch</code>
+      }
+    } else {
+      <span class="label label-success">Open</span>
+      <a href="@url(issue.openedUserName)" class="username strong">@issue.openedUserName</a> wants to merge @commits.flatten.size @plural(commits.flatten.size, "commit")
+      into <code>@pullreq.requestUserName:@pullreq.requestBranch</code> from <code>@pullreq.userName:@pullreq.branch</code>
+    }
+  </div>
   <ul class="nav nav-tabs" id="pullreq-tab">
     <li class="active"><a href="#discussion">Discussion</a></li>
     <li><a href="#commits">Commits <span class="badge">@commits.flatten.size</span></a></li>

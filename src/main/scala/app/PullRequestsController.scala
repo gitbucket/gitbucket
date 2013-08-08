@@ -106,12 +106,16 @@ trait PullRequestsControllerBase extends ControllerBase {
         try {
           // mark issue as merged and close.
           val loginAccount = context.loginAccount.get
-          createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Merge", "merge")
+          createComment(repository.owner, repository.name, loginAccount.userName, issueId, form.message, "merge")
           createComment(repository.owner, repository.name, loginAccount.userName, issueId, "Close", "close")
           updateClosed(repository.owner, repository.name, issueId, true)
+
+          // record activity
           recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
 
-          // fetch pull request to working repository
+          // TODO apply ref comment
+
+          // fetch pull request to temporary working repository
           val pullRequestBranchName = s"gitbucket-pullrequest-${issueId}"
 
           git.fetch
@@ -301,7 +305,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
-    redirect(s"/${repository.owner}/${repository.name}/pulls/${issueId}")
+    redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
   })
 
   /**

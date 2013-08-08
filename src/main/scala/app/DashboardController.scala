@@ -103,7 +103,9 @@ trait DashboardControllerBase extends ControllerBase {
         page,
         countIssue(condition.copy(state = "open"), filterUser, true, repositories: _*),
         countIssue(condition.copy(state = "closed"), filterUser, true, repositories: _*),
-        condition),
+        condition,
+        None,
+        false),
       getPullRequestCountGroupByUser(condition.state == "closed", userName, None),
       getRepositoryNamesOfUser(userName).map { RepoName =>
         (userName, RepoName, counts.collectFirst { case (_, RepoName, count) => count }.getOrElse(0))

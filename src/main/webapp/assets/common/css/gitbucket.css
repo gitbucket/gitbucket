@@ -363,6 +363,23 @@ ul.nav-stacked.side-menu li.active a:hover {
 }
 
 /****************************************************************************/
+/* Activity */
+/****************************************************************************/
+div.activity-icon-large {
+  position: absolute;
+  padding-top: 8px;
+}
+
+div.activity-icon-small {
+  position: absolute;
+  padding-left: 8px;
+}
+
+div.activity-content {
+  margin-left: 40px;
+}
+
+/****************************************************************************/
 /* Repository Viewer */
 /****************************************************************************/
 table.table-file-list {
@@ -614,6 +631,16 @@ div.issue-comment-action {
   -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
           border-radius: 5px;
+}
+
+/****************************************************************************/
+/* Pull Request */
+/****************************************************************************/
+div.pullreq-info {
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  margin-bottom: 10px;
+  padding: 8px;
 }
 
 /****************************************************************************/
