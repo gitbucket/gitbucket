@@ -5,7 +5,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
-  @html.header("milestones", repository)
+  @html.header("issues", repository)
   @issues.html.tab("milestones", repository)
   <div class="row-fluid">
     <div class="span3">
