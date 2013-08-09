@@ -184,6 +184,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>
     repo.html.forked(
+      getRepository(
+        repository.repository.originUserName.getOrElse(repository.owner),
+        repository.repository.originRepositoryName.getOrElse(repository.name),
+        baseUrl),
       getForkedRepositories(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name)),

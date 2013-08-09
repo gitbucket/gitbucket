@@ -205,7 +205,7 @@ trait RepositoryService { self: AccountService =>
     Query(Repositories).filter { t =>
       (t.originUserName is userName.bind) && (t.originRepositoryName is repositoryName.bind)
     }
-    .sortBy(_.lastActivityDate desc).map(_.userName).list
+    .sortBy(_.userName asc).map(_.userName).list
 
 }
 

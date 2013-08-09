@@ -97,7 +97,7 @@ object RepositorySearchService {
       val lineNumber = content.substring(0, indices.min).split("\n").size - 1
       val highlightText = StringUtil.escapeHtml(content.split("\n").drop(lineNumber).take(5).mkString("\n"))
         .replaceAll("(?i)(" + keywords.map("\\Q" + _ + "\\E").mkString("|") +  ")",
-        "<span style=\"background-color: #ffff88;;\">$1</span>")
+        "<span class=\"highlight\">$1</span>")
       (highlightText, lineNumber + 1)
     } else {
       (content.split("\n").take(5).mkString("\n"), 1)
