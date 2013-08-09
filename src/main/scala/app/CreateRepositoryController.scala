@@ -180,7 +180,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   }
 
   private def existsAccount: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String): Option[String] =
       if(getAccountByUserName(value).isEmpty) Some("User or group does not exist.") else None
   }
 
@@ -188,7 +188,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
    * Duplicate check for the repository name.
    */
   private def unique: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, String]): Option[String] =
       params.get("owner").flatMap { userName =>
         getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
       }

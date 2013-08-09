@@ -136,12 +136,12 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   private def unique: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, String]): Option[String] =
       getWikiPageList(params("owner"), params("repository")).find(_ == value).map(_ => "Page already exists.")
   }
 
   private def pagename: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String): Option[String] =
       if(value.exists("\\/:*?\"<>|".contains(_))){
         Some(s"${name} contains invalid character.")
       } else if(value.startsWith("_") || value.startsWith("-")){

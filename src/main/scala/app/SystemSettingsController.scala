@@ -16,16 +16,13 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
-    "smtp"                     -> mapping(
-        "host"     -> trim(label("SMTP Host", text(new Constraint(){
-          def validate(name: String, value: String): Option[String] =
-            if(params.get("notification").exists(_ == "on")) required.validate(name, value) else None
-        }))),
+    "smtp"                     -> optionalIfNotChecked("notification", mapping(
+        "host"     -> trim(label("SMTP Host", text(required))),
         "port"     -> trim(label("SMTP Port", optional(number()))),
         "user"     -> trim(label("SMTP User", optional(text()))),
         "password" -> trim(label("SMTP Password", optional(text()))),
         "ssl"      -> trim(label("Enable SSL", optional(boolean())))
-    )(Smtp.apply)
+    )(Smtp.apply))
   )(SystemSettings.apply)
 
 

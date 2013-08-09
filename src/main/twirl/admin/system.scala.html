@@ -39,33 +39,33 @@
             <div class="control-group">
               <label class="control-label" for="smtpHost">SMTP Host</label>
               <div class="controls">
-                <input type="text" id="smtpHost" name="host" value="@settings.smtp.host"/>
-                <span id="error-host" class="error"></span>
+                <input type="text" id="smtpHost" name="smtp.host" value="@settings.smtp.map(_.host)"/>
+                <span id="error-smtp_host" class="error"></span>
               </div>
             </div>
             <div class="control-group">
               <label class="control-label" for="smtpPort">SMTP Port</label>
               <div class="controls">
-                <input type="text" id="smtpPort" name="port" class="input-mini" value="@settings.smtp.port"/>
-                <span id="error-port" class="error"></span>
+                <input type="text" id="smtpPort" name="smtp.port" class="input-mini" value="@settings.smtp.map(_.port)"/>
+                <span id="error-smtp_port" class="error"></span>
               </div>
             </div>
             <div class="control-group">
               <label class="control-label" for="smtpUser">SMTP User</label>
               <div class="controls">
-                <input type="text" id="smtpUser" name="user" value="@settings.smtp.user"/>
+                <input type="text" id="smtpUser" name="smtp.user" value="@settings.smtp.map(_.user)"/>
               </div>
             </div>
             <div class="control-group">
               <label class="control-label" for="smtpPassword">SMTP Password</label>
               <div class="controls">
-                <input type="password" id="smtpPassword" name="password" value="@settings.smtp.password"/>
+                <input type="password" id="smtpPassword" name="smtp.password" value="@settings.smtp.map(_.password)"/>
               </div>
             </div>
             <div class="control-group">
               <div class="controls">
                 <label class="checkbox">
-                  <input type="checkbox" name="ssl"@if(settings.smtp.ssl == Some(true)){ checked}/> Enable SSL
+                  <input type="checkbox" name="smtp.ssl"@if(settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/> Enable SSL
                 </label>
               </div>
             </div>

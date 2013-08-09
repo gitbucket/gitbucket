@@ -11,11 +11,13 @@ trait SystemSettingsService {
     props.setProperty(Gravatar, settings.gravatar.toString)
     props.setProperty(Notification, settings.notification.toString)
     if(settings.notification) {
-      props.setProperty(SmtpHost, settings.smtp.host)
-      settings.smtp.port.foreach(x => props.setProperty(SmtpPort, x.toString))
-      settings.smtp.user.foreach(props.setProperty(SmtpUser, _))
-      settings.smtp.password.foreach(props.setProperty(SmtpPassword, _))
-      settings.smtp.ssl.foreach(x => props.setProperty(SmtpSsl, x.toString))
+      settings.smtp.foreach { smtp =>
+        props.setProperty(SmtpHost, smtp.host)
+        smtp.port.foreach(x => props.setProperty(SmtpPort, x.toString))
+        smtp.user.foreach(props.setProperty(SmtpUser, _))
+        smtp.password.foreach(props.setProperty(SmtpPassword, _))
+        smtp.ssl.foreach(x => props.setProperty(SmtpSsl, x.toString))
+      }
     }
     props.store(new java.io.FileOutputStream(GitBucketConf), null)
   }
@@ -30,13 +32,17 @@ trait SystemSettingsService {
       getValue(props, AllowAccountRegistration, false),
       getValue(props, Gravatar, true),
       getValue(props, Notification, false),
-      Smtp(
-        getValue(props, SmtpHost, ""),
-        getOptionValue(props, SmtpPort, Some(25)),
-        getOptionValue(props, SmtpUser, None),
-        getOptionValue(props, SmtpPassword, None),
-        getOptionValue[Boolean](props, SmtpSsl, None)
-    ))
+      if(getValue(props, Notification, false)){
+        Some(Smtp(
+          getValue(props, SmtpHost, ""),
+          getOptionValue(props, SmtpPort, Some(25)),
+          getOptionValue(props, SmtpUser, None),
+          getOptionValue(props, SmtpPassword, None),
+          getOptionValue[Boolean](props, SmtpSsl, None)))
+      } else {
+        None
+      }
+    )
   }
 
 }
@@ -48,7 +54,7 @@ object SystemSettingsService {
     allowAccountRegistration: Boolean,
     gravatar: Boolean,
     notification: Boolean,
-    smtp: Smtp
+    smtp: Option[Smtp]
   )
   case class Smtp(
     host: String,

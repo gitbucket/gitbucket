@@ -112,7 +112,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Provides Constraint to validate the collaborator name.
    */
   private def collaborator: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] = {
+    override def validate(name: String, value: String): Option[String] = {
       val paths = request.getRequestURI.split("/")
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")

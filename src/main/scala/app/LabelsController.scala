@@ -51,7 +51,7 @@ trait LabelsControllerBase extends ControllerBase {
    * Constraint for the identifier such as user name, repository name or page name.
    */
   private def labelName: Constraint = new Constraint(){
-    def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String): Option[String] =
       if(!value.matches("^[^,]+$")){
         Some(s"${name} contains invalid character.")
       } else if(value.startsWith("_") || value.startsWith("-")){
