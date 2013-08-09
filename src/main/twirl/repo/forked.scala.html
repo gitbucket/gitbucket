@@ -1,4 +1,4 @@
-@(members: service.RepositoryService.RepositoryTreeNode,
+@(members: List[String],
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -7,22 +7,9 @@
     <li class="active"><a href="@url(repository)/network/members">Members</a></li>
   </ul>
   <h3>Members of the @repository.name Network</h3>
-  <ul>
-    @renderTree(members)
-  </ul>
-}
-
-@renderTree(node: service.RepositoryService.RepositoryTreeNode) = {
-  <li>
-    <div style="font-size: 120%; margin-bottom: 8px;">
-      @avatar(node.owner, 20) <a href="@url(node.owner)">@node.owner</a> / <a href="@path/@node.owner/@node.name">@node.name</a>
+  @members.map { owner =>
+    <div class="block">
+      <a href="@url(owner)">@owner</a> / <a href="@path/@owner/@repository.name">@repository.name</a>
     </div>
-    @if(node.children.nonEmpty){
-      <ul>
-        @node.children.map { child =>
-          @renderTree(child)
-        }
-      </ul>
-    }
-  </li>
+  }
 }

@@ -201,17 +201,11 @@ trait RepositoryService { self: AccountService =>
     }.list.length
 
 
-  def getForkedRepositoryTree(userName: String, repositoryName: String): RepositoryTreeNode = {
-    RepositoryTreeNode(userName, repositoryName,
-      Query(Repositories).filter { t =>
-        (t.parentUserName is userName.bind) && (t.parentRepositoryName is repositoryName.bind)
-      }.map { t =>
-        t.userName ~ t.repositoryName
-      }.list.map { case (userName, repositoryName) =>
-        getForkedRepositoryTree(userName, repositoryName)
-      }
-    )
-  }
+  def getForkedRepositories(userName: String, repositoryName: String): List[String] =
+    Query(Repositories).filter { t =>
+      (t.originUserName is userName.bind) && (t.originRepositoryName is repositoryName.bind)
+    }
+    .sortBy(_.lastActivityDate desc).map(_.userName).list
 
 }
 
