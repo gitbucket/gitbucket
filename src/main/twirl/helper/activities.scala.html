@@ -38,9 +38,17 @@
           </div>
         }
         case "edit_wiki" => customActivity(activity, "activity-wiki.png"){
-          <div class="small activity-message">
-            Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
-          </div>
+          activity.additionalInfo.get.split(":") match {
+            case Array(pageName, commitId) =>
+              <div class="small activity-message">
+                Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
+                <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}/_compare/${commitId.substring(0, 7)}^...${commitId.substring(0, 7)}"}>View the diff »</a>
+              </div>
+            case Array(pageName) =>
+              <div class="small activity-message">
+                Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
+              </div>
+          }
         }
       })
     </div>

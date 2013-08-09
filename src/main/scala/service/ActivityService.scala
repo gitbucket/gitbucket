@@ -87,11 +87,11 @@ trait ActivityService {
       Some(pageName),
       currentDate)
   
-  def recordEditWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String) =
+  def recordEditWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String, commitId: String) =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "edit_wiki",
       s"[user:${activityUserName}] edited the [repo:${userName}/${repositoryName}] wiki",
-      Some(pageName),
+      Some(pageName + ":" + commitId),
       currentDate)
   
   def recordPushActivity(userName: String, repositoryName: String, activityUserName: String, 

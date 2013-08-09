@@ -80,10 +80,10 @@ trait WikiControllerBase extends ControllerBase {
     val loginAccount = context.loginAccount.get
     
     saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-        form.content, loginAccount, form.message.getOrElse(""))
-    
-    updateLastActivityDate(repository.owner, repository.name)
-    recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+                 form.content, loginAccount, form.message.getOrElse("")).map { commitId =>
+      updateLastActivityDate(repository.owner, repository.name)
+      recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+    }
 
     redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
   })

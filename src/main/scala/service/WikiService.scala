@@ -94,7 +94,7 @@ trait WikiService {
    * Save the wiki page.
    */
   def saveWikiPage(owner: String, repository: String, currentPageName: String, newPageName: String,
-      content: String, committer: model.Account, message: String): Unit = {
+      content: String, committer: model.Account, message: String): Option[String] = {
 
     LockUtil.lock(s"${owner}/${repository}/wiki"){
       // clone working copy
@@ -122,8 +122,11 @@ trait WikiService {
 
         // commit and push
         if(added || deleted){
-          git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(message).call
+          val commit = git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(message).call
           git.push.call
+          Some(commit.getName)
+        } else {
+          None
         }
       }
     }
