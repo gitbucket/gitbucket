@@ -66,7 +66,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
         }
 
         // Insert default labels
-        insertDefaultLabels(loginUserName, form.name)
+        insertDefaultLabels(form.owner, form.name)
 
         // Create the actual repository
         val gitdir = getRepositoryDir(form.owner, form.name)
