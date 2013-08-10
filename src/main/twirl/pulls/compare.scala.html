@@ -21,11 +21,9 @@
     </div>
     <div id="compare-edit" style="display: none;">
       <a href="#" id="cancel-condition-editing" class="pull-right"><i class="icon-remove-circle"></i></a>
-      @if(members.nonEmpty){
-        @helper.html.dropdown(originRepository.owner + "/" + repository.name, "base fork") {
-          @members.map { member =>
-            <li><a href="#" class="origin-owner" data-name="@member">@helper.html.checkicon(member == originRepository.owner) @member/@repository.name</a></li>
-          }
+      @helper.html.dropdown(originRepository.owner + "/" + repository.name, "base fork") {
+        @members.map { member =>
+          <li><a href="#" class="origin-owner" data-name="@member">@helper.html.checkicon(member == originRepository.owner) @member/@repository.name</a></li>
         }
       }
       @helper.html.dropdown(originId, "base") {
@@ -34,11 +32,9 @@
         }
       }
       ...
-      @if(members.nonEmpty){
-        @helper.html.dropdown(forkedRepository.owner + "/" + repository.name, "head fork") {
-          @members.map { member =>
-            <li><a href="#" class="forked-owner" data-name="@member">@helper.html.checkicon(member == forkedRepository.owner) @member/@repository.name</a></li>
-          }
+      @helper.html.dropdown(forkedRepository.owner + "/" + repository.name, "head fork") {
+        @members.map { member =>
+          <li><a href="#" class="forked-owner" data-name="@member">@helper.html.checkicon(member == forkedRepository.owner) @member/@repository.name</a></li>
         }
       }
       @helper.html.dropdown(forkedId, "compare") {

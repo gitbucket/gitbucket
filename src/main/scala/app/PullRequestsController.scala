@@ -255,8 +255,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             commits,
             diffs,
             repository.repository.originUserName.map { userName =>
-              getForkedRepositories(userName, repository.name)
-            } getOrElse Nil,
+              userName :: getForkedRepositories(userName, repository.name)
+            } getOrElse List(repository.owner),
             originBranch,
             forkedBranch,
             oldId.getName,
