@@ -107,7 +107,11 @@ abstract class ControllerBase extends ScalatraFilter
       if(context.loginAccount.isDefined){
         org.scalatra.Unauthorized(redirect("/"))
       } else {
-        org.scalatra.Unauthorized(redirect("/signin?" + currentURL))
+        if(request.getMethod.toUpperCase == "POST"){
+          org.scalatra.Unauthorized(redirect("/signin"))
+        } else {
+          org.scalatra.Unauthorized(redirect("/signin?redirect=" + currentURL))
+        }
       }
     } else {
       org.scalatra.Unauthorized()
@@ -125,6 +129,14 @@ abstract class ControllerBase extends ScalatraFilter
  * Context object for the current request.
  */
 case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest){
+
+  def redirectUrl = {
+    if(request.getParameter("redirect") != null){
+      request.getParameter("redirect")
+    } else {
+      currentUrl
+    }
+  }
 
   /**
    * Get object from cache.

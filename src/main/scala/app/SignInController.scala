@@ -16,9 +16,9 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
   )(SignInForm.apply)
   
   get("/signin"){
-    val queryString = request.getQueryString
-    if(queryString != null && queryString.startsWith("/")){
-      session.setAttribute("REDIRECT", queryString)
+    val redirect = params.get("redirect")
+    if(redirect.isDefined && redirect.get.startsWith("/")){
+      session.setAttribute("REDIRECT", redirect.get)
     }
     html.signin(loadSystemSettings())
   }
