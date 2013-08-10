@@ -8,7 +8,8 @@
   hasConflict: Boolean,
   repository: service.RepositoryService.RepositoryInfo,
   originRepository: service.RepositoryService.RepositoryInfo,
-  forkedRepository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+  forkedRepository: service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
@@ -44,7 +45,7 @@
       }
     </div>
   </div>
-  @if(commits.nonEmpty){
+  @if(commits.nonEmpty && hasWritePermission){
     <div style="margin-bottom: 10px;" id="create-pull-request">
       <a href="#" class="btn" id="show-form">Click to create a pull request for this comparison</a>
     </div>

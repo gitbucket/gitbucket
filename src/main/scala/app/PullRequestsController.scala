@@ -201,7 +201,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   }
 
-  get("/:owner/:repository/compare")(collaboratorsOnly { forkedRepository =>
+  get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
     (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
       case (Some(originUserName), Some(originRepositoryName)) => {
         getRepository(originUserName, originRepositoryName, baseUrl).map { originRepository =>
@@ -225,7 +225,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/compare/*...*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/compare/*...*")(referrersOnly { repository =>
     val Seq(origin, forked) = multiParams("splat")
     val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, repository.owner)
     val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, repository.owner)
@@ -264,7 +264,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             checkConflict(originOwner, repository.name, originBranch, forkedOwner, repository.name, forkedBranch),
             repository,
             originRepository,
-            forkedRepository)
+            forkedRepository,
+            hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       }
       case _ => NotFound
