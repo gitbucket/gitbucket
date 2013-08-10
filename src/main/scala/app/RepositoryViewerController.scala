@@ -137,12 +137,26 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
   
   /**
+   * Displays branches.
+   */
+  get("/:owner/:repository/branches")(referrersOnly { repository =>
+    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+      // retrieve latest update date of each branch
+      val branchInfo = repository.branchList.map { branchName =>
+        val revCommit = git.log.add(git.getRepository.resolve(branchName)).setMaxCount(1).call.iterator.next
+        (branchName, revCommit.getCommitterIdent.getWhen)
+      }
+      repo.html.branches(branchInfo, repository)
+    }
+  })
+
+  /**
    * Displays tags.
    */
   get("/:owner/:repository/tags")(referrersOnly {
     repo.html.tags(_)
   })
-  
+
   /**
    * Download repository contents as an archive.
    */
