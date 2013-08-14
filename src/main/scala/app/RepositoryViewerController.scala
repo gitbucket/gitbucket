@@ -130,9 +130,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
-      repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
-        JGitUtil.getBranchesOfCommit(git, revCommit.getName), JGitUtil.getTagsOfCommit(git, revCommit.getName),
-        repository, JGitUtil.getDiffs(git, id))
+      JGitUtil.getDiffs(git, id) match { case (diffs, oldCommitId) =>
+        repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
+          JGitUtil.getBranchesOfCommit(git, revCommit.getName),
+          JGitUtil.getTagsOfCommit(git, revCommit.getName),
+          repository, diffs, oldCommitId)
+      }
     }
   })
   

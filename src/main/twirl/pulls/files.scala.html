@@ -1,7 +1,8 @@
 @(issue: model.Issue,
   pullreq: model.PullRequest,
   diffs: Seq[util.JGitUtil.DiffInfo],
-  commitId: String,
+  newCommitId: String,
+  oldCommitId: String,
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -33,7 +34,7 @@
   </li>
 }
 </ul>
-@helper.html.diff(diffs, repository, Some(commitId))
+@helper.html.diff(diffs, repository, Some(newCommitId), Some(oldCommitId))
 <script>
 $(function(){
   $('#toggle-file-list').click(function(){

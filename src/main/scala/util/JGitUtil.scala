@@ -254,7 +254,7 @@ object JGitUtil {
    * @param page the page number (1-)
    * @param limit the number of commit info per page. 0 (default) means unlimited.
    * @param path filters by this path. default is no filter.
-   * @return a tuple of the commit list and whether has next
+   * @return a tuple of the commit list and whether has next, or the error message
    */
   def getCommitLog(git: Git, revision: String, page: Int = 1, limit: Int = 0, path: String = ""): Either[String, (List[CommitInfo], Boolean)] = {
     val fixedPage = if(page <= 0) 1 else page
@@ -278,7 +278,7 @@ object JGitUtil {
       if(path.nonEmpty){
         revWalk.setRevFilter(new RevFilter(){
           def include(walk: RevWalk, commit: RevCommit): Boolean = {
-            getDiffs(git, commit.getName, false).find(_.newPath == path).nonEmpty
+            getDiffs(git, commit.getName, false)._1.find(_.newPath == path).nonEmpty
           }
           override def clone(): RevFilter = this
         })
@@ -379,8 +379,11 @@ object JGitUtil {
   } catch {
     case e: MissingObjectException => None
   }
-  
-  def getDiffs(git: Git, id: String, fetchContent: Boolean = true): List[DiffInfo] = {
+
+  /**
+   * Returns the tuple of diff of the given commit and the previous commit id.
+   */
+  def getDiffs(git: Git, id: String, fetchContent: Boolean = true): (List[DiffInfo], Option[String]) = {
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[RevCommit]): List[RevCommit] =
       i.hasNext match {
@@ -399,7 +402,7 @@ object JGitUtil {
     if(commits.length >= 2){
       // not initial commit
       val oldCommit = commits(1)
-      getDiffs(git, oldCommit.getName, id, fetchContent)
+      (getDiffs(git, oldCommit.getName, id, fetchContent), Some(oldCommit.getName))
 
     } else {
       // initial commit
@@ -415,7 +418,7 @@ object JGitUtil {
         }))
       }
       walk.release
-      buffer.toList
+      (buffer.toList, None)
     }
   }
 

@@ -1,4 +1,7 @@
-@(diffs: Seq[util.JGitUtil.DiffInfo], repository: service.RepositoryService.RepositoryInfo, commitId: Option[String])(implicit context: app.Context)
+@(diffs: Seq[util.JGitUtil.DiffInfo],
+ repository: service.RepositoryService.RepositoryInfo,
+ newCommitId: Option[String],
+ oldCommitId: Option[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
@@ -9,17 +12,27 @@
       <th style="font-weight: normal;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @diff.oldPath -> @diff.newPath
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
+            </div>
+          }
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @diff.newPath
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
+            </div>
+          }
         }
         @if(diff.changeType == ChangeType.DELETE){
           @diff.oldPath
-        }
-        @if(commitId.isDefined){
-          <div class="pull-right align-right">
-            <a href="@url(repository)/blob/@commitId.get/@diff.newPath" class="btn btn-small">View file @@ @commitId.get.substring(0, 10)</a>
-          </div>
+          @if(oldCommitId.isDefined){
+            <div class="pull-right align-right">
+              <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-small">View file @@ @oldCommitId.get.substring(0, 10)</a>
+            </div>
+          }
         }
       </th>
     </tr>

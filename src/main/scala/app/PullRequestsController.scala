@@ -80,7 +80,6 @@ trait PullRequestsControllerBase extends ControllerBase {
           getMilestonesWithIssueCount(owner, name),
           commits,
           diffs,
-          requestCommitId.getName,
           if(issue.closed){
             false
           } else {

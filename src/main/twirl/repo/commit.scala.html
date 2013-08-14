@@ -3,7 +3,8 @@
   branches: List[String],
   tags: List[String],
   repository: service.RepositoryService.RepositoryInfo,
-  diffs: Seq[util.JGitUtil.DiffInfo])(implicit context: app.Context)
+  diffs: Seq[util.JGitUtil.DiffInfo],
+  oldCommitId: Option[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import util.Implicits._
@@ -103,7 +104,7 @@
     </li>
   }
   </ul>
-  @helper.html.diff(diffs, repository, Some(commit.id))
+  @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId)
 }
 <script>
 $(function(){
