@@ -3,15 +3,12 @@ package util
 import org.eclipse.jgit.api.Git
 import util.Directory._
 import scala.collection.JavaConverters._
-import javax.servlet.ServletContext
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
 import org.eclipse.jgit.revwalk.filter._
 import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.treewalk.filter._
-import org.eclipse.jgit.diff._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.eclipse.jgit.errors.MissingObjectException
 import java.util.Date
 import org.eclipse.jgit.api.errors.NoHeadException
