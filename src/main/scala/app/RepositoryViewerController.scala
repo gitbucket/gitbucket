@@ -213,7 +213,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch
     } orElse repository.tags.collectFirst {
       case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
-    } orElse Some(path) get
+    } orElse Some(path.split("/")(0)) get
 
     (id, path.substring(id.length).replaceFirst("^/", ""))
   }
