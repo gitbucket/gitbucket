@@ -17,12 +17,20 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
     "smtp"                     -> optionalIfNotChecked("notification", mapping(
-        "host"     -> trim(label("SMTP Host", text(required))),
-        "port"     -> trim(label("SMTP Port", optional(number()))),
-        "user"     -> trim(label("SMTP User", optional(text()))),
-        "password" -> trim(label("SMTP Password", optional(text()))),
-        "ssl"      -> trim(label("Enable SSL", optional(boolean())))
-    )(Smtp.apply))
+        "host"                     -> trim(label("SMTP Host", text(required))),
+        "port"                     -> trim(label("SMTP Port", optional(number()))),
+        "user"                     -> trim(label("SMTP User", optional(text()))),
+        "password"                 -> trim(label("SMTP Password", optional(text()))),
+        "ssl"                      -> trim(label("Enable SSL", optional(boolean())))
+    )(Smtp.apply)),
+    "authType"                -> trim(label("Auth Type", text(required))),
+    "ldap"                    -> optional(_.get("authType") == Some("LDAP"), mapping(
+        "host"                    -> trim(label("LDAP host", text(required))),
+        "port"                    -> trim(label("LDAP port", number(required))),
+        "baseDN"                  -> trim(label("BaseDN", text(required))),
+        "userNameAttribute"       -> trim(label("User name attribute", text(required))),
+        "mailAttribute"           -> trim(label("Mail address attribute", text(required)))
+    )(Ldap.apply))
   )(SystemSettings.apply)
 
 

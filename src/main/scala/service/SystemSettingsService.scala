@@ -19,6 +19,15 @@ trait SystemSettingsService {
         smtp.ssl.foreach(x => props.setProperty(SmtpSsl, x.toString))
       }
     }
+    if(settings.authType == "LDAP"){
+      settings.ldap.map { ldap =>
+        props.setProperty(LdapHost, ldap.host)
+        props.setProperty(LdapPort, ldap.port.toString)
+        props.setProperty(LdapBaseDN, ldap.baseDN)
+        props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
+        props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
+      }
+    }
     props.store(new java.io.FileOutputStream(GitBucketConf), null)
   }
 
@@ -41,6 +50,17 @@ trait SystemSettingsService {
           getOptionValue[Boolean](props, SmtpSsl, None)))
       } else {
         None
+      },
+      getValue(props, AuthType, ""),
+      if(getValue(props, AuthType, "") == "LDAP"){
+        Some(Ldap(
+          getValue(props, LdapHost, ""),
+          getValue(props, LdapPort, 389),
+          getValue(props, LdapBaseDN, ""),
+          getValue(props, LdapUserNameAttribute, "uid"),
+          getValue(props, LdapUserNameAttribute, "mail")))
+      } else {
+        None
       }
     )
   }
@@ -54,8 +74,17 @@ object SystemSettingsService {
     allowAccountRegistration: Boolean,
     gravatar: Boolean,
     notification: Boolean,
-    smtp: Option[Smtp]
-  )
+    smtp: Option[Smtp],
+    authType: String,
+    ldap: Option[Ldap])
+
+  case class Ldap(
+    host: String,
+    port: Int,
+    baseDN: String,
+    userNameAttribute: String,
+    mailAttribute: String)
+
   case class Smtp(
     host: String,
     port: Option[Int],
@@ -65,12 +94,18 @@ object SystemSettingsService {
 
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
+  private val AuthType = "auth_type"
   private val Notification = "notification"
   private val SmtpHost = "smtp.host"
   private val SmtpPort = "smtp.port"
   private val SmtpUser = "smtp.user"
   private val SmtpPassword = "smtp.password"
   private val SmtpSsl = "smtp.ssl"
+  private val LdapHost = "ldap.host"
+  private val LdapPort = "ldap.port"
+  private val LdapBaseDN = "ldap.baseDN"
+  private val LdapUserNameAttribute = "ldap.username_attribute"
+  private val LdapMailAddressAttribute = "ldap.mail_attribute"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     val value = props.getProperty(key)
