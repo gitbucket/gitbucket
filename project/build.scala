@@ -11,7 +11,7 @@ object MyBuild extends Build {
   val Name = "gitbucket"
   val Version = "0.0.1"
   val ScalaVersion = "2.10.1"
-  val ScalatraVersion = "2.2.0"
+  val ScalatraVersion = "2.2.1"
 
   lazy val project = Project (
     "gitbucket",
@@ -27,7 +27,6 @@ object MyBuild extends Build {
       ),
       libraryDependencies ++= Seq(
         "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.0.0.201306101825-r",
-        "org.apache.commons" % "commons-io" % "1.3.2",
         "org.scalatra" %% "scalatra" % ScalatraVersion,
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
         "org.scalatra" %% "scalatra-json" % ScalatraVersion,
