@@ -10,16 +10,18 @@
             <span id="error-userName" class="error"></span>
             <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
           </fieldset>
-          <fieldset>
-            <label for="password">
-              <strong>Password</strong>
-              @if(account.isDefined){
-                (Input to change password)
-              }
-            </label>
-            <span id="error-password" class="error"></span>
-            <input type="password" name="password" id="password" value="" autocomplete="off"/>
-          </fieldset>
+          @if(account.map(_.password.nonEmpty).getOrElse(true)){
+            <fieldset>
+              <label for="password">
+                <strong>Password</strong>
+                @if(account.isDefined){
+                  (Input to change password)
+                }
+              </label>
+              <span id="error-password" class="error"></span>
+              <input type="password" name="password" id="password" value="" autocomplete="off"/>
+            </fieldset>
+          }
           <fieldset>
             <label for="mailAddress"><strong>Mail Address</strong></label>
             <span id="error-mailAddress" class="error"></span>

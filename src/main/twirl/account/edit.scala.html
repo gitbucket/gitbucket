@@ -18,15 +18,17 @@
             <span id="error-userName" class="error"></span>
           </fieldset>
         }
-        <fieldset>
-          <label for="password"><strong>Password</strong>
-            @if(account.nonEmpty){
-              (Input to change password)
-            }
-          </label>
-          <input type="password" name="password" id="password" value=""/>
-          <span id="error-password" class="error"></span>
-        </fieldset>
+        @if(account.map(_.password.nonEmpty).getOrElse(true)){
+          <fieldset>
+            <label for="password"><strong>Password</strong>
+              @if(account.nonEmpty){
+                (Input to change password)
+              }
+            </label>
+            <input type="password" name="password" id="password" value=""/>
+            <span id="error-password" class="error"></span>
+          </fieldset>
+        }
         <fieldset>
           <label for="mailAddress"><strong>Mail Address</strong></label>
           <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
