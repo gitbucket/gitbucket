@@ -97,10 +97,6 @@ div.head {
   margin-bottom: 10px;
 }
 
-div.head a {
-  font-weight: bold;
-}
-
 div.head div.forked {
   font-size: 60%;
   color: #999999;
@@ -109,7 +105,6 @@ div.head div.forked {
 div.head div.forked a {
   font-weight: normal;
 }
-
 
 div.container {
   width: 920px;
