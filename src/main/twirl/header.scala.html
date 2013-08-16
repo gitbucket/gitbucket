@@ -8,7 +8,7 @@
   </div>
 </div>
 <div class="head">
-  <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)">@repository.name</a>
+  <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
   @if(repository.repository.isPrivate){
     <i class="icon-lock"></i>
   }
@@ -27,9 +27,15 @@
     </th>
     <th class="box-header@if(active=="issues"){ active}">
       <a href="@url(repository)/issues">Issues</a>
+      @if(repository.issueCount > 0){
+        <span class="badge">@repository.issueCount</span>
+      }
     </th>
     <th class="box-header@if(active=="pulls"){ active}">
       <a href="@url(repository)/pulls">Pull Requests</a>
+      @if(repository.pullCount > 0){
+        <span class="badge">@repository.pullCount</span>
+      }
     </th>
     <th class="box-header@if(active=="wiki"){ active}">
       <a href="@url(repository)/wiki">Wiki</a>
