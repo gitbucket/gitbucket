@@ -1,6 +1,7 @@
 package util
 
 import service.SystemSettingsService.Ldap
+import service.SystemSettingsService
 import com.novell.ldap.LDAPConnection
 
 /**
@@ -16,7 +17,7 @@ object LDAPUtil extends App {
     var conn: LDAPConnection = null
     try {
       conn = new LDAPConnection()
-      conn.connect(ldapSettings.host, ldapSettings.port)
+      conn.connect(ldapSettings.host, ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort))
       val userDN = ldapSettings.userNameAttribute + "=" + userName + ",ou=Users," + ldapSettings.baseDN
       conn.bind(3, userDN, password.getBytes)
       if(conn.isBound){

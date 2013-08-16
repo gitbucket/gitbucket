@@ -26,7 +26,7 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
     "ldapAuthentication"      -> trim(label("LDAP", boolean())),
     "ldap"                    -> optionalIfNotChecked("ldapAuthentication", mapping(
         "host"                    -> trim(label("LDAP host", text(required))),
-        "port"                    -> trim(label("LDAP port", number(required))),
+        "port"                    -> trim(label("LDAP port", optional(number()))),
         "baseDN"                  -> trim(label("BaseDN", text(required))),
         "userNameAttribute"       -> trim(label("User name attribute", text(required))),
         "mailAttribute"           -> trim(label("Mail address attribute", text(required)))

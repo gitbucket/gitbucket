@@ -23,7 +23,7 @@ trait SystemSettingsService {
     if(settings.ldapAuthentication){
       settings.ldap.map { ldap =>
         props.setProperty(LdapHost, ldap.host)
-        props.setProperty(LdapPort, ldap.port.toString)
+        ldap.port.foreach(x => props.setProperty(LdapPort, x.toString))
         props.setProperty(LdapBaseDN, ldap.baseDN)
         props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
         props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
@@ -56,10 +56,10 @@ trait SystemSettingsService {
       if(getValue(props, LdapAuthentication, false)){
         Some(Ldap(
           getValue(props, LdapHost, ""),
-          getValue(props, LdapPort, 389),
+          getOptionValue(props, LdapPort, Some(DefaultLdapPort)),
           getValue(props, LdapBaseDN, ""),
-          getValue(props, LdapUserNameAttribute, "uid"),
-          getValue(props, LdapMailAddressAttribute, "mail")))
+          getValue(props, LdapUserNameAttribute, ""),
+          getValue(props, LdapMailAddressAttribute, "")))
       } else {
         None
       }
@@ -81,7 +81,7 @@ object SystemSettingsService {
 
   case class Ldap(
     host: String,
-    port: Int,
+    port: Option[Int],
     baseDN: String,
     userNameAttribute: String,
     mailAttribute: String)
@@ -92,6 +92,8 @@ object SystemSettingsService {
     user: Option[String],
     password: Option[String],
     ssl: Option[Boolean])
+
+  val DefaultLdapPort = 389
 
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
