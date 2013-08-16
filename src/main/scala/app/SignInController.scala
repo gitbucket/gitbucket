@@ -27,9 +27,10 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
 
   post("/signin", form){ form =>
     val settings = loadSystemSettings()
-    settings.authType match {
-      case "LDAP" => ldapAuthentication(form, settings)
-      case _      => defaultAuthentication(form)
+    if(settings.ldapAuthentication){
+      ldapAuthentication(form, settings)
+    } else {
+      defaultAuthentication(form)
     }
   }
 

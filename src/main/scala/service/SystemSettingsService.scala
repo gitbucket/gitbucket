@@ -19,7 +19,8 @@ trait SystemSettingsService {
         smtp.ssl.foreach(x => props.setProperty(SmtpSsl, x.toString))
       }
     }
-    if(settings.authType == "LDAP"){
+    props.setProperty(LdapAuthentication, settings.ldapAuthentication.toString)
+    if(settings.ldapAuthentication){
       settings.ldap.map { ldap =>
         props.setProperty(LdapHost, ldap.host)
         props.setProperty(LdapPort, ldap.port.toString)
@@ -51,14 +52,14 @@ trait SystemSettingsService {
       } else {
         None
       },
-      getValue(props, AuthType, ""),
-      if(getValue(props, AuthType, "") == "LDAP"){
+      getValue(props, LdapAuthentication, false),
+      if(getValue(props, LdapAuthentication, false)){
         Some(Ldap(
           getValue(props, LdapHost, ""),
           getValue(props, LdapPort, 389),
           getValue(props, LdapBaseDN, ""),
           getValue(props, LdapUserNameAttribute, "uid"),
-          getValue(props, LdapUserNameAttribute, "mail")))
+          getValue(props, LdapMailAddressAttribute, "mail")))
       } else {
         None
       }
@@ -75,7 +76,7 @@ object SystemSettingsService {
     gravatar: Boolean,
     notification: Boolean,
     smtp: Option[Smtp],
-    authType: String,
+    ldapAuthentication: Boolean,
     ldap: Option[Ldap])
 
   case class Ldap(
@@ -94,13 +95,13 @@ object SystemSettingsService {
 
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
-  private val AuthType = "auth_type"
   private val Notification = "notification"
   private val SmtpHost = "smtp.host"
   private val SmtpPort = "smtp.port"
   private val SmtpUser = "smtp.user"
   private val SmtpPassword = "smtp.password"
   private val SmtpSsl = "smtp.ssl"
+  private val LdapAuthentication = "ldap_authentication"
   private val LdapHost = "ldap.host"
   private val LdapPort = "ldap.port"
   private val LdapBaseDN = "ldap.baseDN"

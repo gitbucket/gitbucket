@@ -40,13 +40,7 @@
           <label><strong>Authentication</strong></label>
           <fieldset>
             <label>
-              <input type="radio" id="authTypeDefault" name="authType" value="Default"@if(settings.authType != "LDAP"){ checked}/>
-              Default
-            </label>
-          </fieldset>
-          <fieldset>
-            <label>
-              <input type="radio" id="authTypeLDAP" name="authType" value="LDAP"@if(settings.authType == "LDAP"){ checked}/>
+              <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(settings.ldap){ checked}/>
               LDAP
             </label>
           </fieldset>
@@ -147,9 +141,8 @@ $(function(){
     $('.notification input').prop('disabled', !$(this).prop('checked'));
   }).change();
 
-  $('input[name=authType]').click(function(){
-    $('.ldap input').prop('disabled', $('input[name=authType]:checked').val() != "LDAP");
-  });
-  $('input[name=authType]:checked').click();
+  $('#ldapAuthentication').change(function(){
+    $('.ldap input').prop('disabled', !$(this).prop('checked'));
+  }).change();
 });
 </script>
