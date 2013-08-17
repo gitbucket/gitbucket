@@ -1,10 +1,7 @@
 package app
 
 import service._
-import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
-import util.LDAPUtil
-import service.SystemSettingsService.SystemSettings
 
 class SignInController extends SignInControllerBase with SystemSettingsService with AccountService
 
@@ -27,42 +24,15 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
 
   post("/signin", form){ form =>
     val settings = loadSystemSettings()
-    if(settings.ldapAuthentication){
-      ldapAuthentication(form, settings)
-    } else {
-      defaultAuthentication(form)
+    authenticate(loadSystemSettings(), form.userName, form.password) match {
+      case Some(account) => signin(account)
+      case None => redirect("/signin")
     }
   }
 
   get("/signout"){
     session.invalidate
     redirect("/")
-  }
-
-  /**
-   * Authenticate by internal database.
-   */
-  private def defaultAuthentication(form: SignInForm) = {
-    getAccountByUserName(form.userName).collect {
-      case account if(!account.isGroupAccount && account.password == sha1(form.password)) => signin(account)
-    } getOrElse redirect("/signin")
-  }
-
-  /**
-   * Authenticate by LDAP.
-   */
-  private def ldapAuthentication(form: SignInForm, settings: SystemSettings) = {
-    LDAPUtil.authenticate(settings.ldap.get, form.userName, form.password) match {
-      case Right(mailAddress) => {
-        // Create or update account by LDAP information
-        getAccountByUserName(form.userName) match {
-          case Some(x) => updateAccount(x.copy(mailAddress = mailAddress))
-          case None    => createAccount(form.userName, "", mailAddress, false, None)
-        }
-        signin(getAccountByUserName(form.userName).get)
-      }
-      case Left(errorMessage) => defaultAuthentication(form)
-    }
   }
 
   /**

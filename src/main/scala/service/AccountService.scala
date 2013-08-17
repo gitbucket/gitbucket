@@ -3,8 +3,47 @@ package service
 import model._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
+import service.SystemSettingsService.SystemSettings
+import util.StringUtil._
+import model.GroupMember
+import scala.Some
+import model.Account
+import util.LDAPUtil
 
 trait AccountService {
+
+  def authenticate(settings: SystemSettings, userName: String, password: String): Option[Account] =
+    if(settings.ldapAuthentication){
+      ldapAuthentication(settings, userName, password)
+    } else {
+      defaultAuthentication(userName, password)
+    }
+
+  /**
+   * Authenticate by internal database.
+   */
+  private def defaultAuthentication(userName: String, password: String) = {
+    getAccountByUserName(userName).collect {
+      case account if(!account.isGroupAccount && account.password == sha1(password)) => Some(account)
+    } getOrElse None
+  }
+
+  /**
+   * Authenticate by LDAP.
+   */
+  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String) = {
+    LDAPUtil.authenticate(settings.ldap.get, userName, password) match {
+      case Right(mailAddress) => {
+        // Create or update account by LDAP information
+        getAccountByUserName(userName) match {
+          case Some(x) => updateAccount(x.copy(mailAddress = mailAddress))
+          case None    => createAccount(userName, "", mailAddress, false, None)
+        }
+        getAccountByUserName(userName)
+      }
+      case Left(errorMessage) => defaultAuthentication(userName, password)
+    }
+  }
 
   def getAccountByUserName(userName: String): Option[Account] = 
     Query(Accounts) filter(_.userName is userName.bind) firstOption
