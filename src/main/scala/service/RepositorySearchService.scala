@@ -1,6 +1,5 @@
 package service
 
-import model.Issue
 import util.{FileUtil, StringUtil, JGitUtil}
 import util.Directory._
 import model.Issue
