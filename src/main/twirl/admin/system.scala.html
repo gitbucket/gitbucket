@@ -8,6 +8,9 @@
       <div class="box">
         <div class="box-header">System Settings</div>
         <div class="box-content">
+          <!--====================================================================-->
+          <!-- Account registration -->
+          <!--====================================================================-->
           <label><strong>Account registration</strong></label>
           <fieldset>
             <label>
@@ -19,6 +22,9 @@
               <strong>Deny</strong> - Only administrators can create account.
             </label>
           </fieldset>
+          <!--====================================================================-->
+          <!-- Services -->
+          <!--====================================================================-->
           <hr>
           <label><strong>Services</strong></label>
           <fieldset>
@@ -27,6 +33,71 @@
               Gravatar
             </label>
           </fieldset>
+          <!--====================================================================-->
+          <!-- Authentication -->
+          <!--====================================================================-->
+          <hr>
+          <label><strong>Authentication</strong></label>
+          <fieldset>
+            <label>
+              <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(settings.ldap){ checked}/>
+              LDAP
+            </label>
+          </fieldset>
+          <div class="form-horizontal ldap">
+            <div class="control-group">
+              <label class="control-label" for="ldapHost">LDAP Host</label>
+              <div class="controls">
+                <input type="text" id="ldapHost" name="ldap.host" value="@settings.ldap.map(_.host)"/>
+                <span id="error-ldap_host" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapPort">LDAP Port</label>
+              <div class="controls">
+                <input type="text" id="ldapPort" name="ldap.port" class="input-mini" value="@settings.ldap.map(_.port)"/>
+                <span id="error-ldap_port" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBindDN">Bind DN</label>
+              <div class="controls">
+                <input type="text" id="ldapBindDN" name="ldap.bindDN" value="@settings.ldap.map(_.bindDN)"/>
+                <span id="error-ldap_bindDN" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBindPassword">Bind Password</label>
+              <div class="controls">
+                <input type="password" id="ldapBindPassword" name="ldap.bindPassword" value="@settings.ldap.map(_.bindPassword)"/>
+                <span id="error-ldap_bindPassword" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBaseDN">Base DN</label>
+              <div class="controls">
+                <input type="text" id="ldapBaseDN" name="ldap.baseDN" value="@settings.ldap.map(_.baseDN)"/>
+                <span id="error-ldap_baseDN" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapUserNameAttribute">User name attribute</label>
+              <div class="controls">
+                <input type="text" id="ldapUserNameAttribute" name="ldap.userNameAttribute" value="@settings.ldap.map(_.userNameAttribute)"/>
+                <span id="error-ldap_userNameAttribute" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapMailAttribute">Mail address attribute</label>
+              <div class="controls">
+                <input type="text" id="ldapMailAttribute" name="ldap.mailAttribute" value="@settings.ldap.map(_.mailAttribute)"/>
+                <span id="error-ldap_mailAttribute" class="error"></span>
+              </div>
+            </div>
+          </div>
+          <!--====================================================================-->
+          <!-- Notification email -->
+          <!--====================================================================-->
           <hr>
           <label><strong>Notification email</strong></label>
           <fieldset>
@@ -35,7 +106,7 @@
               Send notifications
             </label>
           </fieldset>
-          <div class="form-horizontal">
+          <div class="form-horizontal notification">
             <div class="control-group">
               <label class="control-label" for="smtpHost">SMTP Host</label>
               <div class="controls">
@@ -81,7 +152,11 @@
 <script>
 $(function(){
   $('#notification').change(function(){
-    $('.form-horizontal input').prop('disabled', !$(this).prop('checked'));
+    $('.notification input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
+  $('#ldapAuthentication').change(function(){
+    $('.ldap input').prop('disabled', !$(this).prop('checked'));
   }).change();
 });
 </script>

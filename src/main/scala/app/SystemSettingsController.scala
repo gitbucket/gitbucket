@@ -17,12 +17,22 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
     "smtp"                     -> optionalIfNotChecked("notification", mapping(
-        "host"     -> trim(label("SMTP Host", text(required))),
-        "port"     -> trim(label("SMTP Port", optional(number()))),
-        "user"     -> trim(label("SMTP User", optional(text()))),
-        "password" -> trim(label("SMTP Password", optional(text()))),
-        "ssl"      -> trim(label("Enable SSL", optional(boolean())))
-    )(Smtp.apply))
+        "host"                     -> trim(label("SMTP Host", text(required))),
+        "port"                     -> trim(label("SMTP Port", optional(number()))),
+        "user"                     -> trim(label("SMTP User", optional(text()))),
+        "password"                 -> trim(label("SMTP Password", optional(text()))),
+        "ssl"                      -> trim(label("Enable SSL", optional(boolean())))
+    )(Smtp.apply)),
+    "ldapAuthentication"       -> trim(label("LDAP", boolean())),
+    "ldap"                     -> optionalIfNotChecked("ldapAuthentication", mapping(
+        "host"                     -> trim(label("LDAP host", text(required))),
+        "port"                     -> trim(label("LDAP port", optional(number()))),
+        "bindDN"                   -> trim(label("Bind DN", text(required))),
+        "bindPassword"             -> trim(label("Bind Password", text(required))),
+        "baseDN"                   -> trim(label("Base DN", text(required))),
+        "userNameAttribute"        -> trim(label("User name attribute", text(required))),
+        "mailAttribute"            -> trim(label("Mail address attribute", text(required)))
+    )(Ldap.apply))
   )(SystemSettings.apply)
 
 

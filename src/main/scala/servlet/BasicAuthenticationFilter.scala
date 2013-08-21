@@ -2,14 +2,13 @@ package servlet
 
 import javax.servlet._
 import javax.servlet.http._
-import util.StringUtil._
-import service.{AccountService, RepositoryService}
+import service.{SystemSettingsService, AccountService, RepositoryService}
 import org.slf4j.LoggerFactory
 
 /**
  * Provides BASIC Authentication for [[servlet.GitRepositoryServlet]].
  */
-class BasicAuthenticationFilter extends Filter with RepositoryService with AccountService {
+class BasicAuthenticationFilter extends Filter with RepositoryService with AccountService with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationFilter])
 
@@ -58,12 +57,12 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
   }
 
-  private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean = {
-    getAccountByUserName(username).map { account =>
-      account.password == sha1(password) && hasWritePermission(repository.owner, repository.name, Some(account))
-    } getOrElse false
-  }
-  
+  private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean =
+    authenticate(loadSystemSettings(), username, password) match {
+      case Some(account) => hasWritePermission(repository.owner, repository.name, Some(account))
+      case None => false
+    }
+
   private def requireAuth(response: HttpServletResponse): Unit = {
     response.setHeader("WWW-Authenticate", "BASIC realm=\"GitBucket\"")
     response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
