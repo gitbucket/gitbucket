@@ -23,15 +23,15 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
         "password"                 -> trim(label("SMTP Password", optional(text()))),
         "ssl"                      -> trim(label("Enable SSL", optional(boolean())))
     )(Smtp.apply)),
-    "ldapAuthentication"      -> trim(label("LDAP", boolean())),
-    "ldap"                    -> optionalIfNotChecked("ldapAuthentication", mapping(
-        "host"                    -> trim(label("LDAP host", text(required))),
-        "port"                    -> trim(label("LDAP port", optional(number()))),
-        "bindDN"                  -> trim(label("Bind DN", text(required))),
-        "bindPassword"           -> trim(label("Bind Password", text(required))),
-        "baseDN"                  -> trim(label("Base DN", text(required))),
-        "userNameAttribute"     -> trim(label("User name attribute", text(required))),
-        "mailAttribute"          -> trim(label("Mail address attribute", text(required)))
+    "ldapAuthentication"       -> trim(label("LDAP", boolean())),
+    "ldap"                     -> optionalIfNotChecked("ldapAuthentication", mapping(
+        "host"                     -> trim(label("LDAP host", text(required))),
+        "port"                     -> trim(label("LDAP port", optional(number()))),
+        "bindDN"                   -> trim(label("Bind DN", text(required))),
+        "bindPassword"             -> trim(label("Bind Password", text(required))),
+        "baseDN"                   -> trim(label("Base DN", text(required))),
+        "userNameAttribute"        -> trim(label("User name attribute", text(required))),
+        "mailAttribute"            -> trim(label("Mail address attribute", text(required)))
     )(Ldap.apply))
   )(SystemSettings.apply)
 
