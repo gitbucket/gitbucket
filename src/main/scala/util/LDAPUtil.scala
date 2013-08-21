@@ -77,30 +77,19 @@ object LDAPUtil {
 
   private def findUser(conn: LDAPConnection, userName: String, baseDN: String, userNameAttribute: String): Option[String] = {
     val results = conn.search(baseDN, LDAPConnection.SCOPE_SUB, userNameAttribute + "=" + userName, null, false)
-    while (results.hasMore) {
-      var entry: LDAPEntry = null
-      try {
-        entry = results.next
-      } catch {
-        case lre: LDAPReferralException => // NOTE(tanacasino): Referral follow is off. so ignores it.(for AD)
-      }
-      if (entry != null) {
-        return Some(entry.getDN)
-      }
+    (for(i <- 0 to results.getCount) yield try {
+      Some(results.next)
+    } catch {
+      case ex: LDAPReferralException => None // NOTE(tanacasino): Referral follow is off. so ignores it.(for AD)
+    }).flatten.collectFirst {
+      case x if(x != null) => x.getDN
     }
-    None
   }
 
   private def findMailAddress(conn: LDAPConnection, userDN: String, mailAttribute: String): Option[String] = {
-    val attributes = Array[String](mailAttribute)
-    val results = conn.search(userDN, LDAPConnection.SCOPE_BASE, null, attributes, false)
+    val results = conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](mailAttribute), false)
     if (results.hasMore) {
-      val attr = results.next.getAttribute(mailAttribute)
-      if (attr != null) {
-        Some(attr.getStringValue)
-      } else {
-        None
-      }
+      Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
     } else {
       None
     }
