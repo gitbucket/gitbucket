@@ -24,6 +24,8 @@ trait SystemSettingsService {
       settings.ldap.map { ldap =>
         props.setProperty(LdapHost, ldap.host)
         ldap.port.foreach(x => props.setProperty(LdapPort, x.toString))
+        props.setProperty(LdapBindDN, ldap.bindDN)
+        props.setProperty(LdapBindPassword, ldap.bindPassword)
         props.setProperty(LdapBaseDN, ldap.baseDN)
         props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
         props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
@@ -57,6 +59,8 @@ trait SystemSettingsService {
         Some(Ldap(
           getValue(props, LdapHost, ""),
           getOptionValue(props, LdapPort, Some(DefaultLdapPort)),
+          getValue(props, LdapBindDN, ""),
+          getValue(props, LdapBindPassword, ""),
           getValue(props, LdapBaseDN, ""),
           getValue(props, LdapUserNameAttribute, ""),
           getValue(props, LdapMailAddressAttribute, "")))
@@ -82,6 +86,8 @@ object SystemSettingsService {
   case class Ldap(
     host: String,
     port: Option[Int],
+    bindDN: String,
+    bindPassword: String,
     baseDN: String,
     userNameAttribute: String,
     mailAttribute: String)
@@ -106,6 +112,8 @@ object SystemSettingsService {
   private val LdapAuthentication = "ldap_authentication"
   private val LdapHost = "ldap.host"
   private val LdapPort = "ldap.port"
+  private val LdapBindDN = "ldap.bindDN"
+  private val LdapBindPassword = "ldap.bind_password"
   private val LdapBaseDN = "ldap.baseDN"
   private val LdapUserNameAttribute = "ldap.username_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
