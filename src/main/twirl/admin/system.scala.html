@@ -60,20 +60,19 @@
               </div>
             </div>
             <div class="control-group">
-                <label class="control-label" for="ldapBindDN">Bind DN</label>
-                <div class="controls">
-                    <input type="text" id="ldapBindDN" name="ldap.bindDN" value="@settings.ldap.map(_.bindDN)"/>
-                    <span id="error-ldap_bindDN" class="error"></span>
-                </div>
+              <label class="control-label" for="ldapBindDN">Bind DN</label>
+              <div class="controls">
+                <input type="text" id="ldapBindDN" name="ldap.bindDN" value="@settings.ldap.map(_.bindDN)"/>
+                <span id="error-ldap_bindDN" class="error"></span>
+              </div>
             </div>
             <div class="control-group">
-                <label class="control-label" for="ldapBindPassword">Bind Password</label>
-                <div class="controls">
-                    <input type="password" id="ldapBindPassword" name="ldap.bindPassword" value="@settings.ldap.map(_.bindPassword)"/>
-                    <span id="error-ldap_bindPassword" class="error"></span>
-                </div>
+              <label class="control-label" for="ldapBindPassword">Bind Password</label>
+              <div class="controls">
+                <input type="password" id="ldapBindPassword" name="ldap.bindPassword" value="@settings.ldap.map(_.bindPassword)"/>
+                <span id="error-ldap_bindPassword" class="error"></span>
+              </div>
             </div>
-
             <div class="control-group">
               <label class="control-label" for="ldapBaseDN">Base DN</label>
               <div class="controls">
