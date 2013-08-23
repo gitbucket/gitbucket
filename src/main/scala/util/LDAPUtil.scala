@@ -22,8 +22,8 @@ object LDAPUtil {
     bind(
       ldapSettings.host,
       ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
-      ldapSettings.bindDN,
-      ldapSettings.bindPassword
+      ldapSettings.bindDN.getOrElse(""),
+      ldapSettings.bindPassword.getOrElse("")
     ) match {
       case Some(conn) => {
         withConnection(conn) { conn =>
