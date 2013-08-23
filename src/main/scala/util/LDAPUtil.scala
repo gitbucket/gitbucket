@@ -2,7 +2,10 @@ package util
 
 import service.SystemSettingsService.Ldap
 import service.SystemSettingsService
-import com.novell.ldap.{LDAPReferralException, LDAPEntry, LDAPConnection}
+import com.novell.ldap._
+import service.SystemSettingsService.Ldap
+import scala.Some
+import scala.annotation.tailrec
 
 /**
  * Utility for LDAP authentication.
@@ -76,13 +79,20 @@ object LDAPUtil {
   }
 
   private def findUser(conn: LDAPConnection, userName: String, baseDN: String, userNameAttribute: String): Option[String] = {
-    val results = conn.search(baseDN, LDAPConnection.SCOPE_SUB, userNameAttribute + "=" + userName, null, false)
-    (for(i <- 0 to results.getCount) yield try {
-      Some(results.next)
-    } catch {
-      case ex: LDAPReferralException => None // NOTE(tanacasino): Referral follow is off. so ignores it.(for AD)
-    }).flatten.collectFirst {
-      case x if(x != null) => x.getDN
+    @tailrec
+    def getEntries(results: LDAPSearchResults, entries: List[Option[LDAPEntry]] = Nil): List[LDAPEntry] = {
+      if(results.hasMore){
+        getEntries(results, entries :+ (try {
+          Option(results.next)
+        } catch {
+          case ex: LDAPReferralException => None // NOTE(tanacasino): Referral follow is off. so ignores it.(for AD)
+        }))
+      } else {
+        entries.flatten
+      }
+    }
+    getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, userNameAttribute + "=" + userName, null, false)).collectFirst {
+      case x => x.getDN
     }
   }
 
