@@ -6,9 +6,10 @@
   <li@if(active == "pages"){ class="active"}><a href="@url(repository)/wiki/_pages">Pages</a></li>
   <li@if(active == "history"){ class="active"}><a href="@url(repository)/wiki/_history">Wiki History</a></li>
   <li class="pull-right">
-    <div class="input-append">
-      <input type="text" value="@repository.url.replaceFirst("\\.git$", ".wiki.git")" readonly id="repository-url">
-      <span id="repository-url-copy" class="add-on btn" data-clipboard-text="@repository.url.replaceFirst("\\.git$", ".wiki.git")" data-placement="bottom" title="copy to clipboard"><i class="icon-check"></i></span>
-    </div>
+    @defining(repository.url.replaceFirst("\\.git$", ".wiki.git")){ repositoryUrl =>
+      @helper.html.copy("repository-url-copy", repositoryUrl){
+        <input type="text" value="@repositoryUrl" readonly id="repository-url">
+      }
+    }
   </li>
 </ul>

@@ -31,9 +31,8 @@
   <li@if(active=="branches"){ class="active"}><a href="@url(repository)/branches">Branches@if(repository.branchList.length > 0){ <span class="badge">@repository.branchList.length</span>}</a></li>
   <li@if(active=="tags"    ){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
   <li class="pull-right">
-    <div class="input-append">
+    @helper.html.copy("repository-url-copy", repository.url){
       <input type="text" value="@repository.url" id="repository-url" readonly>
-      <span id="repository-url-copy" class="add-on btn" data-clipboard-text="@repository.url" data-placement="bottom" title="copy to clipboard"><i class="icon-check"></i></span>
-    </div>
+    }
   </li>
 </ul>

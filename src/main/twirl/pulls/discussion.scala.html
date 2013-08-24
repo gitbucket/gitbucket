@@ -49,24 +49,39 @@
                   you can perform a manual merge on the command line.
                 </p>
               }
-              <div class="input-prepend">
-                <span class="add-on">HTTP</span>
+              @helper.html.copy("repository-url-copy", requestRepositoryUrl){
                 <input type="text" value="@requestRepositoryUrl" id="repository-url" readonly>
+              }
+              <div>
+                <p>
+                  <strong>Step 1:</strong> Check out a new branch to test the changes — run this from your project directory
+                </p>
+                @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.requestBranch}"){ command =>
+                  @helper.html.copy("merge-command-copy-1", command){
+                    <pre style="width: 500px; float: left;">@command</pre>
+                  }
+                }
               </div>
-              <p>
-                <strong>Step 1:</strong> Check out a new branch to test the changes — run this from your project directory
-              </p>
-              <pre>git checkout -b @{pullreq.requestUserName}-@{pullreq.requestBranch} @{pullreq.requestBranch}</pre>
-              <p>
-                <strong>Step 2:</strong> Bring in @{pullreq.requestUserName}'s changes and test
-              </p>
-              <pre>git pull @{requestRepositoryUrl} @{pullreq.requestBranch}</pre>
-              <p>
-                <strong>Step 3:</strong> Merge the changes and update the server
-              </p>
-              <pre>git checkout master
-git merge @{pullreq.requestUserName}-@{pullreq.branch}
-git push origin @{pullreq.branch}</pre>
+              <div>
+                <p>
+                  <strong>Step 2:</strong> Bring in @{pullreq.requestUserName}'s changes and test
+                </p>
+                @defining(s"git pull ${requestRepositoryUrl} ${pullreq.requestBranch}"){ command =>
+                  @helper.html.copy("merge-command-copy-2", command){
+                    <pre style="width: 500px; float: left;">@command</pre>
+                  }
+                }
+              </div>
+              <div>
+                <p>
+                  <strong>Step 3:</strong> Merge the changes and update the server
+                </p>
+                @defining(s"git checkout master\ngit merge ${pullreq.requestUserName}-${pullreq.branch}\ngit push origin ${pullreq.branch}"){ command =>
+                  @helper.html.copy("merge-command-copy-3", command){
+                    <pre style="width: 500px; float: left;">@command</pre>
+                  }
+                }
+              </div>
             </div>
           </div>
           <div id="confirm-merge-form" style="display: none;">
