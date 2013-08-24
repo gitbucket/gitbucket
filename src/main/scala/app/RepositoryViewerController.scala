@@ -2,7 +2,7 @@ package app
 
 import util.Directory._
 import util.Implicits._
-import _root_.util.{ReferrerAuthenticator, JGitUtil, FileUtil}
+import _root_.util.{ReferrerAuthenticator, JGitUtil, FileUtil, StringUtil}
 import service._
 import org.scalatra._
 import java.io.File
@@ -106,7 +106,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val content = if(viewer == "other"){
           if(bytes.isDefined && FileUtil.isText(bytes.get)){
             // text
-            JGitUtil.ContentInfo("text", bytes.map(new String(_, "UTF-8")))
+            JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
           } else {
             // binary
             JGitUtil.ContentInfo("binary", None)
@@ -243,7 +243,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           val files = JGitUtil.getFileList(git, revision, path)
           // process README.md
           val readme = files.find(_.name == "README.md").map { file =>
-            new String(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get, "UTF-8")
+            StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
           }
 
           repo.html.files(revision, repository,

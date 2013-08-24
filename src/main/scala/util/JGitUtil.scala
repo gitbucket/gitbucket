@@ -2,6 +2,7 @@ package util
 
 import org.eclipse.jgit.api.Git
 import util.Directory._
+import util.StringUtil._
 import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
@@ -414,7 +415,7 @@ object JGitUtil {
           DiffInfo(ChangeType.ADD, null, walk.getPathString, None, None)
         } else {
           DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
-              JGitUtil.getContent(git, walk.getObjectId(0), false).filter(FileUtil.isText).map(new String(_, "UTF-8")))
+              JGitUtil.getContent(git, walk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
         }))
       }
       walk.release
@@ -436,8 +437,8 @@ object JGitUtil {
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
       } else {
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-          JGitUtil.getContent(git, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")),
-          JGitUtil.getContent(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(new String(_, "UTF-8")))
+          JGitUtil.getContent(git, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray),
+          JGitUtil.getContent(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray))
       }
     }.toList
   }
