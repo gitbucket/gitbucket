@@ -4,6 +4,7 @@ import _root_.util.Directory._
 import _root_.util.{StringUtil, FileUtil, Validations}
 import org.scalatra._
 import org.scalatra.json._
+import org.scalatra.i18n._
 import org.json4s._
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
@@ -18,7 +19,7 @@ import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with Validations {
+  with ClientSideValidationFormSupport with JacksonJsonSupport with Validations with I18nSupport {
 
   implicit val jsonFormats = DefaultFormats
 
@@ -52,7 +53,7 @@ abstract class ControllerBase extends ScalatraFilter
   /**
    * Returns the context object for the request.
    */
-  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, currentURL, request)
+  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, currentURL, request, messages)
 
   private def currentURL: String = {
     val queryString = request.getQueryString
@@ -128,7 +129,7 @@ abstract class ControllerBase extends ScalatraFilter
 /**
  * Context object for the current request.
  */
-case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest){
+case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest, messages: Messages){
 
   def redirectUrl = {
     if(request.getParameter("redirect") != null){
