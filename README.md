@@ -45,7 +45,7 @@ Release Notes
 - Add the branch tab in the repository viewer.
 - Encoding auto detection for the file content in the repository viewer.
 - Add favicon, header logo and icons for the timeline.
-
+- Fixed some bugs.
 
 ### 1.4 - 31 Jul 2013
 - Group management.
