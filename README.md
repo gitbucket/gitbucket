@@ -37,6 +37,16 @@ To upgrade GitBucket, only replace gitbucket.war.
 
 Release Notes
 --------
+### 1.5 - COMMING SOON!
+- Forking repository and pull request.
+- LDAP authentication.
+- Mail notification.
+- Add an option to turn off the gravatar support.
+- Add the branch tab in the repository viewer.
+- Encoding auto detection for the file content in the repository viewer.
+- Add favicon, header logo and icons for the timeline.
+
+
 ### 1.4 - 31 Jul 2013
 - Group management.
 - Repository search for code and issues.
