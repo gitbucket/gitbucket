@@ -64,7 +64,7 @@ trait RepositorySearchService { self: IssuesService =>
       if(treeWalk.getFileMode(0) != FileMode.TREE){
         JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
           if(FileUtil.isText(bytes)){
-            val text      = new String(bytes, "UTF-8")
+            val text      = StringUtil.convertFromByteArray(bytes)
             val lowerText = text.toLowerCase
             val indices   = keywords.map(lowerText.indexOf _)
             if(!indices.exists(_ < 0)){

@@ -1,6 +1,7 @@
 package util
 
 import java.net.{URLDecoder, URLEncoder}
+import org.mozilla.universalchardet.UniversalDetector
 
 object StringUtil {
 
@@ -25,4 +26,15 @@ object StringUtil {
   def escapeHtml(value: String): String =
     value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
 
+  def convertFromByteArray(content: Array[Byte]): String = new String(content, detectEncoding(content))
+
+  def detectEncoding(content: Array[Byte]): String = {
+    val detector = new UniversalDetector(null)
+    detector.handleData(content, 0, content.length)
+    detector.dataEnd()
+    detector.getDetectedCharset match {
+      case null => "UTF-8"
+      case e    => e
+    }
+  }
 }
