@@ -22,9 +22,10 @@ abstract class ControllerBase extends ScalatraFilter
 
   implicit val jsonFormats = DefaultFormats
 
-//  before() {
-//    contentType = "text/html"
-//  }
+  before("^(?!/assets/).*$".r) {
+    // specify content-type excluding "/assets/"
+    contentType = "text/html"
+  }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     val httpRequest  = request.asInstanceOf[HttpServletRequest]
