@@ -89,6 +89,13 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   })
 
   /**
+   * Display the web hook page.
+   */
+  get("/:owner/:repository/settings/hooks")(ownerOnly { repository =>
+    settings.html.hooks(repository)
+  })
+
+  /**
    * Display the delete repository page.
    */
   get("/:owner/:repository/settings/delete")(ownerOnly {
