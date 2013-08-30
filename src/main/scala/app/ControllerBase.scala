@@ -22,8 +22,8 @@ abstract class ControllerBase extends ScalatraFilter
 
   implicit val jsonFormats = DefaultFormats
 
-  before("^(?!/assets/).*$".r) {
-    // specify content-type excluding "/assets/"
+  before("^(?!/(?:assets|git)/).*$".r) {
+    // specify content-type excluding "/assets/" and "/git/"
     contentType = "text/html"
   }
 
