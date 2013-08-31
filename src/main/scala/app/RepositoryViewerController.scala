@@ -95,6 +95,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
       if(raw){
         // Download
+        response.characterEncoding = None
         contentType = "application/octet-stream"
         JGitUtil.getContent(git, objectId, false).get
       } else {
@@ -192,7 +193,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val zipFile = new File(workDir, (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
       FileUtil.createZipFile(zipFile, cloneDir)
       
-      contentType = "application/octet-stream"
+      response.characterEncoding = None
+      contentType = "application/zip"
       zipFile
     } else {
       BadRequest

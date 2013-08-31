@@ -69,6 +69,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
       contentType = FileUtil.getMimeType(image)
       new java.io.File(getUserUploadDir(userName), image)
     } getOrElse {
+      response.characterEncoding = None
       contentType = "image/png"
       Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
     }
