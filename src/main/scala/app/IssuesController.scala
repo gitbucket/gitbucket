@@ -4,7 +4,7 @@ import jp.sf.amateras.scalatra.forms._
 
 import service._
 import IssuesService._
-import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, ReadableUsersAuthenticator}
+import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, ReadableUsersAuthenticator, Notifier}
 import org.scalatra.Ok
 
 class IssuesController extends IssuesControllerBase
@@ -112,7 +112,14 @@ trait IssuesControllerBase extends ControllerBase {
     // record activity
     recordCreateIssueActivity(owner, name, userName, issueId, form.title)
 
-    redirect(s"/${owner}/${name}/issues/${issueId}")
+    val uri = s"/${owner}/${name}/issues/${issueId}"
+
+    // notifications
+    Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
+      Notifier.msgIssue(baseUrl + uri)
+    }
+
+    redirect(uri)
   })
 
   ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (form, repository) =>

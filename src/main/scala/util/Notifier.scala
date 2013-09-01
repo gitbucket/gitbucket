@@ -1,37 +1,104 @@
 package util
 
-import org.apache.commons.mail.{DefaultAuthenticator, SimpleEmail}
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
+import org.slf4j.LoggerFactory
 
-import service.SystemSettingsService.{SystemSettings, Smtp}
+import app.Context
+import service.{AccountService, RepositoryService, IssuesService, SystemSettingsService}
+import servlet.Database
+import SystemSettingsService.Smtp
 
-trait Notifier {
+trait Notifier extends RepositoryService with AccountService with IssuesService {
+  def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
+      (msg: String => String)(implicit context: Context): Unit
+
+  protected def recipients(issue: model.Issue)(notify: String => Unit)(implicit context: Context) =
+    (
+        // individual repository's owner
+        issue.userName ::
+        // collaborators
+        getCollaborators(issue.userName, issue.repositoryName) :::
+        // participants
+        issue.openedUserName ::
+        getComments(issue.userName, issue.repositoryName, issue.issueId).map(_.commentedUserName)
+    )
+    .distinct
+    .withFilter ( _ != context.loginAccount.get.userName )	// the operation in person is excluded
+    .foreach ( getAccountByUserName(_) foreach (x => notify(x.mailAddress)) )
 
 }
 
 object Notifier {
-  def apply(settings: SystemSettings) = {
-    new Mailer(settings.smtp.get)
+  // TODO We want to be able to switch to mock.
+  def apply(): Notifier = new SystemSettingsService {}.loadSystemSettings match {
+    case settings if settings.notification => new Mailer(settings.smtp.get)
+    case _ => new MockMailer
   }
 
+  def msgIssue(url: String) = (content: String) => s"""
+    |${content}<br/>
+    |--<br/>
+    |<a href="${url}">View it on GitBucket</a>
+    """.stripMargin
+
+  def msgPullRequest(url: String) = (content: String) => s"""
+    |${content}<hr/>
+    |View, comment on, or merge it at:<br/>
+    |<a href="${url}">${url}</a>
+    """.stripMargin
+
+  def msgComment(url: String) = (content: String) => s"""
+    |${content}<br/>
+    |--<br/>
+    |<a href="${url}">View it on GitBucket</a>
+    """.stripMargin
+
+  def msgStatus(id: Int, url: String) = (content: String) => s"""
+    |${content} <a href="${url}">#${id}</a>
+    """.stripMargin
 }
 
-class Mailer(val smtp: Smtp) extends Notifier {
-  def notifyTo(issue: model.Issue) = {
-    val email = new SimpleEmail
-    email.setHostName(smtp.host)
-    email.setSmtpPort(smtp.port.get)
-    smtp.user.foreach { user =>
-      email.setAuthenticator(new DefaultAuthenticator(user, smtp.password.getOrElse("")))
-    }
-    smtp.ssl.foreach { ssl =>
-      email.setSSLOnConnect(ssl)
-    }
-    email.setFrom("TODO address", "TODO　name")
-    email.addTo("TODO")
-    email.setSubject(s"[${issue.repositoryName}] ${issue.title} (#${issue.issueId})")
-    email.setMsg("TODO")
+class Mailer(private val smtp: Smtp) extends Notifier {
+  private val logger = LoggerFactory.getLogger(classOf[Mailer])
 
-    email.send
+  def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
+      (msg: String => String)(implicit context: Context) = {
+    val f = future {
+      val email = new HtmlEmail
+      email.setHostName(smtp.host)
+      email.setSmtpPort(smtp.port.get)
+      smtp.user.foreach { user =>
+        email.setAuthenticator(new DefaultAuthenticator(user, smtp.password.getOrElse("")))
+      }
+      smtp.ssl.foreach { ssl =>
+        email.setSSLOnConnect(ssl)
+      }
+      email.setFrom("notifications@gitbucket.com", context.loginAccount.get.userName)
+      email.setHtmlMsg(msg(view.Markdown.toHtml(content, r, false, true)))
+
+      // TODO Can we use the Database Session in other than Transaction Filter?
+      Database(context.request.getServletContext) withSession {
+        getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
+          email.setSubject(s"[${r.name}] ${issue.title} (#${issueId})")
+          recipients(issue) {
+            email.getToAddresses.clear
+            email.addTo(_).send
+          }
+        }
+      }
+      "Notifications Successful."
+    }
+    f onSuccess {
+      case s => logger.debug(s)
+    }
+    f onFailure {
+      case t => logger.error("Notifications Failed.", t)
+    }
   }
 }
-class MockMailer extends Notifier
+class MockMailer extends Notifier {
+  def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
+      (msg: String => String)(implicit context: Context): Unit = {}
+}
