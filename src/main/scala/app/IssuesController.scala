@@ -112,14 +112,12 @@ trait IssuesControllerBase extends ControllerBase {
     // record activity
     recordCreateIssueActivity(owner, name, userName, issueId, form.title)
 
-    val uri = s"/${owner}/${name}/issues/${issueId}"
-
     // notifications
     Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
-      Notifier.msgIssue(baseUrl + uri)
+      Notifier.msgIssue(s"${baseUrl}/${owner}/${name}/issues/${issueId}")
     }
 
-    redirect(uri)
+    redirect(s"/${owner}/${name}/issues/${issueId}")
   })
 
   ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (form, repository) =>
@@ -136,21 +134,15 @@ trait IssuesControllerBase extends ControllerBase {
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
     handleComment(form.issueId, Some(form.content), repository)() map { case (issue, id) =>
-      if(issue.isPullRequest){
-        redirect(s"/${repository.owner}/${repository.name}/pull/${form.issueId}#comment-${id}")
-      } else {
-        redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
-      }
+      redirect(s"/${repository.owner}/${repository.name}/${
+        if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
     } getOrElse NotFound
   })
 
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
     handleComment(form.issueId, form.content, repository)() map { case (issue, id) =>
-      if(issue.isPullRequest){
-        redirect(s"/${repository.owner}/${repository.name}/pull/${form.issueId}#comment-${id}")
-      } else {
-        redirect(s"/${repository.owner}/${repository.name}/issues/${form.issueId}#comment-${id}")
-      }
+      redirect(s"/${repository.owner}/${repository.name}/${
+        if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
     } getOrElse NotFound
   })
 
@@ -289,9 +281,10 @@ trait IssuesControllerBase extends ControllerBase {
       val (action, recordActivity) =
         getAction(issue)
           .collect {
-            case "close" if(issue.isPullRequest)  => true  -> (Some("close")  -> Some(recordClosePullRequestActivity _))
-            case "close" if(!issue.isPullRequest) => true  -> (Some("close")  -> Some(recordCloseIssueActivity _))
-            case "reopen"                         => false -> (Some("reopen") -> Some(recordReopenIssueActivity _))
+            case "close"  => true  -> (Some("close")  ->
+                Some(if(issue.isPullRequest) recordClosePullRequestActivity _ else recordCloseIssueActivity _))
+            case "reopen" => false -> (Some("reopen") ->
+                Some(recordReopenIssueActivity _))
           }
           .map { case (closed, t) =>
             updateClosed(owner, name, issueId, closed)
@@ -307,15 +300,29 @@ trait IssuesControllerBase extends ControllerBase {
           }
 
       // record activity
-      content foreach { content =>
-        if(issue.isPullRequest)
-          recordCommentPullRequestActivity(owner, name, userName, issueId, content)
-        else
-          recordCommentIssueActivity(owner, name, userName, issueId, content)
+      content foreach {
+        (if(issue.isPullRequest) recordCommentPullRequestActivity _ else recordCommentIssueActivity _)
+        (owner, name, userName, issueId, _)
       }
       recordActivity foreach ( _ (owner, name, userName, issueId, issue.title) )
 
-      (issue, commentId)
+      // notifications
+      Notifier() match {
+        case f =>
+          content foreach {
+            f.toNotify(repository, issueId, _){
+              Notifier.msgComment(s"${baseUrl}/${owner}/${name}/${
+                if(issue.isPullRequest) "pull" else "issues"}/${issueId}#comment-${commentId}")
+            }
+          }
+          action foreach {
+            f.toNotify(repository, issueId, _){
+              Notifier.msgStatus(s"${baseUrl}/${owner}/${name}/issues/${issueId}")
+            }
+          }
+      }
+
+      issue -> commentId
     }
   }
 

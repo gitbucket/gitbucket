@@ -1,6 +1,6 @@
 package app
 
-import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator}
+import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator, Notifier}
 import util.Directory._
 import util.Implicits._
 import service._
@@ -303,7 +303,13 @@ trait PullRequestsControllerBase extends ControllerBase {
         .call
     }
 
+    // record activity
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
+
+    // notifications
+    Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
+      Notifier.msgPullRequest(s"${baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
+    }
 
     redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
   })

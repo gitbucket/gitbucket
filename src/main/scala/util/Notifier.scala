@@ -55,8 +55,8 @@ object Notifier {
     |<a href="${url}">View it on GitBucket</a>
     """.stripMargin
 
-  def msgStatus(id: Int, url: String) = (content: String) => s"""
-    |${content} <a href="${url}">#${id}</a>
+  def msgStatus(url: String) = (content: String) => s"""
+    |${content} <a href="${url}">#${url split('/') last}</a>
     """.stripMargin
 }
 
