@@ -22,9 +22,8 @@ abstract class ControllerBase extends ScalatraFilter
 
   implicit val jsonFormats = DefaultFormats
 
-//  before() {
-//    contentType = "text/html"
-//  }
+  // Don't set content type via Accept header.
+  override def format(implicit request: HttpServletRequest) = ""
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     val httpRequest  = request.asInstanceOf[HttpServletRequest]
