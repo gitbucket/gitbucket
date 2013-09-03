@@ -7,11 +7,16 @@ import java.io.File
  */
 object Directory {
 
-  val GitBucketHome = new File(System.getProperty("user.home"), "gitbucket").getAbsolutePath
+  val GitBucketHome = (scala.util.Properties.envOrNone("GITBUCKET_HOME") match {
+    case Some(env) => new File(env)
+    case None => new File(System.getProperty("user.home"), "gitbucket")
+  }).getAbsolutePath
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
   
   val RepositoryHome = s"${GitBucketHome}/repositories"
+
+  val DatabaseHome = s"${GitBucketHome}/data"
   
   /**
    * Repository names of the specified user.
