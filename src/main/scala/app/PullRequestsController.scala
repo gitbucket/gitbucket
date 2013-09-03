@@ -100,7 +100,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       getPullRequest(repository.owner, repository.name, issueId).map { case (issue, pullreq) =>
         val remote = getRepositoryDir(repository.owner, repository.name)
         val tmpdir = new java.io.File(getTemporaryDir(repository.owner, repository.name), s"merge-${issueId}")
-        val git    = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+        val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(pullreq.branch).call
 
         try {
           // mark issue as merged and close.
@@ -179,7 +179,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         FileUtils.deleteDirectory(tmpdir)
       }
 
-      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(branch).call
       try {
         git.checkout.setName(branch).call
 
