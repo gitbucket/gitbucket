@@ -155,6 +155,11 @@ trait PullRequestsControllerBase extends ControllerBase {
             }
           }
 
+          // notifications
+          Notifier().toNotify(repository, issueId, "merge"){
+            Notifier.msgStatus(s"${baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
+          }
+
           redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
 
         } finally {
