@@ -131,6 +131,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/_blob/*")(referrersOnly { repository =>
     getFileContent(repository.owner, repository.name, multiParams("splat").head).map { content =>
         contentType = "application/octet-stream"
+        response.characterEncoding = None
         content
     } getOrElse NotFound
   })
