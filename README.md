@@ -10,17 +10,17 @@ The current version of GitBucket provides a basic features below:
 - Repository search (Code and Issues)
 - Wiki
 - Issues
+- Fork / Pull request
+- Mail notification
 - Activity timeline
 - User management (for Administrators)
 - Group (like Organization in Github)
 
 Following features are not implemented, but we will make them in the future release!
 
-- Fork and pull request
 - Network graph
 - Statics
 - Watch / Star
-- Notification
 
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
 
