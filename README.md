@@ -10,17 +10,17 @@ The current version of GitBucket provides a basic features below:
 - Repository search (Code and Issues)
 - Wiki
 - Issues
+- Fork / Pull request
+- Mail notification
 - Activity timeline
 - User management (for Administrators)
 - Group (like Organization in Github)
 
 Following features are not implemented, but we will make them in the future release!
 
-- Fork and pull request
 - Network graph
 - Statics
 - Watch / Star
-- Notification
 
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
 
@@ -37,7 +37,7 @@ To upgrade GitBucket, only replace gitbucket.war.
 
 Release Notes
 --------
-### 1.5 - COMMING SOON!
+### 1.5 - 4 Sep 2013
 - Fork and pull request.
 - LDAP authentication.
 - Mail notification.
@@ -45,6 +45,7 @@ Release Notes
 - Add the branch tab in the repository viewer.
 - Encoding auto detection for the file content in the repository viewer.
 - Add favicon, header logo and icons for the timeline.
+- Specify data directory via environment variable GITBUCKET_HOME.
 - Fixed some bugs.
 
 ### 1.4 - 31 Jul 2013

@@ -47,7 +47,7 @@ trait SystemSettingsService {
       if(getValue(props, Notification, false)){
         Some(Smtp(
           getValue(props, SmtpHost, ""),
-          getOptionValue(props, SmtpPort, Some(25)),
+          getOptionValue(props, SmtpPort, Some(DefaultSmtpPort)),
           getOptionValue(props, SmtpUser, None),
           getOptionValue(props, SmtpPassword, None),
           getOptionValue[Boolean](props, SmtpSsl, None)))
@@ -99,6 +99,7 @@ object SystemSettingsService {
     password: Option[String],
     ssl: Option[Boolean])
 
+  val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
 
   private val AllowAccountRegistration = "allow_account_registration"

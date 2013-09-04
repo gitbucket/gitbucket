@@ -24,21 +24,9 @@ class GitRepositoryServlet extends GitServlet {
   
   override def init(config: ServletConfig): Unit = {
     setReceivePackFactory(new GitBucketReceivePackFactory())
-    
-    // TODO are there any other ways...?
-    super.init(new ServletConfig(){
-      def getInitParameter(name: String): String = name match {
-        case "base-path"  => Directory.RepositoryHome
-        case "export-all" => "true"
-        case name => config.getInitParameter(name)
-      }
-      def getInitParameterNames(): java.util.Enumeration[String] = {
-        config.getInitParameterNames
-      }
-      
-      def getServletContext(): ServletContext = config.getServletContext
-      def getServletName(): String = config.getServletName
-    });
+    config.getServletContext.setInitParameter("base-path", Directory.RepositoryHome)
+    config.getServletContext.setInitParameter("export-all", "true")
+    super.init(config)
   }
   
 }

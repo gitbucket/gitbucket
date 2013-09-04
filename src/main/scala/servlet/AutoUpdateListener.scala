@@ -113,6 +113,7 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
+    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${Directory.DatabaseHome}")
     super.contextInitialized(event)
     logger.debug("H2 started")
     

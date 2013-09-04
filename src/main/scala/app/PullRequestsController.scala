@@ -1,6 +1,6 @@
 package app
 
-import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator}
+import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator, Notifier}
 import util.Directory._
 import util.Implicits._
 import service._
@@ -100,7 +100,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       getPullRequest(repository.owner, repository.name, issueId).map { case (issue, pullreq) =>
         val remote = getRepositoryDir(repository.owner, repository.name)
         val tmpdir = new java.io.File(getTemporaryDir(repository.owner, repository.name), s"merge-${issueId}")
-        val git    = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+        val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(pullreq.branch).call
 
         try {
           // mark issue as merged and close.
@@ -155,6 +155,11 @@ trait PullRequestsControllerBase extends ControllerBase {
             }
           }
 
+          // notifications
+          Notifier().toNotify(repository, issueId, "merge"){
+            Notifier.msgStatus(s"${baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
+          }
+
           redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
 
         } finally {
@@ -179,7 +184,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         FileUtils.deleteDirectory(tmpdir)
       }
 
-      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).call
+      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(branch).call
       try {
         git.checkout.setName(branch).call
 
@@ -303,7 +308,13 @@ trait PullRequestsControllerBase extends ControllerBase {
         .call
     }
 
+    // record activity
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
+
+    // notifications
+    Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
+      Notifier.msgPullRequest(s"${baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
+    }
 
     redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
   })

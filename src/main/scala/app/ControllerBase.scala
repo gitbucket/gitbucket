@@ -1,7 +1,7 @@
 package app
 
 import _root_.util.Directory._
-import _root_.util.{StringUtil, FileUtil, Validations}
+import _root_.util.{FileUtil, Validations}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
@@ -22,9 +22,8 @@ abstract class ControllerBase extends ScalatraFilter
 
   implicit val jsonFormats = DefaultFormats
 
-//  before() {
-//    contentType = "text/html"
-//  }
+  // Don't set content type via Accept header.
+  override def format(implicit request: HttpServletRequest) = ""
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     val httpRequest  = request.asInstanceOf[HttpServletRequest]
