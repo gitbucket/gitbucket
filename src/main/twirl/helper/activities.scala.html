@@ -24,10 +24,12 @@
               if(i == 3){
                 <div>...</div>
               } else {
-                <div>
-                   <a href={s"${path}/${activity.userName}/${activity.repositoryName}/commit/${commit.substring(0, 40)}"} class="monospace">{commit.substring(0, 7)}</a>
-                    <span>{commit.substring(41)}</span>
-                </div>
+                if(commit.nonEmpty){
+                  <div>
+                     <a href={s"${path}/${activity.userName}/${activity.repositoryName}/commit/${commit. substring(0, 40)}"} class="monospace">{commit.substring(0, 7)}</a>
+                     <span>{commit.substring(41)}</span>
+                  </div>
+                }
               }
             }}
           </div>
