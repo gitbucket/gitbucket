@@ -1,10 +1,15 @@
-@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(webHooks: List[model.WebHook], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Settings", Some(repository)){
   @html.header("settings", repository)
   @menu("hooks", repository){
     <h3>WebHook URLs</h3>
+    <ul>
+      @webHooks.map { webHook =>
+        <li>@webHook.url <a href="#" class="remove">(remove)</a></li>
+      }
+    </ul>
     <form method="POST" action="@url(repository)/settings/hooks/add" validate="true">
       <div>
         <span class="error" id="error-url"></span>

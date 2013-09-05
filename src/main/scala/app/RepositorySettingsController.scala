@@ -8,11 +8,14 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
-  with RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator
+  with RepositoryService with AccountService with WebHookService
+  with OwnerAuthenticator with UsersAuthenticator
 
 trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSupport {
-  self: RepositoryService with AccountService with OwnerAuthenticator with UsersAuthenticator =>
+  self: RepositoryService with AccountService with WebHookService
+    with OwnerAuthenticator with UsersAuthenticator =>
 
+  // for repository options
   case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
   val optionsForm = mapping(
@@ -20,12 +23,20 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     "defaultBranch" -> trim(label("Default Branch" , text(required, maxlength(100)))),
     "isPrivate"     -> trim(label("Repository Type", boolean()))
   )(OptionsForm.apply)
-  
+
+  // for collaborator addition
   case class CollaboratorForm(userName: String)
 
   val collaboratorForm = mapping(
     "userName" -> trim(label("Username", text(required, collaborator)))
   )(CollaboratorForm.apply)
+
+  // for web hook url addition
+  case class WebHookForm(url: String)
+
+  val webHookForm = mapping(
+    "url" -> trim(label("url", text(required, webHook)))
+  )(WebHookForm.apply)
 
   /**
    * Redirect to the Options page.
@@ -92,7 +103,12 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Display the web hook page.
    */
   get("/:owner/:repository/settings/hooks")(ownerOnly { repository =>
-    settings.html.hooks(repository)
+    settings.html.hooks(getWebHookURLs(repository.owner, repository.name), repository)
+  })
+
+  post("/:owner/:repository/settings/hooks/add", webHookForm)(ownerOnly { (form, repository) =>
+    addWebHookURL(repository.owner, repository.name, form.url)
+    redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
   /**
@@ -114,6 +130,16 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
 
     redirect(s"/${repository.owner}")
   })
+
+  /**
+   * Provides duplication check for web hook url.
+   */
+  private def webHook: Constraint = new Constraint(){
+    override def validate(name: String, value: String): Option[String] = {
+      val paths = request.getRequestURI.split("/")
+      getWebHookURLs(paths(1), paths(2)).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
+    }
+  }
 
   /**
    * Provides Constraint to validate the collaborator name.
