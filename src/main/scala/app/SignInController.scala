@@ -44,7 +44,11 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
 
     session.get("REDIRECT").map { redirectUrl =>
       session.removeAttribute("REDIRECT")
-      redirect(redirectUrl.asInstanceOf[String])
+      if(redirectUrl == request.getContextPath + "/"){
+        redirect("/")
+      } else {
+        redirect(redirectUrl.asInstanceOf[String])
+      }
     }.getOrElse {
       redirect("/")
     }
