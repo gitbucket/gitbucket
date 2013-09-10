@@ -42,12 +42,12 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
     session.setAttribute("LOGIN_ACCOUNT", account)
     updateLastLoginDate(account.userName)
 
-    session.get("REDIRECT").map { redirectUrl =>
+    session.get("REDIRECT").map { case redirectUrl: String =>
       session.removeAttribute("REDIRECT")
-      if(redirectUrl == request.getContextPath + "/"){
+      if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
         redirect("/")
       } else {
-        redirect(redirectUrl.asInstanceOf[String])
+        redirect(redirectUrl)
       }
     }.getOrElse {
       redirect("/")
