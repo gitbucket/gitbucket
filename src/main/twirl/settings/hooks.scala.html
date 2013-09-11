@@ -7,7 +7,7 @@
     <h3>WebHook URLs</h3>
     <ul>
       @webHooks.map { webHook =>
-        <li>@webHook.url <a href="#" class="remove">(remove)</a></li>
+        <li>@webHook.url <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="remove">(remove)</a></li>
       }
     </ul>
     <form method="POST" action="@url(repository)/settings/hooks/add" validate="true">

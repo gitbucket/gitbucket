@@ -106,8 +106,20 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     settings.html.hooks(getWebHookURLs(repository.owner, repository.name), repository)
   })
 
+  /**
+   * Add the web hook URL.
+   */
   post("/:owner/:repository/settings/hooks/add", webHookForm)(ownerOnly { (form, repository) =>
     addWebHookURL(repository.owner, repository.name, form.url)
+    redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
+  })
+
+  /**
+   * Delete the web hook URL.
+   */
+  get("/:owner/:repository/settings/hooks/delete")(ownerOnly { repository =>
+    val url = params("url")
+    deleteWebHookURL(repository.owner, repository.name, url)
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
