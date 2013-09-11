@@ -50,6 +50,7 @@ trait RepositoryService { self: AccountService =>
     PullRequests  .filter(_.byRepository(userName, repositoryName)).delete
     IssueId       .filter(_.byRepository(userName, repositoryName)).delete
     Milestones    .filter(_.byRepository(userName, repositoryName)).delete
+    WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
   }
 
