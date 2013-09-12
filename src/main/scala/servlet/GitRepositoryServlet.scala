@@ -11,6 +11,7 @@ import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
 import util.{JGitUtil, Directory}
 import service._
+import WebHookService._
 
 /**
  * Provides Git repository via HTTP.
@@ -110,6 +111,47 @@ class CommitLogHook(owner: String, repository: String, userName: String) extends
             case _ =>
           }
         }
+
+        // TODO call web hook
+        val repositoryInfo  = getRepository(owner, repository, "").get
+        val repositoryOwner = getAccountByUserName(owner)
+        val payload = WebHookPayload(
+          before  = "",
+          after   = "",
+          ref     = "",
+          commits = newCommits.map { commit =>
+            WebHookCommit(
+              id        = commit.id,
+              message   = commit.fullMessage,
+              timestamp = commit.time.toString,
+              url       = "",
+              added     = Nil,
+              removed   = Nil,
+              modified  = Nil,
+              author    = WebHookUser(
+                name  = commit.committer,
+                email = commit.mailAddress
+              )
+            )
+          }.toList,
+          repository = WebHookRepository(
+            name        = repositoryInfo.name,
+            url         = "",
+            pledgie     = "",
+            description = repositoryInfo.repository.description.getOrElse(""),
+            homepage    = "",
+            watchers    = 0,
+            forks       = repositoryInfo.forkedCount,
+            `private`   = repositoryInfo.repository.isPrivate,
+            owner = WebHookUser(
+              name  = repositoryOwner.get.userName,
+              email = repositoryOwner.get.mailAddress
+            )
+          )
+        )
+
+        // TODO invoke WebHookService
+
       }
     }
     // update repository last modified time.
