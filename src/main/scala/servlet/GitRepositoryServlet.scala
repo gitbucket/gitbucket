@@ -71,7 +71,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 import scala.collection.JavaConverters._
 
 class CommitLogHook(owner: String, repository: String, userName: String) extends PostReceiveHook
-  with RepositoryService with AccountService with IssuesService with ActivityService {
+  with RepositoryService with AccountService with IssuesService with ActivityService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
@@ -151,7 +151,7 @@ class CommitLogHook(owner: String, repository: String, userName: String) extends
         )
 
         // TODO invoke WebHookService
-
+        sendWebHook(payload)
       }
     }
     // update repository last modified time.
