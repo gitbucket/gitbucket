@@ -6,6 +6,7 @@ import Database.threadLocalSession
 import model._
 
 trait WebHookService {
+  import WebHookService._
 
   def getWebHookURLs(owner: String, repository: String): List[WebHook] =
     Query(WebHooks).filter(_.byRepository(owner, repository)).sortBy(_.url).list
@@ -15,6 +16,15 @@ trait WebHookService {
 
   def deleteWebHookURL(owner: String, repository: String, url :String): Unit =
     Query(WebHooks).filter(_.byPrimaryKey(owner, repository, url)).delete
+
+  def sendWebHook(payload: WebHookPayload): Unit = {
+    import org.json4s._
+    import org.json4s.jackson.Serialization
+    import org.json4s.jackson.Serialization.{read, write}
+    implicit val formats = Serialization.formats(NoTypeHints)
+
+    println(write(payload))
+  }
 
 }
 
