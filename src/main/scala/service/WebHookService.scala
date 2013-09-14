@@ -4,9 +4,12 @@ import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 
 import model._
+import org.slf4j.LoggerFactory
 
 trait WebHookService {
   import WebHookService._
+
+  private val logger = LoggerFactory.getLogger(classOf[WebHookService])
 
   def getWebHookURLs(owner: String, repository: String): List[WebHook] =
     Query(WebHooks).filter(_.byRepository(owner, repository)).sortBy(_.url).list
@@ -23,6 +26,7 @@ trait WebHookService {
     import org.json4s.jackson.Serialization.{read, write}
     import org.apache.http.client.methods.HttpPost
     import org.apache.http.impl.client.DefaultHttpClient
+    import scala.concurrent._
 
     implicit val formats = Serialization.formats(NoTypeHints)
 
@@ -33,10 +37,18 @@ trait WebHookService {
       val httpClient = new DefaultHttpClient()
 
       webHookURLs.foreach { webHookUrl =>
-        val httpPost = new HttpPost(webHookUrl.url)
-        httpPost.getParams.setParameter("payload", json)
-        httpClient.execute(httpPost)
-        httpPost.releaseConnection()
+        val f = future {
+          val httpPost = new HttpPost(webHookUrl.url)
+          httpPost.getParams.setParameter("payload", json)
+          httpClient.execute(httpPost)
+          httpPost.releaseConnection()
+        }
+        f.onSuccess {
+          case s => logger.debug(s"Success: web hook request to ${webHookUrl.url}")
+        }
+        f.onFailure {
+          case t => logger.error(s"Failed: web hook request to ${webHookUrl.url}", t)
+        }
       }
     }
   }
