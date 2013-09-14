@@ -36,6 +36,7 @@ object MyBuild extends Build {
         "org.pegdown" % "pegdown" % "1.3.0",
         "org.apache.commons" % "commons-compress" % "1.5",
         "org.apache.commons" % "commons-email" % "1.3.1",
+        "org.apache.httpcomponents" % "httpclient" % "4.2.5",
         "com.typesafe.slick" %% "slick" % "1.0.1",
         "com.novell.ldap" % "jldap" % "2009-10-07",
         "com.h2database" % "h2" % "1.3.171",

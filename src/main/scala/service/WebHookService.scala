@@ -17,13 +17,28 @@ trait WebHookService {
   def deleteWebHookURL(owner: String, repository: String, url :String): Unit =
     Query(WebHooks).filter(_.byPrimaryKey(owner, repository, url)).delete
 
-  def sendWebHook(payload: WebHookPayload): Unit = {
+  def callWebHook(owner: String, repository: String, payload: WebHookPayload): Unit = {
     import org.json4s._
     import org.json4s.jackson.Serialization
     import org.json4s.jackson.Serialization.{read, write}
+    import org.apache.http.client.methods.HttpPost
+    import org.apache.http.impl.client.DefaultHttpClient
+
     implicit val formats = Serialization.formats(NoTypeHints)
 
-    println(write(payload))
+    val webHookURLs = getWebHookURLs(owner, repository)
+
+    if(webHookURLs.nonEmpty){
+      val json = write(payload)
+      val httpClient = new DefaultHttpClient()
+
+      webHookURLs.foreach { webHookUrl =>
+        val httpPost = new HttpPost(webHookUrl.url)
+        httpPost.getParams.setParameter("payload", json)
+        httpClient.execute(httpPost)
+        httpPost.releaseConnection()
+      }
+    }
   }
 
 }
@@ -31,8 +46,6 @@ trait WebHookService {
 object WebHookService {
 
   case class WebHookPayload(
-    before: String,
-    after: String,
     ref: String,
     commits: List[WebHookCommit],
     repository: WebHookRepository)
@@ -50,9 +63,7 @@ object WebHookService {
   case class WebHookRepository(
     name: String,
     url: String,
-    pledgie: String,
     description: String,
-    homepage: String,
     watchers: Int,
     forks: Int,
     `private`: Boolean,

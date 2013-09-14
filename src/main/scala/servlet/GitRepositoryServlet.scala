@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletRequest
 import util.{JGitUtil, Directory}
 import service._
 import WebHookService._
+import org.eclipse.jgit.diff.DiffEntry
+import org.apache.http.client.methods.HttpPost
 
 /**
  * Provides Git repository via HTTP.
@@ -57,20 +59,22 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
     logger.debug("requestURI: " + request.getRequestURI)
     logger.debug("userName:" + userName)
 
-    val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
+    val paths      = request.getRequestURI.substring(request.getContextPath.length).split("/")
     val owner      = paths(2)
     val repository = paths(3).replaceFirst("\\.git$", "")
-    
-    logger.debug("repository:" + owner + "/" + repository)
+    val baseURL    = request.getRequestURL.toString.replaceFirst("/git/", "/").replaceFirst("\\.git/.*$", "")
 
-    receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, userName))
+    logger.debug("repository:" + owner + "/" + repository)
+    logger.debug("baseURL:" + baseURL)
+
+    receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, userName, baseURL))
     receivePack
   }
 }
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, userName: String) extends PostReceiveHook
+class CommitLogHook(owner: String, repository: String, userName: String, baseURL: String) extends PostReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
@@ -112,22 +116,24 @@ class CommitLogHook(owner: String, repository: String, userName: String) extends
           }
         }
 
-        // TODO call web hook
+        // call web hook
         val repositoryInfo  = getRepository(owner, repository, "").get
         val repositoryOwner = getAccountByUserName(owner)
+
         val payload = WebHookPayload(
-          before  = "",
-          after   = "",
-          ref     = "",
+          ref     = command.getRefName,
           commits = newCommits.map { commit =>
+            val diffs = JGitUtil.getDiffs(git, commit.id, false)
+
             WebHookCommit(
               id        = commit.id,
               message   = commit.fullMessage,
               timestamp = commit.time.toString,
-              url       = "",
-              added     = Nil,
-              removed   = Nil,
-              modified  = Nil,
+              url       = baseURL + "/commit/" + commit.id,
+              added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
+              removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
+              modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
+                                                       x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
               author    = WebHookUser(
                 name  = commit.committer,
                 email = commit.mailAddress
@@ -136,10 +142,8 @@ class CommitLogHook(owner: String, repository: String, userName: String) extends
           }.toList,
           repository = WebHookRepository(
             name        = repositoryInfo.name,
-            url         = "",
-            pledgie     = "",
+            url         = baseURL,
             description = repositoryInfo.repository.description.getOrElse(""),
-            homepage    = "",
             watchers    = 0,
             forks       = repositoryInfo.forkedCount,
             `private`   = repositoryInfo.repository.isPrivate,
@@ -150,8 +154,7 @@ class CommitLogHook(owner: String, repository: String, userName: String) extends
           )
         )
 
-        // TODO invoke WebHookService
-        sendWebHook(payload)
+        callWebHook(owner, repository, payload)
       }
     }
     // update repository last modified time.
