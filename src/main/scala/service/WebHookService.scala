@@ -27,6 +27,7 @@ trait WebHookService {
     import org.apache.http.client.methods.HttpPost
     import org.apache.http.impl.client.DefaultHttpClient
     import scala.concurrent._
+    import ExecutionContext.Implicits.global
 
     implicit val formats = Serialization.formats(NoTypeHints)
 
