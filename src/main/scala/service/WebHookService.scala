@@ -74,10 +74,12 @@ object WebHookService {
   case class WebHookPayload(
     ref: String,
     commits: List[WebHookCommit],
-    repository: WebHookRepository){
+    repository: WebHookRepository)
 
-    def this(git: Git, refName: String, repositoryInfo: RepositoryInfo, commits: List[CommitInfo], repositoryOwner: Account) =
-      this(
+  object WebHookPayload {
+    def apply(git: Git, refName: String, repositoryInfo: RepositoryInfo,
+              commits: List[CommitInfo], repositoryOwner: Account): WebHookPayload =
+      WebHookPayload(
         refName,
         commits.map { commit =>
           val diffs = JGitUtil.getDiffs(git, commit.id, false)

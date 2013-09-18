@@ -119,7 +119,8 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         println(getRepository(owner, repository, baseURL).get.url)
 
         // call web hook
-        val payload = new WebHookPayload(git,
+        val payload = WebHookPayload(
+          git,
           command.getRefName,
           getRepository(owner, repository, baseURL).get,
           newCommits,

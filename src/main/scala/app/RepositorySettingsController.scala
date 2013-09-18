@@ -142,7 +142,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
         list.append(new CommitInfo(commit))
       }
 
-      val payload = new WebHookPayload(
+      val payload = WebHookPayload(
         git,
         "refs/heads/" + repository.repository.defaultBranch,
         repository,
