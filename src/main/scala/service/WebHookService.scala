@@ -5,6 +5,15 @@ import Database.threadLocalSession
 
 import model._
 import org.slf4j.LoggerFactory
+import service.RepositoryService.RepositoryInfo
+import util.JGitUtil
+import org.eclipse.jgit.diff.DiffEntry
+import util.JGitUtil.CommitInfo
+import org.eclipse.jgit.api.Git
+import org.apache.http.message.BasicNameValuePair
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.protocol.HTTP
+import org.apache.http.NameValuePair
 
 trait WebHookService {
   import WebHookService._
@@ -40,7 +49,11 @@ trait WebHookService {
       webHookURLs.foreach { webHookUrl =>
         val f = future {
           val httpPost = new HttpPost(webHookUrl.url)
-          httpPost.getParams.setParameter("payload", json)
+
+          val params: java.util.List[NameValuePair] = new java.util.ArrayList()
+          params.add(new BasicNameValuePair("payload", json))
+          httpPost.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8))
+
           httpClient.execute(httpPost)
           httpPost.releaseConnection()
         }
@@ -61,7 +74,44 @@ object WebHookService {
   case class WebHookPayload(
     ref: String,
     commits: List[WebHookCommit],
-    repository: WebHookRepository)
+    repository: WebHookRepository){
+
+    def this(git: Git, refName: String, repositoryInfo: RepositoryInfo, commits: List[CommitInfo], repositoryOwner: Account) =
+      this(
+        refName,
+        commits.map { commit =>
+          val diffs = JGitUtil.getDiffs(git, commit.id, false)
+          val commitUrl = repositoryInfo.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/commit/" + commit.id
+
+          WebHookCommit(
+            id        = commit.id,
+            message   = commit.fullMessage,
+            timestamp = commit.time.toString,
+            url       = commitUrl,
+            added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
+            removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
+            modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
+              x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
+            author    = WebHookUser(
+              name  = commit.committer,
+              email = commit.mailAddress
+            )
+          )
+        }.toList,
+        WebHookRepository(
+          name        = repositoryInfo.name,
+          url         = repositoryInfo.url,
+          description = repositoryInfo.repository.description.getOrElse(""),
+          watchers    = 0,
+          forks       = repositoryInfo.forkedCount,
+          `private`   = repositoryInfo.repository.isPrivate,
+          owner = WebHookUser(
+            name  = repositoryOwner.userName,
+            email = repositoryOwner.mailAddress
+          )
+        )
+      )
+  }
 
   case class WebHookCommit(
     id: String,

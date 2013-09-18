@@ -1,9 +1,10 @@
-@(webHooks: List[model.WebHook], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(webHooks: List[model.WebHook], repository: service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Settings", Some(repository)){
   @html.header("settings", repository)
   @menu("hooks", repository){
+    @helper.html.information(info)
     <h3>WebHook URLs</h3>
     <ul>
       @webHooks.map { webHook =>
@@ -16,6 +17,7 @@
       </div>
       <input type="text" name="url" id="url" style="width: 300px; margin-bottom: 0px;"/>
       <input type="submit" class="btn" value="Add"/>
+      <a href="@url(repository)/settings/hooks/test" class="btn">Test Hook</a>
     </form>
   }
 }

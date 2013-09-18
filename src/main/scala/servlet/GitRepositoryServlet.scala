@@ -62,7 +62,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
     val paths      = request.getRequestURI.substring(request.getContextPath.length).split("/")
     val owner      = paths(2)
     val repository = paths(3).replaceFirst("\\.git$", "")
-    val baseURL    = request.getRequestURL.toString.replaceFirst("/git/", "/").replaceFirst("\\.git/.*$", "")
+    val baseURL    = request.getRequestURL.toString.replaceFirst("/git/.*", "")
 
     logger.debug("repository:" + owner + "/" + repository)
     logger.debug("baseURL:" + baseURL)
@@ -116,43 +116,14 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
           }
         }
 
+        println(getRepository(owner, repository, baseURL).get.url)
+
         // call web hook
-        val repositoryInfo  = getRepository(owner, repository, "").get
-        val repositoryOwner = getAccountByUserName(owner)
-
-        val payload = WebHookPayload(
-          ref     = command.getRefName,
-          commits = newCommits.map { commit =>
-            val diffs = JGitUtil.getDiffs(git, commit.id, false)
-
-            WebHookCommit(
-              id        = commit.id,
-              message   = commit.fullMessage,
-              timestamp = commit.time.toString,
-              url       = baseURL + "/commit/" + commit.id,
-              added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
-              removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
-              modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
-                                                       x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
-              author    = WebHookUser(
-                name  = commit.committer,
-                email = commit.mailAddress
-              )
-            )
-          }.toList,
-          repository = WebHookRepository(
-            name        = repositoryInfo.name,
-            url         = baseURL,
-            description = repositoryInfo.repository.description.getOrElse(""),
-            watchers    = 0,
-            forks       = repositoryInfo.forkedCount,
-            `private`   = repositoryInfo.repository.isPrivate,
-            owner = WebHookUser(
-              name  = repositoryOwner.get.userName,
-              email = repositoryOwner.get.mailAddress
-            )
-          )
-        )
+        val payload = new WebHookPayload(git,
+          command.getRefName,
+          getRepository(owner, repository, baseURL).get,
+          newCommits,
+          getAccountByUserName(owner).get)
 
         callWebHook(owner, repository, payload)
       }

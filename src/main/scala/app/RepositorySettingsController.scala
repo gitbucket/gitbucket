@@ -2,10 +2,15 @@ package app
 
 import service._
 import util.Directory._
-import util.{UsersAuthenticator, OwnerAuthenticator}
+import util.{JGitUtil, UsersAuthenticator, OwnerAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
+import service.WebHookService.{WebHookRepository, WebHookUser, WebHookCommit, WebHookPayload}
+import org.eclipse.jgit.diff.DiffEntry
+import scala.collection.mutable.ListBuffer
+import org.eclipse.jgit.revwalk.RevCommit
+import util.JGitUtil.CommitInfo
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
   with RepositoryService with AccountService with WebHookService
@@ -103,7 +108,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Display the web hook page.
    */
   get("/:owner/:repository/settings/hooks")(ownerOnly { repository =>
-    settings.html.hooks(getWebHookURLs(repository.owner, repository.name), repository)
+    settings.html.hooks(getWebHookURLs(repository.owner, repository.name), repository, flash.get("info"))
   })
 
   /**
@@ -122,6 +127,42 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     deleteWebHookURL(repository.owner, repository.name, url)
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
+
+  /**
+   * Send the test request to registered web hook URLs.
+   */
+  get("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
+    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+      // TODO Retrieve only specified branch logs.
+      val i = git.log.setMaxCount(3).call.iterator
+      // TODO Don't use ListBuffer!!!!
+      val list = new ListBuffer[CommitInfo]()
+      while(i.hasNext){
+        val commit = i.next
+        list.append(new CommitInfo(commit))
+      }
+
+      val payload = new WebHookPayload(
+        git,
+        "refs/heads/" + repository.repository.defaultBranch,
+        repository,
+        list.toList,
+        getAccountByUserName(repository.owner).get)
+
+      callWebHook(repository.owner, repository.name, payload)
+      flash += "info" -> "Test payload deployed!"
+    }
+    redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
+  })
+
+  get("/xxx/xxx/xxx/webhooktest"){
+    println(params("payload"))
+  }
+
+  post("/xxx/xxx/xxx/webhooktest"){
+    println(params("payload"))
+  }
+
 
   /**
    * Display the delete repository page.
