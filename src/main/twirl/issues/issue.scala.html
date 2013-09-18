@@ -41,7 +41,7 @@
             @labels.map { label =>
               <li>
                 <a href="#" class="toggle-label" data-label-id="@label.labelId">
-                  <i class="@{if(issueLabels.exists(_.labelId == label.labelId)) "icon-ok" else "icon-white"}"></i>
+                  @helper.html.checkicon(issueLabels.exists(_.labelId == label.labelId))
                   <span class="label" style="background-color: #@label.color;">&nbsp;</span>
                   @label.labelName
                 </a>
