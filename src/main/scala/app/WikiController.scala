@@ -40,7 +40,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       wiki.html.page(pageName, page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
-    } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${pageName}/_edit") // TODO URLEncode
+    } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   
   get("/:owner/:repository/wiki/:page/_history")(referrersOnly { repository =>
