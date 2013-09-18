@@ -21,9 +21,9 @@ class TransactionFilter extends Filter {
       chain.doFilter(req, res)
     } else {
       Database(req.getServletContext) withTransaction {
-        logger.debug("TODO begin transaction")
+        logger.debug("begin transaction")
         chain.doFilter(req, res)
-        logger.debug("TODO end transaction")
+        logger.debug("end transaction")
       }
     }
   }
