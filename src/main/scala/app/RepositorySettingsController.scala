@@ -155,14 +155,10 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
-  get("/xxx/xxx/xxx/webhooktest"){
-    println(params("payload"))
-  }
-
+  // TODO Remove this action after web hook is completed.
   post("/xxx/xxx/xxx/webhooktest"){
     println(params("payload"))
   }
-
 
   /**
    * Display the delete repository page.
