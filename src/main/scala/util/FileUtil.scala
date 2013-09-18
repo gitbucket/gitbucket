@@ -11,7 +11,7 @@ object FileUtil {
     val fileNameMap = URLConnection.getFileNameMap()
     val mimeType = fileNameMap.getContentTypeFor(name)
     if(mimeType == null){
-      "application/octeat-stream"
+      "application/octet-stream"
     } else {
       mimeType
     }

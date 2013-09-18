@@ -112,8 +112,6 @@ trait PullRequestsControllerBase extends ControllerBase {
           // record activity
           recordMergeActivity(repository.owner, repository.name, loginAccount.userName, issueId, form.message)
 
-          // TODO apply ref comment
-
           // fetch pull request to temporary working repository
           val pullRequestBranchName = s"gitbucket-pullrequest-${issueId}"
 
