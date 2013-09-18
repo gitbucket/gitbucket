@@ -133,20 +133,17 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   get("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
     JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-      // TODO Retrieve only specified branch logs.
-      val i = git.log.setMaxCount(3).call.iterator
-      // TODO Don't use ListBuffer!!!!
-      val list = new ListBuffer[CommitInfo]()
-      while(i.hasNext){
-        val commit = i.next
-        list.append(new CommitInfo(commit))
-      }
+      import scala.collection.JavaConverters._
+      val commits = git.log
+        .add(git.getRepository.resolve(repository.repository.defaultBranch))
+        .setMaxCount(3)
+        .call.iterator.asScala.map(new CommitInfo(_))
 
       val payload = WebHookPayload(
         git,
         "refs/heads/" + repository.repository.defaultBranch,
         repository,
-        list.toList,
+        commits.toList,
         getAccountByUserName(repository.owner).get)
 
       callWebHook(repository.owner, repository.name, payload)
