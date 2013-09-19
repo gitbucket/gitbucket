@@ -1,6 +1,7 @@
 package util
 
 import java.io.File
+import util.ControlUtil._
 
 /**
  * Provides directories used by GitBucket.
@@ -21,17 +22,17 @@ object Directory {
   /**
    * Repository names of the specified user.
    */
-  def getRepositories(owner: String): List[String] = {
-    val dir = new File(s"${RepositoryHome}/${owner}")
-    if(dir.exists){
-      dir.listFiles.filter { file =>
-        file.isDirectory && !file.getName.endsWith(".wiki.git") 
-      }.map(_.getName.replaceFirst("\\.git$", "")).toList
-    } else {
-      Nil
+  def getRepositories(owner: String): List[String] =
+    defining(new File(s"${RepositoryHome}/${owner}")){ dir =>
+      if(dir.exists){
+        dir.listFiles.filter { file =>
+          file.isDirectory && !file.getName.endsWith(".wiki.git")
+        }.map(_.getName.replaceFirst("\\.git$", "")).toList
+      } else {
+        Nil
+      }
     }
-  }
-  
+
   /**
    * Substance directory of the repository.
    */

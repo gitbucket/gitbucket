@@ -3,6 +3,7 @@ package app
 import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator, Notifier}
 import util.Directory._
 import util.Implicits._
+import util.ControlUtil._
 import service._
 import org.eclipse.jgit.api.Git
 import jp.sf.amateras.scalatra.forms._
@@ -67,7 +68,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     val issueId = params("id").toInt
 
     getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-      JGitUtil.withGit(getRepositoryDir(owner, name)){ git =>
+      using(Git.open(getRepositoryDir(owner, name))){ git =>
         val requestCommitId = git.getRepository.resolve(pullreq.requestBranch)
 
         val (commits, diffs) =
@@ -219,7 +220,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         } getOrElse NotFound
       }
       case _ => {
-        JGitUtil.withGit(getRepositoryDir(forkedRepository.owner, forkedRepository.name)){ git =>
+        using(Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))){ git =>
           val defaultBranch = JGitUtil.getDefaultBranch(git, forkedRepository).get._2
           redirect(s"${context.path}/${forkedRepository.owner}/${forkedRepository.name}/compare/${defaultBranch}...${defaultBranch}")
         }
@@ -299,7 +300,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       commitIdTo            = form.commitIdTo)
 
     // fetch requested branch
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       git.fetch
         .setRemote(getRepositoryDir(form.requestUserName, repository.name).toURI.toString)
         .setRefSpecs(new RefSpec(s"refs/heads/${form.requestBranch}:refs/pull/${issueId}/head"))

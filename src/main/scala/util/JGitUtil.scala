@@ -3,6 +3,7 @@ package util
 import org.eclipse.jgit.api.Git
 import util.Directory._
 import util.StringUtil._
+import util.ControlUtil._
 import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
@@ -113,24 +114,6 @@ object JGitUtil {
   case class TagInfo(name: String, time: Date, id: String)
 
   /**
-   * Use this method to use the Git object.
-   * Repository resources are released certainly after processing.
-   */
-  def withGit[T](dir: java.io.File)(f: Git => T): T = withGit(Git.open(dir))(f)
-  
-  /**
-   * Use this method to use the Git object.
-   * Repository resources are released certainly after processing.
-   */
-  def withGit[T](git: Git)(f: Git => T): T = {
-    try {
-      f(git)
-    } finally {
-      git.getRepository.close
-    }
-  }
-  
-  /**
    * Returns RevCommit from the commit or tag id.
    * 
    * @param git the Git object
@@ -151,7 +134,7 @@ object JGitUtil {
    * Returns the repository information. It contains branch names and tag names.
    */
   def getRepositoryInfo(owner: String, repository: String, baseUrl: String): RepositoryInfo = {
-    withGit(getRepositoryDir(owner, repository)){ git =>
+    using(Git.open(getRepositoryDir(owner, repository))){ git =>
       try {
         // get commit count
         val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(1000).sum
@@ -370,11 +353,8 @@ object JGitUtil {
     if(large == false && FileUtil.isLarge(loader.getSize)){
       None
     } else {
-      val db = git.getRepository.getObjectDatabase
-      try {
+      using(git.getRepository.getObjectDatabase){ db =>
         Some(db.open(id).getBytes)
-      } finally {
-        db.close
       }
     }
   } catch {
@@ -483,12 +463,9 @@ object JGitUtil {
   }
 
   def initRepository(dir: java.io.File): Unit = {
-    val repository = new RepositoryBuilder().setGitDir(dir).setBare.build
-    try {
+    using(new RepositoryBuilder().setGitDir(dir).setBare.build){ repository =>
       repository.create
       setReceivePack(repository)
-    } finally {
-      repository.close
     }
   }
 

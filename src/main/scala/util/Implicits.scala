@@ -12,7 +12,7 @@ object Implicits {
     def splitWith(condition: (A, A) => Boolean): Seq[Seq[A]] = split(seq)(condition)
 
     @scala.annotation.tailrec
-    private def split[A](list: Seq[A], result: Seq[Seq[A]] = Nil)(condition: (A, A) => Boolean): Seq[Seq[A]] = {
+    private def split[A](list: Seq[A], result: Seq[Seq[A]] = Nil)(condition: (A, A) => Boolean): Seq[Seq[A]] =
       list match {
         case x :: xs => {
           xs.span(condition(x, _)) match {
@@ -21,7 +21,6 @@ object Implicits {
         }
         case Nil => result
       }
-    }
   }
 
   implicit class RichString(value: String){

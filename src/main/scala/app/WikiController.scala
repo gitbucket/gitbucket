@@ -3,7 +3,9 @@ package app
 import service._
 import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, JGitUtil, StringUtil}
 import util.Directory._
+import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
+import org.eclipse.jgit.api.Git
 
 class WikiController extends WikiControllerBase 
   with WikiService with RepositoryService with AccountService with ActivityService
@@ -46,7 +48,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/:page/_history")(referrersOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
 
-    JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, "master", path = pageName + ".md") match {
         case Right((logs, hasNext)) => wiki.html.history(Some(pageName), logs, repository)
         case Left(_) => NotFound
@@ -58,7 +60,7 @@ trait WikiControllerBase extends ControllerBase {
     val pageName = StringUtil.urlDecode(params("page"))
     val commitId = params("commitId").split("\\.\\.\\.")
 
-    JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       wiki.html.compare(Some(pageName), JGitUtil.getDiffs(git, commitId(0), commitId(1), true), repository)
     }
   })
@@ -66,7 +68,7 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki/_compare/:commitId")(referrersOnly { repository =>
     val commitId   = params("commitId").split("\\.\\.\\.")
 
-    JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       wiki.html.compare(None, JGitUtil.getDiffs(git, commitId(0), commitId(1), true), repository)
     }
   })
@@ -120,7 +122,7 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>
-    JGitUtil.withGit(getWikiRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, "master") match {
         case Right((logs, hasNext)) => wiki.html.history(None, logs, repository)
         case Left(_) => NotFound

@@ -2,6 +2,7 @@ package app
 
 import util.Directory._
 import util.Implicits._
+import util.ControlUtil._
 import _root_.util.{ReferrerAuthenticator, JGitUtil, FileUtil, StringUtil}
 import service._
 import org.scalatra._
@@ -56,7 +57,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (branchName, path) = splitPath(repository, multiParams("splat").head)
     val page = params.getOrElse("page", "1").toInt
 
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
         case Right((logs, hasNext)) =>
           repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
@@ -75,7 +76,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (id, path) = splitPath(repository, multiParams("splat").head)
     val raw = params.get("raw").getOrElse("false").toBoolean
 
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
       @scala.annotation.tailrec
@@ -127,7 +128,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/commit/:id")(referrersOnly { repository =>
     val id = params("id")
 
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
       JGitUtil.getDiffs(git, id) match { case (diffs, oldCommitId) =>
@@ -143,7 +144,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays branches.
    */
   get("/:owner/:repository/branches")(referrersOnly { repository =>
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       // retrieve latest update date of each branch
       val branchInfo = repository.branchList.map { branchName =>
         val revCommit = git.log.add(git.getRepository.resolve(branchName)).setMaxCount(1).call.iterator.next
@@ -176,7 +177,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       
       // clone the repository
       val cloneDir = new File(workDir, revision)
-      JGitUtil.withGit(Git.cloneRepository
+      using(Git.cloneRepository
           .setURI(getRepositoryDir(repository.owner, repository.name).toURI.toString)
           .setDirectory(cloneDir)
           .call){ git =>
@@ -233,10 +234,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     if(repository.commitCount == 0){
       repo.html.guide(repository)
     } else {
-      JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
-      JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
+        JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           val revCommit = JGitUtil.getRevCommitFromId(git, objectId)
 
           // get files

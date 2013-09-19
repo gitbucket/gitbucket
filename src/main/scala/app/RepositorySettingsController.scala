@@ -2,15 +2,14 @@ package app
 
 import service._
 import util.Directory._
-import util.{JGitUtil, UsersAuthenticator, OwnerAuthenticator}
+import util.{UsersAuthenticator, OwnerAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
-import service.WebHookService.{WebHookRepository, WebHookUser, WebHookCommit, WebHookPayload}
-import org.eclipse.jgit.diff.DiffEntry
-import scala.collection.mutable.ListBuffer
-import org.eclipse.jgit.revwalk.RevCommit
+import service.WebHookService.WebHookPayload
 import util.JGitUtil.CommitInfo
+import util.ControlUtil._
+import org.eclipse.jgit.api.Git
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
   with RepositoryService with AccountService with WebHookService
@@ -132,7 +131,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Send the test request to registered web hook URLs.
    */
   get("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       import scala.collection.JavaConverters._
       val commits = git.log
         .add(git.getRepository.resolve(repository.repository.defaultBranch))

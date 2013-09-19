@@ -4,19 +4,18 @@ import org.apache.commons.io.{IOUtils, FileUtils}
 import java.net.URLConnection
 import java.io.File
 import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream}
+import util.ControlUtil._
 
 object FileUtil {
   
-  def getMimeType(name: String): String = {
-    val fileNameMap = URLConnection.getFileNameMap()
-    val mimeType = fileNameMap.getContentTypeFor(name)
-    if(mimeType == null){
-      "application/octet-stream"
-    } else {
-      mimeType
+  def getMimeType(name: String): String =
+    defining(URLConnection.getFileNameMap()){ fileNameMap =>
+      fileNameMap.getContentTypeFor(name) match {
+        case null     => "application/octet-stream"
+        case mimeType => mimeType
+      }
     }
-  }
-  
+
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
   
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
@@ -36,21 +35,15 @@ object FileUtil {
       }
     }
 
-    val out = new ZipArchiveOutputStream(dest)
-    try {
+    using(new ZipArchiveOutputStream(dest)){ out =>
       addDirectoryToZip(out, dir, dir.getName)
-    } finally {
-      IOUtils.closeQuietly(out)
     }
   }
 
-  def getExtension(name: String): String = {
-    val index = name.lastIndexOf('.')
-    if(index >= 0){
-      name.substring(index + 1)
-    } else {
-      ""
+  def getExtension(name: String): String =
+    name.lastIndexOf('.') match {
+      case i if(i >= 0) => name.substring(i + 1)
+      case _ => ""
     }
-  }
 
 }

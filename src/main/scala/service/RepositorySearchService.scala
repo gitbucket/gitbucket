@@ -2,6 +2,7 @@ package service
 
 import util.{FileUtil, StringUtil, JGitUtil}
 import util.Directory._
+import util.ControlUtil._
 import model.Issue
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
@@ -27,12 +28,12 @@ trait RepositorySearchService { self: IssuesService =>
     }
 
   def countFiles(owner: String, repository: String, query: String): Int =
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+    using(Git.open(getRepositoryDir(owner, repository))){ git =>
       if(JGitUtil.isEmpty(git)) 0 else searchRepositoryFiles(git, query).length
     }
 
   def searchFiles(owner: String, repository: String, query: String): List[FileSearchResult] =
-    JGitUtil.withGit(getRepositoryDir(owner, repository)){ git =>
+    using(Git.open(getRepositoryDir(owner, repository))){ git =>
       if(JGitUtil.isEmpty(git)){
         Nil
       } else {

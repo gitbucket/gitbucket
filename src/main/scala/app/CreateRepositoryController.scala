@@ -1,6 +1,7 @@
 package app
 
 import util.Directory._
+import util.ControlUtil._
 import util._
 import service._
 import java.io.File
@@ -149,7 +150,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
           getWikiRepositoryDir(loginUserName, repository.name))
 
         // insert commit id
-        JGitUtil.withGit(getRepositoryDir(loginUserName, repository.name)){ git =>
+        using(Git.open(getRepositoryDir(loginUserName, repository.name))){ git =>
           JGitUtil.getRepositoryInfo(loginUserName, repository.name, baseUrl).branchList.foreach { branch =>
             JGitUtil.getCommitLog(git, branch) match {
               case Right((commits, _)) => commits.foreach { commit =>

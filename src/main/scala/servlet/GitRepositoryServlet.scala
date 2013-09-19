@@ -10,10 +10,10 @@ import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
 import util.{JGitUtil, Directory}
+import util.ControlUtil._
 import service._
 import WebHookService._
-import org.eclipse.jgit.diff.DiffEntry
-import org.apache.http.client.methods.HttpPost
+import org.eclipse.jgit.api.Git
 
 /**
  * Provides Git repository via HTTP.
@@ -80,7 +80,7 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
-    JGitUtil.withGit(Directory.getRepositoryDir(owner, repository)) { git =>
+    using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
       commands.asScala.foreach { command =>
         val commits = JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
         val refName = command.getRefName.split("/")

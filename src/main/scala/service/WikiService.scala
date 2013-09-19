@@ -5,6 +5,7 @@ import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
 import util.{Directory, JGitUtil, LockUtil}
+import util.ControlUtil._
 
 object WikiService {
   
@@ -52,7 +53,7 @@ trait WikiService {
    * Returns the wiki page.
    */
   def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
-    JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
+    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       if(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
           WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time)
@@ -65,7 +66,7 @@ trait WikiService {
    * Returns the content of the specified file.
    */
   def getFileContent(owner: String, repository: String, path: String): Option[Array[Byte]] = {
-    JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
+    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       if(!JGitUtil.isEmpty(git)){
         val index = path.lastIndexOf('/')
         val parentPath = if(index < 0) "."  else path.substring(0, index)
@@ -82,7 +83,7 @@ trait WikiService {
    * Returns the list of wiki page names.
    */
   def getWikiPageList(owner: String, repository: String): List[String] = {
-    JGitUtil.withGit(Directory.getWikiRepositoryDir(owner, repository)){ git =>
+    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       JGitUtil.getFileList(git, "master", ".")
         .filter(_.name.endsWith(".md"))
         .map(_.name.replaceFirst("\\.md$", ""))
@@ -102,7 +103,7 @@ trait WikiService {
       cloneOrPullWorkingCopy(workDir, owner, repository)
 
       // write as file
-      JGitUtil.withGit(workDir){ git =>
+      using(Git.open(workDir)){ git =>
         val file = new File(workDir, newPageName + ".md")
         val added = if(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
           FileUtils.writeStringToFile(file, content, "UTF-8")
@@ -145,7 +146,7 @@ trait WikiService {
       // delete file
       new File(workDir, pageName + ".md").delete
     
-      JGitUtil.withGit(workDir){ git =>
+      using(Git.open(workDir)){ git =>
         git.rm.addFilepattern(pageName + ".md").call
     
         // commit and push
@@ -164,7 +165,7 @@ trait WikiService {
           .call
       git.getRepository.close  // close .git resources.
     } else {
-      JGitUtil.withGit(workDir){ git =>
+      using(Git.open(workDir)){ git =>
         git.pull.call
       }
     }
