@@ -6,7 +6,7 @@ GitBucket is the easily installable Github clone written with Scala.
 The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http access only)
-- Repository viewer (some advanced features are not implemented)
+- Repository viewer (some advanced features such as online file editing are not implemented)
 - Repository search (Code and Issues)
 - Wiki
 - Issues
@@ -15,9 +15,13 @@ The current version of GitBucket provides a basic features below:
 - Activity timeline
 - User management (for Administrators)
 - Group (like Organization in Github)
+- LDAP integration
+- Gravatar support
 
 Following features are not implemented, but we will make them in the future release!
 
+- File editing in repository viewer
+- Comment for the changeset
 - Network graph
 - Statics
 - Watch / Star
