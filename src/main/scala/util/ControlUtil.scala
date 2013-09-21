@@ -1,6 +1,7 @@
 package util
 
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.revwalk.DepthWalk.RevWalk
 
 /**
  * Provides control facilities.
@@ -22,15 +23,18 @@ object ControlUtil {
       }
     }
 
-  /**
-   * Use this method to use the Git object.
-   * Repository resources are released certainly after processing.
-   */
   def using[T](git: Git)(f: Git => T): T =
     try {
       f(git)
     } finally {
       git.getRepository.close
+    }
+
+  def using[T](revWalk: RevWalk)(f: RevWalk => T): T =
+    try {
+      f(revWalk)
+    } finally {
+      revWalk.release()
     }
 
   def executeIf(condition: => Boolean)(action: => Unit): Boolean =

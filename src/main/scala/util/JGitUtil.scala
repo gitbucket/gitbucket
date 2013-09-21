@@ -241,25 +241,23 @@ object JGitUtil {
         case _ => (logs, i.hasNext)
       }
     
-    val revWalk = new RevWalk(git.getRepository)
-    val objectId = git.getRepository.resolve(revision)
-    if(objectId == null){
-      Left(s"${revision} can't be resolved.")
-    } else {
-      revWalk.markStart(revWalk.parseCommit(objectId))
-      if(path.nonEmpty){
-        revWalk.setRevFilter(new RevFilter(){
-          def include(walk: RevWalk, commit: RevCommit): Boolean = {
-            getDiffs(git, commit.getName, false)._1.find(_.newPath == path).nonEmpty
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      defining(git.getRepository.resolve(revision)){ objectId =>
+        if(objectId == null){
+          Left(s"${revision} can't be resolved.")
+        } else {
+          revWalk.markStart(revWalk.parseCommit(objectId))
+          if(path.nonEmpty){
+            revWalk.setRevFilter(new RevFilter(){
+              def include(walk: RevWalk, commit: RevCommit): Boolean = {
+                getDiffs(git, commit.getName, false)._1.find(_.newPath == path).nonEmpty
+              }
+              override def clone(): RevFilter = this
+            })
           }
-          override def clone(): RevFilter = this
-        })
+          Right(getCommitLog(revWalk.iterator, 0, Nil))
+        }
       }
-
-      val commits = getCommitLog(revWalk.iterator, 0, Nil)
-      revWalk.release
-
-      Right(commits)
     }
   }
 
@@ -279,13 +277,10 @@ object JGitUtil {
         case false => logs
       }
 
-    val revWalk = new RevWalk(git.getRepository)
-    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(begin)))
-
-    val commits = getCommitLog(revWalk.iterator, Nil)
-    revWalk.release
-
-    commits.reverse
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(begin)))
+      getCommitLog(revWalk.iterator, Nil).reverse
+    }
   }
 
   
@@ -360,34 +355,32 @@ object JGitUtil {
         case _ => logs
       }
 
-    val revWalk = new RevWalk(git.getRepository)
-    revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(id)))
-    
-    val commits = getCommitLog(revWalk.iterator, Nil)
-    revWalk.release
-    
-    val revCommit = commits(0)
-    
-    if(commits.length >= 2){
-      // not initial commit
-      val oldCommit = commits(1)
-      (getDiffs(git, oldCommit.getName, id, fetchContent), Some(oldCommit.getName))
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(id)))
+      val commits   = getCommitLog(revWalk.iterator, Nil)
+      val revCommit = commits(0)
 
-    } else {
-      // initial commit
-      val walk = new TreeWalk(git.getRepository)
-      walk.addTree(revCommit.getTree)
-      val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
-      while(walk.next){
-        buffer.append((if(!fetchContent){
-          DiffInfo(ChangeType.ADD, null, walk.getPathString, None, None)
-        } else {
-          DiffInfo(ChangeType.ADD, null, walk.getPathString, None, 
-              JGitUtil.getContent(git, walk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
-        }))
+      if(commits.length >= 2){
+        // not initial commit
+        val oldCommit = commits(1)
+        (getDiffs(git, oldCommit.getName, id, fetchContent), Some(oldCommit.getName))
+
+      } else {
+        // initial commit
+        val treeWalk = new TreeWalk(git.getRepository)
+        treeWalk.addTree(revCommit.getTree)
+        val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
+        while(treeWalk.next){
+          buffer.append((if(!fetchContent){
+            DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None)
+          } else {
+            DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None,
+              JGitUtil.getContent(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
+          }))
+        }
+        treeWalk.release
+        (buffer.toList, None)
       }
-      walk.release
-      (buffer.toList, None)
     }
   }
 
@@ -415,40 +408,30 @@ object JGitUtil {
   /**
    * Returns the list of branch names of the specified commit.
    */
-  def getBranchesOfCommit(git: Git, commitId: String): List[String] = {
-    val walk = new org.eclipse.jgit.revwalk.RevWalk(git.getRepository)
-    try {
-      val commit = walk.parseCommit(git.getRepository.resolve(commitId + "^0"))
-
-      git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
-        (e.getKey.startsWith(Constants.R_HEADS) && walk.isMergedInto(commit, walk.parseCommit(e.getValue.getObjectId)))
-      }.map { e =>
-        e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_HEADS.length)
-      }.toList.sorted
-
-    } finally {
-      walk.release
+  def getBranchesOfCommit(git: Git, commitId: String): List[String] =
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      defining(revWalk.parseCommit(git.getRepository.resolve(commitId + "^0"))){ commit =>
+        git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
+          (e.getKey.startsWith(Constants.R_HEADS) && revWalk.isMergedInto(commit, revWalk.parseCommit(e.getValue.getObjectId)))
+        }.map { e =>
+          e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_HEADS.length)
+        }.toList.sorted
+      }
     }
-  }
 
   /**
    * Returns the list of tags of the specified commit.
    */
-  def getTagsOfCommit(git: Git, commitId: String): List[String] = {
-    val walk = new org.eclipse.jgit.revwalk.RevWalk(git.getRepository)
-    try {
-      val commit = walk.parseCommit(git.getRepository.resolve(commitId + "^0"))
-
-      git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
-        (e.getKey.startsWith(Constants.R_TAGS) && walk.isMergedInto(commit, walk.parseCommit(e.getValue.getObjectId)))
-      }.map { e =>
-        e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_TAGS.length)
-      }.toList.sorted.reverse
-
-    } finally {
-      walk.release
+  def getTagsOfCommit(git: Git, commitId: String): List[String] =
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      defining(revWalk.parseCommit(git.getRepository.resolve(commitId + "^0"))){ commit =>
+        git.getRepository.getAllRefs.entrySet.asScala.filter { e =>
+          (e.getKey.startsWith(Constants.R_TAGS) && revWalk.isMergedInto(commit, revWalk.parseCommit(e.getValue.getObjectId)))
+        }.map { e =>
+          e.getValue.getName.substring(org.eclipse.jgit.lib.Constants.R_TAGS.length)
+        }.toList.sorted.reverse
+      }
     }
-  }
 
   def initRepository(dir: java.io.File): Unit =
     using(new RepositoryBuilder().setGitDir(dir).setBare.build){ repository =>
