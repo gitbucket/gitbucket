@@ -82,7 +82,7 @@
       <tr>
         <td style="padding: 20px; background-color: #eee; text-align: center;">
           <h4>There isn't anything to compare.</h4>
-          <strong>@originRepository.owner:@originId</strong> and <strong>@forkedRepository.owner:@forkedId</strong> are identical.
+          <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
         </td>
       </tr>
     </table>
@@ -153,7 +153,7 @@ $(function(){
     var e = $(this);
     e.parents('ul').find('i').attr('class', 'icon-white');
     e.find('i').attr('class', 'icon-ok');
-    e.parents('div.btn-group').find('button strong').text(e.text());
+    e.parents('div.btn-group').find('button span.strong').text(e.text());
 
     @if(members.isEmpty){
       location.href = '@url(repository)/compare/' +

@@ -6,14 +6,14 @@
       <div class="row-fluid">
         <div class="span6">
           <fieldset>
-            <label for="userName"><strong>Username</strong></label>
+            <label for="userName" class="strong">Username</label>
             <span id="error-userName" class="error"></span>
             <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
           </fieldset>
           @if(account.map(_.password.nonEmpty).getOrElse(true)){
             <fieldset>
-              <label for="password">
-                <strong>Password</strong>
+              <label for="password" class="strong">
+                Password
                 @if(account.isDefined){
                   (Input to change password)
                 }
@@ -23,12 +23,12 @@
             </fieldset>
           }
           <fieldset>
-            <label for="mailAddress"><strong>Mail Address</strong></label>
+            <label for="mailAddress" class="strong">Mail Address</label>
             <span id="error-mailAddress" class="error"></span>
             <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
           </fieldset>
           <fieldset>
-            <label><strong>User Type</strong></label>
+            <label class="strong">User Type</label>
             <label for="userType_Normal">
               <input type="radio" name="isAdmin" id="userType_Normal" value="false"@if(account.isEmpty || !account.get.isAdmin){ checked}/> Normal
             </label>
@@ -37,14 +37,14 @@
             </label>
           </fieldset>
           <fieldset>
-            <label><strong>URL (Optional)</strong></label>
+            <label class="strong">URL (Optional)</label>
             <span id="error-url" class="error"></span>
             <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
           </fieldset>
         </div>
         <div class="span6">
           <fieldset>
-            <label for="avatar"><strong>Image (Optional)</strong></label>
+            <label for="avatar" class="strong">Image (Optional)</label>
             @helper.html.uploadavatar(account)
           </fieldset>
         </div>

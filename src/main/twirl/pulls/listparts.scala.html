@@ -23,14 +23,14 @@
   <div class="btn-group">
     <button class="btn dropdown-toggle" data-toggle="dropdown">
       Sort:
-      <strong>
+      <span class="strong">
         @if(condition.sort == "created"  && condition.direction == "desc"){ Newest }
         @if(condition.sort == "created"  && condition.direction == "asc" ){ Oldest }
         @if(condition.sort == "comments" && condition.direction == "desc"){ Most commented }
         @if(condition.sort == "comments" && condition.direction == "asc" ){ Least commented }
         @if(condition.sort == "updated"  && condition.direction == "desc"){ Recently updated }
         @if(condition.sort == "updated"  && condition.direction == "asc" ){ Least recently updated }
-      </strong>
+      </span>
       <span class="caret"></span>
     </button>
     <ul class="dropdown-menu">

@@ -22,9 +22,9 @@
             </div>
             <div>
               @if(hasConflict){
-                <strong>We can’t automatically merge this pull request.</strong>
+                <span class="strong">We can’t automatically merge this pull request.</span>
               } else {
-                <strong>This pull request can be automatically merged.</strong>
+                <span class="strong">This pull request can be automatically merged.</span>
               }
             </div>
             <div class="small">
@@ -37,13 +37,13 @@
             <div id="command-line" style="display: none;">
               <hr>
               @if(hasConflict){
-                <strong>Checkout via command line</strong>
+                <span class="strong">Checkout via command line</span>
                 <p>
                   If you cannot merge a pull request automatically here, you have the option of checking
                   it out via command line to resolve conflicts and perform a manual merge.
                 </p>
               } else {
-                <strong>Merging via command line</strong>
+                <span class="strong">Merging via command line</span>
                 <p>
                   If you do not want to use the merge button or an automatic merge cannot be performed,
                   you can perform a manual merge on the command line.
@@ -54,7 +54,7 @@
               }
               <div>
                 <p>
-                  <strong>Step 1:</strong> Check out a new branch to test the changes — run this from your project directory
+                  <span class="strong">Step 1:</span> Check out a new branch to test the changes — run this from your project directory
                 </p>
                 @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.requestBranch}"){ command =>
                   @helper.html.copy("merge-command-copy-1", command){
@@ -64,7 +64,7 @@
               </div>
               <div>
                 <p>
-                  <strong>Step 2:</strong> Bring in @{pullreq.requestUserName}'s changes and test
+                  <span class="strong">Step 2:</span> Bring in @{pullreq.requestUserName}'s changes and test
                 </p>
                 @defining(s"git pull ${requestRepositoryUrl} ${pullreq.requestBranch}"){ command =>
                   @helper.html.copy("merge-command-copy-2", command){
@@ -74,7 +74,7 @@
               </div>
               <div>
                 <p>
-                  <strong>Step 3:</strong> Merge the changes and update the server
+                  <span class="strong">Step 3:</span> Merge the changes and update the server
                 </p>
                 @defining(s"git checkout master\ngit merge ${pullreq.requestUserName}-${pullreq.branch}\ngit push origin ${pullreq.branch}"){ command =>
                   @helper.html.copy("merge-command-copy-3", command){
@@ -86,8 +86,8 @@
           </div>
           <div id="confirm-merge-form" style="display: none;">
             <form method="POST" action="@url(repository)/pull/@issue.issueId/merge">
-              <div>
-                <strong>Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}</strong>
+              <div class="strong">
+                Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
               </div>
               <span id="error-message" class="error"></span>
               <textarea name="message" style="width: 680px; height: 80px;">@issue.title</textarea>
@@ -113,7 +113,7 @@
       <span class="label label-success issue-status">Open</span>
     }
     <div class="small" style="text-align: center;">
-      <strong>@comments.size</strong> @plural(comments.size, "comment")
+      <span class="strong">@comments.size</span> @plural(comments.size, "comment")
     </div>
     <hr/>
   </div>

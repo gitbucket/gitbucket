@@ -11,22 +11,22 @@
           <!--====================================================================-->
           <!-- Account registration -->
           <!--====================================================================-->
-          <label><strong>Account registration</strong></label>
+          <label class="strong">Account registration</label>
           <fieldset>
             <label>
               <input type="radio" name="allowAccountRegistration" value="true"@if(settings.allowAccountRegistration){ checked}>
-              <strong>Allow</strong> - Users can create account by themselves.
+              <span class="strong">Allow</span> - Users can create account by themselves.
             </label>
             <label>
               <input type="radio" name="allowAccountRegistration" value="false"@if(!settings.allowAccountRegistration){ checked}>
-              <strong>Deny</strong> - Only administrators can create account.
+              <span class="strong">Deny</span> - Only administrators can create account.
             </label>
           </fieldset>
           <!--====================================================================-->
           <!-- Services -->
           <!--====================================================================-->
           <hr>
-          <label><strong>Services</strong></label>
+          <label class="strong">Services</label>
           <fieldset>
             <label>
               <input type="checkbox" name="gravatar"@if(settings.gravatar){ checked}/>
@@ -37,7 +37,7 @@
           <!-- Authentication -->
           <!--====================================================================-->
           <hr>
-          <label><strong>Authentication</strong></label>
+          <label class="strong">Authentication</label>
           <fieldset>
             <label>
               <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(settings.ldap){ checked}/>
@@ -99,7 +99,7 @@
           <!-- Notification email -->
           <!--====================================================================-->
           <hr>
-          <label><strong>Notification email</strong></label>
+          <label class="strong">Notification email</label>
           <fieldset>
             <label>
               <input type="checkbox" id="notification" name="notification"@if(settings.notification){ checked}/>

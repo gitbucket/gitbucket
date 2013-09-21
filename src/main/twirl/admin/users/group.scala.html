@@ -7,23 +7,23 @@
       <div class="row-fluid">
         <div class="span7">
           <fieldset>
-            <label for="groupName"><strong>Group name</strong></label>
+            <label for="groupName" class="strong">Group name</label>
             <span id="error-groupName" class="error"></span>
             <input type="text" name="groupName" id="groupName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
           </fieldset>
           <fieldset>
-            <label><strong>URL (Optional)</strong></label>
+            <label class="strong">URL (Optional)</label>
             <span id="error-url" class="error"></span>
             <input type="text" name="url" id="url" style="width: 300px;" value="@account.map(_.url)"/>
           </fieldset>
           <fieldset>
-            <label for="avatar"><strong>Image (Optional)</strong></label>
+            <label for="avatar" class="strong">Image (Optional)</label>
             @helper.html.uploadavatar(account)
           </fieldset>
         </div>
         <div class="span5">
           <fieldset>
-            <label><strong>Members</strong></label>
+            <label class="strong">Members</label>
             <ul id="members" class="collaborator">
               @members.map { userName =>
                 <li data-name="@userName">

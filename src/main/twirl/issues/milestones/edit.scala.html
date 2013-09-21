@@ -11,12 +11,12 @@
       <span id="error-title" class="error"></span>
     </fieldset>
     <fieldset>
-      <label for="description"><strong>Description</strong></label>
+      <label for="description" class="strong">Description</label>
       <textarea id="description" name="description" style="width: 500px; height: 150px;">@milestone.map(_.description)</textarea>
       <span id="error-description" class="error"></span>
     </fieldset>
     <fieldset>
-      <label for="dueDate"><strong>Due Date</strong></label>
+      <label for="dueDate" class="strong">Due Date</label>
       @helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
       <span id="error-dueDate" class="error"></span>
     </fieldset>

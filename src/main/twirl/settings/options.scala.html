@@ -10,11 +10,11 @@
         <div class="box-header">Settings</div>
         <div class="box-content">
           <fieldset>
-            <label for="description"><strong>Description</strong></label>
+            <label for="description" class="strong">Description</label>
             <input type="text" name="description" id="description" style="width: 600px;" value="@repository.repository.description"/>
           </fieldset>
           <fieldset class="margin">
-            <label for="defaultBranch"><strong>Default Branch</strong></label>
+            <label for="defaultBranch" class="strong">Default Branch</label>
             <select name="defaultBranch" id="defaultBranch">
               @repository.branchList.map { branch =>
                 <option value="@branch"@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
@@ -28,7 +28,7 @@
                 @if(!repository.repository.isPrivate              ){ checked  }
                 @if(repository.repository.parentUserName.isDefined){ disabled }
               >
-              <strong>Public</strong><br>
+              <span class="strong">Public</span><br>
               <div>
                 <span class="note">All users and guests can read this repository.</span>
               </div>
@@ -40,7 +40,7 @@
                 @if(repository.repository.isPrivate               ){ checked  }
                 @if(repository.repository.parentUserName.isDefined){ disabled }
               >
-              <strong>Private</strong><br>
+              <span class="strong">Private</span><br>
               <div>
                 <span class="note">Only collaborators can read this repository.</span>
               </div>
@@ -54,8 +54,8 @@
         <div class="box-content">
           <dl>
             <dt>
-              <label class="checkbox">
-                <input type="checkbox" name="wiki" id="wiki"/> <strong>Wiki</strong>
+              <label class="checkbox strong">
+                <input type="checkbox" name="wiki" id="wiki"/> Wiki
               </label>
             </dt>
             <dd>
@@ -67,8 +67,8 @@
           <hr>
           <dl>
             <dt>
-              <label class="checkbox">
-                <input type="checkbox" name="issue" id="issue"/> <strong>Issue</strong>
+              <label class="checkbox strong">
+                <input type="checkbox" name="issue" id="issue"/> Issue
               </label>
             </dt>
             <dd>

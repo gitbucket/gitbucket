@@ -32,14 +32,14 @@
       <div class="btn-group">
         <button class="btn dropdown-toggle" data-toggle="dropdown">
           Sort:
-          <strong>
+          <span class="strong">
             @if(condition.sort == "created"  && condition.direction == "desc"){ Newest }
             @if(condition.sort == "created"  && condition.direction == "asc" ){ Oldest }
             @if(condition.sort == "comments" && condition.direction == "desc"){ Most commented }
             @if(condition.sort == "comments" && condition.direction == "asc" ){ Least commented }
             @if(condition.sort == "updated"  && condition.direction == "desc"){ Recently updated }
             @if(condition.sort == "updated"  && condition.direction == "asc" ){ Least recently updated }
-          </strong>
+          </span>
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
@@ -94,7 +94,7 @@
         <tr>
           <td style="background-color: #eee;">
             <div class="btn-group">
-              <button class="btn btn-mini" id="state"><strong>@{if(condition.state == "open") "Close" else "Reopen"}</strong></button>
+              <button class="btn btn-mini strong" id="state">@{if(condition.state == "open") "Close" else "Reopen"}</button>
             </div>
             @helper.html.dropdown("Label") {
               @labels.map { label =>

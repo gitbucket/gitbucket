@@ -24,7 +24,7 @@
           Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a>
           at @datetime(issue.registeredDate)
           @if(issue.commentCount > 0){
-            &nbsp;&nbsp;<i class="icon-comment"></i><strong>@issue.commentCount</strong> @plural(issue.commentCount, "comment")
+            &nbsp;&nbsp;<i class="icon-comment"></i><span class="strong">@issue.commentCount</span> @plural(issue.commentCount, "comment")
           }
         </div>
       </div>

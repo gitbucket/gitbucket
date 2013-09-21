@@ -8,13 +8,13 @@
     <div class="btn-group" style="margin-right: 20px;">
       <button class="btn dropdown-toggle" data-toggle="dropdown">
         @if(id.length == 40){
-          tree: <strong>@id.substring(0, 10)</strong>
+          tree: <span class="strong">@id.substring(0, 10)</span>
         }
         @if(repository.branchList.contains(id)){
-          branch: <strong>@id</strong>
+          branch: <span class="strong">@id</span>
         }
         @if(repository.tags.exists(_.name == id)){
-          tag: <strong>@id</strong>
+          tag: <span class="strong">@id</span>
         }
         <span class="caret"></span>
       </button>

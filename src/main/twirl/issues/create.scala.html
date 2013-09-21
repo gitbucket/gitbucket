@@ -65,7 +65,7 @@
     </div>
     <div class="span3">
       @if(hasWritePermission){
-        <strong>Add Labels</strong>
+        <span class="strong">Add Labels</span>
         <div>
           <div id="label-list">
             <ul class="label-list nav nav-pills nav-stacked">
@@ -111,7 +111,7 @@ $(function(){
     if(milestoneId == ''){
       $('#label-milestone').text('No milestone');
     } else {
-      $('#label-milestone').html($('<span>').append('Milestone: ').append($('<strong>').text(title)));
+      $('#label-milestone').html($('<span>').append('Milestone: ').append($('<span class="strong">').text(title)));
       $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
     }
     $('input[name=milestoneId]').val(milestoneId);

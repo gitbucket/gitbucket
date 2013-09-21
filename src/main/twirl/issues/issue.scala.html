@@ -29,12 +29,12 @@
       }
       <div class="small" style="text-align: center;">
         @defining(comments.filter( _.action.contains("comment") ).size){ count =>
-          <strong>@count</strong> @plural(count, "comment")
+          <span class="strong">@count</span> @plural(count, "comment")
         }
       </div>
       <hr/>
       <div style="margin-bottom: 8px;">
-      <strong>Labels</strong>
+      <span class="strong">Labels</span>
       @if(hasWritePermission){
         <div class="pull-right">
           @helper.html.dropdown() {
