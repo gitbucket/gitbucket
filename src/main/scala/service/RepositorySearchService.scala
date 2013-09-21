@@ -10,7 +10,8 @@ import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
 
-trait RepositorySearchService { self: IssuesService =>
+trait
+RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._
 
   def countIssues(owner: String, repository: String, query: String): Int =

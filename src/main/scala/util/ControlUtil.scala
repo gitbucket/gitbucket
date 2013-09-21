@@ -33,5 +33,18 @@ object ControlUtil {
       git.getRepository.close
     }
 
+  def executeIf(condition: => Boolean)(action: => Unit): Boolean =
+    if(condition){
+      action
+      true
+    } else {
+      false
+    }
 
+  def optionIf[T](condition: => Boolean)(action: => Option[T]): Option[T] =
+    if(condition){
+      action
+    } else {
+      None
+    }
 }

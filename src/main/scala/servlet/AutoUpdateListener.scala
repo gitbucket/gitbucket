@@ -6,7 +6,9 @@ import org.apache.commons.io.FileUtils
 import javax.servlet.ServletContextEvent
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
-import util.Directory
+import util.Directory._
+import util.ControlUtil._
+import org.eclipse.jgit.api.Git
 
 object AutoUpdate {
   
@@ -26,15 +28,14 @@ object AutoUpdate {
      */
     def update(conn: Connection): Unit = {
       val sqlPath = s"update/${majorVersion}_${minorVersion}.sql"
-      val in = Thread.currentThread.getContextClassLoader.getResourceAsStream(sqlPath)
-      if(in != null){
-        val sql = IOUtils.toString(in, "UTF-8")
-        val stmt = conn.createStatement()
-        try {
-          logger.debug(sqlPath + "=" + sql)
-          stmt.executeUpdate(sql)
-        } finally {
-          stmt.close()
+
+      using(Thread.currentThread.getContextClassLoader.getResourceAsStream(sqlPath)){ in =>
+        if(in != null){
+          val sql = IOUtils.toString(in, "UTF-8")
+          using(conn.createStatement()){ stmt =>
+            logger.debug(sqlPath + "=" + sql)
+            stmt.executeUpdate(sql)
+          }
         }
       }
     }
@@ -56,16 +57,17 @@ object AutoUpdate {
       override def update(conn: Connection): Unit = {
         super.update(conn)
         // Fix wiki repository configuration
-        val rs = conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")
-        while(rs.next){
-          val wikidir = Directory.getWikiRepositoryDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))
-          val repository = org.eclipse.jgit.api.Git.open(wikidir).getRepository
-          val config = repository.getConfig
-          if(!config.getBoolean("http", "receivepack", false)){
-            config.setBoolean("http", null, "receivepack", true)
-            config.save
+        using(conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")){ rs =>
+          while(rs.next){
+            using(Git.open(getWikiRepositoryDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME")))){ git =>
+              defining(git.getRepository.getConfig){ config =>
+                if(!config.getBoolean("http", "receivepack", false)){
+                  config.setBoolean("http", null, "receivepack", true)
+                  config.save
+                }
+              }
+            }
           }
-          repository.close
         }
       }
     },
@@ -82,7 +84,7 @@ object AutoUpdate {
   /**
    * The version file (GITBUCKET_HOME/version).
    */
-  val versionFile = new File(Directory.GitBucketHome, "version")
+  val versionFile = new File(GitBucketHome, "version")
   
   /**
    * Returns the current version from the version file.
@@ -113,27 +115,29 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
-    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${Directory.DatabaseHome}")
+    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome}")
     super.contextInitialized(event)
     logger.debug("H2 started")
     
     logger.debug("Start schema update")
-    val conn = getConnection()
-    try {
-      val currentVersion = getCurrentVersion()
-      if(currentVersion == headVersion){
-        logger.debug("No update")
-      } else {
-        versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
-        FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
-        conn.commit()
-        logger.debug("Updated from " + currentVersion.versionString + " to " + headVersion.versionString)
-      }
-    } catch {
-      case ex: Throwable => {
-        logger.error("Failed to schema update", ex)
-        ex.printStackTrace()
-        conn.rollback()
+    defining(getConnection()){ conn =>
+      try {
+        defining(getCurrentVersion()){ currentVersion =>
+          if(currentVersion == headVersion){
+            logger.debug("No update")
+          } else {
+            versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
+            FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
+            conn.commit()
+            logger.debug("Updated from " + currentVersion.versionString + " to " + headVersion.versionString)
+          }
+        }
+      } catch {
+        case ex: Throwable => {
+          logger.error("Failed to schema update", ex)
+          ex.printStackTrace()
+          conn.rollback()
+        }
       }
     }
     logger.debug("End schema update")

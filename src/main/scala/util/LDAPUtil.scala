@@ -1,10 +1,9 @@
 package util
 
-import service.SystemSettingsService.Ldap
+import util.ControlUtil._
 import service.SystemSettingsService
 import com.novell.ldap._
 import service.SystemSettingsService.Ldap
-import scala.Some
 import scala.annotation.tailrec
 
 /**
@@ -96,12 +95,10 @@ object LDAPUtil {
     }
   }
 
-  private def findMailAddress(conn: LDAPConnection, userDN: String, mailAttribute: String): Option[String] = {
-    val results = conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](mailAttribute), false)
-    if (results.hasMore) {
-      Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
-    } else {
-      None
+  private def findMailAddress(conn: LDAPConnection, userDN: String, mailAttribute: String): Option[String] =
+    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](mailAttribute), false)){ results =>
+      optionIf (results.hasMore) {
+        Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
+      }
     }
-  }
 }

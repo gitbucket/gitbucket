@@ -25,10 +25,7 @@ trait Validations {
    */
   def date(constraints: Constraint*): SingleValueType[java.util.Date] =
     new SingleValueType[java.util.Date]((pattern("\\d{4}-\\d{2}-\\d{2}") +: constraints): _*){
-      def convert(value: String): java.util.Date = {
-        val formatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
-        formatter.parse(value)
-      }
+      def convert(value: String): java.util.Date = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(value)
     }
 
 }

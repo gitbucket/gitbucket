@@ -3,6 +3,7 @@ package app
 import service._
 import util.AdminAuthenticator
 import util.StringUtil._
+import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 
 class UserManagementController extends UserManagementControllerBase
@@ -107,29 +108,29 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/users/:groupName/_editgroup")(adminOnly {
-    val groupName = params("groupName")
-    admin.users.html.group(getAccountByUserName(groupName), getGroupMembers(groupName))
+    defining(params("groupName")){ groupName =>
+      admin.users.html.group(getAccountByUserName(groupName), getGroupMembers(groupName))
+    }
   })
 
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
-    val groupName = params("groupName")
-    getAccountByUserName(groupName).map { account =>
-      updateGroup(groupName, form.url)
+    defining(params("groupName"), form.memberNames.map(_.split(",").toList).getOrElse(Nil)){ case (groupName, memberNames) =>
+      getAccountByUserName(groupName).map { account =>
+        updateGroup(groupName, form.url)
+        updateGroupMembers(form.groupName, memberNames)
 
-      val memberNames = form.memberNames.map(_.split(",").toList).getOrElse(Nil)
-      updateGroupMembers(form.groupName, memberNames)
-
-      getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-        removeCollaborators(form.groupName, repositoryName)
-        memberNames.foreach { userName =>
-          addCollaborator(form.groupName, repositoryName, userName)
+        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+          removeCollaborators(form.groupName, repositoryName)
+          memberNames.foreach { userName =>
+            addCollaborator(form.groupName, repositoryName, userName)
+          }
         }
-      }
 
-      updateImage(form.groupName, form.fileId, form.clearImage)
-      redirect("/admin/users")
+        updateImage(form.groupName, form.fileId, form.clearImage)
+        redirect("/admin/users")
 
-    } getOrElse NotFound
+      } getOrElse NotFound
+    }
   })
 
   post("/admin/users/_usercheck")(adminOnly {

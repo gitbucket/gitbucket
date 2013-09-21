@@ -1,6 +1,7 @@
 package app
 
 import util._
+import ControlUtil._
 import service._
 import jp.sf.amateras.scalatra.forms._
 
@@ -26,25 +27,25 @@ trait SearchControllerBase extends ControllerBase { self: RepositoryService
   }
 
   get("/:owner/:repository/search")(referrersOnly { repository =>
-    val query  = params("q").trim
-    val target = params.getOrElse("type", "code")
-    val page   = try {
-      val i = params.getOrElse("page", "1").toInt
-      if(i <= 0) 1 else i
-    } catch {
-      case e: NumberFormatException => 1
-    }
+    defining(params("q").trim, params.getOrElse("type", "code")){ case (query, target) =>
+      val page   = try {
+        val i = params.getOrElse("page", "1").toInt
+        if(i <= 0) 1 else i
+      } catch {
+        case e: NumberFormatException => 1
+      }
 
-    target.toLowerCase match {
-      case "issue" => search.html.issues(
-        searchIssues(repository.owner, repository.name, query),
-        countFiles(repository.owner, repository.name, query),
-        query, page, repository)
+      target.toLowerCase match {
+        case "issue" => search.html.issues(
+          searchIssues(repository.owner, repository.name, query),
+          countFiles(repository.owner, repository.name, query),
+          query, page, repository)
 
-      case _ => search.html.code(
-        searchFiles(repository.owner, repository.name, query),
-        countIssues(repository.owner, repository.name, query),
-        query, page, repository)
+        case _ => search.html.code(
+          searchFiles(repository.owner, repository.name, query),
+          countIssues(repository.owner, repository.name, query),
+          query, page, repository)
+      }
     }
   })
 

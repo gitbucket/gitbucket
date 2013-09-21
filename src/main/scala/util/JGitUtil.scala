@@ -69,29 +69,17 @@ object JGitUtil {
         rev.getFullMessage,
         rev.getParents().map(_.name).toList)
 
-    val summary = {
-      val i = fullMessage.trim.indexOf("\n")
-      val firstLine = if(i >= 0){
-        fullMessage.trim.substring(0, i).trim
-      } else {
-        fullMessage
-      }
-      if(firstLine.length > shortMessage.length){
-        shortMessage
-      } else {
-        firstLine
+    val summary = defining(fullMessage.trim.indexOf("\n")){ i =>
+      defining(if(i >= 0) fullMessage.trim.substring(0, i).trim else fullMessage){ firstLine =>
+        if(firstLine.length > shortMessage.length) shortMessage else firstLine
       }
     }
 
-    val description = {
-      val i = fullMessage.trim.indexOf("\n")
-      if(i >= 0){
+    val description = defining(fullMessage.trim.indexOf("\n")){ i =>
+      optionIf(i >= 0){
         Some(fullMessage.trim.substring(i).trim)
-      } else {
-        None
       }
     }
-
   }
 
   case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
@@ -124,7 +112,7 @@ object JGitUtil {
     val revWalk = new RevWalk(git.getRepository)
     val revCommit = revWalk.parseAny(objectId) match {
       case r: RevTag => revWalk.parseCommit(r.getObject)
-      case _ => revWalk.parseCommit(objectId)
+      case _         => revWalk.parseCommit(objectId)
     }
     revWalk.dispose
     revCommit
@@ -462,29 +450,24 @@ object JGitUtil {
     }
   }
 
-  def initRepository(dir: java.io.File): Unit = {
+  def initRepository(dir: java.io.File): Unit =
     using(new RepositoryBuilder().setGitDir(dir).setBare.build){ repository =>
       repository.create
       setReceivePack(repository)
     }
-  }
 
-  def cloneRepository(from: java.io.File, to: java.io.File): Unit = {
-    val git = Git.cloneRepository.setURI(from.toURI.toString).setDirectory(to).setBare(true).call
-    try {
+  def cloneRepository(from: java.io.File, to: java.io.File): Unit =
+    using(Git.cloneRepository.setURI(from.toURI.toString).setDirectory(to).setBare(true).call){ git =>
       setReceivePack(git.getRepository)
-    } finally {
-      git.getRepository.close
     }
-  }
 
   def isEmpty(git: Git): Boolean = git.getRepository.resolve(Constants.HEAD) == null
 
-  private def setReceivePack(repository: org.eclipse.jgit.lib.Repository): Unit = {
-    val config = repository.getConfig
-    config.setBoolean("http", null, "receivepack", true)
-    config.save
-  }
+  private def setReceivePack(repository: org.eclipse.jgit.lib.Repository): Unit =
+    defining(repository.getConfig){ config =>
+      config.setBoolean("http", null, "receivepack", true)
+      config.save
+    }
 
   def getDefaultBranch(git: Git, repository: RepositoryService.RepositoryInfo,
                        revstr: String = ""): Option[(ObjectId, String)] = {

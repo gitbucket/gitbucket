@@ -2,21 +2,21 @@ package service
 
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
-
 import model._
+import util.ControlUtil._
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._
 
-  def getPullRequest(owner: String, repository: String, issueId: Int): Option[(Issue, PullRequest)] = {
-    val issue = getIssue(owner, repository, issueId.toString)
-    if(issue.isDefined){
-      Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).firstOption match {
-        case Some(pullreq) => Some((issue.get, pullreq))
-        case None          => None
-      }
-    } else None
-  }
+  def getPullRequest(owner: String, repository: String, issueId: Int): Option[(Issue, PullRequest)] =
+    defining(getIssue(owner, repository, issueId.toString)){ issue =>
+      if(issue.isDefined){
+        Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).firstOption match {
+          case Some(pullreq) => Some((issue.get, pullreq))
+          case None          => None
+        }
+      } else None
+    }
 
   def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
     Query(PullRequests)

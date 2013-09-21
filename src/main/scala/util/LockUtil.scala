@@ -2,6 +2,7 @@ package util
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.{ReentrantLock, Lock}
+import util.ControlUtil._
 
 object LockUtil {
 
@@ -23,8 +24,7 @@ object LockUtil {
   /**
    * Synchronizes a given function which modifies the working copy of the wiki repository.
    */
-  def lock[T](key: String)(f: => T): T = {
-    val lock = getLockObject(key)
+  def lock[T](key: String)(f: => T): T = defining(getLockObject(key)){ lock =>
     try {
       lock.lock()
       f
