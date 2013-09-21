@@ -42,7 +42,7 @@
         @pulls.html.discussion(issue, pullreq, comments, collaborators, milestones, hasConflict, hasWritePermission, repository, requestRepositoryUrl)
       </div>
       <div class="tab-pane" id="commits">
-        @pulls.html.commits(issue, pullreq, dayByDayCommits, hasWritePermission, repository)
+        @pulls.html.commits(dayByDayCommits, repository)
       </div>
       <div class="tab-pane" id="files">
         @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true)

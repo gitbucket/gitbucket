@@ -1,7 +1,4 @@
-@(issue: model.Issue,
-  pullreq: model.PullRequest,
-  commits: Seq[Seq[util.JGitUtil.CommitInfo]],
-  hasWritePermission: Boolean,
+@(commits: Seq[Seq[util.JGitUtil.CommitInfo]],
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
