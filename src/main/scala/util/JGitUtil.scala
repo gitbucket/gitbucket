@@ -159,45 +159,43 @@ object JGitUtil {
    * @return HTML of the file list
    */
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
-    val revWalk = new RevWalk(git.getRepository)
-    val objectId = git.getRepository.resolve(revision)
-    val revCommit = revWalk.parseCommit(objectId)
-      
-    val treeWalk = new TreeWalk(git.getRepository)
-    treeWalk.addTree(revCommit.getTree)
-    if(path != "."){
-      treeWalk.setRecursive(true)
-      treeWalk.setFilter(new TreeFilter(){
-
-        var stopRecursive = false
-
-        def include(walker: TreeWalk): Boolean = {
-          val targetPath = walker.getPathString
-          if((path + "/").startsWith(targetPath)){
-            true
-          } else if(targetPath.startsWith(path + "/") && targetPath.substring(path.length + 1).indexOf("/") < 0){
-            stopRecursive = true
-            treeWalk.setRecursive(false)
-            true
-          } else {
-            false
-          }
-        }
-
-        def shouldBeRecursive(): Boolean = !stopRecursive
-
-        override def clone: TreeFilter = return this
-      })
-    }
-      
     val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String)]
-    
-    while (treeWalk.next()) {
-      list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString))
+
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      val objectId  = git.getRepository.resolve(revision)
+      val revCommit = revWalk.parseCommit(objectId)
+
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
+        treeWalk.addTree(revCommit.getTree)
+        if(path != "."){
+          treeWalk.setRecursive(true)
+          treeWalk.setFilter(new TreeFilter(){
+
+            var stopRecursive = false
+
+            def include(walker: TreeWalk): Boolean = {
+              val targetPath = walker.getPathString
+              if((path + "/").startsWith(targetPath)){
+                true
+              } else if(targetPath.startsWith(path + "/") && targetPath.substring(path.length + 1).indexOf("/") < 0){
+                stopRecursive = true
+                treeWalk.setRecursive(false)
+                true
+              } else {
+                false
+              }
+            }
+
+            def shouldBeRecursive(): Boolean = !stopRecursive
+
+            override def clone: TreeFilter = return this
+          })
+        }
+        while (treeWalk.next()) {
+          list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString))
+        }
+      }
     }
-    
-    treeWalk.release
-    revWalk.dispose
 
     val commits = getLatestCommitFromPaths(git, list.toList.map(_._3), revision)
     list.map { case (objectId, fileMode, path, name) =>
@@ -367,19 +365,19 @@ object JGitUtil {
 
       } else {
         // initial commit
-        val treeWalk = new TreeWalk(git.getRepository)
-        treeWalk.addTree(revCommit.getTree)
-        val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
-        while(treeWalk.next){
-          buffer.append((if(!fetchContent){
-            DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None)
-          } else {
-            DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None,
-              JGitUtil.getContent(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
-          }))
+        using(new TreeWalk(git.getRepository)){ treeWalk =>
+          treeWalk.addTree(revCommit.getTree)
+          val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
+          while(treeWalk.next){
+            buffer.append((if(!fetchContent){
+              DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None)
+            } else {
+              DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None,
+                JGitUtil.getContent(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
+            }))
+          }
+          (buffer.toList, None)
         }
-        treeWalk.release
-        (buffer.toList, None)
       }
     }
   }

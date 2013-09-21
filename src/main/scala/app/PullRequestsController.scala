@@ -208,9 +208,9 @@ trait PullRequestsControllerBase extends ControllerBase {
     (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
       case (Some(originUserName), Some(originRepositoryName)) => {
         getRepository(originUserName, originRepositoryName, baseUrl).map { originRepository =>
-          withGit(
-            getRepositoryDir(originUserName, originRepositoryName),
-            getRepositoryDir(forkedRepository.owner, forkedRepository.name)
+          using(
+            Git.open(getRepositoryDir(originUserName, originRepositoryName)),
+            Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
           ){ (oldGit, newGit) =>
             val oldBranch = JGitUtil.getDefaultBranch(oldGit, originRepository).get._2
             val newBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository).get._2
@@ -236,9 +236,9 @@ trait PullRequestsControllerBase extends ControllerBase {
     (getRepository(originOwner, repository.name, baseUrl),
      getRepository(forkedOwner,   repository.name, baseUrl)) match {
       case (Some(originRepository), Some(forkedRepository)) => {
-        withGit(
-          getRepositoryDir(originOwner, repository.name),
-          getRepositoryDir(forkedOwner,   repository.name)
+        using(
+          Git.open(getRepositoryDir(originOwner, repository.name)),
+          Git.open(getRepositoryDir(forkedOwner,   repository.name))
         ){ case (oldGit, newGit) =>
           val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
           val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
@@ -319,20 +319,6 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   /**
-   * Handles w Git object simultaneously.
-   */
-  private def withGit[T](oldDir: java.io.File, newDir: java.io.File)(action: (Git, Git) => T): T = {
-    val oldGit = Git.open(oldDir)
-    val newGit = Git.open(newDir)
-    try {
-      action(oldGit, newGit)
-    } finally {
-      oldGit.getRepository.close
-      newGit.getRepository.close
-    }
-  }
-
-  /**
    * Parses branch identifier and extracts owner and branch name as tuple.
    *
    * - "owner:branch" to ("owner", "branch")
@@ -365,9 +351,9 @@ trait PullRequestsControllerBase extends ControllerBase {
   private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
       requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
 
-    withGit(
-      getRepositoryDir(userName, repositoryName),
-      getRepositoryDir(requestUserName, requestRepositoryName)
+    using(
+      Git.open(getRepositoryDir(userName, repositoryName)),
+      Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
     ){ (oldGit, newGit) =>
       val oldId = oldGit.getRepository.resolve(branch)
       val newId = newGit.getRepository.resolve(requestCommitId)
@@ -384,31 +370,30 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   }
 
-  private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) = {
-    val owner      = repository.owner
-    val repoName   = repository.name
-    val filterUser = userName.map { x => Map("created_by" -> x) } getOrElse Map("all" -> "")
-    val page = IssueSearchCondition.page(request)
-    val sessionKey = s"${owner}/${repoName}/pulls"
+  private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
+    defining(repository.owner, repository.name){ case (owner, repoName) =>
+      val filterUser = userName.map { x => Map("created_by" -> x) } getOrElse Map("all" -> "")
+      val page       = IssueSearchCondition.page(request)
+      val sessionKey = s"${owner}/${repoName}/pulls"
 
-    // retrieve search condition
-    val condition = if(request.getQueryString == null){
-      session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
-    } else IssueSearchCondition(request)
+      // retrieve search condition
+      val condition = if(request.getQueryString == null){
+        session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+      } else IssueSearchCondition(request)
 
-    session.put(sessionKey, condition)
+      session.put(sessionKey, condition)
 
-    pulls.html.list(
-      searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
-      getPullRequestCountGroupByUser(condition.state == "closed", owner, Some(repoName)),
-      userName,
-      page,
-      countIssue(condition.copy(state = "open"), filterUser, true, owner -> repoName),
-      countIssue(condition.copy(state = "closed"), filterUser, true, owner -> repoName),
-      countIssue(condition, Map.empty, true, owner -> repoName),
-      condition,
-      repository,
-      hasWritePermission(owner, repoName, context.loginAccount))
-  }
+      pulls.html.list(
+        searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
+        getPullRequestCountGroupByUser(condition.state == "closed", owner, Some(repoName)),
+        userName,
+        page,
+        countIssue(condition.copy(state = "open"), filterUser, true, owner -> repoName),
+        countIssue(condition.copy(state = "closed"), filterUser, true, owner -> repoName),
+        countIssue(condition, Map.empty, true, owner -> repoName),
+        condition,
+        repository,
+        hasWritePermission(owner, repoName, context.loginAccount))
+    }
 
 }

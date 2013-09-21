@@ -180,25 +180,25 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Provides duplication check for web hook url.
    */
   private def webHook: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] = {
-      val paths = request.getRequestURI.split("/")
-      getWebHookURLs(paths(1), paths(2)).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
-    }
+    override def validate(name: String, value: String): Option[String] =
+      defining(request.getRequestURI.split("/")){ paths =>
+        getWebHookURLs(paths(1), paths(2)).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
+      }
   }
 
   /**
    * Provides Constraint to validate the collaborator name.
    */
   private def collaborator: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] = {
-      val paths = request.getRequestURI.split("/")
-      getAccountByUserName(value) match {
-        case None => Some("User does not exist.")
-        case Some(x) if(x.userName == paths(1) || getCollaborators(paths(1), paths(2)).contains(x.userName))
-                  => Some("User can access this repository already.")
-        case _    => None
+    override def validate(name: String, value: String): Option[String] =
+      defining(request.getRequestURI.split("/")){ paths =>
+        getAccountByUserName(value) match {
+          case None => Some("User does not exist.")
+          case Some(x) if(x.userName == paths(1) || getCollaborators(paths(1), paths(2)).contains(x.userName))
+                    => Some("User can access this repository already.")
+          case _    => None
+        }
       }
-    }
   }
 
 }
