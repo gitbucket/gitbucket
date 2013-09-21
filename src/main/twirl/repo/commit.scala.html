@@ -8,7 +8,6 @@
 @import context._
 @import view.helpers._
 @import util.Implicits._
-@import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main(commit.shortMessage, Some(repository)){
   @html.header("code", repository)
   @tab(commitId, repository, "commits")
@@ -71,52 +70,10 @@
       </td>
     </tr>
   </table>
-  <div>
-    <div class="pull-right" style="margin-bottom: 10px;">
-      <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
-    </div>
-    Showing @diffs.size changed @plural(diffs.size, "file")
-    @*
-    @if(diffs.size == 1){
-      Showing 1 changed file
-    } else {
-      Showing @diffs.size changed files
-    }
-    *@
-  </div>
-  <ul id="commit-file-list" style="display: none;">
-  @diffs.zipWithIndex.map { case (diff, i) =>
-    <li@if(i > 0){ class="border"}>
-      <a href="#diff-@i">
-        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.ADD){
-          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.MODIFY){
-          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
-        }
-        @if(diff.changeType == ChangeType.DELETE){
-          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
-        }
-      </a>
-    </li>
-  }
-  </ul>
-  @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId)
+  @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true)
 }
 <script>
 $(function(){
-  $('#toggle-file-list').click(function(){
-    $('#commit-file-list').toggle();
-    if($(this).val() == 'Show file list'){
-      $(this).val('Hide file list');
-    } else {
-      $(this).val('Show file list');
-    }
-  });
-
   $('a.branch:first, a.tag:first').css({
     'font-weight': 'bold',
     'color': '#555555'

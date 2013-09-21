@@ -12,7 +12,6 @@
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main("Pull Requests - " + repository.owner + "/" + repository.name){
   @html.header("pulls", repository)
   <div class="pullreq-info">
@@ -108,33 +107,7 @@
         }
       </table>
     </div>
-    <div>
-      <div class="pull-right" style="margin-bottom: 10px;">
-        <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
-      </div>
-      Showing @diffs.size changed @plural(diffs.size, "file")
-    </div>
-    <ul id="commit-file-list" style="display: none;">
-    @diffs.zipWithIndex.map { case (diff, i) =>
-      <li@if(i > 0){ class="border"}>
-        <a href="#diff-@i">
-          @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-            <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
-          }
-          @if(diff.changeType == ChangeType.ADD){
-            <img src="@assets/common/images/diff_add.png"/> @diff.newPath
-          }
-          @if(diff.changeType == ChangeType.MODIFY){
-            <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
-          }
-          @if(diff.changeType == ChangeType.DELETE){
-            <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
-          }
-        </a>
-      </li>
-      }
-    </ul>
-    @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId))
+    @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true)
   }
 }
 <script>
@@ -171,15 +144,6 @@ $(function(){
   $('#show-form').click(function(){
     $(this).hide();
     $('#pull-request-form').show();
-  });
-
-  $('#toggle-file-list').click(function(){
-    $('#commit-file-list').toggle();
-    if($(this).val() == 'Show file list'){
-      $(this).val('Hide file list');
-    } else {
-      $(this).val('Show file list');
-    }
   });
 });
 </script>
