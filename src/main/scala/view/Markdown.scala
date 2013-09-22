@@ -52,7 +52,7 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
 }
 
 class GitBucketVerbatimSerializer extends VerbatimSerializer {
-  def serialize(node: VerbatimNode, printer: Printer) {
+  def serialize(node: VerbatimNode, printer: Printer): Unit = {
     printer.println.print("<pre")
     if (!StringUtils.isEmpty(node.getType)) {
       printer.print(" class=").print('"').print("prettyprint ").print(node.getType).print('"')
@@ -98,11 +98,11 @@ class GitBucketHtmlSerializer(
     }
   }
 
-  private def printAttribute(name: String, value: String) {
+  private def printAttribute(name: String, value: String): Unit = {
     printer.print(' ').print(name).print('=').print('"').print(value).print('"')
   }
 
-  override def visit(node: TextNode) {
+  override def visit(node: TextNode): Unit =  {
     // convert commit id and username to link.
     val text = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
 

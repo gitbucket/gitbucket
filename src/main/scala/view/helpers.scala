@@ -31,9 +31,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,
-               enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html = {
+               enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
-  }
 
   /**
    * Returns &lt;img&gt; which displays the avatar icon.
@@ -81,14 +80,12 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Generates the url to the account page.
    */
-  def url(userName: String)(implicit context: app.Context): String =
-    s"${context.path}/${userName}"
+  def url(userName: String)(implicit context: app.Context): String = s"${context.path}/${userName}"
 
   /**
    * Returns the url to the root of assets.
    */
-  def assets(implicit context: app.Context): String =
-    s"${context.path}/assets"
+  def assets(implicit context: app.Context): String = s"${context.path}/assets"
 
   def isPast(date: Date): Boolean = System.currentTimeMillis > date.getTime
 
