@@ -1,6 +1,6 @@
 package app
 
-import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator, Notifier}
+import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator, Notifier, Keys}
 import util.Directory._
 import util.Implicits._
 import util.ControlUtil._
@@ -369,7 +369,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     defining(repository.owner, repository.name){ case (owner, repoName) =>
       val filterUser = userName.map { x => Map("created_by" -> x) } getOrElse Map("all" -> "")
       val page       = IssueSearchCondition.page(request)
-      val sessionKey = s"${owner}/${repoName}/pulls"
+      val sessionKey = Keys.Session.Pulls(owner, repoName)
 
       // retrieve search condition
       val condition = session.putAndGet(sessionKey,

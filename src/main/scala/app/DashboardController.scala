@@ -1,7 +1,7 @@
 package app
 
 import service._
-import util.UsersAuthenticator
+import util.{UsersAuthenticator, Keys}
 import util.Implicits._
 
 class DashboardController extends DashboardControllerBase
@@ -43,10 +43,9 @@ trait DashboardControllerBase extends ControllerBase {
     import IssuesService._
 
     // condition
-    val sessionKey = "dashboard/issues"
-    val condition = session.putAndGet(sessionKey,
+    val condition = session.putAndGet(Keys.Session.DashboardIssues,
       if(request.hasQueryString) IssueSearchCondition(request)
-      else session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+      else session.getAs[IssueSearchCondition](Keys.Session.DashboardIssues).getOrElse(IssueSearchCondition())
     )
 
     val userName = context.loginAccount.get.userName
@@ -75,10 +74,9 @@ trait DashboardControllerBase extends ControllerBase {
     import PullRequestService._
 
     // condition
-    val sessionKey = "dashboard/pulls"
-    val condition = session.putAndGet(sessionKey, {
+    val condition = session.putAndGet(Keys.Session.DashboardPulls, {
       if(request.hasQueryString) IssueSearchCondition(request)
-      else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
+      else session.getAs[IssueSearchCondition](Keys.Session.DashboardPulls).getOrElse(IssueSearchCondition())
     }.copy(repo = repository))
 
     val userName = context.loginAccount.get.userName

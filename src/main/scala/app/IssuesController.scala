@@ -4,7 +4,7 @@ import jp.sf.amateras.scalatra.forms._
 
 import service._
 import IssuesService._
-import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, ReadableUsersAuthenticator, Notifier}
+import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, ReadableUsersAuthenticator, Notifier, Keys}
 import util.Implicits._
 import util.ControlUtil._
 import org.scalatra.Ok
@@ -328,7 +328,7 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name){ case (owner, repoName) =>
       val filterUser = Map(filter -> params.getOrElse("userName", ""))
       val page       = IssueSearchCondition.page(request)
-      val sessionKey = s"${owner}/${repoName}/issues"
+      val sessionKey = Keys.Session.Issues(owner, repoName)
 
       // retrieve search condition
       val condition = session.putAndGet(sessionKey,

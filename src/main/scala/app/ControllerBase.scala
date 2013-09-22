@@ -3,7 +3,7 @@ package app
 import _root_.util.Directory._
 import _root_.util.Implicits._
 import _root_.util.ControlUtil._
-import _root_.util.{FileUtil, Validations}
+import _root_.util.{FileUtil, Validations, Keys}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
@@ -34,7 +34,7 @@ abstract class ControllerBase extends ScalatraFilter
     val path         = httpRequest.getRequestURI.substring(context.length)
 
     if(path.startsWith("/console/")){
-      val account = httpRequest.getSession.getAttribute("LOGIN_ACCOUNT").asInstanceOf[Account]
+      val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       if(account == null){
         // Redirect to login form
         httpResponse.sendRedirect(context + "/signin?" + path)
@@ -63,7 +63,7 @@ abstract class ControllerBase extends ScalatraFilter
     request.getRequestURI + (if(queryString != null) "?" + queryString else "")
   }
 
-  private def LoginAccount: Option[Account] = session.getAs[Account]("LOGIN_ACCOUNT")
+  private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
 
   def ajaxGet(path : String)(action : => Any) : Route =
     super.get(path){
@@ -197,14 +197,10 @@ trait FileUploadControllerBase {
   //  def removeTemporaryFile(fileId: String)(implicit session: HttpSession): Unit =
   //    getTemporaryFile(fileId).delete()
 
-  def removeTemporaryFiles()(implicit session: HttpSession): Unit = FileUtils.deleteDirectory(TemporaryDir)
+  def removeTemporaryFiles()(implicit session: HttpSession): Unit =
+    FileUtils.deleteDirectory(TemporaryDir)
 
   def getUploadedFilename(fileId: String)(implicit session: HttpSession): Option[String] =
-    defining(Option(session.getAttribute("upload_" + fileId).asInstanceOf[String])){ filename =>
-      if(filename.isDefined){
-        session.removeAttribute("upload_" + fileId)
-      }
-      filename
-    }
+    session.getAndRemove[String](Keys.Session.Upload(fileId))
 
 }
