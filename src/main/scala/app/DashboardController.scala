@@ -78,7 +78,7 @@ trait DashboardControllerBase extends ControllerBase {
     val sessionKey = "dashboard/pulls"
     val condition = session.putAndGet(sessionKey, {
       if(request.hasQueryString) IssueSearchCondition(request)
-      else session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+      else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
     }.copy(repo = repository))
 
     val userName = context.loginAccount.get.userName

@@ -333,7 +333,7 @@ trait IssuesControllerBase extends ControllerBase {
       // retrieve search condition
       val condition = session.putAndGet(sessionKey,
         if(request.hasQueryString) IssueSearchCondition(request)
-        else session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+        else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 
       issues.html.list(

@@ -2,6 +2,7 @@ package app
 
 import service._
 import jp.sf.amateras.scalatra.forms._
+import util.Implicits._
 
 class SignInController extends SignInControllerBase with SystemSettingsService with AccountService
 
@@ -25,7 +26,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
   post("/signin", form){ form =>
     authenticate(loadSystemSettings(), form.userName, form.password) match {
       case Some(account) => signin(account)
-      case None => redirect("/signin")
+      case None          => redirect("/signin")
     }
   }
 
@@ -41,8 +42,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
     session.setAttribute("LOGIN_ACCOUNT", account)
     updateLastLoginDate(account.userName)
 
-    session.get("REDIRECT").map { case redirectUrl: String =>
-      session.removeAttribute("REDIRECT")
+    session.getAndRemove[String]("REDIRECT").map { redirectUrl =>
       if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
         redirect("/")
       } else {

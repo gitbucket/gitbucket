@@ -63,11 +63,7 @@ abstract class ControllerBase extends ScalatraFilter
     request.getRequestURI + (if(queryString != null) "?" + queryString else "")
   }
 
-  private def LoginAccount: Option[Account] =
-    session.get("LOGIN_ACCOUNT") match {
-      case Some(x: Account) => Some(x)
-      case _ => None
-    }
+  private def LoginAccount: Option[Account] = session.getAs[Account]("LOGIN_ACCOUNT")
 
   def ajaxGet(path : String)(action : => Any) : Route =
     super.get(path){
