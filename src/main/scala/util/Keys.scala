@@ -1,10 +1,13 @@
 package util
 
 /**
- * Define key strings for request attributes, session attributes or flash attributes..
+ * Define key strings for request attributes, session attributes or flash attributes.
  */
 object Keys {
 
+  /**
+   * Define session keys.
+   */
   object Session {
 
     /**
@@ -41,6 +44,28 @@ object Keys {
      * Generate session key for the upload filename.
      */
     def Upload(fileId: String) = s"upload_${fileId}"
+
+  }
+
+  /**
+   * Define request keys.
+   */
+  object Request {
+
+    /**
+     * Request key for the Ajax request flag.
+     */
+    val Ajax = "AJAX"
+
+    /**
+     * Request key for the username which is used during Git repository access.
+     */
+    val UserName = "USER_NAME"
+
+    /**
+     * Generate request key for the request cache.
+     */
+    def Cache(key: String) = s"cache.${key}"
 
   }
 

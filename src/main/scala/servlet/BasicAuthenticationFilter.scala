@@ -6,6 +6,7 @@ import service.{SystemSettingsService, AccountService, RepositoryService}
 import org.slf4j.LoggerFactory
 import util.Implicits._
 import util.ControlUtil._
+import util.Keys
 
 /**
  * Provides BASIC Authentication for [[servlet.GitRepositoryServlet]].
@@ -38,7 +39,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
                 case null => requireAuth(response)
                 case auth => decodeAuthHeader(auth).split(":") match {
                   case Array(username, password) if(isWritableUser(username, password, repository)) => {
-                    request.setAttribute("USER_NAME", username)
+                    request.setAttribute(Keys.Request.UserName, username)
                     chain.doFilter(req, wrappedResponse)
                   }
                   case _ => requireAuth(response)

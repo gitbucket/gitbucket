@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
-import util.{JGitUtil, Directory}
+import util.{Keys, JGitUtil, Directory}
 import util.ControlUtil._
 import util.Implicits._
 import service._
@@ -55,7 +55,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    val userName = request.getAttribute("USER_NAME").asInstanceOf[String]
+    val userName = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
 
     logger.debug("requestURI: " + request.getRequestURI)
     logger.debug("userName:" + userName)

@@ -67,37 +67,37 @@ abstract class ControllerBase extends ScalatraFilter
 
   def ajaxGet(path : String)(action : => Any) : Route =
     super.get(path){
-      request.setAttribute("AJAX", "true")
+      request.setAttribute(Keys.Request.Ajax, "true")
       action
     }
 
   override def ajaxGet[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
     super.ajaxGet(path, form){ form =>
-      request.setAttribute("AJAX", "true")
+      request.setAttribute(Keys.Request.Ajax, "true")
       action(form)
     }
 
   def ajaxPost(path : String)(action : => Any) : Route =
     super.post(path){
-      request.setAttribute("AJAX", "true")
+      request.setAttribute(Keys.Request.Ajax, "true")
       action
     }
 
   override def ajaxPost[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
     super.ajaxPost(path, form){ form =>
-      request.setAttribute("AJAX", "true")
+      request.setAttribute(Keys.Request.Ajax, "true")
       action(form)
     }
 
   protected def NotFound() =
-    if(request.hasAttribute("AJAX")){
+    if(request.hasAttribute(Keys.Request.Ajax)){
       org.scalatra.NotFound()
     } else {
       org.scalatra.NotFound(html.error("Not Found"))
     }
 
   protected def Unauthorized()(implicit context: app.Context) =
-    if(request.hasAttribute("AJAX")){
+    if(request.hasAttribute(Keys.Request.Ajax)){
       org.scalatra.Unauthorized()
     } else {
       if(context.loginAccount.isDefined){
@@ -135,10 +135,12 @@ case class Context(path: String, loginAccount: Option[Account], currentUrl: Stri
    * Cached object are available during a request.
    */
   def cache[A](key: String)(action: => A): A =
-    Option(request.getAttribute("cache." + key).asInstanceOf[A]).getOrElse {
-      val newObject = action
-      request.setAttribute("cache." + key, newObject)
-      newObject
+    defining(Keys.Request.Cache(key)){ cacheKey =>
+      Option(request.getAttribute(cacheKey).asInstanceOf[A]).getOrElse {
+        val newObject = action
+        request.setAttribute(cacheKey, newObject)
+        newObject
+      }
     }
 
 }
