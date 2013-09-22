@@ -4,6 +4,8 @@ import javax.servlet._
 import javax.servlet.http._
 import service.{SystemSettingsService, AccountService, RepositoryService}
 import org.slf4j.LoggerFactory
+import util.Implicits._
+import util.ControlUtil._
 
 /**
  * Provides BASIC Authentication for [[servlet.GitRepositoryServlet]].
@@ -25,29 +27,27 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
 
     try {
-      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      val repositoryOwner = paths(2)
-      val repositoryName  = paths(3).replaceFirst("\\.git$", "")
-
-      getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
-        case Some(repository) => {
-          if(!request.getRequestURI.endsWith("/git-receive-pack") &&
+      defining(request.paths.toSeq){ case (repositoryOwner :: repositoryName :: _) =>
+        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
+          case Some(repository) => {
+            if(!request.getRequestURI.endsWith("/git-receive-pack") &&
               !"service=git-receive-pack".equals(request.getQueryString) && !repository.repository.isPrivate){
-            chain.doFilter(req, wrappedResponse)
-          } else {
-            request.getHeader("Authorization") match {
-              case null => requireAuth(response)
-              case auth => decodeAuthHeader(auth).split(":") match {
-                case Array(username, password) if(isWritableUser(username, password, repository)) => {
-                  request.setAttribute("USER_NAME", username)
-                  chain.doFilter(req, wrappedResponse)
+              chain.doFilter(req, wrappedResponse)
+            } else {
+              request.getHeader("Authorization") match {
+                case null => requireAuth(response)
+                case auth => decodeAuthHeader(auth).split(":") match {
+                  case Array(username, password) if(isWritableUser(username, password, repository)) => {
+                    request.setAttribute("USER_NAME", username)
+                    chain.doFilter(req, wrappedResponse)
+                  }
+                  case _ => requireAuth(response)
                 }
-                case _ => requireAuth(response)
               }
             }
           }
+          case None => response.sendError(HttpServletResponse.SC_NOT_FOUND)
         }
-        case None => response.sendError(HttpServletResponse.SC_NOT_FOUND)
       }
     } catch {
       case ex: Exception => {

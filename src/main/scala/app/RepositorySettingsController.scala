@@ -9,6 +9,7 @@ import org.scalatra.FlashMapSupport
 import service.WebHookService.WebHookPayload
 import util.JGitUtil.CommitInfo
 import util.ControlUtil._
+import util.Implicits._
 import org.eclipse.jgit.api.Git
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -181,7 +182,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   private def webHook: Constraint = new Constraint(){
     override def validate(name: String, value: String): Option[String] =
-      defining(request.getRequestURI.split("/")){ paths =>
+      defining(request.paths){ paths =>
         getWebHookURLs(paths(1), paths(2)).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
       }
   }
@@ -191,7 +192,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   private def collaborator: Constraint = new Constraint(){
     override def validate(name: String, value: String): Option[String] =
-      defining(request.getRequestURI.split("/")){ paths =>
+      defining(request.paths){ paths =>
         getAccountByUserName(value) match {
           case None => Some("User does not exist.")
           case Some(x) if(x.userName == paths(1) || getCollaborators(paths(1), paths(2)).contains(x.userName))

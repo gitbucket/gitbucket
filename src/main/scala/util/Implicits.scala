@@ -1,6 +1,7 @@
 package util
 
 import scala.util.matching.Regex
+import javax.servlet.http.HttpServletRequest
 
 /**
  * Provides some usable implicit conversions.
@@ -40,6 +41,10 @@ object Implicits {
       }
       sb.toString
     }
+  }
+
+  implicit class RichRequest(request: HttpServletRequest){
+    def paths: Array[String] = request.getRequestURI.substring(request.getContextPath.length).split("/")
   }
 
 }

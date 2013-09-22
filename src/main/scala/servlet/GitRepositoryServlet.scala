@@ -11,6 +11,7 @@ import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
 import util.{JGitUtil, Directory}
 import util.ControlUtil._
+import util.Implicits._
 import service._
 import WebHookService._
 import org.eclipse.jgit.api.Git
@@ -59,16 +60,17 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
     logger.debug("requestURI: " + request.getRequestURI)
     logger.debug("userName:" + userName)
 
-    val paths      = request.getRequestURI.substring(request.getContextPath.length).split("/")
-    val owner      = paths(2)
-    val repository = paths(3).replaceFirst("\\.git$", "")
-    val baseURL    = request.getRequestURL.toString.replaceFirst("/git/.*", "")
+    defining(request.paths){ paths =>
+      val owner      = paths(2)
+      val repository = paths(3).replaceFirst("\\.git$", "")
+      val baseURL    = request.getRequestURL.toString.replaceFirst("/git/.*", "")
 
-    logger.debug("repository:" + owner + "/" + repository)
-    logger.debug("baseURL:" + baseURL)
+      logger.debug("repository:" + owner + "/" + repository)
+      logger.debug("baseURL:" + baseURL)
 
-    receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, userName, baseURL))
-    receivePack
+      receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, userName, baseURL))
+      receivePack
+    }
   }
 }
 
