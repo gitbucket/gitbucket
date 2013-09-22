@@ -2,6 +2,7 @@ package app
 
 import service._
 import util.UsersAuthenticator
+import util.Implicits._
 
 class DashboardController extends DashboardControllerBase
   with IssuesService with PullRequestService with RepositoryService with AccountService
@@ -43,11 +44,10 @@ trait DashboardControllerBase extends ControllerBase {
 
     // condition
     val sessionKey = "dashboard/issues"
-    val condition = if(request.getQueryString == null)
-      session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
-    else IssueSearchCondition(request)
-
-    session.put(sessionKey, condition)
+    val condition = session.putAndGet(sessionKey,
+      if(request.hasQueryString) IssueSearchCondition(request)
+      else session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+    )
 
     val userName = context.loginAccount.get.userName
     val repositories = getUserRepositories(userName, baseUrl).map(repo => repo.owner -> repo.name)
@@ -76,14 +76,10 @@ trait DashboardControllerBase extends ControllerBase {
 
     // condition
     val sessionKey = "dashboard/pulls"
-    val condition = {
-      if(request.getQueryString == null)
-        session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
-      else
-        IssueSearchCondition(request)
-    }.copy(repo = repository)
-
-    session.put(sessionKey, condition)
+    val condition = session.putAndGet(sessionKey, {
+      if(request.hasQueryString) IssueSearchCondition(request)
+      else session.get(sessionKey).getOrElse(IssueSearchCondition()).asInstanceOf[IssueSearchCondition]
+    }.copy(repo = repository))
 
     val userName = context.loginAccount.get.userName
     val repositories = getUserRepositories(userName, baseUrl).map(repo => repo.owner -> repo.name)

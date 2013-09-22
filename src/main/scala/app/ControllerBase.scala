@@ -1,6 +1,8 @@
 package app
 
 import _root_.util.Directory._
+import _root_.util.Implicits._
+import _root_.util.ControlUtil._
 import _root_.util.{FileUtil, Validations}
 import org.scalatra._
 import org.scalatra.json._
@@ -57,56 +59,51 @@ abstract class ControllerBase extends ScalatraFilter
    */
   implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, currentURL, request)
 
-  private def currentURL: String = {
-    val queryString = request.getQueryString
+  private def currentURL: String = defining(request.getQueryString){ queryString =>
     request.getRequestURI + (if(queryString != null) "?" + queryString else "")
   }
 
-  private def LoginAccount: Option[Account] = {
+  private def LoginAccount: Option[Account] =
     session.get("LOGIN_ACCOUNT") match {
       case Some(x: Account) => Some(x)
       case _ => None
     }
-  }
 
-  def ajaxGet(path : String)(action : => Any) : Route = {
+  def ajaxGet(path : String)(action : => Any) : Route =
     super.get(path){
       request.setAttribute("AJAX", "true")
       action
     }
-  }
 
-  override def ajaxGet[T](path : String, form : MappingValueType[T])(action : T => Any) : Route = {
+  override def ajaxGet[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
     super.ajaxGet(path, form){ form =>
       request.setAttribute("AJAX", "true")
       action(form)
     }
-  }
 
-  def ajaxPost(path : String)(action : => Any) : Route = {
+  def ajaxPost(path : String)(action : => Any) : Route =
     super.post(path){
       request.setAttribute("AJAX", "true")
       action
     }
-  }
 
-  override def ajaxPost[T](path : String, form : MappingValueType[T])(action : T => Any) : Route = {
+  override def ajaxPost[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
     super.ajaxPost(path, form){ form =>
       request.setAttribute("AJAX", "true")
       action(form)
     }
-  }
 
-  protected def NotFound() = {
-    if(request.getAttribute("AJAX") == null){
-      org.scalatra.NotFound(html.error("Not Found"))
-    } else {
+  protected def NotFound() =
+    if(request.hasAttribute("AJAX")){
       org.scalatra.NotFound()
+    } else {
+      org.scalatra.NotFound(html.error("Not Found"))
     }
-  }
 
-  protected def Unauthorized()(implicit context: app.Context) = {
-    if(request.getAttribute("AJAX") == null){
+  protected def Unauthorized()(implicit context: app.Context) =
+    if(request.hasAttribute("AJAX")){
+      org.scalatra.Unauthorized()
+    } else {
       if(context.loginAccount.isDefined){
         org.scalatra.Unauthorized(redirect("/"))
       } else {
@@ -116,13 +113,9 @@ abstract class ControllerBase extends ScalatraFilter
           org.scalatra.Unauthorized(redirect("/signin?redirect=" + currentURL))
         }
       }
-    } else {
-      org.scalatra.Unauthorized()
     }
-  }
 
-  protected def baseUrl = {
-    val url = request.getRequestURL.toString
+  protected def baseUrl = defining(request.getRequestURL.toString){ url =>
     url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
   }
 
@@ -133,12 +126,10 @@ abstract class ControllerBase extends ScalatraFilter
  */
 case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest){
 
-  def redirectUrl = {
-    if(request.getParameter("redirect") != null){
-      request.getParameter("redirect")
-    } else {
-      currentUrl
-    }
+  def redirectUrl = if(request.getParameter("redirect") != null){
+    request.getParameter("redirect")
+  } else {
+    currentUrl
   }
 
   /**
@@ -147,13 +138,12 @@ case class Context(path: String, loginAccount: Option[Account], currentUrl: Stri
    * If object has not been cached with the specified key then retrieves by given action.
    * Cached object are available during a request.
    */
-  def cache[A](key: String)(action: => A): A = {
+  def cache[A](key: String)(action: => A): A =
     Option(request.getAttribute("cache." + key).asInstanceOf[A]).getOrElse {
       val newObject = action
       request.setAttribute("cache." + key, newObject)
       newObject
     }
-  }
 
 }
 
@@ -163,7 +153,7 @@ case class Context(path: String, loginAccount: Option[Account], currentUrl: Stri
 trait AccountManagementControllerBase extends ControllerBase with FileUploadControllerBase {
   self: AccountService  =>
 
-  protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit = {
+  protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit =
     if(clearImage){
       getAccountByUserName(userName).flatMap(_.image).map { image =>
         new java.io.File(getUserUploadDir(userName), image).delete()
@@ -179,7 +169,6 @@ trait AccountManagementControllerBase extends ControllerBase with FileUploadCont
         updateAvatarImage(userName, Some(filename))
       }
     }
-  }
 
   protected def uniqueUserName: Constraint = new Constraint(){
     override def validate(name: String, value: String): Option[String] =
@@ -212,15 +201,14 @@ trait FileUploadControllerBase {
   //  def removeTemporaryFile(fileId: String)(implicit session: HttpSession): Unit =
   //    getTemporaryFile(fileId).delete()
 
-  def removeTemporaryFiles()(implicit session: HttpSession): Unit =
-    FileUtils.deleteDirectory(TemporaryDir)
+  def removeTemporaryFiles()(implicit session: HttpSession): Unit = FileUtils.deleteDirectory(TemporaryDir)
 
-  def getUploadedFilename(fileId: String)(implicit session: HttpSession): Option[String] = {
-    val filename = Option(session.getAttribute("upload_" + fileId).asInstanceOf[String])
-    if(filename.isDefined){
-      session.removeAttribute("upload_" + fileId)
+  def getUploadedFilename(fileId: String)(implicit session: HttpSession): Option[String] =
+    defining(Option(session.getAttribute("upload_" + fileId).asInstanceOf[String])){ filename =>
+      if(filename.isDefined){
+        session.removeAttribute("upload_" + fileId)
+      }
+      filename
     }
-    filename
-  }
 
 }

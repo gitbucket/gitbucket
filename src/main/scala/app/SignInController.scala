@@ -23,7 +23,6 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
   }
 
   post("/signin", form){ form =>
-    val settings = loadSystemSettings()
     authenticate(loadSystemSettings(), form.userName, form.password) match {
       case Some(account) => signin(account)
       case None => redirect("/signin")

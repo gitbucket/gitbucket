@@ -9,7 +9,6 @@ import org.scalatra.FlashMapSupport
 import service.WebHookService.WebHookPayload
 import util.JGitUtil.CommitInfo
 import util.ControlUtil._
-import util.Implicits._
 import org.eclipse.jgit.api.Git
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -123,8 +122,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Delete the web hook URL.
    */
   get("/:owner/:repository/settings/hooks/delete")(ownerOnly { repository =>
-    val url = params("url")
-    deleteWebHookURL(repository.owner, repository.name, url)
+    deleteWebHookURL(repository.owner, repository.name, params("url"))
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
@@ -139,23 +137,18 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
         .setMaxCount(3)
         .call.iterator.asScala.map(new CommitInfo(_))
 
-      val payload = WebHookPayload(
-        git,
-        "refs/heads/" + repository.repository.defaultBranch,
-        repository,
-        commits.toList,
-        getAccountByUserName(repository.owner).get)
+      callWebHook(repository.owner, repository.name,
+        WebHookPayload(
+          git,
+          "refs/heads/" + repository.repository.defaultBranch,
+          repository,
+          commits.toList,
+          getAccountByUserName(repository.owner).get))
 
-      callWebHook(repository.owner, repository.name, payload)
       flash += "info" -> "Test payload deployed!"
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
-
-  // TODO Remove this action after web hook is completed.
-  post("/xxx/xxx/xxx/webhooktest"){
-    println(params("payload"))
-  }
 
   /**
    * Display the delete repository page.
@@ -182,9 +175,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   private def webHook: Constraint = new Constraint(){
     override def validate(name: String, value: String): Option[String] =
-      defining(request.paths){ paths =>
-        getWebHookURLs(paths(1), paths(2)).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
-      }
+      getWebHookURLs(params("owner"), params("repository")).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
   }
 
   /**
@@ -192,13 +183,11 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    */
   private def collaborator: Constraint = new Constraint(){
     override def validate(name: String, value: String): Option[String] =
-      defining(request.paths){ paths =>
-        getAccountByUserName(value) match {
-          case None => Some("User does not exist.")
-          case Some(x) if(x.userName == paths(1) || getCollaborators(paths(1), paths(2)).contains(x.userName))
-                    => Some("User can access this repository already.")
-          case _    => None
-        }
+      getAccountByUserName(value) match {
+        case None => Some("User does not exist.")
+        case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
+                  => Some("User can access this repository already.")
+        case _    => None
       }
   }
 

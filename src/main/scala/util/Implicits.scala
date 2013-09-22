@@ -1,7 +1,7 @@
 package util
 
 import scala.util.matching.Regex
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpSession, HttpServletRequest}
 
 /**
  * Provides some usable implicit conversions.
@@ -44,7 +44,20 @@ object Implicits {
   }
 
   implicit class RichRequest(request: HttpServletRequest){
+
     def paths: Array[String] = request.getRequestURI.substring(request.getContextPath.length).split("/")
+
+    def hasQueryString: Boolean = request.getQueryString != null
+
+    def hasAttribute(name: String): Boolean = request.getAttribute(name) != null
+
+  }
+
+  implicit class RichSession(session: HttpSession){
+    def putAndGet[T](key: String, value: T): T = {
+      session.setAttribute(key, value)
+      value
+    }
   }
 
 }
