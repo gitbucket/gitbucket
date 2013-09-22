@@ -32,7 +32,7 @@
                 </li>
               }
             </ul>
-            <input type="text" id="memberName" style="width: 200px; margin-bottom: 0px;"/>
+            @helper.html.account("memberName", 200)
             <input type="button" class="btn" value="Add" id="addMember"/>
             <input type="hidden" id="memberNames" name="memberNames" value="@members.mkString(",")"/>
             <div>
@@ -50,15 +50,6 @@
 }
 <script>
 $(function(){
-  $('#memberName').typeahead({
-    source: function (query, process) {
-      return $.get('@path/_user/proposals', { query: query },
-        function (data) {
-          return process(data.options);
-        });
-    }
-  });
-
   $('#addMember').click(function(){
     $('#error-memberName').text('');
     var userName = $('#memberName').val();

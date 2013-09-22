@@ -22,21 +22,9 @@
         <div>
           <span class="error" id="error-userName"></span>
         </div>
-        <input type="text" name="userName" id="userName" style="width: 300px; margin-bottom: 0px;"/>
+        @helper.html.account("userName", 300)
         <input type="submit" class="btn" value="Add"/>
       </form>
     }
   }
 }
-<script>
-$(function(){
-  $('#userName').typeahead({
-    source: function (query, process) {
-      return $.get('@path/_user/proposals', { query: query },
-        function (data) {
-          return process(data.options);
-        });
-    }
-  });
-});
-</script>
