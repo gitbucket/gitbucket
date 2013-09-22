@@ -20,52 +20,49 @@
     <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
       <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
   </div>
-  <div class="btn-group">
-    <button class="btn dropdown-toggle" data-toggle="dropdown">
-      Sort:
-      <span class="strong">
-        @if(condition.sort == "created"  && condition.direction == "desc"){ Newest }
-        @if(condition.sort == "created"  && condition.direction == "asc" ){ Oldest }
-        @if(condition.sort == "comments" && condition.direction == "desc"){ Most commented }
-        @if(condition.sort == "comments" && condition.direction == "asc" ){ Least commented }
-        @if(condition.sort == "updated"  && condition.direction == "desc"){ Recently updated }
-        @if(condition.sort == "updated"  && condition.direction == "asc" ){ Least recently updated }
-      </span>
-      <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-      <li>
-        <a href="@condition.copy(sort="created",  direction="desc").toURL">
-          @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
-        </a>
-      </li>
-      <li>
-        <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
-          @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
-        </a>
-      </li>
-      <li>
-        <a href="@condition.copy(sort="comments", direction="desc").toURL">
-          @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
-        </a>
-      </li>
-      <li>
-        <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
-          @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
-        </a>
-      </li>
-      <li>
-        <a href="@condition.copy(sort="updated",  direction="desc").toURL">
-          @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
-        </a>
-      </li>
-      <li>
-        <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
-          @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
-        </a>
-      </li>
-    </ul>
-  </div>
+  @helper.html.dropdown(
+    value  = (condition.sort, condition.direction) match {
+      case ("created" , "desc") => "Newest"
+      case ("created" , "asc" ) => "Oldest"
+      case ("comments", "desc") => "Most commented"
+      case ("comments", "asc" ) => "Least commented"
+      case ("updated" , "desc") => "Recently updated"
+      case ("updated" , "asc" ) => "Least recently updated"
+    },
+    prefix = "Sort",
+    mini   = false
+  ){
+    <li>
+      <a href="@condition.copy(sort="created",  direction="desc").toURL">
+        @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+      </a>
+    </li>
+    <li>
+      <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
+        @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+      </a>
+    </li>
+    <li>
+      <a href="@condition.copy(sort="comments", direction="desc").toURL">
+        @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+      </a>
+    </li>
+    <li>
+      <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
+        @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+      </a>
+    </li>
+    <li>
+      <a href="@condition.copy(sort="updated",  direction="desc").toURL">
+        @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+      </a>
+    </li>
+    <li>
+      <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+        @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+      </a>
+    </li>
+  }
   <table class="table table-bordered table-hover table-issues">
   @if(issues.isEmpty){
     <tr>

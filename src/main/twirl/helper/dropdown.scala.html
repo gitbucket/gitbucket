@@ -1,13 +1,13 @@
-@(buttonValue: String = "", prefix: String = "")(body: Html)
-<div class="btn-group">
-  <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-    @if(buttonValue.isEmpty){
+@(value: String = "", prefix: String = "", mini: Boolean = true, style: String = "")(body: Html)
+<div class="btn-group"@if(style.nonEmpty){ style="@style"}>
+  <button class="btn dropdown-toggle@if(mini){ btn-mini}" data-toggle="dropdown">
+    @if(value.isEmpty){
       <i class="icon-cog"></i>
     } else {
       @if(prefix.nonEmpty){
         <span class="muted">@prefix:</span>
       }
-      <span class="strong">@buttonValue</span>
+      <span class="strong">@value</span>
     }
     <span class="caret"></span>
   </button>
