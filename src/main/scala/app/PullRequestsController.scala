@@ -76,16 +76,21 @@ trait PullRequestsControllerBase extends ControllerBase {
             getMilestonesWithIssueCount(owner, name),
             commits,
             diffs,
-            if(issue.closed){
-              false
-            } else {
-              checkConflict(owner, name, pullreq.branch, owner, name, pullreq.requestBranch)
-            },
             hasWritePermission(owner, name, context.loginAccount),
-            repository,
-            s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
+            repository)
         }
       } getOrElse NotFound
+    }
+  })
+
+  ajaxGet("/:owner/:repository/pull/:id/mergeguide")(collaboratorsOnly { repository =>
+    defining(repository.owner, repository.name, params("id").toInt){ case (owner, name, issueId) =>
+      getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+        pulls.html.mergeguide(
+          checkConflict(owner, name, pullreq.branch, owner, name, pullreq.requestBranch),
+          pullreq,
+          s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
+      } getOrElse NotFound()
     }
   })
 
@@ -164,41 +169,6 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  /**
-   * Checks whether conflict will be caused in merging.
-   * Returns true if conflict will be caused.
-   */
-  private def checkConflict(userName: String, repositoryName: String, branch: String,
-                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-    // TODO Are there more quick way?
-    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
-      val remote = getRepositoryDir(userName, repositoryName)
-      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
-      if(tmpdir.exists()){
-        FileUtils.deleteDirectory(tmpdir)
-      }
-
-      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(branch).call
-      try {
-        git.checkout.setName(branch).call
-
-        git.fetch
-          .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
-          .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
-
-        val result = git.merge
-          .include(git.getRepository.resolve("FETCH_HEAD"))
-          .setCommit(false).call
-
-        result.getConflicts != null
-
-      } finally {
-        git.getRepository.close
-        FileUtils.deleteDirectory(tmpdir)
-      }
-    }
-  }
-
   get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
     (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
       case (Some(originUserName), Some(originRepositoryName)) => {
@@ -229,11 +199,11 @@ trait PullRequestsControllerBase extends ControllerBase {
     val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, repository.owner)
 
     (getRepository(originOwner, repository.name, baseUrl),
-     getRepository(forkedOwner,   repository.name, baseUrl)) match {
+     getRepository(forkedOwner, repository.name, baseUrl)) match {
       case (Some(originRepository), Some(forkedRepository)) => {
         using(
           Git.open(getRepositoryDir(originOwner, repository.name)),
-          Git.open(getRepositoryDir(forkedOwner,   repository.name))
+          Git.open(getRepositoryDir(forkedOwner, repository.name))
         ){ case (oldGit, newGit) =>
           val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
           val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
@@ -259,7 +229,6 @@ trait PullRequestsControllerBase extends ControllerBase {
             forkedBranch,
             oldId.getName,
             newId.getName,
-            checkConflict(originOwner, repository.name, originBranch, forkedOwner, repository.name, forkedBranch),
             repository,
             originRepository,
             forkedRepository,
@@ -267,6 +236,29 @@ trait PullRequestsControllerBase extends ControllerBase {
         }
       }
       case _ => NotFound
+    }
+  })
+
+  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(collaboratorsOnly { repository =>
+    val Seq(origin, forked) = multiParams("splat")
+    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, repository.owner)
+    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, repository.owner)
+
+    (getRepository(originOwner, repository.name, baseUrl),
+      getRepository(forkedOwner, repository.name, baseUrl)) match {
+      case (Some(originRepository), Some(forkedRepository)) => {
+        using(
+          Git.open(getRepositoryDir(originOwner, repository.name)),
+          Git.open(getRepositoryDir(forkedOwner, repository.name))
+        ){ case (oldGit, newGit) =>
+          val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
+          val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
+
+          pulls.html.mergecheck(
+            checkConflict(originOwner, repository.name, originBranch, forkedOwner, repository.name, forkedBranch))
+        }
+      }
+      case _ => NotFound()
     }
   })
 
@@ -312,6 +304,40 @@ trait PullRequestsControllerBase extends ControllerBase {
 
     redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
   })
+
+  /**
+   * Checks whether conflict will be caused in merging. Returns true if conflict will be caused.
+   */
+  private def checkConflict(userName: String, repositoryName: String, branch: String,
+                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
+    // TODO Are there more quick way?
+    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
+      val remote = getRepositoryDir(userName, repositoryName)
+      val tmpdir = new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")
+      if(tmpdir.exists()){
+        FileUtils.deleteDirectory(tmpdir)
+      }
+
+      val git = Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(branch).call
+      try {
+        git.checkout.setName(branch).call
+
+        git.fetch
+          .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
+          .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
+
+        val result = git.merge
+          .include(git.getRepository.resolve("FETCH_HEAD"))
+          .setCommit(false).call
+
+        result.getConflicts != null
+
+      } finally {
+        git.getRepository.close
+        FileUtils.deleteDirectory(tmpdir)
+      }
+    }
+  }
 
   /**
    * Parses branch identifier and extracts owner and branch name as tuple.
@@ -382,7 +408,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         getPullRequestCountGroupByUser(condition.state == "closed", owner, Some(repoName)),
         userName,
         page,
-        countIssue(condition.copy(state = "open"), filterUser, true, owner -> repoName),
+        countIssue(condition.copy(state = "open"  ), filterUser, true, owner -> repoName),
         countIssue(condition.copy(state = "closed"), filterUser, true, owner -> repoName),
         countIssue(condition, Map.empty, true, owner -> repoName),
         condition,

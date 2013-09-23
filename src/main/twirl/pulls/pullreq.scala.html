@@ -5,10 +5,8 @@
   milestones: List[(model.Milestone, Int, Int)],
   dayByDayCommits: Seq[Seq[util.JGitUtil.CommitInfo]],
   diffs: Seq[util.JGitUtil.DiffInfo],
-  hasConflict: Boolean,
   hasWritePermission: Boolean,
-  repository: service.RepositoryService.RepositoryInfo,
-  requestRepositoryUrl: String)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("%s - Pull Request #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
@@ -39,7 +37,7 @@
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="discussion">
-        @pulls.html.discussion(issue, pullreq, comments, collaborators, milestones, hasConflict, hasWritePermission, repository, requestRepositoryUrl)
+        @pulls.html.discussion(issue, pullreq, comments, collaborators, milestones, hasWritePermission, repository)
       </div>
       <div class="tab-pane" id="commits">
         @pulls.html.commits(dayByDayCommits, repository)

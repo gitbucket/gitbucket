@@ -5,7 +5,6 @@
   forkedId: String,
   sourceId: String,
   commitId: String,
-  hasConflict: Boolean,
   repository: service.RepositoryService.RepositoryInfo,
   originRepository: service.RepositoryService.RepositoryInfo,
   forkedRepository: service.RepositoryService.RepositoryInfo,
@@ -52,14 +51,9 @@
         <div class="box-content">
           <form method="POST" action="@path/@originRepository.owner/@repository.name/pulls/new" validate="true">
             <div style="width: 260px; position: absolute; margin-left: 635px;">
-              @if(hasConflict){
-                <h4>We can’t automatically merge these branches</h4>
-                <p>Don't worry, you can still submit the pull request.</p>
-              } else {
-                <h4 style="color: #468847;">Able to merge</h4>
-                <p>These branches can be automatically merged.</p>
-              }
-              <input type="submit" class="btn btn-success btn-block" value="Send pull request"/>
+              <div class="check-conflict" style="display: none;">
+                <img src="@assets/common/images/indicator.gif"/> Checking...
+              </div>
             </div>
             <div style="width: 620px; border-right: 1px solid #d4d4d4;">
               <span class="error" id="error-title"></span>
@@ -86,29 +80,6 @@
       </tr>
     </table>
   } else {
-    @*
-    <div class="box">
-      <table class="table table-file-list" style="border: 1px solid silver;">
-        @commits.map { day =>
-          <tr>
-            <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.time)</th>
-          </tr>
-          @day.map { commit =>
-            <tr>
-              <td style="width: 20%;">
-                @avatar(commit.committer, 20)
-                <a href="@url(commit.committer)" class="username">@commit.committer</a>
-              </td>
-              <td>@commit.shortMessage</td>
-              <td style="width: 10%; text-align: right;">
-                <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
-              </td>
-            </tr>
-          }
-        }
-      </table>
-    </div>
-    *@
     @pulls.html.commits(commits, repository)
     @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true)
   }
@@ -148,5 +119,27 @@ $(function(){
     $(this).hide();
     $('#pull-request-form').show();
   });
+
+  @if(hasWritePermission){
+    function checkConflict(from, to, noConflictHandler, hasConflictHandler){
+      $('.check-conflict').show();
+      $.get('@url(repository)/compare/' + from + '...' + to + '/mergecheck',
+        function(data){ $('.check-conflict').html(data); });
+    }
+
+    @if(members.isEmpty){
+      checkConflict(
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')),
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'))
+      );
+    } else {
+      checkConflict(
+        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('name')) + ":" +
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')),
+        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) + ":" +
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'))
+      );
+    }
+  }
 });
 </script>
