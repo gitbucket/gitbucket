@@ -37,7 +37,7 @@ trait WebHookService {
     import org.apache.http.impl.client.DefaultHttpClient
     import scala.concurrent._
     import ExecutionContext.Implicits.global
-    logger.trace("start callWebHook")
+    logger.debug("start callWebHook")
     implicit val formats = Serialization.formats(NoTypeHints)
 
     val webHookURLs = getWebHookURLs(owner, repository)
@@ -48,7 +48,7 @@ trait WebHookService {
 
       webHookURLs.foreach { webHookUrl =>
         val f = future {
-          logger.trace("start web hook invocation for %s", webHookUrl)
+          logger.debug("start web hook invocation for %s", webHookUrl)
           val httpPost = new HttpPost(webHookUrl.url)
 
           val params: java.util.List[NameValuePair] = new java.util.ArrayList()
@@ -57,7 +57,7 @@ trait WebHookService {
 
           httpClient.execute(httpPost)
           httpPost.releaseConnection()
-          logger.trace("end web hook invocation for %s", webHookUrl)
+          logger.debug("end web hook invocation for %s", webHookUrl)
         }
         f.onSuccess {
           case s => logger.debug(s"Success: web hook request to ${webHookUrl.url}")
@@ -67,7 +67,7 @@ trait WebHookService {
         }
       }
     }
-    logger.trace("end callWebHook")
+    logger.debug("end callWebHook")
   }
 
 }
