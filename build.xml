@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="example" default="rename" basedir=".">
+
+  <property name="boot.classes.dir" value="boot_classes"/>
+  <property name="target.dir" value="target"/>
+  <property name="scala.version" value="2.10"/>
+  <property name="gitbucket.version" value="0.0.1"/>
+  <property name="jetty.version" value="8.1.8.v20121106"/>
+  <property name="servlet.version" value="3.0.0.v201112011016"/>
+
+  <target name="clean">
+    <delete dir="${boot.classes.dir}"/>
+  </target>
+
+  <target name="war" depends="clean">
+    <exec command="sbt.bat clean package"/>
+  </target>
+
+  <target name="embed" depends="war">
+    <mkdir dir="${boot.classes.dir}"/>
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/javax.servlet-${servlet.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-continuation-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-http-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-io-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-security-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-server-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-servlet-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-util-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-webapp-${jetty.version}.jar" />
+    <unzip dest="${boot.classes.dir}" src="${target.dir}/webapp/WEB-INF/lib/jetty-xml-${jetty.version}.jar" />
+
+    <zip destfile="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
+         basedir="${boot.classes.dir}"
+         update = "true"
+         includes="javax/**,org/**"/>
+
+    <zip destfile="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
+         basedir="${target.dir}/scala-${scala.version}/classes"
+         update = "true"
+         includes="JettyLauncher.class"/>
+  </target>
+
+  <target name="rename" depends="embed">
+    <rename src="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
+            dest="${target.dir}/scala-${scala.version}/gitbucket.war"/>
+  </target>
+
+</project>
