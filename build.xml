@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<project name="example" default="rename" basedir=".">
+<project name="gitbucket" default="all" basedir=".">
 
   <property name="target.dir" value="target"/>
   <property name="embed.classes.dir" value="${target.dir}/embed-classes"/>
@@ -47,5 +47,9 @@
     <rename src="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
             dest="${target.dir}/scala-${scala.version}/gitbucket.war"/>
   </target>
+
+  <target name="all" depends="rename">
+  </target>
+
 
 </project>
