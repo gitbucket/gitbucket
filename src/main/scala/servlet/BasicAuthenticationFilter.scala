@@ -28,8 +28,8 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
 
     try {
-      defining(request.paths.toSeq){ case (repositoryOwner :: repositoryName :: _) =>
-        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
+      defining(request.paths){ case Array(_, repositoryOwner, repositoryName, _*) =>
+        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", ""), "") match {
           case Some(repository) => {
             if(!request.getRequestURI.endsWith("/git-receive-pack") &&
               !"service=git-receive-pack".equals(request.getQueryString) && !repository.repository.isPrivate){
@@ -47,7 +47,10 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
               }
             }
           }
-          case None => response.sendError(HttpServletResponse.SC_NOT_FOUND)
+          case None => {
+            logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+          }
         }
       }
     } catch {

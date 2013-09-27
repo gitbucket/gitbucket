@@ -45,7 +45,7 @@ object Implicits {
 
   implicit class RichRequest(request: HttpServletRequest){
 
-    def paths: Array[String] = request.getRequestURI.substring(request.getContextPath.length).split("/")
+    def paths: Array[String] = request.getRequestURI.substring(request.getContextPath.length + 1).split("/")
 
     def hasQueryString: Boolean = request.getQueryString != null
 
