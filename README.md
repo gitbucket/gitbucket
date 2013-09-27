@@ -42,7 +42,7 @@ The default administrator account is **root** and password is **root**.
 - --port=[NUMBER]
 - --prefix=[CONTEXTPATH]
 
-To upgrade GitBucket, only replace gitbucket.war.
+To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
 Release Notes
 --------
