@@ -37,7 +37,7 @@ Installation
 
 The default administrator account is **root** and password is **root**.
 
-or you can start GitBucket by ```java -jar gitbucket.war``` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
+(Since 1.6) or you can start GitBucket by ```java -jar gitbucket.war``` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
 
 - --port=[NUMBER]
 - --prefix=[CONTEXTPATH]
