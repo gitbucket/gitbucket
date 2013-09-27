@@ -9,13 +9,19 @@
   <property name="jetty.version" value="8.1.8.v20121106"/>
   <property name="servlet.version" value="3.0.0.v201112011016"/>
 
+  <condition property="sbt.exec" value="sbt.bat" else="sbt.sh">
+    <os family="windows" />
+  </condition>
+
   <target name="clean">
     <delete dir="${embed.classes.dir}"/>
     <delete file="${target.dir}/scala-${scala.version}/gitbucket.war"/>
   </target>
 
   <target name="war" depends="clean">
-    <exec command="sbt.bat clean package"/>
+    <exec executable="${sbt.exec}" resolveexecutable="true">
+      <arg line="clean package" />
+    </exec>
   </target>
 
   <target name="embed" depends="war">
