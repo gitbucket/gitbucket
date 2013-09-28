@@ -65,6 +65,8 @@ class Mailer(private val smtp: Smtp) extends Notifier {
 
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
       (msg: String => String)(implicit context: Context) = {
+    val database = Database(context.request.getServletContext)
+
     val f = future {
       val email = new HtmlEmail
       email.setHostName(smtp.host)
@@ -79,7 +81,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       email.setHtmlMsg(msg(view.Markdown.toHtml(content, r, false, true)))
 
       // TODO Can we use the Database Session in other than Transaction Filter?
-      Database(context.request.getServletContext) withSession {
+      database withSession {
         getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
           email.setSubject(s"[${r.name}] ${issue.title} (#${issueId})")
           recipients(issue) {
