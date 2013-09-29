@@ -50,6 +50,8 @@ Release Notes
 - Web hook.
 - Performance improvement for pull request.
 - Executable war file.
+- Specify suitable Content-Type for downloaded files in the repository viewer.
+- Fixed some bugs.
 
 ### 1.5 - 4 Sep 2013
 - Fork and pull request.
