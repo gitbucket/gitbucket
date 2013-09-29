@@ -40,6 +40,10 @@ object FileUtil {
     }
   }
 
+  def getFileName(path: String): String = defining(path.lastIndexOf('/')){ i =>
+    if(i >= 0) path.substring(i + 1) else path
+  }
+
   def getExtension(name: String): String =
     name.lastIndexOf('.') match {
       case i if(i >= 0) => name.substring(i + 1)
