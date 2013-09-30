@@ -46,7 +46,7 @@ To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored i
 
 Release Notes
 --------
-### 1.6 - COMMING SOON!
+### 1.6 - 1 Oct 2013
 - Web hook
 - Performance improvement for pull request
 - Executable war file
