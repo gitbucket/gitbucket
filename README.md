@@ -87,7 +87,7 @@ Release Notes
 ### 1.2 - 09 Jul 2013
 - Add activity timeline
 - Bugfix for Git 1.8.1.5 or later
-- Allows multi-byte characters as label
+- Allow multi-byte characters as label
 - Fix some bugs
 
 ### 1.1 - 05 Jul 2013
