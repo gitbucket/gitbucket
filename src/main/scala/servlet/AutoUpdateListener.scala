@@ -125,11 +125,13 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
         defining(getCurrentVersion()){ currentVersion =>
           if(currentVersion == headVersion){
             logger.debug("No update")
+          } else if(!versions.contains(currentVersion)){
+            logger.warn(s"Skip migration because ${currentVersion.versionString} is illegal version.")
           } else {
             versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
             FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
             conn.commit()
-            logger.debug("Updated from " + currentVersion.versionString + " to " + headVersion.versionString)
+            logger.debug(s"Updated from ${currentVersion.versionString} to ${headVersion.versionString}")
           }
         }
       } catch {
