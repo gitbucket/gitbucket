@@ -46,53 +46,53 @@ To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored i
 
 Release Notes
 --------
-### 1.6 - COMMING SOON!
-- Web hook.
-- Performance improvement for pull request.
-- Executable war file.
-- Specify suitable Content-Type for downloaded files in the repository viewer.
-- Fixed some bugs.
+### 1.6 - 1 Oct 2013
+- Web hook
+- Performance improvement for pull request
+- Executable war file
+- Specify suitable Content-Type for downloaded files in the repository viewer
+- Fix some bugs
 
 ### 1.5 - 4 Sep 2013
-- Fork and pull request.
-- LDAP authentication.
-- Mail notification.
-- Add an option to turn off the gravatar support.
-- Add the branch tab in the repository viewer.
-- Encoding auto detection for the file content in the repository viewer.
-- Add favicon, header logo and icons for the timeline.
-- Specify data directory via environment variable GITBUCKET_HOME.
-- Fixed some bugs.
+- Fork and pull request
+- LDAP authentication
+- Mail notification
+- Add an option to turn off the gravatar support
+- Add the branch tab in the repository viewer
+- Encoding auto detection for the file content in the repository viewer
+- Add favicon, header logo and icons for the timeline
+- Specify data directory via environment variable GITBUCKET_HOME
+- Fix some bugs
 
 ### 1.4 - 31 Jul 2013
-- Group management.
-- Repository search for code and issues.
-- Display user related issues on the dashboard.
-- Display participants avatar of issues on the issue page.
-- Performance improvement for repository viewer.
-- Alert by milestone due date.
-- H2 database administration console.
-- Fixed some bugs.
+- Group management
+- Repository search for code and issues
+- Display user related issues on the dashboard
+- Display participants avatar of issues on the issue page
+- Performance improvement for repository viewer
+- Alert by milestone due date
+- H2 database administration console
+- Fix some bugs
 
 ### 1.3 - 18 Jul 2013
-- Batch updating for issues.
-- Display assigned user on issue list.
-- User icon and Gravatar support.
-- Convert @xxxx to link to the account page.
-- Add copy to clipboard button for git clone URL.
-- Allows multi-byte characters as wiki page name.
-- Allows to create the empty repository.
-- Fixed some bugs.
+- Batch updating for issues
+- Display assigned user on issue list
+- User icon and Gravatar support
+- Convert @xxxx to link to the account page
+- Add copy to clipboard button for git clone URL
+- Allow multi-byte characters as wiki page name
+- Allow to create the empty repository
+- Fix some bugs
 
 ### 1.2 - 09 Jul 2013
-- Added activity timeline.
-- Bugfix for Git 1.8.1.5 or later.
-- Allows multi-byte characters as label.
-- Fixed some bugs.
+- Add activity timeline
+- Bugfix for Git 1.8.1.5 or later
+- Allow multi-byte characters as label
+- Fix some bugs
 
 ### 1.1 - 05 Jul 2013
-- Fixed some bugs.
-- Upgrade to JGit 3.0.
+- Fix some bugs
+- Upgrade to JGit 3.0
 
 ### 1.0 - 04 Jul 2013
-- This is a first public release.
+- This is a first public release
