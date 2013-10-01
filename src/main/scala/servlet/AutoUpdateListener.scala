@@ -1,9 +1,9 @@
 package servlet
 
 import java.io.File
-import java.sql.Connection
+import java.sql.{DriverManager, Connection}
 import org.apache.commons.io.FileUtils
-import javax.servlet.ServletContextEvent
+import javax.servlet.{ServletContext, ServletContextListener, ServletContextEvent}
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import util.Directory._
@@ -108,19 +108,17 @@ object AutoUpdate {
 }
 
 /**
- * Start H2 database and update schema automatically.
+ * Update database schema automatically in the context initializing.
  */
-class AutoUpdateListener extends org.h2.server.web.DbStarter {
+class AutoUpdateListener extends ServletContextListener {
   import AutoUpdate._
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
     event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome}")
-    super.contextInitialized(event)
-    logger.debug("H2 started")
-    
+
     logger.debug("Start schema update")
-    defining(getConnection()){ conn =>
+    defining(getConnection(event.getServletContext)){ conn =>
       try {
         defining(getCurrentVersion()){ currentVersion =>
           if(currentVersion == headVersion){
@@ -144,5 +142,15 @@ class AutoUpdateListener extends org.h2.server.web.DbStarter {
     }
     logger.debug("End schema update")
   }
-  
+
+  def contextDestroyed(sce: ServletContextEvent): Unit = {
+    // Nothing to do.
+  }
+
+  private def getConnection(servletContext: ServletContext): Connection =
+    DriverManager.getConnection(
+      servletContext.getInitParameter("db.url"),
+      servletContext.getInitParameter("db.user"),
+      servletContext.getInitParameter("db.password"))
+
 }
