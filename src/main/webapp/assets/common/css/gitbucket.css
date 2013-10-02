@@ -426,7 +426,7 @@ pre.commit-description {
 #repository-url {
   background-color: white;
   cursor: default;
-  width: 350px;
+  width: 300px;
 }
 
 ul#commit-file-list {

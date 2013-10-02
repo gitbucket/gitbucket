@@ -11,6 +11,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
+import org.eclipse.jgit.api.errors.RefNotFoundException
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
   with RepositoryService with AccountService with ReferrerAuthenticator
@@ -186,8 +187,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       using(Git.cloneRepository
           .setURI(getRepositoryDir(repository.owner, repository.name).toURI.toString)
           .setDirectory(cloneDir)
+          .setBranch(revision)
           .call){ git =>
-      
+
         // checkout the specified revision
         git.checkout.setName(revision).call
       }
