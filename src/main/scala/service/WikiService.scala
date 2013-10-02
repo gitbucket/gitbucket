@@ -4,8 +4,11 @@ import java.io.File
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
-import util.{Directory, JGitUtil, LockUtil}
+import util.{StringUtil, Directory, JGitUtil, LockUtil}
 import util.ControlUtil._
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import org.eclipse.jgit.diff.DiffFormatter
+import org.eclipse.jgit.api.errors.PatchApplyException
 
 object WikiService {
   
@@ -89,7 +92,53 @@ trait WikiService {
         .sortBy(x => x)
     }
   }
-  
+
+  /**
+   * Reverts specified changes.
+   */
+  def revertWikiPage(owner: String, repository: String, from: String, to: String,
+                     committer: model.Account, pageName: Option[String]): Boolean = {
+    LockUtil.lock(s"${owner}/${repository}/wiki"){
+      using(Git.open(Directory.getWikiWorkDir(owner, repository))){ git =>
+        val reader = git.getRepository.newObjectReader
+        val oldTreeIter = new CanonicalTreeParser
+        oldTreeIter.reset(reader, git.getRepository.resolve(from + "^{tree}"))
+
+        val newTreeIter = new CanonicalTreeParser
+        newTreeIter.reset(reader, git.getRepository.resolve(to + "^{tree}"))
+
+        import scala.collection.JavaConverters._
+        val diffs = git.diff.setNewTree(oldTreeIter).setOldTree(newTreeIter).call.asScala.filter { diff =>
+          pageName match {
+            case Some(x) => diff.getNewPath == x + ".md"
+            case None    => true
+          }
+        }
+
+        val patch = using(new java.io.ByteArrayOutputStream()){ out =>
+          val formatter = new DiffFormatter(out)
+          formatter.setRepository(git.getRepository)
+          formatter.format(diffs.asJava)
+          new String(out.toByteArray, "UTF-8")
+        }
+
+        try {
+          git.apply.setPatch(new java.io.ByteArrayInputStream(patch.getBytes("UTF-8"))).call
+          git.add.addFilepattern(".").call
+          git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(pageName match {
+            case Some(x) => s"Revert ${from} ... ${to} on ${x}"
+            case None    => s"Revert ${from} ... ${to}"
+          }).call
+          git.push.call
+          true
+        } catch {
+          case ex: PatchApplyException => false
+        }
+      }
+    }
+  }
+
+
   /**
    * Save the wiki page.
    */

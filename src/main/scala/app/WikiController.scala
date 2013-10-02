@@ -6,12 +6,14 @@ import util.Directory._
 import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.errors.PatchApplyException
+import org.scalatra.FlashMapSupport
 
 class WikiController extends WikiControllerBase 
   with WikiService with RepositoryService with AccountService with ActivityService
   with CollaboratorsAuthenticator with ReferrerAuthenticator
 
-trait WikiControllerBase extends ControllerBase {
+trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   self: WikiService with RepositoryService with ActivityService
     with CollaboratorsAuthenticator with ReferrerAuthenticator =>
 
@@ -58,21 +60,48 @@ trait WikiControllerBase extends ControllerBase {
   
   get("/:owner/:repository/wiki/:page/_compare/:commitId")(referrersOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
-    val commitId = params("commitId").split("\\.\\.\\.")
 
-    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      wiki.html.compare(Some(pageName), JGitUtil.getDiffs(git, commitId(0), commitId(1), true), repository)
+    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
+      using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
+        wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true), repository,
+          hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+      }
     }
   })
   
   get("/:owner/:repository/wiki/_compare/:commitId")(referrersOnly { repository =>
-    val commitId   = params("commitId").split("\\.\\.\\.")
-
-    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      wiki.html.compare(None, JGitUtil.getDiffs(git, commitId(0), commitId(1), true), repository)
+    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
+      using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
+        wiki.html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true), repository,
+          hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+      }
     }
   })
-  
+
+  get("/:owner/:repository/wiki/:page/_revert/:commitId")(collaboratorsOnly { repository =>
+    val pageName = StringUtil.urlDecode(params("page"))
+
+    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
+      if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))){
+        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
+      } else {
+        flash += "info" -> "This patch was not able to be reversed."
+        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}")
+      }
+    }
+  })
+
+  get("/:owner/:repository/wiki/_revert/:commitId")(collaboratorsOnly { repository =>
+    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
+      if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)){
+        redirect(s"/${repository.owner}/${repository.name}/wiki/}")
+      } else {
+        flash += "info" -> "This patch was not able to be reversed."
+        redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
+      }
+    }
+  })
+
   get("/:owner/:repository/wiki/:page/_edit")(collaboratorsOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
     wiki.html.edit(pageName, getWikiPage(repository.owner, repository.name, pageName), repository)
