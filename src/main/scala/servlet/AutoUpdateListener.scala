@@ -115,6 +115,7 @@ class AutoUpdateListener extends ServletContextListener {
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
+    org.h2.Driver.load()
     event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome}")
 
     logger.debug("Start schema update")
