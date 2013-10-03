@@ -108,15 +108,14 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   })
   
   post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { (form, repository) =>
-    val loginAccount = context.loginAccount.get
-    
-    saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-                 form.content, loginAccount, form.message.getOrElse("")).map { commitId =>
-      updateLastActivityDate(repository.owner, repository.name)
-      recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+    defining(context.loginAccount.get){ loginAccount =>
+      saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
+        form.content, loginAccount, form.message.getOrElse("")).map { commitId =>
+        updateLastActivityDate(repository.owner, repository.name)
+        recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+      }
+      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
     }
-
-    redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
   })
   
   get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
@@ -124,25 +123,26 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   })
   
   post("/:owner/:repository/wiki/_new", newForm)(collaboratorsOnly { (form, repository) =>
-    val loginAccount = context.loginAccount.get
-    
-    saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-        form.content, context.loginAccount.get, form.message.getOrElse(""))
-    
-    updateLastActivityDate(repository.owner, repository.name)
-    recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+    defining(context.loginAccount.get){ loginAccount =>
+      saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
+          form.content, loginAccount, form.message.getOrElse(""))
 
-    redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+      updateLastActivityDate(repository.owner, repository.name)
+      recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+
+      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+    }
   })
   
   get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
-    val account  = context.loginAccount.get
-    
-    deleteWikiPage(repository.owner, repository.name, pageName, account.userName, account.mailAddress, s"Delete ${pageName}")
-    updateLastActivityDate(repository.owner, repository.name)
 
-    redirect(s"/${repository.owner}/${repository.name}/wiki")
+    defining(context.loginAccount.get){ loginAccount =>
+      deleteWikiPage(repository.owner, repository.name, pageName, loginAccount.userName, loginAccount.mailAddress, s"Destroyed ${pageName}")
+      updateLastActivityDate(repository.owner, repository.name)
+
+      redirect(s"/${repository.owner}/${repository.name}/wiki")
+    }
   })
   
   get("/:owner/:repository/wiki/_pages")(referrersOnly { repository =>

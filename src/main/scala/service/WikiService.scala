@@ -153,6 +153,9 @@ trait WikiService {
         // write as file
         using(Git.open(workDir)){ git =>
           defining(new File(workDir, newPageName + ".md")){ file =>
+            val created = !file.exists
+
+            // created or updated
             val added = executeIf(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
               FileUtils.writeStringToFile(file, content, "UTF-8")
               git.add.addFilepattern(file.getName).call
@@ -165,7 +168,18 @@ trait WikiService {
 
             // commit and push
             optionIf(added || deleted){
-              defining(git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(message).call){ commit =>
+              defining(git.commit.setCommitter(committer.userName, committer.mailAddress)
+                .setMessage(if(message.trim.length == 0){
+                    if(deleted){
+                      s"Rename ${currentPageName} to ${newPageName}"
+                    } else if(created){
+                      s"Created ${newPageName}"
+                    } else {
+                      s"Updated ${newPageName}"
+                    }
+                  } else {
+                    message
+                  }).call){ commit =>
                 git.push.call
                 Some(commit.getName)
               }
@@ -193,7 +207,7 @@ trait WikiService {
           git.rm.addFilepattern(pageName + ".md").call
 
           // commit and push
-          git.commit.setAuthor(committer, mailAddress).setMessage(message).call
+          git.commit.setCommitter(committer, mailAddress).setMessage(message).call
           git.push.call
         }
       }
