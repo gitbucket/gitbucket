@@ -19,8 +19,9 @@ object WikiService {
    * @param content the page content
    * @param committer the last committer
    * @param time the last modified time
+   * @param id the latest commit id
    */
-  case class WikiPageInfo(name: String, content: String, committer: String, time: Date)
+  case class WikiPageInfo(name: String, content: String, committer: String, time: Date, id: String)
   
   /**
    * The model for wiki page history.
@@ -43,7 +44,7 @@ trait WikiService {
         if(!dir.exists){
           try {
             JGitUtil.initRepository(dir)
-            saveWikiPage(owner, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", loginAccount, "Initial Commit")
+            saveWikiPage(owner, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", loginAccount, "Initial Commit", None)
           } finally {
             // once delete cloned repository because initial cloned repository does not have 'branch.master.merge'
             FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner, repository))
@@ -59,7 +60,7 @@ trait WikiService {
     using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       optionIf(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
-          WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time)
+          WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time, file.commitId)
         }
       }
     }
@@ -148,7 +149,7 @@ trait WikiService {
    * Save the wiki page.
    */
   def saveWikiPage(owner: String, repository: String, currentPageName: String, newPageName: String,
-      content: String, committer: model.Account, message: String): Option[String] = {
+      content: String, committer: model.Account, message: String, currentId: Option[String]): Option[String] = {
 
     LockUtil.lock(s"${owner}/${repository}/wiki"){
       defining(Directory.getWikiWorkDir(owner, repository)){ workDir =>
@@ -158,6 +159,7 @@ trait WikiService {
         // write as file
         using(Git.open(workDir)){ git =>
           defining(new File(workDir, newPageName + ".md")){ file =>
+            // new page
             val created = !file.exists
 
             // created or updated

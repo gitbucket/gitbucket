@@ -1,13 +1,14 @@
 package app
 
 import service._
-import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, JGitUtil, StringUtil}
+import util._
 import util.Directory._
 import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.errors.PatchApplyException
 import org.scalatra.FlashMapSupport
+import service.WikiService.WikiPageInfo
+import scala.Some
 
 class WikiController extends WikiControllerBase 
   with WikiService with RepositoryService with AccountService with ActivityService
@@ -17,20 +18,22 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   self: WikiService with RepositoryService with ActivityService
     with CollaboratorsAuthenticator with ReferrerAuthenticator =>
 
-  case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String)
+  case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
   
   val newForm = mapping(
-    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pagename, unique))),
-    "content"         -> trim(label("Content"            , text(required))),
-    "message"         -> trim(label("Message"            , optional(text()))),
-    "currentPageName" -> trim(label("Current page name"  , text()))
+    "pageName"        -> trim(label("Page name"         , text(required, maxlength(40), pagename, unique))),
+    "content"         -> trim(label("Content"           , text(required, conflictForNew))),
+    "message"         -> trim(label("Message"           , optional(text()))),
+    "currentPageName" -> trim(label("Current page name" , text())),
+    "id"              -> trim(label("Latest commit id"  , text()))
   )(WikiPageEditForm.apply)
   
   val editForm = mapping(
-    "pageName"        -> trim(label("Page name"          , text(required, maxlength(40), pagename))),
-    "content"         -> trim(label("Content"            , text(required))),
-    "message"         -> trim(label("Message"            , optional(text()))),
-    "currentPageName" -> trim(label("Current page name"  , text(required)))
+    "pageName"        -> trim(label("Page name"         , text(required, maxlength(40), pagename))),
+    "content"         -> trim(label("Content"           , text(required, conflictForEdit))),
+    "message"         -> trim(label("Message"           , optional(text()))),
+    "currentPageName" -> trim(label("Current page name" , text(required))),
+    "id"              -> trim(label("Latest commit id"  , text(required)))
   )(WikiPageEditForm.apply)
   
   get("/:owner/:repository/wiki")(referrersOnly { repository =>
@@ -60,45 +63,43 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   
   get("/:owner/:repository/wiki/:page/_compare/:commitId")(referrersOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
+    val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
-    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
-      using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-        wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true), repository,
-          hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
-      }
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
+      wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true), repository,
+        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
     }
   })
   
   get("/:owner/:repository/wiki/_compare/:commitId")(referrersOnly { repository =>
-    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
-      using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-        wiki.html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true), repository,
-          hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
-      }
+    val Array(from, to) = params("commitId").split("\\.\\.\\.")
+
+    using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
+      wiki.html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true), repository,
+        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
     }
   })
 
   get("/:owner/:repository/wiki/:page/_revert/:commitId")(collaboratorsOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
+    val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
-    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
-      if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))){
-        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
-      } else {
-        flash += "info" -> "This patch was not able to be reversed."
-        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}")
-      }
+    if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))){
+      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
+    } else {
+      flash += "info" -> "This patch was not able to be reversed."
+      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}")
     }
   })
 
   get("/:owner/:repository/wiki/_revert/:commitId")(collaboratorsOnly { repository =>
-    defining(params("commitId").split("\\.\\.\\.")){ case Array(from, to) =>
-      if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)){
-        redirect(s"/${repository.owner}/${repository.name}/wiki/}")
-      } else {
-        flash += "info" -> "This patch was not able to be reversed."
-        redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
-      }
+    val Array(from, to) = params("commitId").split("\\.\\.\\.")
+
+    if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)){
+      redirect(s"/${repository.owner}/${repository.name}/wiki/}")
+    } else {
+      flash += "info" -> "This patch was not able to be reversed."
+      redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
     }
   })
 
@@ -110,7 +111,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { (form, repository) =>
     defining(context.loginAccount.get){ loginAccount =>
       saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-        form.content, loginAccount, form.message.getOrElse("")).map { commitId =>
+          form.content, loginAccount, form.message.getOrElse(""), Some(form.id)).map { commitId =>
         updateLastActivityDate(repository.owner, repository.name)
         recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
       }
@@ -125,7 +126,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   post("/:owner/:repository/wiki/_new", newForm)(collaboratorsOnly { (form, repository) =>
     defining(context.loginAccount.get){ loginAccount =>
       saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-          form.content, loginAccount, form.message.getOrElse(""))
+          form.content, loginAccount, form.message.getOrElse(""), None)
 
       updateLastActivityDate(repository.owner, repository.name)
       recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
@@ -160,9 +161,16 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   })
 
   get("/:owner/:repository/wiki/_blob/*")(referrersOnly { repository =>
-    getFileContent(repository.owner, repository.name, multiParams("splat").head).map { content =>
-      contentType = "application/octet-stream"
-      content
+    val path = multiParams("splat").head
+
+    getFileContent(repository.owner, repository.name, path).map { bytes =>
+      val mimeType = FileUtil.getMimeType(path)
+      contentType = if(mimeType == "application/octet-stream" && FileUtil.isText(bytes)){
+        "text/plain"
+      } else {
+        mimeType
+      }
+      bytes
     } getOrElse NotFound
   })
 
@@ -182,5 +190,22 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
       }
   }
 
+  private def conflictForNew: Constraint = new Constraint(){
+    override def validate(name: String, value: String): Option[String] = {
+      optionIf(targetWikiPage.nonEmpty){
+        Some("Someone has created the wiki since you started. Please reload this page and re-apply your changes.")
+      }
+    }
+  }
+
+  private def conflictForEdit: Constraint = new Constraint(){
+    override def validate(name: String, value: String): Option[String] = {
+      optionIf(targetWikiPage.map(_.id != params("id")).getOrElse(true)){
+        Some("Someone has edited the wiki since you started. Please reload this page and re-apply your changes.")
+      }
+    }
+  }
+
+  private def targetWikiPage = getWikiPage(params("owner"), params("repository"), params("pageName"))
 
 }

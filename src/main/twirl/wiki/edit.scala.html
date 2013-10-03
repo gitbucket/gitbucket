@@ -26,6 +26,7 @@
     @helper.html.preview(repository, page.map(_.content).getOrElse(""), true, false, "width: 900px; height: 400px;", "")
     <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
     <input type="hidden" name="currentPageName" value="@pageName"/>
+    <input type="hidden" name="id" value="@page.map(_.id)"/>
     <input type="submit" value="Save" class="btn btn-success">
   </form>
 }
