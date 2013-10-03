@@ -94,17 +94,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
       if(raw){
         // Download
-        val mimeType = FileUtil.getMimeType(path)
-        val bytes = JGitUtil.getContent(git, objectId, false).get
-
-        contentType = if(mimeType == "application/octet-stream" && FileUtil.isText(bytes)){
-          "text/plain"
-        } else {
-          mimeType
+        defining(JGitUtil.getContent(git, objectId, false).get){ bytes =>
+          contentType = FileUtil.getContentType(path, bytes)
+          bytes
         }
-        //response.setHeader("Content-Disposition", s"inline; filename=${FileUtil.getFileName(path)}")
-        bytes
-
       } else {
         // Viewer
         val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)

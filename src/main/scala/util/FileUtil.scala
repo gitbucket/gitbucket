@@ -16,6 +16,16 @@ object FileUtil {
       }
     }
 
+  def getContentType(name: String, bytes: Array[Byte]): String = {
+    defining(getMimeType(name)){ mimeType =>
+      if(mimeType == "application/octet-stream" && isText(bytes)){
+        "text/plain"
+      } else {
+        mimeType
+      }
+    }
+  }
+
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
   
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)

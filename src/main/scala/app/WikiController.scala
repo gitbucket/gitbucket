@@ -164,12 +164,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
     val path = multiParams("splat").head
 
     getFileContent(repository.owner, repository.name, path).map { bytes =>
-      val mimeType = FileUtil.getMimeType(path)
-      contentType = if(mimeType == "application/octet-stream" && FileUtil.isText(bytes)){
-        "text/plain"
-      } else {
-        mimeType
-      }
+      contentType = FileUtil.getContentType(path, bytes)
       bytes
     } getOrElse NotFound
   })
