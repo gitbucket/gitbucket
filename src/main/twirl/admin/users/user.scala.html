@@ -6,7 +6,7 @@
       <div class="row-fluid">
         <div class="span6">
           <fieldset>
-            <label for="userName" class="strong">Username</label>
+            <label for="userName" class="strong">Username:</label>
             <span id="error-userName" class="error"></span>
             <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
           </fieldset>
@@ -17,27 +17,28 @@
                 @if(account.isDefined){
                   (Input to change password)
                 }
+                :
               </label>
               <span id="error-password" class="error"></span>
               <input type="password" name="password" id="password" value="" autocomplete="off"/>
             </fieldset>
           }
           <fieldset>
-            <label for="mailAddress" class="strong">Mail Address</label>
+            <label for="mailAddress" class="strong">Mail Address:</label>
             <span id="error-mailAddress" class="error"></span>
             <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
           </fieldset>
           <fieldset>
-            <label class="strong">User Type</label>
-            <label for="userType_Normal">
+            <label class="strong">User Type:</label>
+            <label class="radio" for="userType_Normal">
               <input type="radio" name="isAdmin" id="userType_Normal" value="false"@if(account.isEmpty || !account.get.isAdmin){ checked}/> Normal
             </label>
-            <label for="userType_Admin">
+            <label class="radio" for="userType_Admin">
               <input type="radio" name="isAdmin" id="userType_Admin" value="true"@if(account.isDefined && account.get.isAdmin){ checked}/> Administrator
             </label>
           </fieldset>
           <fieldset>
-            <label class="strong">URL (Optional)</label>
+            <label class="strong">URL (Optional):</label>
             <span id="error-url" class="error"></span>
             <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
           </fieldset>

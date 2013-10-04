@@ -8,10 +8,14 @@
   </div>
 </div>
 <div class="head">
-  <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
   @if(repository.repository.isPrivate){
-    <i class="icon-lock"></i>
+      <i class="icon-lock"></i>
   }
+  @if(!repository.repository.isPrivate){
+      <i class="icon-eye-open"></i>
+  }
+  <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+  
   @defining(repository.repository){ x =>
     @if(repository.repository.originRepositoryName.isDefined){
       <div class="forked">
