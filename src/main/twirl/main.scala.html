@@ -46,12 +46,15 @@
                 <span class="header-version">@version.majorVersion.@version.minorVersion</span>
               }
             </a>
+            <div class="nav-collapse collapse pull-left header-menu">
+            @repository.map { repository =>
+              <input type="text" name="query" style="width: 300px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="hidden" name="owner" value="@repository.owner"/>
+              <input type="hidden" name="repository" value="@repository.name"/>
+            }
+            </div>
             <div class="nav-collapse collapse pull-right header-menu">
-              @repository.map { repository =>
-                <input type="text" name="query" style="width: 300px; margin-bottom: 0px;" placeholder="Search this repository"/>
-                <input type="hidden" name="owner" value="@repository.owner"/>
-                <input type="hidden" name="repository" value="@repository.name"/>
-              }
+              
               @if(loginAccount.isDefined){
                 <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
                 <a href="@path/new" class="menu" data-toggle="tooltip" data-placement="bottom" title="Create a new repo"><i class="icon-plus"></i></a>

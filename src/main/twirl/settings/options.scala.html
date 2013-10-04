@@ -10,11 +10,11 @@
         <div class="box-header">Settings</div>
         <div class="box-content">
           <fieldset>
-            <label for="description" class="strong">Description</label>
+            <label for="description" class="strong">Description:</label>
             <input type="text" name="description" id="description" style="width: 600px;" value="@repository.repository.description"/>
           </fieldset>
           <fieldset class="margin">
-            <label for="defaultBranch" class="strong">Default Branch</label>
+            <label for="defaultBranch" class="strong">Default Branch:</label>
             <select name="defaultBranch" id="defaultBranch">
               @repository.branchList.map { branch =>
                 <option value="@branch"@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
@@ -23,7 +23,7 @@
             <span class="error" id="error-defaultBranch"></span>
           </fieldset>
           <fieldset class="margin">
-            <label>
+            <label class="radio">
               <input type="radio" name="isPrivate" value="false"
                 @if(!repository.repository.isPrivate              ){ checked  }
                 @if(repository.repository.parentUserName.isDefined){ disabled }
@@ -35,7 +35,7 @@
             </label>
           </fieldset>
           <fieldset>
-            <label>
+            <label class="radio">
               <input type="radio" name="isPrivate" value="true"
                 @if(repository.repository.isPrivate               ){ checked  }
                 @if(repository.repository.parentUserName.isDefined){ disabled }
@@ -50,7 +50,7 @@
       </div>
       @*
       <div class="box">
-        <div class="box-header">Features</div>
+        <div class="box-header">Features:</div>
         <div class="box-content">
           <dl>
             <dt>

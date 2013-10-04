@@ -18,7 +18,7 @@
         <tr>
           <th class="metal">
             <div class="pull-right">
-              <a href="@path/new" class="btn btn-success btn-mini">New repository</a>
+              <a href="@path/new" class="btn btn-success btn-small">New repository</a>
             </div>
             Your repositories (@userRepositories.size)
           </th>
@@ -30,7 +30,13 @@
         } else {
           @userRepositories.map { repository =>
             <tr>
-              <td>
+              <td class="repo-list-item">
+                @if(repository.repository.isPrivate){
+                  <i class="icon-lock"></i>
+                }
+                @if(!repository.repository.isPrivate){
+                  <i class="icon-eye-open"></i>
+                }
                 @if(repository.owner == loginAccount.get.userName){
                   <a href="@url(repository)"><span class="strong">@repository.name</span></a>
                 } else {
@@ -56,7 +62,13 @@
       } else {
         @recentRepositories.map { repository =>
           <tr>
-            <td>
+            <td class="repo-list-item">
+              @if(repository.repository.isPrivate){
+              <i class="icon-lock"></i>
+              }
+              @if(!repository.repository.isPrivate){
+              <i class="icon-eye-open"></i>
+              }
               <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
             </td>
           </tr>

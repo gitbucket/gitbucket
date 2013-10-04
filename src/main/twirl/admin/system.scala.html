@@ -13,13 +13,13 @@
           <!--====================================================================-->
           <label class="strong">Account registration</label>
           <fieldset>
-            <label>
+            <label class="radio">
               <input type="radio" name="allowAccountRegistration" value="true"@if(settings.allowAccountRegistration){ checked}>
-              <span class="strong">Allow</span> - Users can create account by themselves.
+              <span class="strong">Allow</span> - Users can create accounts by themselves.
             </label>
-            <label>
+            <label class="radio">
               <input type="radio" name="allowAccountRegistration" value="false"@if(!settings.allowAccountRegistration){ checked}>
-              <span class="strong">Deny</span> - Only administrators can create account.
+              <span class="strong">Deny</span> - Only administrators can create accounts.
             </label>
           </fieldset>
           <!--====================================================================-->
@@ -28,9 +28,9 @@
           <hr>
           <label class="strong">Services</label>
           <fieldset>
-            <label>
+            <label class="checkbox">
               <input type="checkbox" name="gravatar"@if(settings.gravatar){ checked}/>
-              Gravatar
+              Use Gravatar for Profile-Images
             </label>
           </fieldset>
           <!--====================================================================-->
@@ -39,7 +39,7 @@
           <hr>
           <label class="strong">Authentication</label>
           <fieldset>
-            <label>
+            <label class="checkbox">
               <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(settings.ldap){ checked}/>
               LDAP
             </label>
@@ -101,7 +101,7 @@
           <hr>
           <label class="strong">Notification email</label>
           <fieldset>
-            <label>
+            <label class="checkbox">
               <input type="checkbox" id="notification" name="notification"@if(settings.notification){ checked}/>
               Send notifications
             </label>
