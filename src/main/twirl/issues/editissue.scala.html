@@ -2,11 +2,13 @@
 @import context._
 <span id="error-edit-title" class="error"></span>
 <input type="text" style="width: 680px;" id="edit-title" value="@title"/>
-<textarea style="width: 680px; height: 100px;" id="edit-content">@content.getOrElse("")</textarea>
+<textarea style="width: 680px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
 <input type="button" class="btn btn-small" value="Update Issue"/>
 <span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
 <script>
 $(function(){
+  $('#edit-content').elastic();
+
   var callback = function(data){
     $('#issueTitle').empty().text(data.title);
     $('#issueContent').empty().html(data.content);
