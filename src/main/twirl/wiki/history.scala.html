@@ -37,8 +37,7 @@
         <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
         <td>@avatar(commit.committer, 20)&nbsp;<a href="@url(commit.committer)">@commit.committer</a></td>
         <td width="80%">
-          <span class="muted">@datetime(commit.time):</span>
-          @commit.shortMessage
+          <span class="muted">@datetime(commit.time):</span>&nbsp;@commit.shortMessage
         </td>
       </tr>
     }

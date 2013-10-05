@@ -1,11 +1,8 @@
-@import url(http://fonts.googleapis.com/css?family=Rambla:400,700,400italic,700italic|Pathway+Gothic+One|Roboto:400,400italic,700italic,700);
-
 /****************************************************************************/
 /* Common */
 /****************************************************************************/
 body {
   color: #333;
-  font-family: 'Roboto', sans-serif;
 }
 
 /* ======================================================================== */
@@ -44,8 +41,6 @@ div.nav-collapse a.menu-last {
 .navbar .brand {
   padding-top: 6px;
   padding-bottom: 6px;
-  font-family: 'Pathway Gothic One', sans-serif;
-  font-size: 27px;
 }
 
 .navbar .brand img {
@@ -86,14 +81,6 @@ div.input-prepend span.add-on {
   -webkit-border-radius: 0 4px 4px 0;
   -moz-border-radius: 0 4px 4px 0;
   border-radius: 0 4px 4px 0;
-}
-
-.head i {
-    margin-top: 6px;
-}
-
-.repo-list-item i {
-    margin-top: 2px;
 }
 
 /*
@@ -228,7 +215,7 @@ div.box-header-small {
 div.box-content {
   background-color: white;
   border: 1px solid #d8d8d8;
-  padding: 12px;
+  padding: 4px;
 }
 
 th.box-header {
@@ -238,7 +225,6 @@ th.box-header {
   background-image: linear-gradient(#fafafa, #e0e0e0);
   background-repeat: repeat-x;
   margin: 0;
-  height: 25px;
   border-top-left-radius: 1px;
   border-top-right-radius: 1px;
   border: 1px solid #d8d8d8;
@@ -253,7 +239,6 @@ th.metal {
   background-image: linear-gradient(#fafafa, #e8e8e8);
   background-repeat: repeat-x;
   margin: 0;
-  padding-left: 10px;
   border-top-left-radius: 1px;
   border-top-right-radius: 1px;
 }
@@ -269,10 +254,6 @@ dd {
 hr {
   margin-top: 4px;
   margin-bottom: 4px;
-}
-
-span.note {
-  margin-left: 20px;
 }
 
 img.avatar {
@@ -321,12 +302,12 @@ span.highlight {
 /* Create Repo */
 /****************************************************************************/
 .slash {
-    font-size: 25px;
+  font-size: 20px;
 }
+
 /****************************************************************************/
 /* Sign-in form */
 /****************************************************************************/
-
 div.signin-form {
   width: 350px;
   margin: 30px auto;
@@ -398,8 +379,6 @@ div.activity-icon-small {
 
 div.activity-content {
   margin-left: 40px;
-  padding-top: 2px;
-  padding-bottom: 2px;
 }
 
 /****************************************************************************/
@@ -426,8 +405,8 @@ table.table-file-list td {
 }
 
 th, td, .table th, .table td {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 div.commit-avatar-image {
@@ -486,7 +465,7 @@ span.issue-status {
   display: block;
   font-size: large;
   text-align: center;
-  padding: 16px;
+  padding: 8px;
 }
 
 table.table-issues {
@@ -508,8 +487,8 @@ ul.label-list {
 
 ul.label-list a {
   padding-left: 6px;
-  padding-top: 7px;
-  padding-bottom: 7px;
+  padding-top: 4px;
+  padding-bottom: 4px;
   margin-bottom: 8px;
   color: #444;
 }
@@ -593,7 +572,7 @@ span.milestone-percentage {
 }
 
 div.issue-header {
-  padding-left: 12px;
+  padding-left: 8px;
   padding-right: 8px;
   padding-top: 12px;
   padding-bottom: 12px;
@@ -603,13 +582,13 @@ div.issue-info {
   border-top: 1px solid #e5e5e5;
   border-bottom: 1px solid #e5e5e5;
   background-color: #f5f5f5;
-  padding: 10px;
+  padding: 8px;
   margin-left: 0px;
   margin-right: 0px;
 }
 
 div.issue-content {
-  padding: 12px;
+  padding: 8px;
   background-color: #fbfbfb;
 }
 

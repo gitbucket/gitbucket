@@ -18,7 +18,7 @@
         <tr>
           <th class="metal">
             <div class="pull-right">
-              <a href="@path/new" class="btn btn-success btn-small">New repository</a>
+              <a href="@path/new" class="btn btn-success btn-mini">New repository</a>
             </div>
             Your repositories (@userRepositories.size)
           </th>
@@ -30,7 +30,7 @@
         } else {
           @userRepositories.map { repository =>
             <tr>
-              <td class="repo-list-item">
+              <td>
                 @if(repository.repository.isPrivate){
                   <i class="icon-lock"></i>
                 }
@@ -62,7 +62,7 @@
       } else {
         @recentRepositories.map { repository =>
           <tr>
-            <td class="repo-list-item">
+            <td>
               @if(repository.repository.isPrivate){
               <i class="icon-lock"></i>
               }
