@@ -97,7 +97,7 @@ $(function(){
     } else {
       $('#label-assigned').html($('<span>')
         .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
-        .append(' well be assigned'));
+        .append(' will be assigned'));
       $('a.assign[data-name=' + userName + '] i').attr('class', 'icon-ok');
     }
     $('input[name=assignedUserName]').val(userName);
