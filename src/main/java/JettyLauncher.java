@@ -1,4 +1,6 @@
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.net.URL;
@@ -6,6 +8,7 @@ import java.security.ProtectionDomain;
 
 public class JettyLauncher {
     public static void main(String[] args) throws Exception {
+        String host = null;
         int port = 8080;
         String contextPath = "/";
 
@@ -13,7 +16,9 @@ public class JettyLauncher {
             if(arg.startsWith("--") && arg.contains("=")){
                 String[] dim = arg.split("=");
                 if(dim.length >= 2){
-                    if(dim[0].equals("--port")){
+                    if(dim[0].equals("--host")){
+                        host = dim[1];
+                    } else if(dim[0].equals("--port")){
                         port = Integer.parseInt(dim[1]);
                     } else if(dim[0].equals("--prefix")){
                         contextPath = dim[1];
@@ -22,9 +27,17 @@ public class JettyLauncher {
             }
         }
 
-        Server server = new Server(port);
-        WebAppContext context  = new WebAppContext();
-        ProtectionDomain domain   = JettyLauncher.class.getProtectionDomain();
+        Server server = new Server();
+
+        Connector connector = new SelectChannelConnector();
+        if(host != null){
+            connector.setHost(host);
+        }
+        connector.setPort(port);
+        server.addConnector(connector);
+
+        WebAppContext context = new WebAppContext();
+        ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
         URL location = domain.getCodeSource().getLocation();
 
         context.setContextPath(contextPath);
