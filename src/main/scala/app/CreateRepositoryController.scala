@@ -94,7 +94,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
             val git = Git.open(tmpdir)
             git.add.addFilepattern("README.md").call
             git.commit
-              .setCommitter(new PersonIdent(loginUserName, loginAccount.mailAddress))
+              .setCommitter(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
               .setMessage("Initial commit").call
             git.push.call
 
