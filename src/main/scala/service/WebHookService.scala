@@ -29,7 +29,7 @@ trait WebHookService {
   def deleteWebHookURL(owner: String, repository: String, url :String): Unit =
     Query(WebHooks).filter(_.byPrimaryKey(owner, repository, url)).delete
 
-  def callWebHook(owner: String, repository: String, payload: WebHookPayload): Unit = {
+  def callWebHook(owner: String, repository: String, webHookURLs: List[WebHook], payload: WebHookPayload): Unit = {
     import org.json4s._
     import org.json4s.jackson.Serialization
     import org.json4s.jackson.Serialization.{read, write}
@@ -40,8 +40,6 @@ trait WebHookService {
 
     logger.debug("start callWebHook")
     implicit val formats = Serialization.formats(NoTypeHints)
-
-    val webHookURLs = getWebHookURLs(owner, repository)
 
     if(webHookURLs.nonEmpty){
       val json = write(payload)

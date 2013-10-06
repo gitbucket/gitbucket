@@ -137,13 +137,16 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
         .setMaxCount(3)
         .call.iterator.asScala.map(new CommitInfo(_))
 
-      callWebHook(repository.owner, repository.name,
-        WebHookPayload(
-          git,
-          "refs/heads/" + repository.repository.defaultBranch,
-          repository,
-          commits.toList,
-          getAccountByUserName(repository.owner).get))
+      val webHookURLs = getWebHookURLs(repository.owner, repository.name)
+      if(webHookURLs.nonEmpty){
+        callWebHook(repository.owner, repository.name, webHookURLs,
+          WebHookPayload(
+            git,
+            "refs/heads/" + repository.repository.defaultBranch,
+            repository,
+            commits.toList,
+            getAccountByUserName(repository.owner).get))
+      }
 
       flash += "info" -> "Test payload deployed!"
     }

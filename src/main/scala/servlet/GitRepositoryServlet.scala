@@ -129,14 +129,17 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         }
 
         // call web hook
-        val payload = WebHookPayload(
-          git,
-          command.getRefName,
-          getRepository(owner, repository, baseURL).get,
-          newCommits,
-          getAccountByUserName(owner).get)
+        val webHookURLs = getWebHookURLs(owner, repository)
+        if(webHookURLs.nonEmpty){
+          val payload = WebHookPayload(
+            git,
+            command.getRefName,
+            getRepository(owner, repository, baseURL).get,
+            newCommits,
+            getAccountByUserName(owner).get)
 
-        callWebHook(owner, repository, payload)
+          callWebHook(owner, repository, webHookURLs, payload)
+        }
       }
     }
     // update repository last modified time.
