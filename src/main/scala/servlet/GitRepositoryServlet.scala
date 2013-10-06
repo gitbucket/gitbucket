@@ -15,6 +15,7 @@ import util.Implicits._
 import service._
 import WebHookService._
 import org.eclipse.jgit.api.Git
+import util.JGitUtil.CommitInfo
 
 /**
  * Provides Git repository via HTTP.
@@ -87,19 +88,26 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         val commits = JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
         val refName = command.getRefName.split("/")
         
-        // apply issue comment
-        val newCommits = commits.flatMap { commit =>
-          if(!existsCommitId(owner, repository, commit.id)){
-            insertCommitId(owner, repository, commit.id)
-            "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
-              val issueId = matchData.group(2)
-              if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
-                createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, "commit")
-              }
+        // Extract new commit and apply issue comment
+        val newCommits = if(commits.size > 1000){
+          val existIds = getAllCommitIds(owner, repository)
+          commits.flatMap { commit =>
+            optionIf(!existIds.contains(commit.id)){
+              createIssueComment(commit)
+              Some(commit)
             }
-            Some(commit)
-          } else None
-        }.toList
+          }
+        } else {
+          commits.flatMap { commit =>
+            optionIf(!existsCommitId(owner, repository, commit.id)){
+              createIssueComment(commit)
+              Some(commit)
+            }
+          }
+        }
+
+        // batch insert all new commit id
+        insertAllCommitIds(owner, repository, newCommits.map(_.id))
         
         // record activity
         if(refName(1) == "heads"){
@@ -132,4 +140,14 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
     // update repository last modified time.
     updateLastActivityDate(owner, repository)
   }
+
+  private def createIssueComment(commit: CommitInfo) = {
+    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
+      val issueId = matchData.group(2)
+      if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
+        createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, "commit")
+      }
+    }
+  }
+
 }
