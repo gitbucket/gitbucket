@@ -12,7 +12,7 @@
       style  = "margin-right: 20px;"
     ){
       @repository.branchList.map { branch =>
-        <li><a href="@url(repository)/@if(active=="commits"){commits} else {tree}/@branch">@helper.html.checkicon(id == branch) @branch</a></li>
+        <li><a href="@url(repository)/@if(active=="commits"){commits} else {tree}/@encodeBranchName(branch)">@helper.html.checkicon(id == branch) @branch</a></li>
       }
     }
   </li>

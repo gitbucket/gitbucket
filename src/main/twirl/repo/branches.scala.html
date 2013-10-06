@@ -16,7 +16,7 @@
     @branchInfo.map { case (branchName, latestUpdateDate) =>
       <tr>
         <td>
-          <a href="@url(repository)/tree/@branchName">@branchName</a>
+          <a href="@url(repository)/tree/@encodeBranchName(branchName)">@branchName</a>
           @*
           <a href="#" class="btn btn-danger btn-mini">Delete branch</a>
           *@
@@ -28,10 +28,10 @@
           @if(repository.repository.defaultBranch == branchName){
             Base branch
           } else {
-            <a href="@url(repository)/compare/@{repository.repository.defaultBranch}...@branchName">to @{repository.repository.defaultBranch}</a>
+            <a href="@url(repository)/compare/@{encodeBranchName(repository.repository.defaultBranch)}...@{encodeBranchName(branchName)}">to @{repository.repository.defaultBranch}</a>
           }
         </td>
-        <td><a href="@url(repository)/archive/@{branchName}.zip">ZIP</a></td>
+        <td><a href="@url(repository)/archive/@{encodeBranchName(branchName)}.zip">ZIP</a></td>
       </tr>
     }
   </table>

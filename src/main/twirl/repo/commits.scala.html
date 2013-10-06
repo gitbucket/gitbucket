@@ -11,16 +11,16 @@
   @tab(branch, repository, if(pathList.isEmpty) "commits" else "files")
   <div class="head">
     @if(pathList.isEmpty){
-      <a href="@url(repository)/tree/@branch">@repository.name</a> / Commit History
+      <a href="@url(repository)/tree/@encodeBranchName(branch)">@repository.name</a> / Commit History
     }
     @if(pathList.nonEmpty){
       <span class="muted">History for</span>
-      <a href="@url(repository)/tree/@branch">@repository.name</a> /
+      <a href="@url(repository)/tree/@encodeBranchName(branch)">@repository.name</a> /
       @pathList.zipWithIndex.map { case (section, i) =>
         @if(i == pathList.length - 1){
           @section
         } else {
-          <a href="@url(repository)/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
+          <a href="@url(repository)/tree/@encodeBranchName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
       }
     }

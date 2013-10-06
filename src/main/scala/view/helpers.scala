@@ -67,6 +67,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       .replaceAll("\\[user:([^\\s]+?)\\]"                        , s"""<a href="${context.path}/$$1">$$1</a>""")
     )
 
+  /**
+   * URL encode except '/'.
+   */
+  def encodeBranchName(value: String): String = StringUtil.urlEncode(value).replace("%2F", "/")
+
   def urlEncode(value: String): String = StringUtil.urlEncode(value)
 
   def urlEncode(value: Option[String]): String = value.map(urlEncode).getOrElse("")

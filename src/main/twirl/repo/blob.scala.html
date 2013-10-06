@@ -9,12 +9,12 @@
   @html.header("code", repository)
   @tab(branch, repository, "files")
   <div class="head">
-    <a href="@url(repository)/tree/@branch">@repository.name</a> /
+    <a href="@url(repository)/tree/@encodeBranchName(branch)">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>
       @if(i == pathList.length - 1){
         @section
       } else {
-        <a href="@url(repository)/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
+        <a href="@url(repository)/tree/@encodeBranchName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
       }
     }
   </div>
@@ -30,7 +30,7 @@
         </div>
         <div class="btn-group pull-right">
           <a class="btn btn-mini" href="?raw=true">Raw</a>
-          <a class="btn btn-mini" href="@url(repository)/commits/@branch/@pathList.mkString("/")">History</a>
+          <a class="btn btn-mini" href="@url(repository)/commits/@encodeBranchName(branch)/@pathList.mkString("/")">History</a>
         </div>  
       </th>
     </tr>

@@ -27,7 +27,7 @@
       }
       @helper.html.dropdown(originId, "base") {
         @originRepository.branchList.map { branch =>
-          <li><a href="#" class="origin-branch" data-name="@branch">@helper.html.checkicon(branch == originId) @branch</a></li>
+          <li><a href="#" class="origin-branch" data-name="@encodeBranchName(branch)">@helper.html.checkicon(branch == originId) @branch</a></li>
         }
       }
       ...
@@ -38,7 +38,7 @@
       }
       @helper.html.dropdown(forkedId, "compare") {
         @forkedRepository.branchList.map { branch =>
-          <li><a href="#" class="forked-branch" data-name="@branch">@helper.html.checkicon(branch == forkedId) @branch</a></li>
+          <li><a href="#" class="forked-branch" data-name="@encodeBranchName(branch)">@helper.html.checkicon(branch == forkedId) @branch</a></li>
         }
       }
     </div>
