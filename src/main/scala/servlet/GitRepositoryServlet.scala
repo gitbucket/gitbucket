@@ -114,7 +114,6 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         if(refName(1) == "heads"){
           command.getType match {
             case ReceiveCommand.Type.CREATE => {
-              println(command.getRefName)
               recordCreateBranchActivity(owner, repository, userName, branchName)
               recordPushActivity(owner, repository, userName, branchName, newCommits)
             }
