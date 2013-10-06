@@ -87,7 +87,8 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
       commands.asScala.foreach { command =>
         val commits = JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
         val refName = command.getRefName.split("/")
-        
+        val branchName = refName.drop(2).mkString("/")
+
         // Extract new commit and apply issue comment
         val newCommits = if(commits.size > 1000){
           val existIds = getAllCommitIds(owner, repository)
@@ -108,20 +109,21 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
 
         // batch insert all new commit id
         insertAllCommitIds(owner, repository, newCommits.map(_.id))
-        
+
         // record activity
         if(refName(1) == "heads"){
           command.getType match {
             case ReceiveCommand.Type.CREATE => {
-              recordCreateBranchActivity(owner, repository, userName, refName(2))
-              recordPushActivity(owner, repository, userName, refName(2), newCommits)
+              println(command.getRefName)
+              recordCreateBranchActivity(owner, repository, userName, branchName)
+              recordPushActivity(owner, repository, userName, branchName, newCommits)
             }
-            case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, userName, refName(2), newCommits)
+            case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, userName, branchName, newCommits)
             case _ =>
           }
         } else if(refName(1) == "tags"){
           command.getType match {
-            case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, userName, refName(2), newCommits)
+            case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, userName, branchName, newCommits)
             case _ =>
           }
         }
