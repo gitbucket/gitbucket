@@ -3,6 +3,10 @@ GitBucket
 
 GitBucket is the easily installable Github clone written with Scala.
 
+## Demo
+[![Launch with Cloudify](http://rantav.github.io/cloudify-widget-pages/img/gh-button.png)](http://rantav.github.io/cloudify-widget-pages/gitbucket.html)
+
+
 The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http access only)
