@@ -61,6 +61,6 @@
   }
   <div class="btn-group">
     <button class="btn" onclick="location.href='?page=@{page - 1}'"@if(page <= 1){ disabled="true"}>&lt; Newer</button>
-    <button class="btn" onclick="location.href='?page=@{page + 1}'"@if(!hasNext){ disabled="true"}>Order &gt;</button>
+    <button class="btn" onclick="location.href='?page=@{page + 1}'"@if(!hasNext){ disabled="true"}>Older &gt;</button>
   </div>   
 }
