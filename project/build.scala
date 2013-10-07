@@ -45,6 +45,7 @@ object MyBuild extends Build {
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar"))
       ),
       EclipseKeys.withSource := true,
+      javacOptions in compile ++= Seq("-target", "6", "-source", "6"),
       packageOptions += Package.MainClass("JettyLauncher")
     ) ++ seq(Twirl.settings: _*)
   )
