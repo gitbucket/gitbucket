@@ -201,13 +201,10 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
-  // TODO It must be _.length instead of map (_.issueId) list).length.
-  //       But it does not work on Slick 1.0.1 (worked on Slick 1.0.0).
-  //       https://github.com/slick/slick/issues/170
   private def getForkedCount(userName: String, repositoryName: String): Int =
-    Query(Repositories).filter { t =>
+    Query(Repositories.filter { t =>
       (t.originUserName is userName.bind) && (t.originRepositoryName is repositoryName.bind)
-    }.list.length
+    }.length).first
 
 
   def getForkedRepositories(userName: String, repositoryName: String): List[String] =

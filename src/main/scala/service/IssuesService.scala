@@ -49,12 +49,8 @@ trait IssuesService {
    * @return the count of the search result
    */
   def countIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
-                 repos: (String, String)*): Int = {
-    // TODO It must be _.length instead of map (_.issueId) list).length.
-    //       But it does not work on Slick 1.0.1 (worked on Slick 1.0.0).
-    //       https://github.com/slick/slick/issues/170
-    (searchIssueQuery(repos, condition, filterUser, onlyPullRequest) map (_.issueId) list).length
-  }
+                 repos: (String, String)*): Int =
+    Query(searchIssueQuery(repos, condition, filterUser, onlyPullRequest).length).first
   /**
    * Returns the Map which contains issue count for each labels.
    *
