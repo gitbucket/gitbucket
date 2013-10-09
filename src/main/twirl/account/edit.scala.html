@@ -32,6 +32,11 @@
           </fieldset>
         }
         <fieldset>
+          <label for="fullName" class="strong">Full Name:</label>
+          <input type="text" name="fullName" id="fullName" value="@account.map(_.fullName)"/>
+          <span id="error-fullName" class="error"></span>
+        </fieldset>
+        <fieldset>
           <label for="mailAddress" class="strong">Mail Address:</label>
           <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
           <span id="error-mailAddress" class="error"></span>

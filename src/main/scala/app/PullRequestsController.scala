@@ -138,7 +138,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               + form.message)
 
             git.commit
-              .setCommitter(new PersonIdent(loginAccount.userName, loginAccount.mailAddress))
+              .setCommitter(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
               .call
 
             // push

@@ -139,7 +139,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
     val pageName = StringUtil.urlDecode(params("page"))
 
     defining(context.loginAccount.get){ loginAccount =>
-      deleteWikiPage(repository.owner, repository.name, pageName, loginAccount.userName, loginAccount.mailAddress, s"Destroyed ${pageName}")
+      deleteWikiPage(repository.owner, repository.name, pageName, loginAccount.fullName, loginAccount.mailAddress, s"Destroyed ${pageName}")
       updateLastActivityDate(repository.owner, repository.name)
 
       redirect(s"/${repository.owner}/${repository.name}/wiki")
