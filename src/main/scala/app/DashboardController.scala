@@ -87,10 +87,6 @@ trait DashboardControllerBase extends ControllerBase {
     val counts = countIssueGroupByRepository(
       IssueSearchCondition().copy(state = condition.state), Map.empty, true, repositories: _*)
 
-    getRepositoryNamesOfUser(userName).map { repoName =>
-      (userName, repoName, counts.collectFirst { case (_, repoName, count) => count })
-    }
-
     dashboard.html.pulls(
       pulls.html.listparts(
         searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, repositories: _*),
