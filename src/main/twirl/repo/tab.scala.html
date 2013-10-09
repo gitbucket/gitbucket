@@ -12,13 +12,13 @@
       style  = "margin-right: 20px;"
     ){
       @repository.branchList.map { branch =>
-        <li><a href="@url(repository)/@if(active=="commits"){commits} else {tree}/@encodeBranchName(branch)">@helper.html.checkicon(id == branch) @branch</a></li>
+        <li><a href="@url(repository)/@if(active=="commits"){commits} else {tree}/@encodeRefName(branch)">@helper.html.checkicon(id == branch) @branch</a></li>
       }
     }
   </li>
   }
-  <li@if(active=="files"   ){ class="active"}><a href="@url(repository)/tree/@encodeBranchName(id)">Files</a></li>
-  <li@if(active=="commits" ){ class="active"}><a href="@url(repository)/commits/@encodeBranchName(id)">Commits</a></li>
+  <li@if(active=="files"   ){ class="active"}><a href="@url(repository)/tree/@encodeRefName(id)">Files</a></li>
+  <li@if(active=="commits" ){ class="active"}><a href="@url(repository)/commits/@encodeRefName(id)">Commits</a></li>
   <li@if(active=="branches"){ class="active"}><a href="@url(repository)/branches">Branches@if(repository.branchList.length > 0){ <span class="badge">@repository.branchList.length</span>}</a></li>
   <li@if(active=="tags"    ){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
   <li class="pull-right">
@@ -28,7 +28,7 @@
   </li>
   <li class="pull-right" style="margin-right: 8px;">
     <div class="pull-right">
-      <a href="@{url(repository)}/archive/@{encodeBranchName(id)}.zip" class="btn"><i class="icon-download-alt"></i>ZIP</a>
+      <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn"><i class="icon-download-alt"></i>ZIP</a>
     </div>
   </li>
 </ul>

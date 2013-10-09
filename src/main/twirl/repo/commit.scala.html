@@ -26,7 +26,7 @@
             <span class="muted">
               <img src="@assets/common/images/branch.png"/>
               @branches.zipWithIndex.map { case (branch, i) =>
-                <a href="@url(repository)/tree/@encodeBranchName(branch)" class="branch" id="branch-@i">@branch</a>
+                <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
               }
             </span>
           }

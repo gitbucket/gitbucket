@@ -12,12 +12,12 @@
   <div class="head">
     <div class="pull-right">
       @defining(repository.commitCount){ commitCount =>
-        <a href="@url(repository)/commits/@encodeBranchName(branch)">@if(commitCount > 1000){ @commitCount+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
+        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 1000){ @commitCount+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
       }
     </div>
-    <a href="@url(repository)/tree/@encodeBranchName(branch)">@repository.name</a> /
+    <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>
-      <a href="@url(repository)/tree/@encodeBranchName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+      <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
     }
   </div>
   <div class="box">
@@ -46,7 +46,7 @@
       @if(pathList.size > 0){
       <tr>
         <td width="16"></td>
-        <td><a href="@url(repository)@if(pathList.size > 1){/tree/@encodeBranchName(branch)/@pathList.init.mkString("/")}">..</a></td>
+        <td><a href="@url(repository)@if(pathList.size > 1){/tree/@encodeRefName(branch)/@pathList.init.mkString("/")}">..</a></td>
         <td></td>
         <td></td>
       </tr>
@@ -62,9 +62,9 @@
         </td>
         <td>
         @if(file.isDirectory){
-          <a href="@url(repository)/tree@{(encodeBranchName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+          <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
         } else {
-          <a href="@url(repository)/blob@{(encodeBranchName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+          <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
         }
         </td>
         <td>@datetime(file.time)</td>
