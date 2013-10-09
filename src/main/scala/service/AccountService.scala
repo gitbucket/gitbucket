@@ -9,8 +9,11 @@ import model.GroupMember
 import scala.Some
 import model.Account
 import util.LDAPUtil
+import org.slf4j.LoggerFactory
 
 trait AccountService {
+
+  private val logger = LoggerFactory.getLogger(classOf[AccountService])
 
   def authenticate(settings: SystemSettings, userName: String, password: String): Option[Account] =
     if(settings.ldapAuthentication){
@@ -41,7 +44,10 @@ trait AccountService {
         }
         getAccountByUserName(userName)
       }
-      case Left(errorMessage) => defaultAuthentication(userName, password)
+      case Left(errorMessage) => {
+        logger.info(s"LDAP Authentication Failed: ${errorMessage}")
+        defaultAuthentication(userName, password)
+      }
     }
   }
 
