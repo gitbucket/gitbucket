@@ -39,7 +39,8 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "fullNameAttribute"        -> trim(label("Full name attribute", optional(text()))),
         "mailAttribute"            -> trim(label("Mail address attribute", text(required))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
-        "keystore"                 -> trim(label("Keystore", optional(text())))
+        "keystore"                 -> trim(label("Keystore", optional(text()))),
+        "httpSsoHeader"            -> trim(label("HTTP Single Sign-On header", optional(text())))
     )(Ldap.apply))
   )(SystemSettings.apply).verifying { settings =>
     if(settings.ssh && settings.baseUrl.isEmpty){
