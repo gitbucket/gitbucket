@@ -453,10 +453,11 @@ object JGitUtil {
   def getDefaultBranch(git: Git, repository: RepositoryService.RepositoryInfo,
                        revstr: String = ""): Option[(ObjectId, String)] = {
     Seq(
-      if(revstr.isEmpty) repository.repository.defaultBranch else revstr,
-      repository.branchList.head
-    ).map { rev =>
-      (git.getRepository.resolve(rev), rev)
+      Some(if(revstr.isEmpty) repository.repository.defaultBranch else revstr),
+      repository.branchList.headOption
+    ).flatMap {
+      case Some(rev) => Some((git.getRepository.resolve(rev), rev))
+      case None      => None
     }.find(_._1 != null)
   }
 
