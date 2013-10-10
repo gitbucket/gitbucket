@@ -10,7 +10,7 @@
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Pull Requests - " + repository.owner + "/" + repository.name){
+@html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("pulls", repository)
   <div class="row-fluid">
     <div class="span3">
