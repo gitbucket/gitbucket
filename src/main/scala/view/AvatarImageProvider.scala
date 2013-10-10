@@ -15,13 +15,13 @@ trait AvatarImageProvider { self: RequestCache =>
 
     val src = getAccountByUserName(userName).map { account =>
       if(account.image.isEmpty && getSystemSettings().gravatar){
-        s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
+        s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase())}?s=${size}"""
       } else {
         s"""${context.path}/${userName}/_avatar"""
       }
     } getOrElse {
       if(mailAddress.nonEmpty && getSystemSettings().gravatar){
-        s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress)}?s=${size}"""
+        s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress.toLowerCase())}?s=${size}"""
       } else {
         s"""${context.path}/${userName}/_avatar"""
       }
