@@ -60,4 +60,14 @@ object FileUtil {
       case _ => ""
     }
 
+  def withTmpDir[A](dir: File)(action: File => A): A = {
+    if(dir.exists()){
+      FileUtils.deleteDirectory(dir)
+    }
+    try{
+      action(dir)
+    }finally{
+      FileUtils.deleteDirectory(dir)
+    }
+  }
 }
