@@ -44,6 +44,8 @@ The default administrator account is **root** and password is **root**.
 
 To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
+For Installation on Windows Server with IIS see [this wiki page](https://github.com/takezoe/gitbucket/wiki/Installation-on-windows-server-with-iis-and-helicontech-zoo)
+
 Release Notes
 --------
 ### 1.6 - 1 Oct 2013
