@@ -18,6 +18,8 @@ trait SystemSettingsService {
           smtp.user.foreach(props.setProperty(SmtpUser, _))
           smtp.password.foreach(props.setProperty(SmtpPassword, _))
           smtp.ssl.foreach(x => props.setProperty(SmtpSsl, x.toString))
+          smtp.fromAddress.foreach(props.setProperty(SmtpFromAddress, _))
+          smtp.fromName.foreach(props.setProperty(SmtpFromName, _))
         }
       }
       props.setProperty(LdapAuthentication, settings.ldapAuthentication.toString)
@@ -52,7 +54,9 @@ trait SystemSettingsService {
             getOptionValue(props, SmtpPort, Some(DefaultSmtpPort)),
             getOptionValue(props, SmtpUser, None),
             getOptionValue(props, SmtpPassword, None),
-            getOptionValue[Boolean](props, SmtpSsl, None)))
+            getOptionValue[Boolean](props, SmtpSsl, None),
+            getOptionValue(props, SmtpFromAddress, None),
+            getOptionValue(props, SmtpFromName, None)))
         } else {
           None
         },
@@ -100,7 +104,9 @@ object SystemSettingsService {
     port: Option[Int],
     user: Option[String],
     password: Option[String],
-    ssl: Option[Boolean])
+    ssl: Option[Boolean],
+    fromAddress: Option[String],
+    fromName: Option[String])
 
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
@@ -113,6 +119,8 @@ object SystemSettingsService {
   private val SmtpUser = "smtp.user"
   private val SmtpPassword = "smtp.password"
   private val SmtpSsl = "smtp.ssl"
+  private val SmtpFromAddress = "smtp.from_address"
+  private val SmtpFromName = "smtp.from_name"
   private val LdapAuthentication = "ldap_authentication"
   private val LdapHost = "ldap.host"
   private val LdapPort = "ldap.port"

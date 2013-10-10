@@ -77,7 +77,12 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       smtp.ssl.foreach { ssl =>
         email.setSSLOnConnect(ssl)
       }
-      email.setFrom("notifications@gitbucket.com", context.loginAccount.get.userName)
+      smtp.fromAddress
+        .map (_ -> smtp.fromName.orNull)
+        .orElse (Some("notifications@gitbucket.com" -> context.loginAccount.get.userName))
+        .foreach { case (address, name) =>
+        email.setFrom(address, name)
+      }
       email.setHtmlMsg(msg(view.Markdown.toHtml(content, r, false, true)))
 
       // TODO Can we use the Database Session in other than Transaction Filter?
