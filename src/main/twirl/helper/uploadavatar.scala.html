@@ -15,6 +15,7 @@
   </label>
 }
 <input type="hidden" name="fileId" value=""/>
+@if(account.isEmpty || account.get.image.isEmpty){
 <script>
 $(function(){
   var dropzone = new Dropzone('div#clickable', {
@@ -32,6 +33,7 @@ $(function(){
   });
 });
 </script>
+}
 <style type="text/css">
 div.dz-filename, div.dz-size, div.dz-progress, div.dz-success-mark, div.dz-error-mark, div.dz-error-message {
   display: none;
