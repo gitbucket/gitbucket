@@ -63,7 +63,9 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
-    defining(repository.owner, repository.name, params("id").toInt){ case (owner, name, issueId) =>
+    params("id").toIntOpt.flatMap{ issueId =>
+      val owner = repository.owner
+      val name = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
         using(Git.open(getRepositoryDir(owner, name))){ git =>
           val (commits, diffs) =
@@ -71,7 +73,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
           pulls.html.pullreq(
             issue, pullreq,
-            getComments(owner, name, issueId.toInt),
+            getComments(owner, name, issueId),
             (getCollaborators(owner, name) :+ owner).sorted,
             getMilestonesWithIssueCount(owner, name),
             commits,
@@ -79,23 +81,27 @@ trait PullRequestsControllerBase extends ControllerBase {
             hasWritePermission(owner, name, context.loginAccount),
             repository)
         }
-      } getOrElse NotFound
-    }
+      }
+    } getOrElse NotFound
   })
 
   ajaxGet("/:owner/:repository/pull/:id/mergeguide")(collaboratorsOnly { repository =>
-    defining(repository.owner, repository.name, params("id").toInt){ case (owner, name, issueId) =>
+    params("id").toIntOpt.flatMap{ issueId =>
+      val owner = repository.owner
+      val name = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
         pulls.html.mergeguide(
           checkConflict(owner, name, pullreq.branch, owner, name, pullreq.requestBranch),
           pullreq,
           s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
-      } getOrElse NotFound()
-    }
+      }
+    } getOrElse NotFound
   })
 
   post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
-    defining(repository.owner, repository.name, params("id").toInt){ case (owner, name, issueId) =>
+    params("id").toIntOpt.flatMap{ issueId =>
+      val owner = repository.owner
+      val name = repository.name
       LockUtil.lock(s"${owner}/${name}/merge"){
         getPullRequest(owner, name, issueId).map { case (issue, pullreq) =>
           val remote = getRepositoryDir(owner, name)
@@ -160,9 +166,9 @@ trait PullRequestsControllerBase extends ControllerBase {
               redirect(s"/${owner}/${name}/pull/${issueId}")
             }
           }
-        } getOrElse NotFound
+        }
       }
-    }
+    } getOrElse NotFound
   })
 
   get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
