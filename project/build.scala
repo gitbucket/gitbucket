@@ -42,10 +42,12 @@ object MyBuild extends Build {
         "com.h2database" % "h2" % "1.3.171",
         "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
-        "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar"))
+        "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar")),
+        "junit" % "junit" % "4.11" % "test"
       ),
       EclipseKeys.withSource := true,
       javacOptions in compile ++= Seq("-target", "6", "-source", "6"),
+      testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),
       packageOptions += Package.MainClass("JettyLauncher")
     ) ++ seq(Twirl.settings: _*)
   )
