@@ -20,7 +20,7 @@
 
   <target name="war" depends="clean">
     <exec executable="${sbt.exec}" resolveexecutable="true">
-      <arg line="clean package" />
+      <arg line="clean compile test package" />
     </exec>
   </target>
 
