@@ -48,7 +48,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   )(EditUserForm.apply)
 
   val newGroupForm = mapping(
-    "groupName"   -> trim(label("Group name"   , text(required, maxlength(100), identifier))),
+    "groupName"   -> trim(label("Group name"   , text(required, maxlength(100), identifier, uniqueUserName))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "memberNames" -> trim(label("Member Names" , optional(text())))
