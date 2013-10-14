@@ -17,7 +17,7 @@
       </span>
     } else {
       @avatar(repository.repository.originUserName.get, 20)
-      <span@if(repository.owner == repository.repository.originUserName){ class="highlight"}>
+      <span class="highlight">
         @repository.repository.originUserName / @repository.repository.originRepositoryName
       </span>
     }
