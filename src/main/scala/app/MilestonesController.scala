@@ -4,6 +4,7 @@ import jp.sf.amateras.scalatra.forms._
 
 import service._
 import util.{CollaboratorsAuthenticator, ReferrerAuthenticator}
+import util.Implicits._
 
 class MilestonesController extends MilestonesControllerBase
   with MilestonesService with RepositoryService with AccountService
@@ -39,34 +40,44 @@ trait MilestonesControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/edit")(collaboratorsOnly { repository =>
-    issues.milestones.html.edit(getMilestone(repository.owner, repository.name, params("milestoneId").toInt), repository)
+    params("milestoneId").toIntOpt.map{ milestoneId =>
+      issues.milestones.html.edit(getMilestone(repository.owner, repository.name, milestoneId), repository)
+    } getOrElse NotFound
   })
 
   post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(collaboratorsOnly { (form, repository) =>
-    getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
-      updateMilestone(milestone.copy(title = form.title, description = form.description, dueDate = form.dueDate))
-      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+    params("milestoneId").toIntOpt.flatMap{ milestoneId =>
+      getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
+        updateMilestone(milestone.copy(title = form.title, description = form.description, dueDate = form.dueDate))
+        redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+      }
     } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/close")(collaboratorsOnly { repository =>
-    getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
-      closeMilestone(milestone)
-      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+    params("milestoneId").toIntOpt.flatMap{ milestoneId =>
+      getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
+        closeMilestone(milestone)
+        redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+      }
     } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/open")(collaboratorsOnly { repository =>
-    getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
-      openMilestone(milestone)
-      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+    params("milestoneId").toIntOpt.flatMap{ milestoneId =>
+      getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
+        openMilestone(milestone)
+        redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+      }
     } getOrElse NotFound
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/delete")(collaboratorsOnly { repository =>
-    getMilestone(repository.owner, repository.name, params("milestoneId").toInt).map { milestone =>
-      deleteMilestone(repository.owner, repository.name, milestone.milestoneId)
-      redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+    params("milestoneId").toIntOpt.flatMap{ milestoneId =>
+      getMilestone(repository.owner, repository.name, milestoneId).map { milestone =>
+        deleteMilestone(repository.owner, repository.name, milestone.milestoneId)
+        redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
+      }
     } getOrElse NotFound
   })
 

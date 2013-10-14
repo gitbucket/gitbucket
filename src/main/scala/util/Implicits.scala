@@ -41,6 +41,12 @@ object Implicits {
       }
       sb.toString
     }
+
+    def toIntOpt: Option[Int] = try {
+      Option(Integer.parseInt(value))
+    } catch {
+      case e: NumberFormatException => None
+    }
   }
 
   implicit class RichRequest(request: HttpServletRequest){

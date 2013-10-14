@@ -228,13 +228,13 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issues/batchedit/label")(collaboratorsOnly { repository =>
-    defining(params("value").toInt){ labelId =>
+    params("value").toIntOpt.map{ labelId =>
       executeBatch(repository) { issueId =>
         getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
           registerIssueLabel(repository.owner, repository.name, issueId, labelId)
         }
       }
-    }
+    } getOrElse NotFound
   })
 
   post("/:owner/:repository/issues/batchedit/assign")(collaboratorsOnly { repository =>
@@ -254,7 +254,7 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
-  val milestoneId      = (key: String) => params.get(key) collect { case x if x.trim != "" => x.toInt }
+  val milestoneId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: app.Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName

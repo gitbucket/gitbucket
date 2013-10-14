@@ -350,10 +350,10 @@ object IssuesService {
     def apply(request: HttpServletRequest): IssueSearchCondition =
       IssueSearchCondition(
         param(request, "labels").map(_.split(" ").toSet).getOrElse(Set.empty),
-        param(request, "milestone").map(_ match {
+        param(request, "milestone").map{
           case "none" => None
-          case x      => Some(x.toInt)
-        }),
+          case x      => x.toIntOpt
+        },
         param(request, "for"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
