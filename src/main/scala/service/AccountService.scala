@@ -40,7 +40,7 @@ trait AccountService {
         // Create or update account by LDAP information
         getAccountByUserName(userName) match {
           case Some(x) => updateAccount(x.copy(mailAddress = mailAddress))
-          case None    => createAccount(userName, "", mailAddress, false, None)
+          case None    => createAccount(userName, "", userName, mailAddress, false, None)
         }
         getAccountByUserName(userName)
       }
@@ -59,10 +59,11 @@ trait AccountService {
 
   def getAllUsers(): List[Account] = Query(Accounts) sortBy(_.userName) list
     
-  def createAccount(userName: String, password: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit =
+  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit =
     Accounts insert Account(
       userName       = userName,
       password       = password,
+      fullName       = fullName,
       mailAddress    = mailAddress,
       isAdmin        = isAdmin,
       url            = url,
@@ -75,9 +76,10 @@ trait AccountService {
   def updateAccount(account: Account): Unit = 
     Accounts
       .filter { a => a.userName is account.userName.bind }
-      .map    { a => a.password ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? }
+      .map    { a => a.password ~ a.fullName ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? }
       .update (
         account.password, 
+        account.fullName, 
         account.mailAddress, 
         account.isAdmin,
         account.url,
@@ -95,6 +97,7 @@ trait AccountService {
     Accounts insert Account(
       userName       = groupName,
       password       = "",
+      fullName       = groupName,
       mailAddress    = groupName + "@devnull",
       isAdmin        = false,
       url            = url,
