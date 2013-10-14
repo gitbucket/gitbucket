@@ -25,6 +25,7 @@ object MyBuild extends Build {
         Classpaths.typesafeReleases,
         "amateras-repo" at "http://amateras.sourceforge.jp/mvn/"
       ),
+      scalacOptions := Seq("-deprecation"),
       libraryDependencies ++= Seq(
         "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.0.0.201306101825-r",
         "org.scalatra" %% "scalatra" % ScalatraVersion,
