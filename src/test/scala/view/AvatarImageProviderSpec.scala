@@ -66,6 +66,7 @@ class AvatarImageProviderSpec extends Specification {
   private def createAccount(image: Option[String]) =
     Account(
       userName       = "",
+      fullName       = "",
       mailAddress    = "",
       password       = "",
       isAdmin        = false,
