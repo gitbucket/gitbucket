@@ -56,7 +56,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/commits/*")(referrersOnly { repository =>
     val (branchName, path) = splitPath(repository, multiParams("splat").head)
-    val page = params.getOrElse("page", "1").toInt
+    val page = params.get("page").flatMap(_.toIntOpt).getOrElse(1)
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
