@@ -33,7 +33,7 @@ trait AvatarImageProvider { self: RequestCache =>
           s"""${context.path}/${account.userName}/_avatar"""
         }
       } getOrElse {
-        if(mailAddress.nonEmpty && getSystemSettings().gravatar){
+        if(getSystemSettings().gravatar){
           s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress.toLowerCase)}?s=${size}"""
         } else {
           s"""${context.path}/_unknown/_avatar"""

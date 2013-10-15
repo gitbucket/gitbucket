@@ -41,32 +41,32 @@ class AvatarImageProviderSpec extends Specification {
         "<img src=\"http://www.gravatar.com/avatar/4712f9b0e63f56ad952ad387eaa23b9c?s=20\" class=\"avatar\" style=\"width: 20px; height: 20px;\" />"
     }
 
-    "show local image for unknown user if gravatar integration is enabled" in {
+    "show unknown image for unknown user if gravatar integration is enabled" in {
       val provider = new AvatarImageProviderImpl(None, createSystemSettings(true))
 
       provider.toHtml("user", 20).toString mustEqual
-        "<img src=\"/user/_avatar\" class=\"avatar\" style=\"width: 20px; height: 20px;\" />"
+        "<img src=\"/_unknown/_avatar\" class=\"avatar\" style=\"width: 20px; height: 20px;\" />"
     }
 
-    "show local image for specified mail address if gravatar integration is disabled" in {
+    "show unknown image for specified mail address if gravatar integration is disabled" in {
       val provider = new AvatarImageProviderImpl(None, createSystemSettings(false))
 
       provider.toHtml("user", 20, "hoge@hoge.com").toString mustEqual
-        "<img src=\"/user/_avatar\" class=\"avatar\" style=\"width: 20px; height: 20px;\" />"
+        "<img src=\"/_unknown/_avatar\" class=\"avatar\" style=\"width: 20px; height: 20px;\" />"
     }
 
     "add tooltip if it's enabled" in {
       val provider = new AvatarImageProviderImpl(None, createSystemSettings(false))
 
       provider.toHtml("user", 20, "hoge@hoge.com", true).toString mustEqual
-        "<img src=\"/user/_avatar\" class=\"avatar\" style=\"width: 20px; height: 20px;\" data-toggle=\"tooltip\" title=\"user\"/>"
+        "<img src=\"/_unknown/_avatar\" class=\"avatar\" style=\"width: 20px; height: 20px;\" data-toggle=\"tooltip\" title=\"user\"/>"
     }
   }
 
   private def createAccount(image: Option[String]) =
     Account(
-      userName       = "",
-      fullName       = "",
+      userName       = "user",
+      fullName       = "user@localhost",
       mailAddress    = "",
       password       = "",
       isAdmin        = false,
@@ -95,6 +95,7 @@ class AvatarImageProviderSpec extends Specification {
     def toHtml(userName: String, size: Int,  mailAddress: String = "", tooltip: Boolean = false)
               (implicit context: app.Context): Html = getAvatarImageHtml(userName, size, mailAddress, tooltip)
 
+    override def getAccountByMailAddress(mailAddress: String)(implicit context: app.Context): Option[Account] = account
     override def getAccountByUserName(userName: String)(implicit context: app.Context): Option[Account] = account
     override def getSystemSettings()(implicit context: app.Context): SystemSettings = settings
   }
