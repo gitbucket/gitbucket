@@ -3,7 +3,7 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("History - " + repository.owner + "/" + repository.name){
+@html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("wiki", repository)
   @tab(if(pageName.isEmpty) "history" else "", repository)
   <ul class="nav nav-tabs">
@@ -35,10 +35,9 @@
     @commits.map { commit =>
       <tr>
         <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
-        <td>@avatar(commit.committer, 20)<a href="@url(commit.committer)">@commit.committer</a></td>
+        <td>@avatar(commit.committer, 20)&nbsp;<a href="@url(commit.committer)">@commit.committer</a></td>
         <td width="80%">
-          <span class="muted">@datetime(commit.time):</span>
-          @commit.shortMessage
+          <span class="muted">@datetime(commit.time):</span>&nbsp;@commit.shortMessage
         </td>
       </tr>
     }

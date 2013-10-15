@@ -1,7 +1,7 @@
 @(milestone: Option[model.Milestone], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Milestones - " + repository.owner + "/" + repository.name){
+@html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @html.header("milestones", repository)
   @issues.html.tab("milestones", repository)
   <form method="POST" action="@url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true">
@@ -11,12 +11,12 @@
       <span id="error-title" class="error"></span>
     </fieldset>
     <fieldset>
-      <label for="description"><strong>Description</strong></label>
+      <label for="description" class="strong">Description</label>
       <textarea id="description" name="description" style="width: 500px; height: 150px;">@milestone.map(_.description)</textarea>
       <span id="error-description" class="error"></span>
     </fieldset>
     <fieldset>
-      <label for="dueDate"><strong>Due Date</strong></label>
+      <label for="dueDate" class="strong">Due Date</label>
       @helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
       <span id="error-dueDate" class="error"></span>
     </fieldset>

@@ -4,8 +4,8 @@
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Milestones - " + repository.owner + "/" + repository.name){
-  @html.header("milestones", repository)
+@html.main(s"Milestones - ${repository.owner}/${repository.name}"){
+  @html.header("issues", repository)
   @issues.html.tab("milestones", repository)
   <div class="row-fluid">
     <div class="span3">
@@ -42,9 +42,13 @@
                   @if(milestone.closedDate.isDefined){
                     <span class="muted">Closed @datetime(milestone.closedDate.get)</span>
                   } else {
-                    @if(milestone.dueDate.isDefined){
-                      <span class="muted">Due in @date(milestone.dueDate.get)</span>
-                    } else {
+                    @milestone.dueDate.map { dueDate =>
+                      @if(isPast(dueDate)){
+                        <img src="@assets/common/images/alert.png"/><span class="muted milestone-alert">Due in @date(dueDate)</span>
+                      } else {
+                        <span class="muted">Due in @date(dueDate)</span>
+                      }
+                    }.getOrElse {
                       <span class="muted">No due date</span>
                     }
                   }
@@ -65,18 +69,7 @@
                     </div>
                     <span class="muted">@closedCount closed - @openCount open</span>
                   </div>
-                  <div class="milestone-progress">
-                    @if(closedCount > 0){
-                      <span class="milestone-progress" style="width: @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%;"></span>
-                    }
-                    <span class="milestone-percentage">
-                    @if(closedCount == 0){
-                      0%
-                    } else {
-                      @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%
-                    }
-                    </span>
-                  </div>
+                  @progress(openCount + closedCount, closedCount, true)
                 </div>
               </div>
               @if(milestone.description.isDefined){

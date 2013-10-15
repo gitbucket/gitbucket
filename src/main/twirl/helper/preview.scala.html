@@ -1,5 +1,5 @@
 @(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean, enableRefsLink: Boolean,
-  style: String = "", placeholder: String = "Leave a comment")(implicit context: app.Context)
+  style: String = "", placeholder: String = "Leave a comment", elastic: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 <div class="tabbable">
@@ -27,6 +27,10 @@
 <script src="@assets/google-code-prettify/prettify.js"></script>
 <script>
 $(function(){
+  @if(elastic){
+    $('#content').elastic();
+  }
+
   $('#preview').click(function(){
     $('#preview-area').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
     $.post('@url(repository)/_preview', {

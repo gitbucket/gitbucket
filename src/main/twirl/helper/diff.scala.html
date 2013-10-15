@@ -1,7 +1,39 @@
-@(diffs: Seq[util.JGitUtil.DiffInfo], repository: service.RepositoryService.RepositoryInfo, commitId: Option[String])(implicit context: app.Context)
+@(diffs: Seq[util.JGitUtil.DiffInfo],
+ repository: service.RepositoryService.RepositoryInfo,
+ newCommitId: Option[String],
+ oldCommitId: Option[String],
+ showIndex: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
+@if(showIndex){
+  <div>
+    <div class="pull-right" style="margin-bottom: 10px;">
+      <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
+    </div>
+    Showing @diffs.size changed @plural(diffs.size, "file")
+  </div>
+  <ul id="commit-file-list" style="display: none;">
+  @diffs.zipWithIndex.map { case (diff, i) =>
+    <li@if(i > 0){ class="border"}>
+      <a href="#diff-@i">
+        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.ADD){
+          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.MODIFY){
+          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+        }
+      </a>
+    </li>
+    }
+  </ul>
+}
 @diffs.zipWithIndex.map { case (diff, i) =>
   <a name="diff-@i"></a>
   <table class="table table-bordered">
@@ -9,17 +41,27 @@
       <th style="font-weight: normal;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @diff.oldPath -> @diff.newPath
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
+            </div>
+          }
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @diff.newPath
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
+            </div>
+          }
         }
         @if(diff.changeType == ChangeType.DELETE){
           @diff.oldPath
-        }
-        @if(commitId.isDefined){
-          <div class="pull-right align-right">
-            <a href="@url(repository)/blob/@commitId.get/@diff.newPath" class="btn btn-small">View file @@ @commitId.get.substring(0, 10)</a>
-          </div>
+          @if(oldCommitId.isDefined){
+            <div class="pull-right align-right">
+              <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-small">View file @@ @oldCommitId.get.substring(0, 10)</a>
+            </div>
+          }
         }
       </th>
     </tr>
@@ -90,6 +132,17 @@ function diffUsingJS(oldTextId, newTextId, outputId) {
 }
 
 $(function(){
+  @if(showIndex){
+    $('#toggle-file-list').click(function(){
+      $('#commit-file-list').toggle();
+      if($(this).val() == 'Show file list'){
+        $(this).val('Hide file list');
+      } else {
+        $(this).val('Show file list');
+      }
+    });
+  }
+
   @diffs.zipWithIndex.map { case (diff, i) =>
     @if(diff.newContent != None || diff.oldContent != None){
       if($('#oldText-@i').length > 0){

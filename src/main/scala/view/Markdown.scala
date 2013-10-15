@@ -1,12 +1,14 @@
 package view
 
 import util.StringUtil
+import util.ControlUtil._
+import util.Directory._
 import org.parboiled.common.StringUtils
 import org.pegdown._
 import org.pegdown.ast._
 import org.pegdown.LinkRenderer.Rendering
 import scala.collection.JavaConverters._
-import service.RequestCache
+import service.{RequestCache, WikiService}
 
 object Markdown {
 
@@ -29,7 +31,7 @@ object Markdown {
 }
 
 class GitBucketLinkRender(context: app.Context, repository: service.RepositoryService.RepositoryInfo,
-                          enableWikiLink: Boolean) extends LinkRenderer {
+                          enableWikiLink: Boolean) extends LinkRenderer with WikiService {
   override def render(node: WikiLinkNode): Rendering = {
     if(enableWikiLink){
       try {
@@ -40,8 +42,14 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
         } else {
           (text, text)
         }
+
         val url = repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/" + StringUtil.urlEncode(page)
-        new Rendering(url, label)
+
+        if(getWikiPage(repository.owner, repository.name, page).isDefined){
+          new Rendering(url, label)
+        } else {
+          new Rendering(url, label).withAttribute("class", "absent")
+        }
       } catch {
         case e: java.io.UnsupportedEncodingException => throw new IllegalStateException
       }
@@ -52,7 +60,7 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
 }
 
 class GitBucketVerbatimSerializer extends VerbatimSerializer {
-  def serialize(node: VerbatimNode, printer: Printer) {
+  def serialize(node: VerbatimNode, printer: Printer): Unit = {
     printer.println.print("<pre")
     if (!StringUtils.isEmpty(node.getType)) {
       printer.print(" class=").print('"').print("prettyprint ").print(node.getType).print('"')
@@ -98,11 +106,11 @@ class GitBucketHtmlSerializer(
     }
   }
 
-  private def printAttribute(name: String, value: String) {
+  private def printAttribute(name: String, value: String): Unit = {
     printer.print(' ').print(name).print('=').print('"').print(value).print('"')
   }
 
-  override def visit(node: TextNode) {
+  override def visit(node: TextNode): Unit =  {
     // convert commit id and username to link.
     val text = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
 

@@ -2,7 +2,8 @@ package app
 
 import util.Directory._
 import util.Implicits._
-import _root_.util.{ReferrerAuthenticator, JGitUtil, FileUtil}
+import util.ControlUtil._
+import _root_.util.{ReferrerAuthenticator, JGitUtil, FileUtil, StringUtil}
 import service._
 import org.scalatra._
 import java.io.File
@@ -10,6 +11,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
+import org.eclipse.jgit.api.errors.RefNotFoundException
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
   with RepositoryService with AccountService with ReferrerAuthenticator
@@ -38,48 +40,28 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
   
   /**
-   * Displays the file list of the repository root and the specified branch.
-   */
-  get("/:owner/:repository/tree/:id")(referrersOnly {
-    fileList(_, params("id"))
-  })
-  
-  /**
    * Displays the file list of the specified path and branch.
    */
-  get("/:owner/:repository/tree/:id/*")(referrersOnly {
-    fileList(_, params("id"), multiParams("splat").head)
-  })
-  
-  /**
-   * Displays the commit list of the specified branch.
-   */
-  get("/:owner/:repository/commits/:branch")(referrersOnly { repository =>
-    val branchName = params("branch")
-    val page       = params.getOrElse("page", "1").toInt
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-      JGitUtil.getCommitLog(git, branchName, page, 30) match {
-        case Right((logs, hasNext)) =>
-          repo.html.commits(Nil, branchName, repository, logs.splitWith{ (commit1, commit2) =>
-            view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-          }, page, hasNext)
-        case Left(_) => NotFound
-      }
+  get("/:owner/:repository/tree/*")(referrersOnly { repository =>
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+    if(path.isEmpty){
+      fileList(repository, id)
+    } else {
+      fileList(repository, id, path)
     }
   })
   
   /**
    * Displays the commit list of the specified resource.
    */
-  get("/:owner/:repository/commits/:branch/*")(referrersOnly { repository =>
-    val branchName = params("branch")
-    val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
-    val page       = params.getOrElse("page", "1").toInt
+  get("/:owner/:repository/commits/*")(referrersOnly { repository =>
+    val (branchName, path) = splitPath(repository, multiParams("splat").head)
+    val page = params.get("page").flatMap(_.toIntOpt).getOrElse(1)
 
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
         case Right((logs, hasNext)) =>
-          repo.html.commits(path.split("/").toList, branchName, repository,
+          repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
             }, page, hasNext)
@@ -91,12 +73,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file content of the specified branch or commit.
    */
-  get("/:owner/:repository/blob/:id/*")(referrersOnly { repository =>
-    val id         = params("id") // branch name or commit id
-    val raw        = params.get("raw").getOrElse("false").toBoolean
-    val path       = multiParams("splat").head //.replaceFirst("^tree/.+?/", "")
+  get("/:owner/:repository/blob/*")(referrersOnly { repository =>
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+    val raw = params.get("raw").getOrElse("false").toBoolean
 
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
       @scala.annotation.tailrec
@@ -105,19 +86,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         case true => getPathObjectId(path, walk)
       }
 
-      val treeWalk = new TreeWalk(git.getRepository)
-      val objectId = try {
+      val objectId = using(new TreeWalk(git.getRepository)){ treeWalk =>
         treeWalk.addTree(revCommit.getTree)
         treeWalk.setRecursive(true)
         getPathObjectId(path, treeWalk)
-      } finally {
-        treeWalk.release
       }
 
       if(raw){
         // Download
-        contentType = "application/octet-stream"
-        JGitUtil.getContent(git, objectId, false).get
+        defining(JGitUtil.getContent(git, objectId, false).get){ bytes =>
+          contentType = FileUtil.getContentType(path, bytes)
+          bytes
+        }
       } else {
         // Viewer
         val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
@@ -127,7 +107,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val content = if(viewer == "other"){
           if(bytes.isDefined && FileUtil.isText(bytes.get)){
             // text
-            JGitUtil.ContentInfo("text", bytes.map(new String(_, "UTF-8")))
+            JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
           } else {
             // binary
             JGitUtil.ContentInfo("binary", None)
@@ -148,22 +128,39 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/commit/:id")(referrersOnly { repository =>
     val id = params("id")
 
-    JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-
-      repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
-        JGitUtil.getBranchesOfCommit(git, revCommit.getName), JGitUtil.getTagsOfCommit(git, revCommit.getName),
-        repository, JGitUtil.getDiffs(git, id))
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))){ revCommit =>
+        JGitUtil.getDiffs(git, id) match { case (diffs, oldCommitId) =>
+          repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
+            JGitUtil.getBranchesOfCommit(git, revCommit.getName),
+            JGitUtil.getTagsOfCommit(git, revCommit.getName),
+            repository, diffs, oldCommitId)
+        }
+      }
     }
   })
   
+  /**
+   * Displays branches.
+   */
+  get("/:owner/:repository/branches")(referrersOnly { repository =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      // retrieve latest update date of each branch
+      val branchInfo = repository.branchList.map { branchName =>
+        val revCommit = git.log.add(git.getRepository.resolve(branchName)).setMaxCount(1).call.iterator.next
+        (branchName, revCommit.getCommitterIdent.getWhen)
+      }
+      repo.html.branches(branchInfo, repository)
+    }
+  })
+
   /**
    * Displays tags.
    */
   get("/:owner/:repository/tags")(referrersOnly {
     repo.html.tags(_)
   })
-  
+
   /**
    * Download repository contents as an archive.
    */
@@ -180,11 +177,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       
       // clone the repository
       val cloneDir = new File(workDir, revision)
-      JGitUtil.withGit(Git.cloneRepository
+      using(Git.cloneRepository
           .setURI(getRepositoryDir(repository.owner, repository.name).toURI.toString)
           .setDirectory(cloneDir)
+          .setBranch(revision)
           .call){ git =>
-      
+
         // checkout the specified revision
         git.checkout.setName(revision).call
       }
@@ -202,7 +200,29 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       BadRequest
     }
   })
+
+  get("/:owner/:repository/network/members")(referrersOnly { repository =>
+    repo.html.forked(
+      getRepository(
+        repository.repository.originUserName.getOrElse(repository.owner),
+        repository.repository.originRepositoryName.getOrElse(repository.name),
+        baseUrl),
+      getForkedRepositories(
+        repository.repository.originUserName.getOrElse(repository.owner),
+        repository.repository.originRepositoryName.getOrElse(repository.name)),
+      repository)
+  })
   
+  private def splitPath(repository: service.RepositoryService.RepositoryInfo, path: String): (String, String) = {
+    val id = repository.branchList.collectFirst {
+      case branch if(path == branch || path.startsWith(branch + "/")) => branch
+    } orElse repository.tags.collectFirst {
+      case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
+    } orElse Some(path.split("/")(0)) get
+
+    (id, path.substring(id.length).replaceFirst("^/", ""))
+  }
+
   /**
    * Provides HTML of the file list.
    * 
@@ -215,23 +235,23 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     if(repository.commitCount == 0){
       repo.html.guide(repository)
     } else {
-      JGitUtil.withGit(getRepositoryDir(repository.owner, repository.name)){ git =>
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
-        revisions.map { rev => (git.getRepository.resolve(rev), rev)}.find(_._1 != null).map { case (objectId, revision) =>
-          val revCommit = JGitUtil.getRevCommitFromId(git, objectId)
-
+        JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
+          defining(JGitUtil.getRevCommitFromId(git, objectId)){ revCommit =>
           // get files
-          val files = JGitUtil.getFileList(git, revision, path)
-          // process README.md
-          val readme = files.find(_.name == "README.md").map { file =>
-            new String(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get, "UTF-8")
-          }
+            val files = JGitUtil.getFileList(git, revision, path)
+            // process README.md
+            val readme = files.find(_.name == "README.md").map { file =>
+              StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
+            }
 
-          repo.html.files(revision, repository,
-            if(path == ".") Nil else path.split("/").toList, // current path
-            new JGitUtil.CommitInfo(revCommit), // latest commit
-            files, readme)
+            repo.html.files(revision, repository,
+              if(path == ".") Nil else path.split("/").toList, // current path
+              new JGitUtil.CommitInfo(revCommit), // latest commit
+              files, readme)
+          }
         } getOrElse NotFound
       }
     }

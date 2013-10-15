@@ -3,7 +3,6 @@ package servlet
 import javax.servlet._
 import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletRequest
-import scala.slick.session.Database
 
 /**
  * Controls the transaction with the open session in view pattern.
@@ -21,15 +20,19 @@ class TransactionFilter extends Filter {
       // assets don't need transaction
       chain.doFilter(req, res)
     } else {
-      val context = req.getServletContext
-      Database.forURL(context.getInitParameter("db.url"),
-          context.getInitParameter("db.user"),
-          context.getInitParameter("db.password")) withTransaction {
-        logger.debug("TODO begin transaction")
+      Database(req.getServletContext) withTransaction {
+        logger.debug("begin transaction")
         chain.doFilter(req, res)
-        logger.debug("TODO end transaction")
+        logger.debug("end transaction")
       }
     }
   }
-  
+
+}
+
+object Database {
+  def apply(context: ServletContext): scala.slick.session.Database =
+    scala.slick.session.Database.forURL(context.getInitParameter("db.url"),
+        context.getInitParameter("db.user"),
+        context.getInitParameter("db.password"))
 }

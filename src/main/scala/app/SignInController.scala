@@ -1,8 +1,9 @@
 package app
 
 import service._
-import util.StringUtil._
 import jp.sf.amateras.scalatra.forms._
+import util.Implicits._
+import util.Keys
 
 class SignInController extends SignInControllerBase with SystemSettingsService with AccountService
 
@@ -16,33 +17,41 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
   )(SignInForm.apply)
   
   get("/signin"){
-    val queryString = request.getQueryString
-    if(queryString != null && queryString.startsWith("/")){
-      session.setAttribute("REDIRECT", queryString)
+    val redirect = params.get("redirect")
+    if(redirect.isDefined && redirect.get.startsWith("/")){
+      session.setAttribute(Keys.Session.Redirect, redirect.get)
     }
     html.signin(loadSystemSettings())
   }
 
   post("/signin", form){ form =>
-    val account = getAccountByUserName(form.userName)
-    if(account.isEmpty || account.get.password != sha1(form.password)){
-      redirect("/signin")
-    } else {
-      session.setAttribute("LOGIN_ACCOUNT", account.get)
-      updateLastLoginDate(account.get.userName)
-
-      session.get("REDIRECT").map { redirectUrl =>
-        session.removeAttribute("REDIRECT")
-        redirect(redirectUrl.asInstanceOf[String])
-      }.getOrElse {
-        redirect("/")
-      }
+    authenticate(loadSystemSettings(), form.userName, form.password) match {
+      case Some(account) => signin(account)
+      case None          => redirect("/signin")
     }
   }
 
   get("/signout"){
     session.invalidate
     redirect("/")
+  }
+
+  /**
+   * Set account information into HttpSession and redirect.
+   */
+  private def signin(account: model.Account) = {
+    session.setAttribute(Keys.Session.LoginAccount, account)
+    updateLastLoginDate(account.userName)
+
+    session.getAndRemove[String](Keys.Session.Redirect).map { redirectUrl =>
+      if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
+        redirect("/")
+      } else {
+        redirect(redirectUrl)
+      }
+    }.getOrElse {
+      redirect("/")
+    }
   }
 
 }

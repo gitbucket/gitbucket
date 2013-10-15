@@ -1,34 +1,38 @@
 package util
 
 import java.io.File
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.Ref
+import util.ControlUtil._
 
 /**
  * Provides directories used by GitBucket.
  */
 object Directory {
 
-  val GitBucketHome = new File(System.getProperty("user.home"), "gitbucket").getAbsolutePath
+  val GitBucketHome = (scala.util.Properties.envOrNone("GITBUCKET_HOME") match {
+    case Some(env) => new File(env)
+    case None => new File(System.getProperty("user.home"), "gitbucket")
+  }).getAbsolutePath
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
   
   val RepositoryHome = s"${GitBucketHome}/repositories"
+
+  val DatabaseHome = s"${GitBucketHome}/data"
   
   /**
    * Repository names of the specified user.
    */
-  def getRepositories(owner: String): List[String] = {
-    val dir = new File(s"${RepositoryHome}/${owner}")
-    if(dir.exists){
-      dir.listFiles.filter { file =>
-        file.isDirectory && !file.getName.endsWith(".wiki.git") 
-      }.map(_.getName.replaceFirst("\\.git$", "")).toList
-    } else {
-      Nil
+  def getRepositories(owner: String): List[String] =
+    defining(new File(s"${RepositoryHome}/${owner}")){ dir =>
+      if(dir.exists){
+        dir.listFiles.filter { file =>
+          file.isDirectory && !file.getName.endsWith(".wiki.git")
+        }.map(_.getName.replaceFirst("\\.git$", "")).toList
+      } else {
+        Nil
+      }
     }
-  }
-  
+
   /**
    * Substance directory of the repository.
    */

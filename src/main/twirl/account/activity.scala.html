@@ -1,23 +1,6 @@
-@(account: model.Account, activities: List[model.Activity])(implicit context: app.Context)
+@(account: model.Account, groupNames: List[String], activities: List[model.Activity])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(account.userName){
-  <div class="container-fluid">
-    <div class="row-fluid">
-      <div class="span4">
-        <div class="block">
-          <div class="account-image">@avatar(account.userName, 200)</div>
-          <div class="block-header">@account.userName</div>
-        </div>
-        <div class="block">
-          <div><i class="icon-home"></i> <a href="@account.url">@account.url</a></div>
-          <div><i class="icon-time"></i> <span class="muted">Joined on</span> @date(account.registeredDate)</div>
-        </div>
-      </div>
-      <div class="span8">
-        @tab(account, "activity")
-        @helper.html.activities(activities)
-      </div>
-    </div>
-  </div>
+@main(account, groupNames, "activity"){
+  @helper.html.activities(activities)
 }

@@ -5,6 +5,9 @@ body {
   color: #333;
 }
 
+/* ======================================================================== */
+/* Global Header */
+/* ======================================================================== */
 div.navbar-inner {
   border-radius: 0px;
   -webkit-border-radius: 0px;
@@ -16,27 +19,41 @@ div.navbar-inner {
   padding-right: 0px;
 }
 
+div.header-menu {
+  line-height: 40px;
+}
+
+div.header-menu input,
+div.header-menu a.btn {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 div.nav-collapse a.menu {
   margin-right: 12px;
-  line-height: 40px;
 }
 
-div.nav-collapse a.btn-last {
-  margin-right: 30px;
-}
-
+div.nav-collapse a.btn-last,
 div.nav-collapse a.menu-last {
   margin-right: 30px;
-  line-height: 40px;
 }
 
-div.gitbucket-version {
+.navbar .brand {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.navbar .brand img {
+  vertical-align: bottom;
+}
+
+span.header-version {
   font-size: small;
-  color: silver;
-  float: right;
-  margin-right: 10px;
 }
 
+/* ======================================================================== */
+/* Repository Header */
+/* ======================================================================== */
 table.global-nav {
   width: 920px;
   margin-bottom: 10px;
@@ -45,7 +62,7 @@ table.global-nav {
 table.global-nav th {
   padding-top: 5px;
   padding-bottom: 8px;
-  width: 25%;
+  width: 16%;
   border-bottom: 2px solid silver;
   cursor: pointer;
 }
@@ -59,13 +76,34 @@ table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:v
   text-decoration: none;
 }
 
+div.input-prepend span.add-on {
+  background-color: white;
+  -webkit-border-radius: 0 4px 4px 0;
+  -moz-border-radius: 0 4px 4px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/*
+div.input-prepend span.add-on a {
+  color: #333;
+}
+*/
+
+/* ======================================================================== */
+/* General Styles */
+/* ======================================================================== */
 div.head {
   font-size: large;
   margin-bottom: 10px;
 }
 
-div.head a {
-  font-weight: bold;
+div.head div.forked {
+  font-size: 60%;
+  color: #999999;
+}
+
+div.head div.forked a {
+  font-weight: normal;
 }
 
 div.container {
@@ -218,10 +256,6 @@ hr {
   margin-bottom: 4px;
 }
 
-span.note {
-  margin-left: 20px;
-}
-
 img.avatar {
   border-radius: 4px;
   -webkit-border-radius: 4px;
@@ -243,12 +277,54 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+ul.dropdown-menu {
+  padding: 2px 0;
+}
+
+ul.dropdown-menu li {
+  border-bottom: 1px solid #eee;
+  font-size: 85%;
+}
+
+ul.dropdown-menu li a {
+  padding: 2px 10px;
+}
+
+ul.dropdown-menu :last-child {
+  border-bottom: none;
+}
+
+span.highlight {
+  background-color: #ffff88;
+}
+
+/****************************************************************************/
+/* Create Repository */
+/****************************************************************************/
+.slash {
+  font-size: 20px;
+}
+
 /****************************************************************************/
 /* Sign-in form */
 /****************************************************************************/
 div.signin-form {
   width: 350px;
   margin: 30px auto;
+}
+
+/****************************************************************************/
+/* Account page */
+/****************************************************************************/
+.account-fullname {
+  font-size: 140%;
+  font-weight: bold;
+}
+
+.account-username {
+  font-size: 120%;
+  color: #888888;
+  font-weight: bold;
 }
 
 /****************************************************************************/
@@ -303,6 +379,23 @@ ul.nav-stacked.side-menu li.active a:hover {
 }
 
 /****************************************************************************/
+/* Activity */
+/****************************************************************************/
+div.activity-icon-large {
+  position: absolute;
+  padding-top: 8px;
+}
+
+div.activity-icon-small {
+  position: absolute;
+  padding-left: 8px;
+}
+
+div.activity-content {
+  margin-left: 40px;
+}
+
+/****************************************************************************/
 /* Repository Viewer */
 /****************************************************************************/
 table.table-file-list {
@@ -350,7 +443,7 @@ pre.commit-description {
 #repository-url {
   background-color: white;
   cursor: default;
-  width: 350px;
+  width: 300px;
 }
 
 ul#commit-file-list {
@@ -377,6 +470,10 @@ pre.blob {
   border: none;
   background-color: white;
   padding-left: 20px;
+}
+
+#readme .box-content {
+  padding: 30px;
 }
 
 /****************************************************************************/
@@ -427,10 +524,16 @@ a#clear-filter {
   margin-bottom: 10px;
 }
 
+span.milestone-alert {
+  font-weight: bold;
+  color: #bd2c00;
+}
+
 a.milestone-title {
   font-size: 120%;
   font-weight: bold;
 }
+
 div.milestone-description {
   border-top: 1px solid #eee;
   color: #666;
@@ -447,6 +550,15 @@ div.milestone-menu a {
 
 div.milestone-menu a.delete {
   color: #b00;
+}
+
+div#milestone-progress-area {
+  display: inline-block;
+}
+
+div#milestone-progress-area div.milestone-progress {
+  width: 150px;
+  margin-bottom: -6px;
 }
 
 div.milestone-progress {
@@ -511,6 +623,11 @@ div.issue-avatar-image {
 }
 
 div.issue-box {
+  margin-bottom: 5px;
+  margin-left: 50px;
+}
+
+div.issue-participants {
   margin-bottom: 15px;
   margin-left: 50px;
 }
@@ -537,10 +654,24 @@ div.issue-comment-action {
 }
 
 /****************************************************************************/
+/* Pull Request */
+/****************************************************************************/
+div.pullreq-info {
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+
+/****************************************************************************/
 /* Wiki */
 /****************************************************************************/
 h1.wiki-title {
   margin-top: 0px;
+}
+
+a.absent {
+  color: #c00;
 }
 
 /****************************************************************************/

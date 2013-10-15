@@ -1,0 +1,9 @@
+@(hasConflict: Boolean)
+@if(hasConflict){
+  <h4>We can’t automatically merge these branches</h4>
+  <p>Don't worry, you can still submit the pull request.</p>
+} else {
+  <h4 style="color: #468847;">Able to merge</h4>
+  <p>These branches can be automatically merged.</p>
+}
+<input type="submit" class="btn btn-success btn-block" value="Send pull request"/>

@@ -1,7 +1,7 @@
 package util
 
-import scala.slick.driver.H2Driver.simple._
 import scala.util.matching.Regex
+import javax.servlet.http.{HttpSession, HttpServletRequest}
 
 /**
  * Provides some usable implicit conversions.
@@ -13,7 +13,7 @@ object Implicits {
     def splitWith(condition: (A, A) => Boolean): Seq[Seq[A]] = split(seq)(condition)
 
     @scala.annotation.tailrec
-    private def split[A](list: Seq[A], result: Seq[Seq[A]] = Nil)(condition: (A, A) => Boolean): Seq[Seq[A]] = {
+    private def split[A](list: Seq[A], result: Seq[Seq[A]] = Nil)(condition: (A, A) => Boolean): Seq[Seq[A]] =
       list match {
         case x :: xs => {
           xs.span(condition(x, _)) match {
@@ -22,12 +22,6 @@ object Implicits {
         }
         case Nil => result
       }
-    }
-  }
-
-  // TODO Should this implicit conversion move to model.Functions?
-  implicit class RichColumn(c1: Column[Boolean]){
-    def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
   }
 
   implicit class RichString(value: String){
@@ -46,6 +40,38 @@ object Implicits {
         sb.append(value.substring(i))
       }
       sb.toString
+    }
+
+    def toIntOpt: Option[Int] = try {
+      Option(Integer.parseInt(value))
+    } catch {
+      case e: NumberFormatException => None
+    }
+  }
+
+  implicit class RichRequest(request: HttpServletRequest){
+
+    def paths: Array[String] = request.getRequestURI.substring(request.getContextPath.length + 1).split("/")
+
+    def hasQueryString: Boolean = request.getQueryString != null
+
+    def hasAttribute(name: String): Boolean = request.getAttribute(name) != null
+
+  }
+
+  implicit class RichSession(session: HttpSession){
+
+    def putAndGet[T](key: String, value: T): T = {
+      session.setAttribute(key, value)
+      value
+    }
+
+    def getAndRemove[T](key: String): Option[T] = {
+      val value = session.getAttribute(key).asInstanceOf[T]
+      if(value == null){
+        session.removeAttribute(key)
+      }
+      Option(value)
     }
   }
 

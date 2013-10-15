@@ -12,11 +12,30 @@ class SystemSettingsController extends SystemSettingsControllerBase
 trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
   self: SystemSettingsService with AccountService with AdminAuthenticator =>
 
-  private case class SystemSettingsForm(allowAccountRegistration: Boolean)
-
   private val form = mapping(
-    "allowAccountRegistration" -> trim(label("Account registration", boolean()))
-  )(SystemSettingsForm.apply)
+    "allowAccountRegistration" -> trim(label("Account registration", boolean())),
+    "gravatar"                 -> trim(label("Gravatar", boolean())),
+    "notification"             -> trim(label("Notification", boolean())),
+    "smtp"                     -> optionalIfNotChecked("notification", mapping(
+        "host"                     -> trim(label("SMTP Host", text(required))),
+        "port"                     -> trim(label("SMTP Port", optional(number()))),
+        "user"                     -> trim(label("SMTP User", optional(text()))),
+        "password"                 -> trim(label("SMTP Password", optional(text()))),
+        "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
+        "fromAddress"              -> trim(label("FROM Address", optional(text()))),
+        "fromName"                 -> trim(label("FROM Name", optional(text())))
+    )(Smtp.apply)),
+    "ldapAuthentication"       -> trim(label("LDAP", boolean())),
+    "ldap"                     -> optionalIfNotChecked("ldapAuthentication", mapping(
+        "host"                     -> trim(label("LDAP host", text(required))),
+        "port"                     -> trim(label("LDAP port", optional(number()))),
+        "bindDN"                   -> trim(label("Bind DN", optional(text()))),
+        "bindPassword"             -> trim(label("Bind Password", optional(text()))),
+        "baseDN"                   -> trim(label("Base DN", text(required))),
+        "userNameAttribute"        -> trim(label("User name attribute", text(required))),
+        "mailAttribute"            -> trim(label("Mail address attribute", text(required)))
+    )(Ldap.apply))
+  )(SystemSettings.apply)
 
 
   get("/admin/system")(adminOnly {
@@ -24,7 +43,7 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
   })
 
   post("/admin/system", form)(adminOnly { form =>
-    saveSystemSettings(SystemSettings(form.allowAccountRegistration))
+    saveSystemSettings(form)
     flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
   })

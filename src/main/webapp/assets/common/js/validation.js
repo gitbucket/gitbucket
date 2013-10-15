@@ -34,6 +34,6 @@ function validate(e){
 
 function displayErrors(data){
   $.each(data, function(key, value){
-    $('#error-' + key).text(value);
+    $('#error-' + key.split('.').join('_')).text(value);
   });
 }

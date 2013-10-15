@@ -1,11 +1,10 @@
 package app
 
 import service._
-import util.{FileUtil, FileUploadUtil, OneselfAuthenticator}
+import util.{FileUtil, OneselfAuthenticator}
 import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
-import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
 
 class AccountController extends AccountControllerBase
@@ -16,15 +15,16 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
   self: SystemSettingsService with AccountService with RepositoryService with ActivityService
     with OneselfAuthenticator =>
 
-  case class AccountNewForm(userName: String, password: String,mailAddress: String,
+  case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
 
-  case class AccountEditForm(password: Option[String], mailAddress: String,
+  case class AccountEditForm(password: Option[String], fullName: String, mailAddress: String,
                              url: Option[String], fileId: Option[String], clearImage: Boolean)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
+    "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text())))
@@ -32,6 +32,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
 
   val editForm = mapping(
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
+    "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
@@ -43,12 +44,23 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
    */
   get("/:userName") {
     val userName = params("userName")
-    getAccountByUserName(userName).map { x =>
+    getAccountByUserName(userName).map { account =>
       params.getOrElse("tab", "repositories") match {
         // Public Activity
-        case "activity" => account.html.activity(x, getActivitiesByUser(userName, true))
+        case "activity" =>
+          _root_.account.html.activity(account,
+            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            getActivitiesByUser(userName, true))
+
+        // Members
+        case "members" if(account.isGroupAccount) =>
+          _root_.account.html.members(account, getGroupMembers(account.userName))
+
         // Repositories
-        case _ => account.html.repositories(x, getVisibleRepositories(userName, baseUrl, context.loginAccount.map(_.userName)))
+        case _ =>
+          _root_.account.html.repositories(account,
+            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)))
       }
     } getOrElse NotFound
   }
@@ -74,6 +86,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     getAccountByUserName(userName).map { account =>
       updateAccount(account.copy(
         password    = form.password.map(sha1).getOrElse(account.password),
+        fullName    = form.fullName,
         mailAddress = form.mailAddress,
         url         = form.url))
 
@@ -96,7 +109,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
 
   post("/register", newForm){ form =>
     if(loadSystemSettings().allowAccountRegistration){
-      createAccount(form.userName, sha1(form.password), form.mailAddress, false, form.url)
+      createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.url)
       updateImage(form.userName, form.fileId, false)
       redirect("/signin")
     } else NotFound

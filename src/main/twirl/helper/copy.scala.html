@@ -1,0 +1,36 @@
+@(id: String, value: String)(html: Html)
+<div class="input-append">
+  @html
+  <span id="@id" class="add-on btn" data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="icon-check"></i></span>
+</div>
+<script>
+// copy to clipboard
+(function() {
+  // Find ZeroClipboard.swf file URI from ZeroClipboard JavaScript file path.
+  // NOTE(tanacasino) I think this way is wrong... but i don't know correct way.
+  var moviePath = (function() {
+    var zclipjs = "ZeroClipboard.min.js";
+    var scripts = document.getElementsByTagName("script");
+    var i = scripts.length;
+    while(i--) {
+      var match = scripts[i].src.match(zclipjs + "$");
+      if(match) {
+        return match.input.substr(0, match.input.length - 6) + 'swf';
+      }
+    }
+  })();
+  var clip = new ZeroClipboard($("#@id"), {
+    moviePath: moviePath
+  });
+  var title = $('#@id').attr('title');
+  $('#@id').removeAttr('title')
+  clip.on('complete', function(client, args) {
+    $(clip.htmlBridge).attr('title', 'copied!').tooltip('fixTitle').tooltip('show');
+    $(clip.htmlBridge).attr('title', title).tooltip('fixTitle');
+  });
+  $(clip.htmlBridge).tooltip({
+    title: title,
+    placement: $('#@id').attr('data-placement')
+  });
+})();
+</script>

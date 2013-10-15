@@ -7,6 +7,11 @@ object IssueId extends Table[(String, String, Int)]("ISSUE_ID") with IssueTempla
   def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
 }
 
+object IssueOutline extends Table[(String, String, Int, Int)]("ISSUE_OUTLINE_VIEW") with IssueTemplate {
+  def commentCount = column[Int]("COMMENT_COUNT")
+  def * = userName ~ repositoryName ~ issueId ~ commentCount
+}
+
 object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTemplate {
   def openedUserName = column[String]("OPENED_USER_NAME")
   def assignedUserName = column[String]("ASSIGNED_USER_NAME")
@@ -15,7 +20,8 @@ object Issues extends Table[Issue]("ISSUE") with IssueTemplate with MilestoneTem
   def closed = column[Boolean]("CLOSED")
   def registeredDate = column[java.util.Date]("REGISTERED_DATE")
   def updatedDate = column[java.util.Date]("UPDATED_DATE")
-  def * = userName ~ repositoryName ~ issueId ~ openedUserName ~ milestoneId.? ~ assignedUserName.? ~ title ~ content.? ~ closed ~ registeredDate ~ updatedDate <> (Issue, Issue.unapply _)
+  def pullRequest = column[Boolean]("PULL_REQUEST")
+  def * = userName ~ repositoryName ~ issueId ~ openedUserName ~ milestoneId.? ~ assignedUserName.? ~ title ~ content.? ~ closed ~ registeredDate ~ updatedDate ~ pullRequest <> (Issue, Issue.unapply _)
 
   def byPrimaryKey(owner: String, repository: String, issueId: Int) = byIssue(owner, repository, issueId)
 }
@@ -31,4 +37,5 @@ case class Issue(
     content: Option[String],
     closed: Boolean,
     registeredDate: java.util.Date,
-    updatedDate: java.util.Date)
+    updatedDate: java.util.Date,
+    isPullRequest: Boolean)

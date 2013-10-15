@@ -3,6 +3,8 @@ package util
 import app.ControllerBase
 import service._
 import RepositoryService.RepositoryInfo
+import util.Implicits._
+import util.ControlUtil._
 
 /**
  * Allows only oneself and administrators.
@@ -13,11 +15,12 @@ trait OneselfAuthenticator { self: ControllerBase =>
 
   private def authenticate(action: => Any) = {
     {
-      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      context.loginAccount match {
-        case Some(x) if(x.isAdmin) => action
-        case Some(x) if(paths(1) == x.userName) => action
-        case _ => Unauthorized()
+      defining(request.paths){ paths =>
+        context.loginAccount match {
+          case Some(x) if(x.isAdmin) => action
+          case Some(x) if(paths(0) == x.userName) => action
+          case _ => Unauthorized()
+        }
       }
     }
   }
@@ -32,14 +35,15 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService =>
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      getRepository(paths(1), paths(2), baseUrl).map { repository =>
-        context.loginAccount match {
-          case Some(x) if(x.isAdmin) => action(repository)
-          case Some(x) if(repository.owner == x.userName) => action(repository)
-          case _ => Unauthorized()
-        }
-      } getOrElse NotFound()
+      defining(request.paths){ paths =>
+        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+          context.loginAccount match {
+            case Some(x) if(x.isAdmin) => action(repository)
+            case Some(x) if(repository.owner == x.userName) => action(repository)
+            case _ => Unauthorized()
+          }
+        } getOrElse NotFound()
+      }
     }
   }
 }
@@ -87,15 +91,16 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      getRepository(paths(1), paths(2), baseUrl).map { repository =>
-        context.loginAccount match {
-          case Some(x) if(x.isAdmin) => action(repository)
-          case Some(x) if(paths(1) == x.userName) => action(repository)
-          case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action(repository)
-          case _ => Unauthorized()
-        }
-      } getOrElse NotFound()
+      defining(request.paths){ paths =>
+        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+          context.loginAccount match {
+            case Some(x) if(x.isAdmin) => action(repository)
+            case Some(x) if(paths(0) == x.userName) => action(repository)
+            case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+            case _ => Unauthorized()
+          }
+        } getOrElse NotFound()
+      }
     }
   }
 }
@@ -109,19 +114,20 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      getRepository(paths(1), paths(2), baseUrl).map { repository =>
-        if(!repository.repository.isPrivate){
-          action(repository)
-        } else {
-          context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
-            case Some(x) if(paths(1) == x.userName) => action(repository)
-            case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action(repository)
-            case _ => Unauthorized()
+      defining(request.paths){ paths =>
+        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+          if(!repository.repository.isPrivate){
+            action(repository)
+          } else {
+            context.loginAccount match {
+              case Some(x) if(x.isAdmin) => action(repository)
+              case Some(x) if(paths(0) == x.userName) => action(repository)
+              case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+              case _ => Unauthorized()
+            }
           }
-        }
-      } getOrElse NotFound()
+        } getOrElse NotFound()
+      }
     }
   }
 }
@@ -135,16 +141,17 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
 
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
-      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      getRepository(paths(1), paths(2), baseUrl).map { repository =>
-        context.loginAccount match {
-          case Some(x) if(x.isAdmin) => action(repository)
-          case Some(x) if(!repository.repository.isPrivate) => action(repository)
-          case Some(x) if(paths(1) == x.userName) => action(repository)
-          case Some(x) if(getCollaborators(paths(1), paths(2)).contains(x.userName)) => action(repository)
-          case _ => Unauthorized()
-        }
-      } getOrElse NotFound()
+      defining(request.paths){ paths =>
+        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+          context.loginAccount match {
+            case Some(x) if(x.isAdmin) => action(repository)
+            case Some(x) if(!repository.repository.isPrivate) => action(repository)
+            case Some(x) if(paths(0) == x.userName) => action(repository)
+            case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+            case _ => Unauthorized()
+          }
+        } getOrElse NotFound()
+      }
     }
   }
 }

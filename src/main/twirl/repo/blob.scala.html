@@ -5,16 +5,16 @@
   latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(repository.owner+"/"+repository.name) {
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
   @tab(branch, repository, "files")
   <div class="head">
-    <a href="@url(repository)/tree/@branch">@repository.name</a> /
+    <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>
       @if(i == pathList.length - 1){
         @section
       } else {
-        <a href="@url(repository)/tree/@branch/@pathList.take(i + 1).mkString("/")">@section</a> /
+        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
       }
     }
   </div>
@@ -30,7 +30,7 @@
         </div>
         <div class="btn-group pull-right">
           <a class="btn btn-mini" href="?raw=true">Raw</a>
-          <a class="btn btn-mini" href="@url(repository)/commits/@branch/@pathList.mkString("/")">History</a>
+          <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
         </div>  
       </th>
     </tr>

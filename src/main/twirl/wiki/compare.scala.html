@@ -1,10 +1,15 @@
 @(pageName: Option[String],
+  from: String,
+  to: String,
   diffs: Seq[util.JGitUtil.DiffInfo],
-  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean,
+  info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
-@html.main("Compare Revisions - " + repository.owner + "/" + repository.name){
+@html.main(s"Compare Revisions - ${repository.owner}/${repository.name}", Some(repository)){
+  @helper.html.information(info)
   @html.header("wiki", repository)
   @tab("history", repository)
   <ul class="nav nav-tabs">
@@ -22,5 +27,14 @@
       </div>
     </li>
   </ul>
-  @helper.html.diff(diffs, repository, None)
+  @helper.html.diff(diffs, repository, None, None, false)
+  @if(hasWritePermission){
+    <div>
+      @if(pageName.isDefined){
+        <a href="@url(repository)/wiki/@urlEncode(pageName)/_revert/@from...@to" class="btn">Revert Changes</a>
+      } else {
+        <a href="@url(repository)/wiki/_revert/@from...@to" class="btn">Revert Changes</a>
+      }
+    </div>
+  }
 }

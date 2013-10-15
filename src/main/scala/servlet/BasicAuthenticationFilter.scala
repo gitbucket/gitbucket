@@ -2,14 +2,16 @@ package servlet
 
 import javax.servlet._
 import javax.servlet.http._
-import util.StringUtil._
-import service.{AccountService, RepositoryService}
+import service.{SystemSettingsService, AccountService, RepositoryService}
 import org.slf4j.LoggerFactory
+import util.Implicits._
+import util.ControlUtil._
+import util.Keys
 
 /**
  * Provides BASIC Authentication for [[servlet.GitRepositoryServlet]].
  */
-class BasicAuthenticationFilter extends Filter with RepositoryService with AccountService {
+class BasicAuthenticationFilter extends Filter with RepositoryService with AccountService with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationFilter])
 
@@ -26,28 +28,30 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
 
     try {
-      val paths = request.getRequestURI.substring(request.getContextPath.length).split("/")
-      val repositoryOwner = paths(2)
-      val repositoryName  = paths(3).replaceFirst("\\.git$", "")
-
-      getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki", ""), "") match {
-        case Some(repository) => {
-          if(!request.getRequestURI.endsWith("/git-receive-pack") && !repository.repository.isPrivate){
-            chain.doFilter(req, wrappedResponse)
-          } else {
-            request.getHeader("Authorization") match {
-              case null => requireAuth(response)
-              case auth => decodeAuthHeader(auth).split(":") match {
-                case Array(username, password) if(isWritableUser(username, password, repository)) => {
-                  request.setAttribute("USER_NAME", username)
-                  chain.doFilter(req, wrappedResponse)
+      defining(request.paths){ case Array(_, repositoryOwner, repositoryName, _*) =>
+        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", ""), "") match {
+          case Some(repository) => {
+            if(!request.getRequestURI.endsWith("/git-receive-pack") &&
+              !"service=git-receive-pack".equals(request.getQueryString) && !repository.repository.isPrivate){
+              chain.doFilter(req, wrappedResponse)
+            } else {
+              request.getHeader("Authorization") match {
+                case null => requireAuth(response)
+                case auth => decodeAuthHeader(auth).split(":") match {
+                  case Array(username, password) if(isWritableUser(username, password, repository)) => {
+                    request.setAttribute(Keys.Request.UserName, username)
+                    chain.doFilter(req, wrappedResponse)
+                  }
+                  case _ => requireAuth(response)
                 }
-                case _ => requireAuth(response)
               }
             }
           }
+          case None => {
+            logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+          }
         }
-        case None => response.sendError(HttpServletResponse.SC_NOT_FOUND)
       }
     } catch {
       case ex: Exception => {
@@ -57,12 +61,12 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
   }
 
-  private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean = {
-    getAccountByUserName(username).map { account =>
-      account.password == sha1(password) && hasWritePermission(repository.owner, repository.name, Some(account))
-    } getOrElse false
-  }
-  
+  private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean =
+    authenticate(loadSystemSettings(), username, password) match {
+      case Some(account) => hasWritePermission(repository.owner, repository.name, Some(account))
+      case None => false
+    }
+
   private def requireAuth(response: HttpServletResponse): Unit = {
     response.setHeader("WWW-Authenticate", "BASIC realm=\"GitBucket\"")
     response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
