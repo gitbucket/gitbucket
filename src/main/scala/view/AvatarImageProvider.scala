@@ -13,17 +13,31 @@ trait AvatarImageProvider { self: RequestCache =>
   protected def getAvatarImageHtml(userName: String, size: Int,
       mailAddress: String = "", tooltip: Boolean = false)(implicit context: app.Context): Html = {
 
-    val src = getAccountByUserName(userName).map { account =>
-      if(account.image.isEmpty && getSystemSettings().gravatar){
-        s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
-      } else {
-        s"""${context.path}/${userName}/_avatar"""
+    val src = if(mailAddress.isEmpty){
+      // by user name
+      getAccountByUserName(userName).map { account =>
+        if(account.image.isEmpty && getSystemSettings().gravatar){
+          s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
+        } else {
+          s"""${context.path}/${account.userName}/_avatar"""
+        }
+      } getOrElse {
+        s"""${context.path}/_unknown/_avatar"""
       }
-    } getOrElse {
-      if(mailAddress.nonEmpty && getSystemSettings().gravatar){
-        s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress)}?s=${size}"""
-      } else {
-        s"""${context.path}/${userName}/_avatar"""
+    } else {
+      // by mail address
+      getAccountByMailAddress(mailAddress).map { account =>
+        if(account.image.isEmpty && getSystemSettings().gravatar){
+          s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress)}?s=${size}"""
+        } else {
+          s"""${context.path}/${account.userName}/_avatar"""
+        }
+      } getOrElse {
+        if(mailAddress.nonEmpty && getSystemSettings().gravatar){
+          s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress)}?s=${size}"""
+        } else {
+          s"""${context.path}/_unknown/_avatar"""
+        }
       }
     }
 
