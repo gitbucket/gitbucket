@@ -3,13 +3,14 @@ package app
 import _root_.util.Directory._
 import _root_.util.Implicits._
 import _root_.util.ControlUtil._
-import _root_.util.{StringUtil, FileUtil, Validations, Keys}
+import _root_.util.{StringUtil, FileUtil, LDAPUtil, Validations, Keys}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import model.Account
+import scala.Some
 import service.{SystemSettingsService, AccountService}
 import javax.servlet.http.{HttpServletResponse, HttpSession, HttpServletRequest}
 import java.text.SimpleDateFormat
@@ -21,7 +22,7 @@ import org.scalatra.i18n._
  */
 abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
-  with SystemSettingsService {
+  with SystemSettingsService with AccountService {
 
   implicit val jsonFormats = DefaultFormats
 
@@ -34,8 +35,35 @@ abstract class ControllerBase extends ScalatraFilter
     val context      = request.getServletContext.getContextPath
     val path         = httpRequest.getRequestURI.substring(context.length)
 
+    var account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
+    if(account == null) {
+      // TODO: it might be inefficient to call loadSystemSettings() this often
+      val systemSettings = loadSystemSettings();
+      if(systemSettings.ldapAuthentication && systemSettings.ldap.isDefined) {
+        val ldapSettings = systemSettings.ldap.get
+        if(ldapSettings.httpSsoHeader.isDefined) {
+          val httpSsoAccountName = httpRequest.getHeader(ldapSettings.httpSsoHeader.get);
+          if(httpSsoAccountName != null && !httpSsoAccountName.isEmpty) {
+            // httpSsoAccountName could be of the form "DOMAIN\alias", but we only want "alias"
+            val index = httpSsoAccountName.indexOf('\\')
+            val userName = if(index < 0) httpSsoAccountName else httpSsoAccountName.substring(index + 1)
+            LDAPUtil.authenticateBySso(ldapSettings, userName) match {
+              case Right(ldapUserInfo) => {
+                // TODO: if there's no e-mail address, we could just warn the user and send them to the profile page
+                getAccountByUserName(userName) match {
+                  case Some(x) => updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+                  case None    => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+                }
+                account = getAccountByUserName(userName).get
+                httpRequest.getSession.setAttribute(Keys.Session.LoginAccount, account)
+              }
+              case Left(errorMessage) => None
+            }
+          }
+        }
+      }
+    }
     if(path.startsWith("/console/")){
-      val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       val baseUrl = this.baseUrl(httpRequest)
       if(account == null){
         // Redirect to login form
