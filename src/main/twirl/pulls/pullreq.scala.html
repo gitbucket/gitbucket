@@ -9,7 +9,7 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("%s - Pull Request #%d - %s/%s".format(issue.title, issue.issueId, repository.owner, repository.name)){
+@html.main(s"${issue.title} - Pull Request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("pulls", repository)
   @defining(dayByDayCommits.flatten){ commits =>
     <div class="pullreq-info">

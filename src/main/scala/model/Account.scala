@@ -4,6 +4,7 @@ import scala.slick.driver.H2Driver.simple._
 
 object Accounts extends Table[Account]("ACCOUNT") {
   def userName = column[String]("USER_NAME", O PrimaryKey)
+  def fullName = column[String]("FULL_NAME")
   def mailAddress = column[String]("MAIL_ADDRESS")
   def password = column[String]("PASSWORD")
   def isAdmin = column[Boolean]("ADMINISTRATOR")
@@ -13,11 +14,12 @@ object Accounts extends Table[Account]("ACCOUNT") {
   def lastLoginDate = column[java.util.Date]("LAST_LOGIN_DATE")
   def image = column[String]("IMAGE")
   def groupAccount = column[Boolean]("GROUP_ACCOUNT")
-  def * = userName ~ mailAddress ~ password ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? ~ image.? ~ groupAccount <> (Account, Account.unapply _)
+  def * = userName ~ fullName ~ mailAddress ~ password ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? ~ image.? ~ groupAccount <> (Account, Account.unapply _)
 }
 
 case class Account(
     userName: String,
+    fullName: String,
     mailAddress: String,
     password: String,
     isAdmin: Boolean,

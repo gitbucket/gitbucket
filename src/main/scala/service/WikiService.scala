@@ -130,7 +130,7 @@ trait WikiService {
           try {
             git.apply.setPatch(new java.io.ByteArrayInputStream(patch.getBytes("UTF-8"))).call
             git.add.addFilepattern(".").call
-            git.commit.setCommitter(committer.userName, committer.mailAddress).setMessage(pageName match {
+            git.commit.setCommitter(committer.fullName, committer.mailAddress).setMessage(pageName match {
               case Some(x) => s"Revert ${from} ... ${to} on ${x}"
               case None    => s"Revert ${from} ... ${to}"
             }).call
@@ -175,7 +175,7 @@ trait WikiService {
 
             // commit and push
             optionIf(added || deleted){
-              defining(git.commit.setCommitter(committer.userName, committer.mailAddress)
+              defining(git.commit.setCommitter(committer.fullName, committer.mailAddress)
                 .setMessage(if(message.trim.length == 0){
                     if(deleted){
                       s"Rename ${currentPageName} to ${newPageName}"

@@ -9,7 +9,6 @@ import org.eclipse.jgit.api.Git
 import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.lib.PersonIdent
-import scala.Some
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
@@ -74,8 +73,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
         JGitUtil.initRepository(gitdir)
 
         if(form.createReadme){
-          val tmpdir = getInitRepositoryDir(form.owner, form.name)
-          try {
+          FileUtil.withTmpDir(getInitRepositoryDir(form.owner, form.name)){ tmpdir =>
             // Clone the repository
             Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
 
@@ -94,12 +92,9 @@ trait CreateRepositoryControllerBase extends ControllerBase {
             val git = Git.open(tmpdir)
             git.add.addFilepattern("README.md").call
             git.commit
-              .setCommitter(new PersonIdent(loginUserName, loginAccount.mailAddress))
+              .setCommitter(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
               .setMessage("Initial commit").call
             git.push.call
-
-          } finally {
-            FileUtils.deleteDirectory(tmpdir)
           }
         }
 

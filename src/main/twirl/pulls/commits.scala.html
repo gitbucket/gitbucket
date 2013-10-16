@@ -11,8 +11,8 @@
       @day.map { commit =>
         <tr>
           <td style="width: 20%;">
-            @avatar(commit.committer, 20)
-            <a href="@url(commit.committer)" class="username">@commit.committer</a>
+            @avatar(commit, 20)
+            @user(commit.committer, commit.mailAddress, "username")
           </td>
           <td>@commit.shortMessage</td>
           <td style="width: 10%; text-align: right;">

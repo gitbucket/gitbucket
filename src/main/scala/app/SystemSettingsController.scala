@@ -21,7 +21,9 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
         "port"                     -> trim(label("SMTP Port", optional(number()))),
         "user"                     -> trim(label("SMTP User", optional(text()))),
         "password"                 -> trim(label("SMTP Password", optional(text()))),
-        "ssl"                      -> trim(label("Enable SSL", optional(boolean())))
+        "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
+        "fromAddress"              -> trim(label("FROM Address", optional(text()))),
+        "fromName"                 -> trim(label("FROM Name", optional(text())))
     )(Smtp.apply)),
     "ldapAuthentication"       -> trim(label("LDAP", boolean())),
     "ldap"                     -> optionalIfNotChecked("ldapAuthentication", mapping(

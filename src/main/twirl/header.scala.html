@@ -1,12 +1,15 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<div class="pull-right">
-  <div class="input-prepend">
-    <a href="@path/@repository.owner/@repository.name/fork" class="btn" style="margin-bottom: 10px;">Fork</a>
-    <span class="add-on"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+
+@if(repository.commitCount > 0){
+  <div class="pull-right">
+    <div class="input-prepend">
+      <a href="@path/@repository.owner/@repository.name/fork" class="btn" style="margin-bottom: 10px;">Fork</a>
+      <span class="add-on"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+    </div>
   </div>
-</div>
+}
 <div class="head">
   @if(repository.repository.isPrivate){
       <i class="icon-lock"></i>

@@ -34,7 +34,7 @@ trait WebHookService {
     import org.json4s.jackson.Serialization
     import org.json4s.jackson.Serialization.{read, write}
     import org.apache.http.client.methods.HttpPost
-    import org.apache.http.impl.client.DefaultHttpClient
+    import org.apache.http.impl.client.HttpClientBuilder
     import scala.concurrent._
     import ExecutionContext.Implicits.global
 
@@ -43,7 +43,7 @@ trait WebHookService {
 
     if(webHookURLs.nonEmpty){
       val json = write(payload)
-      val httpClient = new DefaultHttpClient()
+      val httpClient = HttpClientBuilder.create.build
 
       webHookURLs.foreach { webHookUrl =>
         val f = future {

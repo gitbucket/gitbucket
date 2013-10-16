@@ -147,6 +147,18 @@
                 </label>
               </div>
             </div>
+            <div class="control-group">
+              <label class="control-label" for="fromAddress">FROM Address</label>
+              <div class="controls">
+                <input type="text" id="fromAddress" name="smtp.fromAddress" value="@settings.smtp.map(_.fromAddress)"/>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="fromName">FROM Name</label>
+              <div class="controls">
+                <input type="text" id="fromName" name="smtp.fromName" value="@settings.smtp.map(_.fromName)"/>
+              </div>
+            </div>
           </div>
         </div>
       </div>

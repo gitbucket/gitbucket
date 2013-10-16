@@ -28,7 +28,7 @@ object LDAPUtil {
         withConnection(conn) { conn =>
           findUser(conn, userName, ldapSettings.baseDN, ldapSettings.userNameAttribute) match {
             case Some(userDN) => userAuthentication(ldapSettings, userDN, password)
-            case None => Left("User does not exist")
+            case None => Left("User does not exist.")
           }
         }
       }

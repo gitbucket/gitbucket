@@ -7,7 +7,9 @@
         <div class="span6">
           <fieldset>
             <label for="userName" class="strong">Username:</label>
-            <span id="error-userName" class="error"></span>
+            <div>
+              <span id="error-userName" class="error"></span>
+            </div>
             <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
           </fieldset>
           @if(account.map(_.password.nonEmpty).getOrElse(true)){
@@ -19,13 +21,24 @@
                 }
                 :
               </label>
-              <span id="error-password" class="error"></span>
+              <div>
+                <span id="error-password" class="error"></span>
+              </div>
               <input type="password" name="password" id="password" value="" autocomplete="off"/>
             </fieldset>
           }
           <fieldset>
+            <label for="fullName" class="strong">Full Name:</label>
+            <div>
+              <span id="error-fullName" class="error"></span>
+            </div>
+            <input type="text" name="fullName" id="fullName" value="@account.map(_.fullName)"/>
+          </fieldset>
+          <fieldset>
             <label for="mailAddress" class="strong">Mail Address:</label>
-            <span id="error-mailAddress" class="error"></span>
+            <div>
+              <span id="error-mailAddress" class="error"></span>
+            </div>
             <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
           </fieldset>
           <fieldset>
@@ -39,7 +52,9 @@
           </fieldset>
           <fieldset>
             <label class="strong">URL (Optional):</label>
-            <span id="error-url" class="error"></span>
+            <div>
+              <span id="error-url" class="error"></span>
+            </div>
             <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
           </fieldset>
         </div>

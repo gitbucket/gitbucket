@@ -9,12 +9,12 @@ import service.RequestCache
  * Provides helper methods for Twirl templates.
  */
 object helpers extends AvatarImageProvider with LinkConverter with RequestCache {
-  
+
   /**
    * Format java.util.Date to "yyyy-MM-dd HH:mm:ss".
    */
   def datetime(date: Date): String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date)
-  
+
   /**
    * Format java.util.Date to "yyyy-MM-dd".
    */
@@ -57,13 +57,21 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       value
     }
 
+  import scala.util.matching.Regex
+  import scala.util.matching.Regex._
+  implicit class RegexReplaceString(s: String) {
+    def replaceAll(pattern: String, replacer: (Match) => String): String = {
+      pattern.r.replaceAllIn(s, replacer)
+    }
+  }
+
   def activityMessage(message: String)(implicit context: app.Context): Html =
     Html(message
       .replaceAll("\\[issue:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"   , s"""<a href="${context.path}/$$1/$$2/issues/$$3">$$1/$$2#$$3</a>""")
       .replaceAll("\\[pullreq:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]" , s"""<a href="${context.path}/$$1/$$2/pull/$$3">$$1/$$2#$$3</a>""")
       .replaceAll("\\[repo:([^\\s]+?)/([^\\s]+?)\\]"             , s"""<a href="${context.path}/$$1/$$2\">$$1/$$2</a>""")
-      .replaceAll("\\[branch:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]", s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")
-      .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , s"""<a href="${context.path}/$$1/$$2/tree/$$3">$$3</a>""")
+      .replaceAll("\\[branch:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]", (m: Match) => s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/tree/${encodeRefName(m.group(3))}">${m.group(3)}</a>""")
+      .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , (m: Match) => s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/tree/${encodeRefName(m.group(3))}">${m.group(3)}</a>""")
       .replaceAll("\\[user:([^\\s]+?)\\]"                        , s"""<a href="${context.path}/$$1">$$1</a>""")
     )
 
@@ -91,6 +99,15 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Returns the url to the root of assets.
    */
   def assets(implicit context: app.Context): String = s"${context.path}/assets"
+
+  /**
+   * Generates the link to the account page.
+   */
+  def user(userName: String, mailAddress: String, styleClass: String = "")(implicit context: app.Context): Html = {
+    getAccountByMailAddress(mailAddress).map { account =>
+      Html(s"""<a href="${url(account.userName)}" class="${styleClass}">${userName}</a>""")
+    } getOrElse Html(userName)
+  }
 
   def isPast(date: Date): Boolean = System.currentTimeMillis > date.getTime
 

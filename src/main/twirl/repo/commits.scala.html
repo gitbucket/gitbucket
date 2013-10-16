@@ -49,7 +49,7 @@
                 <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
               }
               <div class="small">
-                <a href="@url(commit.committer)" class="username">@commit.committer</a>
+                @user(commit.committer, commit.mailAddress, "username")
                 <span class="muted">@datetime(commit.time)</span>
               </div>
             </div>

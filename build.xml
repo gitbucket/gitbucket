@@ -19,8 +19,8 @@
   </target>
 
   <target name="war" depends="clean">
-    <exec executable="${sbt.exec}" resolveexecutable="true">
-      <arg line="clean package" />
+    <exec executable="${sbt.exec}" resolveexecutable="true" failonerror="true">
+      <arg line="clean compile test package" />
     </exec>
   </target>
 

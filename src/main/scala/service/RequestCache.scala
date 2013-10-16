@@ -28,5 +28,10 @@ trait RequestCache {
     }
   }
 
+  def getAccountByMailAddress(mailAddress: String)(implicit context: app.Context): Option[Account] = {
+    context.cache(s"account.${mailAddress}"){
+      new AccountService {}.getAccountByMailAddress(mailAddress)
+    }
+  }
 }
 

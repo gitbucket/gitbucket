@@ -9,13 +9,10 @@ trait PullRequestService { self: IssuesService =>
   import PullRequestService._
 
   def getPullRequest(owner: String, repository: String, issueId: Int): Option[(Issue, PullRequest)] =
-    defining(getIssue(owner, repository, issueId.toString)){ issue =>
-      if(issue.isDefined){
-        Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).firstOption match {
-          case Some(pullreq) => Some((issue.get, pullreq))
-          case None          => None
-        }
-      } else None
+    getIssue(owner, repository, issueId.toString).flatMap{ issue =>
+      Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).firstOption.map{
+        pullreq => (issue, pullreq)
+      }
     }
 
   def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =

@@ -43,8 +43,10 @@ object JGitUtil {
    * @param message the last commit message
    * @param commitId the last commit id
    * @param committer the last committer name
+   * @param mailAddress the committer's mail address
    */
-  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String, committer: String)
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String,
+                      committer: String, mailAddress: String)
 
   /**
    * The commit data.
@@ -206,7 +208,8 @@ object JGitUtil {
         commits(path).getCommitterIdent.getWhen,
         commits(path).getShortMessage,
         commits(path).getName,
-        commits(path).getCommitterIdent.getName)
+        commits(path).getCommitterIdent.getName,
+        commits(path).getCommitterIdent.getEmailAddress)
     }.sortWith { (file1, file2) =>
       (file1.isDirectory, file2.isDirectory) match {
         case (true , false) => true
@@ -453,10 +456,11 @@ object JGitUtil {
   def getDefaultBranch(git: Git, repository: RepositoryService.RepositoryInfo,
                        revstr: String = ""): Option[(ObjectId, String)] = {
     Seq(
-      if(revstr.isEmpty) repository.repository.defaultBranch else revstr,
-      repository.branchList.head
-    ).map { rev =>
-      (git.getRepository.resolve(rev), rev)
+      Some(if(revstr.isEmpty) repository.repository.defaultBranch else revstr),
+      repository.branchList.headOption
+    ).flatMap {
+      case Some(rev) => Some((git.getRepository.resolve(rev), rev))
+      case None      => None
     }.find(_._1 != null)
   }
 
