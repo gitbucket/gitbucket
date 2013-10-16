@@ -50,7 +50,7 @@ abstract class ControllerBase extends ScalatraFilter
                 // TODO: if there's no e-mail address, we could just warn the user and send them to the profile page
                 getAccountByUserName(userName) match {
                   case Some(x) => updateAccount(x.copy(mailAddress = mailAddress))
-                  case None    => createAccount(userName, "", mailAddress, false, None)
+                  case None    => createAccount(userName, "", userName, mailAddress, false, None)
                 }
                 account = getAccountByUserName(userName).get
                 httpRequest.getSession.setAttribute(Keys.Session.LoginAccount, account)
