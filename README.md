@@ -32,12 +32,12 @@ Installation
 --------
 
 1. Download latest **gitbucket.war** from [the release page](https://github.com/takezoe/gitbucket/releases).
-2. Deploy it to the servlet container such as Tomcat or Jetty.
+2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
 3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
 
 The default administrator account is **root** and password is **root**.
 
-(Since 1.6) or you can start GitBucket by ```java -jar gitbucket.war``` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
+or you can start GitBucket by ```java -jar gitbucket.war``` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
 
 - --port=[NUMBER]
 - --prefix=[CONTEXTPATH]
