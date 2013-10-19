@@ -2,11 +2,12 @@ package util
 
 import org.specs2.mutable._
 
-class ValidationsSpec extends Specification with Validations {
+class
+ValidationsSpec extends Specification with Validations {
 
   "identifier" should {
     "validate id string " in {
-      identifier.validate("id", "aa_ZZ-01") mustEqual None
+      identifier.validate("id", "aa_ZZ-00.01") mustEqual None
       identifier.validate("id", "_aaaa") mustEqual Some("id starts with invalid character.")
       identifier.validate("id", "-aaaa") mustEqual Some("id starts with invalid character.")
       identifier.validate("id", "aa_ZZ#01") mustEqual Some("id contains invalid character.")
