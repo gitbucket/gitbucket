@@ -3,6 +3,7 @@ package app
 import service._
 import jp.sf.amateras.scalatra.forms._
 import util.Implicits._
+import util.StringUtil._
 import util.Keys
 
 class SignInController extends SignInControllerBase with SystemSettingsService with AccountService
@@ -47,7 +48,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
       if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
         redirect("/")
       } else {
-        redirect(redirectUrl)
+        redirect(urlEncode(redirectUrl).replaceAll("%2F", "/"))
       }
     }.getOrElse {
       redirect("/")
