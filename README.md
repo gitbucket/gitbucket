@@ -48,6 +48,18 @@ For Installation on Windows Server with IIS see [this wiki page](https://github.
 
 Release Notes
 --------
+### 1.7 - Scheduled for the End of October
+- Support working on Java6 in embedded Jetty mode
+- Add full name as user property
+- Add ```--host``` option to bind specified host name in embedded Jetty mode
+- Change link color for absent Wiki pages
+- Add ZIP download button to the repository viewer tab
+- Expand issue and comment textarea for long text automatically
+- Add conflict detection in Wiki
+- Add reverting wiki page from history
+- Match committer to user name by email address
+- Fix some bugs
+
 ### 1.6 - 1 Oct 2013
 - Web hook
 - Performance improvement for pull request
