@@ -15,7 +15,8 @@
         <span class="pull-right">
           @datetime(comment.registeredDate)
           @if(comment.action != "commit" && comment.action != "merge" && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
-            <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
+            <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
+            <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
           }
         </span>
       </div>
@@ -67,6 +68,19 @@ $(function(){
     function(data){
       $('#commentContent-' + id).empty().html(data);
     });
+    return false;
+  });
+  $('i.icon-remove-circle').click(function(){
+    if(confirm('Are you sure you want to delete this?')) {
+      var id = $(this).closest('a').data('comment-id');
+      $.post('@url(repository)/issue_comments/delete/' + id,
+      function(data){
+        if(data > 0) {
+          $('#comment-' + id).prev('div.issue-avatar-image').remove();
+          $('#comment-' + id).remove();
+        }
+      });
+    }
     return false;
   });
 });

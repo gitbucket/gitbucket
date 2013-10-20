@@ -155,6 +155,16 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
+  ajaxPost("/:owner/:repository/issue_comments/delete/:id")(readableUsersOnly { repository =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      getComment(owner, name, params("id")).map { comment =>
+        if(isEditable(owner, name, comment.commentedUserName)){
+          Ok(deleteComment(comment.commentId))
+        } else Unauthorized
+      } getOrElse NotFound
+    }
+  })
+
   ajaxGet("/:owner/:repository/issues/_data/:id")(readableUsersOnly { repository =>
     getIssue(repository.owner, repository.name, params("id")) map { x =>
       if(isEditable(x.userName, x.repositoryName, x.openedUserName)){
