@@ -9,6 +9,7 @@ import app.Context
 import service.{AccountService, RepositoryService, IssuesService, SystemSettingsService}
 import servlet.Database
 import SystemSettingsService.Smtp
+import _root_.util.ControlUtil.defining
 
 trait Notifier extends RepositoryService with AccountService with IssuesService {
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
@@ -68,30 +69,33 @@ class Mailer(private val smtp: Smtp) extends Notifier {
     val database = Database(context.request.getServletContext)
 
     val f = future {
-      val email = new HtmlEmail
-      email.setHostName(smtp.host)
-      email.setSmtpPort(smtp.port.get)
-      smtp.user.foreach { user =>
-        email.setAuthenticator(new DefaultAuthenticator(user, smtp.password.getOrElse("")))
-      }
-      smtp.ssl.foreach { ssl =>
-        email.setSSLOnConnect(ssl)
-      }
-      smtp.fromAddress
-        .map (_ -> smtp.fromName.orNull)
-        .orElse (Some("notifications@gitbucket.com" -> context.loginAccount.get.userName))
-        .foreach { case (address, name) =>
-        email.setFrom(address, name)
-      }
-      email.setHtmlMsg(msg(view.Markdown.toHtml(content, r, false, true)))
-
       // TODO Can we use the Database Session in other than Transaction Filter?
       database withSession {
         getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
-          email.setSubject(s"[${r.name}] ${issue.title} (#${issueId})")
-          recipients(issue) {
-            email.getToAddresses.clear
-            email.addTo(_).send
+          defining(
+              s"[${r.name}] ${issue.title} (#${issueId})" ->
+              msg(view.Markdown.toHtml(content, r, false, true))) { case (subject, msg) =>
+            recipients(issue) {
+              val email = new HtmlEmail
+              email.setHostName(smtp.host)
+              email.setSmtpPort(smtp.port.get)
+              smtp.user.foreach { user =>
+                email.setAuthenticator(new DefaultAuthenticator(user, smtp.password.getOrElse("")))
+              }
+              smtp.ssl.foreach { ssl =>
+                email.setSSLOnConnect(ssl)
+              }
+              smtp.fromAddress
+                .map (_ -> smtp.fromName.orNull)
+                .orElse (Some("notifications@gitbucket.com" -> context.loginAccount.get.userName))
+                .foreach { case (address, name) =>
+                  email.setFrom(address, name)
+                }
+              email.setSubject(subject)
+              email.setHtmlMsg(msg)
+
+              email.addTo(_).send
+            }
           }
         }
       }
