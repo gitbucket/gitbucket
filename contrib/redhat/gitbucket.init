@@ -35,6 +35,9 @@ start() {
 	if [ $GITBUCKET_PREFIX ]; then
 		START_OPTS="${START_OPTS} --prefix ${GITBUCKET_PREFIX}"
 	fi
+	if [ $GITBUCKET_HTTPS ]; then
+		START_OPTS="${START_OPTS} --https=true"
+	fi
 
 	# Run the Java process
 	GITBUCKET_HOME="${GITBUCKET_HOME}" java $GITBUCKET_JVM_OPTS -jar $GITBUCKET_WAR_FILE $START_OPTS >>$LOG_FILE 2>&1 &
