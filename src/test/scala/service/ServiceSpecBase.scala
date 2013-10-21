@@ -7,7 +7,7 @@ import org.apache.commons.io.FileUtils
 import scala.util.Random
 import java.io.File
 
-trait SpecBase {
+trait ServiceSpecBase {
 
   def withTestDB[A](action: => A): A = {
     util.FileUtil.withTmpDir(new File(FileUtils.getTempDirectory(), Random.alphanumeric.take(10).mkString)){

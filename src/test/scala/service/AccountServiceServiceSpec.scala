@@ -3,14 +3,14 @@ package service
 import org.specs2.mutable.Specification
 import java.util.Date
 
-class AccountServiceSpec extends Specification with SpecBase {
+class AccountServiceServiceSpec extends Specification with ServiceSpecBase {
 
   "AccountService" should {
     val RootMailAddress = "root@localhost"
 
     "getAllUsers" in { withTestDB{
       AccountService.getAllUsers must be like{
-        case List(model.Account("root", RootMailAddress, _, true, _, _, _, None, None, false)) => ok
+        case List(model.Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false)) => ok
       }
     }}
 
