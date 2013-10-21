@@ -2,8 +2,7 @@ package util
 
 import org.specs2.mutable._
 
-class
-ValidationsSpec extends Specification with Validations {
+class ValidationsSpec extends Specification with Validations {
 
   "identifier" should {
     "validate id string " in {
