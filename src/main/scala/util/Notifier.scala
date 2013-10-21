@@ -75,7 +75,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
           defining(
               s"[${r.name}] ${issue.title} (#${issueId})" ->
               msg(view.Markdown.toHtml(content, r, false, true))) { case (subject, msg) =>
-            recipients(issue) {
+            recipients(issue) { to =>
               val email = new HtmlEmail
               email.setHostName(smtp.host)
               email.setSmtpPort(smtp.port.get)
@@ -94,7 +94,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
               email.setSubject(subject)
               email.setHtmlMsg(msg)
 
-              email.addTo(_).send
+              email.addTo(to).send
             }
           }
         }
