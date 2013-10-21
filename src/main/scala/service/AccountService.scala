@@ -132,3 +132,5 @@ trait AccountService {
       .list
 
 }
+
+object AccountService extends AccountService
