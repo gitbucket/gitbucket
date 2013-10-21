@@ -13,7 +13,7 @@ public class JettyLauncher {
         String host = null;
         int port = 8080;
         String contextPath = "/";
-        boolean httpsScheme = false;
+        boolean forceHttps = false;
 
         for(String arg: args) {
             if(arg.startsWith("--") && arg.contains("=")) {
@@ -26,7 +26,7 @@ public class JettyLauncher {
                     } else if(dim[0].equals("--prefix")) {
                         contextPath = dim[1];
                     } else if(dim[0].equals("--https") && (dim[1].equals("1") || dim[1].equals("true"))) {
-                        httpsScheme = true;
+                        forceHttps = true;
                     }
                 }
             }
@@ -34,7 +34,7 @@ public class JettyLauncher {
 
         Server server = new Server();
 
-        SslConnector connector = new SslConnector(httpsScheme);
+        CustomConnector connector = new CustomConnector(forceHttps);
         if(host != null) {
             connector.setHost(host);
         }
@@ -58,16 +58,16 @@ public class JettyLauncher {
     }
 }
 
-class SslConnector extends SelectChannelConnector {
-    boolean myHttpsScheme;
+class CustomConnector extends SelectChannelConnector {
+    boolean mForceHttps;
 
-    public SslConnector(boolean httpsScheme) {
-        myHttpsScheme = httpsScheme;
+    public CustomConnector(boolean forceHttps) {
+        mForceHttps = forceHttps;
     }
 
     @Override
     public void customize(final EndPoint endpoint, final Request request) throws IOException {
-        if (myHttpsScheme) {
+        if (mForceHttps) {
             request.setScheme("https");
             super.customize(endpoint, request);
         }

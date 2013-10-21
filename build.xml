@@ -46,7 +46,7 @@
     <zip destfile="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
          basedir="${target.dir}/scala-${scala.version}/classes"
          update = "true"
-         includes="JettyLauncher.class,SslConnector.class"/>
+         includes="JettyLauncher.class,CustomConnector.class"/>
   </target>
 
   <target name="rename" depends="embed">
