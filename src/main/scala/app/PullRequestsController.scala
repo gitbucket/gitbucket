@@ -24,7 +24,7 @@ class PullRequestsController extends PullRequestsControllerBase
   with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: RepositoryService with IssuesService with MilestonesService with ActivityService with PullRequestService
+  self: RepositoryService with AccountService with IssuesService with MilestonesService with ActivityService with PullRequestService
     with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   val pullRequestForm = mapping(
@@ -74,7 +74,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           pulls.html.pullreq(
             issue, pullreq,
             getComments(owner, name, issueId),
-            (getCollaborators(owner, name) :+ owner).sorted,
+            (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
             getMilestonesWithIssueCount(owner, name),
             commits,
             diffs,
