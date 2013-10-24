@@ -188,6 +188,8 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     override def validate(name: String, value: String): Option[String] =
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")
+        case Some(x) if(x.isGroupAccount)
+                  => Some("User does not exist.")
         case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
                   => Some("User can access this repository already.")
         case _    => None

@@ -21,7 +21,14 @@
         </span>
       </div>
       <div class="box-content"class="issue-content" id="commentContent-@comment.commentId">
-        @markdown(comment.content, repository, false, true)
+        @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
+          @defining(comment.content.substring(comment.content.length - 40)){ id =>
+            <div class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></div>
+            @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true)
+          }
+        } else {
+          @markdown(comment.content, repository, false, true)
+        }
       </div>
     </div>
   }
