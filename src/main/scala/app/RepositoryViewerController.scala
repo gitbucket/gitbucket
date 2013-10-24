@@ -11,7 +11,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
-import org.eclipse.jgit.api.errors.RefNotFoundException
+import java.util.zip.{ZipEntry, ZipOutputStream}
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
   with RepositoryService with AccountService with ReferrerAuthenticator
@@ -38,7 +38,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository")(referrersOnly {
     fileList(_)
   })
-  
+
   /**
    * Displays the file list of the specified path and branch.
    */
@@ -50,7 +50,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       fileList(repository, id, path)
     }
   })
-  
+
   /**
    * Displays the commit list of the specified resource.
    */
@@ -121,7 +121,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
     }
   })
-  
+
   /**
    * Displays details of the specified commit.
    */
@@ -139,7 +139,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
     }
   })
-  
+
   /**
    * Displays branches.
    */
@@ -166,7 +166,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/archive/:name")(referrersOnly { repository =>
     val name = params("name")
-    
+
     if(name.endsWith(".zip")){
       val revision = name.replaceFirst("\\.zip$", "")
       val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
@@ -174,26 +174,35 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         FileUtils.deleteDirectory(workDir)
       }
       workDir.mkdirs
-      
-      // clone the repository
-      val cloneDir = new File(workDir, revision)
-      using(Git.cloneRepository
-          .setURI(getRepositoryDir(repository.owner, repository.name).toURI.toString)
-          .setDirectory(cloneDir)
-          .setBranch(revision)
-          .call){ git =>
 
-        // checkout the specified revision
-        git.checkout.setName(revision).call
-      }
-      
-      // remove .git
-      FileUtils.deleteDirectory(new File(cloneDir, ".git"))
-      
-      // create zip file
       val zipFile = new File(workDir, (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
-      FileUtil.createZipFile(zipFile, cloneDir)
-      
+
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+        using(new TreeWalk(git.getRepository)){ walk =>
+          val reader   = walk.getObjectReader
+          val objectId = new MutableObjectId
+
+          using(new ZipOutputStream(new java.io.FileOutputStream(zipFile))){ out =>
+            walk.addTree(revCommit.getTree)
+            walk.setRecursive(true)
+
+            while(walk.next){
+              val name = walk.getPathString
+              val mode = walk.getFileMode(0)
+              if(mode != FileMode.TREE){
+                walk.getObjectId(objectId, 0)
+                val entry = new ZipEntry(name)
+                val loader = reader.open(objectId)
+                entry.setSize(loader.getSize)
+                out.putNextEntry(entry)
+                loader.copyTo(out)
+              }
+            }
+          }
+        }
+      }
+
       contentType = "application/octet-stream"
       zipFile
     } else {
