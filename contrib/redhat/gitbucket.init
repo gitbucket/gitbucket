@@ -12,7 +12,6 @@
 . /etc/rc.d/init.d/functions
 
 # Default values
-GITBUCKET_PORT=8080
 GITBUCKET_HOME=/var/lib/gitbucket
 GITBUCKET_WAR_FILE=/usr/share/gitbucket/lib/gitbucket.war
 
@@ -31,9 +30,17 @@ start() {
 	echo -n $"Starting GitBucket server: "
 
 	# Compile statup parameters
-	START_OPTS="--port=${GITBUCKET_PORT}"
+	if [ $GITBUCKET_PORT ]; then
+		START_OPTS="${START_OPTS} --port=${GITBUCKET_PORT}"
+	fi
 	if [ $GITBUCKET_PREFIX ]; then
-		START_OPTS="${START_OPTS} --prefix ${GITBUCKET_PREFIX}"
+		START_OPTS="${START_OPTS} --prefix=${GITBUCKET_PREFIX}"
+	fi
+	if [ $GITBUCKET_HOST ]; then
+		START_OPTS="${START_OPTS} --host=${GITBUCKET_HOST}"
+	fi
+	if [ $GITBUCKET_HTTPS ]; then
+		START_OPTS="${START_OPTS} --https=true"
 	fi
 
 	# Run the Java process
