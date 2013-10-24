@@ -34,7 +34,7 @@ public class JettyLauncher {
 
         Server server = new Server();
 
-        CustomConnector connector = new CustomConnector(forceHttps);
+        HttpsSupportConnector connector = new HttpsSupportConnector(forceHttps);
         if(host != null) {
             connector.setHost(host);
         }
@@ -58,16 +58,16 @@ public class JettyLauncher {
     }
 }
 
-class CustomConnector extends SelectChannelConnector {
-    boolean mForceHttps;
+class HttpsSupportConnector extends SelectChannelConnector {
+    private boolean forceHttps;
 
-    public CustomConnector(boolean forceHttps) {
-        mForceHttps = forceHttps;
+    public HttpsSupportConnector(boolean forceHttps) {
+        this.forceHttps = forceHttps;
     }
 
     @Override
     public void customize(final EndPoint endpoint, final Request request) throws IOException {
-        if (mForceHttps) {
+        if (this.forceHttps) {
             request.setScheme("https");
             super.customize(endpoint, request);
         }
