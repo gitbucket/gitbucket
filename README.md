@@ -58,6 +58,7 @@ Release Notes
 - Add conflict detection in Wiki
 - Add reverting wiki page from history
 - Match committer to user name by email address
+- Mail notification sender is customizable
 - Fix some bugs
 
 ### 1.6 - 1 Oct 2013
