@@ -109,11 +109,26 @@ trait ActivityService {
       s"[user:${activityUserName}] created tag [tag:${userName}/${repositoryName}#${tagName}] at [repo:${userName}/${repositoryName}]",
       None,
       currentDate)
-  
+
+  def recordDeleteTagActivity(userName: String, repositoryName: String, activityUserName: String,
+                              tagName: String, commits: List[util.JGitUtil.CommitInfo]) =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "delete_tag",
+      s"[user:${activityUserName}] deleted tag ${tagName} at [repo:${userName}/${repositoryName}]",
+      None,
+      currentDate)
+
   def recordCreateBranchActivity(userName: String, repositoryName: String, activityUserName: String, branchName: String) =
     Activities.autoInc insert(userName, repositoryName, activityUserName,
       "create_branch",
-      s"[user:${activityUserName}] created branch [tag:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
+      s"[user:${activityUserName}] created branch [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
+      None,
+      currentDate)
+
+  def recordDeleteBranchActivity(userName: String, repositoryName: String, activityUserName: String, branchName: String) =
+    Activities.autoInc insert(userName, repositoryName, activityUserName,
+      "delete_branch",
+      s"[user:${activityUserName}] deleted branch ${branchName} at [repo:${userName}/${repositoryName}]",
       None,
       currentDate)
 

@@ -85,7 +85,11 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
       commands.asScala.foreach { command =>
-        val commits = JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+        logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
+        val commits = command.getType match {
+          case ReceiveCommand.Type.DELETE => Nil
+          case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+        }
         val refName = command.getRefName.split("/")
         val branchName = refName.drop(2).mkString("/")
 
@@ -113,16 +117,15 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         // record activity
         if(refName(1) == "heads"){
           command.getType match {
-            case ReceiveCommand.Type.CREATE => {
-              recordCreateBranchActivity(owner, repository, userName, branchName)
-              recordPushActivity(owner, repository, userName, branchName, newCommits)
-            }
+            case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, userName, branchName)
             case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, userName, branchName, newCommits)
+            case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, userName, branchName)
             case _ =>
           }
         } else if(refName(1) == "tags"){
           command.getType match {
             case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, userName, branchName, newCommits)
+            case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, userName, branchName, newCommits)
             case _ =>
           }
         }
