@@ -48,7 +48,7 @@ For Installation on Windows Server with IIS see [this wiki page](https://github.
 
 Release Notes
 --------
-### 1.7 - Scheduled for the End of October
+### 1.7 - 26 Oct 2013
 - Support working on Java6 in embedded Jetty mode
 - Add ```--host``` option to bind specified host name in embedded Jetty mode
 - Add ```--https=true``` option to use https in embedded Jetty mode
