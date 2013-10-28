@@ -11,13 +11,15 @@ import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.transport.RefSpec
 import org.apache.commons.io.FileUtils
 import scala.collection.JavaConverters._
-import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.lib.{ObjectId, CommitBuilder, PersonIdent}
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode
 import service.IssuesService._
 import service.PullRequestService._
 import util.JGitUtil.DiffInfo
 import service.RepositoryService.RepositoryTreeNode
 import util.JGitUtil.CommitInfo
+import org.slf4j.LoggerFactory
+import org.eclipse.jgit.merge.MergeStrategy
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
@@ -26,6 +28,8 @@ class PullRequestsController extends PullRequestsControllerBase
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with ActivityService with PullRequestService
     with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+
+  private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
   val pullRequestForm = mapping(
     "title"           -> trim(label("Title"  , text(required, maxlength(100)))),
@@ -91,7 +95,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       val name = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
         pulls.html.mergeguide(
-          checkConflict(owner, name, pullreq.branch, owner, name, pullreq.requestBranch),
+          checkConflict(owner, name, pullreq.branch, pullreq.requestUserName, name, pullreq.requestBranch),
           pullreq,
           s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
       }
@@ -315,24 +319,72 @@ trait PullRequestsControllerBase extends ControllerBase {
    */
   private def checkConflict(userName: String, repositoryName: String, branch: String,
                             requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-    // TODO Are there more quick way?
+    // TODO remove logging code
+    logger.info(s"userName: ${userName}" +
+                 s", repositoryName:${repositoryName}" +
+                 s", branch: ${branch}" +
+                 s", requestUserName: ${requestUserName}" +
+                 s", requestRepositoryName:${requestRepositoryName}" +
+                 s", requestBranch:${requestBranch}")
+
     LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
-      val remote = getRepositoryDir(userName, repositoryName)
-      withTmpDir(new java.io.File(getTemporaryDir(userName, repositoryName), "merge-check")){ tmpdir =>
-        using(Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(branch).call){ git =>
+      using(Git.open(getRepositoryDir(requestUserName, requestRepositoryName))) { git =>
+        // fetch objects from origin repository branch
+        val fromRefName = s"refs/heads/${branch}"
+        val toRefName = s"refs/merge-check/${userName}/${branch}"
+        val refSpec = new RefSpec(s"${fromRefName}:${toRefName}").setForceUpdate(true)
 
-          git.checkout.setName(branch).call
+        git.fetch
+           .setRemote(getRepositoryDir(userName, repositoryName).toURI.toString)
+           .setRefSpecs(refSpec)
+           .call
 
-          git.fetch
-            .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
-            .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/heads/${requestBranch}")).call
+        // merge check
+        val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
+        val to = git.getRepository.resolve(s"refs/merge-check/${userName}/${branch}")
+        val from = git.getRepository.resolve(s"refs/heads/${requestBranch}")
 
-          val result = git.merge
-            .include(git.getRepository.resolve("FETCH_HEAD"))
-            .setCommit(false).call
-
-          result.getConflicts != null
+      logger.info(s"to: ${to}, from: ${from}")
+        try {
+          !merger.merge(to, from)
+        } catch {
+          case e: Throwable =>  {
+            logger.error("Merge Check Failed.", e)
+            true
+          }
         }
+
+        // TODO Delete refs/merge-check
+
+        // MEMO CODE. create merge commit and update refs.
+        /*
+
+        // creates a mergeCommit Object
+        val mergeCommit = new CommitBuilder()
+        mergeCommit.setTreeId(merger.getResultTreeId)
+        mergeCommit.setParentIds(Array[ObjectId](to, from): _*)
+
+        val author = new PersonIdent("GitBucket Auto Merger", "gitbucket@example.com")
+        mergeCommit.setAuthor(author)
+        mergeCommit.setCommitter(author)
+        mergeCommit.setMessage("Merge pull request test1")
+        val inserter = git.getRepository.newObjectInserter
+
+        // insertObject and got mergeCommit Object Id
+        val mergeCommitId = inserter.insert(mergeCommit)
+        logger.debug("mergeCommitId: " + mergeCommitId)
+        inserter.flush()
+        inserter.release()
+
+        // update refs
+        val refUpdate = git.getRepository.updateRef("refs/heads/merge/test01")
+        refUpdate.setNewObjectId(mergeCommitId)
+        refUpdate.setForceUpdate(true)
+        refUpdate.setRefLogIdent(author)
+        refUpdate.setRefLogMessage("merged", true)
+        val updateResult = refUpdate.update()
+
+        */
       }
     }
   }
