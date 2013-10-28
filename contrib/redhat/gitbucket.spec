@@ -1,6 +1,6 @@
 Name:		gitbucket
-Summary:	Github clone written with Scala.
-Version:	1.6
+Summary:	GitHub clone written with Scala.
+Version:	1.7
 Release:	1%{?dist}
 License:	Apache
 URL:		https://github.com/takezoe/gitbucket
@@ -15,7 +15,7 @@ Requires:	java >= 1.7
 
 %description
 
-GitBucket is the easily installable Github clone written with Scala.
+GitBucket is the easily installable GitHub clone written with Scala.
 
 
 %install
@@ -40,5 +40,8 @@ touch %{buildroot}%{_localstatedir}/log/%{name}/run.log
 
 
 %changelog
+* Mon Oct 28 2013 Jiri Tyr <jiri_DOT_tyr at gmail.com>
+- Version bump to v1.7.
+
 * Thu Oct 17 2013 Jiri Tyr <jiri_DOT_tyr at gmail.com>
 - First build.
