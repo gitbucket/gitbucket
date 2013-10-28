@@ -41,6 +41,8 @@ or you can start GitBucket by ```java -jar gitbucket.war``` without servlet cont
 
 - --port=[NUMBER]
 - --prefix=[CONTEXTPATH]
+- --host=[HOSTNAME]
+- --https=true
 
 To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
