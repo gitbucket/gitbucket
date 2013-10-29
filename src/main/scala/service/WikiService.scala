@@ -3,13 +3,18 @@ package service
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
-import util.{Directory, JGitUtil, LockUtil}
+import util.{PatchUtil, Directory, JGitUtil, LockUtil}
 import _root_.util.ControlUtil._
 import org.eclipse.jgit.treewalk.{TreeWalk, CanonicalTreeParser}
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.dircache.{DirCache, DirCacheEntry}
 import org.eclipse.jgit.merge.{ResolveMerger, MergeStrategy}
 import org.eclipse.jgit.revwalk.RevWalk
+import scala.collection.JavaConverters._
+import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
+import java.io.ByteArrayInputStream
+import org.eclipse.jgit.patch._
+import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
 
 
@@ -102,6 +107,82 @@ trait WikiService {
    */
   def revertWikiPage(owner: String, repository: String, from: String, to: String,
                      committer: model.Account, pageName: Option[String]): Boolean = {
+
+    LockUtil.lock(s"${owner}/${repository}/wiki"){
+      using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
+        val reader = git.getRepository.newObjectReader
+        val oldTreeIter = new CanonicalTreeParser
+        oldTreeIter.reset(reader, git.getRepository.resolve(from + "^{tree}"))
+
+        val newTreeIter = new CanonicalTreeParser
+        newTreeIter.reset(reader, git.getRepository.resolve(to + "^{tree}"))
+
+        import scala.collection.JavaConverters._
+        val diffs = git.diff.setNewTree(oldTreeIter).setOldTree(newTreeIter).call.asScala.filter { diff =>
+          pageName match {
+            case Some(x) => diff.getNewPath == x + ".md"
+            case None    => true
+          }
+        }
+
+        val patch = using(new java.io.ByteArrayOutputStream()){ out =>
+          val formatter = new DiffFormatter(out)
+          formatter.setRepository(git.getRepository)
+          formatter.format(diffs.asJava)
+          new String(out.toByteArray, "UTF-8")
+        }
+
+        val p = new Patch()
+        p.parse(new ByteArrayInputStream(patch.getBytes("UTF-8")))
+        if(!p.getErrors.isEmpty){
+          throw new PatchFormatException(p.getErrors())
+        }
+        val revertInfo = (p.getFiles.asScala.map { fh =>
+          fh.getChangeType match {
+            case DiffEntry.ChangeType.MODIFY => {
+              val page = getWikiPage(owner, repository, fh.getNewPath.replaceFirst("\\.md$", "")).get
+              Seq(RevertInfo("ADD", fh.getNewPath, PatchUtil.apply(page.content, fh)))
+            }
+            case DiffEntry.ChangeType.ADD => {
+              Seq(RevertInfo("ADD", fh.getNewPath, PatchUtil.apply("", fh)))
+            }
+            case DiffEntry.ChangeType.DELETE => {
+              Seq(RevertInfo("DELETE", fh.getNewPath, ""))
+            }
+            case DiffEntry.ChangeType.RENAME => {
+              Seq(
+                RevertInfo("DELETE", fh.getOldPath, ""),
+                RevertInfo("ADD", fh.getNewPath, PatchUtil.apply("", fh))
+              )
+            }
+            case _ => Nil
+          }
+        }).flatten
+
+        revertInfo.foreach { revert =>
+          println(revert)
+        }
+
+//        val source = getWikiPage(owner, repository, pageName.get)
+//        PatchUtil.applyToFile(PatchUtil.createPatch(patch), source.get.content, pageName + ".md")
+
+//          try {
+//            git.apply.setPatch(new java.io.ByteArrayInputStream(patch.getBytes("UTF-8"))).call
+//            git.add.addFilepattern(".").call
+//            git.commit.setCommitter(committer.fullName, committer.mailAddress).setMessage(pageName match {
+//              case Some(x) => s"Revert ${from} ... ${to} on ${x}"
+//              case None    => s"Revert ${from} ... ${to}"
+//            }).call
+//            git.push.call
+//            true
+//          } catch {
+//            case ex: PatchApplyException => false
+//          }
+      }
+    }
+
+
+
 //    LockUtil.lock(s"${owner}/${repository}/wiki"){
 //      defining(Directory.getWikiWorkDir(owner, repository)){ workDir =>
 //        // clone working copy
@@ -282,6 +363,8 @@ trait WikiService {
         }
       }
   }
+
+  case class RevertInfo(operation: String, filePath: String, source: String)
 
 //  private def cloneOrPullWorkingCopy(workDir: File, owner: String, repository: String): Unit = {
 //    if(!workDir.exists){

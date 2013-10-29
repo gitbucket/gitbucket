@@ -96,7 +96,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)){
-      redirect(s"/${repository.owner}/${repository.name}/wiki/}")
+      redirect(s"/${repository.owner}/${repository.name}/wiki/")
     } else {
       flash += "info" -> "This patch was not able to be reversed."
       redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
