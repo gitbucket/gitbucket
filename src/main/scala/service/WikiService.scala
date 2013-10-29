@@ -1,21 +1,17 @@
 package service
 
-import java.io.File
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
-import util.{StringUtil, Directory, JGitUtil, LockUtil}
+import util.{Directory, JGitUtil, LockUtil}
 import _root_.util.ControlUtil._
 import org.eclipse.jgit.treewalk.{TreeWalk, CanonicalTreeParser}
-import org.eclipse.jgit.diff.DiffFormatter
-import org.eclipse.jgit.api.errors.PatchApplyException
-import java.util
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.dircache.{DirCache, DirCacheEntry}
 import org.eclipse.jgit.merge.{ResolveMerger, MergeStrategy}
-import scala.Some
 import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.api.CheckoutCommand.Stage
+import scala.collection.JavaConverters._
+
 
 object WikiService {
   
@@ -159,9 +155,6 @@ trait WikiService {
   def saveWikiPage(owner: String, repository: String, currentPageName: String, newPageName: String,
       content: String, committer: model.Account, message: String, currentId: Option[String]): Option[String] = {
 
-    import scala.collection.JavaConverters._
-
-    // TODO conflict detection and rename page
     LockUtil.lock(s"${owner}/${repository}/wiki"){
       using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
         val repo     = git.getRepository()
@@ -170,103 +163,68 @@ trait WikiService {
         val inserter = repo.newObjectInserter()
         val headId   = repo.resolve(Constants.HEAD + "^{commit}")
         var created  = true
+        var updated  = false
+        var removed  = false
 
         using(new RevWalk(git.getRepository)){ revWalk =>
           val treeWalk = new TreeWalk(repo)
-          val hIdx = treeWalk.addTree(revWalk.parseTree(headId))
+          val index    = treeWalk.addTree(revWalk.parseTree(headId))
           treeWalk.setRecursive(true)
           while(treeWalk.next){
             val path = treeWalk.getPathString
-            if(path != newPageName + ".md"){
-              val hTree = treeWalk.getTree(hIdx, classOf[CanonicalTreeParser])
+            val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
+            if(path == currentPageName + ".md" && currentPageName != newPageName){
+              removed = true
+            } else if(path != newPageName + ".md"){
               val entry = new DirCacheEntry(path)
-              entry.setObjectId(hTree.getEntryObjectId())
-              entry.setFileMode(hTree.getEntryFileMode())
+              entry.setObjectId(tree.getEntryObjectId())
+              entry.setFileMode(tree.getEntryFileMode())
               builder.add(entry)
             } else {
               created = false
+              updated = JGitUtil.getContent(git, tree.getEntryObjectId, true).map(new String(_, "UTF-8") != content).getOrElse(false)
             }
           }
           treeWalk.release()
         }
 
-        val entry = new DirCacheEntry(newPageName + ".md")
-        entry.setFileMode(FileMode.REGULAR_FILE)
-        entry.setObjectId(inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8")))
-        builder.add(entry)
+        optionIf(created || updated || removed){
+          val entry = new DirCacheEntry(newPageName + ".md")
+          entry.setFileMode(FileMode.REGULAR_FILE)
+          entry.setObjectId(inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8")))
+          builder.add(entry)
 
-        builder.finish()
-        val treeId = dirCache.writeTree(inserter)
+          builder.finish()
+          val treeId = dirCache.writeTree(inserter)
 
-        val newCommit = new CommitBuilder()
-        newCommit.setCommitter(new PersonIdent(committer.fullName, committer.mailAddress))
-        newCommit.setAuthor(new PersonIdent(committer.fullName, committer.mailAddress))
-        newCommit.setMessage(if(message.trim.length == 0) {
-          if(created){
-            s"Created ${newPageName}"
+          val newCommit = new CommitBuilder()
+          newCommit.setCommitter(new PersonIdent(committer.fullName, committer.mailAddress))
+          newCommit.setAuthor(new PersonIdent(committer.fullName, committer.mailAddress))
+          newCommit.setMessage(if(message.trim.length == 0) {
+            if(removed){
+              s"Rename ${currentPageName} to ${newPageName}"
+            } else if(created){
+              s"Created ${newPageName}"
+            } else {
+              s"Updated ${newPageName}"
+            }
           } else {
-            s"Updated ${newPageName}"
-          }
-        } else {
-          message
-        })
-        newCommit.setParentIds(List(headId).asJava)
-        newCommit.setTreeId(treeId)
+            message
+          })
+          newCommit.setParentIds(List(headId).asJava)
+          newCommit.setTreeId(treeId)
 
-        val newHeadId = inserter.insert(newCommit)
-        inserter.flush()
+          val newHeadId = inserter.insert(newCommit)
+          inserter.flush()
 
-        val ru = repo.updateRef(Constants.HEAD)
-        ru.setNewObjectId(newHeadId)
-        ru.update()
+          val refUpdate = repo.updateRef(Constants.HEAD)
+          refUpdate.setNewObjectId(newHeadId)
+          refUpdate.update()
 
-        Some(newHeadId.getName)
+          Some(newHeadId.getName)
+        }
       }
     }
-
-//      defining(Directory.getWikiWorkDir(owner, repository)){ workDir =>
-//        // clone working copy
-//        cloneOrPullWorkingCopy(workDir, owner, repository)
-//
-//        // write as file
-//        using(Git.open(workDir)){ git =>
-//          defining(new File(workDir, newPageName + ".md")){ file =>
-//            // new page
-//            val created = !file.exists
-//
-//            // created or updated
-//            val added = executeIf(!file.exists || FileUtils.readFileToString(file, "UTF-8") != content){
-//              FileUtils.writeStringToFile(file, content, "UTF-8")
-//              git.add.addFilepattern(file.getName).call
-//            }
-//
-//            // delete file
-//            val deleted = executeIf(currentPageName != "" && currentPageName != newPageName){
-//              git.rm.addFilepattern(currentPageName + ".md").call
-//            }
-//
-//            // commit and push
-//            optionIf(added || deleted){
-//              defining(git.commit.setCommitter(committer.fullName, committer.mailAddress)
-//                .setMessage(if(message.trim.length == 0){
-//                    if(deleted){
-//                      s"Rename ${currentPageName} to ${newPageName}"
-//                    } else if(created){
-//                      s"Created ${newPageName}"
-//                    } else {
-//                      s"Updated ${newPageName}"
-//                    }
-//                  } else {
-//                    message
-//                  }).call){ commit =>
-//                git.push.call
-//                Some(commit.getName)
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
   }
 
   /**
@@ -274,23 +232,55 @@ trait WikiService {
    */
   def deleteWikiPage(owner: String, repository: String, pageName: String,
                      committer: String, mailAddress: String, message: String): Unit = {
-//    LockUtil.lock(s"${owner}/${repository}/wiki"){
-//      defining(Directory.getWikiWorkDir(owner, repository)){ workDir =>
-//        // clone working copy
-//        cloneOrPullWorkingCopy(workDir, owner, repository)
-//
-//        // delete file
-//        new File(workDir, pageName + ".md").delete
-//
-//        using(Git.open(workDir)){ git =>
-//          git.rm.addFilepattern(pageName + ".md").call
-//
-//          // commit and push
-//          git.commit.setCommitter(committer, mailAddress).setMessage(message).call
-//          git.push.call
-//        }
-//      }
-//    }
+      LockUtil.lock(s"${owner}/${repository}/wiki"){
+        using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
+          val repo     = git.getRepository()
+          val dirCache = DirCache.newInCore()
+          val builder  = dirCache.builder()
+          val inserter = repo.newObjectInserter()
+          val headId   = repo.resolve(Constants.HEAD + "^{commit}")
+          var removed  = false
+
+          using(new RevWalk(git.getRepository)){ revWalk =>
+            val treeWalk = new TreeWalk(repo)
+            val index    = treeWalk.addTree(revWalk.parseTree(headId))
+            treeWalk.setRecursive(true)
+            while(treeWalk.next){
+              val path = treeWalk.getPathString
+              val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
+              if(path != pageName + ".md"){
+                val entry = new DirCacheEntry(path)
+                entry.setObjectId(tree.getEntryObjectId())
+                entry.setFileMode(tree.getEntryFileMode())
+                builder.add(entry)
+              } else {
+                removed = true
+              }
+            }
+            treeWalk.release()
+          }
+
+          if(removed){
+            builder.finish()
+            val treeId = dirCache.writeTree(inserter)
+
+            val newCommit = new CommitBuilder()
+            newCommit.setCommitter(new PersonIdent(committer, mailAddress))
+            newCommit.setAuthor(new PersonIdent(committer, mailAddress))
+            newCommit.setMessage(message)
+            newCommit.setParentIds(List(headId).asJava)
+            newCommit.setTreeId(treeId)
+
+            val newHeadId = inserter.insert(newCommit)
+            inserter.flush()
+
+            val refUpdate = repo.updateRef(Constants.HEAD)
+            refUpdate.setNewObjectId(newHeadId)
+            refUpdate.update()
+
+          }
+        }
+      }
   }
 
 //  private def cloneOrPullWorkingCopy(workDir: File, owner: String, repository: String): Unit = {
