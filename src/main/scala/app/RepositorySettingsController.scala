@@ -139,13 +139,15 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
 
       val webHookURLs = getWebHookURLs(repository.owner, repository.name)
       if(webHookURLs.nonEmpty){
+        val owner = getAccountByUserName(repository.owner).get
         callWebHook(repository.owner, repository.name, webHookURLs,
           WebHookPayload(
             git,
+            owner,
             "refs/heads/" + repository.repository.defaultBranch,
             repository,
             commits.toList,
-            getAccountByUserName(repository.owner).get))
+            owner))
       }
 
       flash += "info" -> "Test payload deployed!"
