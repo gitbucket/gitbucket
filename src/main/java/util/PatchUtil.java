@@ -3,7 +3,6 @@ package util;
 import org.eclipse.jgit.api.errors.PatchApplyException;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.internal.JGitText;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.patch.HunkHeader;
 
