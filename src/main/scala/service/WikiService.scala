@@ -48,13 +48,8 @@ trait WikiService {
     LockUtil.lock(s"${owner}/${repository}/wiki"){
       defining(Directory.getWikiRepositoryDir(owner, repository)){ dir =>
         if(!dir.exists){
-          try {
-            JGitUtil.initRepository(dir)
-            saveWikiPage(owner, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", loginAccount, "Initial Commit", None)
-          } finally {
-            // once delete cloned repository because initial cloned repository does not have 'branch.master.merge'
-            FileUtils.deleteDirectory(Directory.getWikiWorkDir(owner, repository))
-          }
+          JGitUtil.initRepository(dir)
+          saveWikiPage(owner, repository, "Home", "Home", s"Welcome to the ${repository} wiki!!", loginAccount, "Initial Commit", None)
         }
       }
     }

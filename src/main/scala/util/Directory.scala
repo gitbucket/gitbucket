@@ -70,11 +70,5 @@ object Directory {
    */
   def getWikiRepositoryDir(owner: String, repository: String): File =
     new File(s"${RepositoryHome}/${owner}/${repository}.wiki.git")
-  
-  /**
-   * Wiki working directory which is cloned from the wiki repository.
-   */
-  def getWikiWorkDir(owner: String, repository: String): File =
-    new File(getTemporaryDir(owner, repository), "wiki")
 
 }
