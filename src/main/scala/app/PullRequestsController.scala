@@ -108,67 +108,74 @@ trait PullRequestsControllerBase extends ControllerBase {
       val name = repository.name
       LockUtil.lock(s"${owner}/${name}/merge"){
         getPullRequest(owner, name, issueId).map { case (issue, pullreq) =>
-          val remote = getRepositoryDir(owner, name)
-          withTmpDir(new java.io.File(getTemporaryDir(owner, name), s"merge-${issueId}")){ tmpdir =>
-            using(Git.cloneRepository.setDirectory(tmpdir).setURI(remote.toURI.toString).setBranch(pullreq.branch).call){ git =>
+          using(Git.open(getRepositoryDir(owner, name))) { git =>
+            // mark issue as merged and close.
+            val loginAccount = context.loginAccount.get
+            createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
+            createComment(owner, name, loginAccount.userName, issueId, "Close", "close")
+            updateClosed(owner, name, issueId, true)
 
-              // mark issue as merged and close.
-              val loginAccount = context.loginAccount.get
-              createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
-              createComment(owner, name, loginAccount.userName, issueId, "Close", "close")
-              updateClosed(owner, name, issueId, true)
+            // record activity
+            recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
-              // record activity
-              recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
+            // prepare merge branch
+            // TODO Dooes need update refs/pull/${issueId}/head branch before merge?
+            val updateMergeRef = git.getRepository.updateRef(s"refs/pull/${issueId}/merge")
+            updateMergeRef.setNewObjectId(git.getRepository.resolve(s"refs/heads/${pullreq.branch}"))
+            updateMergeRef.forceUpdate()
 
-              // fetch pull request to temporary working repository
-              val pullRequestBranchName = s"gitbucket-pullrequest-${issueId}"
-
-              git.fetch
-                .setRemote(getRepositoryDir(owner, name).toURI.toString)
-                .setRefSpecs(new RefSpec(s"refs/pull/${issueId}/head:refs/heads/${pullRequestBranchName}")).call
-
-              // merge pull request
-              git.checkout.setName(pullreq.branch).call
-
-              val result = git.merge
-                .include(git.getRepository.resolve(pullRequestBranchName))
-                .setFastForward(FastForwardMode.NO_FF)
-                .setCommit(false)
-                .call
-
-              if(result.getConflicts != null){
-                throw new RuntimeException("This pull request can't merge automatically.")
-              }
-
-              // merge commit
-              git.getRepository.writeMergeCommitMsg(
-                s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n"
-                + form.message)
-
-              git.commit
-                .setCommitter(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
-                .call
-
-              // push
-              git.push.call
-
-              val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
-                pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
-
-              commits.flatten.foreach { commit =>
-                if(!existsCommitId(owner, name, commit.id)){
-                  insertCommitId(owner, name, commit.id)
-                }
-              }
-
-              // notifications
-              Notifier().toNotify(repository, issueId, "merge"){
-                Notifier.msgStatus(s"${baseUrl}/${owner}/${name}/pull/${issueId}")
-              }
-
-              redirect(s"/${owner}/${name}/pull/${issueId}")
+            // merge
+            val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
+            val mergeTip = git.getRepository.resolve(s"refs/pull/${issueId}/head")
+            val mergeBaseTip = git.getRepository.resolve(s"refs/pull/${issueId}/merge")
+            val conflicted = try {
+              !merger.merge(mergeTip, mergeBaseTip)
+            } catch {
+              case e: NoMergeBaseException => true
             }
+            if (conflicted) {
+              throw new RuntimeException("This pull request can't merge automatically.")
+            }
+
+            // creates merge commit
+            val mergeCommit = new CommitBuilder()
+            mergeCommit.setTreeId(merger.getResultTreeId)
+            mergeCommit.setParentIds(Array[ObjectId](mergeBaseTip, mergeTip): _*)
+            val personIdent = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
+            mergeCommit.setAuthor(personIdent)
+            mergeCommit.setCommitter(personIdent)
+            mergeCommit.setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n\n" +
+                                   form.message)
+
+            // insertObject and got mergeCommit Object Id
+            val inserter = git.getRepository.newObjectInserter
+            val mergeCommitId = inserter.insert(mergeCommit)
+            inserter.flush()
+            inserter.release()
+
+            // update refs
+            val refUpdate = git.getRepository.updateRef(s"refs/heads/${pullreq.branch}")
+            refUpdate.setNewObjectId(mergeCommitId)
+            refUpdate.setForceUpdate(false)
+            refUpdate.setRefLogIdent(personIdent)
+            refUpdate.setRefLogMessage("merged", true)
+            refUpdate.update()
+
+            val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
+              pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
+
+            commits.flatten.foreach { commit =>
+              if(!existsCommitId(owner, name, commit.id)){
+                insertCommitId(owner, name, commit.id)
+              }
+            }
+
+            // notifications
+            Notifier().toNotify(repository, issueId, "merge"){
+              Notifier.msgStatus(s"${baseUrl}/${owner}/${name}/pull/${issueId}")
+            }
+
+            redirect(s"/${owner}/${name}/pull/${issueId}")
           }
         }
       }
@@ -350,7 +357,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   private def checkConflictInPullRequest(userName: String, repositoryName: String, branch: String,
                                          requestUserName: String, requestRepositoryName: String, requestBranch: String,
                                          issueId: Int): Boolean = {
-    LockUtil.lock(s"${issueId}/merge") {
+    LockUtil.lock(s"${userName}/${repositoryName}/merge") {
       using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
         // fetch pull request content into refs/pull/${issueId}/head
         val headName = s"refs/pull/${issueId}/head"
@@ -370,38 +377,11 @@ trait PullRequestsControllerBase extends ControllerBase {
         val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
         val mergeTip = git.getRepository.resolve(headName)
         val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${branch}")
-        val conflicted = try {
+        try {
           !merger.merge(mergeTip, mergeBaseTip)
         } catch {
           case e: NoMergeBaseException => true
         }
-
-        if (!conflicted) {
-          // creates merge commit
-          val mergeCommit = new CommitBuilder()
-          mergeCommit.setTreeId(merger.getResultTreeId)
-          mergeCommit.setParentIds(Array[ObjectId](mergeBaseTip, mergeTip): _*)
-          val loginAccount = context.loginAccount.get
-          val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-          mergeCommit.setAuthor(committer)
-          mergeCommit.setCommitter(committer)
-          mergeCommit.setMessage(s"Merge pull #${issueId} from ${requestUserName}/${requestRepositoryName}\n")
-          val inserter = git.getRepository.newObjectInserter
-
-          // insertObject and got mergeCommit Object Id
-          val mergeCommitId = inserter.insert(mergeCommit)
-          inserter.flush()
-          inserter.release()
-
-          // update refs refs/pull/${issueId}/merge
-          val refUpdate = git.getRepository.updateRef(mergeName)
-          refUpdate.setNewObjectId(mergeCommitId)
-          refUpdate.setForceUpdate(true)
-          refUpdate.setRefLogIdent(committer)
-          refUpdate.setRefLogMessage("merged", true)
-          refUpdate.update()
-        }
-        conflicted
       }
     }
   }
