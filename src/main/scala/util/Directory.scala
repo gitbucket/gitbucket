@@ -57,15 +57,6 @@ object Directory {
     new File(getTemporaryDir(owner, repository), s"download/${sessionId}")
   
   /**
-   * Temporary directory which is used in the repository creation.
-   *
-   * GitBucket generates initial repository contents in this directory and push them.
-   * This directory is removed after the repository creation.
-   */
-  def getInitRepositoryDir(owner: String, repository: String): File =
-    new File(getTemporaryDir(owner, repository), "init")
-  
-  /**
    * Substance directory of the wiki repository.
    */
   def getWikiRepositoryDir(owner: String, repository: String): File =

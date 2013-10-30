@@ -176,18 +176,18 @@ trait WikiService {
                   val path = treeWalk.getPathString
                   val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
                   if(revertInfo.find(x => x.filePath == path).isEmpty){
-                    builder.add(createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+                    builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
                   }
                 }
               }
             }
 
             revertInfo.filter(_.operation == "ADD").foreach { x =>
-              builder.add(createDirCacheEntry(x.filePath, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, x.source.getBytes("UTF-8"))))
+              builder.add(JGitUtil.createDirCacheEntry(x.filePath, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, x.source.getBytes("UTF-8"))))
             }
             builder.finish()
 
-            createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
+            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
               pageName match {
                 case Some(x) => s"Revert ${from} ... ${to} on ${x}"
                 case None    => s"Revert ${from} ... ${to}"
@@ -218,29 +218,31 @@ trait WikiService {
         var updated  = false
         var removed  = false
 
-        using(new RevWalk(git.getRepository)){ revWalk =>
-          using(new TreeWalk(git.getRepository)){ treeWalk =>
-            val index = treeWalk.addTree(revWalk.parseTree(headId))
-            treeWalk.setRecursive(true)
-            while(treeWalk.next){
-              val path = treeWalk.getPathString
-              val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
-              if(path == currentPageName + ".md" && currentPageName != newPageName){
-                removed = true
-              } else if(path != newPageName + ".md"){
-                builder.add(createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-              } else {
-                created = false
-                updated = JGitUtil.getContent(git, tree.getEntryObjectId, true).map(new String(_, "UTF-8") != content).getOrElse(false)
+        if(headId != null){
+          using(new RevWalk(git.getRepository)){ revWalk =>
+            using(new TreeWalk(git.getRepository)){ treeWalk =>
+              val index = treeWalk.addTree(revWalk.parseTree(headId))
+              treeWalk.setRecursive(true)
+              while(treeWalk.next){
+                val path = treeWalk.getPathString
+                val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
+                if(path == currentPageName + ".md" && currentPageName != newPageName){
+                  removed = true
+                } else if(path != newPageName + ".md"){
+                  builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+                } else {
+                  created = false
+                  updated = JGitUtil.getContent(git, tree.getEntryObjectId, true).map(new String(_, "UTF-8") != content).getOrElse(false)
+                }
               }
             }
           }
         }
 
         optionIf(created || updated || removed){
-          builder.add(createDirCacheEntry(newPageName + ".md", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
+          builder.add(JGitUtil.createDirCacheEntry(newPageName + ".md", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
           builder.finish()
-          val newHeadId = createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
+          val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
             if(message.trim.length == 0) {
               if(removed){
                 s"Rename ${currentPageName} to ${newPageName}"
@@ -279,7 +281,7 @@ trait WikiService {
                 val path = treeWalk.getPathString
                 val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
                 if(path != pageName + ".md"){
-                  builder.add(createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+                  builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
                 } else {
                   removed = true
                 }
@@ -288,39 +290,11 @@ trait WikiService {
 
             if(removed){
               builder.finish()
-              createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer, mailAddress, message)
+              JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer, mailAddress, message)
             }
           }
         }
       }
-  }
-
-  // This method should be moved to JGitUtil?
-  private def createDirCacheEntry(path: String, mode: FileMode, objectId: ObjectId): DirCacheEntry = {
-    val entry = new DirCacheEntry(path)
-    entry.setFileMode(mode)
-    entry.setObjectId(objectId)
-    entry
-  }
-
-  // This method should be moved to JGitUtil?
-  private def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
-                              fullName: String, mailAddress: String, message: String): String = {
-    val newCommit = new CommitBuilder()
-    newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
-    newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
-    newCommit.setMessage(message)
-    newCommit.setParentIds(List(headId).asJava)
-    newCommit.setTreeId(treeId)
-
-    val newHeadId = inserter.insert(newCommit)
-    inserter.flush()
-
-    val refUpdate = git.getRepository.updateRef(Constants.HEAD)
-    refUpdate.setNewObjectId(newHeadId)
-    refUpdate.update()
-
-    newHeadId.getName
   }
 
 }
