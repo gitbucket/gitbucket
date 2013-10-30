@@ -118,24 +118,21 @@ trait PullRequestsControllerBase extends ControllerBase {
             // record activity
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
-            // prepare head/merge branch
-            val headName = s"refs/pull/${issueId}/head"
-            val headRef = new RefSpec(s"refs/heads/${pullreq.requestBranch}:${headName}").setForceUpdate(true)
+            // prepare head branch
+            val headRefName = s"refs/pull/${issueId}/head"
+            val headRef = new RefSpec(s"refs/heads/${pullreq.requestBranch}:${headRefName}").setForceUpdate(true)
             git.fetch
                .setRemote(getRepositoryDir(pullreq.requestUserName, pullreq.requestRepositoryName).toURI.toString)
                .setRefSpecs(headRef)
                .call
 
-            val updateMergeRef = git.getRepository.updateRef(s"refs/pull/${issueId}/merge")
-            updateMergeRef.setNewObjectId(git.getRepository.resolve(s"refs/heads/${pullreq.branch}"))
-            updateMergeRef.forceUpdate()
-
             // merge
+            val mergeBaseRefName = s"refs/heads/${pullreq.branch}"
             val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
-            val mergeTip = git.getRepository.resolve(s"refs/pull/${issueId}/head")
-            val mergeBaseTip = git.getRepository.resolve(s"refs/pull/${issueId}/merge")
+            val mergeBaseTip = git.getRepository.resolve(mergeBaseRefName)
+            val mergeTip = git.getRepository.resolve(headRefName)
             val conflicted = try {
-              !merger.merge(mergeTip, mergeBaseTip)
+              !merger.merge(mergeBaseTip, mergeTip)
             } catch {
               case e: NoMergeBaseException => true
             }
@@ -160,7 +157,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             inserter.release()
 
             // update refs
-            val refUpdate = git.getRepository.updateRef(s"refs/heads/${pullreq.branch}")
+            val refUpdate = git.getRepository.updateRef(mergeBaseRefName)
             refUpdate.setNewObjectId(mergeCommitId)
             refUpdate.setForceUpdate(false)
             refUpdate.setRefLogIdent(personIdent)
@@ -334,21 +331,22 @@ trait PullRequestsControllerBase extends ControllerBase {
                             requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
     LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
       using(Git.open(getRepositoryDir(requestUserName, requestRepositoryName))) { git =>
-        val fromRefName = s"refs/heads/${branch}"
-        val toRefName = s"refs/merge-check/${userName}/${branch}"
+        val remoteRefName = s"refs/heads/${branch}"
+        val tmpRefName = s"refs/merge-check/${userName}/${branch}"
 
-        withTmpRefSpec(new RefSpec(s"${fromRefName}:${toRefName}").setForceUpdate(true), git) { ref =>
+        withTmpRefSpec(new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true), git) { ref =>
           // fetch objects from origin repository branch
           git.fetch
              .setRemote(getRepositoryDir(userName, repositoryName).toURI.toString)
              .setRefSpecs(ref)
              .call
+
           // merge conflict check
           val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
-          val mergeTip = git.getRepository.resolve(toRefName)
           val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${requestBranch}")
+          val mergeTip = git.getRepository.resolve(tmpRefName)
           try {
-            !merger.merge(mergeTip, mergeBaseTip)
+            !merger.merge(mergeBaseTip, mergeTip)
           } catch {
             case e: NoMergeBaseException =>  true
           }
@@ -373,18 +371,12 @@ trait PullRequestsControllerBase extends ControllerBase {
            .setRefSpecs(headRef)
            .call
 
-        // setup mergeBase refs/pull/${issueId}/merge
-        val mergeName = s"refs/pull/${issueId}/merge"
-        val updateMergeRef = git.getRepository.updateRef(mergeName)
-        updateMergeRef.setNewObjectId(git.getRepository.resolve(s"refs/heads/${branch}"))
-        updateMergeRef.forceUpdate
-
         // merge
         val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
-        val mergeTip = git.getRepository.resolve(headName)
         val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${branch}")
+        val mergeTip = git.getRepository.resolve(headName)
         try {
-          !merger.merge(mergeTip, mergeBaseTip)
+          !merger.merge(mergeBaseTip, mergeTip)
         } catch {
           case e: NoMergeBaseException => true
         }
