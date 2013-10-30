@@ -43,7 +43,7 @@ class GitRepositoryServlet extends GitServlet {
 
       def getServletContext(): ServletContext = config.getServletContext
       def getServletName(): String = config.getServletName
-    });
+    })
 
     super.init(config)
   }
@@ -135,6 +135,7 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         if(webHookURLs.nonEmpty){
           val payload = WebHookPayload(
             git,
+            getAccountByUserName(userName).get,
             command.getRefName,
             getRepository(owner, repository, baseURL).get,
             newCommits,
