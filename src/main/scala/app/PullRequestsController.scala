@@ -118,8 +118,14 @@ trait PullRequestsControllerBase extends ControllerBase {
             // record activity
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
-            // prepare merge branch
-            // TODO Dooes need update refs/pull/${issueId}/head branch before merge?
+            // prepare head/merge branch
+            val headName = s"refs/pull/${issueId}/head"
+            val headRef = new RefSpec(s"refs/heads/${pullreq.requestBranch}:${headName}").setForceUpdate(true)
+            git.fetch
+               .setRemote(getRepositoryDir(pullreq.requestUserName, pullreq.requestRepositoryName).toURI.toString)
+               .setRefSpecs(headRef)
+               .call
+
             val updateMergeRef = git.getRepository.updateRef(s"refs/pull/${issueId}/merge")
             updateMergeRef.setNewObjectId(git.getRepository.resolve(s"refs/heads/${pullreq.branch}"))
             updateMergeRef.forceUpdate()
