@@ -66,7 +66,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true), repository,
+      wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true).filter(_.newPath == pageName + ".md"), repository,
         hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
     }
   })
