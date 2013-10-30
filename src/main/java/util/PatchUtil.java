@@ -3,9 +3,11 @@ package util;
 import org.eclipse.jgit.api.errors.PatchApplyException;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.internal.JGitText;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.patch.HunkHeader;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -16,7 +18,7 @@ import java.util.List;
  */
 public class PatchUtil {
 
-    public static String apply(String source, FileHeader fh)
+    public static String apply(String source, String patch, FileHeader fh)
             throws IOException, PatchApplyException {
         RawText rt = new RawText(source.getBytes("UTF-8"));
         List<String> oldLines = new ArrayList<String>(rt.size());
@@ -24,10 +26,9 @@ public class PatchUtil {
             oldLines.add(rt.getString(i));
         List<String> newLines = new ArrayList<String>(oldLines);
         for (HunkHeader hh : fh.getHunks()) {
-            StringBuilder hunk = new StringBuilder();
-            for (int j = hh.getStartOffset(); j < hh.getEndOffset(); j++)
-                hunk.append((char) hh.getBuffer()[j]);
-            RawText hrt = new RawText(hunk.toString().getBytes("UTF-8"));
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            out.write(patch.getBytes("UTF-8"), hh.getStartOffset(), hh.getEndOffset() - hh.getStartOffset());
+            RawText hrt = new RawText(out.toByteArray());
             List<String> hunkLines = new ArrayList<String>(hrt.size());
             for (int i = 0; i < hrt.size(); i++)
                 hunkLines.add(hrt.getString(i));
