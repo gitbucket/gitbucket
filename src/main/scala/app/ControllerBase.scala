@@ -15,6 +15,7 @@ import service.AccountService
 import javax.servlet.http.{HttpServletResponse, HttpSession, HttpServletRequest}
 import java.text.SimpleDateFormat
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
+import _root_.util.StringUtil._
 
 /**
  * Provides generic features for controller implementations.
@@ -113,6 +114,10 @@ abstract class ControllerBase extends ScalatraFilter
 
   protected def baseUrl = defining(request.getRequestURL.toString){ url =>
     url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
+  }
+
+  override def redirect(uri: String)(implicit request: HttpServletRequest, response: HttpServletResponse) = {
+    super.redirect(urlEncode(uri).replaceAll("%2F", "/"))
   }
 
 }

@@ -5,6 +5,7 @@ import service._
 import RepositoryService.RepositoryInfo
 import util.Implicits._
 import util.ControlUtil._
+import util.StringUtil._
 
 /**
  * Allows only oneself and administrators.
@@ -16,6 +17,7 @@ trait OneselfAuthenticator { self: ControllerBase =>
   private def authenticate(action: => Any) = {
     {
       defining(request.paths){ paths =>
+        paths(1) = urlDecode(request.paths(1))
         context.loginAccount match {
           case Some(x) if(x.isAdmin) => action
           case Some(x) if(paths(0) == x.userName) => action
@@ -36,6 +38,7 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService =>
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
+        paths(1) = urlDecode(request.paths(1))
         getRepository(paths(0), paths(1), baseUrl).map { repository =>
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
@@ -92,6 +95,7 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
+        paths(1) = urlDecode(request.paths(1))
         getRepository(paths(0), paths(1), baseUrl).map { repository =>
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
@@ -115,6 +119,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
+        paths(1) = urlDecode(request.paths(1))
         getRepository(paths(0), paths(1), baseUrl).map { repository =>
           if(!repository.repository.isPrivate){
             action(repository)
@@ -142,6 +147,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
+        paths(1) = urlDecode(request.paths(1))
         getRepository(paths(0), paths(1), baseUrl).map { repository =>
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
