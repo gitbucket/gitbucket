@@ -71,7 +71,8 @@ trait AccountService {
       updatedDate    = currentDate,
       lastLoginDate  = None,
       image          = None,
-      isGroupAccount = false)
+      isGroupAccount = false,
+      isRemoved      = false)
 
   def updateAccount(account: Account): Unit = 
     Accounts
@@ -105,7 +106,8 @@ trait AccountService {
       updatedDate    = currentDate,
       lastLoginDate  = None,
       image          = None,
-      isGroupAccount = true)
+      isGroupAccount = true,
+      isRemoved      = false)
 
   def updateGroup(groupName: String, url: Option[String]): Unit =
     Accounts.filter(_.userName is groupName.bind).map(_.url.?).update(url)
