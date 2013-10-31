@@ -70,8 +70,11 @@ trait PullRequestsControllerBase extends ControllerBase {
       val name = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
         using(Git.open(getRepositoryDir(owner, name))){ git =>
-          val (commits, diffs) =
-            getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
+          // prepare head branch
+          val commitIdTo = fetchPullRequest(git, issueId, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+          updateCommitIdTo(owner, name, issueId, commitIdTo)
+
+          val (commits, diffs) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, commitIdTo)
 
           pulls.html.pullreq(
             issue, pullreq,
@@ -101,7 +104,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
-    params("id").toIntOpt.flatMap{ issueId =>
+    params("id").toIntOpt.flatMap { issueId =>
       val owner = repository.owner
       val name = repository.name
       LockUtil.lock(s"${owner}/${name}/merge"){
@@ -115,9 +118,6 @@ trait PullRequestsControllerBase extends ControllerBase {
 
             // record activity
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
-
-            // prepare head branch
-            fetchPullRequest(git, issueId, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
 
             // merge
             val mergeBaseRefName = s"refs/heads/${pullreq.branch}"
@@ -356,9 +356,6 @@ trait PullRequestsControllerBase extends ControllerBase {
                                          issueId: Int): Boolean = {
     LockUtil.lock(s"${userName}/${repositoryName}/merge") {
       using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
-        // fetch pull request contents
-        fetchPullRequest(git, issueId, requestUserName, requestRepositoryName, requestBranch)
-
         // merge
         val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
         val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${branch}")
@@ -450,13 +447,15 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
 
   /**
-   * Fetch pull request contents into refs/pull/${issueId}/head
+   * Fetch pull request contents into refs/pull/${issueId}/head and return the head commit id of the pull request.
    */
-  private def fetchPullRequest(git: Git, issueId: Int, requestUserName: String, requestRepositoryName: String, requestBranch: String): Unit = {
+  private def fetchPullRequest(git: Git, issueId: Int, requestUserName: String, requestRepositoryName: String, requestBranch: String): String = {
     git.fetch
       .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
       .setRefSpecs(new RefSpec(s"refs/heads/${requestBranch}:refs/pull/${issueId}/head").setForceUpdate(true))
       .call
+
+    git.getRepository.resolve(s"refs/pull/${issueId}/head").getName
   }
 
 }
