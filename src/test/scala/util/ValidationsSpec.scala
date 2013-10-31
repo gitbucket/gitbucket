@@ -10,6 +10,9 @@ class ValidationsSpec extends Specification with Validations {
       identifier.validate("id", "_aaaa") mustEqual Some("id starts with invalid character.")
       identifier.validate("id", "-aaaa") mustEqual Some("id starts with invalid character.")
       identifier.validate("id", "aa_ZZ#01") mustEqual Some("id contains invalid character.")
+      identifier.validate("id", "あいうえお") mustEqual None
+      identifier.validate("id", "_あいうえお") mustEqual Some("id starts with invalid character.")
+      identifier.validate("id", "あいうえ/お") mustEqual Some("id contains invalid character.")
     }
   }
 
