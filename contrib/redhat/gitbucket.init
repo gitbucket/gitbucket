@@ -14,6 +14,7 @@
 # Default values
 GITBUCKET_HOME=/var/lib/gitbucket
 GITBUCKET_WAR_FILE=/usr/share/gitbucket/lib/gitbucket.war
+GITBUCKET_KEYSTORE=/var/lib/gitbucket/keystore
 
 # Pull in cq settings
 [ -f /etc/sysconfig/gitbucket ] && . /etc/sysconfig/gitbucket
@@ -28,6 +29,8 @@ RETVAL=0
 
 start() {
 	echo -n $"Starting GitBucket server: "
+
+	GITBUCKET_JVM_OPTS="${GITBUCKET_JVM_OPTS} -Djavax.net.ssl.trustStore=${GITBUCKET_KEYSTORE}"
 
 	# Compile statup parameters
 	if [ $GITBUCKET_PORT ]; then
