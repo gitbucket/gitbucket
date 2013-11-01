@@ -75,7 +75,8 @@ class AvatarImageProviderSpec extends Specification {
       updatedDate    = new Date(),
       lastLoginDate  = None,
       image          = image,
-      isGroupAccount = false)
+      isGroupAccount = false,
+      isRemoved      = false)
 
   private def createSystemSettings(useGravatar: Boolean) =
     SystemSettings(

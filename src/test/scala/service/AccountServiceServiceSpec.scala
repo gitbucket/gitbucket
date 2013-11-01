@@ -10,7 +10,7 @@ class AccountServiceServiceSpec extends Specification with ServiceSpecBase {
 
     "getAllUsers" in { withTestDB{
       AccountService.getAllUsers must be like{
-        case List(model.Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false)) => ok
+        case List(model.Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false)) => ok
       }
     }}
 
