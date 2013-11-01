@@ -36,6 +36,32 @@ object LDAPUtil {
     }
   }
 
+  /**
+   * Try authentication by LDAP using given configuration.
+   * Returns Right(mailAddress) if authentication is successful, otherwise  Left(errorMessage).
+   */
+  def authenticateBySso(ldapSettings: Ldap, userName: String): Either[String, String] = {
+    bind(
+      ldapSettings.host,
+      ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
+      ldapSettings.bindDN.getOrElse(""),
+      ldapSettings.bindPassword.getOrElse("")
+    ) match {
+      case Some(conn) => {
+        withConnection(conn) { conn =>
+          findUser(conn, userName, ldapSettings.baseDN, ldapSettings.userNameAttribute) match {
+            case Some(userDN) => findMailAddress(conn, userDN, ldapSettings.mailAttribute) match {
+              case Some(mailAddress) => Right(mailAddress)
+              case None => Left("Can't find mail address.")
+            }
+            case None => Left("User does not exist")
+          }
+        }
+      }
+      case None => Left("System LDAP authentication failed.")
+    }
+  }
+
   private def userAuthentication(ldapSettings: Ldap, userDN: String, password: String): Either[String, String] = {
     bind(
       ldapSettings.host,

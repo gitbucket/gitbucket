@@ -32,6 +32,7 @@ trait SystemSettingsService {
           props.setProperty(LdapBaseDN, ldap.baseDN)
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
           props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
+          ldap.httpSsoHeader.foreach(x => props.setProperty(LdapHttpSsoHeader, x))
         }
       }
       props.store(new java.io.FileOutputStream(GitBucketConf), null)
@@ -69,7 +70,8 @@ trait SystemSettingsService {
             getOptionValue(props, LdapBindPassword, None),
             getValue(props, LdapBaseDN, ""),
             getValue(props, LdapUserNameAttribute, ""),
-            getValue(props, LdapMailAddressAttribute, "")))
+            getValue(props, LdapMailAddressAttribute, ""),
+            getOptionValue(props, LdapHttpSsoHeader, None)))
         } else {
           None
         }
@@ -97,7 +99,8 @@ object SystemSettingsService {
     bindPassword: Option[String],
     baseDN: String,
     userNameAttribute: String,
-    mailAttribute: String)
+    mailAttribute: String,
+    httpSsoHeader: Option[String])
 
   case class Smtp(
     host: String,
@@ -129,6 +132,7 @@ object SystemSettingsService {
   private val LdapBaseDN = "ldap.baseDN"
   private val LdapUserNameAttribute = "ldap.username_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
+  private val LdapHttpSsoHeader = "ldap.http_sso_header"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A =
     defining(props.getProperty(key)){ value =>
