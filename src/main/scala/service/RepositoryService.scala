@@ -120,7 +120,7 @@ trait RepositoryService { self: AccountService =>
       case Some(x) if(x.isAdmin) => Query(Repositories)
       // for Normal Users
       case Some(x) if(!x.isAdmin) =>
-        Query(Repositories) filter { t => (t.isPrivate is false.bind) ||
+        Query(Repositories) filter { t => (t.isPrivate is false.bind) || (t.userName is x.userName) ||
           (Query(Collaborators).filter { t2 => t2.byRepository(t.userName, t.repositoryName) && (t2.collaboratorName is x.userName.bind)} exists)
         }
       // for Guests

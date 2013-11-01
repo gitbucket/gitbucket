@@ -32,15 +32,17 @@ Installation
 --------
 
 1. Download latest **gitbucket.war** from [the release page](https://github.com/takezoe/gitbucket/releases).
-2. Deploy it to the servlet container such as Tomcat or Jetty.
+2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
 3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
 
 The default administrator account is **root** and password is **root**.
 
-(Since 1.6) or you can start GitBucket by ```java -jar gitbucket.war``` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
+or you can start GitBucket by ```java -jar gitbucket.war``` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
 
 - --port=[NUMBER]
 - --prefix=[CONTEXTPATH]
+- --host=[HOSTNAME]
+- --https=true
 
 To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
@@ -48,6 +50,22 @@ For Installation on Windows Server with IIS see [this wiki page](https://github.
 
 Release Notes
 --------
+### 1.7 - 26 Oct 2013
+- Support working on Java6 in embedded Jetty mode
+- Add ```--host``` option to bind specified host name in embedded Jetty mode
+- Add ```--https=true``` option to use https in embedded Jetty mode
+- Add full name as user property
+- Change link color for absent Wiki pages
+- Add ZIP download button to the repository viewer tab
+- Improve ZIP exporting performance
+- Expand issue and comment textarea for long text automatically
+- Add conflict detection in Wiki
+- Add reverting wiki page from history
+- Match committer to user name by email address
+- Mail notification sender is customizable
+- Add link to changeset in refs comment for issues
+- Fix some bugs
+
 ### 1.6 - 1 Oct 2013
 - Web hook
 - Performance improvement for pull request

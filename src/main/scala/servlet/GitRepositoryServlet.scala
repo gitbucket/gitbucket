@@ -43,7 +43,7 @@ class GitRepositoryServlet extends GitServlet {
 
       def getServletContext(): ServletContext = config.getServletContext
       def getServletName(): String = config.getServletName
-    });
+    })
 
     super.init(config)
   }
@@ -85,7 +85,11 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
       commands.asScala.foreach { command =>
-        val commits = JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+        logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
+        val commits = command.getType match {
+          case ReceiveCommand.Type.DELETE => Nil
+          case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+        }
         val refName = command.getRefName.split("/")
         val branchName = refName.drop(2).mkString("/")
 
@@ -113,16 +117,15 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         // record activity
         if(refName(1) == "heads"){
           command.getType match {
-            case ReceiveCommand.Type.CREATE => {
-              recordCreateBranchActivity(owner, repository, userName, branchName)
-              recordPushActivity(owner, repository, userName, branchName, newCommits)
-            }
+            case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, userName, branchName)
             case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, userName, branchName, newCommits)
+            case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, userName, branchName)
             case _ =>
           }
         } else if(refName(1) == "tags"){
           command.getType match {
             case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, userName, branchName, newCommits)
+            case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, userName, branchName, newCommits)
             case _ =>
           }
         }
@@ -132,6 +135,7 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         if(webHookURLs.nonEmpty){
           val payload = WebHookPayload(
             git,
+            getAccountByUserName(userName).get,
             command.getRefName,
             getRepository(owner, repository, baseURL).get,
             newCommits,
@@ -149,7 +153,7 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
     "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
       val issueId = matchData.group(2)
       if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
-        createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage, "commit")
+        createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
       }
     }
   }

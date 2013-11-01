@@ -1,9 +1,8 @@
 package util
 
-import org.apache.commons.io.{IOUtils, FileUtils}
+import org.apache.commons.io.FileUtils
 import java.net.URLConnection
 import java.io.File
-import org.apache.commons.compress.archivers.zip.{ZipArchiveEntry, ZipArchiveOutputStream}
 import util.ControlUtil._
 
 object FileUtil {
@@ -32,23 +31,23 @@ object FileUtil {
   
   def isText(content: Array[Byte]): Boolean = !content.contains(0)
 
-  def createZipFile(dest: File, dir: File): Unit = {
-    def addDirectoryToZip(out: ZipArchiveOutputStream, dir: File, path: String): Unit = {
-      dir.listFiles.map { file =>
-        if(file.isFile){
-          out.putArchiveEntry(new ZipArchiveEntry(path + "/" + file.getName))
-          out.write(FileUtils.readFileToByteArray(file))
-          out.closeArchiveEntry
-        } else if(file.isDirectory){
-          addDirectoryToZip(out, file, path + "/" + file.getName)
-        }
-      }
-    }
-
-    using(new ZipArchiveOutputStream(dest)){ out =>
-      addDirectoryToZip(out, dir, dir.getName)
-    }
-  }
+//  def createZipFile(dest: File, dir: File): Unit = {
+//    def addDirectoryToZip(out: ZipArchiveOutputStream, dir: File, path: String): Unit = {
+//      dir.listFiles.map { file =>
+//        if(file.isFile){
+//          out.putArchiveEntry(new ZipArchiveEntry(path + "/" + file.getName))
+//          out.write(FileUtils.readFileToByteArray(file))
+//          out.closeArchiveEntry
+//        } else if(file.isDirectory){
+//          addDirectoryToZip(out, file, path + "/" + file.getName)
+//        }
+//      }
+//    }
+//
+//    using(new ZipArchiveOutputStream(dest)){ out =>
+//      addDirectoryToZip(out, dir, dir.getName)
+//    }
+//  }
 
   def getFileName(path: String): String = defining(path.lastIndexOf('/')){ i =>
     if(i >= 0) path.substring(i + 1) else path

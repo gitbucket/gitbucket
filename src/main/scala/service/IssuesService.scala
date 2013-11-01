@@ -249,6 +249,9 @@ trait IssuesService {
       }
       .update (content, currentDate)
 
+  def deleteComment(commentId: Int) =
+    IssueComments filter (_.byPrimaryKey(commentId)) delete
+
   def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean) =
     Issues
       .filter (_.byPrimaryKey(owner, repository, issueId))

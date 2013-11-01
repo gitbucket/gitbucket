@@ -15,6 +15,7 @@ import org.eclipse.jgit.errors.MissingObjectException
 import java.util.Date
 import org.eclipse.jgit.api.errors.NoHeadException
 import service.RepositoryService
+import org.eclipse.jgit.dircache.DirCacheEntry
 
 /**
  * Provides complex JGit operations.
@@ -462,6 +463,35 @@ object JGitUtil {
       case Some(rev) => Some((git.getRepository.resolve(rev), rev))
       case None      => None
     }.find(_._1 != null)
+  }
+
+  def createDirCacheEntry(path: String, mode: FileMode, objectId: ObjectId): DirCacheEntry = {
+    val entry = new DirCacheEntry(path)
+    entry.setFileMode(mode)
+    entry.setObjectId(objectId)
+    entry
+  }
+
+  def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
+                              fullName: String, mailAddress: String, message: String): String = {
+    val newCommit = new CommitBuilder()
+    newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
+    newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
+    newCommit.setMessage(message)
+    if(headId != null){
+      newCommit.setParentIds(List(headId).asJava)
+    }
+    newCommit.setTreeId(treeId)
+
+    val newHeadId = inserter.insert(newCommit)
+    inserter.flush()
+    inserter.release()
+
+    val refUpdate = git.getRepository.updateRef(Constants.HEAD)
+    refUpdate.setNewObjectId(newHeadId)
+    refUpdate.update()
+
+    newHeadId.getName
   }
 
 }

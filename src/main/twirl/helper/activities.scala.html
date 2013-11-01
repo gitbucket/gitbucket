@@ -16,7 +16,9 @@
         case "merge_pullreq"     => detailActivity(activity, "activity-merge.png")
         case "create_repository" => simpleActivity(activity, "activity-create-repository.png")
         case "create_branch"     => simpleActivity(activity, "activity-branch.png")
+        case "delete_branch"     => simpleActivity(activity, "activity-delete.png")
         case "create_tag"        => simpleActivity(activity, "activity-tag.png")
+        case "delete_tag"        => simpleActivity(activity, "activity-delete.png")
         case "fork"              => simpleActivity(activity, "activity-fork.png")
         case "push"  => customActivity(activity, "activity-commit.png"){
           <div class="small activity-message">

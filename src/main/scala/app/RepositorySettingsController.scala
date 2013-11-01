@@ -139,13 +139,15 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
 
       val webHookURLs = getWebHookURLs(repository.owner, repository.name)
       if(webHookURLs.nonEmpty){
+        val owner = getAccountByUserName(repository.owner).get
         callWebHook(repository.owner, repository.name, webHookURLs,
           WebHookPayload(
             git,
+            owner,
             "refs/heads/" + repository.repository.defaultBranch,
             repository,
             commits.toList,
-            getAccountByUserName(repository.owner).get))
+            owner))
       }
 
       flash += "info" -> "Test payload deployed!"
@@ -188,6 +190,8 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     override def validate(name: String, value: String): Option[String] =
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")
+        case Some(x) if(x.isGroupAccount)
+                  => Some("User does not exist.")
         case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
                   => Some("User can access this repository already.")
         case _    => None

@@ -15,10 +15,12 @@ trait LinkConverter { self: RequestCache =>
       .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;")
       // convert issue id to link
       .replaceBy(("(^|\\W)" + issueIdPrefix + "(\\d+)(\\W|$)").r){ m =>
-        if(getIssue(repository.owner, repository.name, m.group(2)).isDefined){
-          Some(s"""${m.group(1)}<a href="${context.path}/${repository.owner}/${repository.name}/issues/${m.group(2)}">#${m.group(2)}</a>${m.group(3)}""")
-        } else {
-          Some(s"""${m.group(1)}#${m.group(2)}${m.group(3)}""")
+        getIssue(repository.owner, repository.name, m.group(2)) match {
+          case Some(issue) if(issue.isPullRequest)
+                       => Some(s"""${m.group(1)}<a href="${context.path}/${repository.owner}/${repository.name}/pull/${m.group(2)}">#${m.group(2)}</a>${m.group(3)}""")
+          case Some(_) => Some(s"""${m.group(1)}<a href="${context.path}/${repository.owner}/${repository.name}/issues/${m.group(2)}">#${m.group(2)}</a>${m.group(3)}""")
+          case None    => Some(s"""${m.group(1)}#${m.group(2)}${m.group(3)}""")
+
         }
       }
       // convert @username to link

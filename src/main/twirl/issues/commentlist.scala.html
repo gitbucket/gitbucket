@@ -15,12 +15,20 @@
         <span class="pull-right">
           @datetime(comment.registeredDate)
           @if(comment.action != "commit" && comment.action != "merge" && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
-            <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>
+            <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
+            <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
           }
         </span>
       </div>
       <div class="box-content"class="issue-content" id="commentContent-@comment.commentId">
-        @markdown(comment.content, repository, false, true)
+        @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
+          @defining(comment.content.substring(comment.content.length - 40)){ id =>
+            <div class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></div>
+            @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true)
+          }
+        } else {
+          @markdown(comment.content, repository, false, true)
+        }
       </div>
     </div>
   }
@@ -67,6 +75,19 @@ $(function(){
     function(data){
       $('#commentContent-' + id).empty().html(data);
     });
+    return false;
+  });
+  $('i.icon-remove-circle').click(function(){
+    if(confirm('Are you sure you want to delete this?')) {
+      var id = $(this).closest('a').data('comment-id');
+      $.post('@url(repository)/issue_comments/delete/' + id,
+      function(data){
+        if(data > 0) {
+          $('#comment-' + id).prev('div.issue-avatar-image').remove();
+          $('#comment-' + id).remove();
+        }
+      });
+    }
     return false;
   });
 });

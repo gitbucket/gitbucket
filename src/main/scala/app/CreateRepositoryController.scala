@@ -8,7 +8,8 @@ import java.io.File
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
-import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.lib.{FileMode, Constants, PersonIdent}
+import org.eclipse.jgit.dircache.DirCache
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
@@ -73,28 +74,26 @@ trait CreateRepositoryControllerBase extends ControllerBase {
         JGitUtil.initRepository(gitdir)
 
         if(form.createReadme){
-          FileUtil.withTmpDir(getInitRepositoryDir(form.owner, form.name)){ tmpdir =>
-            // Clone the repository
-            Git.cloneRepository.setURI(gitdir.toURI.toString).setDirectory(tmpdir).call
+          using(Git.open(gitdir)){ git =>
+            val builder  = DirCache.newInCore.builder()
+            val inserter = git.getRepository.newObjectInserter()
+            val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
+            val content  = if(form.description.nonEmpty){
+              form.name + "\n" +
+              "===============\n" +
+              "\n" +
+              form.description.get
+            } else {
+              form.name + "\n" +
+              "===============\n"
+            }
 
-            // Create README.md
-            FileUtils.writeStringToFile(new File(tmpdir, "README.md"),
-              if(form.description.nonEmpty){
-                form.name + "\n" +
-                  "===============\n" +
-                  "\n" +
-                  form.description.get
-              } else {
-                form.name + "\n" +
-                  "===============\n"
-              }, "UTF-8")
+            builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
+              inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
+            builder.finish()
 
-            val git = Git.open(tmpdir)
-            git.add.addFilepattern("README.md").call
-            git.commit
-              .setCommitter(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
-              .setMessage("Initial commit").call
-            git.push.call
+            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+              loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
           }
         }
 

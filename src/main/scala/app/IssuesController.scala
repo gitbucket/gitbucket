@@ -14,7 +14,7 @@ class IssuesController extends IssuesControllerBase
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with LabelsService with MilestonesService with ActivityService
+  self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   case class IssueCreateForm(title: String, content: Option[String],
@@ -65,7 +65,7 @@ trait IssuesControllerBase extends ControllerBase {
           _,
           getComments(owner, name, issueId.toInt),
           getIssueLabels(owner, name, issueId.toInt),
-          (getCollaborators(owner, name) :+ owner).sorted,
+          (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
           getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
@@ -77,7 +77,7 @@ trait IssuesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       issues.html.create(
-          (getCollaborators(owner, name) :+ owner).sorted,
+        (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
           getMilestones(owner, name),
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
@@ -150,6 +150,16 @@ trait IssuesControllerBase extends ControllerBase {
         if(isEditable(owner, name, comment.commentedUserName)){
           updateComment(comment.commentId, form.content)
           redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
+        } else Unauthorized
+      } getOrElse NotFound
+    }
+  })
+
+  ajaxPost("/:owner/:repository/issue_comments/delete/:id")(readableUsersOnly { repository =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      getComment(owner, name, params("id")).map { comment =>
+        if(isEditable(owner, name, comment.commentedUserName)){
+          Ok(deleteComment(comment.commentId))
         } else Unauthorized
       } getOrElse NotFound
     }

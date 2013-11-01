@@ -66,7 +66,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true), repository,
+      wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true).filter(_.newPath == pageName + ".md"), repository,
         hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
     }
   })
@@ -96,7 +96,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)){
-      redirect(s"/${repository.owner}/${repository.name}/wiki/}")
+      redirect(s"/${repository.owner}/${repository.name}/wiki/")
     } else {
       flash += "info" -> "This patch was not able to be reversed."
       redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
@@ -195,7 +195,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
 
   private def conflictForEdit: Constraint = new Constraint(){
     override def validate(name: String, value: String): Option[String] = {
-      optionIf(targetWikiPage.map(_.id != params("id")).getOrElse(true)){
+      optionIf(targetWikiPage.map(_.id != params("id")).getOrElse(false)){
         Some("Someone has edited the wiki since you started. Please reload this page and re-apply your changes.")
       }
     }
