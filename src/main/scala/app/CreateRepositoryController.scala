@@ -4,12 +4,11 @@ import util.Directory._
 import util.ControlUtil._
 import util._
 import service._
-import java.io.File
 import org.eclipse.jgit.api.Git
-import org.apache.commons.io._
 import jp.sf.amateras.scalatra.forms._
-import org.eclipse.jgit.lib.{FileMode, Constants, PersonIdent}
+import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
+import org.scalatra.i18n.Messages
 
 class CreateRepositoryController extends CreateRepositoryControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
@@ -175,7 +174,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   }
 
   private def existsAccount: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
       if(getAccountByUserName(value).isEmpty) Some("User or group does not exist.") else None
   }
 
@@ -183,7 +182,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
    * Duplicate check for the repository name.
    */
   private def unique: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String]): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
       params.get("owner").flatMap { userName =>
         getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
       }

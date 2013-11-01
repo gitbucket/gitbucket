@@ -15,12 +15,13 @@ import service.AccountService
 import javax.servlet.http.{HttpServletResponse, HttpSession, HttpServletRequest}
 import java.text.SimpleDateFormat
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
+import org.scalatra.i18n._
 
 /**
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with Validations {
+  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with Validations {
 
   implicit val jsonFormats = DefaultFormats
 
@@ -169,12 +170,12 @@ trait AccountManagementControllerBase extends ControllerBase with FileUploadCont
     }
 
   protected def uniqueUserName: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
       getAccountByUserName(value).map { _ => "User already exists." }
   }
 
   protected def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String]): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
       getAccountByMailAddress(value)
         .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
         .map    { _ => "Mail address is already registered." }

@@ -6,6 +6,7 @@ import util.{UsersAuthenticator, OwnerAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.FlashMapSupport
+import org.scalatra.i18n.Messages
 import service.WebHookService.WebHookPayload
 import util.JGitUtil.CommitInfo
 import util.ControlUtil._
@@ -179,7 +180,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Provides duplication check for web hook url.
    */
   private def webHook: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
       getWebHookURLs(params("owner"), params("repository")).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
   }
 
@@ -187,7 +188,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
    * Provides Constraint to validate the collaborator name.
    */
   private def collaborator: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")
         case Some(x) if(x.isGroupAccount)
