@@ -26,7 +26,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
                           memberNames: Option[String])
 
   case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String],
-                           memberNames: Option[String], clearImage: Boolean)
+                           memberNames: Option[String], clearImage: Boolean, isRemoved: Boolean)
 
   val newUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName))),
@@ -62,7 +62,8 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      ,optional(text()))),
     "memberNames" -> trim(label("Member Names" ,optional(text()))),
-    "clearImage"  -> trim(label("Clear image"  ,boolean()))
+    "clearImage"  -> trim(label("Clear image"  ,boolean())),
+    "removed"     -> trim(label("Disable"      ,boolean()))
   )(EditGroupForm.apply)
 
   get("/admin/users")(adminOnly {
@@ -94,7 +95,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName, true).map { account =>
 
-      if(account.isRemoved == false && form.isRemoved == true){
+      if(form.isRemoved){
         // Remove repositories
         getRepositoryNamesOfUser(userName).foreach { repositoryName =>
           deleteRepository(userName, repositoryName)
@@ -140,13 +141,27 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
     defining(params("groupName"), form.memberNames.map(_.split(",").toList).getOrElse(Nil)){ case (groupName, memberNames) =>
       getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, form.url)
-        updateGroupMembers(form.groupName, memberNames)
+        updateGroup(groupName, form.url, form.isRemoved)
 
-        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-          removeCollaborators(form.groupName, repositoryName)
-          memberNames.foreach { userName =>
-            addCollaborator(form.groupName, repositoryName, userName)
+        if(form.isRemoved){
+          // Remove from GROUP_MEMBER
+          updateGroupMembers(form.groupName, Nil)
+          // Remove repositories
+          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+            deleteRepository(groupName, repositoryName)
+            FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+          }
+        } else {
+          // Update GROUP_MEMBER
+          updateGroupMembers(form.groupName, memberNames)
+          // Update COLLABORATOR for group repositories
+          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+            removeCollaborators(form.groupName, repositoryName)
+            memberNames.foreach { userName =>
+              addCollaborator(form.groupName, repositoryName, userName)
+            }
           }
         }
 

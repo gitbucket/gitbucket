@@ -115,8 +115,8 @@ trait AccountService {
       isGroupAccount = true,
       isRemoved      = false)
 
-  def updateGroup(groupName: String, url: Option[String]): Unit =
-    Accounts.filter(_.userName is groupName.bind).map(_.url.?).update(url)
+  def updateGroup(groupName: String, url: Option[String], removed: Boolean): Unit =
+    Accounts.filter(_.userName is groupName.bind).map(t => t.url.? ~ t.removed).update(url, removed)
 
   def updateGroupMembers(groupName: String, members: List[String]): Unit = {
     Query(GroupMembers).filter(_.groupName is groupName.bind).delete
