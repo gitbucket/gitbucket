@@ -17,8 +17,8 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
                          url: Option[String], fileId: Option[String])
 
   case class EditUserForm(userName: String, password: Option[String], fullName: String,
-                          mailAddress: String, isAdmin: Boolean,
-                          url: Option[String], fileId: Option[String], clearImage: Boolean)
+                          mailAddress: String, isAdmin: Boolean, url: Option[String],
+                          fileId: Option[String], clearImage: Boolean, isRemoved: Boolean)
 
   case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String],
                           memberNames: Option[String])
@@ -27,47 +27,50 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
                            memberNames: Option[String], clearImage: Boolean)
 
   val newUserForm = mapping(
-    "userName"    -> trim(label("Username"     , text(required, maxlength(100), identifier, uniqueUserName))),
-    "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
-    "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
-    "isAdmin"     -> trim(label("User Type"    , boolean())),
-    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
-    "fileId"      -> trim(label("File ID"      , optional(text())))
+    "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "password"    -> trim(label("Password"     ,text(required, maxlength(20)))),
+    "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
+    "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress()))),
+    "isAdmin"     -> trim(label("User Type"    ,boolean())),
+    "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"      ,optional(text())))
   )(NewUserForm.apply)
 
   val editUserForm = mapping(
-    "userName"    -> trim(label("Username"     , text(required, maxlength(100), identifier))),
-    "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
-    "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
-    "isAdmin"     -> trim(label("User Type"    , boolean())),
-    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
-    "fileId"      -> trim(label("File ID"      , optional(text()))),
-    "clearImage"  -> trim(label("Clear image"  , boolean()))
+    "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier))),
+    "password"    -> trim(label("Password"     ,optional(text(maxlength(20))))),
+    "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
+    "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress("userName")))),
+    "isAdmin"     -> trim(label("User Type"    ,boolean())),
+    "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"      ,optional(text()))),
+    "clearImage"  -> trim(label("Clear image"  ,boolean())),
+    "removed"     -> trim(label("Disable"      ,boolean()))
   )(EditUserForm.apply)
 
   val newGroupForm = mapping(
-    "groupName"   -> trim(label("Group name"   , text(required, maxlength(100), identifier, uniqueUserName))),
-    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
-    "fileId"      -> trim(label("File ID"      , optional(text()))),
-    "memberNames" -> trim(label("Member Names" , optional(text())))
+    "groupName"   -> trim(label("Group name"   ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"      ,optional(text()))),
+    "memberNames" -> trim(label("Member Names" ,optional(text())))
   )(NewGroupForm.apply)
 
   val editGroupForm = mapping(
-    "groupName"   -> trim(label("Group name"   , text(required, maxlength(100), identifier))),
-    "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
-    "fileId"      -> trim(label("File ID"      , optional(text()))),
-    "memberNames" -> trim(label("Member Names" , optional(text()))),
-    "clearImage"  -> trim(label("Clear image"  , boolean()))
+    "groupName"   -> trim(label("Group name"   ,text(required, maxlength(100), identifier))),
+    "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"      ,optional(text()))),
+    "memberNames" -> trim(label("Member Names" ,optional(text()))),
+    "clearImage"  -> trim(label("Clear image"  ,boolean()))
   )(EditGroupForm.apply)
 
   get("/admin/users")(adminOnly {
-    val users = getAllUsers()
+    val includeRemoved = params.get("includeRemoved").map(_.toBoolean).getOrElse(false)
+    val users = getAllUsers(includeRemoved)
+
     val members = users.collect { case account if(account.isGroupAccount) =>
       account.userName -> getGroupMembers(account.userName)
     }.toMap
-    admin.users.html.list(users, members)
+    admin.users.html.list(users, members, includeRemoved)
   })
   
   get("/admin/users/_newuser")(adminOnly {
@@ -93,7 +96,8 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
         fullName     = form.fullName,
         mailAddress  = form.mailAddress,
         isAdmin      = form.isAdmin,
-        url          = form.url))
+        url          = form.url,
+        isRemoved    = form.isRemoved))
 
       updateImage(userName, form.fileId, form.clearImage)
       redirect("/admin/users")

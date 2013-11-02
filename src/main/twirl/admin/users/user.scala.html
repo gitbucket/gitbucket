@@ -11,6 +11,12 @@
               <span id="error-userName" class="error"></span>
             </div>
             <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+            @if(account.isDefined){
+              <label for="removed">
+                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
+                Disable
+              </label>
+            }
           </fieldset>
           @if(account.map(_.password.nonEmpty).getOrElse(true)){
             <fieldset>
