@@ -51,11 +51,11 @@ trait AccountService {
     }
   }
 
-  def getAccountByUserName(userName: String): Option[Account] = 
-    Query(Accounts) filter(_.userName is userName.bind) firstOption
+  def getAccountByUserName(userName: String, includeRemoved: Boolean = false): Option[Account] =
+    Query(Accounts) filter(t => (t.userName is userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
-  def getAccountByMailAddress(mailAddress: String): Option[Account] =
-    Query(Accounts) filter(_.mailAddress is mailAddress.bind) firstOption
+  def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false): Option[Account] =
+    Query(Accounts) filter(t => (t.mailAddress is mailAddress.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
   def getAllUsers(includeRemoved: Boolean = true): List[Account] =
     if(includeRemoved){
@@ -139,6 +139,12 @@ trait AccountService {
       .map(_.groupName)
       .list
 
+  def removeUserRelatedData(userName: String): Unit = {
+    Query(GroupMembers).filter(_.userName is userName.bind).delete
+    Query(Collaborators).filter(_.collaboratorName is userName.bind).delete
+    Query(Repositories).filter(_.userName is userName.bind).delete
+  }
+
 }
 
-object AccountService extends AccountService
+//object AccountService extends AccountService

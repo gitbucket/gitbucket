@@ -171,12 +171,12 @@ trait AccountManagementControllerBase extends ControllerBase with FileUploadCont
 
   protected def uniqueUserName: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      getAccountByUserName(value).map { _ => "User already exists." }
+      getAccountByUserName(value, true).map { _ => "User already exists." }
   }
 
   protected def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
     override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
-      getAccountByMailAddress(value)
+      getAccountByMailAddress(value, true)
         .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
         .map    { _ => "Mail address is already registered." }
   }

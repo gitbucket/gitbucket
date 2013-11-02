@@ -5,6 +5,8 @@ import util.AdminAuthenticator
 import util.StringUtil._
 import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
+import org.apache.commons.io.FileUtils
+import util.Directory._
 
 class UserManagementController extends UserManagementControllerBase
   with AccountService with RepositoryService with AdminAuthenticator
@@ -85,12 +87,25 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   
   get("/admin/users/:userName/_edituser")(adminOnly {
     val userName = params("userName")
-    admin.users.html.user(getAccountByUserName(userName))
+    admin.users.html.user(getAccountByUserName(userName, true))
   })
   
   post("/admin/users/:name/_edituser", editUserForm)(adminOnly { form =>
     val userName = params("userName")
-    getAccountByUserName(userName).map { account =>
+    getAccountByUserName(userName, true).map { account =>
+
+      if(account.isRemoved == false && form.isRemoved == true){
+        // Remove repositories
+        getRepositoryNamesOfUser(userName).foreach { repositoryName =>
+          deleteRepository(userName, repositoryName)
+          FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
+          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
+          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
+        }
+        // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+        removeUserRelatedData(userName)
+      }
+
       updateAccount(getAccountByUserName(userName).get.copy(
         password     = form.password.map(sha1).getOrElse(account.password),
         fullName     = form.fullName,
@@ -118,13 +133,13 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
 
   get("/admin/users/:groupName/_editgroup")(adminOnly {
     defining(params("groupName")){ groupName =>
-      admin.users.html.group(getAccountByUserName(groupName), getGroupMembers(groupName))
+      admin.users.html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
     }
   })
 
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
     defining(params("groupName"), form.memberNames.map(_.split(",").toList).getOrElse(Nil)){ case (groupName, memberNames) =>
-      getAccountByUserName(groupName).map { account =>
+      getAccountByUserName(groupName, true).map { account =>
         updateGroup(groupName, form.url)
         updateGroupMembers(form.groupName, memberNames)
 
