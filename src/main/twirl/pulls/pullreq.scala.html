@@ -16,17 +16,17 @@
       @if(issue.closed) {
         @comments.find(_.action == "merge").map{ comment =>
           <span class="label label-info">Merged</span>
-          <a href="@url(comment.commentedUserName)" class="username strong">@comment.commentedUserName</a> merged @commits.size @plural(commits.size, "commit")
+          @user(comment.commentedUserName, styleClass="username strong") merged @commits.size @plural(commits.size, "commit")
           into <code>@pullreq.requestUserName:@pullreq.requestBranch</code> from <code>@pullreq.userName:@pullreq.branch</code>
           at @datetime(comment.registeredDate)
         }.getOrElse {
           <span class="label label-important">Closed</span>
-          <a href="@url(issue.openedUserName)" class="username strong">@issue.openedUserName</a> wants to merge @commits.size @plural(commits.size, "commit")
+          @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
           into <code>@pullreq.requestUserName:@pullreq.requestBranch</code> from <code>@pullreq.userName:@pullreq.branch</code>
         }
       } else {
         <span class="label label-success">Open</span>
-        <a href="@url(issue.openedUserName)" class="username strong">@issue.openedUserName</a> wants to merge @commits.size @plural(commits.size, "commit")
+        @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
         into <code>@pullreq.requestUserName:@pullreq.requestBranch</code> from <code>@pullreq.userName:@pullreq.branch</code>
       }
     </div>
