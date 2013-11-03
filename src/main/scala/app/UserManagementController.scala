@@ -107,7 +107,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
         removeUserRelatedData(userName)
       }
 
-      updateAccount(getAccountByUserName(userName, true).get.copy(
+      updateAccount(account.copy(
         password     = form.password.map(sha1).getOrElse(account.password),
         fullName     = form.fullName,
         mailAddress  = form.mailAddress,
