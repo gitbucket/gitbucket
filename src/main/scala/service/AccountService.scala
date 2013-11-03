@@ -147,4 +147,4 @@ trait AccountService {
 
 }
 
-//object AccountService extends AccountService
+object AccountService extends AccountService

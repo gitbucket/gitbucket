@@ -10,8 +10,7 @@ import java.io.File
 trait ServiceSpecBase {
 
   def withTestDB[A](action: => A): A = {
-    util.FileUtil.withTmpDir(new File(FileUtils.getTempDirectory(), Random.alphanumeric.take(10).mkString)){
-      dir =>
+    util.FileUtil.withTmpDir(new File(FileUtils.getTempDirectory(), Random.alphanumeric.take(10).mkString)){ dir =>
       val (url, user, pass) = (s"jdbc:h2:${dir}", "sa", "sa")
       org.h2.Driver.load()
       using(DriverManager.getConnection(url, user, pass)){ conn =>
