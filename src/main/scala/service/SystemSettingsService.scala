@@ -33,6 +33,7 @@ trait SystemSettingsService {
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
           props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
+          ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
       props.store(new java.io.FileOutputStream(GitBucketConf), null)
@@ -71,7 +72,8 @@ trait SystemSettingsService {
             getValue(props, LdapBaseDN, ""),
             getValue(props, LdapUserNameAttribute, ""),
             getValue(props, LdapMailAddressAttribute, ""),
-            getOptionValue[Boolean](props, LdapTls, None)))
+            getOptionValue[Boolean](props, LdapTls, None),
+            getOptionValue(props, LdapKeystore, None)))
         } else {
           None
         }
@@ -100,7 +102,8 @@ object SystemSettingsService {
     baseDN: String,
     userNameAttribute: String,
     mailAttribute: String,
-    tls: Option[Boolean])
+    tls: Option[Boolean],
+    keystore: Option[String])
 
   case class Smtp(
     host: String,
@@ -113,6 +116,7 @@ object SystemSettingsService {
 
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
+  val DefaultLdapKeystore = "/var/lib/gitbucket/keystore"
 
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
@@ -133,6 +137,7 @@ object SystemSettingsService {
   private val LdapUserNameAttribute = "ldap.username_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
   private val LdapTls = "ldap.tls"
+  private val LdapKeystore = "ldap.keystore"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A =
     defining(props.getProperty(key)){ value =>

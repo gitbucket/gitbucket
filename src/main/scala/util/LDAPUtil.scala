@@ -26,7 +26,8 @@ object LDAPUtil {
       ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
       ldapSettings.bindDN.getOrElse(""),
       ldapSettings.bindPassword.getOrElse(""),
-      ldapSettings.tls.getOrElse(false)
+      ldapSettings.tls.getOrElse(false),
+      ldapSettings.keystore.getOrElse(SystemSettingsService.DefaultLdapKeystore)
     ) match {
       case Some(conn) => {
         withConnection(conn) { conn =>
@@ -46,7 +47,8 @@ object LDAPUtil {
       ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
       userDN,
       password,
-      ldapSettings.tls.getOrElse(false)
+      ldapSettings.tls.getOrElse(false),
+      ldapSettings.keystore.getOrElse(SystemSettingsService.DefaultLdapKeystore)
     ) match {
       case Some(conn) => {
         withConnection(conn) { conn =>
@@ -60,10 +62,14 @@ object LDAPUtil {
     }
   }
 
-  private def bind(host: String, port: Int, dn: String, password: String, tls: Boolean): Option[LDAPConnection] = {
+  private def bind(host: String, port: Int, dn: String, password: String, tls: Boolean, keystore: String): Option[LDAPConnection] = {
     if (tls) {
       // Dynamically set Sun as the security provider
       Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider())
+
+      // Dynamically set the property that JSSE uses to identify
+      // the keystore that holds trusted root certificates
+      System.setProperty("javax.net.ssl.trustStore", keystore);
     }
 
     val conn: LDAPConnection = new LDAPConnection(new LDAPJSSEStartTLSFactory())
