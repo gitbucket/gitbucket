@@ -14,7 +14,7 @@ import scala.annotation.tailrec
 object LDAPUtil {
 
   private val LDAP_VERSION: Int = LDAPConnection.LDAP_V3
-  private val logger = LoggerFactory.getLogger("LDAPUtil")
+  private val logger = LoggerFactory.getLogger(getClass().getName())
 
   /**
    * Try authentication by LDAP using given configuration.
@@ -27,7 +27,7 @@ object LDAPUtil {
       ldapSettings.bindDN.getOrElse(""),
       ldapSettings.bindPassword.getOrElse(""),
       ldapSettings.tls.getOrElse(false),
-      ldapSettings.keystore.getOrElse(SystemSettingsService.DefaultLdapKeystore)
+      ldapSettings.keystore.getOrElse("")
     ) match {
       case Some(conn) => {
         withConnection(conn) { conn =>
@@ -48,7 +48,7 @@ object LDAPUtil {
       userDN,
       password,
       ldapSettings.tls.getOrElse(false),
-      ldapSettings.keystore.getOrElse(SystemSettingsService.DefaultLdapKeystore)
+      ldapSettings.keystore.getOrElse("")
     ) match {
       case Some(conn) => {
         withConnection(conn) { conn =>
@@ -67,9 +67,11 @@ object LDAPUtil {
       // Dynamically set Sun as the security provider
       Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider())
 
-      // Dynamically set the property that JSSE uses to identify
-      // the keystore that holds trusted root certificates
-      System.setProperty("javax.net.ssl.trustStore", keystore);
+      if (keystore.compareTo("") != 0) {
+        // Dynamically set the property that JSSE uses to identify
+        // the keystore that holds trusted root certificates
+        System.setProperty("javax.net.ssl.trustStore", keystore)
+      }
     }
 
     val conn: LDAPConnection = new LDAPConnection(new LDAPJSSEStartTLSFactory())

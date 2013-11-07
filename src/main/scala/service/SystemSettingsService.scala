@@ -116,7 +116,6 @@ object SystemSettingsService {
 
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
-  val DefaultLdapKeystore = "/var/lib/gitbucket/keystore"
 
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
