@@ -1,4 +1,5 @@
 import app._
+import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
 import org.scalatra._
 import javax.servlet._
 
@@ -20,6 +21,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new IssuesController, "/*")
     context.mount(new PullRequestsController, "/*")
     context.mount(new RepositorySettingsController, "/*")
+    context.mount(new ValidationJavaScriptProvider, "/assets/common/js/*")
 
     val dir = new java.io.File(_root_.util.Directory.GitBucketHome)
     if(!dir.exists){
