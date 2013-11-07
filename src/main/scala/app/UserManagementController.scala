@@ -172,8 +172,8 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     }
   })
 
-  post("/admin/users/_usercheck")(adminOnly {
+  post("/admin/users/_usercheck")(
     getAccountByUserName(params("userName")).isDefined
-  })
+  )
 
 }

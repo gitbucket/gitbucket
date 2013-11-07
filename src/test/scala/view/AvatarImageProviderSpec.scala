@@ -81,6 +81,7 @@ class AvatarImageProviderSpec extends Specification {
   private def createSystemSettings(useGravatar: Boolean) =
     SystemSettings(
       allowAccountRegistration = false,
+      allowGroupRegistration   = false,
       gravatar                 = useGravatar,
       notification             = false,
       smtp                     = None,

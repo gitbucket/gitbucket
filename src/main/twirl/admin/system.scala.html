@@ -22,6 +22,17 @@
               <span class="strong">Deny</span> - Only administrators can create accounts.
             </label>
           </fieldset>
+          <label class="strong">Allow user create group</label>
+          <fieldset>
+            <label class="radio">
+              <input type="radio" name="allowGroupRegistration" value="true"@if(settings.allowGroupRegistration){ checked}>
+              <span class="strong">Allow</span> - Users can create groups by themselves.
+            </label>
+            <label class="radio">
+              <input type="radio" name="allowGroupRegistration" value="false"@if(!settings.allowGroupRegistration){ checked}>
+              <span class="strong">Deny</span> - Only administrators can create groups.
+            </label>
+          </fieldset>
           <!--====================================================================-->
           <!-- Services -->
           <!--====================================================================-->

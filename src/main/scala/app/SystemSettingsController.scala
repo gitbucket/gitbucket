@@ -14,6 +14,7 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
 
   private val form = mapping(
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
+    "allowGroupRegistration"   -> trim(label("Allow User create group", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
     "smtp"                     -> optionalIfNotChecked("notification", mapping(
@@ -49,5 +50,4 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
     flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
   })
-
 }

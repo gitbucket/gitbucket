@@ -9,6 +9,7 @@ trait SystemSettingsService {
   def saveSystemSettings(settings: SystemSettings): Unit = {
     defining(new java.util.Properties()){ props =>
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
+      props.setProperty(AllowGroupRegistration, settings.allowGroupRegistration.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       if(settings.notification) {
@@ -48,6 +49,7 @@ trait SystemSettingsService {
       }
       SystemSettings(
         getValue(props, AllowAccountRegistration, false),
+        getValue(props, AllowGroupRegistration, false),
         getValue(props, Gravatar, true),
         getValue(props, Notification, false),
         if(getValue(props, Notification, false)){
@@ -88,6 +90,7 @@ object SystemSettingsService {
 
   case class SystemSettings(
     allowAccountRegistration: Boolean,
+    allowGroupRegistration: Boolean,
     gravatar: Boolean,
     notification: Boolean,
     smtp: Option[Smtp],
@@ -118,6 +121,7 @@ object SystemSettingsService {
   val DefaultLdapPort = 389
 
   private val AllowAccountRegistration = "allow_account_registration"
+  private val AllowGroupRegistration = "allow_group_registration"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val SmtpHost = "smtp.host"

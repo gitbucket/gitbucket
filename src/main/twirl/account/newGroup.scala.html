@@ -1,0 +1,22 @@
+@()(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("New Group"){
+    <form method="POST" action="@path/register/group" validate="true">
+      <div class="row-fluid">
+        <div class="span7">
+          <fieldset>
+            <label for="groupName" class="strong">Group name</label>
+            <div>
+              <span id="error-groupName" class="error"></span>
+            </div>
+            <input type="text" name="groupName" id="groupName" />
+          </fieldset>
+        </div>
+      </div>
+      <fieldset class="margin">
+        <input type="submit" class="btn btn-success" value="Create Group"/>
+        <a href="@path/@context.loginAccount.get.userName" class="btn">Cancel</a>
+      </fieldset>
+    </form>
+}

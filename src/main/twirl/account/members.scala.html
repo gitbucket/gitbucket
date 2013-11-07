@@ -1,7 +1,7 @@
-@(account: model.Account, members: List[String])(implicit context: app.Context)
+@(account: model.Account, members: List[String], isEditable: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@main(account, Nil, "members"){
+@main(account, Nil, "members", isEditable){
   @if(members.isEmpty){
     No members
   } else {
