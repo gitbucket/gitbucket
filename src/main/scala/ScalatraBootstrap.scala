@@ -1,10 +1,17 @@
+import servlet.TransactionFilter
 import app._
 import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
 import org.scalatra._
 import javax.servlet._
+import java.util.EnumSet
 
 class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
+    // Register TransactionFilter at first
+    context.addFilter("transactionFilter", new TransactionFilter)
+    context.getFilterRegistration("transactionFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
+
+    // Register controllers
     context.mount(new IndexController, "/")
     context.mount(new SearchController, "/")
     context.mount(new FileUploadController, "/upload")
@@ -23,6 +30,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new RepositorySettingsController, "/*")
     context.mount(new ValidationJavaScriptProvider, "/assets/common/js/*")
 
+    // Create GITBUCKET_HOME directory if it does not exist
     val dir = new java.io.File(_root_.util.Directory.GitBucketHome)
     if(!dir.exists){
       dir.mkdirs()
