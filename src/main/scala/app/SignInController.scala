@@ -48,7 +48,7 @@ trait SignInControllerBase extends ControllerBase { self: SystemSettingsService 
       if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
         redirect("/")
       } else {
-        redirect(urlEncode(redirectUrl).replaceAll("%2F", "/"))
+        redirect(redirectUrl)
       }
     }.getOrElse {
       redirect("/")

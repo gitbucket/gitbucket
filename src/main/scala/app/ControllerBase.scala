@@ -3,7 +3,7 @@ package app
 import _root_.util.Directory._
 import _root_.util.Implicits._
 import _root_.util.ControlUtil._
-import _root_.util.{FileUtil, Validations, Keys}
+import _root_.util.{StringUtil, FileUtil, Validations, Keys}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
@@ -38,7 +38,7 @@ abstract class ControllerBase extends ScalatraFilter
       val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       if(account == null){
         // Redirect to login form
-        httpResponse.sendRedirect(context + "/signin?" + path)
+        httpResponse.sendRedirect(context + "/signin?" + StringUtil.urlEncode(path))
       } else if(account.isAdmin){
         // H2 Console (administrators only)
         chain.doFilter(request, response)
@@ -107,7 +107,7 @@ abstract class ControllerBase extends ScalatraFilter
         if(request.getMethod.toUpperCase == "POST"){
           org.scalatra.Unauthorized(redirect("/signin"))
         } else {
-          org.scalatra.Unauthorized(redirect("/signin?redirect=" + currentURL))
+          org.scalatra.Unauthorized(redirect("/signin?redirect=" + StringUtil.urlEncode(currentURL)))
         }
       }
     }
