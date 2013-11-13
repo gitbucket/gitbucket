@@ -72,7 +72,7 @@ abstract class ControllerBase extends ScalatraFilter
       action
     }
 
-  override def ajaxGet[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
+  override def ajaxGet[T](path : String, form : ValueType[T])(action : T => Any) : Route =
     super.ajaxGet(path, form){ form =>
       request.setAttribute(Keys.Request.Ajax, "true")
       action(form)
@@ -84,7 +84,7 @@ abstract class ControllerBase extends ScalatraFilter
       action
     }
 
-  override def ajaxPost[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
+  override def ajaxPost[T](path : String, form : ValueType[T])(action : T => Any) : Route =
     super.ajaxPost(path, form){ form =>
       request.setAttribute(Keys.Request.Ajax, "true")
       action(form)
