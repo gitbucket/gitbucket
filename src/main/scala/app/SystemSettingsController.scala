@@ -33,7 +33,9 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
         "bindPassword"             -> trim(label("Bind Password", optional(text()))),
         "baseDN"                   -> trim(label("Base DN", text(required))),
         "userNameAttribute"        -> trim(label("User name attribute", text(required))),
-        "mailAttribute"            -> trim(label("Mail address attribute", text(required)))
+        "mailAttribute"            -> trim(label("Mail address attribute", text(required))),
+        "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
+        "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
   )(SystemSettings.apply)
 

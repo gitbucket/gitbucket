@@ -94,6 +94,20 @@
                 <span id="error-ldap_mailAttribute" class="error"></span>
               </div>
             </div>
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox">
+                  <input type="checkbox" name="ldap.tls"@if(settings.ldap.flatMap(_.tls).getOrElse(false)){ checked}/> Enable TLS
+                </label>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBindDN">Keystore</label>
+              <div class="controls">
+                <input type="text" id="ldapKeystore" name="ldap.keystore" value="@settings.ldap.map(_.keystore)"/>
+                <span id="error-ldap_keystore" class="error"></span>
+              </div>
+            </div>
           </div>
           <!--====================================================================-->
           <!-- Notification email -->

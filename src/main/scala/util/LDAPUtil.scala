@@ -3,6 +3,8 @@ package util
 import util.ControlUtil._
 import service.SystemSettingsService
 import com.novell.ldap._
+import java.security.Security
+import org.slf4j.LoggerFactory
 import service.SystemSettingsService.Ldap
 import scala.annotation.tailrec
 
@@ -11,7 +13,8 @@ import scala.annotation.tailrec
  */
 object LDAPUtil {
 
-  private val LDAP_VERSION: Int = 3
+  private val LDAP_VERSION: Int = LDAPConnection.LDAP_V3
+  private val logger = LoggerFactory.getLogger(getClass().getName())
 
   /**
    * Try authentication by LDAP using given configuration.
@@ -22,7 +25,9 @@ object LDAPUtil {
       ldapSettings.host,
       ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
       ldapSettings.bindDN.getOrElse(""),
-      ldapSettings.bindPassword.getOrElse("")
+      ldapSettings.bindPassword.getOrElse(""),
+      ldapSettings.tls.getOrElse(false),
+      ldapSettings.keystore.getOrElse("")
     ) match {
       case Some(conn) => {
         withConnection(conn) { conn =>
@@ -41,7 +46,9 @@ object LDAPUtil {
       ldapSettings.host,
       ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
       userDN,
-      password
+      password,
+      ldapSettings.tls.getOrElse(false),
+      ldapSettings.keystore.getOrElse("")
     ) match {
       case Some(conn) => {
         withConnection(conn) { conn =>
@@ -55,15 +62,41 @@ object LDAPUtil {
     }
   }
 
-  private def bind(host: String, port: Int, dn: String, password: String): Option[LDAPConnection] = {
-    val conn: LDAPConnection = new LDAPConnection
+  private def bind(host: String, port: Int, dn: String, password: String, tls: Boolean, keystore: String): Option[LDAPConnection] = {
+    if (tls) {
+      // Dynamically set Sun as the security provider
+      Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider())
+
+      if (keystore.compareTo("") != 0) {
+        // Dynamically set the property that JSSE uses to identify
+        // the keystore that holds trusted root certificates
+        System.setProperty("javax.net.ssl.trustStore", keystore)
+      }
+    }
+
+    val conn: LDAPConnection = new LDAPConnection(new LDAPJSSEStartTLSFactory())
     try {
+      // Connect to the server
       conn.connect(host, port)
+
+      if (tls) {
+        // Secure the connection
+        conn.startTLS()
+      }
+
+      // Bind to the server
       conn.bind(LDAP_VERSION, dn, password.getBytes)
+
       Some(conn)
     } catch {
       case e: Exception => {
-        if (conn.isConnected) conn.disconnect()
+        // Provide more information if something goes wrong
+        logger.info("" + e)
+
+        if (conn.isConnected) {
+          conn.disconnect()
+        }
+
         None
       }
     }
