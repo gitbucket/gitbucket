@@ -176,7 +176,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
       if(loadSystemSettings().allowGroupRegistration){
         createGroup(form.groupName, None)
         updateGroupMembers(form.groupName, List(user.userName))
-        redirect("/" + form.groupName)
+        redirect("/" + form.groupName + "/_editgroup")
       } else NotFound
     }.getOrElse( Unauthorized() )
   }

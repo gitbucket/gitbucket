@@ -16,13 +16,13 @@
           }
           <div><i class="icon-time"></i> <span class="muted">Joined on</span> @date(account.registeredDate)</div>
         </div>
-        @if(groupNames.nonEmpty || (isEditable && !account.isGroupAccount)){
+        @if(groupNames.nonEmpty || (isEditable && !account.isGroupAccount && getSystemSettings().allowGroupRegistration)){
           <div>
             <div>Groups</div>
             @groupNames.map { groupName =>
               <a href="@url(groupName)">@avatar(groupName, 36, tooltip = true)</a>
             }
-            @if(isEditable && !account.isGroupAccount){
+            @if(isEditable && !account.isGroupAccount && getSystemSettings().allowGroupRegistration){
               <a href="@path/register/group" class="btn" data-toggle="tooltip" title="Create a new group">
               <i class="icon icon-plus"></i></a>
             }

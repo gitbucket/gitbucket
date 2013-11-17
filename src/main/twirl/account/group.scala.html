@@ -30,7 +30,7 @@
             <ul id="members" class="collaborator">
               @members.map { userName =>
                 <li data-name="@userName">
-                  <a href="@path/@url(userName)">@userName</a>
+                  <a href="@url(userName)">@userName</a>
                   @if(context.loginAccount.get.userName != userName){
                     <a href="#" class="remove">(remove)</a>
                   }
