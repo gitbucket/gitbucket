@@ -26,7 +26,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
   case class NewGroupForm(groupName: String)
 
   case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String],
-                           memberNames: Option[String], clearImage: Boolean, isRemoved: Boolean)
+                           memberNames: Option[String], clearImage: Boolean)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -55,8 +55,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      ,optional(text()))),
     "memberNames" -> trim(label("Member Names" ,optional(text()))),
-    "clearImage"  -> trim(label("Clear image"  ,boolean())),
-    "removed"     -> trim(label("Disable"      ,boolean()))
+    "clearImage"  -> trim(label("Clear image"  ,boolean()))
   )(EditGroupForm.apply)
 
   def isEditable(account:Account):Boolean = context.loginAccount.map{ user =>
@@ -195,29 +194,16 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     group <- getAccountByUserName(params("groupName"), false) if isGroupMember(group.userName, user.userName)
     memberNames = form.memberNames.getOrElse("").split(",").toList if memberNames.contains(user.userName)
   } yield {
-    updateGroup(group.userName, form.url, form.isRemoved)
-    if(form.isRemoved){
-      // Remove from GROUP_MEMBER
-      updateGroupMembers(form.groupName, Nil)
-      // Remove repositories
-      getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-        deleteRepository(group.userName, repositoryName)
-        FileUtils.deleteDirectory(getRepositoryDir(group.userName, repositoryName))
-        FileUtils.deleteDirectory(getWikiRepositoryDir(group.userName, repositoryName))
-        FileUtils.deleteDirectory(getTemporaryDir(group.userName, repositoryName))
+    updateGroup(group.userName, form.url, false)
+    // Update GROUP_MEMBER
+    updateGroupMembers(form.groupName, memberNames)
+    // Update COLLABORATOR for group repositories
+    getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+      removeCollaborators(form.groupName, repositoryName)
+      memberNames.foreach { userName =>
+        addCollaborator(form.groupName, repositoryName, userName)
       }
-      redirect("/" + user.userName)
-    } else {
-      // Update GROUP_MEMBER
-      updateGroupMembers(form.groupName, memberNames)
-      // Update COLLABORATOR for group repositories
-      getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-        removeCollaborators(form.groupName, repositoryName)
-        memberNames.foreach { userName =>
-          addCollaborator(form.groupName, repositoryName, userName)
-        }
-      }
-      redirect("/" + form.groupName)
     }
+    redirect("/" + form.groupName)
   } ).getOrElse(NotFound))
 }
