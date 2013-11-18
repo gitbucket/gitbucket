@@ -51,13 +51,18 @@ trait AccountService {
     }
   }
 
-  def getAccountByUserName(userName: String): Option[Account] = 
-    Query(Accounts) filter(_.userName is userName.bind) firstOption
+  def getAccountByUserName(userName: String, includeRemoved: Boolean = false): Option[Account] =
+    Query(Accounts) filter(t => (t.userName is userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
-  def getAccountByMailAddress(mailAddress: String): Option[Account] =
-    Query(Accounts) filter(_.mailAddress is mailAddress.bind) firstOption
+  def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false): Option[Account] =
+    Query(Accounts) filter(t => (t.mailAddress is mailAddress.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
-  def getAllUsers(): List[Account] = Query(Accounts) sortBy(_.userName) list
+  def getAllUsers(includeRemoved: Boolean = true): List[Account] =
+    if(includeRemoved){
+      Query(Accounts) sortBy(_.userName) list
+    } else {
+      Query(Accounts) filter (_.removed is false.bind) sortBy(_.userName) list
+    }
     
   def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit =
     Accounts insert Account(
@@ -77,7 +82,7 @@ trait AccountService {
   def updateAccount(account: Account): Unit = 
     Accounts
       .filter { a => a.userName is account.userName.bind }
-      .map    { a => a.password ~ a.fullName ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? }
+      .map    { a => a.password ~ a.fullName ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? ~ a.removed }
       .update (
         account.password, 
         account.fullName, 
@@ -86,7 +91,8 @@ trait AccountService {
         account.url,
         account.registeredDate,
         currentDate,
-        account.lastLoginDate)
+        account.lastLoginDate,
+        account.isRemoved)
 
   def updateAvatarImage(userName: String, image: Option[String]): Unit =
     Accounts.filter(_.userName is userName.bind).map(_.image.?).update(image)
@@ -109,8 +115,8 @@ trait AccountService {
       isGroupAccount = true,
       isRemoved      = false)
 
-  def updateGroup(groupName: String, url: Option[String]): Unit =
-    Accounts.filter(_.userName is groupName.bind).map(_.url.?).update(url)
+  def updateGroup(groupName: String, url: Option[String], removed: Boolean): Unit =
+    Accounts.filter(_.userName is groupName.bind).map(t => t.url.? ~ t.removed).update(url, removed)
 
   def updateGroupMembers(groupName: String, members: List[String]): Unit = {
     Query(GroupMembers).filter(_.groupName is groupName.bind).delete
@@ -132,6 +138,12 @@ trait AccountService {
       .sortBy(_.groupName)
       .map(_.groupName)
       .list
+
+  def removeUserRelatedData(userName: String): Unit = {
+    Query(GroupMembers).filter(_.userName is userName.bind).delete
+    Query(Collaborators).filter(_.collaboratorName is userName.bind).delete
+    Query(Repositories).filter(_.userName is userName.bind).delete
+  }
 
 }
 

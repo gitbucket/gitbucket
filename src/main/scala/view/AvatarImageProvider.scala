@@ -17,7 +17,7 @@ trait AvatarImageProvider { self: RequestCache =>
       // by user name
       getAccountByUserName(userName).map { account =>
         if(account.image.isEmpty && getSystemSettings().gravatar){
-          s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}"""
+          s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}"""
         } else {
           s"""${context.path}/${account.userName}/_avatar"""
         }
@@ -28,13 +28,13 @@ trait AvatarImageProvider { self: RequestCache =>
       // by mail address
       getAccountByMailAddress(mailAddress).map { account =>
         if(account.image.isEmpty && getSystemSettings().gravatar){
-          s"""http://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}"""
+          s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}"""
         } else {
           s"""${context.path}/${account.userName}/_avatar"""
         }
       } getOrElse {
         if(getSystemSettings().gravatar){
-          s"""http://www.gravatar.com/avatar/${StringUtil.md5(mailAddress.toLowerCase)}?s=${size}"""
+          s"""https://www.gravatar.com/avatar/${StringUtil.md5(mailAddress.toLowerCase)}?s=${size}"""
         } else {
           s"""${context.path}/_unknown/_avatar"""
         }

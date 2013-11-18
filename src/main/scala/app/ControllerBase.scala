@@ -3,7 +3,7 @@ package app
 import _root_.util.Directory._
 import _root_.util.Implicits._
 import _root_.util.ControlUtil._
-import _root_.util.{FileUtil, LDAPUtil, Validations, Keys}
+import _root_.util.{StringUtil, FileUtil, LDAPUtil, Validations, Keys}
 import org.scalatra._
 import org.scalatra.json._
 import org.json4s._
@@ -15,12 +15,13 @@ import service.{AccountService, SystemSettingsService}
 import javax.servlet.http.{HttpServletResponse, HttpSession, HttpServletRequest}
 import java.text.SimpleDateFormat
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
+import org.scalatra.i18n._
 
 /**
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with Validations with SystemSettingsService with AccountService {
+  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with Validations with SystemSettingsService with AccountService {
 
   implicit val jsonFormats = DefaultFormats
 
@@ -64,7 +65,7 @@ abstract class ControllerBase extends ScalatraFilter
     if(path.startsWith("/console/")){
       if(account == null){
         // Redirect to login form
-        httpResponse.sendRedirect(context + "/signin?" + path)
+        httpResponse.sendRedirect(context + "/signin?" + StringUtil.urlEncode(path))
       } else if(account.isAdmin){
         // H2 Console (administrators only)
         chain.doFilter(request, response)
@@ -98,7 +99,7 @@ abstract class ControllerBase extends ScalatraFilter
       action
     }
 
-  override def ajaxGet[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
+  override def ajaxGet[T](path : String, form : ValueType[T])(action : T => Any) : Route =
     super.ajaxGet(path, form){ form =>
       request.setAttribute(Keys.Request.Ajax, "true")
       action(form)
@@ -110,7 +111,7 @@ abstract class ControllerBase extends ScalatraFilter
       action
     }
 
-  override def ajaxPost[T](path : String, form : MappingValueType[T])(action : T => Any) : Route =
+  override def ajaxPost[T](path : String, form : ValueType[T])(action : T => Any) : Route =
     super.ajaxPost(path, form){ form =>
       request.setAttribute(Keys.Request.Ajax, "true")
       action(form)
@@ -133,7 +134,7 @@ abstract class ControllerBase extends ScalatraFilter
         if(request.getMethod.toUpperCase == "POST"){
           org.scalatra.Unauthorized(redirect("/signin"))
         } else {
-          org.scalatra.Unauthorized(redirect("/signin?redirect=" + currentURL))
+          org.scalatra.Unauthorized(redirect("/signin?redirect=" + StringUtil.urlEncode(currentURL)))
         }
       }
     }
@@ -196,13 +197,13 @@ trait AccountManagementControllerBase extends ControllerBase with FileUploadCont
     }
 
   protected def uniqueUserName: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] =
-      getAccountByUserName(value).map { _ => "User already exists." }
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+      getAccountByUserName(value, true).map { _ => "User already exists." }
   }
 
   protected def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String]): Option[String] =
-      getAccountByMailAddress(value)
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+      getAccountByMailAddress(value, true)
         .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
         .map    { _ => "Mail address is already registered." }
   }

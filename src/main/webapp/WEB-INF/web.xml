@@ -27,7 +27,7 @@
     <servlet-name>GitRepositoryServlet</servlet-name>
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
-  
+  <!--
   <filter>
     <filter-name>TransactionFilter</filter-name>
     <filter-class>servlet.TransactionFilter</filter-class>
@@ -37,7 +37,8 @@
     <filter-name>TransactionFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  
+  -->
+  <!--
   <filter>
     <filter-name>BasicAuthenticationFilter</filter-name>
     <filter-class>servlet.BasicAuthenticationFilter</filter-class>
@@ -47,7 +48,8 @@
     <filter-name>BasicAuthenticationFilter</filter-name>
     <url-pattern>/git/*</url-pattern>
   </filter-mapping>
-  
+  -->
+
   <!-- ===================================================================== -->
   <!-- H2 database configuration -->
   <!-- ===================================================================== -->

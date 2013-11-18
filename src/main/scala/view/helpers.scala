@@ -35,12 +35,16 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
 
   /**
-   * Returns &lt;img&gt; which displays the avatar icon.
-   * Looks up Gravatar if avatar icon has not been configured in user settings.
+   * Returns &lt;img&gt; which displays the avatar icon for the given user name.
+   * This method looks up Gravatar if avatar icon has not been configured in user settings.
    */
   def avatar(userName: String, size: Int, tooltip: Boolean = false)(implicit context: app.Context): Html =
     getAvatarImageHtml(userName, size, "", tooltip)
 
+  /**
+   * Returns &lt;img&gt; which displays the avatar icon for the given mail address.
+   * This method looks up Gravatar if avatar icon has not been configured in user settings.
+   */
   def avatar(commit: util.JGitUtil.CommitInfo, size: Int)(implicit context: app.Context): Html =
     getAvatarImageHtml(commit.committer, size, commit.mailAddress)
 
@@ -64,6 +68,9 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     }
   }
 
+  /**
+   * Convert link notations in the activity message.
+   */
   def activityMessage(message: String)(implicit context: app.Context): Html =
     Html(message
       .replaceAll("\\[issue:([^\\s]+?)/([^\\s]+?)#((\\d+))\\]"   , s"""<a href="${context.path}/$$1/$$2/issues/$$3">$$1/$$2#$$3</a>""")
@@ -71,7 +78,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       .replaceAll("\\[repo:([^\\s]+?)/([^\\s]+?)\\]"             , s"""<a href="${context.path}/$$1/$$2\">$$1/$$2</a>""")
       .replaceAll("\\[branch:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]", (m: Match) => s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/tree/${encodeRefName(m.group(3))}">${m.group(3)}</a>""")
       .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , (m: Match) => s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/tree/${encodeRefName(m.group(3))}">${m.group(3)}</a>""")
-      .replaceAll("\\[user:([^\\s]+?)\\]"                        , s"""<a href="${context.path}/$$1">$$1</a>""")
+      .replaceAll("\\[user:([^\\s]+?)\\]"                        , (m: Match) => user(m.group(1)).body)
     )
 
   /**
@@ -100,14 +107,32 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def assets(implicit context: app.Context): String = s"${context.path}/assets"
 
   /**
-   * Generates the link to the account page.
+   * Generates the text link to the account page.
+   * If user does not exist or disabled, this method returns user name as text without link.
    */
-  def user(userName: String, mailAddress: String, styleClass: String = "")(implicit context: app.Context): Html = {
-    getAccountByMailAddress(mailAddress).map { account =>
-      Html(s"""<a href="${url(account.userName)}" class="${styleClass}">${userName}</a>""")
-    } getOrElse Html(userName)
-  }
+  def user(userName: String, mailAddress: String = "", styleClass: String = "")(implicit context: app.Context): Html =
+    userWithContent(userName, mailAddress, styleClass)(Html(userName))
 
+  /**
+   * Generates the avatar link to the account page.
+   * If user does not exist or disabled, this method returns avatar image without link.
+   */
+  def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(implicit context: app.Context): Html =
+    userWithContent(userName, mailAddress)(avatar(userName, size, tooltip))
+
+  private def userWithContent(userName: String, mailAddress: String = "", styleClass: String = "")(content: Html)(implicit context: app.Context): Html =
+    (if(mailAddress.isEmpty){
+      getAccountByUserName(userName)
+    } else {
+      getAccountByMailAddress(mailAddress)
+    }).map { account =>
+      Html(s"""<a href="${url(account.userName)}" class="${styleClass}">${content}</a>""")
+    } getOrElse content
+
+
+  /**
+   * Test whether the given Date is past date.
+   */
   def isPast(date: Date): Boolean = System.currentTimeMillis > date.getTime
 
   /**

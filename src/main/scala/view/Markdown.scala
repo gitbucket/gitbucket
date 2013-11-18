@@ -19,11 +19,11 @@ object Markdown {
              enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): String = {
     // escape issue id
     val source = if(enableRefsLink){
-      markdown.replaceAll("(^|\\W)#([0-9]+)(\\W|$)", "$1issue:$2$3")
+      markdown.replaceAll("(?<=(\\W|^))#(\\d+)(?=(\\W|$))", "issue:$2")
     } else markdown
 
     val rootNode = new PegDownProcessor(
-      Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES
+      Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES | Extensions.HARDWRAPS
     ).parseMarkdown(source.toCharArray)
 
     new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink).toHtml(rootNode)

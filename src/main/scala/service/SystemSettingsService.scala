@@ -32,6 +32,8 @@ trait SystemSettingsService {
           props.setProperty(LdapBaseDN, ldap.baseDN)
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
           props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
+          ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
+          ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
           ldap.httpSsoHeader.foreach(x => props.setProperty(LdapHttpSsoHeader, x))
         }
       }
@@ -71,6 +73,8 @@ trait SystemSettingsService {
             getValue(props, LdapBaseDN, ""),
             getValue(props, LdapUserNameAttribute, ""),
             getValue(props, LdapMailAddressAttribute, ""),
+            getOptionValue[Boolean](props, LdapTls, None),
+            getOptionValue(props, LdapKeystore, None),
             getOptionValue(props, LdapHttpSsoHeader, None)))
         } else {
           None
@@ -100,6 +104,8 @@ object SystemSettingsService {
     baseDN: String,
     userNameAttribute: String,
     mailAttribute: String,
+    tls: Option[Boolean],
+    keystore: Option[String],
     httpSsoHeader: Option[String])
 
   case class Smtp(
@@ -132,6 +138,8 @@ object SystemSettingsService {
   private val LdapBaseDN = "ldap.baseDN"
   private val LdapUserNameAttribute = "ldap.username_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
+  private val LdapTls = "ldap.tls"
+  private val LdapKeystore = "ldap.keystore"
   private val LdapHttpSsoHeader = "ldap.http_sso_header"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A =

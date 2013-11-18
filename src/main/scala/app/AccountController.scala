@@ -6,6 +6,7 @@ import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 import org.scalatra.FlashMapSupport
+import org.apache.commons.io.FileUtils
 
 class AccountController extends AccountControllerBase
   with SystemSettingsService with AccountService with RepositoryService with ActivityService
@@ -95,6 +96,27 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
       redirect(s"/${userName}/_edit")
 
     } getOrElse NotFound
+  })
+
+  get("/:userName/_delete")(oneselfOnly {
+    val userName = params("userName")
+
+    getAccountByUserName(userName, true).foreach { account =>
+      // Remove repositories
+      getRepositoryNamesOfUser(userName).foreach { repositoryName =>
+        deleteRepository(userName, repositoryName)
+        FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
+        FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
+        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
+      }
+      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+      removeUserRelatedData(userName)
+
+      updateAccount(account.copy(isRemoved = true))
+    }
+
+    session.invalidate
+    redirect("/")
   })
 
   get("/register"){

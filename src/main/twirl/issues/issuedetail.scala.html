@@ -14,14 +14,14 @@
         <span class="pull-right"><a class="btn btn-small" href="#" id="edit">Edit</a></span>
       }
       <div class="small muted">
-        <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a> opened this issue @datetime(issue.registeredDate)
+        @user(issue.openedUserName, styleClass="username strong") opened this issue @datetime(issue.registeredDate)
       </div>
       <h4 id="issueTitle">@issue.title</h4>
     </div>
     <div class="issue-info">
       <span id="label-assigned">
         @issue.assignedUserName.map { userName =>
-          @avatar(userName, 20) <a href="@url(userName)" class="username strong">@userName</a> is assigned
+          @avatar(userName, 20) @user(userName, styleClass="username strong") is assigned
         }.getOrElse("No one is assigned")
       </span>
       @if(hasWritePermission){
@@ -84,7 +84,7 @@
 <div class="issue-participants">
   @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
     <span class="strong">@participants.size</span> @plural(participants.size, "participant")
-    @participants.map { participant => <a href="@url(participant)">@avatar(participant, 20, tooltip = true)</a> }
+    @participants.map { participant => @avatarLink(participant, 20, tooltip = true) }
   }
 </div>
 <script>

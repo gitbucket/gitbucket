@@ -1,16 +1,20 @@
-@(users: List[model.Account], members: Map[String, List[String]])(implicit context: app.Context)
+@(users: List[model.Account], members: Map[String, List[String]], includeRemoved: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Manage Users"){
   @admin.html.menu("users"){
-    <div style="text-align: right; margin-bottom: 4px;">
+    <div class="pull-right" style="margin-bottom: 4px;">
       <a href="@path/admin/users/_newuser" class="btn">New User</a>
       <a href="@path/admin/users/_newgroup" class="btn">New Group</a>
     </div>
+    <label for="includeRemoved">
+      <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
+      Include removed users
+    </label>
     <table class="table table-bordered table-hover">
       @users.map { account =>
         <tr>
-          <td>
+          <td @if(account.isRemoved){style="background-color: #dddddd;"}>
             <div class="pull-right">
               @if(account.isGroupAccount){
                 <a href="@path/admin/users/@account.userName/_editgroup">Edit</a>
@@ -58,3 +62,10 @@
     </table>
   }
 }
+<script>
+$(function(){
+  $('#includeRemoved').click(function(){
+    location.href = '@path/admin/users?includeRemoved=' + this.checked;
+  });
+});
+</script>

@@ -7,8 +7,9 @@ import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.FlashMapSupport
-import service.WikiService.WikiPageInfo
+import org.scalatra.i18n.Messages
 import scala.Some
+import java.util.ResourceBundle
 
 class WikiController extends WikiControllerBase 
   with WikiService with RepositoryService with AccountService with ActivityService
@@ -170,12 +171,12 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   })
 
   private def unique: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String]): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
       getWikiPageList(params("owner"), params("repository")).find(_ == value).map(_ => "Page already exists.")
   }
 
   private def pagename: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] =
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
       if(value.exists("\\/:*?\"<>|".contains(_))){
         Some(s"${name} contains invalid character.")
       } else if(value.startsWith("_") || value.startsWith("-")){
@@ -186,7 +187,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   }
 
   private def conflictForNew: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] = {
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
       optionIf(targetWikiPage.nonEmpty){
         Some("Someone has created the wiki since you started. Please reload this page and re-apply your changes.")
       }
@@ -194,7 +195,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
   }
 
   private def conflictForEdit: Constraint = new Constraint(){
-    override def validate(name: String, value: String): Option[String] = {
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
       optionIf(targetWikiPage.map(_.id != params("id")).getOrElse(false)){
         Some("Someone has edited the wiki since you started. Please reload this page and re-apply your changes.")
       }

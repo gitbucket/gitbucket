@@ -9,7 +9,7 @@ class AccountServiceServiceSpec extends Specification with ServiceSpecBase {
     val RootMailAddress = "root@localhost"
 
     "getAllUsers" in { withTestDB{
-      AccountService.getAllUsers must be like{
+      AccountService.getAllUsers() must be like{
         case List(model.Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false)) => ok
       }
     }}
@@ -75,3 +75,4 @@ class AccountServiceServiceSpec extends Specification with ServiceSpecBase {
     }}
   }
 }
+

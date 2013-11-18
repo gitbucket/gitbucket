@@ -91,6 +91,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
                 .foreach { case (address, name) =>
                   email.setFrom(address, name)
                 }
+              email.setCharset("UTF-8")
               email.setSubject(subject)
               email.setHtmlMsg(msg)
 

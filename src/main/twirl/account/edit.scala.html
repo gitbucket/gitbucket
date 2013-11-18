@@ -56,6 +56,9 @@
     </div>
     <fieldset class="margin">
       @if(account.isDefined){
+        <div class="pull-right">
+          <a href="@path/@account.get.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
+        </div>
         <input type="submit" class="btn btn-success" value="Save"/>
         <a href="@url(account.get.userName)" class="btn">Cancel</a>
       } else {
@@ -64,3 +67,10 @@
     </fieldset>
   </form>
 }
+<script>
+$(function(){
+  $('#delete').click(function(){
+    return confirm('Once you delete your account, there is no going back.\nAre you sure?');
+  });
+});
+</script>
