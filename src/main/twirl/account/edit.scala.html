@@ -38,6 +38,15 @@
               <input type="text" name="url" id="url" style="width: 300px;" value="@account.url"/>
               <span id="error-url" class="error"></span>
             </fieldset>
+            <fieldset>
+              <label class="strong">Diff type:</label>
+              <label class="radio" for="inlineDiff_Inline">
+                <input type="radio" name="inlineDiff" id="inlineDiff_Inline" value="true"@if(account.inlineDiff){ checked}/> Inline
+              </label>
+              <label class="radio" for="inlineDiff_SideBySide">
+                <input type="radio" name="inlineDiff" id="inlineDiff_SideBySide" value="false"@if(!account.inlineDiff){ checked}/> Side-by-side
+              </label>
+            </fieldset>
           </div>
           <div class="span6">
             <fieldset>

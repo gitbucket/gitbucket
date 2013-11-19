@@ -74,6 +74,7 @@ class AvatarImageProviderSpec extends Specification {
       fullName       = "user@localhost",
       mailAddress    = "",
       password       = "",
+      inlineDiff     = true,
       isAdmin        = false,
       url            = None,
       registeredDate = new Date(),

@@ -44,7 +44,7 @@ trait AccountService {
             logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
             defaultAuthentication(userName, password)
           }
-          case None => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+          case None => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, true, false, None)
         }
         getAccountByUserName(userName)
       }
@@ -68,12 +68,13 @@ trait AccountService {
       Query(Accounts) filter (_.removed is false.bind) sortBy(_.userName) list
     }
     
-  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit =
+  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, inlineDiff: Boolean, isAdmin: Boolean, url: Option[String]): Unit =
     Accounts insert Account(
       userName       = userName,
       password       = password,
       fullName       = fullName,
       mailAddress    = mailAddress,
+      inlineDiff     = inlineDiff,
       isAdmin        = isAdmin,
       url            = url,
       registeredDate = currentDate,
@@ -86,11 +87,12 @@ trait AccountService {
   def updateAccount(account: Account): Unit = 
     Accounts
       .filter { a => a.userName is account.userName.bind }
-      .map    { a => a.password ~ a.fullName ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? ~ a.removed }
+      .map    { a => a.password ~ a.fullName ~ a.mailAddress ~ a.inlineDiff ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? ~ a.removed }
       .update (
         account.password, 
         account.fullName, 
         account.mailAddress, 
+        account.inlineDiff,
         account.isAdmin,
         account.url,
         account.registeredDate,
@@ -110,6 +112,7 @@ trait AccountService {
       password       = "",
       fullName       = groupName,
       mailAddress    = groupName + "@devnull",
+      inlineDiff     = false,
       isAdmin        = false,
       url            = url,
       registeredDate = currentDate,

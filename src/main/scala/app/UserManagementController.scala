@@ -16,11 +16,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with AdminAuthenticator =>
   
   case class NewUserForm(userName: String, password: String, fullName: String,
-                         mailAddress: String, isAdmin: Boolean,
+                         mailAddress: String, inlineDiff: Boolean, isAdmin: Boolean,
                          url: Option[String], fileId: Option[String])
 
   case class EditUserForm(userName: String, password: Option[String], fullName: String,
-                          mailAddress: String, isAdmin: Boolean, url: Option[String],
+                          mailAddress: String, inlineDiff: Boolean, isAdmin: Boolean, url: Option[String],
                           fileId: Option[String], clearImage: Boolean, isRemoved: Boolean)
 
   case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String],
@@ -34,6 +34,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     "password"    -> trim(label("Password"     ,text(required, maxlength(20)))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress()))),
+    "inlineDiff"  -> trim(label("Inline Diff"  ,boolean())),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
     "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      ,optional(text())))
@@ -44,6 +45,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     "password"    -> trim(label("Password"     ,optional(text(maxlength(20))))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress("userName")))),
+    "inlineDiff"  -> trim(label("Inline Diff"  ,boolean())),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
     "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      ,optional(text()))),
@@ -82,7 +84,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   })
   
   post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
-    createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, form.isAdmin, form.url)
+    createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, form.inlineDiff, form.isAdmin, form.url)
     updateImage(form.userName, form.fileId, false)
     redirect("/admin/users")
   })
@@ -112,6 +114,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
         password     = form.password.map(sha1).getOrElse(account.password),
         fullName     = form.fullName,
         mailAddress  = form.mailAddress,
+        inlineDiff   = form.inlineDiff,
         isAdmin      = form.isAdmin,
         url          = form.url,
         isRemoved    = form.isRemoved))
