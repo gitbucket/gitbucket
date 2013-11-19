@@ -15,6 +15,11 @@ trait PullRequestService { self: IssuesService =>
       }
     }
 
+  def getPullRequestByRequestBranch(requestUser: String, requestRepositoryName: String, requestBranch: String): List[PullRequest] =
+    Query(PullRequests)
+      .filter(_.byRequestBranch(requestUser, requestRepositoryName, requestBranch))
+      .list
+
   def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
     Query(PullRequests)
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
@@ -42,6 +47,14 @@ trait PullRequestService { self: IssuesService =>
       requestBranch,
       commitIdFrom,
       commitIdTo))
+
+  def updatePullRequest(owner: String, repository: String, issueId: Int, commitIdFrom: String, commitIdTo: String) =
+    PullRequests
+      .filter(_.byPrimaryKey(owner, repository, issueId))
+      .map { t =>
+        t.commitIdFrom ~ t.commitIdTo
+      }
+      .update(commitIdFrom, commitIdTo)
 
 }
 

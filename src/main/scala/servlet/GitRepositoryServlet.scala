@@ -78,7 +78,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 import scala.collection.JavaConverters._
 
 class CommitLogHook(owner: String, repository: String, userName: String, baseURL: String) extends PostReceiveHook
-  with RepositoryService with AccountService with IssuesService with ActivityService with WebHookService {
+  with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
@@ -127,6 +127,9 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
           }
         }
 
+        // update pull request
+        updatePullRequest(branchName)
+
         // call web hook
         val webHookURLs = getWebHookURLs(owner, repository)
         if(webHookURLs.nonEmpty){
@@ -154,4 +157,21 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
     }
   }
 
+  private def updatePullRequest(branchName: String): Unit = {
+    getPullRequestByRequestBranch(owner, repository, branchName).foreach{ pullreq =>
+      using(
+        Git.open(Directory.getRepositoryDir(pullreq.userName, pullreq.repositoryName)),
+        Git.open(Directory.getRepositoryDir(owner, repository))
+      ) { case (oldGit, newGit) =>
+        val forkedId = JGitUtil.getForkedCommitId(oldGit, newGit,
+          pullreq.userName, pullreq.repositoryName, pullreq.branch,
+          pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+
+        val oldId = oldGit.getRepository.resolve(forkedId).getName
+        val newId = newGit.getRepository.resolve(branchName).getName
+
+        updatePullRequest(pullreq.userName, pullreq.repositoryName, pullreq.issueId, oldId, newId)
+      }
+    }
+  }
 }
