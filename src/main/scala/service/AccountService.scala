@@ -51,6 +51,13 @@ trait AccountService {
     }
   }
 
+  def useInlineDiff(loginAccount: Option[Account]): Boolean = {
+    loginAccount match {
+      case Some(a) if(!a.inlineDiff) => false
+      case _ => true
+    }
+  }
+
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false): Option[Account] =
     Query(Accounts) filter(t => (t.userName is userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
