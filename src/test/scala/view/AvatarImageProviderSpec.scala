@@ -70,6 +70,7 @@ class AvatarImageProviderSpec extends Specification {
       mailAddress    = "",
       password       = "",
       isAdmin        = false,
+      inlineDiff     = true,
       url            = None,
       registeredDate = new Date(),
       updatedDate    = new Date(),
