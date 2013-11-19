@@ -85,6 +85,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             getLabels(owner, name),
             commits,
             diffs,
+            getUseInlineDiff(context.loginAccount),
             hasWritePermission(owner, name, context.loginAccount),
             repository)
         }
@@ -291,6 +292,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           forkedRepository,
           originRepository,
           forkedRepository,
+          getUseInlineDiff(context.loginAccount),
           hasWritePermission(forkedRepository.owner, forkedRepository.name, context.loginAccount))
       }
     }) getOrElse NotFound

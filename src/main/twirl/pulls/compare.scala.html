@@ -8,6 +8,7 @@
   repository: service.RepositoryService.RepositoryInfo,
   originRepository: service.RepositoryService.RepositoryInfo,
   forkedRepository: service.RepositoryService.RepositoryInfo,
+  useInlineDiff: Boolean,
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -82,7 +83,7 @@
     </table>
   } else {
     @pulls.html.commits(commits, repository)
-    @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true)
+    @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), useInlineDiff, true)
   }
 }
 <script>

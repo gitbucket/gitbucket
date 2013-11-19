@@ -3,6 +3,7 @@
   to: String,
   diffs: Seq[util.JGitUtil.DiffInfo],
   repository: service.RepositoryService.RepositoryInfo,
+  useInlineDiff: Boolean,
   hasWritePermission: Boolean,
   info: Option[Any])(implicit context: app.Context)
 @import context._
@@ -27,7 +28,7 @@
       </div>
     </li>
   </ul>
-  @helper.html.diff(diffs, repository, None, None, false)
+  @helper.html.diff(diffs, repository, None, None, useInlineDiff, false)
   @if(hasWritePermission){
     <div>
       @if(pageName.isDefined){
