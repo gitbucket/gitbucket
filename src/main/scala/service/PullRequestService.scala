@@ -46,6 +46,13 @@ trait PullRequestService { self: IssuesService =>
       commitIdFrom,
       commitIdTo))
 
+  def getPullRequestsByRequest(userName: String, repositoryName: String, branch: String, closed: Boolean): List[PullRequest] =
+    Query(PullRequests)
+      .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+      .filter { case (t1, t2) => t1.byRequestBranch(userName, repositoryName, branch) && t2.closed is closed.bind }
+      .map { case (t1, t2) => t1 }
+      .list
+
 }
 
 object PullRequestService {

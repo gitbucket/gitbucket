@@ -78,7 +78,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 import scala.collection.JavaConverters._
 
 class CommitLogHook(owner: String, repository: String, userName: String, baseURL: String) extends PostReceiveHook
-  with RepositoryService with AccountService with IssuesService with ActivityService with WebHookService {
+  with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
@@ -130,6 +130,16 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
           }
         }
 
+        if(refName(1) == "heads"){
+          command.getType match {
+            case ReceiveCommand.Type.CREATE |
+                 ReceiveCommand.Type.UPDATE |
+                 ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
+              updatePullRequests(branchName)
+            case _ =>
+          }
+        }
+
         // call web hook
         val webHookURLs = getWebHookURLs(owner, repository)
         if(webHookURLs.nonEmpty){
@@ -158,4 +168,21 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
     }
   }
 
+  /**
+   * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
+   */
+  private def updatePullRequests(branch: String) =
+    getPullRequestsByRequest(owner, repository, branch, false).foreach { pullreq =>
+      if(getRepository(pullreq.userName, pullreq.repositoryName, baseURL).isDefined){
+        using(Git.open(Directory.getRepositoryDir(pullreq.userName, pullreq.repositoryName))){ git =>
+          git.fetch
+            .setRemote(Directory.getRepositoryDir(owner, repository).toURI.toString)
+            .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/pull/${pullreq.issueId}/head").setForceUpdate(true))
+            .call
+
+          val commitIdTo = git.getRepository.resolve(s"refs/pull/${pullreq.issueId}/head").getName
+          updateCommitIdTo(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo)
+        }
+      }
+    }
 }

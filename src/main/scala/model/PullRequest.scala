@@ -13,6 +13,11 @@ object PullRequests extends Table[PullRequest]("PULL_REQUEST") with IssueTemplat
 
   def byPrimaryKey(userName: String, repositoryName: String, issueId: Int) = byIssue(userName, repositoryName, issueId)
   def byPrimaryKey(userName: Column[String], repositoryName: Column[String], issueId: Column[Int]) = byIssue(userName, repositoryName, issueId)
+
+  def byRequestBranch(userName: String, repositoryName: String, branch: String) =
+    (requestUserName is userName.bind) &&
+    (requestRepositoryName is repositoryName.bind) &&
+    (requestBranch is branch.bind)
 }
 
 case class PullRequest(
