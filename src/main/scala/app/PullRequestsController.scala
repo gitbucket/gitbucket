@@ -98,7 +98,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         pulls.html.mergeguide(
           checkConflictInPullRequest(owner, name, pullreq.branch, pullreq.requestUserName, name, pullreq.requestBranch, issueId),
           pullreq,
-          s"${baseUrl}${context.path}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
+          s"${baseUrl}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
       }
     } getOrElse NotFound
   })
