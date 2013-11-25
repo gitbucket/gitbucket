@@ -18,7 +18,6 @@ import util.JGitUtil.CommitInfo
 import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
-import org.eclipse.jgit.api.errors.TransportException
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
@@ -457,7 +456,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         .setRefSpecs(new RefSpec(s"refs/heads/${requestBranch}:refs/pull/${issueId}/head").setForceUpdate(true))
         .call
     } catch {
-      case ex: TransportException => // ignore
+      case ex: Exception => // ignore
     }
     git.getRepository.resolve(s"refs/pull/${issueId}/head").getName
   }
