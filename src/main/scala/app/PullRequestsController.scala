@@ -70,11 +70,8 @@ trait PullRequestsControllerBase extends ControllerBase {
       val name = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
         using(Git.open(getRepositoryDir(owner, name))){ git =>
-          // prepare head branch
-          val commitIdTo = fetchPullRequest(git, issueId, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
-          updateCommitIdTo(owner, name, issueId, commitIdTo)
-
-          val (commits, diffs) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, commitIdTo)
+          val (commits, diffs) =
+            getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
 
           pulls.html.pullreq(
             issue, pullreq,
@@ -445,21 +442,5 @@ trait PullRequestsControllerBase extends ControllerBase {
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))
     }
-
-  /**
-   * Fetch pull request contents into refs/pull/${issueId}/head and return the head commit id of the pull request.
-   */
-  private def fetchPullRequest(git: Git, issueId: Int, requestUserName: String, requestRepositoryName: String, requestBranch: String): String = {
-    try {
-      git.fetch
-        .setRemote(getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
-        .setRefSpecs(new RefSpec(s"refs/heads/${requestBranch}:refs/pull/${issueId}/head").setForceUpdate(true))
-        .call
-    } catch {
-      case ex: Exception => // ignore
-    }
-    git.getRepository.resolve(s"refs/pull/${issueId}/head").getName
-  }
-
 
 }
