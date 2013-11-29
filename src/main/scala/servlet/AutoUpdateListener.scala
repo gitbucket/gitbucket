@@ -87,7 +87,7 @@ object AutoUpdate {
   /**
    * The version file (GITBUCKET_HOME/version).
    */
-  val versionFile = new File(GitBucketHome, "version")
+  lazy val versionFile = new File(GitBucketHome, "version")
   
   /**
    * Returns the current version from the version file.
@@ -115,6 +115,10 @@ class AutoUpdateListener extends ServletContextListener {
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
+    val datadir = event.getServletContext.getInitParameter("gitbucket.home")
+    if(datadir != null){
+      System.setProperty("gitbucket.home", datadir)
+    }
     org.h2.Driver.load()
     event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome}")
 
