@@ -232,6 +232,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     (id, path.substring(id.length).replaceFirst("^/", ""))
   }
 
+
+  private val readmeFiles = Seq("readme.md", "readme.markdown")
+
   /**
    * Provides HTML of the file list.
    * 
@@ -251,8 +254,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           defining(JGitUtil.getRevCommitFromId(git, objectId)){ revCommit =>
           // get files
             val files = JGitUtil.getFileList(git, revision, path)
-            // process README.md
-            val readme = files.find(_.name == "README.md").map { file =>
+            // process README.md or README.markdown
+            val readme = files.find { file =>
+              readmeFiles.contains(file.name.toLowerCase)
+            }.map { file =>
               StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
             }
 
