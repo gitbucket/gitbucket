@@ -27,7 +27,7 @@ public class JettyLauncher {
                         contextPath = dim[1];
                     } else if(dim[0].equals("--https") && (dim[1].equals("1") || dim[1].equals("true"))) {
                         forceHttps = true;
-                    } else if(dim[0].equals("--data")){
+                    } else if(dim[0].equals("--gitbucket.home")){
                         System.setProperty("gitbucket.home", dim[1]);
                     }
                 }
