@@ -50,6 +50,14 @@ For Installation on Windows Server with IIS see [this wiki page](https://github.
 
 Release Notes
 --------
+### 1.8 - COMMING SOON!
+- Add user and group deletion
+- Improve pull request performance
+- LDAP StartTLS support
+- Hard wrap for Markdown
+- Add new some options to specify the data directory
+- Fix some bugs
+
 ### 1.7 - 26 Oct 2013
 - Support working on Java6 in embedded Jetty mode
 - Add ```--host``` option to bind specified host name in embedded Jetty mode
