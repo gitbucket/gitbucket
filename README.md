@@ -56,7 +56,7 @@ Release Notes
 - Improve pull request performance
 - Pull request synchronization (when source repository is updated after pull request, it's applied to the pull request)
 - LDAP StartTLS support
-- Hard wrap for Markdown
+- Enable hard wrapping in Markdown
 - Add new some options to specify the data directory. See details in [Wiki](https://github.com/takezoe/gitbucket/wiki/DirectoryStructure).
 - Fix some bugs
 
