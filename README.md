@@ -43,6 +43,7 @@ or you can start GitBucket by ```java -jar gitbucket.war``` without servlet cont
 - --prefix=[CONTEXTPATH]
 - --host=[HOSTNAME]
 - --https=true
+- --gitbucket.home=[DATA_DIR]
 
 To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
@@ -53,6 +54,7 @@ Release Notes
 ### 1.8 - COMMING SOON!
 - Add user and group deletion
 - Improve pull request performance
+- Pull request synchronization (when source repository is updated after pull request, it's applied to the pull request)
 - LDAP StartTLS support
 - Hard wrap for Markdown
 - Add new some options to specify the data directory
