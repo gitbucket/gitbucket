@@ -51,13 +51,13 @@ For Installation on Windows Server with IIS see [this wiki page](https://github.
 
 Release Notes
 --------
-### 1.8 - COMMING SOON!
+### 1.8 - 30 Nov 2013
 - Add user and group deletion
 - Improve pull request performance
 - Pull request synchronization (when source repository is updated after pull request, it's applied to the pull request)
 - LDAP StartTLS support
 - Hard wrap for Markdown
-- Add new some options to specify the data directory
+- Add new some options to specify the data directory. See details in [Wiki](https://github.com/takezoe/gitbucket/wiki/DirectoryStructure).
 - Fix some bugs
 
 ### 1.7 - 26 Oct 2013
