@@ -140,6 +140,14 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
           }
         }
 
+        // close issues
+        val defaultBranch = getRepository(owner, repository, baseURL).get.repository.defaultBranch
+        if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
+          git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach { commit =>
+            closeIssuesFromMessage(commit.getFullMessage, userName, owner, repository)
+          }
+        }
+
         // call web hook
         val webHookURLs = getWebHookURLs(owner, repository)
         if(webHookURLs.nonEmpty){

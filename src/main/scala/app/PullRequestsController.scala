@@ -163,6 +163,19 @@ trait PullRequestsControllerBase extends ControllerBase {
               }
             }
 
+            // close issue by content of pull request
+            val defaultBranch = getRepository(owner, name, baseUrl).get.repository.defaultBranch
+            if(pullreq.branch == defaultBranch){
+              commits.flatten.foreach { commit =>
+                closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
+              }
+              issue.content match {
+                case Some(content) => closeIssuesFromMessage(content, loginAccount.userName, owner, name)
+                case _ =>
+              }
+              closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
+            }
+
             // notifications
             Notifier().toNotify(repository, issueId, "merge"){
               Notifier.msgStatus(s"${baseUrl}/${owner}/${name}/pull/${issueId}")
