@@ -1,13 +1,14 @@
-@(account: Option[model.Account], info: Option[Any])(implicit context: app.Context)
+@(account: Option[model.Account], info: Option[Any], error: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main((if(account.isDefined) "Edit your profile" else "Create your account")){
+@html.main(if(account.isDefined) "Edit your profile" else "Create your account"){
   @if(account.isDefined){
     <h3>Edit your profile</h3>
   } else {
     <h3>Create your account</h3>
   }
   @helper.html.information(info)
+  @helper.html.error(error)
   <form action="@if(account.isDefined){@url(account.get.userName)/_edit}else{@path/register}" method="POST" validate="true">
     <div class="row-fluid">
       <div class="span6">
@@ -21,15 +22,31 @@
         @if(account.map(_.password.nonEmpty).getOrElse(true)){
           <fieldset>
             <label for="password" class="strong">
-              Password
               @if(account.nonEmpty){
-                (input to change password)
+                Old password (input to change password):
+              } else {
+                Password:
               }
-              :
             </label>
             <input type="password" name="password" id="password" value=""/>
             <span id="error-password" class="error"></span>
           </fieldset>
+          @if(account.nonEmpty){
+            <fieldset>
+              <label for="newPassword" class="strong">
+                New password:
+              </label>
+              <input type="password" name="newPassword" id="newPassword" value=""/>
+              <span id="error-newPassword" class="error"></span>
+            </fieldset>
+            <fieldset>
+              <label for="newPasswordRepeated" class="strong">
+                Repeat new password:
+              </label>
+              <input type="password" name="newPasswordRepeated" id="newPasswordRepeated" value=""/>
+              <span id="error-newPasswordRepeated" class="error"></span>
+            </fieldset>
+          }
         }
         <fieldset>
           <label for="fullName" class="strong">Full Name:</label>

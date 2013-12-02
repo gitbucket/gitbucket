@@ -19,8 +19,8 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
 
-  case class AccountEditForm(password: Option[String], fullName: String, mailAddress: String,
-                             url: Option[String], fileId: Option[String], clearImage: Boolean)
+  case class AccountEditForm(password: Option[String], newPassword: Option[String], fullName: String,
+                             mailAddress: String, url: Option[String], fileId: Option[String], clearImage: Boolean)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -31,14 +31,30 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     "fileId"      -> trim(label("File ID"      , optional(text())))
   )(AccountNewForm.apply)
 
+  private def passwordsMatch(form: AccountEditForm, params: Map[String, String]): Seq[(String, String)] = {
+    val passwordRepeated = params.get("newPasswordRepeated").filter(!_.isEmpty)
+    val values = Seq(form.password, form.newPassword, passwordRepeated)
+    if (values.forall(_.isEmpty)) return Nil
+    val oldPasswordErrors = if (form.password.isEmpty) Seq("password" -> "Old Password required") else Nil
+    val newPasswordErrors = (form.newPassword, passwordRepeated) match {
+      case (Some(first), Some(second)) if first == second => Nil
+      case (Some(_), Some(_)) => Seq("newPassword", "newPasswordRepeated").map(_ -> "Passwords must match")
+      case (None, Some(_)) => Seq("newPassword" -> "New password required")
+      case (Some(_), None) => Seq("newPasswordRepeated" -> "New password required")
+      case (None, None) => Seq("newPassword", "newPasswordRepeated").map(_ -> "New password required")
+    }
+    oldPasswordErrors ++ newPasswordErrors
+  }
+
   val editForm = mapping(
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
+    "newPassword" -> trim(label("New password" , optional(text(maxlength(20))))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "clearImage"  -> trim(label("Clear image"  , boolean()))
-  )(AccountEditForm.apply)
+  )(AccountEditForm.apply).verifying(passwordsMatch _)
 
   /**
    * Displays user information.
@@ -51,10 +67,10 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
         case "activity" =>
           _root_.account.html.activity(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getActivitiesByUser(userName, true))
+            getActivitiesByUser(userName, isPublic = true))
 
         // Members
-        case "members" if(account.isGroupAccount) =>
+        case "members" if account.isGroupAccount =>
           _root_.account.html.members(account, getGroupMembers(account.userName))
 
         // Repositories
@@ -79,29 +95,30 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
 
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
-    getAccountByUserName(userName).map(x => account.html.edit(Some(x), flash.get("info"))) getOrElse NotFound
+    getAccountByUserName(userName).map(x => account.html.edit(Some(x), flash.get("info"), flash.get("error"))) getOrElse NotFound
   })
 
   post("/:userName/_edit", editForm)(oneselfOnly { form =>
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
-      updateAccount(account.copy(
-        password    = form.password.map(sha1).getOrElse(account.password),
-        fullName    = form.fullName,
-        mailAddress = form.mailAddress,
-        url         = form.url))
+      if (form.password.map(sha1).map(account.password ==).getOrElse(true)) {
+        updateAccount(account.copy(
+          password    = form.newPassword.map(sha1).getOrElse(account.password),
+          fullName    = form.fullName,
+          mailAddress = form.mailAddress,
+          url         = form.url))
 
-      updateImage(userName, form.fileId, form.clearImage)
-      flash += "info" -> "Account information has been updated."
-      redirect(s"/${userName}/_edit")
-
+        updateImage(userName, form.fileId, form.clearImage)
+        flash += "info" -> "Account information has been updated."
+      } else flash += "error" -> "Incorrect password."
+      redirect(s"/$userName/_edit")
     } getOrElse NotFound
   })
 
   get("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
-    getAccountByUserName(userName, true).foreach { account =>
+    getAccountByUserName(userName, includeRemoved = true).foreach { account =>
       // Remove repositories
       getRepositoryNamesOfUser(userName).foreach { repositoryName =>
         deleteRepository(userName, repositoryName)
@@ -115,7 +132,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
       updateAccount(account.copy(isRemoved = true))
     }
 
-    session.invalidate
+    session.invalidate()
     redirect("/")
   })
 
@@ -124,17 +141,17 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
       if(context.loginAccount.isDefined){
         redirect("/")
       } else {
-        account.html.edit(None, None)
+        account.html.edit(None, None, None)
       }
-    } else NotFound
+    } else NotFound()
   }
 
   post("/register", newForm){ form =>
     if(loadSystemSettings().allowAccountRegistration){
-      createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.url)
-      updateImage(form.userName, form.fileId, false)
+      createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, isAdmin = false, form.url)
+      updateImage(form.userName, form.fileId, clearImage = false)
       redirect("/signin")
-    } else NotFound
+    } else NotFound()
   }
 
 }
