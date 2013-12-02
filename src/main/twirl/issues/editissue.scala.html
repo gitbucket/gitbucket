@@ -3,8 +3,10 @@
 <span id="error-edit-title" class="error"></span>
 <input type="text" style="width: 680px;" id="edit-title" value="@title"/>
 <textarea style="width: 680px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
-<input type="button" class="btn btn-small" value="Update Issue"/>
-<span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
+<div>
+<button type="button" class="btn btn-small">Update Issue</button>
+<button type="button" class="btn btn-small btn-danger pull-right">Cancel</button>
+</div>
 <script>
 $(function(){
   $('#edit-content').elastic();
