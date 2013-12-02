@@ -12,12 +12,22 @@
   </listener>
 
   <!-- ===================================================================== -->
+  <!-- Automatic migration -->
+  <!-- ===================================================================== -->
+  <listener>
+    <listener-class>servlet.AutoUpdateListener</listener-class>
+  </listener>
+
+  <!-- ===================================================================== -->
   <!-- Scalatra configuration -->
   <!-- ===================================================================== -->
   <listener>
     <listener-class>org.scalatra.servlet.ScalatraListener</listener-class>
   </listener>
 
+  <!-- ===================================================================== -->
+  <!-- HTTP interface for Git repositories -->
+  <!-- ===================================================================== -->
   <servlet>
     <servlet-name>GitRepositoryServlet</servlet-name>
     <servlet-class>servlet.GitRepositoryServlet</servlet-class>
@@ -31,10 +41,6 @@
   <!-- ===================================================================== -->
   <!-- H2 database configuration -->
   <!-- ===================================================================== -->
-  <listener>
-    <listener-class>servlet.AutoUpdateListener</listener-class>
-  </listener>
-
   <context-param>
     <param-name>db.user</param-name>
     <param-value>sa</param-value>
