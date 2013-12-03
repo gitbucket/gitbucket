@@ -18,7 +18,7 @@
       }
     </ul>
     @if(!isGroupRepository){
-      <form method="POST" action="@url(repository)/settings/collaborators/add" validate="true">
+      <form method="POST" action="@url(repository)/settings/collaborators/add" validate="true" autocomplete="off">
         <div>
           <span class="error" id="error-userName"></span>
         </div>
