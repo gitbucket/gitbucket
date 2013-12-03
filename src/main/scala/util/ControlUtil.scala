@@ -4,6 +4,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.transport.RefSpec
+import scala.language.reflectiveCalls
 
 /**
  * Provides control facilities.
@@ -24,12 +25,12 @@ object ControlUtil {
     }
 
   def using[T](git: Git)(f: Git => T): T =
-    try f(git) finally git.getRepository.close
+    try f(git) finally git.getRepository.close()
 
   def using[T](git1: Git, git2: Git)(f: (Git, Git) => T): T =
     try f(git1, git2) finally {
-      git1.getRepository.close
-      git2.getRepository.close
+      git1.getRepository.close()
+      git2.getRepository.close()
     }
 
   def using[T](revWalk: RevWalk)(f: RevWalk => T): T =
