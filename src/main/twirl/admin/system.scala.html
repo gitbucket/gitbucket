@@ -1,5 +1,6 @@
 @(settings: service.SystemSettingsService.SystemSettings, info: Option[Any])(implicit context: app.Context)
 @import context._
+@import util.Directory._
 @import view.helpers._
 @html.main("System Settings"){
   @menu("system"){
@@ -9,8 +10,14 @@
         <div class="box-header">System Settings</div>
         <div class="box-content">
           <!--====================================================================-->
+          <!-- GITBUCKET_HOME -->
+          <!--====================================================================-->
+          <label class="strong">GITBUCKET_HOME</label>
+          @GitBucketHome
+          <!--====================================================================-->
           <!-- Account registration -->
           <!--====================================================================-->
+          <hr>
           <label class="strong">Account registration</label>
           <fieldset>
             <label class="radio">
