@@ -18,13 +18,14 @@ import util.JGitUtil.CommitInfo
 import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
+import service.WebHookService.WebHookPayload
 
 class PullRequestsController extends PullRequestsControllerBase
-  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
+  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService with WebHookService
   with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with IssuesService with MilestonesService with ActivityService with PullRequestService
+  self: RepositoryService with AccountService with IssuesService with MilestonesService with ActivityService with PullRequestService with WebHookService
     with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
@@ -161,6 +162,20 @@ trait PullRequestsControllerBase extends ControllerBase {
               if(!existsCommitId(owner, name, commit.id)){
                 insertCommitId(owner, name, commit.id)
               }
+            }
+
+            // call web hook
+            val webHookURLs = getWebHookURLs(owner, name)
+            if(webHookURLs.nonEmpty){
+              val payload = WebHookPayload(
+                git,
+                loginAccount,
+                mergeBaseRefName,
+                repository,
+                commits.flatten.toList,
+                getAccountByUserName(owner).get)
+
+              callWebHook(owner, name, webHookURLs, payload)
             }
 
             // notifications
