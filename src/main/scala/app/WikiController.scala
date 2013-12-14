@@ -188,16 +188,16 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
 
   private def conflictForNew: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
-      optionIf(targetWikiPage.nonEmpty){
-        Some("Someone has created the wiki since you started. Please reload this page and re-apply your changes.")
+      targetWikiPage.map { _ =>
+        "Someone has created the wiki since you started. Please reload this page and re-apply your changes."
       }
     }
   }
 
   private def conflictForEdit: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
-      optionIf(targetWikiPage.map(_.id != params("id")).getOrElse(false)){
-        Some("Someone has edited the wiki since you started. Please reload this page and re-apply your changes.")
+      targetWikiPage.filter(_.id != params("id")).map{ _ =>
+        "Someone has edited the wiki since you started. Please reload this page and re-apply your changes."
       }
     }
   }

@@ -59,11 +59,11 @@ trait WikiService {
    */
   def getWikiPage(owner: String, repository: String, pageName: String): Option[WikiPageInfo] = {
     using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
-      optionIf(!JGitUtil.isEmpty(git)){
+      if(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
           WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time, file.commitId)
         }
-      }
+      } else None
     }
   }
 
@@ -72,7 +72,7 @@ trait WikiService {
    */
   def getFileContent(owner: String, repository: String, path: String): Option[Array[Byte]] =
     using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
-      optionIf(!JGitUtil.isEmpty(git)){
+      if(!JGitUtil.isEmpty(git)){
         val index = path.lastIndexOf('/')
         val parentPath = if(index < 0) "."  else path.substring(0, index)
         val fileName   = if(index < 0) path else path.substring(index + 1)
@@ -80,7 +80,7 @@ trait WikiService {
         JGitUtil.getFileList(git, "master", parentPath).find(_.name == fileName).map { file =>
           git.getRepository.open(file.id).getBytes
         }
-      }
+      } else None
     }
 
   /**
@@ -239,7 +239,7 @@ trait WikiService {
           }
         }
 
-        optionIf(created || updated || removed){
+        if(created || updated || removed){
           builder.add(JGitUtil.createDirCacheEntry(newPageName + ".md", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
           builder.finish()
           val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
@@ -256,7 +256,7 @@ trait WikiService {
             })
 
           Some(newHeadId)
-        }
+        } else None
       }
     }
   }

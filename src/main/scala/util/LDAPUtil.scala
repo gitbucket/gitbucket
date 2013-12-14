@@ -130,8 +130,8 @@ object LDAPUtil {
 
   private def findMailAddress(conn: LDAPConnection, userDN: String, mailAttribute: String): Option[String] =
     defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](mailAttribute), false)){ results =>
-      optionIf (results.hasMore) {
+      if(results.hasMore) {
         Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
-      }
+      } else None
     }
 }

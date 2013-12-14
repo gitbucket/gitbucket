@@ -97,17 +97,17 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         val newCommits = if(commits.size > 1000){
           val existIds = getAllCommitIds(owner, repository)
           commits.flatMap { commit =>
-            optionIf(!existIds.contains(commit.id)){
+            if(!existIds.contains(commit.id)){
               createIssueComment(commit)
               Some(commit)
-            }
+            } else None
           }
         } else {
           commits.flatMap { commit =>
-            optionIf(!existsCommitId(owner, repository, commit.id)){
+            if(!existsCommitId(owner, repository, commit.id)){
               createIssueComment(commit)
               Some(commit)
-            }
+            } else None
           }
         }
 

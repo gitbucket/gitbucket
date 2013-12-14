@@ -338,12 +338,12 @@ trait PullRequestsControllerBase extends ControllerBase {
       using(Git.open(getRepositoryDir(requestUserName, requestRepositoryName))) { git =>
         val remoteRefName = s"refs/heads/${branch}"
         val tmpRefName = s"refs/merge-check/${userName}/${branch}"
-
-        withTmpRefSpec(new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true), git) { ref =>
+        val refSpec = new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true)
+        try {
           // fetch objects from origin repository branch
           git.fetch
              .setRemote(getRepositoryDir(userName, repositoryName).toURI.toString)
-             .setRefSpecs(ref)
+             .setRefSpecs(refSpec)
              .call
 
           // merge conflict check
@@ -355,6 +355,10 @@ trait PullRequestsControllerBase extends ControllerBase {
           } catch {
             case e: NoMergeBaseException =>  true
           }
+        } finally {
+          val refUpdate = git.getRepository.updateRef(refSpec.getDestination)
+          refUpdate.setForceUpdate(true)
+          refUpdate.delete()
         }
       }
     }
