@@ -49,6 +49,14 @@ To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored i
 
 For Installation on Windows Server with IIS see [this wiki page](https://github.com/takezoe/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
 
+### Mac OS X
+On OS X, copy the `gitbucket.plist` file to `~/Library/LaunchAgents/` 
+
+Run the following commands in `Terminal` to
+
+- start gitbucket: `launchctl load ~/Library/LaunchAgents/gitbucket.plist`
+- stop gitbucket: `launchctl unload ~/Library/LaunchAgents/gitbucket.plist`
+
 Release Notes
 --------
 ### 1.8 - 30 Nov 2013
