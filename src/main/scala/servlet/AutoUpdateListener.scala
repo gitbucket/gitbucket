@@ -120,7 +120,7 @@ class AutoUpdateListener extends ServletContextListener {
       System.setProperty("gitbucket.home", datadir)
     }
     org.h2.Driver.load()
-    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome}")
+    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome};AUTO_SERVER=TRUE")
 
     logger.debug("Start schema update")
     defining(getConnection(event.getServletContext)){ conn =>
