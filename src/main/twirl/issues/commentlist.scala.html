@@ -36,11 +36,11 @@
     <div class="small" style="margin-top: 10px; margin-bottom: 10px;">
       <span class="label label-info">Merged</span>
       @avatar(comment.commentedUserName, 20)
-      @user(comment.commentedUserName, styleClass="username strong") merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code>
+      @user(comment.commentedUserName, styleClass="username strong") merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
       @if(pullreq.get.requestUserName == repository.owner){
-        <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.branch)</span>
+        <span class="label label-info monospace">@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span>
       } else {
-        <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span>
+        <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> to <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
       }
       @datetime(comment.registeredDate)
     </div>
