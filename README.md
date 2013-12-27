@@ -59,6 +59,10 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 1.9 - 28 Dec 2013
+- Display GITBUCKET_HOME on the system settings page
+- Fix some bugs
+
 ### 1.8 - 30 Nov 2013
 - Add user and group deletion
 - Improve pull request performance
