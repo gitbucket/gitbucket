@@ -91,7 +91,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   ajaxGet("/:owner/:repository/pull/:id/mergeguide")(collaboratorsOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
-      val name = repository.name
+      val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
         pulls.html.mergeguide(
           checkConflictInPullRequest(owner, name, pullreq.branch, pullreq.requestUserName, name, pullreq.requestBranch, issueId),
@@ -104,7 +104,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
     params("id").toIntOpt.flatMap { issueId =>
       val owner = repository.owner
-      val name = repository.name
+      val name  = repository.name
       LockUtil.lock(s"${owner}/${name}/merge"){
         getPullRequest(owner, name, issueId).map { case (issue, pullreq) =>
           using(Git.open(getRepositoryDir(owner, name))) { git =>
@@ -165,17 +165,12 @@ trait PullRequestsControllerBase extends ControllerBase {
             }
 
             // call web hook
-            val webHookURLs = getWebHookURLs(owner, name)
-            if(webHookURLs.nonEmpty){
-              val payload = WebHookPayload(
-                git,
-                loginAccount,
-                mergeBaseRefName,
-                repository,
-                commits.flatten.toList,
-                getAccountByUserName(owner).get)
-
-              callWebHook(owner, name, webHookURLs, payload)
+            getWebHookURLs(owner, name) match {
+              case webHookURLs if(webHookURLs.nonEmpty) =>
+                for(ownerAccount <- getAccountByUserName(owner)){
+                  callWebHook(owner, name, webHookURLs,
+                    WebHookPayload(git, loginAccount, mergeBaseRefName, repository, commits.flatten.toList, ownerAccount))
+                }
             }
 
             // notifications
@@ -427,7 +422,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
         new CommitInfo(revCommit)
-      }.toList.splitWith{ (commit1, commit2) =>
+      }.toList.splitWith { (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }
 

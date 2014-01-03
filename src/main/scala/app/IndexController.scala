@@ -2,7 +2,6 @@ package app
 
 import util._
 import service._
-import jp.sf.amateras.scalatra.forms._
 
 class IndexController extends IndexControllerBase 
   with RepositoryService with SystemSettingsService with ActivityService with AccountService

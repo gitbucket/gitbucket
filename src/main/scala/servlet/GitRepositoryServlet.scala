@@ -56,10 +56,10 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    val userName = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
+    val pusher = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
 
     logger.debug("requestURI: " + request.getRequestURI)
-    logger.debug("userName:" + userName)
+    logger.debug("pusher:" + pusher)
 
     defining(request.paths){ paths =>
       val owner      = paths(1)
@@ -69,7 +69,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("repository:" + owner + "/" + repository)
       logger.debug("baseURL:" + baseURL)
 
-      receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, userName, baseURL))
+      receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseURL))
       receivePack
     }
   }
@@ -77,7 +77,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, userName: String, baseURL: String) extends PostReceiveHook
+class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: String) extends PostReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
@@ -117,15 +117,15 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         // record activity
         if(refName(1) == "heads"){
           command.getType match {
-            case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, userName, branchName)
-            case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, userName, branchName, newCommits)
-            case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, userName, branchName)
+            case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, pusher, branchName)
+            case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, pusher, branchName, newCommits)
+            case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, pusher, branchName)
             case _ =>
           }
         } else if(refName(1) == "tags"){
           command.getType match {
-            case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, userName, branchName, newCommits)
-            case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, userName, branchName, newCommits)
+            case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
+            case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
             case _ =>
           }
         }
@@ -141,17 +141,14 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
         }
 
         // call web hook
-        val webHookURLs = getWebHookURLs(owner, repository)
-        if(webHookURLs.nonEmpty){
-          val payload = WebHookPayload(
-            git,
-            getAccountByUserName(userName).get,
-            command.getRefName,
-            getRepository(owner, repository, baseURL).get,
-            newCommits,
-            getAccountByUserName(owner).get)
-
-          callWebHook(owner, repository, webHookURLs, payload)
+        getWebHookURLs(owner, repository) match {
+          case webHookURLs if(webHookURLs.nonEmpty) =>
+            for(pusherAccount <- getAccountByUserName(pusher);
+                ownerAccount   <- getAccountByUserName(owner);
+                repositoryInfo <- getRepository(owner, repository, baseURL)){
+              callWebHook(owner, repository, webHookURLs,
+                WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
+            }
         }
       }
     }
@@ -162,8 +159,10 @@ class CommitLogHook(owner: String, repository: String, userName: String, baseURL
   private def createIssueComment(commit: CommitInfo) = {
     "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
       val issueId = matchData.group(2)
-      if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
-        createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
+      if(getIssue(owner, repository, issueId).isDefined){
+        getAccountByMailAddress(commit.mailAddress).foreach { account =>
+          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
+        }
       }
     }
   }
