@@ -144,6 +144,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
             callWebHook(repository.owner, repository.name, webHookURLs,
               WebHookPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount))
           }
+        case _ =>
       }
 
       flash += "info" -> "Test payload deployed!"

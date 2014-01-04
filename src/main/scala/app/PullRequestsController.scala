@@ -171,6 +171,7 @@ trait PullRequestsControllerBase extends ControllerBase {
                   callWebHook(owner, name, webHookURLs,
                     WebHookPayload(git, loginAccount, mergeBaseRefName, repository, commits.flatten.toList, ownerAccount))
                 }
+              case _ =>
             }
 
             // notifications

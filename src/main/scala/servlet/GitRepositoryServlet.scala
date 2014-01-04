@@ -149,6 +149,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: 
               callWebHook(owner, repository, webHookURLs,
                 WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
             }
+          case _ =>
         }
       }
     }
