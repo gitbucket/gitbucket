@@ -2,6 +2,7 @@ package util
 
 import java.io.File
 import util.ControlUtil._
+import org.apache.commons.io.FileUtils
 
 /**
  * Provides directories used by GitBucket.
@@ -20,7 +21,7 @@ object Directory {
         val oldHome = new File(System.getProperty("user.home"), "gitbucket")
         val newHome = new File(System.getProperty("user.home"), ".gitbucket")
         if(oldHome.exists && oldHome.isDirectory && new File(oldHome, "version").exists){
-          oldHome.renameTo(newHome)
+          FileUtils.moveDirectory(oldHome, newHome)
         }
         newHome
       }
