@@ -39,6 +39,51 @@ trait RepositoryService { self: AccountService =>
     IssueId insert (userName, repositoryName, 0)
   }
 
+  def renameRepository(userName: String, oldRepositoryName: String, newRepositoryName: String): Unit = {
+    (Query(Repositories) filter { t => t.byRepository(userName, oldRepositoryName) } firstOption).map { repository =>
+      Repositories insert repository.copy(repositoryName = newRepositoryName)
+
+      val webHooks      = Query(WebHooks     ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val milestones    = Query(Milestones   ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val issueId       = Query(IssueId      ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val issues        = Query(Issues       ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val pullRequests  = Query(PullRequests ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val labels        = Query(Labels       ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val issueComments = Query(IssueComments).filter(_.byRepository(userName, oldRepositoryName)).list
+      val issueLabels   = Query(IssueLabels  ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val collaborators = Query(Collaborators).filter(_.byRepository(userName, oldRepositoryName)).list
+      val commitLog     = Query(CommitLog    ).filter(_.byRepository(userName, oldRepositoryName)).list
+      val activities    = Query(Activities   ).filter(_.byRepository(userName, oldRepositoryName)).list
+
+      Repositories.filter { t =>
+        (t.originUserName is userName.bind) && (t.originRepositoryName is oldRepositoryName.bind)
+      }.map(_.originRepositoryName).update(newRepositoryName)
+
+      Repositories.filter { t =>
+        (t.parentUserName is userName.bind) && (t.parentRepositoryName is oldRepositoryName.bind)
+      }.map(_.parentRepositoryName).update(newRepositoryName)
+
+      PullRequests.filter { t =>
+        t.requestRepositoryName is oldRepositoryName.bind
+      }.map(_.requestRepositoryName).update(newRepositoryName)
+
+      deleteRepository(userName, oldRepositoryName)
+
+      WebHooks      .insertAll(webHooks      .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      Milestones    .insertAll(milestones    .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      IssueId       .insertAll(issueId       .map(_.copy(_2             = newRepositoryName)) :_*)
+      Issues        .insertAll(issues        .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      PullRequests  .insertAll(pullRequests  .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      IssueComments .insertAll(issueComments .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      Labels        .insertAll(labels        .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      IssueLabels   .insertAll(issueLabels   .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      Collaborators .insertAll(collaborators .map(_.copy(repositoryName = newRepositoryName)) :_*)
+      CommitLog     .insertAll(commitLog     .map(_.copy(_2             = newRepositoryName)) :_*)
+      Activities    .insertAll(activities    .map(_.copy(repositoryName = newRepositoryName)) :_*)
+
+    }
+  }
+
   def deleteRepository(userName: String, repositoryName: String): Unit = {
     Activities    .filter(_.byRepository(userName, repositoryName)).delete
     CommitLog     .filter(_.byRepository(userName, repositoryName)).delete
@@ -207,11 +252,11 @@ trait RepositoryService { self: AccountService =>
     }.length).first
 
 
-  def getForkedRepositories(userName: String, repositoryName: String): List[String] =
+  def getForkedRepositories(userName: String, repositoryName: String): List[(String, String)] =
     Query(Repositories).filter { t =>
       (t.originUserName is userName.bind) && (t.originRepositoryName is repositoryName.bind)
     }
-    .sortBy(_.userName asc).map(_.userName).list
+    .sortBy(_.userName asc).map(t => t.userName ~ t.repositoryName).list
 
 }
 

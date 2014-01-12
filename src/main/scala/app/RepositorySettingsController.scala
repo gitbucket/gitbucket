@@ -21,12 +21,13 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
-  case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
+  case class OptionsForm(repositoryName: String, description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
   val optionsForm = mapping(
-    "description"   -> trim(label("Description"    , optional(text()))),
-    "defaultBranch" -> trim(label("Default Branch" , text(required, maxlength(100)))),
-    "isPrivate"     -> trim(label("Repository Type", boolean()))
+    "repositoryName" -> trim(label("Description"    , text(required, maxlength(40), identifier))), // TODO unique checking
+    "description"    -> trim(label("Description"    , optional(text()))),
+    "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100)))),
+    "isPrivate"      -> trim(label("Repository Type", boolean()))
   )(OptionsForm.apply)
 
   // for collaborator addition
@@ -70,8 +71,21 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
         repository.repository.isPrivate
       } getOrElse form.isPrivate
     )
+    // Change repository name
+    if(repository.name != form.repositoryName){
+      // Update database
+      renameRepository(repository.owner, repository.name, form.repositoryName)
+      // Move git repository
+      defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
+      }
+      // Move wiki repository
+      defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
+      }
+    }
     flash += "info" -> "Repository settings has been updated."
-    redirect(s"/${repository.owner}/${repository.name}/settings/options")
+    redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
   })
   
   /**
