@@ -19,7 +19,7 @@ object Directory {
         // Move HOME/gitbucket to HOME/.gitbucket
         val oldHome = new File(System.getProperty("user.home"), "gitbucket")
         val newHome = new File(System.getProperty("user.home"), ".gitbucket")
-        if(oldHome.exists && oldHome.isDirectory && new File(oldHome, "data").exists){
+        if(oldHome.exists && oldHome.isDirectory && new File(oldHome, "version").exists){
           oldHome.renameTo(newHome)
         }
         newHome
