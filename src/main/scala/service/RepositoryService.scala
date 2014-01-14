@@ -81,6 +81,22 @@ trait RepositoryService { self: AccountService =>
       CommitLog     .insertAll(commitLog     .map(_.copy(_2             = newRepositoryName)) :_*)
       Activities    .insertAll(activities    .map(_.copy(repositoryName = newRepositoryName)) :_*)
 
+      // Update activity messages
+      val updateActivities = Activities.filter { t =>
+        (t.message like s"%:${userName}/${oldRepositoryName}]%") ||
+        (t.message like s"%:${userName}/${oldRepositoryName}#%")
+      }.map { t => t.activityId ~ t.message }.list
+
+      updateActivities.foreach { case (activityId, message) =>
+        Activities.filter(_.activityId is activityId.bind).map(_.message).update(
+          message
+            .replace(s"[repo:${userName}/${oldRepositoryName}]"   ,s"[repo:${userName}/${newRepositoryName}]")
+            .replace(s"[branch:${userName}/${oldRepositoryName}#" ,s"[branch:${userName}/${newRepositoryName}#")
+            .replace(s"[tag:${userName}/${oldRepositoryName}#"    ,s"[tag:${userName}/${newRepositoryName}#")
+            .replace(s"[pullreq:${userName}/${oldRepositoryName}#",s"[pullreq:${userName}/${newRepositoryName}#")
+            .replace(s"[issue:${userName}/${oldRepositoryName}#"  ,s"[issue:${userName}/${newRepositoryName}#")
+        )
+      }
     }
   }
 
