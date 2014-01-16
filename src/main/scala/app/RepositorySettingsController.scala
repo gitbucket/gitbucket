@@ -74,7 +74,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     // Change repository name
     if(repository.name != form.repositoryName){
       // Update database
-      renameRepository(repository.owner, repository.name, form.repositoryName)
+      renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
       // Move git repository
       defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
         FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
