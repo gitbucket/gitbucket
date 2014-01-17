@@ -41,7 +41,7 @@ trait RepositoryService { self: AccountService =>
 
   def renameRepository(oldUserName: String, oldRepositoryName: String, newUserName: String, newRepositoryName: String): Unit = {
     (Query(Repositories) filter { t => t.byRepository(oldUserName, oldRepositoryName) } firstOption).map { repository =>
-      Repositories insert repository.copy(repositoryName = newRepositoryName)
+      Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
       val webHooks      = Query(WebHooks     ).filter(_.byRepository(oldUserName, oldRepositoryName)).list
       val milestones    = Query(Milestones   ).filter(_.byRepository(oldUserName, oldRepositoryName)).list

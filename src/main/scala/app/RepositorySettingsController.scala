@@ -44,6 +44,13 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     "url" -> trim(label("url", text(required, webHook)))
   )(WebHookForm.apply)
 
+  // for transfer ownership
+  case class TransferOwnerShipForm(newOwner: String)
+
+  val transferForm = mapping(
+    "newOwner" -> trim(label("New owner", text(required))) // TODO user and repository existence check
+  )(TransferOwnerShipForm.apply)
+
   /**
    * Redirect to the Options page.
    */
@@ -164,6 +171,34 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
       flash += "info" -> "Test payload deployed!"
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
+  })
+
+  /**
+   * Display the transfer ownership page.
+   */
+  get("/:owner/:repository/settings/transfer")(ownerOnly {
+    settings.html.transfer(_)
+  })
+
+  /**
+   * Save the repository options.
+   */
+  post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
+    // Change repository owner
+    if(repository.owner != form.newOwner){
+      // Update database
+      renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+      // Move git repository
+      defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
+      }
+      // Move wiki repository
+      defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
+      }
+    }
+//    flash += "info" -> "Repository ownership is transferred."
+    redirect(s"/${form.newOwner}/${repository.name}/settings/transfer")
   })
 
   /**
