@@ -5,6 +5,7 @@
   milestones: List[(model.Milestone, Int, Int)],
   dayByDayCommits: Seq[Seq[util.JGitUtil.CommitInfo]],
   diffs: Seq[util.JGitUtil.DiffInfo],
+  useInlineDiff: Boolean,
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -43,7 +44,7 @@
         @pulls.html.commits(dayByDayCommits, repository)
       </div>
       <div class="tab-pane" id="files">
-        @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true)
+        @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), useInlineDiff, true)
       </div>
     </div>
   }

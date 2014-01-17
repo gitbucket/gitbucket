@@ -16,10 +16,10 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
   self: SystemSettingsService with AccountService with RepositoryService with ActivityService
     with OneselfAuthenticator =>
 
-  case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
+  case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String, inlineDiff: Boolean,
                             url: Option[String], fileId: Option[String])
 
-  case class AccountEditForm(password: Option[String], fullName: String, mailAddress: String,
+  case class AccountEditForm(password: Option[String], fullName: String, mailAddress: String, inlineDiff: Boolean,
                              url: Option[String], fileId: Option[String], clearImage: Boolean)
 
   val newForm = mapping(
@@ -27,6 +27,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
+    "inlineDiff"  -> trim(label("Inline Diff"  , boolean())),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text())))
   )(AccountNewForm.apply)
@@ -35,6 +36,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
+    "inlineDiff"  -> trim(label("Inline Diff"  , boolean())),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "clearImage"  -> trim(label("Clear image"  , boolean()))
@@ -89,6 +91,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
         password    = form.password.map(sha1).getOrElse(account.password),
         fullName    = form.fullName,
         mailAddress = form.mailAddress,
+        inlineDiff  = form.inlineDiff,
         url         = form.url))
 
       updateImage(userName, form.fileId, form.clearImage)
@@ -131,7 +134,7 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
 
   post("/register", newForm){ form =>
     if(loadSystemSettings().allowAccountRegistration){
-      createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.url)
+      createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, form.inlineDiff, false, form.url)
       updateImage(form.userName, form.fileId, false)
       redirect("/signin")
     } else NotFound

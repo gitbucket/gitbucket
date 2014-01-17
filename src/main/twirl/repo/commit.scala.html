@@ -4,6 +4,7 @@
   tags: List[String],
   repository: service.RepositoryService.RepositoryInfo,
   diffs: Seq[util.JGitUtil.DiffInfo],
+  useInlineDiff: Boolean,
   oldCommitId: Option[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -70,7 +71,7 @@
       </td>
     </tr>
   </table>
-  @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true)
+  @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, useInlineDiff, true)
 }
 <script>
 $(function(){

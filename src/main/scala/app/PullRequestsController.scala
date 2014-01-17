@@ -81,6 +81,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             getMilestonesWithIssueCount(owner, name),
             commits,
             diffs,
+            useInlineDiff(context.loginAccount),
             hasWritePermission(owner, name, context.loginAccount),
             repository)
         }
@@ -252,6 +253,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             repository,
             originRepository,
             forkedRepository,
+            useInlineDiff(context.loginAccount),
             hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       }

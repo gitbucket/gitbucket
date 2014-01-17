@@ -16,7 +16,7 @@ class WikiController extends WikiControllerBase
   with CollaboratorsAuthenticator with ReferrerAuthenticator
 
 trait WikiControllerBase extends ControllerBase with FlashMapSupport {
-  self: WikiService with RepositoryService with ActivityService
+  self: WikiService with RepositoryService with AccountService with ActivityService
     with CollaboratorsAuthenticator with ReferrerAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
@@ -68,7 +68,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true).filter(_.newPath == pageName + ".md"), repository,
-        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+        useInlineDiff(context.loginAccount), hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
     }
   })
   
@@ -77,7 +77,7 @@ trait WikiControllerBase extends ControllerBase with FlashMapSupport {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       wiki.html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true), repository,
-        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+        useInlineDiff(context.loginAccount), hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
     }
   })
 

@@ -48,6 +48,15 @@
             <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
           </fieldset>
           <fieldset>
+            <label class="strong">Diff type:</label>
+            <label class="radio" for="inlineDiff_Inline">
+              <input type="radio" name="inlineDiff" id="inlineDiff_Inline" value="true"@if(account.isEmpty || account.get.inlineDiff){ checked}/> Inline
+            </label>
+            <label class="radio" for="inlineDiff_SideBySide">
+              <input type="radio" name="inlineDiff" id="inlineDiff_SideBySide" value="false"@if(account.isDefined && !account.get.inlineDiff){ checked}/> Side-by-side
+            </label>
+          </fieldset>
+          <fieldset>
             <label class="strong">User Type:</label>
             <label class="radio" for="userType_Normal">
               <input type="radio" name="isAdmin" id="userType_Normal" value="false"@if(account.isEmpty || !account.get.isAdmin){ checked}/> Normal

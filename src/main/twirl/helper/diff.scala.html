@@ -2,6 +2,7 @@
  repository: service.RepositoryService.RepositoryInfo,
  newCommitId: Option[String],
  oldCommitId: Option[String],
+ useInlineDiff: Boolean,
  showIndex: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -127,7 +128,7 @@ function diffUsingJS(oldTextId, newTextId, outputId) {
     newTextLines: newLines,
     opcodes: opcodes,
     contextSize: 4,
-    viewType: 1
+    viewType: @if(useInlineDiff) {1} else {0}
   }));
 }
 

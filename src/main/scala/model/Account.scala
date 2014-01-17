@@ -7,6 +7,7 @@ object Accounts extends Table[Account]("ACCOUNT") {
   def fullName = column[String]("FULL_NAME")
   def mailAddress = column[String]("MAIL_ADDRESS")
   def password = column[String]("PASSWORD")
+  def inlineDiff = column[Boolean]("INLINEDIFF")
   def isAdmin = column[Boolean]("ADMINISTRATOR")
   def url = column[String]("URL")
   def registeredDate = column[java.util.Date]("REGISTERED_DATE")
@@ -15,7 +16,7 @@ object Accounts extends Table[Account]("ACCOUNT") {
   def image = column[String]("IMAGE")
   def groupAccount = column[Boolean]("GROUP_ACCOUNT")
   def removed = column[Boolean]("REMOVED")
-  def * = userName ~ fullName ~ mailAddress ~ password ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? ~ image.? ~ groupAccount ~ removed <> (Account, Account.unapply _)
+  def * = userName ~ fullName ~ mailAddress ~ password ~ inlineDiff ~ isAdmin ~ url.? ~ registeredDate ~ updatedDate ~ lastLoginDate.? ~ image.? ~ groupAccount ~ removed <> (Account, Account.unapply _)
 }
 
 case class Account(
@@ -23,6 +24,7 @@ case class Account(
     fullName: String,
     mailAddress: String,
     password: String,
+    inlineDiff: Boolean,
     isAdmin: Boolean,
     url: Option[String],
     registeredDate: java.util.Date,
