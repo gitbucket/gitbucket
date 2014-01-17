@@ -48,7 +48,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   case class TransferOwnerShipForm(newOwner: String)
 
   val transferForm = mapping(
-    "newOwner" -> trim(label("New owner", text(required))) // TODO user and repository existence check
+    "newOwner" -> trim(label("New owner", text(required, transferUser)))
   )(TransferOwnerShipForm.apply)
 
   /**
@@ -256,4 +256,20 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
       }
   }
 
+  /**
+   * Provides Constraint to validate the repository transfer user.
+   */
+  private def transferUser: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+      getAccountByUserName(value) match {
+        case None    => Some("User does not exist.")
+        case Some(x) => if(x.userName == params("owner")){
+          Some("This is current repository owner.")
+        } else {
+          params.get("repository").flatMap { repositoryName =>
+            getRepositoryNamesOfUser(x.userName).find(_ == repositoryName).map{ _ => "User already has same repository." }
+          }
+        }
+      }
+  }
 }

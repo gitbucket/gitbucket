@@ -1,24 +1,19 @@
 @(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main("Delete Repository", Some(repository)){
+@html.main("Transfer Ownership", Some(repository)){
   @html.header("settings", repository)
   @menu("transfer", repository){
-    <form id="form" method="post" action="@url(repository)/settings/transfer">
+    <form id="form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
       <h3>Transfer Ownership</h3>
       <fieldset>
         <label for="newOwner" class="strong">New owner:</label>
-        <input type="text" name="newOwner" id="newOwner"/>
-        <span id="error-newOwner" class="error"></span>
+        @helper.html.account("newOwner", 300)
+        <input type="submit" class="btn btn-danger" value="Transfer"/>
+        <div>
+          <span id="error-newOwner" class="error"></span>
+        </div>
       </fieldset>
-      <input type="submit" class="btn btn-danger" value="Transfer"/>
     </form>
   }
 }
-<script>
-$(function(){
-  $('#form').submit(function(){
-    return confirm('Do you really want to transfer this repo?');
-  });
-});
-</script>
