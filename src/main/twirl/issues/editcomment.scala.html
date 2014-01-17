@@ -2,15 +2,17 @@
 @import context._
 <span id="error-edit-content-@commentId" class="error"></span>
 <textarea style="width: 680px; height: 100px;" id="edit-content-@commentId">@content</textarea>
-<input type="button" class="btn btn-small" value="Update Comment"/>
-<span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
+<div>
+  <input type="button" id="update-comment-@commentId" class="btn btn-small" value="Update Comment"/>
+  <input type="button" id="cancel-comment-@commentId" class="btn btn-small btn-danger pull-right" value="Cancel"/>
+</div>
 <script>
 $(function(){
   var callback = function(data){
     $('#commentContent-@commentId').empty().html(data.content);
   };
 
-  $('#commentContent-@commentId input.btn').click(function(){
+  $('#update-comment-@commentId').click(function(){
     $.ajax({
       url: '@path/@owner/@repository/issue_comments/edit/@commentId',
       type: 'POST',
@@ -25,7 +27,7 @@ $(function(){
     });
   });
 
-  $('#commentContent-@commentId a.btn').click(function(){
+  $('#cancel-comment-@commentId').click(function(){
     $.get('@path/@owner/@repository/issue_comments/_data/@commentId', callback);
     return false;
   });
