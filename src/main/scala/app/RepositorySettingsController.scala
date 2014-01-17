@@ -174,14 +174,14 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   })
 
   /**
-   * Display the transfer ownership page.
+   * Display the danger zone.
    */
-  get("/:owner/:repository/settings/transfer")(ownerOnly {
-    settings.html.transfer(_)
+  get("/:owner/:repository/settings/danger")(ownerOnly {
+    settings.html.danger(_)
   })
 
   /**
-   * Save the repository options.
+   * Transfer repository ownership.
    */
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
     // Change repository owner
@@ -197,15 +197,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
         FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
       }
     }
-//    flash += "info" -> "Repository ownership is transferred."
-    redirect(s"/${form.newOwner}/${repository.name}/settings/transfer")
-  })
-
-  /**
-   * Display the delete repository page.
-   */
-  get("/:owner/:repository/settings/delete")(ownerOnly {
-    settings.html.delete(_)
+    redirect(s"/${form.newOwner}/${repository.name}")
   })
 
   /**
