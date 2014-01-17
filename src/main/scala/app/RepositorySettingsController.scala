@@ -24,7 +24,7 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   case class OptionsForm(repositoryName: String, description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
   val optionsForm = mapping(
-    "repositoryName" -> trim(label("Description"    , text(required, maxlength(40), identifier))), // TODO unique checking
+    "repositoryName" -> trim(label("Description"    , text(required, maxlength(40), identifier, renameRepositoryName))),
     "description"    -> trim(label("Description"    , optional(text()))),
     "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100)))),
     "isPrivate"      -> trim(label("Repository Type", boolean()))
@@ -206,6 +206,18 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
         case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
                   => Some("User can access this repository already.")
         case _    => None
+      }
+  }
+
+  /**
+   * Duplicate check for the rename repository name.
+   */
+  private def renameRepositoryName: Constraint = new Constraint(){
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+      params.get("repository").filter(_ != value).flatMap { _ =>
+        params.get("owner").flatMap { userName =>
+          getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
+        }
       }
   }
 
