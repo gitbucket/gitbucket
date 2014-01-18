@@ -1,5 +1,5 @@
 @(originRepository: Option[service.RepositoryService.RepositoryInfo],
-  members: List[String],
+  members: List[(String, String)],
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -23,11 +23,11 @@
     }
     (origin)
   </div>
-  @members.map { owner =>
+  @members.map { case (owner, name) =>
     <div class="block">
       @avatar(owner, 20)
       <span@if(repository.owner == owner){ class="highlight"}>
-        <a href="@url(owner)">@owner</a> / <a href="@path/@owner/@repository.name">@repository.name</a>
+        <a href="@url(owner)">@owner</a> / <a href="@path/@owner/@name">@name</a>
       </span>
     </div>
   }

@@ -21,12 +21,13 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
-  case class OptionsForm(description: Option[String], defaultBranch: String, isPrivate: Boolean)
+  case class OptionsForm(repositoryName: String, description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
   val optionsForm = mapping(
-    "description"   -> trim(label("Description"    , optional(text()))),
-    "defaultBranch" -> trim(label("Default Branch" , text(required, maxlength(100)))),
-    "isPrivate"     -> trim(label("Repository Type", boolean()))
+    "repositoryName" -> trim(label("Description"    , text(required, maxlength(40), identifier, renameRepositoryName))),
+    "description"    -> trim(label("Description"    , optional(text()))),
+    "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100)))),
+    "isPrivate"      -> trim(label("Repository Type", boolean()))
   )(OptionsForm.apply)
 
   // for collaborator addition
@@ -42,6 +43,13 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   val webHookForm = mapping(
     "url" -> trim(label("url", text(required, webHook)))
   )(WebHookForm.apply)
+
+  // for transfer ownership
+  case class TransferOwnerShipForm(newOwner: String)
+
+  val transferForm = mapping(
+    "newOwner" -> trim(label("New owner", text(required, transferUser)))
+  )(TransferOwnerShipForm.apply)
 
   /**
    * Redirect to the Options page.
@@ -70,8 +78,21 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
         repository.repository.isPrivate
       } getOrElse form.isPrivate
     )
+    // Change repository name
+    if(repository.name != form.repositoryName){
+      // Update database
+      renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
+      // Move git repository
+      defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
+      }
+      // Move wiki repository
+      defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
+      }
+    }
     flash += "info" -> "Repository settings has been updated."
-    redirect(s"/${repository.owner}/${repository.name}/settings/options")
+    redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
   })
   
   /**
@@ -153,10 +174,30 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
   })
 
   /**
-   * Display the delete repository page.
+   * Display the danger zone.
    */
-  get("/:owner/:repository/settings/delete")(ownerOnly {
-    settings.html.delete(_)
+  get("/:owner/:repository/settings/danger")(ownerOnly {
+    settings.html.danger(_)
+  })
+
+  /**
+   * Transfer repository ownership.
+   */
+  post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
+    // Change repository owner
+    if(repository.owner != form.newOwner){
+      // Update database
+      renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+      // Move git repository
+      defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
+      }
+      // Move wiki repository
+      defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
+        FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
+      }
+    }
+    redirect(s"/${form.newOwner}/${repository.name}")
   })
 
   /**
@@ -195,4 +236,32 @@ trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSuppo
       }
   }
 
+  /**
+   * Duplicate check for the rename repository name.
+   */
+  private def renameRepositoryName: Constraint = new Constraint(){
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+      params.get("repository").filter(_ != value).flatMap { _ =>
+        params.get("owner").flatMap { userName =>
+          getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
+        }
+      }
+  }
+
+  /**
+   * Provides Constraint to validate the repository transfer user.
+   */
+  private def transferUser: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+      getAccountByUserName(value) match {
+        case None    => Some("User does not exist.")
+        case Some(x) => if(x.userName == params("owner")){
+          Some("This is current repository owner.")
+        } else {
+          params.get("repository").flatMap { repositoryName =>
+            getRepositoryNamesOfUser(x.userName).find(_ == repositoryName).map{ _ => "User already has same repository." }
+          }
+        }
+      }
+  }
 }
