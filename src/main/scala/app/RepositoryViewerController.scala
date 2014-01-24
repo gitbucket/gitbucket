@@ -175,7 +175,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
       workDir.mkdirs
 
-      val zipFile = new File(workDir, (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
+      val zipFile = new File(workDir, repository.name + "-" +
+        (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
 
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
@@ -204,6 +205,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
 
       contentType = "application/octet-stream"
+      response.setHeader("Content-Disposition", s"attachment; filename=${zipFile.getName}")
       zipFile
     } else {
       BadRequest
