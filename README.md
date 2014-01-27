@@ -75,7 +75,7 @@ Release Notes
 ### 1.7 - 26 Oct 2013
 - Support working on Java6 in embedded Jetty mode
 - Add ```--host``` option to bind specified host name in embedded Jetty mode
-- Add ```--https=true``` option to use https in embedded Jetty mode
+- Add ```--https=true``` option to force https scheme when using embedded Jetty mode at the back of https proxy
 - Add full name as user property
 - Change link color for absent Wiki pages
 - Add ZIP download button to the repository viewer tab
