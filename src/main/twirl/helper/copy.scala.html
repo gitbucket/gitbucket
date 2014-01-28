@@ -6,6 +6,14 @@
 <script>
 // copy to clipboard
 (function() {
+  // modify repositry url host and protocol.
+  if ('@id' == 'repository-url-copy') {
+    var url = $('#@id').attr('data-clipboard-text');
+    var modified = url.replace(/^http:\/\/[^/]+/, location.protocol + '//' + location.host);
+    $('#@id').attr('data-clipboard-text', modified);
+    $('#@id').prev().attr('value', modified);
+  }
+
   // Find ZeroClipboard.swf file URI from ZeroClipboard JavaScript file path.
   // NOTE(tanacasino) I think this way is wrong... but i don't know correct way.
   var moviePath = (function() {
