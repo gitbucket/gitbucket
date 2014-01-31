@@ -63,9 +63,9 @@ object FileUtil {
     if(dir.exists()){
       FileUtils.deleteDirectory(dir)
     }
-    try{
+    try {
       action(dir)
-    }finally{
+    } finally {
       FileUtils.deleteDirectory(dir)
     }
   }

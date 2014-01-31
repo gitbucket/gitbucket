@@ -3,7 +3,7 @@ package service
 import java.util.Date
 import org.eclipse.jgit.api.Git
 import org.apache.commons.io.FileUtils
-import util.{PatchUtil, Directory, JGitUtil, LockUtil}
+import util._
 import _root_.util.ControlUtil._
 import org.eclipse.jgit.treewalk.{TreeWalk, CanonicalTreeParser}
 import org.eclipse.jgit.lib._
@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream
 import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
+import scala.Some
 
 
 object WikiService {
@@ -61,7 +62,8 @@ trait WikiService {
     using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       if(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
-          WikiPageInfo(file.name, new String(git.getRepository.open(file.id).getBytes, "UTF-8"), file.committer, file.time, file.commitId)
+          WikiPageInfo(file.name, StringUtil.convertFromByteArray(git.getRepository.open(file.id).getBytes),
+                       file.committer, file.time, file.commitId)
         }
       } else None
     }
