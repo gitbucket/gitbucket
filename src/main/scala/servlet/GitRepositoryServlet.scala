@@ -69,7 +69,9 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("repository:" + owner + "/" + repository)
       logger.debug("baseURL:" + baseURL)
 
-      receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseURL))
+      if(!repository.endsWith(".wiki")){
+        receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseURL))
+      }
       receivePack
     }
   }
@@ -83,78 +85,85 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: 
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
-    using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
-      commands.asScala.foreach { command =>
-        logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-        val commits = command.getType match {
-          case ReceiveCommand.Type.DELETE => Nil
-          case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
-        }
-        val refName = command.getRefName.split("/")
-        val branchName = refName.drop(2).mkString("/")
-
-        // Extract new commit and apply issue comment
-        val newCommits = if(commits.size > 1000){
-          val existIds = getAllCommitIds(owner, repository)
-          commits.flatMap { commit =>
-            if(!existIds.contains(commit.id)){
-              createIssueComment(commit)
-              Some(commit)
-            } else None
+    try {
+      using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        commands.asScala.foreach { command =>
+          logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
+          val commits = command.getType match {
+            case ReceiveCommand.Type.DELETE => Nil
+            case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
           }
-        } else {
-          commits.flatMap { commit =>
-            if(!existsCommitId(owner, repository, commit.id)){
-              createIssueComment(commit)
-              Some(commit)
-            } else None
-          }
-        }
+          val refName = command.getRefName.split("/")
+          val branchName = refName.drop(2).mkString("/")
 
-        // batch insert all new commit id
-        insertAllCommitIds(owner, repository, newCommits.map(_.id))
-
-        // record activity
-        if(refName(1) == "heads"){
-          command.getType match {
-            case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, pusher, branchName)
-            case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, pusher, branchName, newCommits)
-            case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, pusher, branchName)
-            case _ =>
-          }
-        } else if(refName(1) == "tags"){
-          command.getType match {
-            case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
-            case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
-            case _ =>
-          }
-        }
-
-        if(refName(1) == "heads"){
-          command.getType match {
-            case ReceiveCommand.Type.CREATE |
-                 ReceiveCommand.Type.UPDATE |
-                 ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
-              updatePullRequests(branchName)
-            case _ =>
-          }
-        }
-
-        // call web hook
-        getWebHookURLs(owner, repository) match {
-          case webHookURLs if(webHookURLs.nonEmpty) =>
-            for(pusherAccount <- getAccountByUserName(pusher);
-                ownerAccount   <- getAccountByUserName(owner);
-                repositoryInfo <- getRepository(owner, repository, baseURL)){
-              callWebHook(owner, repository, webHookURLs,
-                WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
+          // Extract new commit and apply issue comment
+          val newCommits = if(commits.size > 1000){
+            val existIds = getAllCommitIds(owner, repository)
+            commits.flatMap { commit =>
+              if(!existIds.contains(commit.id)){
+                createIssueComment(commit)
+                Some(commit)
+              } else None
             }
-          case _ =>
+          } else {
+            commits.flatMap { commit =>
+              if(!existsCommitId(owner, repository, commit.id)){
+                createIssueComment(commit)
+                Some(commit)
+              } else None
+            }
+          }
+
+          // batch insert all new commit id
+          insertAllCommitIds(owner, repository, newCommits.map(_.id))
+
+          // record activity
+          if(refName(1) == "heads"){
+            command.getType match {
+              case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, pusher, branchName)
+              case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, pusher, branchName, newCommits)
+              case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, pusher, branchName)
+              case _ =>
+            }
+          } else if(refName(1) == "tags"){
+            command.getType match {
+              case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
+              case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
+              case _ =>
+            }
+          }
+
+          if(refName(1) == "heads"){
+            command.getType match {
+              case ReceiveCommand.Type.CREATE |
+                   ReceiveCommand.Type.UPDATE |
+                   ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
+                updatePullRequests(branchName)
+              case _ =>
+            }
+          }
+
+          // call web hook
+          getWebHookURLs(owner, repository) match {
+            case webHookURLs if(webHookURLs.nonEmpty) =>
+              for(pusherAccount <- getAccountByUserName(pusher);
+                  ownerAccount   <- getAccountByUserName(owner);
+                  repositoryInfo <- getRepository(owner, repository, baseURL)){
+                callWebHook(owner, repository, webHookURLs,
+                  WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
+              }
+            case _ =>
+          }
         }
       }
+      // update repository last modified time.
+      updateLastActivityDate(owner, repository)
+    } catch {
+      case ex: Exception => {
+        logger.error(ex.toString, ex)
+        throw ex
+      }
     }
-    // update repository last modified time.
-    updateLastActivityDate(owner, repository)
   }
 
   private def createIssueComment(commit: CommitInfo) = {
