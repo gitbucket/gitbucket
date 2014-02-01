@@ -59,6 +59,13 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 1.10 - 01 Feb 2014
+- Rename repository
+- Transfer repository owner
+- Change default data directory to ```HOME/.gitbucket``` from ```HOME/gitbucket`` to avoid problem like #243, but if data directory already exist at HOME/gitbucket, it continues being used.
+- Response improvement
+- Fix some bugs
+
 ### 1.9 - 28 Dec 2013
 - Display GITBUCKET_HOME on the system settings page
 - Fix some bugs
