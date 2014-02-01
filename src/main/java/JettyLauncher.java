@@ -53,6 +53,9 @@ public class JettyLauncher {
         context.setDescriptor(location.toExternalForm() + "/WEB-INF/web.xml");
         context.setServer(server);
         context.setWar(location.toExternalForm());
+        if (forceHttps) {
+            context.setInitParameter("org.scalatra.ForceHttps", "true");
+        }
 
         server.setHandler(context);
         server.start();
