@@ -38,9 +38,13 @@ trait AccountService {
     LDAPUtil.authenticate(settings.ldap.get, userName, password) match {
       case Right(ldapUserInfo) => {
         // Create or update account by LDAP information
-        getAccountByUserName(userName) match {
-          case Some(x) => updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
-          case None    => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+        getAccountByUserName(userName, true) match {
+          case Some(x) if(!x.isRemoved) => updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+          case Some(x) if(x.isRemoved)  => {
+            logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
+            defaultAuthentication(userName, password)
+          }
+          case None => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
         }
         getAccountByUserName(userName)
       }
