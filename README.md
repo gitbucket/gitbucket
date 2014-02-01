@@ -63,6 +63,7 @@ Release Notes
 - Rename repository
 - Transfer repository owner
 - Change default data directory to `HOME/.gitbucket` from `HOME/gitbucket` to avoid problem like #243, but if data directory already exist at HOME/gitbucket, it continues being used.
+- Add LDAP display name attribute
 - Response improvement
 - Fix some bugs
 
