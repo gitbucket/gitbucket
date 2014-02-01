@@ -37,7 +37,7 @@ Installation
 
 The default administrator account is **root** and password is **root**.
 
-or you can start GitBucket by ```java -jar gitbucket.war``` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
+or you can start GitBucket by `java -jar gitbucket.war` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
 
 - --port=[NUMBER]
 - --prefix=[CONTEXTPATH]
@@ -62,7 +62,7 @@ Release Notes
 ### 1.10 - 01 Feb 2014
 - Rename repository
 - Transfer repository owner
-- Change default data directory to ```HOME/.gitbucket``` from ```HOME/gitbucket`` to avoid problem like #243, but if data directory already exist at HOME/gitbucket, it continues being used.
+- Change default data directory to `HOME/.gitbucket` from `HOME/gitbucket` to avoid problem like #243, but if data directory already exist at HOME/gitbucket, it continues being used.
 - Response improvement
 - Fix some bugs
 
@@ -81,8 +81,8 @@ Release Notes
 
 ### 1.7 - 26 Oct 2013
 - Support working on Java6 in embedded Jetty mode
-- Add ```--host``` option to bind specified host name in embedded Jetty mode
-- Add ```--https=true``` option to force https scheme when using embedded Jetty mode at the back of https proxy
+- Add `--host` option to bind specified host name in embedded Jetty mode
+- Add `--https=true` option to force https scheme when using embedded Jetty mode at the back of https proxy
 - Add full name as user property
 - Change link color for absent Wiki pages
 - Add ZIP download button to the repository viewer tab
