@@ -15,13 +15,13 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.Some
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
-  with RepositoryService with AccountService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
-  self: RepositoryService with AccountService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+  self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   /**
    * Returns converted HTML from Markdown for preview.
@@ -160,9 +160,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/delete/:branchName")(collaboratorsOnly { repository =>
     val branchName = params("branchName")
+    val userName   = context.loginAccount.get.userName
     if(repository.repository.defaultBranch != branchName){
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         git.branchDelete().setBranchNames(branchName).call()
+        recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
       }
     }
     redirect(s"/${repository.owner}/${repository.name}/branches")
