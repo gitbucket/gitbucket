@@ -1,4 +1,5 @@
 @(branchInfo: List[(String, java.util.Date)],
+  hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -17,9 +18,9 @@
       <tr>
         <td>
           <a href="@url(repository)/tree/@encodeRefName(branchName)">@branchName</a>
-          @*
-          <a href="#" class="btn btn-danger btn-mini">Delete branch</a>
-          *@
+          @if(hasWritePermission && repository.repository.defaultBranch != branchName){
+            <a href="@url(repository)/delete/@encodeRefName(branchName)" class="btn btn-danger btn-mini pull-right delete-branch" data-name="@branchName">Delete branch</a>
+          }
         </td>
         <td>
           @datetime(latestUpdateDate)
@@ -36,3 +37,11 @@
     }
   </table>
 }
+<script>
+$(function(){
+  $('.delete-branch').click(function(e){
+    var branchName = $(e.target).data('name');
+    return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
+  });
+});
+</script>
