@@ -103,6 +103,21 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
+  get("/:owner/:repository/pull/:id/delete/:branchName")(collaboratorsOnly { repository =>
+    params("id").toIntOpt.map { issueId =>
+      val branchName = params("branchName")
+      val userName   = context.loginAccount.get.userName
+      if(repository.repository.defaultBranch != branchName){
+        using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+          git.branchDelete().setBranchNames(branchName).call()
+          recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
+        }
+      }
+      createComment(repository.owner, repository.name, userName, issueId, "Delete branch", "delete")
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+    } getOrElse NotFound
+  })
+
   post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
     params("id").toIntOpt.flatMap { issueId =>
       val owner = repository.owner

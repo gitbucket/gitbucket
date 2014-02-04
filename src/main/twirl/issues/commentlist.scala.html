@@ -6,7 +6,7 @@
 @import context._
 @import view.helpers._
 @comments.map { comment =>
-  @if(comment.action != "close" && comment.action != "reopen"){
+  @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete"){
     <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
     <div class="box issue-comment-box" id="comment-@comment.commentId">
       <div class="box-header-small">
@@ -61,6 +61,13 @@
       <span class="label label-success">Reopened</span>
       @avatar(comment.commentedUserName, 20)
       @user(comment.commentedUserName, styleClass="username strong") reopened the issue @datetime(comment.registeredDate)
+    </div>
+  }
+  @if(comment.action == "delete"){
+    <div class="small issue-comment-action">
+      <span class="label">Deleted</span>
+      @avatar(comment.commentedUserName, 20)
+      @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @datetime(comment.registeredDate)
     </div>
   }
 }
