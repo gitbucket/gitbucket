@@ -1,8 +1,10 @@
 @(issue: model.Issue,
   pullreq: model.PullRequest,
   comments: List[model.IssueComment],
+  issueLabels: List[model.Label],
   collaborators: List[String],
   milestones: List[(model.Milestone, Int, Int)],
+  labels: List[model.Label],
   dayByDayCommits: Seq[Seq[util.JGitUtil.CommitInfo]],
   diffs: Seq[util.JGitUtil.DiffInfo],
   hasWritePermission: Boolean,
@@ -37,7 +39,7 @@
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="discussion">
-        @pulls.html.discussion(issue, pullreq, comments, collaborators, milestones, hasWritePermission, repository)
+        @pulls.html.discussion(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
       </div>
       <div class="tab-pane" id="commits">
         @pulls.html.commits(dayByDayCommits, repository)

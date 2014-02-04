@@ -1,8 +1,10 @@
 @(issue: model.Issue,
   pullreq: model.PullRequest,
   comments: List[model.IssueComment],
+  issueLabels: List[model.Label],
   collaborators: List[String],
   milestones: List[(model.Milestone, Int, Int)],
+  labels: List[model.Label],
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -63,6 +65,7 @@
       <span class="strong">@comments.size</span> @plural(comments.size, "comment")
     </div>
     <hr/>
+    @issues.html.labels(issue, issueLabels, labels, hasWritePermission, repository)
   </div>
 </div>
 <script>

@@ -21,12 +21,12 @@ import org.eclipse.jgit.errors.NoMergeBaseException
 import service.WebHookService.WebHookPayload
 
 class PullRequestsController extends PullRequestsControllerBase
-  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService with WebHookService
-  with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
+  with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with IssuesService with MilestonesService with ActivityService with PullRequestService with WebHookService
-    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+  self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
+    with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -79,8 +79,10 @@ trait PullRequestsControllerBase extends ControllerBase {
           pulls.html.pullreq(
             issue, pullreq,
             getComments(owner, name, issueId),
+            getIssueLabels(owner, name, issueId.toInt),
             (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
             getMilestonesWithIssueCount(owner, name),
+            getLabels(owner, name),
             commits,
             diffs,
             hasWritePermission(owner, name, context.loginAccount),
