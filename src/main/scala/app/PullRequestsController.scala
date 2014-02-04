@@ -113,7 +113,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
         }
       }
-      createComment(repository.owner, repository.name, userName, issueId, branchName, "delete")
+      createComment(repository.owner, repository.name, userName, issueId, branchName, "delete_branch")
       redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
     } getOrElse NotFound
   })
