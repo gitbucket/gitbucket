@@ -52,3 +52,33 @@
     </tr>
   </table>
 }
+<script src="@assets/common/js/jquery.ba-hashchange.js"></script>
+<script>
+$(window).load(function(){
+  $(window).hashchange(function(){
+    updateHighlighting();
+  }).hashchange();
+});
+
+/**
+ * Hightlight lines which are specified by URL hash.
+ */
+function updateHighlighting(){
+  var hash = location.hash;
+  if(hash.match(/#L\d+(-L\d+)?/)){
+    $('li.highlight').removeClass('highlight');
+    var lines = hash.substr(1).split('-');
+    if(lines.length == 1){
+      $('#' + lines[0]).addClass('highlight');
+      $(window).scrollTop($('#' + lines[0]).offset().top - 40);
+    } else if(lines.length > 1){
+      var start = parseInt(lines[0].substr(1));
+      var end   = parseInt(lines[1].substr(1));
+      for(var i = start; i <= end; i++){
+        $('#L' + i).addClass('highlight');
+      }
+      $(window).scrollTop($('#L' + start).offset().top - 40);
+    }
+  }
+}
+</script>
