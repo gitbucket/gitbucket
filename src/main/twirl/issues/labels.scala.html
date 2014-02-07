@@ -8,7 +8,7 @@
   <span class="strong">Labels</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown() {
+      @helper.html.dropdown(right = true) {
         @labels.map { label =>
           <li>
             <a href="#" class="toggle-label" data-label-id="@label.labelId">
