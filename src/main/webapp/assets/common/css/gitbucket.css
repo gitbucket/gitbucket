@@ -706,6 +706,14 @@ ul.collaborator a.remove {
 /****************************************************************************/
 /* Markdown */
 /****************************************************************************/
+div.markdown-body h1 {
+  border-bottom: 1px solid #ddd;
+}
+
+div.markdown-body h2 {
+  border-bottom: 1px solid #eee;
+}
+
 div.markdown-body table {
   /*width: 100%;*/
   margin-bottom: 20px;
