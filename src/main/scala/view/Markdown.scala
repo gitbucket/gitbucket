@@ -7,6 +7,8 @@ import org.parboiled.common.StringUtils
 import org.pegdown._
 import org.pegdown.ast._
 import org.pegdown.LinkRenderer.Rendering
+import java.text.Normalizer
+import java.util.Locale
 import scala.collection.JavaConverters._
 import service.{RequestCache, WikiService}
 
@@ -110,6 +112,20 @@ class GitBucketHtmlSerializer(
     printer.print(' ').print(name).print('=').print('"').print(value).print('"')
   }
 
+  private def printHeaderTag(node: HeaderNode): Unit = {
+    val tag = s"h${node.getLevel}"
+    val headerTextString = printChildrenToString(node)
+    val anchorName = GitBucketHtmlSerializer.generateAnchorName(headerTextString)
+    printer.print(s"<$tag>")
+    printer.print(s"""<a class="anchor" name="$anchorName" href="#$anchorName"></a>""")
+    visitChildren(node)
+    printer.print(s"</$tag>")
+  }
+
+  override def visit(node: HeaderNode): Unit = {
+    printHeaderTag(node)
+  }
+
   override def visit(node: TextNode): Unit =  {
     // convert commit id and username to link.
     val text = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
@@ -120,5 +136,18 @@ class GitBucketHtmlSerializer(
       printWithAbbreviations(text)
     }
   }
+}
 
+object GitBucketHtmlSerializer {
+
+  private val Whitespace = "[\\s]".r
+
+  private val SpecialChars = "[^\\w-]".r
+
+  def generateAnchorName(text: String): String = {
+    val noWhitespace = Whitespace.replaceAllIn(text, "-")
+    val normalized = Normalizer.normalize(noWhitespace, Normalizer.Form.NFD)
+    val noSpecialChars = SpecialChars.replaceAllIn(normalized, "")
+    noSpecialChars.toLowerCase(Locale.ENGLISH)
+  }
 }
