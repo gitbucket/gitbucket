@@ -143,12 +143,10 @@ object GitBucketHtmlSerializer {
 
   private val Whitespace = "[\\s]".r
 
-  private val SpecialChars = "[^\\w-]".r
-
   def generateAnchorName(text: String): String = {
     val noWhitespace = Whitespace.replaceAllIn(text, "-")
     val normalized = Normalizer.normalize(noWhitespace, Normalizer.Form.NFD)
-    val noSpecialChars = SpecialChars.replaceAllIn(normalized, "")
+    val noSpecialChars = StringUtil.urlEncode(normalized)
     noSpecialChars.toLowerCase(Locale.ENGLISH)
   }
 }
