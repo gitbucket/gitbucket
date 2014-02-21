@@ -1,26 +1,32 @@
 package app
 
 import service._
-import util.{FileUtil, OneselfAuthenticator}
+import util.{FileUtil, OneselfAuthenticator, UsersAuthenticator}
 import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 import org.scalatra.FlashMapSupport
 import org.apache.commons.io.FileUtils
+import model.Account
 
 class AccountController extends AccountControllerBase
   with SystemSettingsService with AccountService with RepositoryService with ActivityService
-  with OneselfAuthenticator
+  with OneselfAuthenticator with UsersAuthenticator
 
 trait AccountControllerBase extends AccountManagementControllerBase with FlashMapSupport {
   self: SystemSettingsService with AccountService with RepositoryService with ActivityService
-    with OneselfAuthenticator =>
+    with OneselfAuthenticator with UsersAuthenticator =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
 
   case class AccountEditForm(password: Option[String], fullName: String, mailAddress: String,
                              url: Option[String], fileId: Option[String], clearImage: Boolean)
+
+  case class NewGroupForm(groupName: String)
+
+  case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String],
+                           memberNames: Option[String], clearImage: Boolean)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -40,6 +46,25 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     "clearImage"  -> trim(label("Clear image"  , boolean()))
   )(AccountEditForm.apply)
 
+  val newGroupForm = mapping(
+    "groupName"   -> trim(label("Group name"   ,text(required, maxlength(100), identifier, uniqueUserName)))
+  )(NewGroupForm.apply)
+
+  val editGroupForm = mapping(
+    "groupName"   -> trim(label("Group name"   ,text(required, maxlength(100), identifier))),
+    "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"      ,optional(text()))),
+    "memberNames" -> trim(label("Member Names" ,optional(text()))),
+    "clearImage"  -> trim(label("Clear image"  ,boolean()))
+  )(EditGroupForm.apply)
+
+  def isEditable(account:Account):Boolean = context.loginAccount.map{ user =>
+    account.isGroupAccount match {
+      case true => loadSystemSettings().allowGroupRegistration && isGroupMember(account.userName, user.userName)
+      case false => account.userName == user.userName
+    }
+  }.getOrElse(false)
+  
   /**
    * Displays user information.
    */
@@ -51,17 +76,18 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
         case "activity" =>
           _root_.account.html.activity(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getActivitiesByUser(userName, true))
+            getActivitiesByUser(userName, true),
+            isEditable(account))
 
         // Members
         case "members" if(account.isGroupAccount) =>
-          _root_.account.html.members(account, getGroupMembers(account.userName))
+          _root_.account.html.members(account, getGroupMembers(account.userName), isEditable(account))
 
         // Repositories
         case _ =>
           _root_.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)))
+            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)), isEditable(account))
       }
     } getOrElse NotFound
   }
@@ -137,4 +163,47 @@ trait AccountControllerBase extends AccountManagementControllerBase with FlashMa
     } else NotFound
   }
 
+  get("/register/group"){
+    usersOnly{
+      if(loadSystemSettings().allowGroupRegistration){ 
+        account.html.newGroup()
+      } else NotFound
+    }
+  }
+
+  post("/register/group", newGroupForm){ form =>
+    context.loginAccount.map{ user =>
+      if(loadSystemSettings().allowGroupRegistration){
+        createGroup(form.groupName, None)
+        updateGroupMembers(form.groupName, List(user.userName))
+        redirect("/" + form.groupName + "/_editgroup")
+      } else NotFound
+    }.getOrElse( Unauthorized() )
+  }
+
+  get("/:groupName/_editgroup")((for{
+    user <- context.loginAccount
+    group <- getAccountByUserName(params("groupName"), false)
+    memberNames = getGroupMembers(group.userName) if memberNames.contains(user.userName)
+  } yield {
+    account.html.group(group, memberNames)
+  }).getOrElse( NotFound ))
+
+  post("/:groupName/_editgroup", editGroupForm)(form => (for{
+    user <- context.loginAccount
+    group <- getAccountByUserName(params("groupName"), false) if isGroupMember(group.userName, user.userName)
+    memberNames = form.memberNames.getOrElse("").split(",").toList if memberNames.contains(user.userName)
+  } yield {
+    updateGroup(group.userName, form.url, false)
+    // Update GROUP_MEMBER
+    updateGroupMembers(form.groupName, memberNames)
+    // Update COLLABORATOR for group repositories
+    getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+      removeCollaborators(form.groupName, repositoryName)
+      memberNames.foreach { userName =>
+        addCollaborator(form.groupName, repositoryName, userName)
+      }
+    }
+    redirect("/" + form.groupName)
+  } ).getOrElse(NotFound))
 }

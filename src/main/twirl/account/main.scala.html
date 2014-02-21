@@ -1,4 +1,4 @@
-@(account: model.Account, groupNames: List[String], active: String)(body: Html)(implicit context: app.Context)
+@(account: model.Account, groupNames: List[String], active: String, isEditable:Boolean)(body: Html)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(account.userName){
@@ -16,11 +16,15 @@
           }
           <div><i class="icon-time"></i> <span class="muted">Joined on</span> @date(account.registeredDate)</div>
         </div>
-        @if(groupNames.nonEmpty){
+        @if(groupNames.nonEmpty || (isEditable && !account.isGroupAccount && getSystemSettings().allowGroupRegistration)){
           <div>
             <div>Groups</div>
             @groupNames.map { groupName =>
               <a href="@url(groupName)">@avatar(groupName, 36, tooltip = true)</a>
+            }
+            @if(isEditable && !account.isGroupAccount && getSystemSettings().allowGroupRegistration){
+              <a href="@path/register/group" class="btn" data-toggle="tooltip" title="Create a new group">
+              <i class="icon icon-plus"></i></a>
             }
           </div>
         }
@@ -34,10 +38,14 @@
           } else {
             <li@if(active == "activity"){ class="active"}><a href="@url(account.userName)?tab=activity">Public Activity</a></li>
           }
-          @if(loginAccount.isDefined && loginAccount.get.userName == account.userName){
+          @if(isEditable){
             <li class="pull-right">
               <div class="button-group">
-                <a href="@url(account.userName)/_edit" class="btn">Edit Your Profile</a>
+                @if(!account.isGroupAccount){
+                  <a href="@url(account.userName)/_edit" class="btn">Edit Your Profile</a>
+                }else{
+                  <a href="@url(account.userName)/_editgroup" class="btn">Edit Group Profile</a>
+                }
               </div>
             </li>
           }

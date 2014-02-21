@@ -136,6 +136,12 @@ trait AccountService {
       .map(_.userName)
       .list
 
+  def isGroupMember(groupName: String, userName: String): Boolean =
+    ! Query(GroupMembers)
+      .filter(_.groupName is groupName.bind)
+      .filter(_.userName is userName.bind)
+      .list.isEmpty
+
   def getGroupsByUserName(userName: String): List[String] =
     Query(GroupMembers)
       .filter(_.userName is userName.bind)
