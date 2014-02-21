@@ -4,10 +4,11 @@ import jp.sf.amateras.scalatra.forms._
 
 import service._
 import IssuesService._
-import util.{CollaboratorsAuthenticator, ReferrerAuthenticator, ReadableUsersAuthenticator, Notifier, Keys}
+import util._
 import util.Implicits._
 import util.ControlUtil._
 import org.scalatra.Ok
+import model.Issue
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
@@ -110,6 +111,11 @@ trait IssuesControllerBase extends ControllerBase {
       // record activity
       recordCreateIssueActivity(owner, name, userName, issueId, form.title)
 
+      // extract references and create refer comment
+      getIssue(owner, name, issueId.toString).foreach { issue =>
+        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+      }
+
       // notifications
       Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
         Notifier.msgIssue(s"${baseUrl}/${owner}/${name}/issues/${issueId}")
@@ -123,7 +129,11 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name){ case (owner, name) =>
       getIssue(owner, name, params("id")).map { issue =>
         if(isEditable(owner, name, issue.openedUserName)){
+          // update issue
           updateIssue(owner, name, issue.issueId, form.title, form.content)
+          // extract references and create refer comment
+          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
         } else Unauthorized
       } getOrElse NotFound
@@ -274,6 +284,15 @@ trait IssuesControllerBase extends ControllerBase {
     redirect(s"/${repository.owner}/${repository.name}/issues")
   }
 
+  private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
+    StringUtil.extractIssueId(message).foreach { issueId =>
+      if(getIssue(owner, repository, issueId).isDefined){
+        createComment(owner, repository, context.loginAccount.get.userName, issueId.toInt,
+                      fromIssue.issueId + ":" + fromIssue.title, "refer")
+      }
+    }
+  }
+
   /**
    * @see [[https://github.com/takezoe/gitbucket/wiki/CommentAction]]
    */
@@ -312,6 +331,11 @@ trait IssuesControllerBase extends ControllerBase {
           (owner, name, userName, issueId, _)
         }
         recordActivity foreach ( _ (owner, name, userName, issueId, issue.title) )
+
+        // extract references and create refer comment
+        content.map { content =>
+          createReferComment(owner, name, issue, content)
+        }
 
         // notifications
         Notifier() match {

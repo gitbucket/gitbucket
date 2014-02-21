@@ -45,4 +45,14 @@ object StringUtil {
         case e    => e
       }
     }
+
+  /**
+   * Extract issue id like ````#issueId``` from the given message.
+   *
+   *@param message the message which may contains issue id
+   * @return the iterator of issue id
+   */
+  def extractIssueId(message: String): Iterator[String] =
+    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(message).matchData.map { matchData =>  matchData.group(2) }
+
 }

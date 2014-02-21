@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
-import util.{Keys, JGitUtil, Directory}
+import util.{StringUtil, Keys, JGitUtil, Directory}
 import util.ControlUtil._
 import util.Implicits._
 import service._
@@ -167,8 +167,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: 
   }
 
   private def createIssueComment(commit: CommitInfo) = {
-    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
-      val issueId = matchData.group(2)
+    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
       if(getIssue(owner, repository, issueId).isDefined){
         getAccountByMailAddress(commit.mailAddress).foreach { account =>
           createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
