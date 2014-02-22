@@ -13,6 +13,7 @@ trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
   self: SystemSettingsService with AccountService with AdminAuthenticator =>
 
   private val form = mapping(
+    "baseUrl"                  -> trim(label("Base URL", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),

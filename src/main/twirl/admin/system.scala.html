@@ -15,6 +15,21 @@
           <label class="strong">GITBUCKET_HOME</label>
           @GitBucketHome
           <!--====================================================================-->
+          <!-- Base URL -->
+          <!--====================================================================-->
+          <hr>
+          <label><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
+          <fieldset>
+              <div class="controls">
+                <input type="text" name="baseUrl" id="baseUrl" style="width: 400px" value="@settings.baseUrl"/>
+              </div>
+          </fieldset>
+          <p>
+            The base URL is used for redirect, notification email, git repository URL box and more.
+            If the base URL is empty, GitBucket generates URL from request information.
+            You can use this property to adjust URL difference between the reverse proxy and GitBucket.
+          </p>
+          <!--====================================================================-->
           <!-- Account registration -->
           <!--====================================================================-->
           <hr>

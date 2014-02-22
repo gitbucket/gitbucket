@@ -8,6 +8,7 @@ trait SystemSettingsService {
 
   def saveSystemSettings(settings: SystemSettings): Unit = {
     defining(new java.util.Properties()){ props =>
+      settings.baseUrl.foreach(props.setProperty(BaseURL, _))
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
@@ -48,6 +49,7 @@ trait SystemSettingsService {
         props.load(new java.io.FileInputStream(GitBucketConf))
       }
       SystemSettings(
+        getOptionValue(props, BaseURL, None),
         getValue(props, AllowAccountRegistration, false),
         getValue(props, Gravatar, true),
         getValue(props, Notification, false),
@@ -89,6 +91,7 @@ object SystemSettingsService {
   import scala.reflect.ClassTag
 
   case class SystemSettings(
+    baseUrl: Option[String],
     allowAccountRegistration: Boolean,
     gravatar: Boolean,
     notification: Boolean,
@@ -120,6 +123,7 @@ object SystemSettingsService {
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
 
+  private val BaseURL = "base_url"
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
