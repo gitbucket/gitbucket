@@ -59,7 +59,7 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 1.11 - End of Mar 2014
+### 1.11 - End of Feb 2014
 - Base URL for redirect, notification and repository URL box is configurable
 - Headline anchor is available for Markdown contents such as Wiki page
 - Improve H2 connectivity
