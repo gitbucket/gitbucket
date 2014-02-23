@@ -59,12 +59,23 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 1.11 - End of Mar 2014
+- Base URL for redirect, notification and repository URL box is configurable
+- Headline anchor is available for Markdown contents such as Wiki page
+- Improve H2 connectivity
+- Label is available for pull requests not only issues
+- Delete branch button is added
+- Repository icons are updated
+- Select lines of source code by URL hash like `#L10` or `#L10-L15` in repository viewer
+- Display reference to issue from others in comment list
+- Fix some bugs
+
 ### 1.10 - 01 Feb 2014
 - Rename repository
 - Transfer repository owner
 - Change default data directory to `HOME/.gitbucket` from `HOME/gitbucket` to avoid problem like #243, but if data directory already exist at HOME/gitbucket, it continues being used.
 - Add LDAP display name attribute
-- Response improvement
+- Response performance improvement
 - Fix some bugs
 
 ### 1.9 - 28 Dec 2013
