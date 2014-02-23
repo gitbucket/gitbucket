@@ -59,11 +59,6 @@ abstract class ControllerBase extends ScalatraFilter
    */
   implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, request)
 
-  // TODO This method should be remvoved.
-  private def currentURL: String = defining(request.getQueryString){ queryString =>
-    request.getRequestURI + (if(queryString != null) "?" + queryString else "")
-  }
-
   private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
 
   def ajaxGet(path : String)(action : => Any) : Route =
@@ -107,8 +102,11 @@ abstract class ControllerBase extends ScalatraFilter
         if(request.getMethod.toUpperCase == "POST"){
           org.scalatra.Unauthorized(redirect("/signin"))
         } else {
-          // TODO This URL may not be same as the front URL...
-          org.scalatra.Unauthorized(redirect("/signin?redirect=" + StringUtil.urlEncode(currentURL)))
+          val currentUrl = baseUrl + defining(request.getQueryString){ queryString =>
+            request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
+          }
+          session.setAttribute(Keys.Session.Redirect, currentUrl)
+          org.scalatra.Unauthorized(redirect("/signin"))
         }
       }
     }
@@ -117,7 +115,7 @@ abstract class ControllerBase extends ScalatraFilter
     defining(request.getRequestURL.toString){ url =>
       url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
     }
-  }
+  }.replaceFirst("/$", "")
 
 }
 
