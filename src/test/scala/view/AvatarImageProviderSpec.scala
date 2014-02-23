@@ -10,7 +10,7 @@ import twirl.api.Html
 
 class AvatarImageProviderSpec extends Specification {
 
-  implicit val context = app.Context("", None, "", null)
+  implicit val context = app.Context("", None, null)
 
   "getAvatarImageHtml" should {
     "show Gravatar image for no image account if gravatar integration is enabled" in {
@@ -80,6 +80,7 @@ class AvatarImageProviderSpec extends Specification {
 
   private def createSystemSettings(useGravatar: Boolean) =
     SystemSettings(
+      baseUrl                  = None,
       allowAccountRegistration = false,
       gravatar                 = useGravatar,
       notification             = false,
