@@ -18,4 +18,14 @@ git push -u origin master
 git remote add origin @repository.url
 git push -u origin master
 </pre>
+<script>
+(function() {
+  // modify repositry url host and protocol.
+  $('h3').next('pre').each(function() {
+    var content = $(this).text();
+    var modified = content.replace(/http:\/\/[^/]+/, location.protocol + '//' + location.host);
+    $(this).text(modified);
+  });
+})();
+</script>
 }
