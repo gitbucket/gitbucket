@@ -18,26 +18,28 @@ import util.JGitUtil.CommitInfo
 import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
+import service.WebHookService.WebHookPayload
 
 class PullRequestsController extends PullRequestsControllerBase
-  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with ActivityService
-  with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
+  with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with IssuesService with MilestonesService with ActivityService with PullRequestService
-    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+  self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
+    with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
   val pullRequestForm = mapping(
-    "title"           -> trim(label("Title"  , text(required, maxlength(100)))),
-    "content"         -> trim(label("Content", optional(text()))),
-    "targetUserName"  -> trim(text(required, maxlength(100))),
-    "targetBranch"    -> trim(text(required, maxlength(100))),
-    "requestUserName" -> trim(text(required, maxlength(100))),
-    "requestBranch"   -> trim(text(required, maxlength(100))),
-    "commitIdFrom"    -> trim(text(required, maxlength(40))),
-    "commitIdTo"      -> trim(text(required, maxlength(40)))
+    "title"                 -> trim(label("Title"  , text(required, maxlength(100)))),
+    "content"               -> trim(label("Content", optional(text()))),
+    "targetUserName"        -> trim(text(required, maxlength(100))),
+    "targetBranch"          -> trim(text(required, maxlength(100))),
+    "requestUserName"       -> trim(text(required, maxlength(100))),
+    "requestRepositoryName" -> trim(text(required, maxlength(100))),
+    "requestBranch"         -> trim(text(required, maxlength(100))),
+    "commitIdFrom"          -> trim(text(required, maxlength(40))),
+    "commitIdTo"            -> trim(text(required, maxlength(40)))
   )(PullRequestForm.apply)
 
   val mergeForm = mapping(
@@ -50,6 +52,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     targetUserName: String,
     targetBranch: String,
     requestUserName: String,
+    requestRepositoryName: String,
     requestBranch: String,
     commitIdFrom: String,
     commitIdTo: String)
@@ -76,8 +79,10 @@ trait PullRequestsControllerBase extends ControllerBase {
           pulls.html.pullreq(
             issue, pullreq,
             getComments(owner, name, issueId),
+            getIssueLabels(owner, name, issueId.toInt),
             (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
             getMilestonesWithIssueCount(owner, name),
+            getLabels(owner, name),
             commits,
             diffs,
             hasWritePermission(owner, name, context.loginAccount),
@@ -90,7 +95,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   ajaxGet("/:owner/:repository/pull/:id/mergeguide")(collaboratorsOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
-      val name = repository.name
+      val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
         pulls.html.mergeguide(
           checkConflictInPullRequest(owner, name, pullreq.branch, pullreq.requestUserName, name, pullreq.requestBranch, issueId),
@@ -100,10 +105,25 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
+  get("/:owner/:repository/pull/:id/delete/:branchName")(collaboratorsOnly { repository =>
+    params("id").toIntOpt.map { issueId =>
+      val branchName = params("branchName")
+      val userName   = context.loginAccount.get.userName
+      if(repository.repository.defaultBranch != branchName){
+        using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+          git.branchDelete().setBranchNames(branchName).call()
+          recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
+        }
+      }
+      createComment(repository.owner, repository.name, userName, issueId, branchName, "delete_branch")
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+    } getOrElse NotFound
+  })
+
   post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
     params("id").toIntOpt.flatMap { issueId =>
       val owner = repository.owner
-      val name = repository.name
+      val name  = repository.name
       LockUtil.lock(s"${owner}/${name}/merge"){
         getPullRequest(owner, name, issueId).map { case (issue, pullreq) =>
           using(Git.open(getRepositoryDir(owner, name))) { git =>
@@ -175,6 +195,15 @@ trait PullRequestsControllerBase extends ControllerBase {
               }
               closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
             }
+            // call web hook
+            getWebHookURLs(owner, name) match {
+              case webHookURLs if(webHookURLs.nonEmpty) =>
+                for(ownerAccount <- getAccountByUserName(owner)){
+                  callWebHook(owner, name, webHookURLs,
+                    WebHookPayload(git, loginAccount, mergeBaseRefName, repository, commits.flatten.toList, ownerAccount))
+                }
+              case _ =>
+            }
 
             // notifications
             Notifier().toNotify(repository, issueId, "merge"){
@@ -215,73 +244,85 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/compare/*...*")(referrersOnly { repository =>
+  get("/:owner/:repository/compare/*...*")(referrersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, repository.owner)
-    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, repository.owner)
+    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
+    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
 
-    (getRepository(originOwner, repository.name, baseUrl),
-     getRepository(forkedOwner, repository.name, baseUrl)) match {
-      case (Some(originRepository), Some(forkedRepository)) => {
-        using(
-          Git.open(getRepositoryDir(originOwner, repository.name)),
-          Git.open(getRepositoryDir(forkedOwner, repository.name))
-        ){ case (oldGit, newGit) =>
-          val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
-          val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
-
-          val forkedId = getForkedCommitId(oldGit, newGit,
-            originOwner, repository.name, originBranch,
-            forkedOwner, repository.name, forkedBranch)
-
-          val oldId = oldGit.getRepository.resolve(forkedId)
-          val newId = newGit.getRepository.resolve(forkedBranch)
-
-          val (commits, diffs) = getRequestCompareInfo(
-            originOwner, repository.name, oldId.getName,
-            forkedOwner, repository.name, newId.getName)
-
-          pulls.html.compare(
-            commits,
-            diffs,
-            repository.repository.originUserName.map { userName =>
-              userName :: getForkedRepositories(userName, repository.name)
-            } getOrElse List(repository.owner),
-            originBranch,
-            forkedBranch,
-            oldId.getName,
-            newId.getName,
-            repository,
-            originRepository,
-            forkedRepository,
-            hasWritePermission(repository.owner, repository.name, context.loginAccount))
+    (for(
+      originRepositoryName <- if(originOwner == forkedOwner){
+        Some(forkedRepository.name)
+      } else {
+        forkedRepository.repository.originRepositoryName.orElse {
+          getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
         }
+      };
+      originRepository <- getRepository(originOwner, originRepositoryName, baseUrl)
+    ) yield {
+      using(
+        Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
+        Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
+      ){ case (oldGit, newGit) =>
+        val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
+        val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
+
+        val forkedId = getForkedCommitId(oldGit, newGit,
+          originRepository.owner, originRepository.name, originBranch,
+          forkedRepository.owner, forkedRepository.name, forkedBranch)
+
+        val oldId = oldGit.getRepository.resolve(forkedId)
+        val newId = newGit.getRepository.resolve(forkedBranch)
+
+        val (commits, diffs) = getRequestCompareInfo(
+          originRepository.owner, originRepository.name, oldId.getName,
+          forkedRepository.owner, forkedRepository.name, newId.getName)
+
+        pulls.html.compare(
+          commits,
+          diffs,
+          (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
+            case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
+            case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+          },
+          originBranch,
+          forkedBranch,
+          oldId.getName,
+          newId.getName,
+          forkedRepository,
+          originRepository,
+          forkedRepository,
+          hasWritePermission(forkedRepository.owner, forkedRepository.name, context.loginAccount))
       }
-      case _ => NotFound
-    }
+    }) getOrElse NotFound
   })
 
-  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(collaboratorsOnly { repository =>
+  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(collaboratorsOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, repository.owner)
-    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, repository.owner)
+    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
+    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
 
-    (getRepository(originOwner, repository.name, baseUrl),
-      getRepository(forkedOwner, repository.name, baseUrl)) match {
-      case (Some(originRepository), Some(forkedRepository)) => {
-        using(
-          Git.open(getRepositoryDir(originOwner, repository.name)),
-          Git.open(getRepositoryDir(forkedOwner, repository.name))
-        ){ case (oldGit, newGit) =>
-          val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
-          val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
-
-          pulls.html.mergecheck(
-            checkConflict(originOwner, repository.name, originBranch, forkedOwner, repository.name, forkedBranch))
+    (for(
+      originRepositoryName <- if(originOwner == forkedOwner){
+        Some(forkedRepository.name)
+      } else {
+        forkedRepository.repository.originRepositoryName.orElse {
+          getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
         }
+      };
+      originRepository <- getRepository(originOwner, originRepositoryName, baseUrl)
+    ) yield {
+      using(
+        Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
+        Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
+      ){ case (oldGit, newGit) =>
+        val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
+        val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
+
+        pulls.html.mergecheck(
+          checkConflict(originRepository.owner, originRepository.name, originBranch,
+                        forkedRepository.owner, forkedRepository.name, forkedBranch))
       }
-      case _ => NotFound()
-    }
+    }) getOrElse NotFound
   })
 
   post("/:owner/:repository/pulls/new", pullRequestForm)(referrersOnly { (form, repository) =>
@@ -303,7 +344,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       issueId               = issueId,
       originBranch          = form.targetBranch,
       requestUserName       = form.requestUserName,
-      requestRepositoryName = repository.name,
+      requestRepositoryName = form.requestRepositoryName,
       requestBranch         = form.requestBranch,
       commitIdFrom          = form.commitIdFrom,
       commitIdTo            = form.commitIdTo)
@@ -311,7 +352,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     // fetch requested branch
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       git.fetch
-        .setRemote(getRepositoryDir(form.requestUserName, repository.name).toURI.toString)
+        .setRemote(getRepositoryDir(form.requestUserName, form.requestRepositoryName).toURI.toString)
         .setRefSpecs(new RefSpec(s"refs/heads/${form.requestBranch}:refs/pull/${issueId}/head"))
         .call
     }
@@ -336,12 +377,12 @@ trait PullRequestsControllerBase extends ControllerBase {
       using(Git.open(getRepositoryDir(requestUserName, requestRepositoryName))) { git =>
         val remoteRefName = s"refs/heads/${branch}"
         val tmpRefName = s"refs/merge-check/${userName}/${branch}"
-
-        withTmpRefSpec(new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true), git) { ref =>
+        val refSpec = new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true)
+        try {
           // fetch objects from origin repository branch
           git.fetch
              .setRemote(getRepositoryDir(userName, repositoryName).toURI.toString)
-             .setRefSpecs(ref)
+             .setRefSpecs(refSpec)
              .call
 
           // merge conflict check
@@ -353,6 +394,10 @@ trait PullRequestsControllerBase extends ControllerBase {
           } catch {
             case e: NoMergeBaseException =>  true
           }
+        } finally {
+          val refUpdate = git.getRepository.updateRef(refSpec.getDestination)
+          refUpdate.setForceUpdate(true)
+          refUpdate.delete()
         }
       }
     }
@@ -405,8 +450,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   private def getForkedCommitId(oldGit: Git, newGit: Git, userName: String, repositoryName: String, branch: String,
       requestUserName: String, requestRepositoryName: String, requestBranch: String): String =
     JGitUtil.getCommitLogs(newGit, requestBranch, true){ commit =>
-      existsCommitId(userName, repositoryName, commit.getName) &&
-        JGitUtil.getBranchesOfCommit(oldGit, commit.getName).contains(branch)
+      existsCommitId(userName, repositoryName, commit.getName) && JGitUtil.getBranchesOfCommit(oldGit, commit.getName).contains(branch)
     }.head.id
 
   private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
@@ -421,7 +465,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
         new CommitInfo(revCommit)
-      }.toList.splitWith{ (commit1, commit2) =>
+      }.toList.splitWith { (commit1, commit2) =>
         view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
       }
 

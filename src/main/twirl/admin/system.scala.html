@@ -1,5 +1,6 @@
 @(settings: service.SystemSettingsService.SystemSettings, info: Option[Any])(implicit context: app.Context)
 @import context._
+@import util.Directory._
 @import view.helpers._
 @html.main("System Settings"){
   @menu("system"){
@@ -9,8 +10,29 @@
         <div class="box-header">System Settings</div>
         <div class="box-content">
           <!--====================================================================-->
+          <!-- GITBUCKET_HOME -->
+          <!--====================================================================-->
+          <label class="strong">GITBUCKET_HOME</label>
+          @GitBucketHome
+          <!--====================================================================-->
+          <!-- Base URL -->
+          <!--====================================================================-->
+          <hr>
+          <label><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
+          <fieldset>
+              <div class="controls">
+                <input type="text" name="baseUrl" id="baseUrl" style="width: 400px" value="@settings.baseUrl"/>
+              </div>
+          </fieldset>
+          <p>
+            The base URL is used for redirect, notification email, git repository URL box and more.
+            If the base URL is empty, GitBucket generates URL from request information.
+            You can use this property to adjust URL difference between the reverse proxy and GitBucket.
+          </p>
+          <!--====================================================================-->
           <!-- Account registration -->
           <!--====================================================================-->
+          <hr>
           <label class="strong">Account registration</label>
           <fieldset>
             <label class="radio">
@@ -85,6 +107,13 @@
               <div class="controls">
                 <input type="text" id="ldapUserNameAttribute" name="ldap.userNameAttribute" value="@settings.ldap.map(_.userNameAttribute)"/>
                 <span id="error-ldap_userNameAttribute" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapFullNameAttribute">Full name attribute</label>
+              <div class="controls">
+                <input type="text" id="ldapFullNameAttribute" name="ldap.fullNameAttribute" value="@settings.ldap.map(_.fullNameAttribute)"/>
+                <span id="error-ldap_fullNameAttribute" class="error"></span>
               </div>
             </div>
             <div class="control-group">

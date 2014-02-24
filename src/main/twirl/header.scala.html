@@ -12,10 +12,13 @@
 }
 <div class="head">
   @if(repository.repository.isPrivate){
-      <i class="icon-lock"></i>
-  }
-  @if(!repository.repository.isPrivate){
-      <i class="icon-eye-open"></i>
+  <img src="@assets/common/images/repo_private_lg.png"/>
+  } else {
+    @if(repository.repository.originUserName.isDefined){
+      <img src="@assets/common/images/repo_fork_lg.png"/>
+    } else {
+      <img src="@assets/common/images/repo_public_lg.png"/>
+    }
   }
   <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
   

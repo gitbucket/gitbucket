@@ -36,11 +36,15 @@ trait AccountService {
    */
   private def ldapAuthentication(settings: SystemSettings, userName: String, password: String) = {
     LDAPUtil.authenticate(settings.ldap.get, userName, password) match {
-      case Right(mailAddress) => {
+      case Right(ldapUserInfo) => {
         // Create or update account by LDAP information
-        getAccountByUserName(userName) match {
-          case Some(x) => updateAccount(x.copy(mailAddress = mailAddress))
-          case None    => createAccount(userName, "", userName, mailAddress, false, None)
+        getAccountByUserName(userName, true) match {
+          case Some(x) if(!x.isRemoved) => updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+          case Some(x) if(x.isRemoved)  => {
+            logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
+            defaultAuthentication(userName, password)
+          }
+          case None => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
         }
         getAccountByUserName(userName)
       }

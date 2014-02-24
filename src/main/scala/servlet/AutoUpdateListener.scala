@@ -50,6 +50,9 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    Version(1, 11),
+    Version(1, 10),
+    Version(1, 9),
     Version(1, 8),
     Version(1, 7),
     Version(1, 6),
@@ -120,7 +123,7 @@ class AutoUpdateListener extends ServletContextListener {
       System.setProperty("gitbucket.home", datadir)
     }
     org.h2.Driver.load()
-    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome}")
+    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome};MVCC=true")
 
     logger.debug("Start schema update")
     defining(getConnection(event.getServletContext)){ conn =>

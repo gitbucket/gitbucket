@@ -3,8 +3,10 @@
 <span id="error-edit-title" class="error"></span>
 <input type="text" style="width: 680px;" id="edit-title" value="@title"/>
 <textarea style="width: 680px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
-<input type="button" class="btn btn-small" value="Update Issue"/>
-<span class="pull-right"><a class="btn btn-small btn-danger" href="#">Cancel</a></span>
+<div>
+  <input type="button" id="update" class="btn btn-small" value="Update Issue"/>
+  <input type="button" id="cancel" class="btn btn-small btn-danger pull-right" value="Cancel"/>
+</div>
 <script>
 $(function(){
   $('#edit-content').elastic();
@@ -14,7 +16,7 @@ $(function(){
     $('#issueContent').empty().html(data.content);
   };
 
-  $('#issueContent input.btn').click(function(){
+  $('#update').click(function(){
     $.ajax({
       url: '@path/@owner/@repository/issues/edit/@issueId',
       type: 'POST',
@@ -29,7 +31,7 @@ $(function(){
     });
   });
 
-  $('#issueContent a.btn').click(function(){
+  $('#cancel').click(function(){
     $.get('@path/@owner/@repository/issues/_data/@issueId', callback);
     return false;
   });

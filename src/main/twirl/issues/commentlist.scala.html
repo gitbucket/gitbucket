@@ -6,15 +6,21 @@
 @import context._
 @import view.helpers._
 @comments.map { comment =>
-  @if(comment.action != "close" && comment.action != "reopen"){
+  @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"){
     <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
     <div class="box issue-comment-box" id="comment-@comment.commentId">
       <div class="box-header-small">
         <i class="icon-comment"></i>
-        @user(comment.commentedUserName, styleClass="username strong") commented
+        @user(comment.commentedUserName, styleClass="username strong")
+        @if(comment.action == "comment"){
+          commented
+        } else {
+          @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
+        }
         <span class="pull-right">
           @datetime(comment.registeredDate)
-          @if(comment.action != "commit" && comment.action != "merge" && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+          @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer" &&
+                (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
           }
@@ -27,7 +33,13 @@
             @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true)
           }
         } else {
-          @markdown(comment.content, repository, false, true)
+          @if(comment.action == "refer"){
+            @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
+              <strong><a href="@path/@repository.owner/@repository.name/issues/@issueId">Issue #@issueId</a>: @rest.mkString(":")</strong>
+            }
+          } else {
+            @markdown(comment.content, repository, false, true)
+          }
         }
       </div>
     </div>
@@ -36,11 +48,11 @@
     <div class="small" style="margin-top: 10px; margin-bottom: 10px;">
       <span class="label label-info">Merged</span>
       @avatar(comment.commentedUserName, 20)
-      @user(comment.commentedUserName, styleClass="username strong") merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code>
+      @user(comment.commentedUserName, styleClass="username strong") merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
       @if(pullreq.get.requestUserName == repository.owner){
-        <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.branch)</span>
+        <span class="label label-info monospace">@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span>
       } else {
-        <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span> to <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span>
+        <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> to <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
       }
       @datetime(comment.registeredDate)
     </div>
@@ -61,6 +73,13 @@
       <span class="label label-success">Reopened</span>
       @avatar(comment.commentedUserName, 20)
       @user(comment.commentedUserName, styleClass="username strong") reopened the issue @datetime(comment.registeredDate)
+    </div>
+  }
+  @if(comment.action == "delete_branch"){
+    <div class="small issue-comment-action">
+      <span class="label">Deleted</span>
+      @avatar(comment.commentedUserName, 20)
+      @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @datetime(comment.registeredDate)
     </div>
   }
 }

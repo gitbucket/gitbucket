@@ -79,9 +79,9 @@ object JGitUtil {
     }
 
     val description = defining(fullMessage.trim.indexOf("\n")){ i =>
-      optionIf(i >= 0){
+      if(i >= 0){
         Some(fullMessage.trim.substring(i).trim)
-      }
+      } else None
     }
   }
 

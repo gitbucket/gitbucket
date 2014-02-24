@@ -1,6 +1,6 @@
 @(commits: Seq[Seq[util.JGitUtil.CommitInfo]],
   diffs: Seq[util.JGitUtil.DiffInfo],
-  members: List[String],
+  members: List[(String, String)],
   originId: String,
   forkedId: String,
   sourceId: String,
@@ -20,25 +20,25 @@
     </div>
     <div id="compare-edit" style="display: none;">
       <a href="#" id="cancel-condition-editing" class="pull-right"><i class="icon-remove-circle"></i></a>
-      @helper.html.dropdown(originRepository.owner + "/" + repository.name, "base fork") {
-        @members.map { member =>
-          <li><a href="#" class="origin-owner" data-name="@member">@helper.html.checkicon(member == originRepository.owner) @member/@repository.name</a></li>
+      @helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
+        @members.map { case (owner, name) =>
+          <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
         }
       }
       @helper.html.dropdown(originId, "base") {
         @originRepository.branchList.map { branch =>
-          <li><a href="#" class="origin-branch" data-name="@encodeRefName(branch)">@helper.html.checkicon(branch == originId) @branch</a></li>
+          <li><a href="#" class="origin-branch" data-branch="@encodeRefName(branch)">@helper.html.checkicon(branch == originId) @branch</a></li>
         }
       }
       ...
-      @helper.html.dropdown(forkedRepository.owner + "/" + repository.name, "head fork") {
-        @members.map { member =>
-          <li><a href="#" class="forked-owner" data-name="@member">@helper.html.checkicon(member == forkedRepository.owner) @member/@repository.name</a></li>
+      @helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork") {
+        @members.map { case (owner, name) =>
+          <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name">@helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
         }
       }
       @helper.html.dropdown(forkedId, "compare") {
         @forkedRepository.branchList.map { branch =>
-          <li><a href="#" class="forked-branch" data-name="@encodeRefName(branch)">@helper.html.checkicon(branch == forkedId) @branch</a></li>
+          <li><a href="#" class="forked-branch" data-branch="@encodeRefName(branch)">@helper.html.checkicon(branch == forkedId) @branch</a></li>
         }
       }
     </div>
@@ -49,7 +49,7 @@
     </div>
     <div id="pull-request-form" class="box" style="display: none;">
         <div class="box-content">
-          <form method="POST" action="@path/@originRepository.owner/@repository.name/pulls/new" validate="true">
+          <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
             <div style="width: 260px; position: absolute; margin-left: 635px;">
               <div class="check-conflict" style="display: none;">
                 <img src="@assets/common/images/indicator.gif"/> Checking...
@@ -62,6 +62,7 @@
               <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
               <input type="hidden" name="targetBranch" value="@originId"/>
               <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+              <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
               <input type="hidden" name="requestBranch" value="@forkedId"/>
               <input type="hidden" name="commitIdFrom" value="@sourceId"/>
               <input type="hidden" name="commitIdTo" value="@commitId"/>
@@ -104,14 +105,16 @@ $(function(){
 
     @if(members.isEmpty){
       location.href = '@url(repository)/compare/' +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')) + '...' +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'));
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')) + '...' +
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'));
     } else {
-      location.href = '@url(repository)/compare/' +
-        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('name')) + ':' +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')) + '...' +
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) + ':' +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'));
+      location.href = '@path/' +
+        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + '/' +
+        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) +'/compare/' +
+        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('owner')) + ':' +
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')) + '...' +
+        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + ':' +
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'));
     }
   });
 
@@ -129,15 +132,15 @@ $(function(){
 
     @if(members.isEmpty){
       checkConflict(
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')),
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'))
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')),
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'))
       );
     } else {
       checkConflict(
-        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('name')) + ":" +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('name')),
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) + ":" +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('name'))
+        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('owner')) + ":" +
+        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')),
+        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + ":" +
+        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'))
       );
     }
   }

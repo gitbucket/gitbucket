@@ -1,4 +1,4 @@
-@(value: String = "", prefix: String = "", mini: Boolean = true, style: String = "")(body: Html)
+@(value: String = "", prefix: String = "", mini: Boolean = true, style: String = "", right: Boolean = false)(body: Html)
 <div class="btn-group"@if(style.nonEmpty){ style="@style"}>
   <button class="btn dropdown-toggle@if(mini){ btn-mini}" data-toggle="dropdown">
     @if(value.isEmpty){
@@ -11,7 +11,7 @@
     }
     <span class="caret"></span>
   </button>
-  <ul class="dropdown-menu">
+  <ul class="dropdown-menu@if(right){ pull-right}">
     @body
   </ul>
 </div>

@@ -10,8 +10,7 @@ import org.json4s._
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import model.Account
-import scala.Some
-import service.AccountService
+import service.{SystemSettingsService, AccountService}
 import javax.servlet.http.{HttpServletResponse, HttpSession, HttpServletRequest}
 import java.text.SimpleDateFormat
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
@@ -21,7 +20,7 @@ import org.scalatra.i18n._
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with Validations {
+  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with Validations with SystemSettingsService {
 
   implicit val jsonFormats = DefaultFormats
 
@@ -58,11 +57,7 @@ abstract class ControllerBase extends ScalatraFilter
   /**
    * Returns the context object for the request.
    */
-  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, currentURL, request)
-
-  private def currentURL: String = defining(request.getQueryString){ queryString =>
-    request.getRequestURI + (if(queryString != null) "?" + queryString else "")
-  }
+  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, request)
 
   private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
 
@@ -107,27 +102,27 @@ abstract class ControllerBase extends ScalatraFilter
         if(request.getMethod.toUpperCase == "POST"){
           org.scalatra.Unauthorized(redirect("/signin"))
         } else {
-          org.scalatra.Unauthorized(redirect("/signin?redirect=" + StringUtil.urlEncode(currentURL)))
+          val currentUrl = baseUrl + defining(request.getQueryString){ queryString =>
+            request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
+          }
+          session.setAttribute(Keys.Session.Redirect, currentUrl)
+          org.scalatra.Unauthorized(redirect("/signin"))
         }
       }
     }
 
-  protected def baseUrl = defining(request.getRequestURL.toString){ url =>
-    url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
-  }
+  protected def baseUrl = loadSystemSettings().baseUrl.getOrElse {
+    defining(request.getRequestURL.toString){ url =>
+      url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
+    }
+  }.replaceFirst("/$", "")
 
 }
 
 /**
  * Context object for the current request.
  */
-case class Context(path: String, loginAccount: Option[Account], currentUrl: String, request: HttpServletRequest){
-
-  def redirectUrl = if(request.getParameter("redirect") != null){
-    request.getParameter("redirect")
-  } else {
-    currentUrl
-  }
+case class Context(path: String, loginAccount: Option[Account], request: HttpServletRequest){
 
   /**
    * Get object from cache.

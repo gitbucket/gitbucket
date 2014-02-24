@@ -3,7 +3,7 @@ package app
 import util.Directory._
 import util.Implicits._
 import util.ControlUtil._
-import _root_.util.{ReferrerAuthenticator, JGitUtil, FileUtil, StringUtil}
+import _root_.util._
 import service._
 import org.scalatra._
 import java.io.File
@@ -12,15 +12,16 @@ import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 import java.util.zip.{ZipEntry, ZipOutputStream}
+import scala.Some
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
-  with RepositoryService with AccountService with ReferrerAuthenticator
+  with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
-  self: RepositoryService with AccountService with ReferrerAuthenticator =>
+  self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   /**
    * Returns converted HTML from Markdown for preview.
@@ -150,8 +151,23 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val revCommit = git.log.add(git.getRepository.resolve(branchName)).setMaxCount(1).call.iterator.next
         (branchName, revCommit.getCommitterIdent.getWhen)
       }
-      repo.html.branches(branchInfo, repository)
+      repo.html.branches(branchInfo, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
     }
+  })
+
+  /**
+   * Deletes branch.
+   */
+  get("/:owner/:repository/delete/:branchName")(collaboratorsOnly { repository =>
+    val branchName = params("branchName")
+    val userName   = context.loginAccount.get.userName
+    if(repository.repository.defaultBranch != branchName){
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+        git.branchDelete().setBranchNames(branchName).call()
+        recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
+      }
+    }
+    redirect(s"/${repository.owner}/${repository.name}/branches")
   })
 
   /**
@@ -175,7 +191,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
       workDir.mkdirs
 
-      val zipFile = new File(workDir, (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
+      val zipFile = new File(workDir, repository.name + "-" +
+        (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
 
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
@@ -204,6 +221,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
 
       contentType = "application/octet-stream"
+      response.setHeader("Content-Disposition", s"attachment; filename=${zipFile.getName}")
       zipFile
     } else {
       BadRequest

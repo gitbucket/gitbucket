@@ -1,8 +1,10 @@
 @(issue: model.Issue,
   pullreq: model.PullRequest,
   comments: List[model.IssueComment],
+  issueLabels: List[model.Label],
   collaborators: List[String],
   milestones: List[(model.Milestone, Int, Int)],
+  labels: List[model.Label],
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -35,6 +37,18 @@
         </div>
       </div>
     }
+    @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName &&
+        pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
+      <div class="box issue-comment-box" style="background-color: #d0eeff;">
+        <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
+          <a href="@url(repository)/pull/@issue.issueId/delete/@pullreq.requestBranch" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+          <div>
+            <span class="strong">Pull request successfully merged and closed</span>
+          </div>
+          <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
+        </div>
+      </div>
+    }
     @issues.html.commentform(issue, hasWritePermission, repository)
   </div>
   <div class="span2">
@@ -51,6 +65,7 @@
       <span class="strong">@comments.size</span> @plural(comments.size, "comment")
     </div>
     <hr/>
+    @issues.html.labels(issue, issueLabels, labels, hasWritePermission, repository)
   </div>
 </div>
 <script>
@@ -62,8 +77,12 @@ $(function(){
 
   @if(hasWritePermission){
     $('.check-conflict').show();
-    $.get('@url(repository)/pull/@issue.issueId/mergeguide',
-      function(data){ $('.check-conflict').html(data); });
+    $.get('@url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+
+    $('.delete-branch').click(function(e){
+      var branchName = $(e.target).data('name');
+      return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
+    });
   }
 });
 </script>

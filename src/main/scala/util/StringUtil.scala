@@ -3,6 +3,8 @@ package util
 import java.net.{URLDecoder, URLEncoder}
 import org.mozilla.universalchardet.UniversalDetector
 import util.ControlUtil._
+import org.apache.commons.io.input.BOMInputStream
+import org.apache.commons.io.IOUtils
 
 object StringUtil {
 
@@ -27,7 +29,12 @@ object StringUtil {
   def escapeHtml(value: String): String =
     value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
 
-  def convertFromByteArray(content: Array[Byte]): String = new String(content, detectEncoding(content))
+  /**
+   * Make string from byte array. Character encoding is detected automatically by [[util.StringUtil.detectEncoding]].
+   * And if given bytes contains UTF-8 BOM, it's removed from returned string..
+   */
+  def convertFromByteArray(content: Array[Byte]): String =
+    IOUtils.toString(new BOMInputStream(new java.io.ByteArrayInputStream(content)), detectEncoding(content))
 
   def detectEncoding(content: Array[Byte]): String =
     defining(new UniversalDetector(null)){ detector =>
@@ -38,4 +45,14 @@ object StringUtil {
         case e    => e
       }
     }
+
+  /**
+   * Extract issue id like ````#issueId``` from the given message.
+   *
+   *@param message the message which may contains issue id
+   * @return the iterator of issue id
+   */
+  def extractIssueId(message: String): Iterator[String] =
+    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(message).matchData.map { matchData =>  matchData.group(2) }
+
 }

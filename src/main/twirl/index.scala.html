@@ -32,10 +32,13 @@
             <tr>
               <td>
                 @if(repository.repository.isPrivate){
-                  <i class="icon-lock"></i>
-                }
-                @if(!repository.repository.isPrivate){
-                  <i class="icon-eye-open"></i>
+                  <img src="@assets/common/images/repo_private.png"/>
+                } else {
+                  @if(repository.repository.originUserName.isDefined){
+                    <img src="@assets/common/images/repo_fork.png"/>
+                  } else {
+                    <img src="@assets/common/images/repo_public.png"/>
+                  }
                 }
                 @if(repository.owner == loginAccount.get.userName){
                   <a href="@url(repository)"><span class="strong">@repository.name</span></a>
@@ -64,10 +67,13 @@
           <tr>
             <td>
               @if(repository.repository.isPrivate){
-              <i class="icon-lock"></i>
-              }
-              @if(!repository.repository.isPrivate){
-              <i class="icon-eye-open"></i>
+                <img src="@assets/common/images/repo_private.png"/>
+              } else {
+                @if(repository.repository.originUserName.isDefined){
+                  <img src="@assets/common/images/repo_fork.png"/>
+                } else {
+                  <img src="@assets/common/images/repo_public.png"/>
+                }
               }
               <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
             </td>

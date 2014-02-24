@@ -2,6 +2,7 @@ package util
 
 import java.io.File
 import util.ControlUtil._
+import org.apache.commons.io.FileUtils
 
 /**
  * Provides directories used by GitBucket.
@@ -14,8 +15,16 @@ object Directory {
     case _ => scala.util.Properties.envOrNone("GITBUCKET_HOME") match {
       // environment variable GITBUCKET_HOME
       case Some(env) => new File(env)
-      // default is HOME/gitbucket
-      case None => new File(System.getProperty("user.home"), "gitbucket")
+      // default is HOME/.gitbucket
+      case None => {
+        val oldHome = new File(System.getProperty("user.home"), "gitbucket")
+        if(oldHome.exists && oldHome.isDirectory && new File(oldHome, "version").exists){
+          //FileUtils.moveDirectory(oldHome, newHome)
+          oldHome
+        } else {
+          new File(System.getProperty("user.home"), ".gitbucket")
+        }
+      }
     }
   }).getAbsolutePath
 

@@ -113,54 +113,62 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     val loginUserName  = loginAccount.userName
 
     LockUtil.lock(s"${loginUserName}/${repository.name}/create"){
-      if(getRepository(loginUserName, repository.name, baseUrl).isEmpty){
-        // Insert to the database at first
-        val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
-        val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
+      if(repository.owner == loginUserName){
+        // redirect to the repository
+        redirect(s"/${repository.owner}/${repository.name}")
+      } else {
+        getForkedRepositories(repository.owner, repository.name).find(_._1 == loginUserName).map { case (owner, name) =>
+          // redirect to the repository
+          redirect(s"/${owner}/${name}")
+        } getOrElse {
+          // Insert to the database at first
+          val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
+          val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
 
-        createRepository(
-          repositoryName       = repository.name,
-          userName             = loginUserName,
-          description          = repository.repository.description,
-          isPrivate            = repository.repository.isPrivate,
-          originRepositoryName = Some(originRepositoryName),
-          originUserName       = Some(originUserName),
-          parentRepositoryName = Some(repository.name),
-          parentUserName       = Some(repository.owner)
-        )
+          createRepository(
+            repositoryName       = repository.name,
+            userName             = loginUserName,
+            description          = repository.repository.description,
+            isPrivate            = repository.repository.isPrivate,
+            originRepositoryName = Some(originRepositoryName),
+            originUserName       = Some(originUserName),
+            parentRepositoryName = Some(repository.name),
+            parentUserName       = Some(repository.owner)
+          )
 
-        // Insert default labels
-        insertDefaultLabels(loginUserName, repository.name)
+          // Insert default labels
+          insertDefaultLabels(loginUserName, repository.name)
 
-        // clone repository actually
-        JGitUtil.cloneRepository(
-          getRepositoryDir(repository.owner, repository.name),
-          getRepositoryDir(loginUserName, repository.name))
+          // clone repository actually
+          JGitUtil.cloneRepository(
+            getRepositoryDir(repository.owner, repository.name),
+            getRepositoryDir(loginUserName, repository.name))
 
-        // Create Wiki repository
-        JGitUtil.cloneRepository(
-          getWikiRepositoryDir(repository.owner, repository.name),
-          getWikiRepositoryDir(loginUserName, repository.name))
+          // Create Wiki repository
+          JGitUtil.cloneRepository(
+            getWikiRepositoryDir(repository.owner, repository.name),
+            getWikiRepositoryDir(loginUserName, repository.name))
 
-        // insert commit id
-        using(Git.open(getRepositoryDir(loginUserName, repository.name))){ git =>
-          JGitUtil.getRepositoryInfo(loginUserName, repository.name, baseUrl).branchList.foreach { branch =>
-            JGitUtil.getCommitLog(git, branch) match {
-              case Right((commits, _)) => commits.foreach { commit =>
-                if(!existsCommitId(loginUserName, repository.name, commit.id)){
-                  insertCommitId(loginUserName, repository.name, commit.id)
+          // insert commit id
+          using(Git.open(getRepositoryDir(loginUserName, repository.name))){ git =>
+            JGitUtil.getRepositoryInfo(loginUserName, repository.name, baseUrl).branchList.foreach { branch =>
+              JGitUtil.getCommitLog(git, branch) match {
+                case Right((commits, _)) => commits.foreach { commit =>
+                  if(!existsCommitId(loginUserName, repository.name, commit.id)){
+                    insertCommitId(loginUserName, repository.name, commit.id)
+                  }
                 }
+                case Left(_) => ???
               }
-              case Left(_) => ???
             }
           }
-        }
 
-        // Record activity
-        recordForkActivity(repository.owner, repository.name, loginUserName)
+          // Record activity
+          recordForkActivity(repository.owner, repository.name, loginUserName)
+          // redirect to the repository
+          redirect(s"/${loginUserName}/${repository.name}")
+        }
       }
-      // redirect to the repository
-      redirect("/%s/%s".format(loginUserName, repository.name))
     }
   })
 

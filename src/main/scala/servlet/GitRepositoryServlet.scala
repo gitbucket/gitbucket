@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
-import util.{Keys, JGitUtil, Directory}
+import util.{StringUtil, Keys, JGitUtil, Directory}
 import util.ControlUtil._
 import util.Implicits._
 import service._
@@ -56,10 +56,10 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    val userName = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
+    val pusher = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
 
     logger.debug("requestURI: " + request.getRequestURI)
-    logger.debug("userName:" + userName)
+    logger.debug("pusher:" + pusher)
 
     defining(request.paths){ paths =>
       val owner      = paths(1)
@@ -69,7 +69,9 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("repository:" + owner + "/" + repository)
       logger.debug("baseURL:" + baseURL)
 
-      receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, userName, baseURL))
+      if(!repository.endsWith(".wiki")){
+        receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseURL))
+      }
       receivePack
     }
   }
@@ -77,101 +79,107 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, userName: String, baseURL: String) extends PostReceiveHook
+class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: String) extends PostReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
-    using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
-      commands.asScala.foreach { command =>
-        logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-        val commits = command.getType match {
-          case ReceiveCommand.Type.DELETE => Nil
-          case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
-        }
-        val refName = command.getRefName.split("/")
-        val branchName = refName.drop(2).mkString("/")
+    try {
+      using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        commands.asScala.foreach { command =>
+          logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
+          val commits = command.getType match {
+            case ReceiveCommand.Type.DELETE => Nil
+            case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+          }
+          val refName = command.getRefName.split("/")
+          val branchName = refName.drop(2).mkString("/")
 
-        // Extract new commit and apply issue comment
-        val newCommits = if(commits.size > 1000){
-          val existIds = getAllCommitIds(owner, repository)
-          commits.flatMap { commit =>
-            optionIf(!existIds.contains(commit.id)){
-              createIssueComment(commit)
-              Some(commit)
+          // Extract new commit and apply issue comment
+          val newCommits = if(commits.size > 1000){
+            val existIds = getAllCommitIds(owner, repository)
+            commits.flatMap { commit =>
+              if(!existIds.contains(commit.id)){
+                createIssueComment(commit)
+                Some(commit)
+              } else None
+            }
+          } else {
+            commits.flatMap { commit =>
+              if(!existsCommitId(owner, repository, commit.id)){
+                createIssueComment(commit)
+                Some(commit)
+              } else None
             }
           }
-        } else {
-          commits.flatMap { commit =>
-            optionIf(!existsCommitId(owner, repository, commit.id)){
-              createIssueComment(commit)
-              Some(commit)
+
+          // batch insert all new commit id
+          insertAllCommitIds(owner, repository, newCommits.map(_.id))
+
+          // record activity
+          if(refName(1) == "heads"){
+            command.getType match {
+              case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, pusher, branchName)
+              case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, pusher, branchName, newCommits)
+              case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, pusher, branchName)
+              case _ =>
+            }
+          } else if(refName(1) == "tags"){
+            command.getType match {
+              case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, pusher, branchName, newCommits)
+              case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, pusher, branchName, newCommits)
+              case _ =>
             }
           }
-        }
 
-        // batch insert all new commit id
-        insertAllCommitIds(owner, repository, newCommits.map(_.id))
+          if(refName(1) == "heads"){
+            command.getType match {
+              case ReceiveCommand.Type.CREATE |
+                   ReceiveCommand.Type.UPDATE |
+                   ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
+                updatePullRequests(branchName)
+              case _ =>
+            }
+          }
 
-        // record activity
-        if(refName(1) == "heads"){
-          command.getType match {
-            case ReceiveCommand.Type.CREATE => recordCreateBranchActivity(owner, repository, userName, branchName)
-            case ReceiveCommand.Type.UPDATE => recordPushActivity(owner, repository, userName, branchName, newCommits)
-            case ReceiveCommand.Type.DELETE => recordDeleteBranchActivity(owner, repository, userName, branchName)
+          // close issues
+          val defaultBranch = getRepository(owner, repository, baseURL).get.repository.defaultBranch
+          if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
+            git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach { commit =>
+              closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
+            }
+          }
+
+          // call web hook
+          getWebHookURLs(owner, repository) match {
+            case webHookURLs if(webHookURLs.nonEmpty) =>
+              for(pusherAccount <- getAccountByUserName(pusher);
+                  ownerAccount   <- getAccountByUserName(owner);
+                  repositoryInfo <- getRepository(owner, repository, baseURL)){
+                callWebHook(owner, repository, webHookURLs,
+                  WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
+              }
             case _ =>
           }
-        } else if(refName(1) == "tags"){
-          command.getType match {
-            case ReceiveCommand.Type.CREATE => recordCreateTagActivity(owner, repository, userName, branchName, newCommits)
-            case ReceiveCommand.Type.DELETE => recordDeleteTagActivity(owner, repository, userName, branchName, newCommits)
-            case _ =>
-          }
-        }
-
-        if(refName(1) == "heads"){
-          command.getType match {
-            case ReceiveCommand.Type.CREATE |
-                 ReceiveCommand.Type.UPDATE |
-                 ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
-              updatePullRequests(branchName)
-            case _ =>
-          }
-        }
-
-        // close issues
-        val defaultBranch = getRepository(owner, repository, baseURL).get.repository.defaultBranch
-        if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
-          git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach { commit =>
-            closeIssuesFromMessage(commit.getFullMessage, userName, owner, repository)
-          }
-        }
-
-        // call web hook
-        val webHookURLs = getWebHookURLs(owner, repository)
-        if(webHookURLs.nonEmpty){
-          val payload = WebHookPayload(
-            git,
-            getAccountByUserName(userName).get,
-            command.getRefName,
-            getRepository(owner, repository, baseURL).get,
-            newCommits,
-            getAccountByUserName(owner).get)
-
-          callWebHook(owner, repository, webHookURLs, payload)
         }
       }
+      // update repository last modified time.
+      updateLastActivityDate(owner, repository)
+    } catch {
+      case ex: Exception => {
+        logger.error(ex.toString, ex)
+        throw ex
+      }
     }
-    // update repository last modified time.
-    updateLastActivityDate(owner, repository)
   }
 
   private def createIssueComment(commit: CommitInfo) = {
-    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(commit.fullMessage).matchData.foreach { matchData =>
-      val issueId = matchData.group(2)
-      if(getAccountByUserName(commit.committer).isDefined && getIssue(owner, repository, issueId).isDefined){
-        createComment(owner, repository, commit.committer, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
+    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
+      if(getIssue(owner, repository, issueId).isDefined){
+        getAccountByMailAddress(commit.mailAddress).foreach { account =>
+          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
+        }
       }
     }
   }

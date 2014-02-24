@@ -480,6 +480,10 @@ pre.blob {
   padding: 30px;
 }
 
+li.highlight {
+  background-color: #ffb;
+}
+
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
@@ -706,6 +710,14 @@ ul.collaborator a.remove {
 /****************************************************************************/
 /* Markdown */
 /****************************************************************************/
+div.markdown-body h1 {
+  border-bottom: 1px solid #ddd;
+}
+
+div.markdown-body h2 {
+  border-bottom: 1px solid #eee;
+}
+
 div.markdown-body table {
   /*width: 100%;*/
   margin-bottom: 20px;
@@ -837,4 +849,22 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
   -webkit-border-top-right-radius: 4px;
           border-top-right-radius: 4px;
   -moz-border-radius-topright: 4px;
+}
+
+.markdown-head {
+  position: relative;
+}
+
+a.markdown-anchor-link {
+  position: absolute;
+  left: -20px;
+  width: 32px;
+  height: 16px;
+  background-image: url(../images/link.png);
+  background-repeat: no-repeat;
+  display: none;
+}
+
+h1 a.markdown-anchor-link, h2 a.markdown-anchor-link, h3 a.markdown-anchor-link {
+  top: 10px;
 }

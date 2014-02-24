@@ -343,7 +343,7 @@ object IssuesService {
 
     def toURL: String =
       "?" + List(
-        if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(" "))),
+        if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(","))),
         milestoneId.map { id => "milestone=" + (id match {
           case Some(x) => x.toString
           case None    => "none"
@@ -364,7 +364,7 @@ object IssuesService {
 
     def apply(request: HttpServletRequest): IssueSearchCondition =
       IssueSearchCondition(
-        param(request, "labels").map(_.split(" ").toSet).getOrElse(Set.empty),
+        param(request, "labels").map(_.split(",").toSet).getOrElse(Set.empty),
         param(request, "milestone").map{
           case "none" => None
           case x      => x.toIntOpt
