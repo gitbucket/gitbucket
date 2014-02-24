@@ -18,11 +18,19 @@
     <listener-class>servlet.AutoUpdateListener</listener-class>
   </listener>
 
+
   <!-- ===================================================================== -->
   <!-- Scalatra configuration -->
   <!-- ===================================================================== -->
   <listener>
     <listener-class>org.scalatra.servlet.ScalatraListener</listener-class>
+  </listener>
+
+  <!-- ===================================================================== -->
+  <!-- SSH Daemon initialized -->
+  <!-- ===================================================================== -->
+  <listener>
+    <listener-class>servlet.SshServiceListener</listener-class>
   </listener>
 
   <!-- ===================================================================== -->
