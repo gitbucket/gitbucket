@@ -251,7 +251,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
 
-  private val readmeFiles = Seq("readme.md", "readme.markdown")
+  private val readmeFiles = view.helpers.renderableSuffixes.map(suffix => s"readme${suffix}")
 
   /**
    * Provides HTML of the file list.

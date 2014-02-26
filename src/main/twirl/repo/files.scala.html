@@ -80,7 +80,7 @@
   @readme.map { case(file, content) =>
   <div id="readme" class="box">
     <div class="box-header">@file.name</div>
-    <div class="box-content markdown-body">@markdown(content, repository, false, false)</div>
+    <div class="box-content markdown-body">@renderMarkup(file.name, content, repository, false, false)</div>
   </div>
   }
 }

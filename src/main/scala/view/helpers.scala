@@ -27,12 +27,37 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def plural(count: Int, singular: String, plural: String = ""): String =
     if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
 
+  private[this] val renderersBySuffix: Seq[(String, (String, service.RepositoryService.RepositoryInfo, Boolean, Boolean, app.Context) => Html)] = 
+    Seq(
+      ".md" -> ((fileContent, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
+      ".markdown" -> ((fileContent, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
+      ".adoc" -> ((fileContent, repository, enableWikiLink, enableRefsLink, context) => asciidoc(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
+      ".asciidoc" -> ((fileContent, repository, enableWikiLink, enableRefsLink, context) => asciidoc(fileContent, repository, enableWikiLink, enableRefsLink)(context))
+    )
+
+  def renderableSuffixes: Seq[String] = renderersBySuffix.map(_._1)
+
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,
                enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
+
+  def renderMarkup(fileName: String, fileContent: String,
+                   repository: service.RepositoryService.RepositoryInfo,
+                   enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html = {
+
+    val fileNameLower = fileName.toLowerCase
+    renderersBySuffix.find { case (suffix, _) => fileNameLower.endsWith(suffix) } match {
+      case Some((_, handler)) => handler(fileContent, repository, enableWikiLink, enableRefsLink, context)
+      case None => Html("UNSUPPORTED MARKUP TYPE")
+    }
+  }
+
+  def asciidoc(value: String, repository: service.RepositoryService.RepositoryInfo,
+               enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
+    Html(Asciidoc.toHtml(value, repository, enableWikiLink, enableRefsLink))
 
   /**
    * Returns &lt;img&gt; which displays the avatar icon for the given user name.
