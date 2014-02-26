@@ -35,12 +35,22 @@ table.diff {
 table.diff tbody { 
 	font-family:Courier, monospace
 }
+table.diff tbody tr:hover {
+	background-color:#F8EEC7;
+}
+
+table.diff tbody tr:hover th {
+	background-color:#F6E8B5;
+}
+table.diff tbody tr:hover td {
+	background-color:#F6E8B5;
+}
 table.diff tbody th {
 	font-family:verdana,arial,'Bitstream Vera Sans',helvetica,sans-serif;
-	background:#EED;
+	background-color:#FBFBFB;
 	font-size:11px;
 	font-weight:normal;
-	border:1px solid #BBC;
+	border-top:none; /* for overriding bootstrap */
 	color:#886;
 	padding:.3em .5em .1em 2em;
 	text-align:right;
@@ -58,6 +68,7 @@ table.diff tbody td {
 	padding:0px .4em;
 	padding-top:.4em;
 	vertical-align:top;
+	border-top: none;
 }
 table.diff .empty {
 	background-color:#DDD;
@@ -69,9 +80,10 @@ table.diff .delete {
 	background-color:#FFDDDD;
 }
 table.diff .skip {
-	background-color:#EFEFEF;
-	border:1px solid #AAA;
-	border-right:1px solid #BBC;
+	background-color: #F8F8FF;
+}
+table.diff .skip:before {
+	content: "    ...";
 }
 table.diff .insert {
 	background-color:#DDFFDD
