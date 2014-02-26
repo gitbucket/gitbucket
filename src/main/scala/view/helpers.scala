@@ -51,7 +51,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     val fileNameLower = fileName.toLowerCase
     renderersBySuffix.find { case (suffix, _) => fileNameLower.endsWith(suffix) } match {
       case Some((_, handler)) => handler(fileContent, repository, enableWikiLink, enableRefsLink, context)
-      case None => Html("UNSUPPORTED MARKUP TYPE")
+      case None => Html(
+        s"<tt>${
+          fileContent.split("(\\r\\n)|\\n").map(xml.Utility.escape(_)).mkString("<br/>")
+        }</tt>"
+      )
     }
   }
 
