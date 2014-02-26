@@ -15,6 +15,7 @@ object MyBuild extends Build {
     "gitbucket",
     file("."),
     settings = Defaults.defaultSettings ++ ScalatraPlugin.scalatraWithJRebel ++ Seq(
+      sourcesInBase := false,
       organization := Organization,
       name := Name,
       version := Version,
@@ -42,7 +43,8 @@ object MyBuild extends Build {
         "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
-        "junit" % "junit" % "4.11" % "test"
+        "junit" % "junit" % "4.11" % "test",
+        "org.asciidoctor" % "asciidoctor-java-integration" % "0.1.4"
       ),
       EclipseKeys.withSource := true,
       javacOptions in compile ++= Seq("-target", "6", "-source", "6"),
