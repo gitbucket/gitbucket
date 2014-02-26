@@ -3,7 +3,7 @@
   pathList: List[String],
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
-  readme: Option[String])(implicit context: app.Context)
+  readme: Option[(util.JGitUtil.FileInfo, String)])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
@@ -77,9 +77,9 @@
     </table>
   </div>
   
-  @readme.map { content =>
+  @readme.map { case(file, content) =>
   <div id="readme" class="box">
-    <div class="box-header">README.md</div>
+    <div class="box-header">@file.name</div>
     <div class="box-content markdown-body">@markdown(content, repository, false, false)</div>
   </div>
   }
