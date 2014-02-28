@@ -30,7 +30,7 @@
   <!-- SSH Daemon initialized -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>servlet.SshServiceListener</listener-class>
+    <listener-class>ssh.SshServerListener</listener-class>
   </listener>
 
   <!-- ===================================================================== -->
