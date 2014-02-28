@@ -11,7 +11,7 @@ import java.text.Normalizer
 import java.util.Locale
 import scala.collection.JavaConverters._
 import service.{ RequestCache, WikiService }
-import org.asciidoctor.{ Asciidoctor, OptionsBuilder, SafeMode }
+import org.asciidoctor.{ Asciidoctor, Attributes, AttributesBuilder, OptionsBuilder, SafeMode }
 
 object Asciidoc {
 
@@ -24,6 +24,9 @@ object Asciidoc {
              enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): String = {
     val options = OptionsBuilder.options()
     options.safe(SafeMode.SECURE)
+    val attributes = AttributesBuilder.attributes()
+    attributes.showTitle(true)
+    options.attributes(attributes.get())
     asciidoctor.render(asciidoc, options)
   }
 }
