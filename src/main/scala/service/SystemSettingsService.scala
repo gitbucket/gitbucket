@@ -31,8 +31,10 @@ trait SystemSettingsService {
           ldap.bindPassword.foreach(x => props.setProperty(LdapBindPassword, x))
           props.setProperty(LdapBaseDN, ldap.baseDN)
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
+          ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
           props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
+          ldap.disableMailResolve.foreach(x => props.setProperty(LdapDisableMailResolve, x.toString))
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
@@ -72,8 +74,10 @@ trait SystemSettingsService {
             getOptionValue(props, LdapBindPassword, None),
             getValue(props, LdapBaseDN, ""),
             getValue(props, LdapUserNameAttribute, ""),
+            getOptionValue(props, LdapAdditionalFilterCondition, None),
             getOptionValue(props, LdapFullNameAttribute, None),
             getValue(props, LdapMailAddressAttribute, ""),
+            getOptionValue[Boolean](props, LdapDisableMailResolve, None),
             getOptionValue[Boolean](props, LdapTls, None),
             getOptionValue(props, LdapKeystore, None)))
         } else {
@@ -89,33 +93,35 @@ object SystemSettingsService {
   import scala.reflect.ClassTag
 
   case class SystemSettings(
-    allowAccountRegistration: Boolean,
-    gravatar: Boolean,
-    notification: Boolean,
-    smtp: Option[Smtp],
-    ldapAuthentication: Boolean,
-    ldap: Option[Ldap])
+                             allowAccountRegistration: Boolean,
+                             gravatar: Boolean,
+                             notification: Boolean,
+                             smtp: Option[Smtp],
+                             ldapAuthentication: Boolean,
+                             ldap: Option[Ldap])
 
   case class Ldap(
-    host: String,
-    port: Option[Int],
-    bindDN: Option[String],
-    bindPassword: Option[String],
-    baseDN: String,
-    userNameAttribute: String,
-    fullNameAttribute: Option[String],
-    mailAttribute: String,
-    tls: Option[Boolean],
-    keystore: Option[String])
+                   host: String,
+                   port: Option[Int],
+                   bindDN: Option[String],
+                   bindPassword: Option[String],
+                   baseDN: String,
+                   userNameAttribute: String,
+                   additionalFilterCondition: Option[String],
+                   fullNameAttribute: Option[String],
+                   mailAttribute: String,
+                   disableMailResolve: Option[Boolean],
+                   tls: Option[Boolean],
+                   keystore: Option[String])
 
   case class Smtp(
-    host: String,
-    port: Option[Int],
-    user: Option[String],
-    password: Option[String],
-    ssl: Option[Boolean],
-    fromAddress: Option[String],
-    fromName: Option[String])
+                   host: String,
+                   port: Option[Int],
+                   user: Option[String],
+                   password: Option[String],
+                   ssl: Option[Boolean],
+                   fromAddress: Option[String],
+                   fromName: Option[String])
 
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
@@ -137,8 +143,10 @@ object SystemSettingsService {
   private val LdapBindPassword = "ldap.bind_password"
   private val LdapBaseDN = "ldap.baseDN"
   private val LdapUserNameAttribute = "ldap.username_attribute"
+  private val LdapAdditionalFilterCondition = "ldap.additional_filter_condition"
   private val LdapFullNameAttribute = "ldap.fullname_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
+  private val LdapDisableMailResolve = "ldap.disable_mail_resolve"
   private val LdapTls = "ldap.tls"
   private val LdapKeystore = "ldap.keystore"
 

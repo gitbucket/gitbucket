@@ -56,6 +56,11 @@ trait IndexControllerBase extends ControllerBase {
     session.setAttribute(Keys.Session.LoginAccount, account)
     updateLastLoginDate(account.userName)
 
+    if(AccountUtil.hasLdapDummyMailAddress(account)) {
+      session.remove(Keys.Session.Redirect)
+      redirect("/" + account.userName + "/_edit")
+    }
+
     session.getAndRemove[String](Keys.Session.Redirect).map { redirectUrl =>
       if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
         redirect("/")

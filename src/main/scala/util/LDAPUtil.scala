@@ -30,7 +30,7 @@ object LDAPUtil {
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "System LDAP authentication failed."
     ){ conn =>
-      findUser(conn, userName, ldapSettings.baseDN, ldapSettings.userNameAttribute) match {
+      findUser(conn, userName, ldapSettings.baseDN, ldapSettings.userNameAttribute, ldapSettings.additionalFilterCondition) match {
         case Some(userDN) => userAuthentication(ldapSettings, userDN, userName, password)
         case None         => Left("User does not exist.")
       }
@@ -47,20 +47,29 @@ object LDAPUtil {
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "User LDAP Authentication Failed."
     ){ conn =>
-      findMailAddress(conn, userDN, ldapSettings.mailAttribute) match {
-        case Some(mailAddress) => Right(LDAPUserInfo(
+      if(ldapSettings.disableMailResolve.getOrElse(false)) {
+        Right(LDAPUserInfo(
           userName    = userName,
           fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
             findFullName(conn, userDN, fullNameAttribute)
           }.getOrElse(userName),
-          mailAddress = mailAddress))
-        case None => Left("Can't find mail address.")
+          mailAddress = AccountUtil.getLdapDummyMailAddress(userName)))
+      } else {
+        findMailAddress(conn, userDN, ldapSettings.mailAttribute) match {
+          case Some(mailAddress) => Right(LDAPUserInfo(
+            userName    = userName,
+            fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
+              findFullName(conn, userDN, fullNameAttribute)
+            }.getOrElse(userName),
+            mailAddress = mailAddress))
+          case None => Left("Can't find mail address.")
+        }
       }
     }
   }
 
   private def bind[A](host: String, port: Int, dn: String, password: String, tls: Boolean, keystore: String, error: String)
-                  (f: LDAPConnection => Either[String, A]): Either[String, A] = {
+                     (f: LDAPConnection => Either[String, A]): Either[String, A] = {
     if (tls) {
       // Dynamically set Sun as the security provider
       Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider())
@@ -105,7 +114,7 @@ object LDAPUtil {
   /**
    * Search a specified user and returns userDN if exists.
    */
-  private def findUser(conn: LDAPConnection, userName: String, baseDN: String, userNameAttribute: String): Option[String] = {
+  private def findUser(conn: LDAPConnection, userName: String, baseDN: String, userNameAttribute: String, additionalFilterCondition: Option[String]): Option[String] = {
     @tailrec
     def getEntries(results: LDAPSearchResults, entries: List[Option[LDAPEntry]] = Nil): List[LDAPEntry] = {
       if(results.hasMore){
@@ -118,7 +127,13 @@ object LDAPUtil {
         entries.flatten
       }
     }
-    getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, userNameAttribute + "=" + userName, null, false)).collectFirst {
+
+    val filterCond = additionalFilterCondition.getOrElse("") match {
+      case "" => userNameAttribute + "=" + userName
+      case x => "(&(" + x + ")(" + userNameAttribute + "=" + userName + "))"
+    }
+
+    getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, filterCond, null, false)).collectFirst {
       case x => x.getDN
     }
   }
