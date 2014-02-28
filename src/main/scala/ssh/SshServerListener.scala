@@ -1,6 +1,6 @@
 package ssh
 
-import javax.servlet.{ServletContextEvent, ServletContextListener}
+import javax.servlet.{ServletContext, ServletContextEvent, ServletContextListener}
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
 
@@ -13,6 +13,9 @@ object SshServer {
 
   private val server = org.apache.sshd.SshServer.setUpDefaultServer()
 
+  // TODO think other way to create database session
+  private var context: ServletContext = null
+
 
   private def configure() = {
     server.setPort(DEFAULT_PORT)
@@ -23,8 +26,9 @@ object SshServer {
     server.setCommandFactory(new GitCommandFactory)
   }
 
-  def start() = {
+  def start(context: ServletContext) = {
     if (SSH_SERVICE_ENABLE) {
+      this.context = context
       configure()
       server.start()
       logger.info(s"Start SSH Server Listen on ${server.getPort}")
@@ -34,6 +38,8 @@ object SshServer {
   def stop() = {
     server.stop(true)
   }
+
+  def getServletContext = this.context;
 }
 
 /*
@@ -46,7 +52,7 @@ object SshServer {
 class SshServerListener extends ServletContextListener {
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
-    SshServer.start()
+    SshServer.start(sce.getServletContext())
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {

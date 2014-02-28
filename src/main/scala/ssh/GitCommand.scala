@@ -8,6 +8,9 @@ import org.eclipse.jgit.api.Git
 import util.Directory._
 import org.eclipse.jgit.transport.{ReceivePack, UploadPack}
 import org.apache.sshd.server.command.UnknownCommand
+import servlet.{Database, CommitLogHook}
+import service.SystemSettingsService.SystemSettings
+import service.SystemSettingsService
 
 
 class GitCommandFactory extends CommandFactory {
@@ -85,16 +88,25 @@ class GitUploadPack(command: String) extends GitCommand(command: String) {
   }
 }
 
-class GitReceivePack(command: String) extends GitCommand(command: String) {
+class GitReceivePack(command: String) extends GitCommand(command: String) with SystemSettingsService {
   override def runnable = new Runnable {
+
+    // TODO correct this info
+    val pusher: String = "user1"
+    val baseURL: String = loadSystemSettings().baseUrl.getOrElse("http://localhost:8080")
+
     override def run(): Unit = {
       using(Git.open(getRepositoryDir(owner, repositoryName))) { git =>
           val repository = git.getRepository
           // TODO hook commit
           val receive = new ReceivePack(repository)
-          receive.receive(in, out, err)
-          callback.onExit(0)
+          receive.setPostReceiveHook(new CommitLogHook(owner, repositoryName, pusher, baseURL))
+          Database(SshServer.getServletContext) withTransaction {
+            receive.receive(in, out, err)
+            callback.onExit(0)
+          }
       }
     }
   }
+
 }
