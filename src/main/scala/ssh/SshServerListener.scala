@@ -16,13 +16,10 @@ object SshServer {
 
   private def configure() = {
     server.setPort(DEFAULT_PORT)
-
-    // TODO not password use PublicKeyAuthenticator
-    val authenticator = new MyPasswordAuthenticator
-    server.setPasswordAuthenticator(authenticator)
-
     // TODO gitbucket.ser should be in GITBUCKET_HOME
     server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("gitbucket.ser"))
+
+    server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
     server.setCommandFactory(new GitCommandFactory)
   }
 
@@ -30,6 +27,7 @@ object SshServer {
     if (SSH_SERVICE_ENABLE) {
       configure()
       server.start()
+      logger.info(s"Start SSH Server Listen on ${server.getPort}")
     }
   }
 
@@ -39,19 +37,20 @@ object SshServer {
 }
 
 /*
- * Start a SSH Service Daemon
+ * Start a SSH Server Daemon
  *
- * How to use ?
- * git clone ssh://username@host_or_ip:29418/username/repository_name.git
+ * How to use:
+ * git clone ssh://username@host_or_ip:29418/owner/repository_name.git
  *
  */
 class SshServerListener extends ServletContextListener {
+
   override def contextInitialized(sce: ServletContextEvent): Unit = {
-    SshServer.start
+    SshServer.start()
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {
-    SshServer.stop
+    SshServer.stop()
   }
 
 }

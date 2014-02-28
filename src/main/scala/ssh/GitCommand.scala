@@ -98,4 +98,3 @@ class GitReceivePack(command: String) extends GitCommand(command: String) {
     }
   }
 }
-
