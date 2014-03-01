@@ -3,7 +3,7 @@ package util
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
-import org.eclipse.jgit.transport.RefSpec
+import scala.util.control.Exception._
 import scala.language.reflectiveCalls
 
 /**
@@ -16,10 +16,8 @@ object ControlUtil {
   def using[A <% { def close(): Unit }, B](resource: A)(f: A => B): B =
     try f(resource) finally {
       if(resource != null){
-        try {
+        allCatch {
           resource.close()
-        } catch {
-          case e: Throwable => // ignore
         }
       }
     }
