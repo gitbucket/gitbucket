@@ -79,7 +79,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           pulls.html.pullreq(
             issue, pullreq,
             getComments(owner, name, issueId),
-            getIssueLabels(owner, name, issueId.toInt),
+            getIssueLabels(owner, name, issueId),
             (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
             getMilestonesWithIssueCount(owner, name),
             getLabels(owner, name),
