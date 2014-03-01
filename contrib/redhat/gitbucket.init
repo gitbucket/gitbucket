@@ -39,7 +39,7 @@ start() {
 	if [ $GITBUCKET_HOST ]; then
 		START_OPTS="${START_OPTS} --host=${GITBUCKET_HOST}"
 	fi
-	if [ $GITBUCKET_HTTPS ]; then
+	if [ $GITBUCKET_HTTPS == true]; then
 		START_OPTS="${START_OPTS} --https=true"
 	fi
 
