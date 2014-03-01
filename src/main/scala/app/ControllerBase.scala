@@ -20,7 +20,8 @@ import org.scalatra.i18n._
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with Validations with SystemSettingsService {
+  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
+  with SystemSettingsService {
 
   implicit val jsonFormats = DefaultFormats
 

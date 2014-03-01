@@ -31,6 +31,7 @@ trait IndexControllerBase extends ControllerBase {
   get("/signin"){
     val redirect = params.get("redirect")
     if(redirect.isDefined && redirect.get.startsWith("/")){
+
       session.setAttribute(Keys.Session.Redirect, redirect.get)
     }
     html.signin(loadSystemSettings())
