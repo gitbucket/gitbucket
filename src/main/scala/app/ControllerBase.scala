@@ -103,14 +103,20 @@ abstract class ControllerBase extends ScalatraFilter
         if(request.getMethod.toUpperCase == "POST"){
           org.scalatra.Unauthorized(redirect("/signin"))
         } else {
-          val currentUrl = baseUrl + defining(request.getQueryString){ queryString =>
-            request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
-          }
-          session.setAttribute(Keys.Session.Redirect, currentUrl)
-          org.scalatra.Unauthorized(redirect("/signin"))
+          org.scalatra.Unauthorized(redirect("/signin?redirect=" + StringUtil.urlEncode(
+            defining(request.getQueryString){ queryString =>
+              request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
+            }
+          )))
         }
       }
     }
+
+  override def fullUrl(path: String, params: Iterable[(String, Any)] = Iterable.empty,
+                       includeContextPath: Boolean = true, includeServletPath: Boolean = true)
+                      (implicit request: HttpServletRequest, response: HttpServletResponse) =
+    if (path.startsWith("http")) path
+    else baseUrl + url(path, params, includeContextPath, includeServletPath)
 
 }
 
