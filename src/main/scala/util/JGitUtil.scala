@@ -128,7 +128,7 @@ object JGitUtil {
     using(Git.open(getRepositoryDir(owner, repository))){ git =>
       try {
         // get commit count
-        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(1000).sum
+        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(10000).sum
 
         RepositoryInfo(
           owner, repository, s"${baseUrl}/git/${owner}/${repository}.git",
