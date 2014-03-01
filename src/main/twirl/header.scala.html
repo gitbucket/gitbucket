@@ -29,13 +29,10 @@
       </div>
     }
   }
-  
 </div>
-
-  @if(repository.repository.description != "") {
-    <p>@repository.repository.description</p>
-  }
-
+@repository.repository.description.map { description =>
+  <p>@description</p>
+}
 <table class="global-nav box-header">
   <tr>
     <th class="box-header@if(active=="code"){ active}">
