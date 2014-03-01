@@ -314,6 +314,18 @@ trait IssuesService {
     }.toList
   }
 
+  def closeIssuesFromMessage(message: String, userName: String, owner: String, repository: String) = {
+    val regex = "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r
+    regex.findAllIn(message).matchData.map(_.group(1)).foreach { issueId =>
+      getIssue(owner, repository, issueId) match {
+        case Some(issue) if !issue.closed => {
+          createComment(owner, repository, userName, issue.issueId, "Close", "close")
+          updateClosed(owner, repository, issue.issueId, true)
+        }
+        case _ =>
+      }
+    }
+  }
 }
 
 object IssuesService {
