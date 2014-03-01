@@ -183,6 +183,18 @@ trait PullRequestsControllerBase extends ControllerBase {
               }
             }
 
+            // close issue by content of pull request
+            val defaultBranch = getRepository(owner, name, baseUrl).get.repository.defaultBranch
+            if(pullreq.branch == defaultBranch){
+              commits.flatten.foreach { commit =>
+                closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
+              }
+              issue.content match {
+                case Some(content) => closeIssuesFromMessage(content, loginAccount.userName, owner, name)
+                case _ =>
+              }
+              closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
+            }
             // call web hook
             getWebHookURLs(owner, name) match {
               case webHookURLs if(webHookURLs.nonEmpty) =>
