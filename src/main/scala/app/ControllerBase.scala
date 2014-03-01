@@ -111,12 +111,6 @@ abstract class ControllerBase extends ScalatraFilter
       }
     }
 
-  protected def baseUrl = loadSystemSettings().baseUrl.getOrElse {
-    defining(request.getRequestURL.toString){ url =>
-      url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
-    }
-  }.replaceFirst("/$", "")
-
 }
 
 /**
