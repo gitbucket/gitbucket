@@ -58,7 +58,7 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 1.11 - End of Feb 2014
+### 1.11 - 01 Mar 2014
 - Base URL for redirection, notification and repository URL box is configurable
 - Remove ```--https``` option because it's possible to substitute in the base url
 - Headline anchor is available for Markdown contents such as Wiki page
