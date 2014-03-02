@@ -116,7 +116,7 @@ abstract class ControllerBase extends ScalatraFilter
                        includeContextPath: Boolean = true, includeServletPath: Boolean = true)
                       (implicit request: HttpServletRequest, response: HttpServletResponse) =
     if (path.startsWith("http")) path
-    else baseUrl + url(path, params, includeContextPath, includeServletPath)
+    else baseUrl + url(path, params, false, false)
 
 }
 
