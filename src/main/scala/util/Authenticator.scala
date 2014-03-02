@@ -155,3 +155,22 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
     }
   }
 }
+
+/**
+ * Allows only the group members.
+ */
+trait GroupMemberAuthenticator { self: ControllerBase with AccountService =>
+  protected def membersOnly(action: => Any) = { authenticate(action) }
+  protected def membersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
+
+  private def authenticate(action: => Any) = {
+    {
+      defining(request.paths){ paths =>
+        context.loginAccount match {
+          case Some(x) if(getGroupMembers(paths(0)).contains(x.userName)) => action
+          case _ => Unauthorized()
+        }
+      }
+    }
+  }
+}

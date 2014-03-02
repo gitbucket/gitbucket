@@ -1,4 +1,5 @@
-@(account: model.Account, groupNames: List[String], active: String)(body: Html)(implicit context: app.Context)
+@(account: model.Account, groupNames: List[String], active: String,
+  isGroupMember: Boolean = false)(body: Html)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(account.userName){
@@ -41,7 +42,7 @@
               </div>
             </li>
           }
-          @if(loginAccount.isDefined && account.isGroupAccount){
+          @if(loginAccount.isDefined && account.isGroupAccount && isGroupMember){
             <li class="pull-right">
               <div class="button-group">
                 <a href="@url(account.userName)/_edit" class="btn">Edit Group</a>

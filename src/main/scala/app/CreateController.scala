@@ -13,14 +13,14 @@ import org.apache.commons.io.FileUtils
 
 class CreateController extends CreateControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-  with UsersAuthenticator with ReadableUsersAuthenticator
+  with UsersAuthenticator with ReadableUsersAuthenticator with GroupMemberAuthenticator
 
 /**
  * Creates new repository or group.
  */
 trait CreateControllerBase extends AccountManagementControllerBase {
   self: RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-    with UsersAuthenticator with ReadableUsersAuthenticator =>
+    with UsersAuthenticator with ReadableUsersAuthenticator with GroupMemberAuthenticator =>
 
   case class RepositoryCreationForm(owner: String, name: String, description: Option[String],
                                     isPrivate: Boolean, createReadme: Boolean)
@@ -207,13 +207,13 @@ trait CreateControllerBase extends AccountManagementControllerBase {
     redirect(s"/${form.groupName}")
   })
 
-  get("/:groupName/_edit")(usersOnly { // TODO group manager only
+  get("/:groupName/_edit")(membersOnly {
     defining(params("groupName")){ groupName =>
       html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
     }
   })
 
-  post("/:groupName/_edit", editGroupForm)(usersOnly { form => // TODO group manager only
+  post("/:groupName/_edit", editGroupForm)(membersOnly { form =>
     defining(params("groupName"), form.memberNames.map(_.split(",").toList).getOrElse(Nil)){ case (groupName, memberNames) =>
       getAccountByUserName(groupName, true).map { account =>
         updateGroup(groupName, form.url, form.isRemoved)

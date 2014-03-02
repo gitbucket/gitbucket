@@ -51,14 +51,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             getActivitiesByUser(userName, true))
 
         // Members
-        case "members" if(account.isGroupAccount) =>
-          _root_.account.html.members(account, getGroupMembers(account.userName))
+        case "members" if(account.isGroupAccount) => {
+          val members = getGroupMembers(account.userName)
+          _root_.account.html.members(account, members,
+            context.loginAccount.exists(x => members.contains(x.userName)))
+        }
 
         // Repositories
-        case _ =>
+        case _ => {
+          val members = getGroupMembers(account.userName)
           _root_.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)))
+            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)),
+            context.loginAccount.exists(x => members.contains(x.userName)))
+        }
       }
     } getOrElse NotFound
   }
