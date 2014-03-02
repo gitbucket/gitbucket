@@ -11,14 +11,14 @@ import org.eclipse.jgit.dircache.DirCache
 import org.scalatra.i18n.Messages
 import org.apache.commons.io.FileUtils
 
-class CreateRepositoryController extends CreateRepositoryControllerBase
+class CreateController extends CreateControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
   with UsersAuthenticator with ReadableUsersAuthenticator
 
 /**
  * Creates new repository or group.
  */
-trait CreateRepositoryControllerBase extends AccountManagementControllerBase {
+trait CreateControllerBase extends AccountManagementControllerBase {
   self: RepositoryService with AccountService with WikiService with LabelsService with ActivityService
     with UsersAuthenticator with ReadableUsersAuthenticator =>
 
