@@ -25,8 +25,6 @@ public class JettyLauncher {
                         port = Integer.parseInt(dim[1]);
                     } else if(dim[0].equals("--prefix")) {
                         contextPath = dim[1];
-                    } else if(dim[0].equals("--https") && (dim[1].equals("1") || dim[1].equals("true"))) {
-                        forceHttps = true;
                     } else if(dim[0].equals("--gitbucket.home")){
                         System.setProperty("gitbucket.home", dim[1]);
                     }
@@ -36,7 +34,7 @@ public class JettyLauncher {
 
         Server server = new Server();
 
-        HttpsSupportConnector connector = new HttpsSupportConnector(forceHttps);
+        SelectChannelConnector connector = new SelectChannelConnector();
         if(host != null) {
             connector.setHost(host);
         }
@@ -60,21 +58,5 @@ public class JettyLauncher {
         server.setHandler(context);
         server.start();
         server.join();
-    }
-}
-
-class HttpsSupportConnector extends SelectChannelConnector {
-    private boolean forceHttps;
-
-    public HttpsSupportConnector(boolean forceHttps) {
-        this.forceHttps = forceHttps;
-    }
-
-    @Override
-    public void customize(final EndPoint endpoint, final Request request) throws IOException {
-        if (this.forceHttps) {
-            request.setScheme("https");
-            super.customize(endpoint, request);
-        }
     }
 }

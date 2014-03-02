@@ -6,18 +6,15 @@ import util.Directory._
 import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
-import org.scalatra.FlashMapSupport
 import org.scalatra.i18n.Messages
 import scala.Some
 import java.util.ResourceBundle
 
 class WikiController extends WikiControllerBase 
-  with WikiService with RepositoryService with AccountService with ActivityService
-  with CollaboratorsAuthenticator with ReferrerAuthenticator
+  with WikiService with RepositoryService with AccountService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator
 
-trait WikiControllerBase extends ControllerBase with FlashMapSupport {
-  self: WikiService with RepositoryService with ActivityService
-    with CollaboratorsAuthenticator with ReferrerAuthenticator =>
+trait WikiControllerBase extends ControllerBase {
+  self: WikiService with RepositoryService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
   

@@ -5,13 +5,12 @@ import util.{FileUtil, OneselfAuthenticator}
 import util.StringUtil._
 import util.Directory._
 import jp.sf.amateras.scalatra.forms._
-import org.scalatra.FlashMapSupport
 import org.apache.commons.io.FileUtils
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with OneselfAuthenticator
 
-trait AccountControllerBase extends AccountManagementControllerBase with FlashMapSupport {
+trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with OneselfAuthenticator =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,

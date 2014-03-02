@@ -1,6 +1,7 @@
 package util
 
 import scala.util.matching.Regex
+import scala.util.control.Exception._
 import javax.servlet.http.{HttpSession, HttpServletRequest}
 
 /**
@@ -42,10 +43,8 @@ object Implicits {
       sb.toString
     }
 
-    def toIntOpt: Option[Int] = try {
-      Option(Integer.parseInt(value))
-    } catch {
-      case e: NumberFormatException => None
+    def toIntOpt: Option[Int] = catching(classOf[NumberFormatException]) opt {
+      Integer.parseInt(value)
     }
   }
 

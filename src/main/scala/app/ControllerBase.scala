@@ -20,7 +20,8 @@ import org.scalatra.i18n._
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with Validations with SystemSettingsService {
+  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
+  with SystemSettingsService {
 
   implicit val jsonFormats = DefaultFormats
 
@@ -102,20 +103,20 @@ abstract class ControllerBase extends ScalatraFilter
         if(request.getMethod.toUpperCase == "POST"){
           org.scalatra.Unauthorized(redirect("/signin"))
         } else {
-          val currentUrl = baseUrl + defining(request.getQueryString){ queryString =>
-            request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
-          }
-          session.setAttribute(Keys.Session.Redirect, currentUrl)
-          org.scalatra.Unauthorized(redirect("/signin"))
+          org.scalatra.Unauthorized(redirect("/signin?redirect=" + StringUtil.urlEncode(
+            defining(request.getQueryString){ queryString =>
+              request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
+            }
+          )))
         }
       }
     }
 
-  protected def baseUrl = loadSystemSettings().baseUrl.getOrElse {
-    defining(request.getRequestURL.toString){ url =>
-      url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
-    }
-  }.replaceFirst("/$", "")
+  override def fullUrl(path: String, params: Iterable[(String, Any)] = Iterable.empty,
+                       includeContextPath: Boolean = true, includeServletPath: Boolean = true)
+                      (implicit request: HttpServletRequest, response: HttpServletResponse) =
+    if (path.startsWith("http")) path
+    else baseUrl + url(path, params, includeContextPath, includeServletPath)
 
 }
 

@@ -50,10 +50,10 @@ class GitRepositoryServlet extends GitServlet {
   
 }
 
-class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest] {
+class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest] with SystemSettingsService {
   
   private val logger = LoggerFactory.getLogger(classOf[GitBucketReceivePackFactory])
-  
+
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
     val pusher = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
@@ -64,13 +64,11 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
     defining(request.paths){ paths =>
       val owner      = paths(1)
       val repository = paths(2).replaceFirst("\\.git$", "")
-      val baseURL    = request.getRequestURL.toString.replaceFirst("/git/.*", "")
 
       logger.debug("repository:" + owner + "/" + repository)
-      logger.debug("baseURL:" + baseURL)
 
       if(!repository.endsWith(".wiki")){
-        receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseURL))
+        receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseUrl(request)))
       }
       receivePack
     }
@@ -79,7 +77,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: String) extends PostReceiveHook
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String) extends PostReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
@@ -143,12 +141,20 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: 
             }
           }
 
+          // close issues
+          val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
+          if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
+            git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach { commit =>
+              closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
+            }
+          }
+
           // call web hook
           getWebHookURLs(owner, repository) match {
             case webHookURLs if(webHookURLs.nonEmpty) =>
               for(pusherAccount <- getAccountByUserName(pusher);
                   ownerAccount   <- getAccountByUserName(owner);
-                  repositoryInfo <- getRepository(owner, repository, baseURL)){
+                  repositoryInfo <- getRepository(owner, repository, baseUrl)){
                 callWebHook(owner, repository, webHookURLs,
                   WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
               }
@@ -181,7 +187,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseURL: 
    */
   private def updatePullRequests(branch: String) =
     getPullRequestsByRequest(owner, repository, branch, false).foreach { pullreq =>
-      if(getRepository(pullreq.userName, pullreq.repositoryName, baseURL).isDefined){
+      if(getRepository(pullreq.userName, pullreq.repositoryName, baseUrl).isDefined){
         using(Git.open(Directory.getRepositoryDir(pullreq.userName, pullreq.repositoryName))){ git =>
           git.fetch
             .setRemote(Directory.getRepositoryDir(owner, repository).toURI.toString)

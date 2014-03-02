@@ -3,8 +3,15 @@ package service
 import util.Directory._
 import util.ControlUtil._
 import SystemSettingsService._
+import javax.servlet.http.HttpServletRequest
 
 trait SystemSettingsService {
+
+  def baseUrl(implicit request: HttpServletRequest): String = loadSystemSettings().baseUrl.getOrElse {
+    defining(request.getRequestURL.toString){ url =>
+      url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
+    }
+  }.replaceFirst("/$", "")
 
   def saveSystemSettings(settings: SystemSettings): Unit = {
     defining(new java.util.Properties()){ props =>

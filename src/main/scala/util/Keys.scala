@@ -13,12 +13,7 @@ object Keys {
     /**
      * Session key for the logged in account information.
      */
-    val LoginAccount = "LOGIN_ACCOUNT"
-
-    /**
-     * Session key for the redirect URL.
-     */
-    val Redirect = "REDIRECT"
+    val LoginAccount = "loginAccount"
 
     /**
      * Session key for the issue search condition in dashboard.
@@ -44,6 +39,20 @@ object Keys {
      * Generate session key for the upload filename.
      */
     def Upload(fileId: String) = s"upload_${fileId}"
+
+  }
+
+  object Flash {
+
+    /**
+     * Flash key for the redirect URL.
+     */
+    val Redirect = "redirect"
+
+    /**
+     * Flash key for the information message.
+     */
+    val Info = "info"
 
   }
 
