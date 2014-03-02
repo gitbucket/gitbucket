@@ -41,6 +41,13 @@
               </div>
             </li>
           }
+          @if(loginAccount.isDefined && account.isGroupAccount){
+            <li class="pull-right">
+              <div class="button-group">
+                <a href="@url(account.userName)/_edit" class="btn">Edit Group</a>
+              </div>
+            </li>
+          }
         </ul>
         @body
       </div>
