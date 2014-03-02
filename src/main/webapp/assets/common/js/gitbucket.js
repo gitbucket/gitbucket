@@ -30,6 +30,17 @@ $(function(){
     $(e.target).data('active', false);
     $(e.target).hide();
   });
+  $(document).ready(function(){
+    $('[data-url]').each(function(i,e) {
+      var elem=$(e);
+      $.ajax({
+        url: elem.attr('data-url'),
+        success: function(html){
+          elem.replaceWith(html);
+        }
+      });
+    });
+  });
 
   // syntax highlighting by google-code-prettify
   prettyPrint();
