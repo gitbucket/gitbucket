@@ -53,8 +53,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // Members
         case "members" if(account.isGroupAccount) => {
           val members = getGroupMembers(account.userName)
-          _root_.account.html.members(account, members,
-            context.loginAccount.exists(x => members.contains(x.userName)))
+          _root_.account.html.members(account, members.map(_._1),
+            context.loginAccount.exists(x => members.exists { case (userName, isManager) => userName == x.userName && isManager }))
         }
 
         // Repositories
@@ -63,7 +63,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           _root_.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)),
-            context.loginAccount.exists(x => members.contains(x.userName)))
+            context.loginAccount.exists(x => members.exists { case (userName, isManager) => userName == x.userName && isManager }))
         }
       }
     } getOrElse NotFound

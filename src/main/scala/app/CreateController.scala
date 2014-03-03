@@ -13,14 +13,14 @@ import org.apache.commons.io.FileUtils
 
 class CreateController extends CreateControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-  with UsersAuthenticator with ReadableUsersAuthenticator with GroupMemberAuthenticator
+  with UsersAuthenticator with ReadableUsersAuthenticator with GroupManagerAuthenticator
 
 /**
  * Creates new repository or group.
  */
 trait CreateControllerBase extends AccountManagementControllerBase {
   self: RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-    with UsersAuthenticator with ReadableUsersAuthenticator with GroupMemberAuthenticator =>
+    with UsersAuthenticator with ReadableUsersAuthenticator with GroupManagerAuthenticator =>
 
   case class RepositoryCreationForm(owner: String, name: String, description: Option[String],
                                     isPrivate: Boolean, createReadme: Boolean)
@@ -84,7 +84,7 @@ trait CreateControllerBase extends AccountManagementControllerBase {
 
         // Add collaborators for group repository
         if(ownerAccount.isGroupAccount){
-          getGroupMembers(form.owner).foreach { userName =>
+          getGroupMembers(form.owner).foreach { case (userName, isManager) =>
             addCollaborator(form.owner, form.name, userName)
           }
         }
@@ -202,19 +202,27 @@ trait CreateControllerBase extends AccountManagementControllerBase {
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
     createGroup(form.groupName, form.url)
-    updateGroupMembers(form.groupName, form.memberNames.map(_.split(",").toList).getOrElse(Nil))
+    updateGroupMembers(form.groupName, form.memberNames.map(_.split(",").map {
+      _.split(":") match {
+        case Array(userName, isManager) => (userName, isManager.toBoolean)
+      }
+    }.toList).getOrElse(Nil))
     updateImage(form.groupName, form.fileId, false)
     redirect(s"/${form.groupName}")
   })
 
-  get("/:groupName/_edit")(membersOnly {
+  get("/:groupName/_edit")(managersOnly {
     defining(params("groupName")){ groupName =>
       html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
     }
   })
 
-  post("/:groupName/_edit", editGroupForm)(membersOnly { form =>
-    defining(params("groupName"), form.memberNames.map(_.split(",").toList).getOrElse(Nil)){ case (groupName, memberNames) =>
+  post("/:groupName/_edit", editGroupForm)(managersOnly { form =>
+    defining(params("groupName"), form.memberNames.map(_.split(",").map {
+      _.split(":") match {
+        case Array(userName, isManager) => (userName, isManager.toBoolean)
+      }
+    }.toList).getOrElse(Nil)){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
         updateGroup(groupName, form.url, form.isRemoved)
 
@@ -230,11 +238,11 @@ trait CreateControllerBase extends AccountManagementControllerBase {
           }
         } else {
           // Update GROUP_MEMBER
-          updateGroupMembers(form.groupName, memberNames)
+          updateGroupMembers(form.groupName, members)
           // Update COLLABORATOR for group repositories
           getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
             removeCollaborators(form.groupName, repositoryName)
-            memberNames.foreach { userName =>
+            members.foreach { case (userName, isManager) =>
               addCollaborator(form.groupName, repositoryName, userName)
             }
           }

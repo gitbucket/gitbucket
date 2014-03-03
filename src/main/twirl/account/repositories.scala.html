@@ -1,9 +1,9 @@
 @(account: model.Account, groupNames: List[String],
   repositories: List[service.RepositoryService.RepositoryInfo],
-  isGroupMember: Boolean)(implicit context: app.Context)
+  isGroupManager: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@main(account, groupNames, "repositories", isGroupMember){
+@main(account, groupNames, "repositories", isGroupManager){
   @if(repositories.isEmpty){
     No repositories
   } else {

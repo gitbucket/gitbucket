@@ -157,17 +157,17 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
 }
 
 /**
- * Allows only the group members.
+ * Allows only the group managers.
  */
-trait GroupMemberAuthenticator { self: ControllerBase with AccountService =>
-  protected def membersOnly(action: => Any) = { authenticate(action) }
-  protected def membersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
+trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
+  protected def managersOnly(action: => Any) = { authenticate(action) }
+  protected def managersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
 
   private def authenticate(action: => Any) = {
     {
       defining(request.paths){ paths =>
         context.loginAccount match {
-          case Some(x) if(getGroupMembers(paths(0)).contains(x.userName)) => action
+          case Some(x) if(getGroupMembers(paths(0)).exists { case (userName, isManager) => userName == x.userName && isManager }) => action
           case _ => Unauthorized()
         }
       }

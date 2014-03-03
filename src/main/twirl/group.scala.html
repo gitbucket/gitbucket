@@ -1,4 +1,4 @@
-@(account: Option[model.Account], members: List[String])(implicit context: app.Context)
+@(account: Option[model.Account], members: List[(String, Boolean)])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @main("Create a group"){
@@ -35,8 +35,9 @@
           <fieldset>
             <label class="strong">Members</label>
             <ul id="members" class="collaborator">
-              @members.map { userName =>
+              @members.map { case (userName, isManager) =>
                 <li data-name="@userName">
+                  <input type="checkbox" id="is_manager_@userName" @if(isManager){checked}/>
                   <a href="@path/@url(userName)">@userName</a>
                   <a href="#" class="remove">(remove)</a>
                 </li>
@@ -85,6 +86,7 @@ $(function(){
         // add member
         $('#members').append($('<li>')
           .data('name', userName)
+          .append($('<input type="checkbox">').attr('id', 'is_manager_' + userName))
           .append($('<a>').attr('href', '@path/' + userName).text(userName))
           .append(' ')
           .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
@@ -92,7 +94,8 @@ $(function(){
 
         // update hidden value
         var userNames = $('#members li').map(function(i, e){
-          return $(e).data('name');
+          var userName = $(e).data('name');
+          return userName + ':' + $('#is_manager_' + userName).prop('checked');
         }).get().join(',');
         $('#memberNames').val(userNames);
       } else {
@@ -107,7 +110,8 @@ $(function(){
 
     // update hidden value
     var userNames = $('#members li').map(function(i, e){
-      return $(e).data('name');
+      var userName = $(e).data('name');
+      return userName + ':' + $('#is_manager_' + userName).prop('checked');
     }).get().join(',');
     $('#memberNames').val(userNames);
   });

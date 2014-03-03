@@ -1,4 +1,4 @@
-@(account: Option[model.Account], members: List[String])(implicit context: app.Context)
+@(account: Option[model.Account], members: List[(String, Boolean)])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(if(account.isEmpty) "New Group" else "Update Group"){
@@ -35,7 +35,7 @@
           <fieldset>
             <label class="strong">Members</label>
             <ul id="members" class="collaborator">
-              @members.map { userName =>
+              @members.map { case (userName, isManager) =>
                 <li data-name="@userName">
                   <a href="@path/@url(userName)">@userName</a>
                   <a href="#" class="remove">(remove)</a>
