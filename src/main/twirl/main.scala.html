@@ -61,7 +61,7 @@
                 }
                 <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
               } else {
-                <a href="@path/signin" class="btn btn-last" id="signin">Sign in</a>
+                <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-last" id="signin">Sign in</a>
               }
             </div><!--/.nav-collapse -->
           </div>
@@ -76,7 +76,6 @@
         $('#search').submit(function(){
           return $.trim($(this).find('input[name=query]').val()) != '';
         });
-        $('#signin').attr('href', '@path/signin?redirect=' + encodeURIComponent(location.pathname + location.search + location.hash));
       });
     </script>
   </body>
