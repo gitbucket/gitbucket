@@ -65,7 +65,7 @@ trait AccountService {
     Query(Accounts) filter(t => (t.userName is userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false): Option[Account] =
-    Query(Accounts) filter(t => (t.mailAddress is mailAddress.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
+    Query(Accounts) filter(t => (t.mailAddress.toLowerCase is mailAddress.toLowerCase.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
   def getAllUsers(includeRemoved: Boolean = true): List[Account] =
     if(includeRemoved){

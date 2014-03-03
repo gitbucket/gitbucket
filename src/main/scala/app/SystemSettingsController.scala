@@ -4,15 +4,15 @@ import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
 import util.AdminAuthenticator
 import jp.sf.amateras.scalatra.forms._
-import org.scalatra.FlashMapSupport
 
 class SystemSettingsController extends SystemSettingsControllerBase
 with SystemSettingsService with AccountService with AdminAuthenticator
 
-trait SystemSettingsControllerBase extends ControllerBase with FlashMapSupport {
+trait SystemSettingsControllerBase extends ControllerBase {
   self: SystemSettingsService with AccountService with AdminAuthenticator =>
 
   private val form = mapping(
+    "baseUrl"                  -> trim(label("Base URL", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),

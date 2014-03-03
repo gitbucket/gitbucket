@@ -116,8 +116,9 @@ class GitBucketHtmlSerializer(
     val tag = s"h${node.getLevel}"
     val headerTextString = printChildrenToString(node)
     val anchorName = GitBucketHtmlSerializer.generateAnchorName(headerTextString)
-    printer.print(s"<$tag>")
-    printer.print(s"""<a class="anchor" name="$anchorName" href="#$anchorName"></a>""")
+    printer.print(s"""<$tag class="markdown-head">""")
+    printer.print(s"""<a class="markdown-anchor-link" href="#$anchorName"></a>""")
+    printer.print(s"""<a class="markdown-anchor" name="$anchorName"></a>""")
     visitChildren(node)
     printer.print(s"</$tag>")
   }
@@ -142,12 +143,10 @@ object GitBucketHtmlSerializer {
 
   private val Whitespace = "[\\s]".r
 
-  private val SpecialChars = "[^\\w-]".r
-
   def generateAnchorName(text: String): String = {
     val noWhitespace = Whitespace.replaceAllIn(text, "-")
     val normalized = Normalizer.normalize(noWhitespace, Normalizer.Form.NFD)
-    val noSpecialChars = SpecialChars.replaceAllIn(normalized, "")
+    val noSpecialChars = StringUtil.urlEncode(normalized)
     noSpecialChars.toLowerCase(Locale.ENGLISH)
   }
 }

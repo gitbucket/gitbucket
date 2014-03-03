@@ -31,7 +31,7 @@ object StringUtil {
 
   /**
    * Make string from byte array. Character encoding is detected automatically by [[util.StringUtil.detectEncoding]].
-   * And if given bytes contains UTF-8 BOM, it's removed from returned string..
+   * And if given bytes contains UTF-8 BOM, it's removed from returned string.
    */
   def convertFromByteArray(content: Array[Byte]): String =
     IOUtils.toString(new BOMInputStream(new java.io.ByteArrayInputStream(content)), detectEncoding(content))
@@ -45,4 +45,23 @@ object StringUtil {
         case e    => e
       }
     }
+
+  /**
+   * Extract issue id like ```#issueId``` from the given message.
+   *
+   *@param message the message which may contains issue id
+   * @return the iterator of issue id
+   */
+  def extractIssueId(message: String): Iterator[String] =
+    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(message).matchData.map(_.group(2))
+
+  /**
+   * Extract close issue id like ```close #issueId ``` from the given message.
+   *
+   * @param message the message which may contains close command
+   * @return the iterator of issue id
+   */
+  def extractCloseId(message: String): Iterator[String] =
+    "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r.findAllIn(message).matchData.map(_.group(1))
+
 }

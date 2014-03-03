@@ -23,7 +23,7 @@ Following features are not implemented, but we will make them in the future rele
 - File editing in repository viewer
 - Comment for the changeset
 - Network graph
-- Statics
+- Statistics
 - Watch / Star
 
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
@@ -42,7 +42,6 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 - --port=[NUMBER]
 - --prefix=[CONTEXTPATH]
 - --host=[HOSTNAME]
-- --https=true
 - --gitbucket.home=[DATA_DIR]
 
 To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
@@ -59,12 +58,24 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 1.11 - 01 Mar 2014
+- Base URL for redirection, notification and repository URL box is configurable
+- Remove ```--https``` option because it's possible to substitute in the base url
+- Headline anchor is available for Markdown contents such as Wiki page
+- Improve H2 connectivity
+- Label is available for pull requests not only issues
+- Delete branch button is added
+- Repository icons are updated
+- Select lines of source code by URL hash like `#L10` or `#L10-L15` in repository viewer
+- Display reference to issue from others in comment list
+- Fix some bugs
+
 ### 1.10 - 01 Feb 2014
 - Rename repository
 - Transfer repository owner
 - Change default data directory to `HOME/.gitbucket` from `HOME/gitbucket` to avoid problem like #243, but if data directory already exist at HOME/gitbucket, it continues being used.
 - Add LDAP display name attribute
-- Response improvement
+- Response performance improvement
 - Fix some bugs
 
 ### 1.9 - 28 Dec 2013

@@ -5,7 +5,6 @@ import util.Directory._
 import util.{UsersAuthenticator, OwnerAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
-import org.scalatra.FlashMapSupport
 import org.scalatra.i18n.Messages
 import service.WebHookService.WebHookPayload
 import util.JGitUtil.CommitInfo
@@ -16,7 +15,7 @@ class RepositorySettingsController extends RepositorySettingsControllerBase
   with RepositoryService with AccountService with WebHookService
   with OwnerAuthenticator with UsersAuthenticator
 
-trait RepositorySettingsControllerBase extends ControllerBase with FlashMapSupport {
+trait RepositorySettingsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with WebHookService
     with OwnerAuthenticator with UsersAuthenticator =>
 

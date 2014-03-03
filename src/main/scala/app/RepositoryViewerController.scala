@@ -276,7 +276,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             val readme = files.find { file =>
               readmeFiles.contains(file.name.toLowerCase)
             }.map { file =>
-              StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
+              file -> StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
             }
 
             repo.html.files(revision, repository,

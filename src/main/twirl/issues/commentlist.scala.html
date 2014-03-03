@@ -11,10 +11,16 @@
     <div class="box issue-comment-box" id="comment-@comment.commentId">
       <div class="box-header-small">
         <i class="icon-comment"></i>
-        @user(comment.commentedUserName, styleClass="username strong") commented
+        @user(comment.commentedUserName, styleClass="username strong")
+        @if(comment.action == "comment"){
+          commented
+        } else {
+          @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
+        }
         <span class="pull-right">
           @datetime(comment.registeredDate)
-          @if(comment.action != "commit" && comment.action != "merge" && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+          @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer" &&
+                (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
           }
@@ -27,7 +33,13 @@
             @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true)
           }
         } else {
-          @markdown(comment.content, repository, false, true)
+          @if(comment.action == "refer"){
+            @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
+              <strong><a href="@path/@repository.owner/@repository.name/issues/@issueId">Issue #@issueId</a>: @rest.mkString(":")</strong>
+            }
+          } else {
+            @markdown(comment.content, repository, false, true)
+          }
         }
       </div>
     </div>

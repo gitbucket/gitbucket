@@ -6,13 +6,10 @@ import service._
 import jp.sf.amateras.scalatra.forms._
 
 class SearchController extends SearchControllerBase
-with RepositoryService with AccountService with SystemSettingsService with ActivityService
-with RepositorySearchService with IssuesService
-with ReferrerAuthenticator
+  with RepositoryService with AccountService with ActivityService with RepositorySearchService with IssuesService with ReferrerAuthenticator
 
 trait SearchControllerBase extends ControllerBase { self: RepositoryService
-  with SystemSettingsService with ActivityService with RepositorySearchService
-  with ReferrerAuthenticator =>
+  with ActivityService with RepositorySearchService with ReferrerAuthenticator =>
 
   val searchForm = mapping(
     "query"      -> trim(text(required)),

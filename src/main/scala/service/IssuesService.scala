@@ -8,6 +8,7 @@ import Q.interpolation
 import model._
 import util.Implicits._
 import util.StringUtil._
+import util.StringUtil
 
 trait IssuesService {
   import IssuesService._
@@ -314,6 +315,14 @@ trait IssuesService {
     }.toList
   }
 
+  def closeIssuesFromMessage(message: String, userName: String, owner: String, repository: String) = {
+    StringUtil.extractCloseId(message).foreach { issueId =>
+      for(issue <- getIssue(owner, repository, issueId) if !issue.closed){
+        createComment(owner, repository, userName, issue.issueId, "Close", "close")
+        updateClosed(owner, repository, issue.issueId, true)
+      }
+    }
+  }
 }
 
 object IssuesService {

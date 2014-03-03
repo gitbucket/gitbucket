@@ -3,11 +3,19 @@ package service
 import util.Directory._
 import util.ControlUtil._
 import SystemSettingsService._
+import javax.servlet.http.HttpServletRequest
 
 trait SystemSettingsService {
 
+  def baseUrl(implicit request: HttpServletRequest): String = loadSystemSettings().baseUrl.getOrElse {
+    defining(request.getRequestURL.toString){ url =>
+      url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
+    }
+  }.replaceFirst("/$", "")
+
   def saveSystemSettings(settings: SystemSettings): Unit = {
     defining(new java.util.Properties()){ props =>
+      settings.baseUrl.foreach(props.setProperty(BaseURL, _))
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
@@ -50,6 +58,7 @@ trait SystemSettingsService {
         props.load(new java.io.FileInputStream(GitBucketConf))
       }
       SystemSettings(
+        getOptionValue(props, BaseURL, None),
         getValue(props, AllowAccountRegistration, false),
         getValue(props, Gravatar, true),
         getValue(props, Notification, false),
@@ -93,39 +102,41 @@ object SystemSettingsService {
   import scala.reflect.ClassTag
 
   case class SystemSettings(
-                             allowAccountRegistration: Boolean,
-                             gravatar: Boolean,
-                             notification: Boolean,
-                             smtp: Option[Smtp],
-                             ldapAuthentication: Boolean,
-                             ldap: Option[Ldap])
+    baseUrl: Option[String],
+    allowAccountRegistration: Boolean,
+    gravatar: Boolean,
+    notification: Boolean,
+    smtp: Option[Smtp],
+    ldapAuthentication: Boolean,
+    ldap: Option[Ldap])
 
   case class Ldap(
-                   host: String,
-                   port: Option[Int],
-                   bindDN: Option[String],
-                   bindPassword: Option[String],
-                   baseDN: String,
-                   userNameAttribute: String,
-                   additionalFilterCondition: Option[String],
-                   fullNameAttribute: Option[String],
-                   mailAttribute: String,
-                   disableMailResolve: Option[Boolean],
-                   tls: Option[Boolean],
-                   keystore: Option[String])
+    host: String,
+    port: Option[Int],
+    bindDN: Option[String],
+    bindPassword: Option[String],
+    baseDN: String,
+    userNameAttribute: String,
+    additionalFilterCondition: Option[String],
+    fullNameAttribute: Option[String],
+    mailAttribute: String,
+    disableMailResolve: Option[Boolean],
+    tls: Option[Boolean],
+    keystore: Option[String])
 
   case class Smtp(
-                   host: String,
-                   port: Option[Int],
-                   user: Option[String],
-                   password: Option[String],
-                   ssl: Option[Boolean],
-                   fromAddress: Option[String],
-                   fromName: Option[String])
+    host: String,
+    port: Option[Int],
+    user: Option[String],
+    password: Option[String],
+    ssl: Option[Boolean],
+    fromAddress: Option[String],
+    fromName: Option[String])
 
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
 
+  private val BaseURL = "base_url"
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
   private val Notification = "notification"

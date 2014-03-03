@@ -1,16 +1,14 @@
 package app
 
 import util._
-import util.Implicits._
 import service._
 import jp.sf.amateras.scalatra.forms._
 
 class IndexController extends IndexControllerBase 
-  with RepositoryService with SystemSettingsService with ActivityService with AccountService
-with UsersAuthenticator
+  with RepositoryService with ActivityService with AccountService with UsersAuthenticator
 
 trait IndexControllerBase extends ControllerBase {
-  self: RepositoryService with SystemSettingsService with ActivityService with AccountService with UsersAuthenticator =>
+  self: RepositoryService with ActivityService with AccountService with UsersAuthenticator =>
 
   case class SignInForm(userName: String, password: String)
 
@@ -32,7 +30,7 @@ trait IndexControllerBase extends ControllerBase {
   get("/signin"){
     val redirect = params.get("redirect")
     if(redirect.isDefined && redirect.get.startsWith("/")){
-      session.setAttribute(Keys.Session.Redirect, redirect.get)
+      flash += Keys.Flash.Redirect -> redirect.get
     }
     html.signin(loadSystemSettings())
   }
@@ -57,11 +55,10 @@ trait IndexControllerBase extends ControllerBase {
     updateLastLoginDate(account.userName)
 
     if(AccountUtil.hasLdapDummyMailAddress(account)) {
-      session.remove(Keys.Session.Redirect)
       redirect("/" + account.userName + "/_edit")
     }
 
-    session.getAndRemove[String](Keys.Session.Redirect).map { redirectUrl =>
+    flash.get(Keys.Flash.Redirect).asInstanceOf[Option[String]].map { redirectUrl =>
       if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
         redirect("/")
       } else {
