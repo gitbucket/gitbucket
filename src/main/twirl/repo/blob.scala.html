@@ -37,7 +37,13 @@
     <tr>
       <td>
         @if(content.viewType == "text"){
-        <pre class="prettyprint linenums blob">@content.content.get</pre>
+          @defining(pathList.reverse.head) { file =>
+            @if(renderableSuffixes.find(suffix => file.toLowerCase.endsWith(suffix))) {
+              @renderMarkup(file, content.content.get, branch, repository, false, false)
+            } else {
+              <pre class="prettyprint linenums blob">@content.content.get</pre>
+            }
+          }
         }
         @if(content.viewType == "image"){
         <img src="?raw=true"/>
