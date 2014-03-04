@@ -44,7 +44,8 @@ object MyBuild extends Build {
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
         "junit" % "junit" % "4.11" % "test",
-        "org.asciidoctor" % "asciidoctor-java-integration" % "0.1.4"
+        "org.asciidoctor" % "asciidoctor-java-integration" % "0.1.4",
+        "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.7"
       ),
       EclipseKeys.withSource := true,
       javacOptions in compile ++= Seq("-target", "6", "-source", "6"),
