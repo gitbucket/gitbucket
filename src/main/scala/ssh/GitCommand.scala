@@ -35,13 +35,29 @@ abstract class GitCommand(val command: String) extends Command {
   protected var out: OutputStream = null
   protected var callback: ExitCallback = null
 
-  protected def runnable(user: String): Runnable
+  protected def runTask(user: String): Unit
+
+  private def newTask(user: String): Runnable = new Runnable {
+    override def run(): Unit = {
+      try {
+        runTask(user)
+        callback.onExit(0)
+      } catch {
+        case e: RepositoryNotFoundException =>
+          logger.info(e.getMessage)
+          callback.onExit(1, "Repository Not Found")
+        case e: Throwable =>
+          logger.info(e.getMessage, e)
+          callback.onExit(1)
+      }
+    }
+  }
 
   override def start(env: Environment): Unit = {
     logger.info(s"start command : " + command)
     logger.info(s"parsed command : $gitCommand, $owner, $repositoryName")
     val user = env.getEnv.get("USER")
-    val thread = new Thread(runnable(user))
+    val thread = new Thread(newTask(user))
     thread.start()
   }
 
@@ -76,59 +92,31 @@ abstract class GitCommand(val command: String) extends Command {
 }
 
 class GitUploadPack(override val command: String) extends GitCommand(command: String) {
-  override def runnable(user: String) = new Runnable {
-    override def run(): Unit = {
-      try {
-        using(Git.open(getRepositoryDir(owner, repositoryName))) {
-          git =>
-            val repository = git.getRepository
-            val upload = new UploadPack(repository)
-            try {
-              upload.upload(in, out, err)
-              callback.onExit(0)
-            } catch {
-              case e: Throwable =>
-                logger.error(e.getMessage, e)
-                callback.onExit(1)
-            }
-        }
-      } catch {
-        case e: RepositoryNotFoundException =>
-          logger.info(e.getMessage, e)
-          callback.onExit(1)
-      }
+
+  override protected def runTask(user: String): Unit = {
+    using(Git.open(getRepositoryDir(owner, repositoryName))) {
+      git =>
+        val repository = git.getRepository
+        val upload = new UploadPack(repository)
+        upload.upload(in, out, err)
     }
   }
+
 }
 
 class GitReceivePack(override val command: String) extends GitCommand(command: String) with SystemSettingsService {
   // TODO Correct this info. where i get base url?
   val BaseURL: String = loadSystemSettings().baseUrl.getOrElse("http://localhost:8080")
 
-  override def runnable(user: String) = new Runnable {
-    override def run(): Unit = {
-      try {
-        using(Git.open(getRepositoryDir(owner, repositoryName))) {
-          git =>
-            val repository = git.getRepository
-            val receive = new ReceivePack(repository)
-            receive.setPostReceiveHook(new CommitLogHook(owner, repositoryName, user, BaseURL))
-            Database(SshServer.getServletContext) withTransaction {
-              try {
-                receive.receive(in, out, err)
-                callback.onExit(0)
-              } catch {
-                case e: Throwable =>
-                  logger.error(e.getMessage, e)
-                  callback.onExit(1)
-              }
-            }
+  override protected def runTask(user: String): Unit = {
+    using(Git.open(getRepositoryDir(owner, repositoryName))) {
+      git =>
+        val repository = git.getRepository
+        val receive = new ReceivePack(repository)
+        receive.setPostReceiveHook(new CommitLogHook(owner, repositoryName, user, BaseURL))
+        Database(SshServer.getServletContext) withTransaction {
+          receive.receive(in, out, err)
         }
-      } catch {
-        case e: RepositoryNotFoundException =>
-          logger.info(e.getMessage, e)
-          callback.onExit(1)
-      }
     }
   }
 
