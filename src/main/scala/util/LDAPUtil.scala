@@ -69,7 +69,7 @@ object LDAPUtil {
   }
 
   private def bind[A](host: String, port: Int, dn: String, password: String, tls: Boolean, keystore: String, error: String)
-                     (f: LDAPConnection => Either[String, A]): Either[String, A] = {
+                  (f: LDAPConnection => Either[String, A]): Either[String, A] = {
     if (tls) {
       // Dynamically set Sun as the security provider
       Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider())
