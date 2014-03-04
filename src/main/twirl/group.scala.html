@@ -34,10 +34,10 @@
         <div class="span5">
           <fieldset>
             <label class="strong">Members</label>
-            <ul id="members" class="collaborator">
+            <ul id="member-list" class="collaborator">
               @members.map { case (userName, isManager) =>
                 <li data-name="@userName">
-                  <input type="checkbox" id="is_manager_@userName" @if(isManager){checked}/>
+                  <input type="checkbox" class="is_manager" id="is_manager_@userName" @if(isManager){checked}/>
                   <a href="@path/@url(userName)">@userName</a>
                   <a href="#" class="remove">(remove)</a>
                 </li>
@@ -45,9 +45,9 @@
             </ul>
             @helper.html.account("memberName", 200)
             <input type="button" class="btn" value="Add" id="addMember"/>
-            <input type="hidden" id="memberNames" name="memberNames" value="@members.mkString(",")"/>
+            <input type="hidden" id="members" name="members" value="@members.map(x => x._1 + ":" + x._2).mkString(",")"/>
             <div>
-              <span class="error" id="error-memberName"></span>
+              <span class="error" id="error-members"></span>
             </div>
           </fieldset>
         </div>
@@ -70,7 +70,7 @@ $(function(){
     }
 
     // check duplication
-    var exists = $('#members li').filter(function(){
+    var exists = $('#member-list li').filter(function(){
       return $(this).data('name') == userName;
     }).length > 0;
     if(exists){
@@ -84,20 +84,16 @@ $(function(){
     }, function(data, status){
       if(data == 'true'){
         // add member
-        $('#members').append($('<li>')
+        $('#member-list').append($('<li>')
           .data('name', userName)
-          .append($('<input type="checkbox">').attr('id', 'is_manager_' + userName))
+          .append($('<input type="checkbox" class="is_manager">').attr('id', 'is_manager_' + userName))
           .append($('<a>').attr('href', '@path/' + userName).text(userName))
           .append(' ')
           .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
-        $('#memberName').val('');
+        $('#members').val('');
 
         // update hidden value
-        var userNames = $('#members li').map(function(i, e){
-          var userName = $(e).data('name');
-          return userName + ':' + $('#is_manager_' + userName).prop('checked');
-        }).get().join(',');
-        $('#memberNames').val(userNames);
+        updateMembers();
       } else {
         $('#error-memberName').text('User does not exist.');
       }
@@ -107,13 +103,9 @@ $(function(){
   $(document).on('click', '.remove', function(){
     // remove member
     $(this).parent().remove();
-
     // update hidden value
-    var userNames = $('#members li').map(function(i, e){
-      var userName = $(e).data('name');
-      return userName + ':' + $('#is_manager_' + userName).prop('checked');
-    }).get().join(',');
-    $('#memberNames').val(userNames);
+    updateMembers();
+    $('#members').val(members);
   });
 
   // Don't submit form by ENTER key
@@ -121,5 +113,17 @@ $(function(){
     console.log(e.keyCode);
     return !(e.keyCode == 13);
   });
+
+  $('.is_manager').change(function(){
+    updateMembers();
+  });
+
+  function updateMembers(){
+    var members = $('#member-list li').map(function(i, e){
+      var userName = $(e).data('name');
+      return userName + ':' + $('#is_manager_' + userName).prop('checked');
+    }).get().join(',');
+    $('#members').val(members);
+  }
 });
 </script>
