@@ -267,7 +267,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repo.html.guide(repository)
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
+        //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)){ revCommit =>
