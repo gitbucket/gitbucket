@@ -3,30 +3,30 @@ package ssh
 import javax.servlet.{ServletContext, ServletContextEvent, ServletContextListener}
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
+import util.Directory
 
 
 object SshServer {
   private val logger = LoggerFactory.getLogger(SshServer.getClass)
 
-  val DEFAULT_PORT: Int = 29418  // TODO read from config
-  val SSH_SERVICE_ENABLE = true
+  val DEFAULT_PORT: Int = 29418
+  // TODO read from config
+  val SSH_SERVICE_ENABLE = true // TODO read from config
 
   private val server = org.apache.sshd.SshServer.setUpDefaultServer()
 
-  // TODO think other way to create database session
+  // TODO think other way. this is for create database session
   private var context: ServletContext = null
 
 
   private def configure() = {
-    server.setPort(DEFAULT_PORT)
-    // TODO gitbucket.ser should be in GITBUCKET_HOME
-    server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider("gitbucket.ser"))
-
+    server.setPort(DEFAULT_PORT) // TODO read from config
+    server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
     server.setCommandFactory(new GitCommandFactory)
   }
 
-  def start(context: ServletContext) = {
+  def start(context: ServletContext) = this.synchronized {
     if (SSH_SERVICE_ENABLE) {
       this.context = context
       configure()
@@ -39,7 +39,7 @@ object SshServer {
     server.stop(true)
   }
 
-  def getServletContext = this.context;
+  def getServletContext = this.context
 }
 
 /*
@@ -52,7 +52,7 @@ object SshServer {
 class SshServerListener extends ServletContextListener {
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
-    SshServer.start(sce.getServletContext())
+    SshServer.start(sce.getServletContext)
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {
@@ -60,5 +60,3 @@ class SshServerListener extends ServletContextListener {
   }
 
 }
-
-
