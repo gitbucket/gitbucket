@@ -2,16 +2,19 @@ package servlet
 
 import javax.servlet._
 import javax.servlet.http._
+import model.Profile
 import service.{SystemSettingsService, AccountService, RepositoryService}
 import org.slf4j.LoggerFactory
 import util.Implicits._
 import util.ControlUtil._
 import util.Keys
+import scala.slick.driver.ExtendedProfile
 
 /**
  * Provides BASIC Authentication for [[servlet.GitRepositoryServlet]].
  */
-class BasicAuthenticationFilter extends Filter with RepositoryService with AccountService with SystemSettingsService {
+class BasicAuthenticationFilter(override val profile: ExtendedProfile) extends Filter
+  with RepositoryService with AccountService with SystemSettingsService with Profile {
 
   private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationFilter])
 

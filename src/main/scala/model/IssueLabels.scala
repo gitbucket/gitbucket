@@ -1,11 +1,13 @@
 package model
 
-import scala.slick.driver.H2Driver.simple._
+trait IssueLabelComponent extends IssueTemplateComponent with LabelTemplateComponent { self: Profile =>
+  import profile.simple._
 
-object IssueLabels extends Table[IssueLabel]("ISSUE_LABEL") with IssueTemplate with LabelTemplate {
-  def * = userName ~ repositoryName ~ issueId ~ labelId <> (IssueLabel, IssueLabel.unapply _)
-  def byPrimaryKey(owner: String, repository: String, issueId: Int, labelId: Int) =
-    byIssue(owner, repository, issueId) && (this.labelId is labelId.bind)
+  object IssueLabels extends Table[IssueLabel]("ISSUE_LABEL") with IssueTemplate with LabelTemplate {
+    def * = userName ~ repositoryName ~ issueId ~ labelId <> (IssueLabel, IssueLabel.unapply _)
+    def byPrimaryKey(owner: String, repository: String, issueId: Int, labelId: Int) =
+      byIssue(owner, repository, issueId) && (this.labelId is labelId.bind)
+  }
 }
 
 case class IssueLabel(

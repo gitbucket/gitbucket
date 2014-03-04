@@ -6,12 +6,14 @@ import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import org.slf4j.LoggerFactory
 
 import app.Context
+import model.Profile
 import service.{AccountService, RepositoryService, IssuesService, SystemSettingsService}
 import servlet.Database
 import SystemSettingsService.Smtp
 import _root_.util.ControlUtil.defining
+import scala.slick.driver.ExtendedProfile
 
-trait Notifier extends RepositoryService with AccountService with IssuesService {
+trait Notifier extends RepositoryService with AccountService with IssuesService with Profile {
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
       (msg: String => String)(implicit context: Context): Unit
 
@@ -33,9 +35,9 @@ trait Notifier extends RepositoryService with AccountService with IssuesService 
 
 object Notifier {
   // TODO We want to be able to switch to mock.
-  def apply(): Notifier = new SystemSettingsService {}.loadSystemSettings match {
-    case settings if settings.notification => new Mailer(settings.smtp.get)
-    case _ => new MockMailer
+  def apply(profile: ExtendedProfile): Notifier = new SystemSettingsService {}.loadSystemSettings match {
+    case settings if settings.notification => new Mailer(profile, settings.smtp.get)
+    case _ => new MockMailer(profile)
   }
 
   def msgIssue(url: String) = (content: String) => s"""
@@ -61,7 +63,7 @@ object Notifier {
     """.stripMargin
 }
 
-class Mailer(private val smtp: Smtp) extends Notifier {
+class Mailer(override val profile: ExtendedProfile, private val smtp: Smtp) extends Notifier {
   private val logger = LoggerFactory.getLogger(classOf[Mailer])
 
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
@@ -110,7 +112,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
     }
   }
 }
-class MockMailer extends Notifier {
+class MockMailer(override val profile: ExtendedProfile) extends Notifier {
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
       (msg: String => String)(implicit context: Context): Unit = {}
 }

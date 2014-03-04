@@ -1,5 +1,6 @@
 package app
 
+import model.Profile
 import service._
 import util._
 import util.Directory._
@@ -8,13 +9,14 @@ import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
 import scala.Some
+import scala.slick.driver.ExtendedProfile
 import java.util.ResourceBundle
 
-class WikiController extends WikiControllerBase 
-  with WikiService with RepositoryService with AccountService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator
+class WikiController(override val profile: ExtendedProfile) extends WikiControllerBase
+  with WikiService with RepositoryService with AccountService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator with Profile
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService with RepositoryService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator =>
+  self: WikiService with RepositoryService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator with Profile =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
   

@@ -1,11 +1,10 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
-
 import model._
 
-trait MilestonesService {
+trait MilestonesService extends MilestoneComponent with IssueComponent { self: Profile =>
+  import profile.simple._
+  import Database.threadLocalSession
 
   def createMilestone(owner: String, repository: String, title: String, description: Option[String],
                       dueDate: Option[java.util.Date]): Unit =

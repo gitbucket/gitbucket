@@ -16,6 +16,9 @@ import service._
 import WebHookService._
 import org.eclipse.jgit.api.Git
 import util.JGitUtil.CommitInfo
+import scala.slick.driver.ExtendedProfile
+import model.Profile
+import scala.Some
 
 /**
  * Provides Git repository via HTTP.
@@ -80,7 +83,8 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("repository:" + owner + "/" + repository)
 
       if(!repository.endsWith(".wiki")){
-        receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseUrl(request)))
+        receivePack.setPostReceiveHook(new CommitLogHook(
+          owner, repository, pusher, baseUrl(request), Database.driver(request.getServletContext)))
       }
       receivePack
     }
@@ -89,8 +93,8 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String) extends PostReceiveHook
-  with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String, override val profile: ExtendedProfile) extends PostReceiveHook
+  with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService with Profile {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   

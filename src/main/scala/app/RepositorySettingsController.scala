@@ -1,5 +1,6 @@
 package app
 
+import model.Profile
 import service._
 import util.Directory._
 import util.{UsersAuthenticator, OwnerAuthenticator}
@@ -10,14 +11,15 @@ import service.WebHookService.WebHookPayload
 import util.JGitUtil.CommitInfo
 import util.ControlUtil._
 import org.eclipse.jgit.api.Git
+import scala.slick.driver.ExtendedProfile
 
-class RepositorySettingsController extends RepositorySettingsControllerBase
+class RepositorySettingsController(override val profile: ExtendedProfile) extends RepositorySettingsControllerBase
   with RepositoryService with AccountService with WebHookService
-  with OwnerAuthenticator with UsersAuthenticator
+  with OwnerAuthenticator with UsersAuthenticator with Profile
 
 trait RepositorySettingsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with WebHookService
-    with OwnerAuthenticator with UsersAuthenticator =>
+    with OwnerAuthenticator with UsersAuthenticator with Profile =>
 
   // for repository options
   case class OptionsForm(repositoryName: String, description: Option[String], defaultBranch: String, isPrivate: Boolean)

@@ -1,15 +1,17 @@
 package app
 
 import jp.sf.amateras.scalatra.forms._
+import model.Profile
 import service._
 import util.CollaboratorsAuthenticator
 import org.scalatra.i18n.Messages
+import scala.slick.driver.ExtendedProfile
 
-class LabelsController extends LabelsControllerBase
-  with LabelsService with RepositoryService with AccountService with CollaboratorsAuthenticator
+class LabelsController(override val profile: ExtendedProfile) extends LabelsControllerBase
+  with LabelsService with RepositoryService with AccountService with CollaboratorsAuthenticator with Profile
 
 trait LabelsControllerBase extends ControllerBase {
-  self: LabelsService with RepositoryService with CollaboratorsAuthenticator =>
+  self: LabelsService with RepositoryService with CollaboratorsAuthenticator with Profile =>
 
   case class LabelForm(labelName: String, color: String)
 

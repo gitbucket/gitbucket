@@ -1,7 +1,6 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
+import scala.slick.driver.ExtendedDriver
 import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
@@ -9,7 +8,14 @@ import model._
 import util.Implicits._
 import util.StringUtil._
 
-trait IssuesService {
+trait IssuesService extends IssueComponent
+    with IssueCommentComponent with LabelComponent with IssueLabelComponent { self: Profile =>
+  import profile.simple._
+  lazy val driver = profile match {
+    case driver: ExtendedDriver => driver
+    case _ => throw new IllegalArgumentException("IssuesService requires a JDBC driver")
+  }
+  import Database.threadLocalSession
   import IssuesService._
 
   def getIssue(owner: String, repository: String, issueId: String) =
@@ -268,7 +274,7 @@ trait IssuesService {
    * @return issues with comment count and matched content of issue or comment
    */
   def searchIssuesByKeyword(owner: String, repository: String, query: String): List[(Issue, Int, String)] = {
-    import scala.slick.driver.H2Driver.likeEncode
+    import driver.likeEncode
     val keywords = splitWords(query.toLowerCase)
 
     // Search Issue

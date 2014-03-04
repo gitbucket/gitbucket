@@ -1,5 +1,6 @@
 package service
 
+import model.Profile
 import org.specs2.mutable.Specification
 import java.util.Date
 import model.GroupMember
@@ -7,6 +8,9 @@ import model.GroupMember
 class AccountServiceSpec extends Specification with ServiceSpecBase {
 
   "AccountService" should {
+    val AccountService = new AccountService with Profile {
+      val profile = scala.slick.driver.H2Driver // we can mock it?
+    }
     val RootMailAddress = "root@localhost"
 
     "getAllUsers" in { withTestDB{

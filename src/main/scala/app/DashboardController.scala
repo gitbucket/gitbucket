@@ -1,12 +1,14 @@
 package app
 
+import model.Profile
 import service._
 import util.{UsersAuthenticator, Keys}
 import util.Implicits._
+import scala.slick.driver.ExtendedProfile
 
-class DashboardController extends DashboardControllerBase
+class DashboardController(override val profile: ExtendedProfile) extends DashboardControllerBase
   with IssuesService with PullRequestService with RepositoryService with AccountService
-  with UsersAuthenticator
+  with UsersAuthenticator with Profile
 
 trait DashboardControllerBase extends ControllerBase {
   self: IssuesService with PullRequestService with RepositoryService with UsersAuthenticator =>

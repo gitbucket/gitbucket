@@ -1,15 +1,17 @@
 package model
 
-import scala.slick.driver.H2Driver.simple._
+trait LabelComponent extends LabelTemplateComponent { self: Profile =>
+  import profile.simple._
 
-object Labels extends Table[Label]("LABEL") with LabelTemplate {
-  def labelName = column[String]("LABEL_NAME")
-  def color = column[String]("COLOR")
-  def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
+  object Labels extends Table[Label]("LABEL") with LabelTemplate {
+    def labelName = column[String]("LABEL_NAME")
+    def color = column[String]("COLOR")
+    def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
 
-  def ins = userName ~ repositoryName ~ labelName ~ color
-  def byPrimaryKey(owner: String, repository: String, labelId: Int) = byLabel(owner, repository, labelId)
-  def byPrimaryKey(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) = byLabel(userName, repositoryName, labelId)
+    def ins = userName ~ repositoryName ~ labelName ~ color
+    def byPrimaryKey(owner: String, repository: String, labelId: Int) = byLabel(owner, repository, labelId)
+    def byPrimaryKey(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) = byLabel(userName, repositoryName, labelId)
+  }
 }
 
 case class Label(

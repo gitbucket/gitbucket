@@ -1,5 +1,6 @@
 package app
 
+import model.Profile
 import service._
 import util._
 import util.StringUtil._
@@ -12,14 +13,15 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
 import model.GroupMember
+import scala.slick.driver.ExtendedProfile
 
-class AccountController extends AccountControllerBase
+class AccountController(override val profile: ExtendedProfile) extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService
-  with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
+  with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator with Profile
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService
-    with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator =>
+    with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator with Profile =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])

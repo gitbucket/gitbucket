@@ -4,6 +4,7 @@ import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticat
 import util.Directory._
 import util.Implicits._
 import util.ControlUtil._
+import model.Profile
 import service._
 import org.eclipse.jgit.api.Git
 import jp.sf.amateras.scalatra.forms._
@@ -19,14 +20,15 @@ import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
 import service.WebHookService.WebHookPayload
+import scala.slick.driver.ExtendedProfile
 
-class PullRequestsController extends PullRequestsControllerBase
+class PullRequestsController(override val profile: ExtendedProfile) extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
-  with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
-    with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -206,7 +208,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             }
 
             // notifications
-            Notifier().toNotify(repository, issueId, "merge"){
+            Notifier(profile).toNotify(repository, issueId, "merge"){
               Notifier.msgStatus(s"${baseUrl}/${owner}/${name}/pull/${issueId}")
             }
 
@@ -361,7 +363,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
     // notifications
-    Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
+    Notifier(profile).toNotify(repository, issueId, form.content.getOrElse("")){
       Notifier.msgPullRequest(s"${baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
     }
 
