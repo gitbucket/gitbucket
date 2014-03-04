@@ -27,12 +27,12 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def plural(count: Int, singular: String, plural: String = ""): String =
     if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
 
-  private[this] val renderersBySuffix: Seq[(String, (String, String, service.RepositoryService.RepositoryInfo, Boolean, Boolean, app.Context) => Html)] =
+  private[this] val renderersBySuffix: Seq[(String, (List[String], String, String, service.RepositoryService.RepositoryInfo, Boolean, Boolean, app.Context) => Html)] =
     Seq(
-      ".md" -> ((fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
-      ".markdown" -> ((fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
-      ".adoc" -> ((fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => asciidoc(fileContent,  branch, repository, enableWikiLink, enableRefsLink)(context)),
-      ".asciidoc" -> ((fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => asciidoc(fileContent,  branch, repository, enableWikiLink, enableRefsLink)(context))
+      ".md" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
+      ".markdown" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
+      ".adoc" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => asciidoc(filePath, fileContent,  branch, repository, enableWikiLink, enableRefsLink)(context)),
+      ".asciidoc" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => asciidoc(filePath, fileContent,  branch, repository, enableWikiLink, enableRefsLink)(context))
     )
 
   def renderableSuffixes: Seq[String] = renderersBySuffix.map(_._1)
@@ -44,13 +44,13 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
 
-  def renderMarkup(fileName: String, fileContent: String, branch: String,
+  def renderMarkup(filePath: List[String], fileContent: String, branch: String,
                    repository: service.RepositoryService.RepositoryInfo,
                    enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html = {
 
-    val fileNameLower = fileName.toLowerCase
+    val fileNameLower = filePath.reverse.head.toLowerCase
     renderersBySuffix.find { case (suffix, _) => fileNameLower.endsWith(suffix) } match {
-      case Some((_, handler)) => handler(fileContent, branch, repository, enableWikiLink, enableRefsLink, context)
+      case Some((_, handler)) => handler(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context)
       case None => Html(
         s"<tt>${
           fileContent.split("(\\r\\n)|\\n").map(xml.Utility.escape(_)).mkString("<br/>")
@@ -59,9 +59,9 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     }
   }
 
-  def asciidoc(value: String, branch: String, repository: service.RepositoryService.RepositoryInfo,
+  def asciidoc(filePath: List[String], value: String, branch: String, repository: service.RepositoryService.RepositoryInfo,
                enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
-    Html(Asciidoc.toHtml(value, branch, repository, enableWikiLink, enableRefsLink))
+    Html(Asciidoc.toHtml(filePath, value, branch, repository, enableWikiLink, enableRefsLink))
 
   /**
    * Returns &lt;img&gt; which displays the avatar icon for the given user name.

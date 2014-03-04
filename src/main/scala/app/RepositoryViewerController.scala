@@ -268,16 +268,19 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
-        JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
-          defining(JGitUtil.getRevCommitFromId(git, objectId)){ revCommit =>
-          // get files
-            val files = JGitUtil.getFileList(git, revision, path)
-            // process README.md or README.markdown
-            val readme = files.find { file =>
-              readmeFiles.contains(file.name.toLowerCase)
-            }.map { file =>
-              file -> StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
-            }
+        JGitUtil.getDefaultBranch(git, repository, revstr).map {
+          case (objectId, revision) =>
+            defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
+              // get files
+              val files = JGitUtil.getFileList(git, revision, path)
+              val parentPath = if (path == ".") Nil else path.split("/").toList
+              // process README.md or README.markdown
+              val readme = files.find { file =>
+                readmeFiles.contains(file.name.toLowerCase)
+              }.map { file =>
+                val path = (file.name :: parentPath.reverse).reverse
+                path -> StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
+              }
 
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path

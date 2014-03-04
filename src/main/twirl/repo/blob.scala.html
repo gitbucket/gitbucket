@@ -39,7 +39,7 @@
         @if(content.viewType == "text"){
           @defining(pathList.reverse.head) { file =>
             @if(renderableSuffixes.find(suffix => file.toLowerCase.endsWith(suffix))) {
-              @renderMarkup(file, content.content.get, branch, repository, false, false)
+              @renderMarkup(pathList, content.content.get, branch, repository, false, false)
             } else {
               <pre class="prettyprint linenums blob">@content.content.get</pre>
             }
