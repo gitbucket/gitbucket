@@ -12,14 +12,6 @@
               <span id="error-groupName" class="error"></span>
             </div>
             <input type="text" name="groupName" id="groupName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
-            @*
-            @if(account.isDefined){
-              <label for="removed">
-                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
-                Disable
-              </label>
-            }
-            *@
           </fieldset>
           <fieldset>
             <label class="strong">URL (Optional)</label>
