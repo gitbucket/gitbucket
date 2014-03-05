@@ -120,16 +120,10 @@ trait IssuesService {
     // get issues and comment count and labels
     searchIssueQuery(repos, condition, filterUser, onlyPullRequest)
         .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
-        .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
-        .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
-        .map { case (((t1, t2), t3), t4) =>
-          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?)
-        }
-        .sortBy(_._4)	// labelName
-        .sortBy { case (t1, commentCount, _,_,_) =>
+        .sortBy { case (t1, t2) =>
           (condition.sort match {
             case "created"  => t1.registeredDate
-            case "comments" => commentCount
+            case "comments" => t2.commentCount
             case "updated"  => t1.updatedDate
           }) match {
             case sort => condition.direction match {
@@ -139,6 +133,11 @@ trait IssuesService {
           }
         }
         .drop(offset).take(limit)
+        .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
+        .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
+        .map { case (((t1, t2), t3), t4) =>
+          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?)
+        }
         .list
         .splitWith { (c1, c2) =>
           c1._1.userName == c2._1.userName &&
