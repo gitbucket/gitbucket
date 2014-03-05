@@ -28,7 +28,7 @@ abstract class ControllerBase extends ScalatraFilter
   // Don't set content type via Accept header.
   override def format(implicit request: HttpServletRequest) = ""
 
-  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = try {
     val httpRequest  = request.asInstanceOf[HttpServletRequest]
     val httpResponse = response.asInstanceOf[HttpServletResponse]
     val context      = request.getServletContext.getContextPath
@@ -56,12 +56,25 @@ abstract class ControllerBase extends ScalatraFilter
       // Scalatra actions
       super.doFilter(request, response, chain)
     }
+  } finally {
+    contextCache.remove();
   }
+
+  private val contextCache = new java.lang.ThreadLocal[Context]()
 
   /**
    * Returns the context object for the request.
    */
-  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, request)
+  implicit def context: Context = {
+    contextCache.get match {
+      case null => {
+        val context = Context(loadSystemSettings().baseUrl.getOrElse(servletContext.getContextPath), LoginAccount, request)
+        contextCache.set(context)
+        context
+      }
+      case context => context
+    }
+  }
 
   private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
 
