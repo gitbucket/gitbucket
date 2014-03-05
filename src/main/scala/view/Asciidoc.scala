@@ -46,7 +46,6 @@ object Asciidoc {
           case tag: TagNode if tag.getName == "a" =>
             Option(tag.getAttributeByName("href")) foreach { href =>
               if (exceptionPrefixes.forall(p => !href.startsWith(p))) {
-                //              if (!href.startsWith("/") && !href.startsWith("http://") && !href.startsWith("https://")) {
                 tag.addAttribute("href", s"${urlPrefix}${href}")
               }
             }
