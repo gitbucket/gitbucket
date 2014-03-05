@@ -35,6 +35,8 @@ object Asciidoc {
     prefixRelativeUrls(rendered, relativeUrlPrefix)
   }
 
+  private[this] val exceptionPrefixes = Seq("#", "/", "http://", "https://")
+
   def prefixRelativeUrls(html: String, urlPrefix: String): String = {
     val cleaner = new HtmlCleaner()
     val node = cleaner.clean(html)
@@ -43,7 +45,8 @@ object Asciidoc {
         htmlNode match {
           case tag: TagNode if tag.getName == "a" =>
             Option(tag.getAttributeByName("href")) foreach { href =>
-              if (!href.startsWith("/") && !href.startsWith("http://") && !href.startsWith("https://")) {
+              if (exceptionPrefixes.forall(p => !href.startsWith(p))) {
+                //              if (!href.startsWith("/") && !href.startsWith("http://") && !href.startsWith("https://")) {
                 tag.addAttribute("href", s"${urlPrefix}${href}")
               }
             }
