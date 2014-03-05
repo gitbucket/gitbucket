@@ -143,7 +143,7 @@ abstract class ControllerBase extends ScalatraFilter
  */
 case class Context(path: String, loginAccount: Option[Account], request: HttpServletRequest){
 
-  lazy val currentPath = request.getRequestURI.substring(path.length)
+  lazy val currentPath = request.getRequestURI.substring(request.getContextPath.length)
 
   /**
    * Get object from cache.
