@@ -1,4 +1,4 @@
-@(account: Option[model.Account], members: List[(String, Boolean)])(implicit context: app.Context)
+@(account: Option[model.Account], members: List[model.GroupMember])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(if(account.isEmpty) "Create group" else "Edit group"){
@@ -32,7 +32,7 @@
             </ul>
             @helper.html.account("memberName", 200)
             <input type="button" class="btn" value="Add" id="addMember"/>
-            <input type="hidden" id="members" name="members" value="@members.map(x => x._1 + ":" + x._2).mkString(",")"/>
+            <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
             <div>
               <span class="error" id="error-members"></span>
             </div>
@@ -102,8 +102,8 @@ $(function(){
     return confirm('Once you delete this group, there is no going back.\nAre you sure?');
   });
 
-  @members.map { case (userName, isManager) =>
-    addMemberHTML('@userName', @isManager);
+  @members.map { member =>
+    addMemberHTML('@member.userName', @member.isManager);
   }
 
   function addMemberHTML(userName, isManager){

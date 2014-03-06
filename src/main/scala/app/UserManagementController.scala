@@ -69,11 +69,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
 
   get("/admin/users")(adminOnly {
     val includeRemoved = params.get("includeRemoved").map(_.toBoolean).getOrElse(false)
-    val users = getAllUsers(includeRemoved)
-
-    val members = users.collect { case account if(account.isGroupAccount) =>
-      account.userName -> getGroupMembers(account.userName).map(_._1)
+    val users          = getAllUsers(includeRemoved)
+    val members        = users.collect { case account if(account.isGroupAccount) =>
+      account.userName -> getGroupMembers(account.userName).map(_.userName)
     }.toMap
+
     admin.users.html.list(users, members, includeRemoved)
   })
   
@@ -181,9 +181,10 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     }
   })
 
-  post("/admin/users/_usercheck")(adminOnly {
+  // TODO Move to other generic controller?
+  post("/admin/users/_usercheck"){
     getAccountByUserName(params("userName")).isDefined
-  })
+  }
 
   private def members: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {

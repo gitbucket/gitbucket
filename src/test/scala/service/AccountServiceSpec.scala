@@ -2,8 +2,9 @@ package service
 
 import org.specs2.mutable.Specification
 import java.util.Date
+import model.GroupMember
 
-class AccountServiceServiceSpec extends Specification with ServiceSpecBase {
+class AccountServiceSpec extends Specification with ServiceSpecBase {
 
   "AccountService" should {
     val RootMailAddress = "root@localhost"
@@ -65,7 +66,7 @@ class AccountServiceServiceSpec extends Specification with ServiceSpecBase {
 
       AccountService.updateGroupMembers(group1, List((user1, true)))
 
-      AccountService.getGroupMembers(group1) must_== List((user1, true))
+      AccountService.getGroupMembers(group1) must_== List(GroupMember(group1, user1, true))
       AccountService.getGroupsByUserName(user1) must_== List(group1)
 
       AccountService.updateGroupMembers(group1, Nil)

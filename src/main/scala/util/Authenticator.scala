@@ -40,8 +40,8 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(repository.owner == x.userName) => action(repository)
-            case Some(x) if(getGroupMembers(repository.owner).exists {
-              case (userName, isManager) => userName == x.userName && isManager == true
+            case Some(x) if(getGroupMembers(repository.owner).exists { member =>
+              member.userName == x.userName && member.isManager == true
             }) => action(repository)
             case _ => Unauthorized()
           }
@@ -170,7 +170,9 @@ trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
     {
       defining(request.paths){ paths =>
         context.loginAccount match {
-          case Some(x) if(getGroupMembers(paths(0)).exists { case (userName, isManager) => userName == x.userName && isManager }) => action
+          case Some(x) if(getGroupMembers(paths(0)).exists { member =>
+            member.userName == x.userName && member.isManager
+          }) => action
           case _ => Unauthorized()
         }
       }

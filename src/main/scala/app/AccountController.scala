@@ -11,6 +11,7 @@ import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
+import model.GroupMember
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService
@@ -94,8 +95,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // Members
         case "members" if(account.isGroupAccount) => {
           val members = getGroupMembers(account.userName)
-          _root_.account.html.members(account, members.map(_._1),
-            context.loginAccount.exists(x => members.exists { case (userName, isManager) => userName == x.userName && isManager }))
+          _root_.account.html.members(account, members.map(_.userName),
+            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
 
         // Repositories
@@ -104,7 +105,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           _root_.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)),
-            context.loginAccount.exists(x => members.exists { case (userName, isManager) => userName == x.userName && isManager }))
+            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
       }
     } getOrElse NotFound
@@ -182,7 +183,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   get("/groups/new")(usersOnly {
-    account.html.group(None, List((context.loginAccount.get.userName, true)))
+    account.html.group(None, List(GroupMember("", context.loginAccount.get.userName, true)))
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
@@ -265,8 +266,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
         // Add collaborators for group repository
         if(ownerAccount.isGroupAccount){
-          getGroupMembers(form.owner).foreach { case (userName, isManager) =>
-            addCollaborator(form.owner, form.name, userName)
+          getGroupMembers(form.owner).foreach { member =>
+            addCollaborator(form.owner, form.name, member.userName)
           }
         }
 

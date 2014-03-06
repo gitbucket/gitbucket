@@ -129,11 +129,10 @@ trait AccountService {
     }
   }
 
-  def getGroupMembers(groupName: String): List[(String, Boolean)] =
+  def getGroupMembers(groupName: String): List[GroupMember] =
     Query(GroupMembers)
       .filter(_.groupName is groupName.bind)
       .sortBy(_.userName)
-      .map(m => m.userName ~ m.isManager)
       .list
 
   def getGroupsByUserName(userName: String): List[String] =
