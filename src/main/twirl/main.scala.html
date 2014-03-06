@@ -54,7 +54,7 @@
               }
               @if(loginAccount.isDefined){
                 <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="icon-plus"></i></a>
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="icon-plus"></i><span class="caret" style="vertical-align: middle;"></span></a>
                 <ul class="dropdown-menu">
                   <li><a href="@path/new">New repository</a></li>
                   <li><a href="@path/groups/new">New group</a></li>
