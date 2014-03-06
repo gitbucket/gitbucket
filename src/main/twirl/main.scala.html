@@ -53,6 +53,7 @@
                 <input type="hidden" name="repository" value="@repository.name"/>
               }
               @if(loginAccount.isDefined){
+                <!-- TODO: we should fallback to userName if fullName is empty or null -->
                 <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.fullName</a>
                 <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="icon-plus"></i><span class="caret" style="vertical-align: middle;"></span></a>
                 <ul class="dropdown-menu">
