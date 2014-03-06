@@ -182,7 +182,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   get("/groups/new")(usersOnly {
-    html.group(None, List((context.loginAccount.get.userName, true)))
+    account.html.group(None, List((context.loginAccount.get.userName, true)))
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
@@ -198,7 +198,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:groupName/_editgroup")(managersOnly {
     defining(params("groupName")){ groupName =>
-      html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
+      account.html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
     }
   })
 
