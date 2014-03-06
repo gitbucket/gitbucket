@@ -2,10 +2,10 @@
 @import context._
 @import view.helpers._
 @main(if(account.isEmpty) "Create group" else "Edit group"){
-<div style="width: 700px; margin: 10px auto;">
+<div>
   <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
       <div class="row-fluid">
-        <div class="span7">
+        <div class="span5">
           <fieldset>
             <label for="groupName" class="strong">Group name</label>
             <div>
@@ -25,20 +25,10 @@
             @helper.html.uploadavatar(account)
           </fieldset>
         </div>
-        <div class="span5">
+        <div class="span7">
           <fieldset>
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">
-              @members.map { case (userName, isManager) =>
-                <li data-name="@userName">
-                  <div class="btn-group is_manager" data-toggle="buttons-radio">
-                    <button type="button" class="is_manager_@userName btn btn-default btn-mini @if(!isManager){active}" value="false">Member</button>
-                    <button type="button" class="is_manager_@userName btn btn-default btn-mini @if(isManager){active}" value="true">Manager</button>
-                  </div>
-                  <a href="@url(userName)">@userName</a>
-                  <a href="#" class="remove">(remove)</a>
-                </li>
-              }
             </ul>
             @helper.html.account("memberName", 200)
             <input type="button" class="btn" value="Add" id="addMember"/>
@@ -92,16 +82,7 @@ $(function(){
       'userName': userName
     }, function(data, status){
       if(data == 'true'){
-        // add member
-        $('#member-list').append($('<li>')
-          .data('name', userName)
-          .append($('<div class="btn-group is_manager" data-toggle="buttons-radio">')
-            .append($('<button type="button" class="btn btn-default btn-mini active" value="false">Member</button>').addClass('is_manager_' + userName))
-            .append($('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').addClass('is_manager_' + userName)))
-          .append(' ')
-          .append($('<a>').attr('href', '@path/' + userName).text(userName))
-          .append(' ')
-          .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
+        addMemberHTML(userName, false);
       } else {
         $('#error-memberName').text('User does not exist.');
       }
@@ -120,6 +101,31 @@ $(function(){
   $('#delete').click(function(){
     return confirm('Once you delete this group, there is no going back.\nAre you sure?');
   });
+
+  @members.map { case (userName, isManager) =>
+    addMemberHTML('@userName', @isManager);
+  }
+
+  function addMemberHTML(userName, isManager){
+    var memberButton = $('<button type="button" class="btn btn-default btn-mini" value="false">Member</button>').addClass('is_manager_' + userName);
+    if(!isManager){
+      memberButton.addClass('active');
+    }
+    var managerButton = $('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').addClass('is_manager_' + userName);
+    if(isManager){
+      memberButton.addClass('active');
+    }
+
+    $('#member-list').append($('<li>')
+      .data('name', userName)
+      .append($('<div class="btn-group is_manager" data-toggle="buttons-radio">')
+        .append(memberButton)
+        .append(managerButton))
+      .append(' ')
+      .append($('<a>').attr('href', '@path/' + userName).text(userName))
+      .append(' ')
+      .append($('<a href="#" class="remove pull-right">(remove)</a>')));
+  }
 
   function updateMembers(){
     var members = $('#member-list li').map(function(i, e){
