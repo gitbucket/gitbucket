@@ -13,18 +13,8 @@ import service.SystemSettingsService
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 
 
-class GitCommandFactory extends CommandFactory {
-  private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
-
-  override def createCommand(command: String): Command = {
-    logger.debug(s"command: $command")
-    command match {
-      // TODO MUST use regular expression and UnitTest
-      case s if s.startsWith("git-upload-pack") => new GitUploadPack(command)
-      case s if s.startsWith("git-receive-pack") => new GitReceivePack(command)
-      case _ => new UnknownCommand(command)
-    }
-  }
+object GitCommand {
+  val CommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-_.]+).git'\Z""".r
 }
 
 abstract class GitCommand(val command: String) extends Command {
@@ -47,7 +37,7 @@ abstract class GitCommand(val command: String) extends Command {
           logger.info(e.getMessage)
           callback.onExit(1, "Repository Not Found")
         case e: Throwable =>
-          logger.info(e.getMessage, e)
+          logger.error(e.getMessage, e)
           callback.onExit(1)
       }
     }
@@ -120,4 +110,17 @@ class GitReceivePack(override val command: String) extends GitCommand(command: S
     }
   }
 
+}
+
+class GitCommandFactory extends CommandFactory {
+  private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
+
+  override def createCommand(command: String): Command = {
+    logger.debug(s"command: $command")
+    command match {
+      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(command)
+      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(command)
+      case _ => new UnknownCommand(command)
+    }
+  }
 }
