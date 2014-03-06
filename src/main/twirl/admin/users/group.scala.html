@@ -102,11 +102,11 @@ $(function(){
   }
 
   function addMemberHTML(userName, isManager){
-    var memberButton = $('<button type="button" class="btn btn-default btn-mini" value="false">Member</button>').addClass('is_manager_' + userName);
+    var memberButton = $('<button type="button" class="btn btn-default btn-mini" value="false">Member</button>').data('name', userName);
     if(!isManager){
       memberButton.addClass('active');
     }
-    var managerButton = $('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').addClass('is_manager_' + userName);
+    var managerButton = $('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').data('name', userName);
     if(isManager){
       managerButton.addClass('active');
     }
@@ -125,7 +125,9 @@ $(function(){
   function updateMembers(){
     var members = $('#member-list li').map(function(i, e){
       var userName = $(e).data('name');
-      return userName + ':' + $('.is_manager_' + userName + '.active').attr('value');
+      return userName + ':' + $('button.active').filter(function(i, e){
+        return $(e).data('name') == userName;
+      }).attr('value');
     }).get().join(',');
     $('#members').val(members);
   }
