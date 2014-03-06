@@ -71,7 +71,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     val users = getAllUsers(includeRemoved)
 
     val members = users.collect { case account if(account.isGroupAccount) =>
-      account.userName -> getGroupMembers(account.userName)
+      account.userName -> getGroupMembers(account.userName).map(_._1)
     }.toMap
     admin.users.html.list(users, members, includeRemoved)
   })
@@ -127,7 +127,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
 
   post("/admin/users/_newgroup", newGroupForm)(adminOnly { form =>
     createGroup(form.groupName, form.url)
-    updateGroupMembers(form.groupName, form.memberNames.map(_.split(",").toList).getOrElse(Nil))
+    updateGroupMembers(form.groupName, form.memberNames.map(_.split(",").map {
+      _.split(":") match {
+        case Array(userName, isManager) => (userName, isManager.toBoolean)
+      }
+    }.toList).getOrElse(Nil))
     updateImage(form.groupName, form.fileId, false)
     redirect("/admin/users")
   })
@@ -139,7 +143,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
-    defining(params("groupName"), form.memberNames.map(_.split(",").toList).getOrElse(Nil)){ case (groupName, memberNames) =>
+    defining(params("groupName"), form.memberNames.map(_.split(",").map {
+      _.split(":") match {
+        case Array(userName, isManager) => (userName, isManager.toBoolean)
+      }
+    }.toList).getOrElse(Nil)){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
         updateGroup(groupName, form.url, form.isRemoved)
 
@@ -155,11 +163,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
           }
         } else {
           // Update GROUP_MEMBER
-          updateGroupMembers(form.groupName, memberNames)
+          updateGroupMembers(form.groupName, members)
           // Update COLLABORATOR for group repositories
           getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
             removeCollaborators(form.groupName, repositoryName)
-            memberNames.foreach { userName =>
+            members.foreach { case (userName, isManager) =>
               addCollaborator(form.groupName, repositoryName, userName)
             }
           }

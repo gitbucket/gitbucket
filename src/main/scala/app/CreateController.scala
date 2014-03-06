@@ -9,34 +9,52 @@ import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
 import org.scalatra.i18n.Messages
+import org.apache.commons.io.FileUtils
 
-class CreateRepositoryController extends CreateRepositoryControllerBase
+class CreateController extends CreateControllerBase
   with RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-  with UsersAuthenticator with ReadableUsersAuthenticator
+  with UsersAuthenticator with ReadableUsersAuthenticator with GroupManagerAuthenticator
 
 /**
- * Creates new repository.
+ * Creates new repository or group.
  */
-trait CreateRepositoryControllerBase extends ControllerBase {
+trait CreateControllerBase extends AccountManagementControllerBase {
   self: RepositoryService with AccountService with WikiService with LabelsService with ActivityService
-    with UsersAuthenticator with ReadableUsersAuthenticator =>
+    with UsersAuthenticator with ReadableUsersAuthenticator with GroupManagerAuthenticator =>
 
   case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
-
   case class ForkRepositoryForm(owner: String, name: String)
 
-  val newForm = mapping(
+  val newRepositoryForm = mapping(
     "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier, existsAccount))),
-    "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, unique))),
+    "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, uniqueRepository))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
     "createReadme" -> trim(label("Create README"  , boolean()))
   )(RepositoryCreationForm.apply)
 
-  val forkForm = mapping(
+  val forkRepositoryForm = mapping(
     "owner" -> trim(label("Repository owner", text(required))),
     "name"  -> trim(label("Repository name",  text(required)))
   )(ForkRepositoryForm.apply)
+
+  case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String)
+  case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
+
+  val newGroupForm = mapping(
+    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
+    "fileId"    -> trim(label("File ID"    ,optional(text()))),
+    "members"   -> trim(label("Members"    ,text(required, members)))
+  )(NewGroupForm.apply)
+
+  val editGroupForm = mapping(
+    "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
+    "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
+    "fileId"     -> trim(label("File ID"     ,optional(text()))),
+    "members"    -> trim(label("Members"     ,text(required, members))),
+    "clearImage" -> trim(label("Clear image" ,boolean()))
+  )(EditGroupForm.apply)
 
   /**
    * Show the new repository form.
@@ -48,7 +66,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
   /**
    * Create new repository.
    */
-  post("/new", newForm)(usersOnly { form =>
+  post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}/create"){
       if(getRepository(form.owner, form.name, baseUrl).isEmpty){
         val ownerAccount  = getAccountByUserName(form.owner).get
@@ -60,7 +78,7 @@ trait CreateRepositoryControllerBase extends ControllerBase {
 
         // Add collaborators for group repository
         if(ownerAccount.isGroupAccount){
-          getGroupMembers(form.owner).foreach { userName =>
+          getGroupMembers(form.owner).foreach { case (userName, isManager) =>
             addCollaborator(form.owner, form.name, userName)
           }
         }
@@ -172,6 +190,68 @@ trait CreateRepositoryControllerBase extends ControllerBase {
     }
   })
 
+  get("/groups/new")(usersOnly {
+    html.group(None, List((context.loginAccount.get.userName, true)))
+  })
+
+  post("/groups/new", newGroupForm)(usersOnly { form =>
+    createGroup(form.groupName, form.url)
+    updateGroupMembers(form.groupName, form.members.split(",").map {
+      _.split(":") match {
+        case Array(userName, isManager) => (userName, isManager.toBoolean)
+      }
+    }.toList)
+    updateImage(form.groupName, form.fileId, false)
+    redirect(s"/${form.groupName}")
+  })
+
+  get("/:groupName/_editgroup")(managersOnly {
+    defining(params("groupName")){ groupName =>
+      html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
+    }
+  })
+
+  get("/:groupName/_deletegroup")(managersOnly {
+    defining(params("groupName")){ groupName =>
+      // Remove from GROUP_MEMBER
+      updateGroupMembers(groupName, Nil)
+      // Remove repositories
+      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+        deleteRepository(groupName, repositoryName)
+        FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+      }
+    }
+    redirect("/")
+  })
+
+  post("/:groupName/_editgroup", editGroupForm)(managersOnly { form =>
+    defining(params("groupName"), form.members.split(",").map {
+      _.split(":") match {
+        case Array(userName, isManager) => (userName, isManager.toBoolean)
+      }
+    }.toList){ case (groupName, members) =>
+      getAccountByUserName(groupName, true).map { account =>
+        updateGroup(groupName, form.url, false)
+
+        // Update GROUP_MEMBER
+        updateGroupMembers(form.groupName, members)
+        // Update COLLABORATOR for group repositories
+        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+          removeCollaborators(form.groupName, repositoryName)
+          members.foreach { case (userName, isManager) =>
+            addCollaborator(form.groupName, repositoryName, userName)
+          }
+        }
+
+        updateImage(form.groupName, form.fileId, form.clearImage)
+        redirect(s"/${form.groupName}")
+
+      } getOrElse NotFound
+    }
+  })
+
   private def insertDefaultLabels(userName: String, repositoryName: String): Unit = {
     createLabel(userName, repositoryName, "bug", "fc2929")
     createLabel(userName, repositoryName, "duplicate", "cccccc")
@@ -186,14 +266,20 @@ trait CreateRepositoryControllerBase extends ControllerBase {
       if(getAccountByUserName(value).isEmpty) Some("User or group does not exist.") else None
   }
 
-  /**
-   * Duplicate check for the repository name.
-   */
-  private def unique: Constraint = new Constraint(){
+  private def uniqueRepository: Constraint = new Constraint(){
     override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
       params.get("owner").flatMap { userName =>
         getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
       }
   }
-  
+
+  private def members: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
+      if(value.split(",").exists {
+        _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
+      }) None else Some("Must select one manager at least.")
+    }
+  }
+
+
 }
