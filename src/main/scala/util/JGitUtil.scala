@@ -161,7 +161,7 @@ object JGitUtil {
    * @param path the directory path (optional)
    * @return HTML of the file list
    */
-  def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
+  def getFileList(git: Git, revision: String, path: String = ".", limit: Int = 0): List[FileInfo] = {
     val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String)]
 
     using(new RevWalk(git.getRepository)){ revWalk =>
@@ -200,17 +200,29 @@ object JGitUtil {
       }
     }
 
-    val commits = getLatestCommitFromPaths(git, list.toList.map(_._3), revision)
+    val commits = getLatestCommitFromPaths(git, list.toList.map(_._3), revision, limit)
     list.map { case (objectId, fileMode, path, name) =>
-      FileInfo(
-        objectId,
-        fileMode == FileMode.TREE,
-        name,
-        commits(path).getCommitterIdent.getWhen,
-        commits(path).getShortMessage,
-        commits(path).getName,
-        commits(path).getCommitterIdent.getName,
-        commits(path).getCommitterIdent.getEmailAddress)
+      if (commits(path)!=null){
+        FileInfo(
+          objectId,
+          fileMode == FileMode.TREE,
+          name,
+          commits(path).getCommitterIdent.getWhen,
+          commits(path).getShortMessage,
+          commits(path).getName,
+          commits(path).getCommitterIdent.getName,
+          commits(path).getCommitterIdent.getEmailAddress)
+      } else {
+        FileInfo(
+          objectId,
+          fileMode == FileMode.TREE,
+          name,
+          new Date(),
+          "",
+          "",
+          "",
+          "")
+      }
     }.sortWith { (file1, file2) =>
       (file1.isDirectory, file2.isDirectory) match {
         case (true , false) => true
@@ -317,8 +329,17 @@ object JGitUtil {
    * @param revision the branch name or commit id
    * @return the list of latest commit
    */
-  def getLatestCommitFromPaths(git: Git, paths: List[String], revision: String): Map[String, RevCommit] = {
+  def getLatestCommitFromPaths(git: Git, paths: List[String], revision: String, limit: Int = 0): Map[String, RevCommit] = {
     val start = getRevCommitFromId(git, git.getRepository.resolve(revision))
+    if(0<limit){
+      val since = git.log.add(start).setSkip(limit).setMaxCount(1).call.iterator.next
+      if (since!=null) {
+        return paths.map { path =>
+          val commit = git.log.addRange(since,start).addPath(path).setMaxCount(1).call.iterator.next
+          (path, commit)
+        }.toMap
+      }
+    }
     paths.map { path =>
       val commit = git.log.add(start).addPath(path).setMaxCount(1).call.iterator.next
       (path, commit)
