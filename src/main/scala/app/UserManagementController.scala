@@ -5,6 +5,7 @@ import util.AdminAuthenticator
 import util.StringUtil._
 import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
+import org.scalatra.i18n.Messages
 import org.apache.commons.io.FileUtils
 import util.Directory._
 
@@ -23,10 +24,10 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
                           fileId: Option[String], clearImage: Boolean, isRemoved: Boolean)
 
   case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String],
-                          memberNames: Option[String])
+                          members: String)
 
   case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String],
-                           memberNames: Option[String], clearImage: Boolean, isRemoved: Boolean)
+                           members: String, clearImage: Boolean, isRemoved: Boolean)
 
   val newUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName))),
@@ -51,19 +52,19 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   )(EditUserForm.apply)
 
   val newGroupForm = mapping(
-    "groupName"   -> trim(label("Group name"   ,text(required, maxlength(100), identifier, uniqueUserName))),
-    "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
-    "fileId"      -> trim(label("File ID"      ,optional(text()))),
-    "memberNames" -> trim(label("Member Names" ,optional(text())))
+    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
+    "fileId"    -> trim(label("File ID"    ,optional(text()))),
+    "members"   -> trim(label("Members"    ,text(required, members)))
   )(NewGroupForm.apply)
 
   val editGroupForm = mapping(
-    "groupName"   -> trim(label("Group name"   ,text(required, maxlength(100), identifier))),
-    "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
-    "fileId"      -> trim(label("File ID"      ,optional(text()))),
-    "memberNames" -> trim(label("Member Names" ,optional(text()))),
-    "clearImage"  -> trim(label("Clear image"  ,boolean())),
-    "removed"     -> trim(label("Disable"      ,boolean()))
+    "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
+    "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
+    "fileId"     -> trim(label("File ID"     ,optional(text()))),
+    "members"    -> trim(label("Members"     ,text(required, members))),
+    "clearImage" -> trim(label("Clear image" ,boolean())),
+    "removed"    -> trim(label("Disable"     ,boolean()))
   )(EditGroupForm.apply)
 
   get("/admin/users")(adminOnly {
@@ -127,11 +128,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
 
   post("/admin/users/_newgroup", newGroupForm)(adminOnly { form =>
     createGroup(form.groupName, form.url)
-    updateGroupMembers(form.groupName, form.memberNames.map(_.split(",").map {
+    updateGroupMembers(form.groupName, form.members.split(",").map {
       _.split(":") match {
         case Array(userName, isManager) => (userName, isManager.toBoolean)
       }
-    }.toList).getOrElse(Nil))
+    }.toList)
     updateImage(form.groupName, form.fileId, false)
     redirect("/admin/users")
   })
@@ -143,11 +144,11 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/users/:groupName/_editgroup", editGroupForm)(adminOnly { form =>
-    defining(params("groupName"), form.memberNames.map(_.split(",").map {
+    defining(params("groupName"), form.members.split(",").map {
       _.split(":") match {
         case Array(userName, isManager) => (userName, isManager.toBoolean)
       }
-    }.toList).getOrElse(Nil)){ case (groupName, members) =>
+    }.toList){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
         updateGroup(groupName, form.url, form.isRemoved)
 
@@ -183,5 +184,13 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   post("/admin/users/_usercheck")(adminOnly {
     getAccountByUserName(params("userName")).isDefined
   })
+
+  private def members: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
+      if(value.split(",").exists {
+        _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
+      }) None else Some("Must select one manager at least.")
+    }
+  }
 
 }

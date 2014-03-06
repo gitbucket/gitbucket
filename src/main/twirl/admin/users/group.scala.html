@@ -5,7 +5,7 @@
   @admin.html.menu("users"){
     <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newgroup} else {@path/admin/users/@account.get.userName/_editgroup}" validate="true">
       <div class="row-fluid">
-        <div class="span7">
+        <div class="span5">
           <fieldset>
             <label for="groupName" class="strong">Group name</label>
             <div>
@@ -24,24 +24,17 @@
             <div>
               <span id="error-url" class="error"></span>
             </div>
-            <input type="text" name="url" id="url" style="width: 300px;" value="@account.map(_.url)"/>
+            <input type="text" name="url" id="url" value="@account.map(_.url)"/>
           </fieldset>
           <fieldset>
             <label for="avatar" class="strong">Image (Optional)</label>
             @helper.html.uploadavatar(account)
           </fieldset>
         </div>
-        <div class="span5">
+        <div class="span7">
           <fieldset>
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">
-              @members.map { case (userName, isManager) =>
-                <li data-name="@userName">
-                  <input type="checkbox" class="is_manager" id="is_manager_@userName" @if(isManager){checked}/>
-                  <a href="@path/@url(userName)">@userName</a>
-                  <a href="#" class="remove">(remove)</a>
-                </li>
-              }
             </ul>
             @helper.html.account("memberName", 200)
             <input type="button" class="btn" value="Add" id="addMember"/>
@@ -61,6 +54,10 @@
 }
 <script>
 $(function(){
+  $('input[type=submit]').click(function(){
+    updateMembers();
+  });
+
   $('#addMember').click(function(){
     $('#error-memberName').text('');
     var userName = $('#memberName').val();
@@ -84,17 +81,7 @@ $(function(){
       'userName': userName
     }, function(data, status){
       if(data == 'true'){
-        // add member
-        $('#member-list').append($('<li>')
-          .data('name', userName)
-          .append($('<input type="checkbox" class="is_manager">').attr('id', 'is_manager_' + userName))
-          .append($('<a>').attr('href', '@path/' + userName).text(userName))
-          .append(' ')
-          .append($('<a>').attr('href', '#').addClass('remove').text('(remove)')));
-        $('#members').val('');
-
-        // update hidden value
-        updateMembers();
+        addMemberHTML(userName, false);
       } else {
         $('#error-memberName').text('User does not exist.');
       }
@@ -102,27 +89,43 @@ $(function(){
   });
 
   $(document).on('click', '.remove', function(){
-    // remove member
     $(this).parent().remove();
-    // update hidden value
-    updateMembers();
-    $('#members').val(members);
   });
 
   // Don't submit form by ENTER key
   $('#memberName').keypress(function(e){
-    console.log(e.keyCode);
     return !(e.keyCode == 13);
   });
 
-  $('.is_manager').change(function(){
-    updateMembers();
-  });
+  @members.map { case (userName, isManager) =>
+    addMemberHTML('@userName', @isManager);
+  }
+
+  function addMemberHTML(userName, isManager){
+    var memberButton = $('<button type="button" class="btn btn-default btn-mini" value="false">Member</button>').addClass('is_manager_' + userName);
+    if(!isManager){
+      memberButton.addClass('active');
+    }
+    var managerButton = $('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').addClass('is_manager_' + userName);
+    if(isManager){
+      managerButton.addClass('active');
+    }
+
+    $('#member-list').append($('<li>')
+      .data('name', userName)
+      .append($('<div class="btn-group is_manager" data-toggle="buttons-radio">')
+        .append(memberButton)
+        .append(managerButton))
+      .append(' ')
+      .append($('<a>').attr('href', '@path/' + userName).text(userName))
+      .append(' ')
+      .append($('<a href="#" class="remove pull-right">(remove)</a>')));
+  }
 
   function updateMembers(){
     var members = $('#member-list li').map(function(i, e){
       var userName = $(e).data('name');
-      return userName + ':' + $('#is_manager_' + userName).prop('checked');
+      return userName + ':' + $('.is_manager_' + userName + '.active').attr('value');
     }).get().join(',');
     $('#members').val(members);
   }

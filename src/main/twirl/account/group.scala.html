@@ -113,7 +113,7 @@ $(function(){
     }
     var managerButton = $('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').addClass('is_manager_' + userName);
     if(isManager){
-      memberButton.addClass('active');
+      managerButton.addClass('active');
     }
 
     $('#member-list').append($('<li>')
@@ -133,7 +133,6 @@ $(function(){
       return userName + ':' + $('.is_manager_' + userName + '.active').attr('value');
     }).get().join(',');
     $('#members').val(members);
-    return true;
   }
 });
 </script>
