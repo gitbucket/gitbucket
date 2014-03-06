@@ -63,9 +63,9 @@ class AccountServiceServiceSpec extends Specification with ServiceSpecBase {
       AccountService.getGroupMembers(group1) must_== Nil
       AccountService.getGroupsByUserName(user1) must_== Nil
 
-      AccountService.updateGroupMembers(group1, List(user1))
+      AccountService.updateGroupMembers(group1, List((user1, true)))
 
-      AccountService.getGroupMembers(group1) must_== List(user1)
+      AccountService.getGroupMembers(group1) must_== List((user1, true))
       AccountService.getGroupsByUserName(user1) must_== List(group1)
 
       AccountService.updateGroupMembers(group1, Nil)
