@@ -228,16 +228,16 @@ trait PullRequestsControllerBase extends ControllerBase {
             val oldBranch = JGitUtil.getDefaultBranch(oldGit, originRepository).get._2
             val newBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository).get._2
 
-            redirect(s"${context.path}/${forkedRepository.owner}/${forkedRepository.name}/compare/${originUserName}:${oldBranch}...${newBranch}")
+            redirect(s"/${forkedRepository.owner}/${forkedRepository.name}/compare/${originUserName}:${oldBranch}...${newBranch}")
           }
         } getOrElse NotFound
       }
       case _ => {
         using(Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))){ git =>
           JGitUtil.getDefaultBranch(git, forkedRepository).map { case (_, defaultBranch) =>
-            redirect(s"${context.path}/${forkedRepository.owner}/${forkedRepository.name}/compare/${defaultBranch}...${defaultBranch}")
+            redirect(s"/${forkedRepository.owner}/${forkedRepository.name}/compare/${defaultBranch}...${defaultBranch}")
           } getOrElse {
-            redirect(s"${context.path}/${forkedRepository.owner}/${forkedRepository.name}")
+            redirect(s"/${forkedRepository.owner}/${forkedRepository.name}")
           }
         }
       }

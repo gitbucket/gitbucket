@@ -82,44 +82,45 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
       @scala.annotation.tailrec
-      def getPathObjectId(path: String, walk: TreeWalk): ObjectId = walk.next match {
-        case true if(walk.getPathString == path) => walk.getObjectId(0)
-        case true => getPathObjectId(path, walk)
+      def getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
+        case true if(walk.getPathString == path) => Some(walk.getObjectId(0))
+        case true  => getPathObjectId(path, walk)
+        case false => None
       }
 
-      val objectId = using(new TreeWalk(git.getRepository)){ treeWalk =>
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
         treeWalk.addTree(revCommit.getTree)
         treeWalk.setRecursive(true)
         getPathObjectId(path, treeWalk)
-      }
-
-      if(raw){
-        // Download
-        defining(JGitUtil.getContent(git, objectId, false).get){ bytes =>
-          contentType = FileUtil.getContentType(path, bytes)
-          bytes
-        }
-      } else {
-        // Viewer
-        val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-        val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
-        val bytes  = if(viewer == "other") JGitUtil.getContent(git, objectId, false) else None
-
-        val content = if(viewer == "other"){
-          if(bytes.isDefined && FileUtil.isText(bytes.get)){
-            // text
-            JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
-          } else {
-            // binary
-            JGitUtil.ContentInfo("binary", None)
+      } map { objectId =>
+        if(raw){
+          // Download
+          defining(JGitUtil.getContent(git, objectId, false).get){ bytes =>
+            contentType = FileUtil.getContentType(path, bytes)
+            bytes
           }
         } else {
-          // image or large
-          JGitUtil.ContentInfo(viewer, None)
-        }
+          // Viewer
+          val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+          val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
+          val bytes  = if(viewer == "other") JGitUtil.getContent(git, objectId, false) else None
 
-        repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
-      }
+          val content = if(viewer == "other"){
+            if(bytes.isDefined && FileUtil.isText(bytes.get)){
+              // text
+              JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
+            } else {
+              // binary
+              JGitUtil.ContentInfo("binary", None)
+            }
+          } else {
+            // image or large
+            JGitUtil.ContentInfo(viewer, None)
+          }
+
+          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
+        }
+      } getOrElse NotFound
     }
   })
 
@@ -266,7 +267,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repo.html.guide(repository)
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
+        //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)){ revCommit =>
