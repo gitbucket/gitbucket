@@ -1,7 +1,7 @@
 @(groupNames: List[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@main("Create a New Repository"){
+@html.main("Create a New Repository"){
 <div style="width: 600px; margin: 10px auto;">
   <form id="form" method="post" action="@path/new" validate="true">
     <fieldset>
