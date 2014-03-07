@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 
 import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import util.{StringUtil, Keys, JGitUtil, Directory}
 import util.ControlUtil._
 import util.Implicits._
@@ -23,7 +23,7 @@ import util.JGitUtil.CommitInfo
  * This servlet provides only Git repository functionality.
  * Authentication is provided by [[servlet.BasicAuthenticationFilter]].
  */
-class GitRepositoryServlet extends GitServlet {
+class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
   
@@ -47,7 +47,19 @@ class GitRepositoryServlet extends GitServlet {
 
     super.init(config)
   }
-  
+
+  override def service(req: HttpServletRequest, res: HttpServletResponse): Unit = {
+    val agent = req.getHeader("USER-AGENT")
+    if(agent == null || !agent.startsWith("git/")){
+      // redirect for browsers
+      val paths   = req.getRequestURI.split("/")
+      val baseUrl = loadSystemSettings().baseUrl.getOrElse(req.getServletContext.getContextPath)
+      res.sendRedirect(baseUrl + "/" + paths.dropRight(1).last + "/" + paths.last.replaceFirst("\\.git$", ""))
+    } else {
+      // response for git client
+      super.service(req, res)
+    }
+  }
 }
 
 class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest] with SystemSettingsService {
