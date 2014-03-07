@@ -105,9 +105,9 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
-  get("/:owner/:repository/pull/:id/delete/:branchName")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/pull/:id/delete/*")(collaboratorsOnly { repository =>
     params("id").toIntOpt.map { issueId =>
-      val branchName = params("branchName")
+      val branchName = multiParams("splat").head
       val userName   = context.loginAccount.get.userName
       if(repository.repository.defaultBranch != branchName){
         using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>

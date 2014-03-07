@@ -159,8 +159,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Deletes branch.
    */
-  get("/:owner/:repository/delete/:branchName")(collaboratorsOnly { repository =>
-    val branchName = params("branchName")
+  get("/:owner/:repository/delete/*")(collaboratorsOnly { repository =>
+    val branchName = multiParams("splat").head
     val userName   = context.loginAccount.get.userName
     if(repository.repository.defaultBranch != branchName){
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
