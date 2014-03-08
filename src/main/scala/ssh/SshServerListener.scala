@@ -18,7 +18,7 @@ object SshServer {
   private def configure(context: ServletContext) = {
     server.setPort(DEFAULT_PORT) // TODO read from config
     server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
-    server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
+    server.setPublickeyAuthenticator(new PublicKeyAuthenticator(context))
     server.setCommandFactory(new GitCommandFactory(context))
   }
 
