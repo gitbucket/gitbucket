@@ -10,7 +10,13 @@
     <div class="box">
       <div class="box-header">SSH Keys</div>
       <div class="box-content">
-        @sshKeys.map { key =>
+        @if(sshKeys.isEmpty){
+          No keys
+        }
+        @sshKeys.zipWithIndex.map { case (key, i) =>
+          @if(i != 0){
+            <hr>
+          }
           <strong>@key.title</strong>
           <a href="@path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-mini btn-danger pull-right">Delete</a>
         }
