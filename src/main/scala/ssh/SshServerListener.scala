@@ -15,7 +15,7 @@ object SshServer {
 
   private val server = org.apache.sshd.SshServer.setUpDefaultServer()
 
-  private def configure() = {
+  private def configure(context: ServletContext) = {
     server.setPort(DEFAULT_PORT) // TODO read from config
     server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
@@ -24,7 +24,8 @@ object SshServer {
 
   def start(context: ServletContext) = this.synchronized {
     if (SSH_SERVICE_ENABLE) {
-      configure()
+
+      configure(context)
       server.start()
       logger.info(s"Start SSH Server Listen on ${server.getPort}")
     }
