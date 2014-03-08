@@ -20,14 +20,15 @@ import org.scalatra.i18n._
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with Validations with SystemSettingsService {
+  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
+  with SystemSettingsService {
 
   implicit val jsonFormats = DefaultFormats
 
   // Don't set content type via Accept header.
   override def format(implicit request: HttpServletRequest) = ""
 
-  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = try {
     val httpRequest  = request.asInstanceOf[HttpServletRequest]
     val httpResponse = response.asInstanceOf[HttpServletResponse]
     val context      = request.getServletContext.getContextPath
@@ -37,12 +38,15 @@ abstract class ControllerBase extends ScalatraFilter
       val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       if(account == null){
         // Redirect to login form
+        // TODO Should use the configured base url.
         httpResponse.sendRedirect(context + "/signin?" + StringUtil.urlEncode(path))
       } else if(account.isAdmin){
         // H2 Console (administrators only)
+        // TODO Should use the configured base url.
         chain.doFilter(request, response)
       } else {
         // Redirect to dashboard
+        // TODO Should use the configured base url.
         httpResponse.sendRedirect(context + "/")
       }
     } else if(path.startsWith("/git/")){
@@ -52,12 +56,25 @@ abstract class ControllerBase extends ScalatraFilter
       // Scalatra actions
       super.doFilter(request, response, chain)
     }
+  } finally {
+    contextCache.remove();
   }
+
+  private val contextCache = new java.lang.ThreadLocal[Context]()
 
   /**
    * Returns the context object for the request.
    */
-  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, request)
+  implicit def context: Context = {
+    contextCache.get match {
+      case null => {
+        val context = Context(loadSystemSettings().baseUrl.getOrElse(servletContext.getContextPath), LoginAccount, request)
+        contextCache.set(context)
+        context
+      }
+      case context => context
+    }
+  }
 
   private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
 
@@ -102,27 +119,31 @@ abstract class ControllerBase extends ScalatraFilter
         if(request.getMethod.toUpperCase == "POST"){
           org.scalatra.Unauthorized(redirect("/signin"))
         } else {
-          val currentUrl = baseUrl + defining(request.getQueryString){ queryString =>
-            request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
-          }
-          session.setAttribute(Keys.Session.Redirect, currentUrl)
-          org.scalatra.Unauthorized(redirect("/signin"))
+          org.scalatra.Unauthorized(redirect("/signin?redirect=" + StringUtil.urlEncode(
+            defining(request.getQueryString){ queryString =>
+              request.getRequestURI.substring(request.getContextPath.length) + (if(queryString != null) "?" + queryString else "")
+            }
+          )))
         }
       }
     }
 
-  protected def baseUrl = loadSystemSettings().baseUrl.getOrElse {
-    defining(request.getRequestURL.toString){ url =>
-      url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
-    }
-  }.replaceFirst("/$", "")
+  override def fullUrl(path: String, params: Iterable[(String, Any)] = Iterable.empty,
+                       includeContextPath: Boolean = true, includeServletPath: Boolean = true)
+                      (implicit request: HttpServletRequest, response: HttpServletResponse) =
+    if (path.startsWith("http")) path
+    else baseUrl + url(path, params, false, false, false)
 
 }
 
 /**
  * Context object for the current request.
+ *
+ * @param path the context path
  */
 case class Context(path: String, loginAccount: Option[Account], request: HttpServletRequest){
+
+  lazy val currentPath = request.getRequestURI.substring(request.getContextPath.length)
 
   /**
    * Get object from cache.

@@ -3,7 +3,7 @@
   pathList: List[String],
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
-  readme: Option[String])(implicit context: app.Context)
+  readme: Option[(util.JGitUtil.FileInfo, String)])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
@@ -12,7 +12,7 @@
   <div class="head">
     <div class="pull-right">
       @defining(repository.commitCount){ commitCount =>
-        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 1000){ @commitCount+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
+        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 10000){ @commitCount+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
       }
     </div>
     <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
@@ -55,14 +55,22 @@
       <tr>
         <td width="16">
         @if(file.isDirectory){
-          <img src="@assets/common/images/folder.png"/>
+          @if(file.linkUrl.isDefined){
+            <img src="@assets/common/images/folder_link.png"/>
+          } else {
+            <img src="@assets/common/images/folder.png"/>
+          }
         } else {
           <img src="@assets/common/images/file.png"/>
         }
         </td>
         <td>
         @if(file.isDirectory){
-          <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+          @if(file.linkUrl.isDefined){
+            <a href="@file.linkUrl">@file.name</a>
+          } else {
+            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+          }
         } else {
           <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
         }
@@ -77,9 +85,9 @@
     </table>
   </div>
   
-  @readme.map { content =>
+  @readme.map { case(file, content) =>
   <div id="readme" class="box">
-    <div class="box-header">README.md</div>
+    <div class="box-header">@file.name</div>
     <div class="box-content markdown-body">@markdown(content, repository, false, false)</div>
   </div>
   }

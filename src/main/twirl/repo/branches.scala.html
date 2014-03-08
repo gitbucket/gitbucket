@@ -1,4 +1,4 @@
-@(branchInfo: List[(String, java.util.Date)],
+@(branchInfo: Seq[(String, java.util.Date)],
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._

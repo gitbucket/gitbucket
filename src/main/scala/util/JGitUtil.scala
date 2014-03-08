@@ -11,16 +11,19 @@ import org.eclipse.jgit.revwalk.filter._
 import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.treewalk.filter._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import org.eclipse.jgit.errors.MissingObjectException
+import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
 import java.util.Date
 import org.eclipse.jgit.api.errors.NoHeadException
 import service.RepositoryService
 import org.eclipse.jgit.dircache.DirCacheEntry
+import org.slf4j.LoggerFactory
 
 /**
  * Provides complex JGit operations.
  */
 object JGitUtil {
+
+  private val logger = LoggerFactory.getLogger(JGitUtil.getClass)
 
   /**
    * The repository data.
@@ -45,9 +48,10 @@ object JGitUtil {
    * @param commitId the last commit id
    * @param committer the last committer name
    * @param mailAddress the committer's mail address
+   * @param linkUrl the url of submodule
    */
   case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String,
-                      committer: String, mailAddress: String)
+                      committer: String, mailAddress: String, linkUrl: Option[String])
 
   /**
    * The commit data.
@@ -105,6 +109,15 @@ object JGitUtil {
   case class TagInfo(name: String, time: Date, id: String)
 
   /**
+   * The submodule data
+   *
+   * @param name the module name
+   * @param path the path in the repository
+   * @param url the repository url of this module
+   */
+  case class SubmoduleInfo(name: String, path: String, url: String)
+
+  /**
    * Returns RevCommit from the commit or tag id.
    * 
    * @param git the Git object
@@ -128,7 +141,7 @@ object JGitUtil {
     using(Git.open(getRepositoryDir(owner, repository))){ git =>
       try {
         // get commit count
-        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(1000).sum
+        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(10000).sum
 
         RepositoryInfo(
           owner, repository, s"${baseUrl}/git/${owner}/${repository}.git",
@@ -162,7 +175,7 @@ object JGitUtil {
    * @return HTML of the file list
    */
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
-    val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String)]
+    val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
 
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(revision)
@@ -195,22 +208,28 @@ object JGitUtil {
           })
         }
         while (treeWalk.next()) {
-          list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString))
+          // submodule
+          val linkUrl = if(treeWalk.getFileMode(0) == FileMode.GITLINK){
+            getSubmodules(git, revCommit.getTree).find(_.path == treeWalk.getPathString).map(_.url)
+          } else None
+
+          list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString, linkUrl))
         }
       }
     }
 
     val commits = getLatestCommitFromPaths(git, list.toList.map(_._3), revision)
-    list.map { case (objectId, fileMode, path, name) =>
+    list.map { case (objectId, fileMode, path, name, linkUrl) =>
       FileInfo(
         objectId,
-        fileMode == FileMode.TREE,
+        fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
         name,
         commits(path).getCommitterIdent.getWhen,
         commits(path).getShortMessage,
         commits(path).getName,
         commits(path).getCommitterIdent.getName,
-        commits(path).getCommitterIdent.getEmailAddress)
+        commits(path).getCommitterIdent.getEmailAddress,
+        linkUrl)
     }.sortWith { (file1, file2) =>
       (file1.isDirectory, file2.isDirectory) match {
         case (true , false) => true
@@ -326,27 +345,6 @@ object JGitUtil {
   }
 
   /**
-   * Get object content of the given id as String from the Git repository.
-   * 
-   * @param git the Git object
-   * @param id the object id
-   * @param large if false then returns None for the large file
-   * @return the object or None if object does not exist
-   */
-  def getContent(git: Git, id: ObjectId, large: Boolean): Option[Array[Byte]] = try {
-    val loader = git.getRepository.getObjectDatabase.open(id)
-    if(large == false && FileUtil.isLarge(loader.getSize)){
-      None
-    } else {
-      using(git.getRepository.getObjectDatabase){ db =>
-        Some(db.open(id).getBytes)
-      }
-    }
-  } catch {
-    case e: MissingObjectException => None
-  }
-
-  /**
    * Returns the tuple of diff of the given commit and the previous commit id.
    */
   def getDiffs(git: Git, id: String, fetchContent: Boolean = true): (List[DiffInfo], Option[String]) = {
@@ -377,7 +375,7 @@ object JGitUtil {
               DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None)
             } else {
               DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None,
-                JGitUtil.getContent(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
+                JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
             }))
           }
           (buffer.toList, None)
@@ -400,8 +398,8 @@ object JGitUtil {
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
       } else {
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
-          JGitUtil.getContent(git, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray),
-          JGitUtil.getContent(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray))
+          JGitUtil.getContentFromId(git, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray),
+          JGitUtil.getContentFromId(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray))
       }
     }.toList
   }
@@ -492,6 +490,75 @@ object JGitUtil {
     refUpdate.update()
 
     newHeadId.getName
+  }
+
+  /**
+   * Read submodule information from .gitmodules
+   */
+  def getSubmodules(git: Git, tree: RevTree): List[SubmoduleInfo] = {
+    val repository = git.getRepository
+    getContentFromPath(git, tree, ".gitmodules", true).map { bytes =>
+      (try {
+        val config = new BlobBasedConfig(repository.getConfig(), bytes)
+        config.getSubsections("submodule").asScala.map { module =>
+          val path = config.getString("submodule", module, "path")
+          val url  = config.getString("submodule", module, "url")
+          SubmoduleInfo(module, path, url)
+        }
+      } catch {
+        case e: ConfigInvalidException => {
+          logger.error("Failed to load .gitmodules file for " + repository.getDirectory(), e)
+          Nil
+        }
+      }).toList
+    } getOrElse Nil
+	}
+
+  /**
+   * Get object content of the given path as byte array from the Git repository.
+   *
+   * @param git the Git object
+   * @param revTree the rev tree
+   * @param path the path
+   * @param fetchLargeFile if false then returns None for the large file
+   * @return the byte array of content or None if object does not exist
+   */
+  def getContentFromPath(git: Git, revTree: RevTree, path: String, fetchLargeFile: Boolean): Option[Array[Byte]] = {
+    @scala.annotation.tailrec
+    def getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
+      case true if(walk.getPathString == path) => Some(walk.getObjectId(0))
+      case true  => getPathObjectId(path, walk)
+      case false => None
+    }
+
+    using(new TreeWalk(git.getRepository)){ treeWalk =>
+      treeWalk.addTree(revTree)
+      treeWalk.setRecursive(true)
+      getPathObjectId(path, treeWalk)
+    } flatMap { objectId =>
+      getContentFromId(git, objectId, fetchLargeFile)
+    }
+  }
+
+  /**
+   * Get object content of the given object id as byte array from the Git repository.
+   *
+   * @param git the Git object
+   * @param id the object id
+   * @param fetchLargeFile if false then returns None for the large file
+   * @return the byte array of content or None if object does not exist
+   */
+  def getContentFromId(git: Git, id: ObjectId, fetchLargeFile: Boolean): Option[Array[Byte]] = try {
+    val loader = git.getRepository.getObjectDatabase.open(id)
+    if(fetchLargeFile == false && FileUtil.isLarge(loader.getSize)){
+      None
+    } else {
+      using(git.getRepository.getObjectDatabase){ db =>
+        Some(db.open(id).getBytes)
+      }
+    }
+  } catch {
+    case e: MissingObjectException => None
   }
 
 }
