@@ -1,12 +1,13 @@
 package ssh
 
 import org.specs2.mutable._
+import org.specs2.mock.Mockito
 import org.apache.sshd.server.command.UnknownCommand
+import javax.servlet.ServletContext
 
+class GitCommandFactorySpec extends Specification with Mockito {
 
-class GitCommandFactorySpec extends Specification {
-
-  val factory = new GitCommandFactory
+  val factory = new GitCommandFactory(mock[ServletContext])
 
   "createCommand" should {
     "returns GitRecievePack when command is git-receive-pack" in {
