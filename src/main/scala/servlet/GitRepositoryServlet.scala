@@ -64,7 +64,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
     defining(request.paths){ paths =>
       val owner      = paths(1)
       val repository = paths(2).replaceFirst("\\.git$", "")
-      val baseURL    = request.getRequestURL.toString.replaceFirst("/git/.*", "")
+      val baseURL    = request.getRequestURL.toString.replaceFirst("/git/.*", "") // TODO Use base URL in SystemSettings
 
       logger.debug("repository:" + owner + "/" + repository)
       logger.debug("baseURL:" + baseURL)

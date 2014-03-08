@@ -11,6 +11,7 @@ import org.apache.sshd.server.command.UnknownCommand
 import servlet.{Database, CommitLogHook}
 import service.SystemSettingsService
 import org.eclipse.jgit.errors.RepositoryNotFoundException
+import javax.servlet.ServletContext
 
 
 object GitCommand {
@@ -94,7 +95,7 @@ class GitUploadPack(override val command: String) extends GitCommand(command: St
 
 }
 
-class GitReceivePack(override val command: String) extends GitCommand(command: String) with SystemSettingsService {
+class GitReceivePack(context: ServletContext, override val command: String) extends GitCommand(command: String) with SystemSettingsService {
   // TODO Correct this info. where i get base url?
   val BaseURL: String = loadSystemSettings().baseUrl.getOrElse("http://localhost:8080")
 
@@ -104,7 +105,7 @@ class GitReceivePack(override val command: String) extends GitCommand(command: S
         val repository = git.getRepository
         val receive = new ReceivePack(repository)
         receive.setPostReceiveHook(new CommitLogHook(owner, repositoryName, user, BaseURL))
-        Database(SshServer.getServletContext) withTransaction {
+        Database(context) withTransaction {
           receive.receive(in, out, err)
         }
     }
@@ -112,14 +113,14 @@ class GitReceivePack(override val command: String) extends GitCommand(command: S
 
 }
 
-class GitCommandFactory extends CommandFactory {
+class GitCommandFactory(context: ServletContext) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
 
   override def createCommand(command: String): Command = {
     logger.debug(s"command: $command")
     command match {
       case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(command)
-      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(command)
+      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, command)
       case _ => new UnknownCommand(command)
     }
   }

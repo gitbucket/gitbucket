@@ -15,20 +15,15 @@ object SshServer {
 
   private val server = org.apache.sshd.SshServer.setUpDefaultServer()
 
-  // TODO think other way. this is for create database session
-  private var context: ServletContext = null
-
-
   private def configure() = {
     server.setPort(DEFAULT_PORT) // TODO read from config
     server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
-    server.setCommandFactory(new GitCommandFactory)
+    server.setCommandFactory(new GitCommandFactory(context))
   }
 
   def start(context: ServletContext) = this.synchronized {
     if (SSH_SERVICE_ENABLE) {
-      this.context = context
       configure()
       server.start()
       logger.info(s"Start SSH Server Listen on ${server.getPort}")
@@ -38,8 +33,6 @@ object SshServer {
   def stop() = {
     server.stop(true)
   }
-
-  def getServletContext = this.context
 }
 
 /*
