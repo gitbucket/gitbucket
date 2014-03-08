@@ -1,36 +1,21 @@
-@(account: Option[model.Account], info: Option[Any])(implicit context: app.Context)
+@(account: model.Account, info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main((if(account.isDefined) "Edit your profile" else "Create your account")){
+@html.main("Edit your profile"){
 <div class="row-fluid">
   <div class="span3">
     @menu("profile")
   </div>
   <div class="span9">
-    <form action="@if(account.isDefined){@url(account.get.userName)/_edit}else{@path/register}" method="POST" validate="true">
-      @if(account.isDefined){
-        <h3>Edit your profile</h3>
-      } else {
-        <h3>Create your account</h3>
-      }
+    <form action="@url(account.userName)/_edit" method="POST" validate="true">
+      <h3>Edit your profile</h3>
       @helper.html.information(info)
       <div class="row-fluid">
         <div class="span6">
-          @if(account.isEmpty){
-            <fieldset>
-              <label for="userName" class="strong">Username:</label>
-              <input type="text" name="userName" id="userName" value=""/>
-              <span id="error-userName" class="error"></span>
-            </fieldset>
-          }
-          @if(account.map(_.password.nonEmpty).getOrElse(true)){
+          @if(account.password.nonEmpty){
             <fieldset>
               <label for="password" class="strong">
-                Password
-                @if(account.nonEmpty){
-                  (input to change password)
-                }
-                :
+                Password (input to change password):
               </label>
               <input type="password" name="password" id="password" value=""/>
               <span id="error-password" class="error"></span>
@@ -38,37 +23,33 @@
           }
           <fieldset>
             <label for="fullName" class="strong">Full Name:</label>
-            <input type="text" name="fullName" id="fullName" value="@account.map(_.fullName)"/>
+            <input type="text" name="fullName" id="fullName" value="@account.fullName)"/>
             <span id="error-fullName" class="error"></span>
           </fieldset>
           <fieldset>
             <label for="mailAddress" class="strong">Mail Address:</label>
-            <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
+            <input type="text" name="mailAddress" id="mailAddress" value="@account.mailAddress)"/>
             <span id="error-mailAddress" class="error"></span>
           </fieldset>
           <fieldset>
             <label for="url" class="strong">URL (optional):</label>
-            <input type="text" name="url" id="url" style="width: 300px;" value="@account.map(_.url)"/>
+            <input type="text" name="url" id="url" style="width: 300px;" value="@account.url)"/>
             <span id="error-url" class="error"></span>
           </fieldset>
         </div>
         <div class="span6">
           <fieldset>
             <label for="avatar" class="strong">Image (optional):</label>
-            @helper.html.uploadavatar(account)
+            @helper.html.uploadavatar(Some(account))
           </fieldset>
         </div>
       </div>
       <fieldset class="margin">
-        @if(account.isDefined){
-          <div class="pull-right">
-            <a href="@path/@account.get.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
-          </div>
-          <input type="submit" class="btn btn-success" value="Save"/>
-          <a href="@url(account.get.userName)" class="btn">Cancel</a>
-        } else {
-          <input type="submit" class="btn btn-success" value="Create account"/>
-        }
+        <div class="pull-right">
+          <a href="@path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
+        </div>
+        <input type="submit" class="btn btn-success" value="Save"/>
+        <a href="@url(account.userName)" class="btn">Cancel</a>
       </fieldset>
     </form>
   </div>
