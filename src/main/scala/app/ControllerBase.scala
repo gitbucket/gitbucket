@@ -143,6 +143,9 @@ case class Context(settings: SystemSettingsService.SystemSettings, loginAccount:
 
   lazy val currentPath = request.getRequestURI.substring(request.getContextPath.length)
 
+  lazy val baseURL = request.getRequestURL.substring(0, request.getRequestURL.length - request.getRequestURI.length) + path
+  lazy val host = request.getServerName
+
   /**
    * Get object from cache.
    *
