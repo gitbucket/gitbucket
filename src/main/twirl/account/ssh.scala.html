@@ -10,9 +10,9 @@
     <div class="box">
       <div class="box-header">SSH Keys</div>
       <div class="box-content">
-        @sshKeys.map { sshKey =>
-          <strong>@sshKey.title</strong>
-          <a href="#" class="btn btn-mini btn-danger pull-right">Delete</a>
+        @sshKeys.map { key =>
+          <strong>@key.title</strong>
+          <a href="@path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-mini btn-danger pull-right">Delete</a>
         }
       </div>
     </div>

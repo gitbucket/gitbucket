@@ -184,12 +184,19 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/${userName}/_ssh")
   })
 
+  get("/:userName/_ssh/delete/:id")(oneselfOnly {
+    val userName = params("userName")
+    val sshKeyId = params("id").toInt
+    deletePublicKey(userName, sshKeyId)
+    redirect(s"/${userName}/_ssh")
+  })
+
   get("/register"){
     if(loadSystemSettings().allowAccountRegistration){
       if(context.loginAccount.isDefined){
         redirect("/")
       } else {
-        account.html.edit(None, None)
+        account.html.register()
       }
     } else NotFound
   }
