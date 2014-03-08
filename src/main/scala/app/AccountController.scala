@@ -14,11 +14,11 @@ import org.eclipse.jgit.dircache.DirCache
 import model.GroupMember
 
 class AccountController extends AccountControllerBase
-  with AccountService with RepositoryService with ActivityService with WikiService with LabelsService
+  with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
 
 trait AccountControllerBase extends AccountManagementControllerBase {
-  self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService
+  self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
@@ -26,6 +26,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   case class AccountEditForm(password: Option[String], fullName: String, mailAddress: String,
                              url: Option[String], fileId: Option[String], clearImage: Boolean)
+
+  case class SshKeyForm(title: String, publicKey: String)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -44,6 +46,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "clearImage"  -> trim(label("Clear image"  , boolean()))
   )(AccountEditForm.apply)
+
+  val sshKeyForm = mapping(
+    "title"     -> trim(label("Title", text(required, maxlength(100)))),
+    "publicKey" -> trim(label("Key"  , text(required)))
+  )(SshKeyForm.apply)
 
   case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String)
   case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
@@ -162,6 +169,19 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
     session.invalidate
     redirect("/")
+  })
+
+  get("/:userName/_ssh")(oneselfOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName).map { x =>
+      account.html.ssh(x, getPublicKeys(x.userName), flash.get("info"))
+    } getOrElse NotFound
+  })
+
+  post("/:userName/_ssh", sshKeyForm)(oneselfOnly { form =>
+    val userName = params("userName")
+    addPublicKey(userName, form.title, form.publicKey)
+    redirect(s"/${userName}/_ssh")
   })
 
   get("/register"){
