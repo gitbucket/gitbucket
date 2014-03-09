@@ -84,6 +84,8 @@ class AvatarImageProviderSpec extends Specification {
       allowAccountRegistration = false,
       gravatar                 = useGravatar,
       notification             = false,
+      ssh                      = false,
+      sshPort                  = None,
       smtp                     = None,
       ldapAuthentication       = false,
       ldap                     = None)
