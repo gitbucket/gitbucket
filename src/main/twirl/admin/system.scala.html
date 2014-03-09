@@ -56,6 +56,26 @@
             </label>
           </fieldset>
           <!--====================================================================-->
+          <!-- SSH access -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">SSH access</label>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" id="ssh" name="ssh"@if(settings.ssh){ checked}/>
+              Enable SSH access to git repository
+            </label>
+          </fieldset>
+          <div class="form-horizontal ssh">
+            <div class="control-group">
+              <label class="control-label" for="sshPort">SSH Port</label>
+              <div class="controls">
+                <input type="text" id="sshPort" name="sshPort" value="@settings.sshPort"/>
+                <span id="error-sshPort" class="error"></span>
+              </div>
+            </div>
+          </div>
+          <!--====================================================================-->
           <!-- Authentication -->
           <!--====================================================================-->
           <hr>
@@ -206,6 +226,10 @@
 }
 <script>
 $(function(){
+  $('#ssh').change(function(){
+    $('.ssh input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
   $('#notification').change(function(){
     $('.notification input').prop('disabled', !$(this).prop('checked'));
   }).change();

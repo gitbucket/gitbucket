@@ -82,7 +82,7 @@ abstract class GitCommand(val command: String) extends Command {
   }
 }
 
-class GitUploadPack(override val command: String) extends GitCommand(command: String) {
+class GitUploadPack(context: ServletContext, override val command: String) extends GitCommand(command: String) {
 
   override protected def runTask(user: String): Unit = {
     using(Git.open(getRepositoryDir(owner, repositoryName))) {
@@ -119,7 +119,7 @@ class GitCommandFactory(context: ServletContext) extends CommandFactory {
   override def createCommand(command: String): Command = {
     logger.debug(s"command: $command")
     command match {
-      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(command)
+      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(context, command)
       case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, command)
       case _ => new UnknownCommand(command)
     }

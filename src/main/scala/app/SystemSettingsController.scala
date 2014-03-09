@@ -4,6 +4,7 @@ import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
 import util.AdminAuthenticator
 import jp.sf.amateras.scalatra.forms._
+import ssh.SshServer
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with SystemSettingsService with AccountService with AdminAuthenticator
@@ -16,6 +17,8 @@ trait SystemSettingsControllerBase extends ControllerBase {
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
+    "ssh"                      -> trim(label("SSH access", boolean())),
+    "sshPort"                  -> trim(label("SSH port", optional(number()))),
     "smtp"                     -> optionalIfNotChecked("notification", mapping(
         "host"                     -> trim(label("SMTP Host", text(required))),
         "port"                     -> trim(label("SMTP Port", optional(number()))),
@@ -47,6 +50,13 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
+
+    if(form.ssh && !SshServer.isActive){
+      SshServer.start(request.getServletContext, form.sshPort.getOrElse(SystemSettingsService.DefaultSshPort))
+    } else if(!form.ssh && SshServer.isActive){
+      SshServer.stop()
+    }
+
     flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
   })
