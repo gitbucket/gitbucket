@@ -131,7 +131,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
-    getAccountByUserName(userName).map(x => account.html.edit(x, flash.get("info"))) getOrElse NotFound
+    getAccountByUserName(userName).map { x =>
+      account.html.edit(x, loadSystemSettings(), flash.get("info"))
+    } getOrElse NotFound
   })
 
   post("/:userName/_edit", editForm)(oneselfOnly { form =>
@@ -174,7 +176,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_ssh")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
-      account.html.ssh(x, getPublicKeys(x.userName))
+      account.html.ssh(x, loadSystemSettings(), getPublicKeys(x.userName))
     } getOrElse NotFound
   })
 

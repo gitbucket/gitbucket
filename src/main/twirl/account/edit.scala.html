@@ -1,10 +1,10 @@
-@(account: model.Account, info: Option[Any])(implicit context: app.Context)
+@(account: model.Account, settings: service.SystemSettingsService.SystemSettings, info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Edit your profile"){
 <div class="row-fluid">
   <div class="span3">
-    @menu("profile")
+    @menu("profile", settings.ssh)
   </div>
   <div class="span9">
     @helper.html.information(info)
