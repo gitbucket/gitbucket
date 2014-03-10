@@ -16,7 +16,6 @@ class PublicKeyAuthenticator(context: ServletContext) extends PublickeyAuthentic
 
   override def authenticate(username: String, key: PublicKey, session: ServerSession): Boolean = {
     Database(context) withTransaction {
-      // TODO Check permission to the repository here?
       getPublicKeys(username).exists { sshKey =>
         str2PublicKey(sshKey.publicKey) match {
           case Some(publicKey) => key.equals(publicKey)
