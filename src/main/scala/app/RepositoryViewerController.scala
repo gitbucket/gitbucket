@@ -95,7 +95,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       } map { objectId =>
         if(raw){
           // Download
-          defining(JGitUtil.getContent(git, objectId, false).get){ bytes =>
+          defining(JGitUtil.getContentFromId(git, objectId, false).get){ bytes =>
             contentType = FileUtil.getContentType(path, bytes)
             bytes
           }
@@ -103,7 +103,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           // Viewer
           val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
           val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
-          val bytes  = if(viewer == "other") JGitUtil.getContent(git, objectId, false) else None
+          val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
 
           val content = if(viewer == "other"){
             if(bytes.isDefined && FileUtil.isText(bytes.get)){
@@ -159,8 +159,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Deletes branch.
    */
-  get("/:owner/:repository/delete/:branchName")(collaboratorsOnly { repository =>
-    val branchName = params("branchName")
+  get("/:owner/:repository/delete/*")(collaboratorsOnly { repository =>
+    val branchName = multiParams("splat").head
     val userName   = context.loginAccount.get.userName
     if(repository.repository.defaultBranch != branchName){
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
@@ -208,7 +208,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             while(walk.next){
               val name = walk.getPathString
               val mode = walk.getFileMode(0)
-              if(mode != FileMode.TREE){
+              if(mode == FileMode.REGULAR_FILE){
                 walk.getObjectId(objectId, 0)
                 val entry = new ZipEntry(name)
                 val loader = reader.open(objectId)
@@ -277,7 +277,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             val readme = files.find { file =>
               readmeFiles.contains(file.name.toLowerCase)
             }.map { file =>
-              file -> StringUtil.convertFromByteArray(JGitUtil.getContent(Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
+              file -> StringUtil.convertFromByteArray(JGitUtil.getContentFromId(
+                Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
             }
 
             repo.html.files(revision, repository,

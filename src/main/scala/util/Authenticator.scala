@@ -29,7 +29,7 @@ trait OneselfAuthenticator { self: ControllerBase =>
 /**
  * Allows only the repository owner and administrators.
  */
-trait OwnerAuthenticator { self: ControllerBase with RepositoryService =>
+trait OwnerAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def ownerOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def ownerOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
@@ -40,6 +40,9 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService =>
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(repository.owner == x.userName) => action(repository)
+            case Some(x) if(getGroupMembers(repository.owner).exists { member =>
+              member.userName == x.userName && member.isManager == true
+            }) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
@@ -106,7 +109,7 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
 }
 
 /**
- * Allows only the repository owner and administrators.
+ * Allows only the repository owner (or manager for group repository) and administrators.
  */
 trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
   protected def referrersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
@@ -151,6 +154,27 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
+      }
+    }
+  }
+}
+
+/**
+ * Allows only the group managers.
+ */
+trait GroupManagerAuthenticator { self: ControllerBase with AccountService =>
+  protected def managersOnly(action: => Any) = { authenticate(action) }
+  protected def managersOnly[T](action: T => Any) = (form: T) => { authenticate(action(form)) }
+
+  private def authenticate(action: => Any) = {
+    {
+      defining(request.paths){ paths =>
+        context.loginAccount match {
+          case Some(x) if(getGroupMembers(paths(0)).exists { member =>
+            member.userName == x.userName && member.isManager
+          }) => action
+          case _ => Unauthorized()
+        }
       }
     }
   }

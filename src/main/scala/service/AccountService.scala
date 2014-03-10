@@ -128,18 +128,17 @@ trait AccountService {
   def updateGroup(groupName: String, url: Option[String], removed: Boolean): Unit =
     Accounts.filter(_.userName is groupName.bind).map(t => t.url.? ~ t.removed).update(url, removed)
 
-  def updateGroupMembers(groupName: String, members: List[String]): Unit = {
+  def updateGroupMembers(groupName: String, members: List[(String, Boolean)]): Unit = {
     Query(GroupMembers).filter(_.groupName is groupName.bind).delete
-    members.foreach { userName =>
-      GroupMembers insert GroupMember (groupName, userName)
+    members.foreach { case (userName, isManager) =>
+      GroupMembers insert GroupMember (groupName, userName, isManager)
     }
   }
 
-  def getGroupMembers(groupName: String): List[String] =
+  def getGroupMembers(groupName: String): List[GroupMember] =
     Query(GroupMembers)
       .filter(_.groupName is groupName.bind)
       .sortBy(_.userName)
-      .map(_.userName)
       .list
 
   def getGroupsByUserName(userName: String): List[String] =

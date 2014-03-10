@@ -13,6 +13,10 @@
           <a href="@url(collaboratorName)">@collaboratorName</a>
           @if(!isGroupRepository){
             <a href="@url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
+          } else {
+            @if(repository.managers.contains(collaboratorName)){
+              (Manager)
+            }
           }
         </li>
       }
