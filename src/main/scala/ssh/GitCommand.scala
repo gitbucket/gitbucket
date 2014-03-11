@@ -18,11 +18,10 @@ object GitCommand {
   val CommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-_.]+).git'\Z""".r
 }
 
-abstract class GitCommand(val context: ServletContext, val command: String) extends Command {
+abstract class GitCommand(val context: ServletContext, val owner: String, val repoName: String) extends Command {
   self: RepositoryService with AccountService =>
 
   private val logger = LoggerFactory.getLogger(classOf[GitCommand])
-  protected val (gitCommand, owner, repositoryName) = parseCommand
   protected var err: OutputStream = null
   protected var in: InputStream = null
   protected var out: OutputStream = null
@@ -49,8 +48,6 @@ abstract class GitCommand(val context: ServletContext, val command: String) exte
   }
 
   override def start(env: Environment): Unit = {
-    logger.info(s"start command : " + command)
-    logger.info(s"parsed command : $gitCommand, $owner, $repositoryName")
     val user = env.getEnv.get("USER")
     val thread = new Thread(newTask(user))
     thread.start()
@@ -74,17 +71,6 @@ abstract class GitCommand(val context: ServletContext, val command: String) exte
     this.in = in
   }
 
-  private def parseCommand: (String, String, String) = {
-    // command sample: git-upload-pack '/owner/repository_name.git'
-    // command sample: git-receive-pack '/owner/repository_name.git'
-    // TODO This is not correct.... but works
-    val split = command.split(" ")
-    val gitCommand = split(0)
-    val owner = split(1).substring(1, split(1).length - 5).split("/")(1)
-    val repositoryName = split(1).substring(1, split(1).length - 5).split("/")(2)
-    (gitCommand, owner, repositoryName)
-  }
-
   protected def isWritableUser(username: String, repositoryInfo: RepositoryService.RepositoryInfo): Boolean =
     getAccountByUserName(username) match {
       case Some(account) => hasWritePermission(repositoryInfo.owner, repositoryInfo.name, Some(account))
@@ -93,13 +79,13 @@ abstract class GitCommand(val context: ServletContext, val command: String) exte
 
 }
 
-class GitUploadPack(context: ServletContext, command: String) extends GitCommand(context, command)
+class GitUploadPack(context: ServletContext, owner: String, repoName: String) extends GitCommand(context, owner, repoName)
     with RepositoryService with AccountService {
 
   override protected def runTask(user: String): Unit = {
-    getRepository(owner, repositoryName, null).foreach { repositoryInfo =>
+    getRepository(owner, repoName, null).foreach { repositoryInfo =>
       if(!repositoryInfo.repository.isPrivate || isWritableUser(user, repositoryInfo)){
-        using(Git.open(getRepositoryDir(owner, repositoryName))) { git =>
+        using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
           val upload = new UploadPack(repository)
           upload.upload(in, out, err)
@@ -110,19 +96,22 @@ class GitUploadPack(context: ServletContext, command: String) extends GitCommand
 
 }
 
-class GitReceivePack(context: ServletContext, command: String) extends GitCommand(context, command)
+class GitReceivePack(context: ServletContext, owner: String, repoName: String) extends GitCommand(context, owner, repoName)
     with SystemSettingsService with RepositoryService with AccountService {
   // TODO Correct this info. where i get base url?
   val BaseURL: String = loadSystemSettings().baseUrl.getOrElse("http://localhost:8080")
+  private val logger = LoggerFactory.getLogger(classOf[GitReceivePack])
 
   override protected def runTask(user: String): Unit = {
-    getRepository(owner, repositoryName, null).foreach { repositoryInfo =>
+    getRepository(owner, repoName, null).foreach { repositoryInfo =>
       if(isWritableUser(user, repositoryInfo)){
-        using(Git.open(getRepositoryDir(owner, repositoryName))) { git =>
+        using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
           val receive = new ReceivePack(repository)
-          receive.setPostReceiveHook(new CommitLogHook(owner, repositoryName, user, BaseURL))
+          logger.error("Before Set Post Receive Hook")
+          receive.setPostReceiveHook(new CommitLogHook(owner, repoName, user, BaseURL))
           receive.receive(in, out, err)
+          logger.error("receive completed.")
         }
       }
     }
@@ -136,8 +125,8 @@ class GitCommandFactory(context: ServletContext) extends CommandFactory {
   override def createCommand(command: String): Command = {
     logger.debug(s"command: $command")
     command match {
-      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(context, command)
-      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, command)
+      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(context, owner, repoName)
+      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, owner, repoName)
       case _ => new UnknownCommand(command)
     }
   }
