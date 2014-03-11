@@ -10,7 +10,7 @@ class GitCommandFactorySpec extends Specification with Mockito {
   val factory = new GitCommandFactory(mock[ServletContext])
 
   "createCommand" should {
-    "returns GitRecievePack when command is git-receive-pack" in {
+    "returns GitReceivePack when command is git-receive-pack" in {
       factory.createCommand("git-receive-pack '/owner/repo.git'").isInstanceOf[GitReceivePack] must beTrue
       factory.createCommand("git-receive-pack '/owner/repo.wiki.git'").isInstanceOf[GitReceivePack] must beTrue
 
