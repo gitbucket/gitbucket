@@ -47,7 +47,7 @@ object LDAPUtil {
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "User LDAP Authentication Failed."
     ){ conn =>
-      if(ldapSettings.disableMailResolve.getOrElse(false)) {
+      if(ldapSettings.mailAttribute.getOrElse("").isEmpty) {
         Right(LDAPUserInfo(
           userName    = userName,
           fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
@@ -55,7 +55,7 @@ object LDAPUtil {
           }.getOrElse(userName),
           mailAddress = AccountUtil.getLdapDummyMailAddress(userName)))
       } else {
-        findMailAddress(conn, userDN, ldapSettings.mailAttribute) match {
+        findMailAddress(conn, userDN, ldapSettings.mailAttribute.get) match {
           case Some(mailAddress) => Right(LDAPUserInfo(
             userName    = userName,
             fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>

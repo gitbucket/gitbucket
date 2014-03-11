@@ -41,8 +41,7 @@ trait SystemSettingsService {
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
           ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
-          props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
-          ldap.disableMailResolve.foreach(x => props.setProperty(LdapDisableMailResolve, x.toString))
+          ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x.toString))
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
@@ -85,8 +84,7 @@ trait SystemSettingsService {
             getValue(props, LdapUserNameAttribute, ""),
             getOptionValue(props, LdapAdditionalFilterCondition, None),
             getOptionValue(props, LdapFullNameAttribute, None),
-            getValue(props, LdapMailAddressAttribute, ""),
-            getOptionValue[Boolean](props, LdapDisableMailResolve, None),
+            getOptionValue(props, LdapMailAddressAttribute, None),
             getOptionValue[Boolean](props, LdapTls, None),
             getOptionValue(props, LdapKeystore, None)))
         } else {
@@ -119,8 +117,7 @@ object SystemSettingsService {
     userNameAttribute: String,
     additionalFilterCondition: Option[String],
     fullNameAttribute: Option[String],
-    mailAttribute: String,
-    disableMailResolve: Option[Boolean],
+    mailAttribute: Option[String],
     tls: Option[Boolean],
     keystore: Option[String])
 
@@ -157,7 +154,6 @@ object SystemSettingsService {
   private val LdapAdditionalFilterCondition = "ldap.additional_filter_condition"
   private val LdapFullNameAttribute = "ldap.fullname_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
-  private val LdapDisableMailResolve = "ldap.disable_mail_resolve"
   private val LdapTls = "ldap.tls"
   private val LdapKeystore = "ldap.keystore"
 

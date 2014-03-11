@@ -40,7 +40,7 @@ trait AccountService {
         // Create or update account by LDAP information
         getAccountByUserName(userName, true) match {
           case Some(x) if(!x.isRemoved) => {
-            if(settings.ldap.get.disableMailResolve.getOrElse(false)) {
+            if(settings.ldap.get.mailAttribute.getOrElse("").isEmpty) {
               updateAccount(x.copy(fullName = ldapUserInfo.fullName))
             } else {
               updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))

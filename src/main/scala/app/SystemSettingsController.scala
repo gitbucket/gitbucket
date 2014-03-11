@@ -35,8 +35,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "userNameAttribute"        -> trim(label("User name attribute", text(required))),
         "additionalFilterCondition"-> trim(label("Additional filter condition", optional(text()))),
         "fullNameAttribute"        -> trim(label("Full name attribute", optional(text()))),
-        "mailAttribute"            -> trim(label("Mail address attribute", text(required))),
-        "disableMailResolve"       -> trim(label("Disable Mail Resolve", optional(boolean()))),
+        "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
