@@ -100,7 +100,6 @@ class GitReceivePack(context: ServletContext, owner: String, repoName: String) e
     with SystemSettingsService with RepositoryService with AccountService {
   // TODO Correct this info. where i get base url?
   val BaseURL: String = loadSystemSettings().baseUrl.getOrElse("http://localhost:8080")
-  private val logger = LoggerFactory.getLogger(classOf[GitReceivePack])
 
   override protected def runTask(user: String): Unit = {
     getRepository(owner, repoName, null).foreach { repositoryInfo =>
@@ -108,10 +107,8 @@ class GitReceivePack(context: ServletContext, owner: String, repoName: String) e
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
           val receive = new ReceivePack(repository)
-          logger.error("Before Set Post Receive Hook")
           receive.setPostReceiveHook(new CommitLogHook(owner, repoName, user, BaseURL))
           receive.receive(in, out, err)
-          logger.error("receive completed.")
         }
       }
     }
