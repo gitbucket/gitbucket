@@ -4,8 +4,9 @@ import org.apache.sshd.common.Factory
 import org.apache.sshd.server.{Environment, ExitCallback, Command}
 import java.io.{OutputStream, InputStream}
 import org.eclipse.jgit.lib.Constants
+import service.SystemSettingsService
 
-class NoShell extends Factory[Command] {
+class NoShell extends Factory[Command] with SystemSettingsService {
   override def create(): Command = new Command() {
     private var in: InputStream = null
     private var out: OutputStream = null
@@ -13,6 +14,8 @@ class NoShell extends Factory[Command] {
     private var callback: ExitCallback = null
 
     override def start(env: Environment): Unit = {
+      val user = env.getEnv.get("USER")
+      val port = loadSystemSettings().sshPort.getOrElse(SystemSettingsService.DefaultSshPort)
       val message =
         """
           | Welcome to
@@ -28,8 +31,8 @@ class NoShell extends Factory[Command] {
           |
           | Please use:
           |
-          | git clone ssh://username@host_or_ip:29418/owner/repository_name.git
-        """.stripMargin.replace("\n", "\r\n") + "\r\n"
+          | git clone ssh://%s@GITBUCKET_HOST:%d/OWNER/REPOSITORY_NAME.git
+        """.stripMargin.format(user, port).replace("\n", "\r\n") + "\r\n"
       err.write(Constants.encode(message))
       err.flush()
       in.close()
