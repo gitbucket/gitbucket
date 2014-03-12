@@ -4,6 +4,7 @@ import util.Directory._
 import util.Implicits._
 import util.ControlUtil._
 import _root_.util._
+import model.Profile
 import service._
 import org.scalatra._
 import java.io.File
@@ -13,15 +14,16 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.Some
+import scala.slick.driver.ExtendedProfile
 
-class RepositoryViewerController extends RepositoryViewerControllerBase 
-  with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
+class RepositoryViewerController(override val profile: ExtendedProfile) extends RepositoryViewerControllerBase
+  with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
-  self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+  self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile =>
 
   /**
    * Returns converted HTML from Markdown for preview.

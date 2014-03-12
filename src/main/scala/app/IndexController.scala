@@ -1,14 +1,16 @@
 package app
 
 import util._
+import model.Profile
 import service._
 import jp.sf.amateras.scalatra.forms._
+import scala.slick.driver.ExtendedProfile
 
-class IndexController extends IndexControllerBase 
-  with RepositoryService with ActivityService with AccountService with UsersAuthenticator
+class IndexController(override val profile: ExtendedProfile) extends IndexControllerBase
+  with RepositoryService with ActivityService with AccountService with UsersAuthenticator with Profile
 
 trait IndexControllerBase extends ControllerBase {
-  self: RepositoryService with ActivityService with AccountService with UsersAuthenticator =>
+  self: RepositoryService with ActivityService with AccountService with UsersAuthenticator with Profile =>
 
   case class SignInForm(userName: String, password: String)
 

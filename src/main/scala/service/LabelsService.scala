@@ -1,11 +1,10 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
-
 import model._
 
-trait LabelsService {
+trait LabelsService extends LabelComponent with IssueLabelComponent { self: Profile =>
+  import profile.simple._
+  import Database.threadLocalSession
 
   def getLabels(owner: String, repository: String): List[Label] =
     Query(Labels).filter(_.byRepository(owner, repository)).sortBy(_.labelName asc).list

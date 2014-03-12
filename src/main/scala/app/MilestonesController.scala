@@ -2,17 +2,19 @@ package app
 
 import jp.sf.amateras.scalatra.forms._
 
+import model.Profile
 import service._
 import util.{CollaboratorsAuthenticator, ReferrerAuthenticator}
 import util.Implicits._
+import scala.slick.driver.ExtendedProfile
 
-class MilestonesController extends MilestonesControllerBase
+class MilestonesController(override val profile: ExtendedProfile) extends MilestonesControllerBase
   with MilestonesService with RepositoryService with AccountService
-  with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile
 
 trait MilestonesControllerBase extends ControllerBase {
   self: MilestonesService with RepositoryService
-    with ReferrerAuthenticator with CollaboratorsAuthenticator  =>
+    with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile =>
 
   case class MilestoneForm(title: String, description: Option[String], dueDate: Option[java.util.Date])
 

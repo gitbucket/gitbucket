@@ -1,6 +1,7 @@
 package service
 
 import model._
+import servlet.Database
 import service.SystemSettingsService.SystemSettings
 
 /**
@@ -18,19 +19,25 @@ trait RequestCache {
 
   def getIssue(userName: String, repositoryName: String, issueId: String)(implicit context: app.Context): Option[Issue] = {
     context.cache(s"issue.${userName}/${repositoryName}#${issueId}"){
-      new IssuesService {}.getIssue(userName, repositoryName, issueId)
+      new IssuesService with Profile {
+        val profile = Database.driver(context.request.getServletContext)
+      }.getIssue(userName, repositoryName, issueId)
     }
   }
 
   def getAccountByUserName(userName: String)(implicit context: app.Context): Option[Account] = {
     context.cache(s"account.${userName}"){
-      new AccountService {}.getAccountByUserName(userName)
+      new AccountService with Profile {
+        val profile = Database.driver(context.request.getServletContext)
+      }.getAccountByUserName(userName)
     }
   }
 
   def getAccountByMailAddress(mailAddress: String)(implicit context: app.Context): Option[Account] = {
     context.cache(s"account.${mailAddress}"){
-      new AccountService {}.getAccountByMailAddress(mailAddress)
+      new AccountService with Profile {
+        val profile = Database.driver(context.request.getServletContext)
+      }.getAccountByMailAddress(mailAddress)
     }
   }
 }

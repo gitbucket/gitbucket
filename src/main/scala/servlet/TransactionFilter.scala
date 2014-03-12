@@ -31,8 +31,15 @@ class TransactionFilter extends Filter {
 }
 
 object Database {
-  def apply(context: ServletContext): scala.slick.session.Database =
+
+  import scala.slick.driver.ExtendedDriver
+  import scala.slick.session.Database
+
+  def apply(context: ServletContext): Database =
     scala.slick.session.Database.forURL(context.getInitParameter("db.url"),
         context.getInitParameter("db.user"),
         context.getInitParameter("db.password"))
+
+  def driver(context: ServletContext): ExtendedDriver = scala.slick.driver.H2Driver // TODO
+
 }

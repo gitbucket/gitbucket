@@ -1,8 +1,5 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
-
 import model._
 import org.slf4j.LoggerFactory
 import service.RepositoryService.RepositoryInfo
@@ -15,7 +12,9 @@ import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.protocol.HTTP
 import org.apache.http.NameValuePair
 
-trait WebHookService {
+trait WebHookService extends WebHookComponent { self: Profile =>
+  import profile.simple._
+  import Database.threadLocalSession
   import WebHookService._
 
   private val logger = LoggerFactory.getLogger(classOf[WebHookService])

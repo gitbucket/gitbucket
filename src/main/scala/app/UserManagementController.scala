@@ -1,5 +1,6 @@
 package app
 
+import model.Profile
 import service._
 import util.AdminAuthenticator
 import util.StringUtil._
@@ -7,13 +8,14 @@ import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.apache.commons.io.FileUtils
+import scala.slick.driver.ExtendedProfile
 import util.Directory._
 
-class UserManagementController extends UserManagementControllerBase
-  with AccountService with RepositoryService with AdminAuthenticator
+class UserManagementController(override val profile: ExtendedProfile) extends UserManagementControllerBase
+  with AccountService with RepositoryService with AdminAuthenticator with Profile
 
 trait UserManagementControllerBase extends AccountManagementControllerBase {
-  self: AccountService with RepositoryService with AdminAuthenticator =>
+  self: AccountService with RepositoryService with AdminAuthenticator with Profile =>
   
   case class NewUserForm(userName: String, password: String, fullName: String,
                          mailAddress: String, isAdmin: Boolean,

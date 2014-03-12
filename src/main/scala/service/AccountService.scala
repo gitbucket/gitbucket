@@ -1,17 +1,17 @@
 package service
 
 import model._
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
 import service.SystemSettingsService.SystemSettings
 import util.StringUtil._
 import model.GroupMember
 import scala.Some
-import model.Account
 import util.LDAPUtil
 import org.slf4j.LoggerFactory
 
-trait AccountService {
+trait AccountService extends AccountComponent
+    with GroupMemberComponent with CollaboratorComponent with RepositoryComponent { self: Profile =>
+  import profile.simple._
+  import Database.threadLocalSession
 
   private val logger = LoggerFactory.getLogger(classOf[AccountService])
 
@@ -149,5 +149,3 @@ trait AccountService {
   }
 
 }
-
-object AccountService extends AccountService

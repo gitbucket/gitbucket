@@ -1,11 +1,14 @@
 package service
 
 import model._
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
 import util.JGitUtil
 
-trait RepositoryService { self: AccountService =>
+trait RepositoryService extends RepositoryComponent
+    with WebHookComponent with MilestoneComponent with IssueComponent with PullRequestComponent
+    with IssueCommentComponent with LabelComponent with IssueLabelComponent with CollaboratorComponent
+    with ActivityComponent { self: AccountService with Profile =>
+  import profile.simple._
+  import Database.threadLocalSession
   import RepositoryService._
 
   /**

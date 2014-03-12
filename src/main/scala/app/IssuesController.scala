@@ -8,15 +8,16 @@ import util._
 import util.Implicits._
 import util.ControlUtil._
 import org.scalatra.Ok
-import model.Issue
+import model.{Issue, Profile}
+import scala.slick.driver.ExtendedProfile
 
-class IssuesController extends IssuesControllerBase
+class IssuesController(override val profile: ExtendedProfile) extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile
 
 trait IssuesControllerBase extends ControllerBase {
   self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with Profile =>
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
@@ -117,7 +118,7 @@ trait IssuesControllerBase extends ControllerBase {
       }
 
       // notifications
-      Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
+      Notifier(profile).toNotify(repository, issueId, form.content.getOrElse("")){
         Notifier.msgIssue(s"${baseUrl}/${owner}/${name}/issues/${issueId}")
       }
 
@@ -338,7 +339,7 @@ trait IssuesControllerBase extends ControllerBase {
         }
 
         // notifications
-        Notifier() match {
+        Notifier(profile) match {
           case f =>
             content foreach {
               f.toNotify(repository, issueId, _){

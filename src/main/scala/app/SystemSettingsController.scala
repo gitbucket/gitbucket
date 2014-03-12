@@ -1,15 +1,17 @@
 package app
 
+import model.Profile
 import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
 import util.AdminAuthenticator
 import jp.sf.amateras.scalatra.forms._
+import scala.slick.driver.ExtendedProfile
 
-class SystemSettingsController extends SystemSettingsControllerBase
-  with SystemSettingsService with AccountService with AdminAuthenticator
+class SystemSettingsController(override val profile: ExtendedProfile) extends SystemSettingsControllerBase
+  with SystemSettingsService with AccountService with AdminAuthenticator with Profile
 
 trait SystemSettingsControllerBase extends ControllerBase {
-  self: SystemSettingsService with AccountService with AdminAuthenticator =>
+  self: SystemSettingsService with AccountService with AdminAuthenticator with Profile =>
 
   private val form = mapping(
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),

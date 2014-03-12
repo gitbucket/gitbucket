@@ -1,10 +1,10 @@
 package service
 
 import model._
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
 
-trait ActivityService {
+trait ActivityService extends ActivityComponent with RepositoryComponent { self: Profile =>
+  import profile.simple._
+  import Database.threadLocalSession
 
   def getActivitiesByUser(activityUserName: String, isPublic: Boolean): List[Activity] =
     Activities

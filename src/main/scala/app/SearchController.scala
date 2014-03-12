@@ -2,14 +2,16 @@ package app
 
 import util._
 import ControlUtil._
+import model.Profile
 import service._
 import jp.sf.amateras.scalatra.forms._
+import scala.slick.driver.ExtendedProfile
 
-class SearchController extends SearchControllerBase
-  with RepositoryService with AccountService with ActivityService with RepositorySearchService with IssuesService with ReferrerAuthenticator
+class SearchController(override val profile: ExtendedProfile) extends SearchControllerBase
+  with RepositoryService with AccountService with ActivityService with RepositorySearchService with IssuesService with ReferrerAuthenticator with Profile
 
 trait SearchControllerBase extends ControllerBase { self: RepositoryService
-  with ActivityService with RepositorySearchService with ReferrerAuthenticator =>
+  with ActivityService with RepositorySearchService with ReferrerAuthenticator with Profile =>
 
   val searchForm = mapping(
     "query"      -> trim(text(required)),

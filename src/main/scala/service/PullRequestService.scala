@@ -1,11 +1,11 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
 import model._
 import util.ControlUtil._
 
-trait PullRequestService { self: IssuesService =>
+trait PullRequestService extends PullRequestComponent { self: IssuesService with Profile =>
+  import profile.simple._
+  import Database.threadLocalSession
   import PullRequestService._
 
   def getPullRequest(owner: String, repository: String, issueId: Int): Option[(Issue, PullRequest)] =
