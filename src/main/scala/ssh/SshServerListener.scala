@@ -10,13 +10,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 object SshServer {
   private val logger = LoggerFactory.getLogger(SshServer.getClass)
   private val server = org.apache.sshd.SshServer.setUpDefaultServer()
-  private val active = new AtomicBoolean(false);
+  private val active = new AtomicBoolean(false)
 
   private def configure(context: ServletContext, port: Int) = {
     server.setPort(port)
     server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator(context))
     server.setCommandFactory(new GitCommandFactory(context))
+    server.setShellFactory(new NoShell)
   }
 
   def start(context: ServletContext, port: Int) = {
