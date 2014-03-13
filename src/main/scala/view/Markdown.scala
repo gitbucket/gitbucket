@@ -45,7 +45,7 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
           (text, text)
         }
 
-        val url = repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/" + StringUtil.urlEncode(page)
+        val url = repository.httpUrl.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/" + StringUtil.urlEncode(page)
 
         if(getWikiPage(repository.owner, repository.name, page).isDefined){
           new Rendering(url, label)
@@ -104,7 +104,7 @@ class GitBucketHtmlSerializer(
     if(!enableWikiLink || url.startsWith("http://") || url.startsWith("https://")){
       url
     } else {
-      repository.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/_blob/" + url
+      repository.httpUrl.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/_blob/" + url
     }
   }
 

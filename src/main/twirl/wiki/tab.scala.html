@@ -6,7 +6,7 @@
   <li@if(active == "pages"  ){ class="active"}><a href="@url(repository)/wiki/_pages">Pages</a></li>
   <li@if(active == "history"){ class="active"}><a href="@url(repository)/wiki/_history">Wiki History</a></li>
   <li class="pull-right">
-    @defining(repository.url.replaceFirst("\\.git$", ".wiki.git")){ repositoryUrl =>
+    @defining(repository.httpUrl.replaceFirst("\\.git$", ".wiki.git")){ repositoryUrl =>
       @helper.html.copy("repository-url-copy", repositoryUrl){
         <input type="text" value="@repositoryUrl" readonly id="repository-url">
       }
