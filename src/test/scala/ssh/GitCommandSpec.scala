@@ -7,7 +7,7 @@ import javax.servlet.ServletContext
 
 class GitCommandFactorySpec extends Specification with Mockito {
 
-  val factory = new GitCommandFactory(mock[ServletContext])
+  val factory = new GitCommandFactory(mock[ServletContext], "http://localhost:8080")
 
   "createCommand" should {
     "returns GitReceivePack when command is git-receive-pack" in {
