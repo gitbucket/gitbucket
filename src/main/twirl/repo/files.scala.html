@@ -3,12 +3,13 @@
   pathList: List[String],
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
-  readme: Option[(util.JGitUtil.FileInfo, String)])(implicit context: app.Context)
+  readme: Option[(util.JGitUtil.FileInfo, String)],
+  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
-  @tab(branch, repository, "files")
+  @tab(branch, repository, "files", settings)
   <div class="head">
     <div class="pull-right">
       @defining(repository.commitCount){ commitCount =>
