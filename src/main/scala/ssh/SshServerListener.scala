@@ -12,17 +12,17 @@ object SshServer {
   private val server = org.apache.sshd.SshServer.setUpDefaultServer()
   private val active = new AtomicBoolean(false)
 
-  private def configure(context: ServletContext, port: Int) = {
+  private def configure(context: ServletContext, port: Int, baseUrl: String) = {
     server.setPort(port)
     server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator(context))
-    server.setCommandFactory(new GitCommandFactory(context))
+    server.setCommandFactory(new GitCommandFactory(context, baseUrl))
     server.setShellFactory(new NoShell)
   }
 
-  def start(context: ServletContext, port: Int) = {
+  def start(context: ServletContext, port: Int, baseUrl: String) = {
     if(active.compareAndSet(false, true)){
-      configure(context, port)
+      configure(context, port, baseUrl)
       server.start()
       logger.info(s"Start SSH Server Listen on ${server.getPort}")
     }
@@ -48,7 +48,14 @@ class SshServerListener extends ServletContextListener with SystemSettingsServic
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val settings = loadSystemSettings()
     if(settings.ssh){
-      SshServer.start(sce.getServletContext, settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort))
+      if(settings.baseUrl.isEmpty){
+        // TODO use logger?
+        println("Could not start SshServer because the baseUrl is not configured.")
+      } else {
+        SshServer.start(sce.getServletContext,
+          settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort),
+          settings.baseUrl.get)
+      }
     }
   }
 

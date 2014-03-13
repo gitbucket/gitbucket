@@ -22,9 +22,10 @@
           <fieldset>
               <div class="controls">
                 <input type="text" name="baseUrl" id="baseUrl" style="width: 400px" value="@settings.baseUrl"/>
+                <span id="error-baseUrl" class="error"></span>
               </div>
           </fieldset>
-          <p>
+          <p class="muted">
             The base URL is used for redirect, notification email, git repository URL box and more.
             If the base URL is empty, GitBucket generates URL from request information.
             You can use this property to adjust URL difference between the reverse proxy and GitBucket.
@@ -75,6 +76,9 @@
               </div>
             </div>
           </div>
+          <p class="muted">
+            Base URL is required if SSH access is enabled.
+          </p>
           <!--====================================================================-->
           <!-- Authentication -->
           <!--====================================================================-->

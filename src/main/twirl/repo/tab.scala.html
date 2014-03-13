@@ -48,7 +48,7 @@ $(function(){
     $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
   });
   $('#repository-url-ssh').click(function(){
-    $('#repository-url').val('@repository.sshUrl(settings.sshPort.get)'); // TODO apply default value for None?
+    $('#repository-url').val('@repository.sshUrl(settings.sshPort.getOrElse(service.SystemSettingsService.DefaultSshPort))');
     $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
   });
 });

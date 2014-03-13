@@ -41,7 +41,11 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
-  )(SystemSettings.apply)
+  )(SystemSettings.apply).verifying { settings =>
+    if(settings.ssh && settings.baseUrl.isEmpty){
+      Seq("baseUrl" -> "Base URL is required if SSH access is enabled.")
+    } else Nil
+  }
 
 
   get("/admin/system")(adminOnly {
@@ -51,8 +55,10 @@ trait SystemSettingsControllerBase extends ControllerBase {
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
 
-    if(form.ssh && !SshServer.isActive){
-      SshServer.start(request.getServletContext, form.sshPort.getOrElse(SystemSettingsService.DefaultSshPort))
+    if(form.ssh && !SshServer.isActive && form.baseUrl.isDefined){
+      SshServer.start(request.getServletContext,
+        form.sshPort.getOrElse(SystemSettingsService.DefaultSshPort),
+        form.baseUrl.get)
     } else if(!form.ssh && SshServer.isActive){
       SshServer.stop()
     }

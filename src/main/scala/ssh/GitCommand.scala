@@ -96,10 +96,8 @@ class GitUploadPack(context: ServletContext, owner: String, repoName: String) ex
 
 }
 
-class GitReceivePack(context: ServletContext, owner: String, repoName: String) extends GitCommand(context, owner, repoName)
+class GitReceivePack(context: ServletContext, owner: String, repoName: String, baseUrl: String) extends GitCommand(context, owner, repoName)
     with SystemSettingsService with RepositoryService with AccountService {
-  // TODO Correct this info. where i get base url?
-  val BaseURL: String = loadSystemSettings().baseUrl.getOrElse("http://localhost:8080")
 
   override protected def runTask(user: String): Unit = {
     getRepository(owner, repoName, null).foreach { repositoryInfo =>
@@ -107,7 +105,7 @@ class GitReceivePack(context: ServletContext, owner: String, repoName: String) e
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
           val receive = new ReceivePack(repository)
-          receive.setPostReceiveHook(new CommitLogHook(owner, repoName, user, BaseURL))
+          receive.setPostReceiveHook(new CommitLogHook(owner, repoName, user, baseUrl))
           receive.receive(in, out, err)
         }
       }
@@ -116,14 +114,14 @@ class GitReceivePack(context: ServletContext, owner: String, repoName: String) e
 
 }
 
-class GitCommandFactory(context: ServletContext) extends CommandFactory {
+class GitCommandFactory(context: ServletContext, baseUrl: String) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
 
   override def createCommand(command: String): Command = {
     logger.debug(s"command: $command")
     command match {
       case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(context, owner, repoName)
-      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, owner, repoName)
+      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, owner, repoName, baseUrl)
       case _ => new UnknownCommand(command)
     }
   }
