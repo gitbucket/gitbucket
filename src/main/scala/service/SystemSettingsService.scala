@@ -15,7 +15,7 @@ trait SystemSettingsService {
 
   def saveSystemSettings(settings: SystemSettings): Unit = {
     defining(new java.util.Properties()){ props =>
-      settings.baseUrl.foreach(props.setProperty(BaseURL, _))
+      settings.baseUrl.foreach(x => props.setProperty(BaseURL, x.replaceFirst("/\\Z", "")))
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
@@ -58,7 +58,7 @@ trait SystemSettingsService {
         props.load(new java.io.FileInputStream(GitBucketConf))
       }
       SystemSettings(
-        getOptionValue(props, BaseURL, None),
+        getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
         getValue(props, AllowAccountRegistration, false),
         getValue(props, Gravatar, true),
         getValue(props, Notification, false),
