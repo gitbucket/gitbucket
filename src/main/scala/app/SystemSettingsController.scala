@@ -49,7 +49,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
 
   get("/admin/system")(adminOnly {
-    admin.html.system(loadSystemSettings(), flash.get("info"))
+    admin.html.system(flash.get("info"))
   })
 
   post("/admin/system", form)(adminOnly { form =>

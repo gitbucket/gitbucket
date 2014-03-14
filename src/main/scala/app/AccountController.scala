@@ -132,7 +132,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
-      account.html.edit(x, loadSystemSettings(), flash.get("info"))
+      account.html.edit(x, flash.get("info"))
     } getOrElse NotFound
   })
 
@@ -176,7 +176,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_ssh")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
-      account.html.ssh(x, loadSystemSettings(), getPublicKeys(x.userName))
+      account.html.ssh(x, getPublicKeys(x.userName))
     } getOrElse NotFound
   })
 
@@ -194,7 +194,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/register"){
-    if(loadSystemSettings().allowAccountRegistration){
+    if(context.settings.allowAccountRegistration){
       if(context.loginAccount.isDefined){
         redirect("/")
       } else {
@@ -204,7 +204,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   post("/register", newForm){ form =>
-    if(loadSystemSettings().allowAccountRegistration){
+    if(context.settings.allowAccountRegistration){
       createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.url)
       updateImage(form.userName, form.fileId, false)
       redirect("/signin")

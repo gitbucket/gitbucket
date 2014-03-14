@@ -1,12 +1,11 @@
 @(branchInfo: Seq[(String, java.util.Date)],
   hasWritePermission: Boolean,
-  repository: service.RepositoryService.RepositoryInfo,
-  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
-  @tab(repository.repository.defaultBranch, repository, "branches", settings, true)
+  @tab(repository.repository.defaultBranch, repository, "branches", true)
   <h1>Branches</h1>
   <table class="table table-bordered">
     <tr>

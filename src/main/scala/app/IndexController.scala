@@ -22,7 +22,6 @@ trait IndexControllerBase extends ControllerBase {
 
     html.index(getRecentActivities(),
       getVisibleRepositories(loginAccount, baseUrl),
-      loadSystemSettings(),
       loginAccount.map{ account => getUserRepositories(account.userName, baseUrl) }.getOrElse(Nil)
     )
   }
@@ -32,7 +31,7 @@ trait IndexControllerBase extends ControllerBase {
     if(redirect.isDefined && redirect.get.startsWith("/")){
       flash += Keys.Flash.Redirect -> redirect.get
     }
-    html.signin(loadSystemSettings())
+    html.signin()
   }
 
   post("/signin", form){ form =>

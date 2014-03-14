@@ -4,14 +4,13 @@
   tags: List[String],
   repository: service.RepositoryService.RepositoryInfo,
   diffs: Seq[util.JGitUtil.DiffInfo],
-  oldCommitId: Option[String],
-  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
+  oldCommitId: Option[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import util.Implicits._
 @html.main(commit.shortMessage, Some(repository)){
   @html.header("code", repository)
-  @tab(commitId, repository, "commits", settings)
+  @tab(commitId, repository, "commits")
   <table class="table table-bordered">
     <tr>
       <th>

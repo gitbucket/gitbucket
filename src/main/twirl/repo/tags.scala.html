@@ -1,10 +1,9 @@
-@(repository: service.RepositoryService.RepositoryInfo,
-  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
+@(repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
-  @tab(repository.repository.defaultBranch, repository, "tags", settings, true)
+  @tab(repository.repository.defaultBranch, repository, "tags", true)
   <h1>Tags</h1>
   <table class="table table-bordered">
     <tr>

@@ -1,6 +1,5 @@
 @(activities: List[model.Activity],
   recentRepositories: List[service.RepositoryService.RepositoryInfo],
-  systemSettings: service.SystemSettingsService.SystemSettings,
   userRepositories: List[service.RepositoryService.RepositoryInfo])(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -12,7 +11,7 @@
   </div>
   <div class="span4">
     @if(loginAccount.isEmpty){
-      @signinform(systemSettings)
+      @signinform(settings)
     } else {
       <table class="table table-bordered">
         <tr>

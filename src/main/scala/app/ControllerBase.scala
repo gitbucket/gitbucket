@@ -68,7 +68,7 @@ abstract class ControllerBase extends ScalatraFilter
   implicit def context: Context = {
     contextCache.get match {
       case null => {
-        val context = Context(loadSystemSettings().baseUrl.getOrElse(servletContext.getContextPath), LoginAccount, request)
+        val context = Context(loadSystemSettings(), LoginAccount, request)
         contextCache.set(context)
         context
       }
@@ -138,10 +138,10 @@ abstract class ControllerBase extends ScalatraFilter
 
 /**
  * Context object for the current request.
- *
- * @param path the context path
  */
-case class Context(path: String, loginAccount: Option[Account], request: HttpServletRequest){
+case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
+
+  lazy val path = settings.baseUrl.getOrElse(request.getServletContext.getContextPath)
 
   lazy val currentPath = request.getRequestURI.substring(request.getContextPath.length)
 

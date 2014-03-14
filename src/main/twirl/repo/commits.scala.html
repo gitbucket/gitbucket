@@ -3,13 +3,12 @@
   repository: service.RepositoryService.RepositoryInfo,
   commits: Seq[Seq[util.JGitUtil.CommitInfo]],
   page: Int,
-  hasNext: Boolean,
-  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
+  hasNext: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
-  @tab(branch, repository, if(pathList.isEmpty) "commits" else "files", settings)
+  @tab(branch, repository, if(pathList.isEmpty) "commits" else "files")
   <div class="head">
     @if(pathList.isEmpty){
       <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> / Commit History
