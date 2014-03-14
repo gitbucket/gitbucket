@@ -36,7 +36,7 @@ trait WikiControllerBase extends ControllerBase {
   
   get("/:owner/:repository/wiki")(referrersOnly { repository =>
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
-      wiki.html.page("Home", page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      wiki.html.page("Home", page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount), loadSystemSettings())
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
@@ -44,7 +44,7 @@ trait WikiControllerBase extends ControllerBase {
     val pageName = StringUtil.urlDecode(params("page"))
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
-      wiki.html.page(pageName, page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      wiki.html.page(pageName, page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount), loadSystemSettings())
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   
@@ -53,7 +53,7 @@ trait WikiControllerBase extends ControllerBase {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, "master", path = pageName + ".md") match {
-        case Right((logs, hasNext)) => wiki.html.history(Some(pageName), logs, repository)
+        case Right((logs, hasNext)) => wiki.html.history(Some(pageName), logs, repository, loadSystemSettings())
         case Left(_) => NotFound
       }
     }
@@ -65,7 +65,7 @@ trait WikiControllerBase extends ControllerBase {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       wiki.html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true).filter(_.newPath == pageName + ".md"), repository,
-        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+        hasWritePermission(repository.owner, repository.name, context.loginAccount), loadSystemSettings(), flash.get("info"))
     }
   })
   
@@ -74,7 +74,7 @@ trait WikiControllerBase extends ControllerBase {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       wiki.html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true), repository,
-        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+        hasWritePermission(repository.owner, repository.name, context.loginAccount), loadSystemSettings(), flash.get("info"))
     }
   })
 
@@ -103,7 +103,7 @@ trait WikiControllerBase extends ControllerBase {
 
   get("/:owner/:repository/wiki/:page/_edit")(collaboratorsOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
-    wiki.html.edit(pageName, getWikiPage(repository.owner, repository.name, pageName), repository)
+    wiki.html.edit(pageName, getWikiPage(repository.owner, repository.name, pageName), repository, loadSystemSettings())
   })
   
   post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { (form, repository) =>
@@ -118,7 +118,7 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
-    wiki.html.edit("", None, _)
+    wiki.html.edit("", None, _, loadSystemSettings())
   })
   
   post("/:owner/:repository/wiki/_new", newForm)(collaboratorsOnly { (form, repository) =>
@@ -146,13 +146,13 @@ trait WikiControllerBase extends ControllerBase {
   
   get("/:owner/:repository/wiki/_pages")(referrersOnly { repository =>
     wiki.html.pages(getWikiPageList(repository.owner, repository.name), repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      hasWritePermission(repository.owner, repository.name, context.loginAccount), loadSystemSettings())
   })
   
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, "master") match {
-        case Right((logs, hasNext)) => wiki.html.history(None, logs, repository)
+        case Right((logs, hasNext)) => wiki.html.history(None, logs, repository, loadSystemSettings())
         case Left(_) => NotFound
       }
     }

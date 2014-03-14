@@ -1,12 +1,13 @@
 @(pageName: String,
   page: service.WikiService.WikiPageInfo,
   repository: service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: app.Context)
+  hasWritePermission: Boolean,
+  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("wiki", repository)
-  @tab((if(pageName == "Home") "home" else ""), repository)
+  @tab((if(pageName == "Home") "home" else ""), repository, settings)
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title">@pageName</h1>

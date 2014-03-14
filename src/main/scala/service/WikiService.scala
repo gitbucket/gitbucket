@@ -15,6 +15,7 @@ import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
 import scala.Some
+import service.RepositoryService.RepositoryInfo
 
 
 object WikiService {
@@ -40,6 +41,10 @@ object WikiService {
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
 
+  def httpUrl(repository: RepositoryInfo) = repository.httpUrl.replaceFirst("\\.git\\Z", ".wiki.git")
+
+  def sshUrl(repository: RepositoryInfo, settings: SystemSettingsService.SystemSettings) =
+    repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort)).replaceFirst("\\.git\\Z", ".wiki.git")
 }
 
 trait WikiService {
