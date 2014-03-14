@@ -17,7 +17,7 @@
           @if(i != 0){
             <hr>
           }
-          <strong>@key.title</strong>
+          <strong>@key.title</strong> (@_root_.ssh.SshUtil.fingerPrint(key.publicKey))
           <a href="@path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-mini btn-danger pull-right">Delete</a>
         }
       </div>
