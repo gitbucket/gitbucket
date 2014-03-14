@@ -79,11 +79,11 @@ abstract class GitCommand(val context: ServletContext, val owner: String, val re
 
 }
 
-class GitUploadPack(context: ServletContext, owner: String, repoName: String) extends GitCommand(context, owner, repoName)
+class GitUploadPack(context: ServletContext, owner: String, repoName: String, baseUrl: String) extends GitCommand(context, owner, repoName)
     with RepositoryService with AccountService {
 
   override protected def runTask(user: String): Unit = {
-    getRepository(owner, repoName, null).foreach { repositoryInfo =>
+    getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""), baseUrl).foreach { repositoryInfo =>
       if(!repositoryInfo.repository.isPrivate || isWritableUser(user, repositoryInfo)){
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
@@ -100,12 +100,14 @@ class GitReceivePack(context: ServletContext, owner: String, repoName: String, b
     with SystemSettingsService with RepositoryService with AccountService {
 
   override protected def runTask(user: String): Unit = {
-    getRepository(owner, repoName, null).foreach { repositoryInfo =>
+    getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""), baseUrl).foreach { repositoryInfo =>
       if(isWritableUser(user, repositoryInfo)){
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
           val receive = new ReceivePack(repository)
-          receive.setPostReceiveHook(new CommitLogHook(owner, repoName, user, baseUrl))
+          if(!repoName.endsWith(".wiki")){
+            receive.setPostReceiveHook(new CommitLogHook(owner, repoName, user, baseUrl))
+          }
           receive.receive(in, out, err)
         }
       }
@@ -120,7 +122,7 @@ class GitCommandFactory(context: ServletContext, baseUrl: String) extends Comman
   override def createCommand(command: String): Command = {
     logger.debug(s"command: $command")
     command match {
-      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(context, owner, repoName)
+      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(context, owner, repoName, baseUrl)
       case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, owner, repoName, baseUrl)
       case _ => new UnknownCommand(command)
     }
