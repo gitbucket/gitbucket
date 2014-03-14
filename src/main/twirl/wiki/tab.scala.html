@@ -1,15 +1,37 @@
-@(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(active: String,
+  repository: service.RepositoryService.RepositoryInfo,
+  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
 @import context._
+@import service.WikiService._
 @import view.helpers._
 <ul class="nav nav-tabs">
   <li@if(active == "home"   ){ class="active"}><a href="@url(repository)/wiki">Home</a></li>
   <li@if(active == "pages"  ){ class="active"}><a href="@url(repository)/wiki/_pages">Pages</a></li>
   <li@if(active == "history"){ class="active"}><a href="@url(repository)/wiki/_history">Wiki History</a></li>
   <li class="pull-right">
-    @defining(repository.url.replaceFirst("\\.git$", ".wiki.git")){ repositoryUrl =>
-      @helper.html.copy("repository-url-copy", repositoryUrl){
-        <input type="text" value="@repositoryUrl" readonly id="repository-url">
+    @helper.html.copy("repository-url-copy", httpUrl(repository), true){
+      @if(settings.ssh){
+        <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
+          <button type="button" class="btn active" id="repository-url-http">HTTP</button><button type="button" class="btn" id="repository-url-ssh">SSH</button>
+        </div>
+      } else {
+        <span class="add-on">HTTP</span>
       }
+      <input type="text" value="@httpUrl(repository)" readonly id="repository-url">
     }
   </li>
 </ul>
+@if(settings.ssh){
+<script>
+$(function(){
+  $('#repository-url-http').click(function(){
+    $('#repository-url').val('@httpUrl(repository)');
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+  $('#repository-url-ssh').click(function(){
+    $('#repository-url').val('@sshUrl(repository, settings)');
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+});
+</script>
+}

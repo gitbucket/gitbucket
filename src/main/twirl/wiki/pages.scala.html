@@ -1,9 +1,12 @@
-@(pages: List[String], repository: service.RepositoryService.RepositoryInfo, hasWritePermission: Boolean)(implicit context: app.Context)
+@(pages: List[String],
+  repository: service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean,
+  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"Pages - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("wiki", repository)
-  @tab("pages", repository)
+  @tab("pages", repository, settings)
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title"><span class="muted">Pages</span></h1>

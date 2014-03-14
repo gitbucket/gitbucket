@@ -1,4 +1,5 @@
 @(id: String, repository: service.RepositoryService.RepositoryInfo, active: String,
+  settings: service.SystemSettingsService.SystemSettings,
   hideBranchPulldown: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -22,8 +23,15 @@
   <li@if(active=="branches"){ class="active"}><a href="@url(repository)/branches">Branches@if(repository.branchList.length > 0){ <span class="badge">@repository.branchList.length</span>}</a></li>
   <li@if(active=="tags"    ){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
   <li class="pull-right">
-    @helper.html.copy("repository-url-copy", repository.url){
-      <input type="text" value="@repository.url" id="repository-url" readonly>
+    @helper.html.copy("repository-url-copy", repository.httpUrl, true){
+      @if(settings.ssh){
+        <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
+          <button type="button" class="btn active" id="repository-url-http">HTTP</button><button type="button" class="btn" id="repository-url-ssh">SSH</button>
+        </div>
+      } else {
+        <span class="add-on">HTTP</span>
+      }
+      <input type="text" value="@repository.httpUrl" id="repository-url" style="width: 150px;" readonly>
     }
   </li>
   <li class="pull-right" style="margin-right: 8px;">
@@ -32,3 +40,17 @@
     </div>
   </li>
 </ul>
+@if(settings.ssh){
+<script>
+$(function(){
+  $('#repository-url-http').click(function(){
+    $('#repository-url').val('@repository.httpUrl');
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+  $('#repository-url-ssh').click(function(){
+    $('#repository-url').val('@repository.sshUrl(settings.sshPort.getOrElse(service.SystemSettingsService.DefaultSshPort))');
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+});
+</script>
+}

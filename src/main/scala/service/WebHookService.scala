@@ -87,7 +87,7 @@ object WebHookService {
         refName,
         commits.map { commit =>
           val diffs = JGitUtil.getDiffs(git, commit.id, false)
-          val commitUrl = repositoryInfo.url.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/commit/" + commit.id
+          val commitUrl = repositoryInfo.httpUrl.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/commit/" + commit.id
 
           WebHookCommit(
             id        = commit.id,
@@ -106,7 +106,7 @@ object WebHookService {
         }.toList,
         WebHookRepository(
           name        = repositoryInfo.name,
-          url         = repositoryInfo.url,
+          url         = repositoryInfo.httpUrl,
           description = repositoryInfo.repository.description.getOrElse(""),
           watchers    = 0,
           forks       = repositoryInfo.forkedCount,

@@ -65,7 +65,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-            }, page, hasNext)
+            }, page, hasNext, loadSystemSettings())
         case Left(_) => NotFound
       }
     }
@@ -118,7 +118,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             JGitUtil.ContentInfo(viewer, None)
           }
 
-          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
+          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit), loadSystemSettings())
         }
       } getOrElse NotFound
     }
@@ -136,7 +136,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
             JGitUtil.getBranchesOfCommit(git, revCommit.getName),
             JGitUtil.getTagsOfCommit(git, revCommit.getName),
-            repository, diffs, oldCommitId)
+            repository, diffs, oldCommitId, loadSystemSettings())
         }
       }
     }
@@ -152,7 +152,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val revCommit = git.log.add(git.getRepository.resolve(branchName)).setMaxCount(1).call.iterator.next
         (branchName, revCommit.getCommitterIdent.getWhen)
       }
-      repo.html.branches(branchInfo, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
+      repo.html.branches(branchInfo, hasWritePermission(repository.owner, repository.name, context.loginAccount),
+        repository, loadSystemSettings())
     }
   })
 
@@ -175,7 +176,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays tags.
    */
   get("/:owner/:repository/tags")(referrersOnly {
-    repo.html.tags(_)
+    repo.html.tags(_, loadSystemSettings())
   })
 
   /**
@@ -284,7 +285,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(revCommit), // latest commit
-              files, readme)
+              files, readme, loadSystemSettings())
           }
         } getOrElse NotFound
       }

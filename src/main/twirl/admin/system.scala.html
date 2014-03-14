@@ -22,9 +22,10 @@
           <fieldset>
               <div class="controls">
                 <input type="text" name="baseUrl" id="baseUrl" style="width: 400px" value="@settings.baseUrl"/>
+                <span id="error-baseUrl" class="error"></span>
               </div>
           </fieldset>
-          <p>
+          <p class="muted">
             The base URL is used for redirect, notification email, git repository URL box and more.
             If the base URL is empty, GitBucket generates URL from request information.
             You can use this property to adjust URL difference between the reverse proxy and GitBucket.
@@ -55,6 +56,29 @@
               Use Gravatar for Profile-Images
             </label>
           </fieldset>
+          <!--====================================================================-->
+          <!-- SSH access -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">SSH access</label>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" id="ssh" name="ssh"@if(settings.ssh){ checked}/>
+              Enable SSH access to git repository
+            </label>
+          </fieldset>
+          <div class="form-horizontal ssh">
+            <div class="control-group">
+              <label class="control-label" for="sshPort">SSH Port</label>
+              <div class="controls">
+                <input type="text" id="sshPort" name="sshPort" value="@settings.sshPort"/>
+                <span id="error-sshPort" class="error"></span>
+              </div>
+            </div>
+          </div>
+          <p class="muted">
+            Base URL is required if SSH access is enabled.
+          </p>
           <!--====================================================================-->
           <!-- Authentication -->
           <!--====================================================================-->
@@ -213,6 +237,10 @@
 }
 <script>
 $(function(){
+  $('#ssh').change(function(){
+    $('.ssh input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
   $('#notification').change(function(){
     $('.notification input').prop('disabled', !$(this).prop('checked'));
   }).change();

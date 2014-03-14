@@ -4,6 +4,7 @@
   diffs: Seq[util.JGitUtil.DiffInfo],
   repository: service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean,
+  settings: service.SystemSettingsService.SystemSettings,
   info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -11,7 +12,7 @@
 @html.main(s"Compare Revisions - ${repository.owner}/${repository.name}", Some(repository)){
   @helper.html.information(info)
   @html.header("wiki", repository)
-  @tab("history", repository)
+  @tab("history", repository, settings)
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title"><span class="muted">Compare Revisions</span></h1>

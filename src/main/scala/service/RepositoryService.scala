@@ -288,9 +288,13 @@ trait RepositoryService { self: AccountService =>
 
 object RepositoryService {
 
-  case class RepositoryInfo(owner: String, name: String, url: String, repository: Repository,
+  case class RepositoryInfo(owner: String, name: String, httpUrl: String, repository: Repository,
     issueCount: Int, pullCount: Int, commitCount: Int, forkedCount: Int,
     branchList: Seq[String], tags: Seq[util.JGitUtil.TagInfo], managers: Seq[String]){
+
+    lazy val host = """^https?://(.+?)(:\d+)?/""".r.findFirstMatchIn(httpUrl).get.group(1)
+
+    def sshUrl(port: Int) = s"ssh://${host}:${port}/${owner}/${name}.git"
 
     /**
      * Creates instance with issue count and pull request count.
