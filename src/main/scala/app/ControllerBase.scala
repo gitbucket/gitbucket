@@ -36,18 +36,16 @@ abstract class ControllerBase extends ScalatraFilter
 
     if(path.startsWith("/console/")){
       val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
+      val baseUrl = this.baseUrl(httpRequest)
       if(account == null){
         // Redirect to login form
-        // TODO Should use the configured base url.
-        httpResponse.sendRedirect(context + "/signin?" + StringUtil.urlEncode(path))
+        httpResponse.sendRedirect(baseUrl + "/signin?redirect=" + StringUtil.urlEncode(path))
       } else if(account.isAdmin){
         // H2 Console (administrators only)
-        // TODO Should use the configured base url.
         chain.doFilter(request, response)
       } else {
         // Redirect to dashboard
-        // TODO Should use the configured base url.
-        httpResponse.sendRedirect(context + "/")
+        httpResponse.sendRedirect(baseUrl + "/")
       }
     } else if(path.startsWith("/git/")){
       // Git repository
