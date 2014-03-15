@@ -76,11 +76,7 @@ object JGitUtil {
         rev.getFullMessage,
         rev.getParents().map(_.name).toList)
 
-    val summary = defining(fullMessage.trim.indexOf("\n")){ i =>
-      defining(if(i >= 0) fullMessage.trim.substring(0, i).trim else fullMessage){ firstLine =>
-        if(firstLine.length > shortMessage.length) shortMessage else firstLine
-      }
-    }
+    val summary = getSummaryMessage(fullMessage, shortMessage)
 
     val description = defining(fullMessage.trim.indexOf("\n")){ i =>
       if(i >= 0){
@@ -165,7 +161,7 @@ object JGitUtil {
       }
     }
   }
-  
+
   /**
    * Returns the file list of the specified path.
    * 
@@ -220,16 +216,18 @@ object JGitUtil {
 
     val commits = getLatestCommitFromPaths(git, list.toList.map(_._3), revision)
     list.map { case (objectId, fileMode, path, name, linkUrl) =>
-      FileInfo(
-        objectId,
-        fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
-        name,
-        commits(path).getCommitterIdent.getWhen,
-        commits(path).getShortMessage,
-        commits(path).getName,
-        commits(path).getCommitterIdent.getName,
-        commits(path).getCommitterIdent.getEmailAddress,
-        linkUrl)
+      defining(commits(path)){ commit =>
+        FileInfo(
+          objectId,
+          fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
+          name,
+          commit.getCommitterIdent.getWhen,
+          getSummaryMessage(commit.getFullMessage, commit.getShortMessage),
+          commit.getName,
+          commit.getCommitterIdent.getName,
+          commit.getCommitterIdent.getEmailAddress,
+          linkUrl)
+      }
     }.sortWith { (file1, file2) =>
       (file1.isDirectory, file2.isDirectory) match {
         case (true , false) => true
@@ -238,7 +236,18 @@ object JGitUtil {
       }
     }.toList
   }
-  
+
+  /**
+   * Returns the first line of the commit message.
+   */
+  private def getSummaryMessage(fullMessage: String, shortMessage: String): String = {
+    defining(fullMessage.trim.indexOf("\n")){ i =>
+      defining(if(i >= 0) fullMessage.trim.substring(0, i).trim else fullMessage){ firstLine =>
+        if(firstLine.length > shortMessage.length) shortMessage else firstLine
+      }
+    }
+  }
+
   /**
    * Returns the commit list of the specified branch.
    * 
