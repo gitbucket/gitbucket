@@ -208,7 +208,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             while(walk.next){
               val name = walk.getPathString
               val mode = walk.getFileMode(0)
-              if(mode == FileMode.REGULAR_FILE){
+              if(mode == FileMode.REGULAR_FILE || mode == FileMode.EXECUTABLE_FILE){
                 walk.getObjectId(objectId, 0)
                 val entry = new ZipEntry(name)
                 val loader = reader.open(objectId)
