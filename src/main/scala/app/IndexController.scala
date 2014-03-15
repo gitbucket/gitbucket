@@ -35,7 +35,7 @@ trait IndexControllerBase extends ControllerBase {
   }
 
   post("/signin", form){ form =>
-    authenticate(loadSystemSettings(), form.userName, form.password) match {
+    authenticate(context.settings, form.userName, form.password) match {
       case Some(account) => signin(account)
       case None          => redirect("/signin")
     }
