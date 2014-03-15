@@ -181,8 +181,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Download repository contents as an archive.
    */
-  get("/:owner/:repository/archive/:name")(referrersOnly { repository =>
-    val name = params("name")
+  get("/:owner/:repository/archive/*")(referrersOnly { repository =>
+    val name = multiParams("splat").head
 
     if(name.endsWith(".zip")){
       val revision = name.replaceFirst("\\.zip$", "")
@@ -193,7 +193,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       workDir.mkdirs
 
       val zipFile = new File(workDir, repository.name + "-" +
-        (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
+        (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + ".zip")
 
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
