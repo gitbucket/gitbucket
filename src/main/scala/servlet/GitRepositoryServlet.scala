@@ -99,12 +99,16 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
         commands.asScala.foreach { command =>
           logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-          val commits = command.getType match {
-            case ReceiveCommand.Type.DELETE => Nil
-            case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
-          }
           val refName = command.getRefName.split("/")
           val branchName = refName.drop(2).mkString("/")
+          val commits = if (refName(1) == "tags") {
+            Nil
+          } else {
+            command.getType match {
+              case ReceiveCommand.Type.DELETE => Nil
+              case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+            }
+          }
 
           // Extract new commit and apply issue comment
           val newCommits = if(commits.size > 1000){
