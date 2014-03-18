@@ -98,7 +98,7 @@ object AutoUpdate {
    */
   def getCurrentVersion(): Version = {
     if(versionFile.exists){
-      FileUtils.readFileToString(versionFile, "UTF-8").split("\\.") match {
+      FileUtils.readFileToString(versionFile, "UTF-8").trim.split("\\.") match {
         case Array(majorVersion, minorVersion) => {
           versions.find { v => 
             v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt
