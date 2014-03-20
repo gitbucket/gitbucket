@@ -35,6 +35,8 @@ Installation
 2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
 3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
 
+If you are using Gitbucket behind a webserver please make sure you have increased the **client_max_body_size** (on nignx)
+
 The default administrator account is **root** and password is **root**.
 
 or you can start GitBucket by `java -jar gitbucket.war` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
