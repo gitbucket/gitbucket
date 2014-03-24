@@ -294,7 +294,7 @@ object RepositoryService {
 
     lazy val host = """^https?://(.+?)(:\d+)?/""".r.findFirstMatchIn(httpUrl).get.group(1)
 
-    def sshUrl(port: Int) = s"ssh://${host}:${port}/${owner}/${name}.git"
+    def sshUrl(port: Int, userName: String) = s"ssh://${userName}@${host}:${port}/${owner}/${name}.git"
 
     /**
      * Creates instance with issue count and pull request count.
