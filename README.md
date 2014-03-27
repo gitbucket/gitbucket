@@ -60,7 +60,7 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 1.12 - Comming Soon
+### 1.12 - Coming Soon
 - SSH repository access is available
 - Allow users can create and management their groups
 - Git submodule support
