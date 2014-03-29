@@ -60,12 +60,13 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 1.12 - Coming Soon
+### 1.12 - 29 Mar 2014
 - SSH repository access is available
 - Allow users can create and management their groups
 - Git submodule support
 - Close issues via commit messages
 - Show repository description below the name on repository page
+- Fix presentation of the source viewer
 - Upgrade to sbt 0.13
 - Fix some bugs
 
