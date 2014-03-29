@@ -147,7 +147,8 @@ trait RepositoryService { self: AccountService =>
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ))
+        ),
+        getRepositoryManagers(repository.userName))
     }
   }
 
@@ -162,7 +163,8 @@ trait RepositoryService { self: AccountService =>
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ))
+        ),
+        getRepositoryManagers(repository.userName))
     }
   }
 
@@ -195,9 +197,17 @@ trait RepositoryService { self: AccountService =>
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ))
+        ),
+        getRepositoryManagers(repository.userName))
     }
   }
+
+  private def getRepositoryManagers(userName: String): Seq[String] =
+    if(getAccountByUserName(userName).exists(_.isGroupAccount)){
+      getGroupMembers(userName).collect { case x if(x.isManager) => x.userName }
+    } else {
+      Seq(userName)
+    }
 
   /**
    * Updates the last activity date of the repository.
@@ -278,21 +288,25 @@ trait RepositoryService { self: AccountService =>
 
 object RepositoryService {
 
-  case class RepositoryInfo(owner: String, name: String, url: String, repository: Repository,
+  case class RepositoryInfo(owner: String, name: String, httpUrl: String, repository: Repository,
     issueCount: Int, pullCount: Int, commitCount: Int, forkedCount: Int,
-    branchList: List[String], tags: List[util.JGitUtil.TagInfo]){
+    branchList: Seq[String], tags: Seq[util.JGitUtil.TagInfo], managers: Seq[String]){
+
+    lazy val host = """^https?://(.+?)(:\d+)?/""".r.findFirstMatchIn(httpUrl).get.group(1)
+
+    def sshUrl(port: Int, userName: String) = s"ssh://${userName}@${host}:${port}/${owner}/${name}.git"
 
     /**
      * Creates instance with issue count and pull request count.
      */
-    def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int) =
-      this(repo.owner, repo.name, repo.url, model, issueCount, pullCount, repo.commitCount, forkedCount, repo.branchList, repo.tags)
+    def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
+      this(repo.owner, repo.name, repo.url, model, issueCount, pullCount, repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
 
     /**
      * Creates instance without issue count and pull request count.
      */
-    def this(repo: JGitUtil.RepositoryInfo, model: Repository, forkedCount: Int) =
-      this(repo.owner, repo.name, repo.url, model, 0, 0, repo.commitCount, forkedCount, repo.branchList, repo.tags)
+    def this(repo: JGitUtil.RepositoryInfo, model: Repository, forkedCount: Int, managers: Seq[String]) =
+      this(repo.owner, repo.name, repo.url, model, 0, 0, repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
   }
 
   case class RepositoryTreeNode(owner: String, name: String, children: List[RepositoryTreeNode])

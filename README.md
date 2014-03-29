@@ -23,7 +23,7 @@ Following features are not implemented, but we will make them in the future rele
 - File editing in repository viewer
 - Comment for the changeset
 - Network graph
-- Statics
+- Statistics
 - Watch / Star
 
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
@@ -34,6 +34,8 @@ Installation
 1. Download latest **gitbucket.war** from [the release page](https://github.com/takezoe/gitbucket/releases).
 2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
 3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
+
+If you are using Gitbucket behind a webserver please make sure you have increased the **client_max_body_size** (on nignx)
 
 The default administrator account is **root** and password is **root**.
 
@@ -58,6 +60,19 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 1.12 - 29 Mar 2014
+- SSH repository access is available
+- Allow users can create and management their groups
+- Git submodule support
+- Close issues via commit messages
+- Show repository description below the name on repository page
+- Fix presentation of the source viewer
+- Upgrade to sbt 0.13
+- Fix some bugs
+
+### 1.11.1 - 06 Mar 2014
+- Bug fix
+
 ### 1.11 - 01 Mar 2014
 - Base URL for redirection, notification and repository URL box is configurable
 - Remove ```--https``` option because it's possible to substitute in the base url

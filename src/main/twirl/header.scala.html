@@ -6,7 +6,7 @@
   <div class="pull-right">
     <div class="input-prepend">
       <a href="@path/@repository.owner/@repository.name/fork" class="btn" style="margin-bottom: 10px;">Fork</a>
-      <span class="add-on"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+      <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
     </div>
   </div>
 }
@@ -56,7 +56,7 @@
     <th class="box-header@if(active=="network"){ active}">
       <a href="@url(repository)/network/members">Network</a>
     </th>
-    @if(loginAccount.isDefined && (loginAccount.get.isAdmin || loginAccount.get.userName == repository.owner)){
+    @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
     <th class="box-header@if(active=="settings"){ active}">
       <a href="@url(repository)/settings">Settings</a>
     </th>

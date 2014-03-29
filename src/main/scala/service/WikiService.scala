@@ -15,6 +15,7 @@ import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
 import scala.Some
+import service.RepositoryService.RepositoryInfo
 
 
 object WikiService {
@@ -40,6 +41,10 @@ object WikiService {
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
 
+  def httpUrl(repository: RepositoryInfo) = repository.httpUrl.replaceFirst("\\.git\\Z", ".wiki.git")
+
+  def sshUrl(repository: RepositoryInfo, settings: SystemSettingsService.SystemSettings, userName: String) =
+    repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), userName).replaceFirst("\\.git\\Z", ".wiki.git")
 }
 
 trait WikiService {
@@ -234,7 +239,7 @@ trait WikiService {
                   builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
                 } else {
                   created = false
-                  updated = JGitUtil.getContent(git, tree.getEntryObjectId, true).map(new String(_, "UTF-8") != content).getOrElse(false)
+                  updated = JGitUtil.getContentFromId(git, tree.getEntryObjectId, true).map(new String(_, "UTF-8") != content).getOrElse(false)
                 }
               }
             }
@@ -268,35 +273,35 @@ trait WikiService {
    */
   def deleteWikiPage(owner: String, repository: String, pageName: String,
                      committer: String, mailAddress: String, message: String): Unit = {
-      LockUtil.lock(s"${owner}/${repository}/wiki"){
-        using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
-          val builder  = DirCache.newInCore.builder()
-          val inserter = git.getRepository.newObjectInserter()
-          val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-          var removed  = false
+    LockUtil.lock(s"${owner}/${repository}/wiki"){
+      using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
+        val builder  = DirCache.newInCore.builder()
+        val inserter = git.getRepository.newObjectInserter()
+        val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
+        var removed  = false
 
-          using(new RevWalk(git.getRepository)){ revWalk =>
-            using(new TreeWalk(git.getRepository)){ treeWalk =>
-              val index = treeWalk.addTree(revWalk.parseTree(headId))
-              treeWalk.setRecursive(true)
-              while(treeWalk.next){
-                val path = treeWalk.getPathString
-                val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
-                if(path != pageName + ".md"){
-                  builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-                } else {
-                  removed = true
-                }
+        using(new RevWalk(git.getRepository)){ revWalk =>
+          using(new TreeWalk(git.getRepository)){ treeWalk =>
+            val index = treeWalk.addTree(revWalk.parseTree(headId))
+            treeWalk.setRecursive(true)
+            while(treeWalk.next){
+              val path = treeWalk.getPathString
+              val tree = treeWalk.getTree(index, classOf[CanonicalTreeParser])
+              if(path != pageName + ".md"){
+                builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+              } else {
+                removed = true
               }
             }
+          }
 
-            if(removed){
-              builder.finish()
-              JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer, mailAddress, message)
-            }
+          if(removed){
+            builder.finish()
+            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer, mailAddress, message)
           }
         }
       }
+    }
   }
 
 }

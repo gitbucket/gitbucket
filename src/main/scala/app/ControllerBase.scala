@@ -28,7 +28,7 @@ abstract class ControllerBase extends ScalatraFilter
   // Don't set content type via Accept header.
   override def format(implicit request: HttpServletRequest) = ""
 
-  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+  override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = try {
     val httpRequest  = request.asInstanceOf[HttpServletRequest]
     val httpResponse = response.asInstanceOf[HttpServletResponse]
     val context      = request.getServletContext.getContextPath
@@ -36,15 +36,16 @@ abstract class ControllerBase extends ScalatraFilter
 
     if(path.startsWith("/console/")){
       val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
+      val baseUrl = this.baseUrl(httpRequest)
       if(account == null){
         // Redirect to login form
-        httpResponse.sendRedirect(context + "/signin?" + StringUtil.urlEncode(path))
+        httpResponse.sendRedirect(baseUrl + "/signin?redirect=" + StringUtil.urlEncode(path))
       } else if(account.isAdmin){
         // H2 Console (administrators only)
         chain.doFilter(request, response)
       } else {
         // Redirect to dashboard
-        httpResponse.sendRedirect(context + "/")
+        httpResponse.sendRedirect(baseUrl + "/")
       }
     } else if(path.startsWith("/git/")){
       // Git repository
@@ -53,12 +54,25 @@ abstract class ControllerBase extends ScalatraFilter
       // Scalatra actions
       super.doFilter(request, response, chain)
     }
+  } finally {
+    contextCache.remove();
   }
+
+  private val contextCache = new java.lang.ThreadLocal[Context]()
 
   /**
    * Returns the context object for the request.
    */
-  implicit def context: Context = Context(servletContext.getContextPath, LoginAccount, request)
+  implicit def context: Context = {
+    contextCache.get match {
+      case null => {
+        val context = Context(loadSystemSettings(), LoginAccount, request)
+        contextCache.set(context)
+        context
+      }
+      case context => context
+    }
+  }
 
   private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
 
@@ -116,14 +130,18 @@ abstract class ControllerBase extends ScalatraFilter
                        includeContextPath: Boolean = true, includeServletPath: Boolean = true)
                       (implicit request: HttpServletRequest, response: HttpServletResponse) =
     if (path.startsWith("http")) path
-    else baseUrl + url(path, params, includeContextPath, includeServletPath)
+    else baseUrl + url(path, params, false, false, false)
 
 }
 
 /**
  * Context object for the current request.
  */
-case class Context(path: String, loginAccount: Option[Account], request: HttpServletRequest){
+case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
+
+  lazy val path = settings.baseUrl.getOrElse(request.getServletContext.getContextPath)
+
+  lazy val currentPath = request.getRequestURI.substring(request.getContextPath.length)
 
   /**
    * Get object from cache.

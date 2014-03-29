@@ -15,10 +15,12 @@ trait SystemSettingsService {
 
   def saveSystemSettings(settings: SystemSettings): Unit = {
     defining(new java.util.Properties()){ props =>
-      settings.baseUrl.foreach(props.setProperty(BaseURL, _))
+      settings.baseUrl.foreach(x => props.setProperty(BaseURL, x.replaceFirst("/\\Z", "")))
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
+      props.setProperty(Ssh, settings.ssh.toString)
+      settings.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
       if(settings.notification) {
         settings.smtp.foreach { smtp =>
           props.setProperty(SmtpHost, smtp.host)
@@ -56,10 +58,12 @@ trait SystemSettingsService {
         props.load(new java.io.FileInputStream(GitBucketConf))
       }
       SystemSettings(
-        getOptionValue(props, BaseURL, None),
+        getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
         getValue(props, AllowAccountRegistration, false),
         getValue(props, Gravatar, true),
         getValue(props, Notification, false),
+        getValue(props, Ssh, false),
+        getOptionValue(props, SshPort, Some(DefaultSshPort)),
         if(getValue(props, Notification, false)){
           Some(Smtp(
             getValue(props, SmtpHost, ""),
@@ -102,6 +106,8 @@ object SystemSettingsService {
     allowAccountRegistration: Boolean,
     gravatar: Boolean,
     notification: Boolean,
+    ssh: Boolean,
+    sshPort: Option[Int],
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
     ldap: Option[Ldap])
@@ -127,6 +133,7 @@ object SystemSettingsService {
     fromAddress: Option[String],
     fromName: Option[String])
 
+  val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
 
@@ -134,6 +141,8 @@ object SystemSettingsService {
   private val AllowAccountRegistration = "allow_account_registration"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
+  private val Ssh = "ssh"
+  private val SshPort = "ssh.port"
   private val SmtpHost = "smtp.host"
   private val SmtpPort = "smtp.port"
   private val SmtpUser = "smtp.user"

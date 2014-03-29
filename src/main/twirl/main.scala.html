@@ -54,14 +54,18 @@
               }
               @if(loginAccount.isDefined){
                 <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
-                <a href="@path/new" class="menu" data-toggle="tooltip" data-placement="bottom" title="Create a new repo"><i class="icon-plus"></i></a>
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="icon-plus"></i><span class="caret" style="vertical-align: middle;"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="@path/new">New repository</a></li>
+                  <li><a href="@path/groups/new">New group</a></li>
+                </ul>
                 <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
                 @if(loginAccount.get.isAdmin){
                   <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="icon-wrench"></i></a>
                 }
                 <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
               } else {
-                <a href="@path/signin" class="btn btn-last" id="signin">Sign in</a>
+                <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-last" id="signin">Sign in</a>
               }
             </div><!--/.nav-collapse -->
           </div>
@@ -76,7 +80,6 @@
         $('#search').submit(function(){
           return $.trim($(this).find('input[name=query]').val()) != '';
         });
-        $('#signin').attr('href', '@path/signin?redirect=' + encodeURIComponent(location.pathname + location.search + location.hash));
       });
     </script>
   </body>

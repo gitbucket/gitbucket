@@ -63,8 +63,9 @@ RepositorySearchService { self: IssuesService =>
     val list = new ListBuffer[(String, String)]
 
     while (treeWalk.next()) {
-      if(treeWalk.getFileMode(0) != FileMode.TREE){
-        JGitUtil.getContent(git, treeWalk.getObjectId(0), false).foreach { bytes =>
+      val mode = treeWalk.getFileMode(0)
+      if(mode == FileMode.REGULAR_FILE || mode == FileMode.EXECUTABLE_FILE){
+        JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).foreach { bytes =>
           if(FileUtil.isText(bytes)){
             val text      = StringUtil.convertFromByteArray(bytes)
             val lowerText = text.toLowerCase

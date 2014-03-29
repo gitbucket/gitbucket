@@ -34,3 +34,14 @@ $(function(){
   // syntax highlighting by google-code-prettify
   prettyPrint();
 });
+
+function displayErrors(data){
+  var i = 0;
+  $.each(data, function(key, value){
+    $('#error-' + key.split(".").join("_")).text(value);
+    if(i == 0){
+      $('#' + key).focus();
+    }
+    i++;
+  });
+}

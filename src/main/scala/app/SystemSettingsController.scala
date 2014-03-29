@@ -4,18 +4,21 @@ import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
 import util.AdminAuthenticator
 import jp.sf.amateras.scalatra.forms._
+import ssh.SshServer
 
 class SystemSettingsController extends SystemSettingsControllerBase
-  with SystemSettingsService with AccountService with AdminAuthenticator
+  with AccountService with AdminAuthenticator
 
 trait SystemSettingsControllerBase extends ControllerBase {
-  self: SystemSettingsService with AccountService with AdminAuthenticator =>
+  self: AccountService with AdminAuthenticator =>
 
   private val form = mapping(
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
+    "ssh"                      -> trim(label("SSH access", boolean())),
+    "sshPort"                  -> trim(label("SSH port", optional(number()))),
     "smtp"                     -> optionalIfNotChecked("notification", mapping(
         "host"                     -> trim(label("SMTP Host", text(required))),
         "port"                     -> trim(label("SMTP Port", optional(number()))),
@@ -38,15 +41,28 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
-  )(SystemSettings.apply)
+  )(SystemSettings.apply).verifying { settings =>
+    if(settings.ssh && settings.baseUrl.isEmpty){
+      Seq("baseUrl" -> "Base URL is required if SSH access is enabled.")
+    } else Nil
+  }
 
 
   get("/admin/system")(adminOnly {
-    admin.html.system(loadSystemSettings(), flash.get("info"))
+    admin.html.system(flash.get("info"))
   })
 
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
+
+    if(form.ssh && !SshServer.isActive && form.baseUrl.isDefined){
+      SshServer.start(request.getServletContext,
+        form.sshPort.getOrElse(SystemSettingsService.DefaultSshPort),
+        form.baseUrl.get)
+    } else if(!form.ssh && SshServer.isActive){
+      SshServer.stop()
+    }
+
     flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
   })

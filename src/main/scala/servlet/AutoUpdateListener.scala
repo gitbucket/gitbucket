@@ -50,6 +50,7 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    Version(1, 12),
     Version(1, 11),
     Version(1, 10),
     Version(1, 9),
@@ -97,7 +98,7 @@ object AutoUpdate {
    */
   def getCurrentVersion(): Version = {
     if(versionFile.exists){
-      FileUtils.readFileToString(versionFile, "UTF-8").split("\\.") match {
+      FileUtils.readFileToString(versionFile, "UTF-8").trim.split("\\.") match {
         case Array(majorVersion, minorVersion) => {
           versions.find { v => 
             v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt

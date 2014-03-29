@@ -1,9 +1,9 @@
 @(account: Option[model.Account], members: List[model.GroupMember])(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(if(account.isEmpty) "New Group" else "Update Group"){
-  @admin.html.menu("users"){
-    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newgroup} else {@path/admin/users/@account.get.userName/_editgroup}" validate="true">
+@html.main(if(account.isEmpty) "Create group" else "Edit group"){
+<div>
+  <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
       <div class="row-fluid">
         <div class="span5">
           <fieldset>
@@ -12,19 +12,13 @@
               <span id="error-groupName" class="error"></span>
             </div>
             <input type="text" name="groupName" id="groupName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
-            @if(account.isDefined){
-              <label for="removed">
-                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
-                Disable
-              </label>
-            }
           </fieldset>
           <fieldset>
             <label class="strong">URL (Optional)</label>
             <div>
               <span id="error-url" class="error"></span>
             </div>
-            <input type="text" name="url" id="url" value="@account.map(_.url)"/>
+            <input type="text" name="url" id="url" style="width: 300px;" value="@account.map(_.url)"/>
           </fieldset>
           <fieldset>
             <label for="avatar" class="strong">Image (Optional)</label>
@@ -46,11 +40,18 @@
         </div>
       </div>
       <fieldset class="margin">
+        @if(account.isDefined){
+          <div class="pull-right">
+            <a href="@url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete Group</a>
+          </div>
+        }
         <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
-        <a href="@path/admin/users" class="btn">Cancel</a>
+        @if(account.isDefined){
+          <a href="@url(account.get.userName)" class="btn">Cancel</a>
+        }
       </fieldset>
-    </form>
-  }
+  </form>
+</div>
 }
 <script>
 $(function(){
@@ -95,6 +96,10 @@ $(function(){
   // Don't submit form by ENTER key
   $('#memberName').keypress(function(e){
     return !(e.keyCode == 13);
+  });
+
+  $('#delete').click(function(){
+    return confirm('Once you delete this group, there is no going back.\nAre you sure?');
   });
 
   @members.map { member =>

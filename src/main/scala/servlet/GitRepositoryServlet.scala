@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 
 import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import util.{StringUtil, Keys, JGitUtil, Directory}
 import util.ControlUtil._
 import util.Implicits._
@@ -23,7 +23,7 @@ import util.JGitUtil.CommitInfo
  * This servlet provides only Git repository functionality.
  * Authentication is provided by [[servlet.BasicAuthenticationFilter]].
  */
-class GitRepositoryServlet extends GitServlet {
+class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
   
@@ -47,7 +47,19 @@ class GitRepositoryServlet extends GitServlet {
 
     super.init(config)
   }
-  
+
+  override def service(req: HttpServletRequest, res: HttpServletResponse): Unit = {
+    val agent = req.getHeader("USER-AGENT")
+    val index = req.getRequestURI.indexOf(".git")
+    if(index >= 0 && (agent == null || agent.toLowerCase.indexOf("git/") < 0)){
+      // redirect for browsers
+      val paths = req.getRequestURI.substring(0, index).split("/")
+      res.sendRedirect(baseUrl(req) + "/" + paths.dropRight(1).last + "/" + paths.last)
+    } else {
+      // response for git client
+      super.service(req, res)
+    }
+  }
 }
 
 class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest] with SystemSettingsService {
@@ -87,12 +99,16 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
         commands.asScala.foreach { command =>
           logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-          val commits = command.getType match {
-            case ReceiveCommand.Type.DELETE => Nil
-            case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
-          }
           val refName = command.getRefName.split("/")
           val branchName = refName.drop(2).mkString("/")
+          val commits = if (refName(1) == "tags") {
+            Nil
+          } else {
+            command.getType match {
+              case ReceiveCommand.Type.DELETE => Nil
+              case _ => JGitUtil.getCommitLog(git, command.getOldId.name, command.getNewId.name)
+            }
+          }
 
           // Extract new commit and apply issue comment
           val newCommits = if(commits.size > 1000){
