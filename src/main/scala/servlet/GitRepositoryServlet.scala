@@ -16,6 +16,7 @@ import service._
 import WebHookService._
 import org.eclipse.jgit.api.Git
 import util.JGitUtil.CommitInfo
+import service.IssuesService.IssueSearchCondition
 
 /**
  * Provides Git repository via HTTP.
@@ -110,19 +111,28 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             }
           }
 
+          // Retrieve all issue count in the repository
+          val issueCount =
+            countIssue(IssueSearchCondition(state = "open"), Map.empty, false, owner -> repository) +
+            countIssue(IssueSearchCondition(state = "closed"), Map.empty, false, owner -> repository)
+
           // Extract new commit and apply issue comment
           val newCommits = if(commits.size > 1000){
             val existIds = getAllCommitIds(owner, repository)
             commits.flatMap { commit =>
               if(!existIds.contains(commit.id)){
-                createIssueComment(commit)
+                if(issueCount > 0) {
+                  createIssueComment(commit)
+                }
                 Some(commit)
               } else None
             }
           } else {
             commits.flatMap { commit =>
               if(!existsCommitId(owner, repository, commit.id)){
-                createIssueComment(commit)
+                if(issueCount > 0) {
+                  createIssueComment(commit)
+                }
                 Some(commit)
               } else None
             }
@@ -158,10 +168,13 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           }
 
           // close issues
-          val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
-          if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
-            git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach { commit =>
-              closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
+          if(issueCount > 0) {
+            val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
+            if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
+              git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach {
+                commit =>
+                  closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
+              }
             }
           }
 
