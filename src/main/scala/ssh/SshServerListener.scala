@@ -46,16 +46,17 @@ object SshServer {
  */
 class SshServerListener extends ServletContextListener with SystemSettingsService {
 
+  private val logger = LoggerFactory.getLogger(classOf[SshServerListener])
+
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val settings = loadSystemSettings()
     if(settings.ssh){
-      if(settings.baseUrl.isEmpty){
-        // TODO use logger?
-        println("Could not start SshServer because the baseUrl is not configured.")
-      } else {
-        SshServer.start(sce.getServletContext,
-          settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort),
-          settings.baseUrl.get)
+      settings.baseUrl match {
+        case None =>
+          logger.error("Could not start SshServer because the baseUrl is not configured.")
+        case Some(baseUrl) =>
+          SshServer.start(sce.getServletContext,
+            settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), baseUrl)
       }
     }
   }
