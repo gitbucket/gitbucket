@@ -33,7 +33,7 @@
                 <input type="hidden" name="milestoneId" value=""/>
                 @helper.html.dropdown() {
                   <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> No milestone</a></li>
-                  @milestones.map { milestone =>
+                  @milestones.filter(_.closedDate.isEmpty).map { milestone =>
                     <li>
                       <a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId" data-title="@milestone.title">
                         <i class="icon-while"></i> @milestone.title

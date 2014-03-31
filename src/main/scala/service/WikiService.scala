@@ -43,8 +43,8 @@ object WikiService {
 
   def httpUrl(repository: RepositoryInfo) = repository.httpUrl.replaceFirst("\\.git\\Z", ".wiki.git")
 
-  def sshUrl(repository: RepositoryInfo, settings: SystemSettingsService.SystemSettings) =
-    repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort)).replaceFirst("\\.git\\Z", ".wiki.git")
+  def sshUrl(repository: RepositoryInfo, settings: SystemSettingsService.SystemSettings, userName: String) =
+    repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), userName).replaceFirst("\\.git\\Z", ".wiki.git")
 }
 
 trait WikiService {

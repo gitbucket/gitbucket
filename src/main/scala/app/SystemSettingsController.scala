@@ -7,10 +7,10 @@ import jp.sf.amateras.scalatra.forms._
 import ssh.SshServer
 
 class SystemSettingsController extends SystemSettingsControllerBase
-  with SystemSettingsService with AccountService with AdminAuthenticator
+  with AccountService with AdminAuthenticator
 
 trait SystemSettingsControllerBase extends ControllerBase {
-  self: SystemSettingsService with AccountService with AdminAuthenticator =>
+  self: AccountService with AdminAuthenticator =>
 
   private val form = mapping(
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),
@@ -50,7 +50,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
 
   get("/admin/system")(adminOnly {
-    admin.html.system(loadSystemSettings(), flash.get("info"))
+    admin.html.system(flash.get("info"))
   })
 
   post("/admin/system", form)(adminOnly { form =>

@@ -1,4 +1,4 @@
-@(account: model.Account, settings: service.SystemSettingsService.SystemSettings, sshKeys: List[model.SshKey])(implicit context: app.Context)
+@(account: model.Account, sshKeys: List[model.SshKey])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("SSH Keys"){

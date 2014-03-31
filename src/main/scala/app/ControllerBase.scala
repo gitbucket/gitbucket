@@ -36,18 +36,16 @@ abstract class ControllerBase extends ScalatraFilter
 
     if(path.startsWith("/console/")){
       val account = httpRequest.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
+      val baseUrl = this.baseUrl(httpRequest)
       if(account == null){
         // Redirect to login form
-        // TODO Should use the configured base url.
-        httpResponse.sendRedirect(context + "/signin?" + StringUtil.urlEncode(path))
+        httpResponse.sendRedirect(baseUrl + "/signin?redirect=" + StringUtil.urlEncode(path))
       } else if(account.isAdmin){
         // H2 Console (administrators only)
-        // TODO Should use the configured base url.
         chain.doFilter(request, response)
       } else {
         // Redirect to dashboard
-        // TODO Should use the configured base url.
-        httpResponse.sendRedirect(context + "/")
+        httpResponse.sendRedirect(baseUrl + "/")
       }
     } else if(path.startsWith("/git/")){
       // Git repository
@@ -68,7 +66,7 @@ abstract class ControllerBase extends ScalatraFilter
   implicit def context: Context = {
     contextCache.get match {
       case null => {
-        val context = Context(loadSystemSettings().baseUrl.getOrElse(servletContext.getContextPath), LoginAccount, request)
+        val context = Context(loadSystemSettings(), LoginAccount, request)
         contextCache.set(context)
         context
       }
@@ -138,10 +136,10 @@ abstract class ControllerBase extends ScalatraFilter
 
 /**
  * Context object for the current request.
- *
- * @param path the context path
  */
-case class Context(path: String, loginAccount: Option[Account], request: HttpServletRequest){
+case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
+
+  lazy val path = settings.baseUrl.getOrElse(request.getServletContext.getContextPath)
 
   lazy val currentPath = request.getRequestURI.substring(request.getContextPath.length)
 

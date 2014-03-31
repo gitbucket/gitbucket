@@ -1,12 +1,11 @@
 @(pageName: Option[String],
   commits: List[util.JGitUtil.CommitInfo],
-  repository: service.RepositoryService.RepositoryInfo,
-  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
   @html.header("wiki", repository)
-  @tab(if(pageName.isEmpty) "history" else "", repository, settings)
+  @tab(if(pageName.isEmpty) "history" else "", repository)
   <ul class="nav nav-tabs">
     <li>
       <h1 class="wiki-title">

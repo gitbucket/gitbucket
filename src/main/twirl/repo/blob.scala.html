@@ -2,13 +2,12 @@
   repository: service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   content: util.JGitUtil.ContentInfo,
-  latestCommit: util.JGitUtil.CommitInfo,
-  settings: service.SystemSettingsService.SystemSettings)(implicit context: app.Context)
+  latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
-  @tab(branch, repository, "files", settings)
+  @tab(branch, repository, "files")
   <div class="head">
     <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>

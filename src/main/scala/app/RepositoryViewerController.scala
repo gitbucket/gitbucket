@@ -65,7 +65,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
-            }, page, hasNext, loadSystemSettings())
+            }, page, hasNext)
         case Left(_) => NotFound
       }
     }
@@ -118,7 +118,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             JGitUtil.ContentInfo(viewer, None)
           }
 
-          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit), loadSystemSettings())
+          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
         }
       } getOrElse NotFound
     }
@@ -136,7 +136,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
             JGitUtil.getBranchesOfCommit(git, revCommit.getName),
             JGitUtil.getTagsOfCommit(git, revCommit.getName),
-            repository, diffs, oldCommitId, loadSystemSettings())
+            repository, diffs, oldCommitId)
         }
       }
     }
@@ -152,8 +152,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val revCommit = git.log.add(git.getRepository.resolve(branchName)).setMaxCount(1).call.iterator.next
         (branchName, revCommit.getCommitterIdent.getWhen)
       }
-      repo.html.branches(branchInfo, hasWritePermission(repository.owner, repository.name, context.loginAccount),
-        repository, loadSystemSettings())
+      repo.html.branches(branchInfo, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
     }
   })
 
@@ -176,14 +175,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays tags.
    */
   get("/:owner/:repository/tags")(referrersOnly {
-    repo.html.tags(_, loadSystemSettings())
+    repo.html.tags(_)
   })
 
   /**
    * Download repository contents as an archive.
    */
-  get("/:owner/:repository/archive/:name")(referrersOnly { repository =>
-    val name = params("name")
+  get("/:owner/:repository/archive/*")(referrersOnly { repository =>
+    val name = multiParams("splat").head
 
     if(name.endsWith(".zip")){
       val revision = name.replaceFirst("\\.zip$", "")
@@ -194,7 +193,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       workDir.mkdirs
 
       val zipFile = new File(workDir, repository.name + "-" +
-        (if(revision.length == 40) revision.substring(0, 10) else revision) + ".zip")
+        (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + ".zip")
 
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
@@ -209,7 +208,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             while(walk.next){
               val name = walk.getPathString
               val mode = walk.getFileMode(0)
-              if(mode == FileMode.REGULAR_FILE){
+              if(mode == FileMode.REGULAR_FILE || mode == FileMode.EXECUTABLE_FILE){
                 walk.getObjectId(objectId, 0)
                 val entry = new ZipEntry(name)
                 val loader = reader.open(objectId)
@@ -285,7 +284,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(revCommit), // latest commit
-              files, readme, loadSystemSettings())
+              files, readme)
           }
         } getOrElse NotFound
       }
