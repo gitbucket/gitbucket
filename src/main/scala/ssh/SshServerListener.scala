@@ -31,6 +31,7 @@ object SshServer {
   def stop() = {
     if(active.compareAndSet(true, false)){
       server.stop(true)
+      logger.info("SSH Server is stopped.")
     }
   }
 
