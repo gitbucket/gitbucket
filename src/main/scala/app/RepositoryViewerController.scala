@@ -6,6 +6,7 @@ import util.ControlUtil._
 import _root_.util._
 import service._
 import org.scalatra._
+import jp.sf.amateras.scalatra.forms._
 import java.io.File
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib._
@@ -20,9 +21,14 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
 /**
  * The repository viewer.
  */
-trait RepositoryViewerControllerBase extends ControllerBase { 
+trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
+  case class NewBranchForm(name: String)
+
+  val newBranchForm = mapping(
+    "name" -> text(required))(NewBranchForm.apply)
+    
   /**
    * Returns converted HTML from Markdown for preview.
    */
@@ -154,6 +160,22 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
       repo.html.branches(branchInfo, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
     }
+  })
+
+  /**
+   * Create branch.
+   */
+  post("/:owner/:repository/create",newBranchForm)(collaboratorsOnly { (form, repository) =>
+    val branchName = form.name
+    //val branchName = multiParams("splat").head
+    val userName   = context.loginAccount.get.userName
+    if(repository.repository.defaultBranch != branchName){
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+        git.branchCreate().setName(branchName).call()
+        recordCreateBranchActivity(repository.owner, repository.name, userName, branchName)
+      }
+    }
+    redirect(s"/${repository.owner}/${repository.name}/branches")
   })
 
   /**
