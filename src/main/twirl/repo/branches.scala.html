@@ -36,6 +36,9 @@
       </tr>
     }
   </table>
+  <form method="POST" action="@url(repository)/create" validate="true">
+   New Branch Name: <input name="name" type="text"><input type="submit" value="NewBranch" />
+  </form>
 }
 <script>
 $(function(){
