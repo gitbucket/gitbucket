@@ -49,7 +49,7 @@ object LDAPUtil {
     ){ conn =>
       findMailAddress(conn, userDN, ldapSettings.mailAttribute) match {
         case Some(mailAddress) => Right(LDAPUserInfo(
-          userName    = userName,
+          userName    = getUserNameFromMailAddress(userName),
           fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
             findFullName(conn, userDN, fullNameAttribute)
           }.getOrElse(userName),
@@ -57,6 +57,13 @@ object LDAPUtil {
         case None => Left("Can't find mail address.")
       }
     }
+  }
+
+  private def getUserNameFromMailAddress(userName: String): String = {
+    (userName.indexOf('@') match {
+      case i if i < 0 => userName.substring(0, i)
+      case i          => userName
+    }).replaceAll("[^a-zA-Z0-9\\-_.]", "").replaceAll("^[_\\-]", "")
   }
 
   private def bind[A](host: String, port: Int, dn: String, password: String, tls: Boolean, keystore: String, error: String)
