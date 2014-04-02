@@ -61,8 +61,8 @@ object LDAPUtil {
 
   private def getUserNameFromMailAddress(userName: String): String = {
     (userName.indexOf('@') match {
-      case i if i < 0 => userName.substring(0, i)
-      case i          => userName
+      case i if i >= 0 => userName.substring(0, i)
+      case i           => userName
     }).replaceAll("[^a-zA-Z0-9\\-_.]", "").replaceAll("^[_\\-]", "")
   }
 
