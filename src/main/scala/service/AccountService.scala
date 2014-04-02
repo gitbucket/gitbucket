@@ -44,7 +44,14 @@ trait AccountService {
             logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
             defaultAuthentication(userName, password)
           }
-          case None => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+          case None => getAccountByMailAddress(ldapUserInfo.mailAddress, true) match {
+            case Some(x) if(!x.isRemoved) => updateAccount(x.copy(userName = userName, fullName = ldapUserInfo.fullName))
+            case Some(x) if(x.isRemoved)  => {
+              logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
+              defaultAuthentication(userName, password)
+            }
+            case None => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+          }
         }
         getAccountByUserName(userName)
       }
