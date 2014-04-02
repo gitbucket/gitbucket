@@ -34,26 +34,34 @@ trait AccountService {
   /**
    * Authenticate by LDAP.
    */
-  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String) = {
+  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String): Option[Account] = {
     LDAPUtil.authenticate(settings.ldap.get, userName, password) match {
       case Right(ldapUserInfo) => {
         // Create or update account by LDAP information
-        getAccountByUserName(userName, true) match {
-          case Some(x) if(!x.isRemoved) => updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+        getAccountByUserName(ldapUserInfo.userName, true) match {
+          case Some(x) if(!x.isRemoved) => {
+            updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+            getAccountByUserName(ldapUserInfo.userName)
+          }
           case Some(x) if(x.isRemoved)  => {
             logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
             defaultAuthentication(userName, password)
           }
           case None => getAccountByMailAddress(ldapUserInfo.mailAddress, true) match {
-            case Some(x) if(!x.isRemoved) => updateAccount(x.copy(userName = userName, fullName = ldapUserInfo.fullName))
+            case Some(x) if(!x.isRemoved) => {
+              updateAccount(x.copy(userName = ldapUserInfo.userName, fullName = ldapUserInfo.fullName))
+              getAccountByUserName(ldapUserInfo.userName)
+            }
             case Some(x) if(x.isRemoved)  => {
               logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
               defaultAuthentication(userName, password)
             }
-            case None => createAccount(userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+            case None => {
+              createAccount(ldapUserInfo.userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+              getAccountByUserName(ldapUserInfo.userName)
+            }
           }
         }
-        getAccountByUserName(userName)
       }
       case Left(errorMessage) => {
         logger.info(s"LDAP Authentication Failed: ${errorMessage}")
@@ -90,14 +98,14 @@ trait AccountService {
       isGroupAccount = false,
       isRemoved      = false)
 
-  def updateAccount(account: Account): Unit = 
+  def updateAccount(account: Account): Unit =
     Accounts
       .filter { a => a.userName is account.userName.bind }
       .map    { a => a.password ~ a.fullName ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? ~ a.removed }
       .update (
-        account.password, 
-        account.fullName, 
-        account.mailAddress, 
+        account.password,
+        account.fullName,
+        account.mailAddress,
         account.isAdmin,
         account.url,
         account.registeredDate,
