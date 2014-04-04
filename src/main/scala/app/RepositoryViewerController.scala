@@ -252,7 +252,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
 
-  private val readmeFiles = Seq("readme.md", "readme.markdown")
+  private val readmeFiles = view.helpers.renderableSuffixes.map(suffix => s"readme${suffix}") ++ Seq("readme.txt", "readme")
 
   /**
    * Provides HTML of the file list.
@@ -270,14 +270,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
-          defining(JGitUtil.getRevCommitFromId(git, objectId)){ revCommit =>
-          // get files
+          defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
+            // get files
             val files = JGitUtil.getFileList(git, revision, path)
+            val parentPath = if (path == ".") Nil else path.split("/").toList
             // process README.md or README.markdown
             val readme = files.find { file =>
               readmeFiles.contains(file.name.toLowerCase)
             }.map { file =>
-              file -> StringUtil.convertFromByteArray(JGitUtil.getContentFromId(
+              val path = (file.name :: parentPath.reverse).reverse
+              path -> StringUtil.convertFromByteArray(JGitUtil.getContentFromId(
                 Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
             }
 
