@@ -77,7 +77,7 @@
       </div>
     </div>
     <div class="issue-content" id="issueContent">
-      @markdown(issue.content getOrElse "No description given.", repository, false, true)
+      @markdown(issue.content getOrElse "No description given.", repository, false, true, true)
     </div>
   </div>
 </div>
@@ -140,6 +140,42 @@ $(function(){
         $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
       }
     });
+  });
+
+  var extractMarkdown = function(data){
+    $('body').append('<div id="tmp"></div>');
+    $('#tmp').html(data);
+    var markdown = $('#tmp textarea').val();
+    $('#tmp').remove();
+    return markdown;
+  };
+
+  $('#issueContent').on('click', ':checkbox', function(ev){
+    var checkboxes = $('#issueContent :checkbox');
+    $.get('@url(repository)/issues/_data/@issue.issueId',
+      {
+        dataType : 'html'
+      },
+      function(data){
+        var ss = [],
+            markdown = extractMarkdown(data),
+            xs = markdown.split(/- \[[x| ]\]/g);
+        for (var i=0; i<xs.length; i++) {
+          ss.push(xs[i]);
+          if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
+          else ss.push('- [ ]');
+        }
+        ss.pop();
+        $.ajax({
+          url: '@url(repository)/issues/edit/@issue.issueId',
+          type: 'POST',
+          data: {
+            title   : $('#issueTitle').text(),
+            content : ss.join('')
+          }
+        });
+      }
+    );
   });
 });
 </script>

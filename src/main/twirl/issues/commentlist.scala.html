@@ -30,7 +30,7 @@
         @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
           @defining(comment.content.substring(comment.content.length - 40)){ id =>
             <div class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></div>
-            @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true)
+            @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true, true)
           }
         } else {
           @if(comment.action == "refer"){
@@ -38,7 +38,7 @@
               <strong><a href="@path/@repository.owner/@repository.name/issues/@issueId">Issue #@issueId</a>: @rest.mkString(":")</strong>
             }
           } else {
-            @markdown(comment.content, repository, false, true)
+            @markdown(comment.content, repository, false, true, true)
           }
         }
       </div>
@@ -109,5 +109,44 @@ $(function(){
     }
     return false;
   });
+
+  var extractMarkdown = function(data){
+    $('body').append('<div id="tmp"></div>');
+    $('#tmp').html(data);
+    var markdown = $('#tmp textarea').val();
+    $('#tmp').remove();
+    return markdown;
+  };
+
+  $('div[id^=commentContent-').on('click', ':checkbox', function(ev){
+    var $commentContent = $(ev.target).parents('div[id^=commentContent-]'),
+        commentId = $commentContent.attr('id').replace(/commentContent-/, ''),
+        checkboxes = $commentContent.find(':checkbox');
+    $.get('@url(repository)/issue_comments/_data/' + commentId,
+      {
+        dataType : 'html'
+      },
+      function(data){
+        var ss = [],
+            markdown = extractMarkdown(data),
+            xs = markdown.split(/- \[[x| ]\]/g);
+        for (var i=0; i<xs.length; i++) {
+          ss.push(xs[i]);
+          if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
+          else ss.push('- [ ]');
+        }
+        ss.pop();
+        $.ajax({
+          url: '@url(repository)/issue_comments/edit/' + commentId,
+          type: 'POST',
+          data: {
+            issueId : 0,
+            content : ss.join('')
+          }
+        });
+      }
+    );
+  });
+
 });
 </script>
