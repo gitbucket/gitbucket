@@ -9,6 +9,7 @@ import org.pegdown.ast._
 import org.pegdown.LinkRenderer.Rendering
 import java.text.Normalizer
 import java.util.Locale
+import java.util.regex.Pattern
 import scala.collection.JavaConverters._
 import service.{RequestCache, WikiService}
 
@@ -148,5 +149,9 @@ object GitBucketHtmlSerializer {
     val normalized = Normalizer.normalize(noWhitespace, Normalizer.Form.NFD)
     val noSpecialChars = StringUtil.urlEncode(normalized)
     noSpecialChars.toLowerCase(Locale.ENGLISH)
+  }
+
+  def escapeTaskList(text: String): String = {
+    Pattern.compile("""^ *- \[([x| ])\] """, Pattern.MULTILINE).matcher(text).replaceAll("task:$1: ")
   }
 }
