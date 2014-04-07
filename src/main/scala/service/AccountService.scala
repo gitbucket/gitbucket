@@ -40,7 +40,7 @@ trait AccountService {
         // Create or update account by LDAP information
         getAccountByUserName(ldapUserInfo.userName, true) match {
           case Some(x) if(!x.isRemoved) => {
-            updateAccount(x.copy(mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
+            updateAccount(x.copy(userName = ldapUserInfo.userName, mailAddress = ldapUserInfo.mailAddress, fullName = ldapUserInfo.fullName))
             getAccountByUserName(ldapUserInfo.userName)
           }
           case Some(x) if(x.isRemoved)  => {
