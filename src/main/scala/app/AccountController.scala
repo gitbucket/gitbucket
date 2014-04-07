@@ -5,6 +5,7 @@ import util._
 import util.StringUtil._
 import util.Directory._
 import util.ControlUtil._
+import ssh.SshUtil
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
@@ -49,7 +50,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val sshKeyForm = mapping(
     "title"     -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey" -> trim(label("Key"  , text(required)))
+    "publicKey" -> trim(label("Key"  , text(required, validPublicKey)))
   )(SshKeyForm.apply)
 
   case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String)
@@ -433,6 +434,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       if(value.split(",").exists {
         _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
       }) None else Some("Must select one manager at least.")
+    }
+  }
+
+  private def validPublicKey: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] = SshUtil.str2PublicKey(value) match {
+     case Some(_) => None
+     case None => Some("Key is invalid.")
     }
   }
 }
