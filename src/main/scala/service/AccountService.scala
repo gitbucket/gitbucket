@@ -98,6 +98,9 @@ trait AccountService {
       isGroupAccount = false,
       isRemoved      = false)
 
+  /**
+   * Update the account by user name.
+   */
   def updateAccount(account: Account): Unit =
     Accounts
       .filter { a => a.userName is account.userName.bind }
@@ -113,6 +116,9 @@ trait AccountService {
         account.lastLoginDate,
         account.isRemoved)
 
+  /**
+   * Update the account by mail address
+   */
   def updateAccountByMailAddress(account: Account): Unit =
     Accounts
       .filter { a => a.mailAddress is account.mailAddress.bind }
