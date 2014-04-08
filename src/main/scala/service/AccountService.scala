@@ -49,7 +49,7 @@ trait AccountService {
           }
           case None => getAccountByMailAddress(ldapUserInfo.mailAddress, true) match {
             case Some(x) if(!x.isRemoved) => {
-              updateAccountByMailAddress(x.copy(userName = ldapUserInfo.userName, fullName = ldapUserInfo.fullName))
+              updateAccount(x.copy(fullName = ldapUserInfo.fullName))
               getAccountByUserName(ldapUserInfo.userName)
             }
             case Some(x) if(x.isRemoved)  => {
@@ -98,9 +98,6 @@ trait AccountService {
       isGroupAccount = false,
       isRemoved      = false)
 
-  /**
-   * Update the account by user name.
-   */
   def updateAccount(account: Account): Unit =
     Accounts
       .filter { a => a.userName is account.userName.bind }
@@ -109,24 +106,6 @@ trait AccountService {
         account.password,
         account.fullName,
         account.mailAddress,
-        account.isAdmin,
-        account.url,
-        account.registeredDate,
-        currentDate,
-        account.lastLoginDate,
-        account.isRemoved)
-
-  /**
-   * Update the account by mail address
-   */
-  def updateAccountByMailAddress(account: Account): Unit =
-    Accounts
-      .filter { a => a.mailAddress is account.mailAddress.bind }
-      .map    { a => a.userName ~ a.password ~ a.fullName ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? ~ a.removed }
-      .update (
-        account.userName,
-        account.password,
-        account.fullName,
         account.isAdmin,
         account.url,
         account.registeredDate,
