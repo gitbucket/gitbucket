@@ -13,12 +13,6 @@ object Activities extends Table[Activity]("ACTIVITY") with BasicTemplate {
   def autoInc = userName ~ repositoryName ~ activityUserName ~ activityType ~ message ~ additionalInfo.? ~ activityDate returning activityId
 }
 
-object CommitLog extends Table[(String, String, String)]("COMMIT_LOG") with BasicTemplate {
-  def commitId = column[String]("COMMIT_ID")
-  def * = userName ~ repositoryName ~ commitId
-  def byPrimaryKey(userName: String, repositoryName: String, commitId: String) = byRepository(userName, repositoryName) && (this.commitId is commitId.bind)
-}
-
 case class Activity(
   activityId: Int,
   userName: String,

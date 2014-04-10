@@ -385,20 +385,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             getWikiRepositoryDir(repository.owner, repository.name),
             getWikiRepositoryDir(loginUserName, repository.name))
 
-          // insert commit id
-          using(Git.open(getRepositoryDir(loginUserName, repository.name))){ git =>
-            JGitUtil.getRepositoryInfo(loginUserName, repository.name, baseUrl).branchList.foreach { branch =>
-              JGitUtil.getCommitLog(git, branch) match {
-                case Right((commits, _)) => commits.foreach { commit =>
-                  if(!existsCommitId(loginUserName, repository.name, commit.id)){
-                    insertCommitId(loginUserName, repository.name, commit.id)
-                  }
-                }
-                case Left(_) => ???
-              }
-            }
-          }
-
           // Record activity
           recordForkActivity(repository.owner, repository.name, loginUserName)
           // redirect to the repository

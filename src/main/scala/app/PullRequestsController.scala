@@ -177,12 +177,6 @@ trait PullRequestsControllerBase extends ControllerBase {
             val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
               pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
 
-            commits.flatten.foreach { commit =>
-              if(!existsCommitId(owner, name, commit.id)){
-                insertCommitId(owner, name, commit.id)
-              }
-            }
-
             // close issue by content of pull request
             val defaultBranch = getRepository(owner, name, baseUrl).get.repository.defaultBranch
             if(pullreq.branch == defaultBranch){
@@ -439,23 +433,18 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
 
   /**
-   * Extracts all repository names from [[service.RepositoryService.RepositoryTreeNode]] as flat list.
-   */
-  private def getRepositoryNames(node: RepositoryTreeNode): List[String] =
-    node.owner :: node.children.map { child => getRepositoryNames(child) }.flatten
-
-  /**
    * Returns the identifier of the root commit (or latest merge commit) of the specified branch.
    */
   private def getForkedCommitId(oldGit: Git, newGit: Git, userName: String, repositoryName: String, branch: String,
       requestUserName: String, requestRepositoryName: String, requestBranch: String): String =
-    JGitUtil.getCommitLogs(newGit, requestBranch, true){ commit =>
-      existsCommitId(userName, repositoryName, commit.getName) && JGitUtil.getBranchesOfCommit(oldGit, commit.getName).contains(branch)
-    }.head.id
+    defining(JGitUtil.getAllCommitIds(oldGit)){ existIds =>
+      JGitUtil.getCommitLogs(newGit, requestBranch, true) { commit =>
+        existIds.contains(commit.name) && JGitUtil.getBranchesOfCommit(oldGit, commit.getName).contains(branch)
+      }.head.id
+    }
 
   private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
-      requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) = {
-
+      requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
     using(
       Git.open(getRepositoryDir(userName, repositoryName)),
       Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
@@ -473,7 +462,6 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       (commits, diffs)
     }
-  }
 
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name){ case (owner, repoName) =>

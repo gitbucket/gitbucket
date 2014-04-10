@@ -52,7 +52,6 @@ trait RepositoryService { self: AccountService =>
       val issueComments = Query(IssueComments).filter(_.byRepository(oldUserName, oldRepositoryName)).list
       val issueLabels   = Query(IssueLabels  ).filter(_.byRepository(oldUserName, oldRepositoryName)).list
       val collaborators = Query(Collaborators).filter(_.byRepository(oldUserName, oldRepositoryName)).list
-      val commitLog     = Query(CommitLog    ).filter(_.byRepository(oldUserName, oldRepositoryName)).list
       val activities    = Query(Activities   ).filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
       Repositories.filter { t =>
@@ -78,7 +77,6 @@ trait RepositoryService { self: AccountService =>
       Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
       IssueLabels   .insertAll(issueLabels   .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
       Collaborators .insertAll(collaborators .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-      CommitLog     .insertAll(commitLog     .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
       Activities    .insertAll(activities    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
       // Update activity messages
@@ -102,7 +100,6 @@ trait RepositoryService { self: AccountService =>
 
   def deleteRepository(userName: String, repositoryName: String): Unit = {
     Activities    .filter(_.byRepository(userName, repositoryName)).delete
-    CommitLog     .filter(_.byRepository(userName, repositoryName)).delete
     Collaborators .filter(_.byRepository(userName, repositoryName)).delete
     IssueLabels   .filter(_.byRepository(userName, repositoryName)).delete
     Labels        .filter(_.byRepository(userName, repositoryName)).delete

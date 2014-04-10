@@ -81,7 +81,9 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("repository:" + owner + "/" + repository)
 
       if(!repository.endsWith(".wiki")){
-        receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseUrl(request)))
+        val hook = new CommitLogHook(owner, repository, pusher, baseUrl(request))
+        receivePack.setPreReceiveHook(hook)
+        receivePack.setPostReceiveHook(hook)
       }
       receivePack
     }
@@ -90,11 +92,25 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String) extends PostReceiveHook
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String) extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
-  
+  private var existIds: Seq[String] = Nil
+
+  def onPreReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
+    try {
+      using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        existIds = JGitUtil.getAllCommitIds(git)
+      }
+    } catch {
+      case ex: Exception => {
+        logger.error(ex.toString, ex)
+        throw ex
+      }
+    }
+  }
+
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
@@ -117,29 +133,14 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             countIssue(IssueSearchCondition(state = "closed"), Map.empty, false, owner -> repository)
 
           // Extract new commit and apply issue comment
-          val newCommits = if(commits.size > 1000){
-            val existIds = getAllCommitIds(owner, repository)
-            commits.flatMap { commit =>
-              if(!existIds.contains(commit.id)){
-                if(issueCount > 0) {
-                  createIssueComment(commit)
-                }
-                Some(commit)
-              } else None
-            }
-          } else {
-            commits.flatMap { commit =>
-              if(!existsCommitId(owner, repository, commit.id)){
-                if(issueCount > 0) {
-                  createIssueComment(commit)
-                }
-                Some(commit)
-              } else None
-            }
+          val newCommits = commits.flatMap { commit =>
+            if (!existIds.contains(commit.id)) {
+              if (issueCount > 0) {
+                createIssueComment(commit)
+              }
+              Some(commit)
+            } else None
           }
-
-          // batch insert all new commit id
-          insertAllCommitIds(owner, repository, newCommits.map(_.id))
 
           // record activity
           if(refName(1) == "heads"){
