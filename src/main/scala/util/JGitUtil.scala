@@ -573,7 +573,9 @@ object JGitUtil {
   /**
    * Returns all commit id in the specified repository.
    */
-  def getAllCommitIds(git: Git): Seq[String] = {
+  def getAllCommitIds(git: Git): Seq[String] = if(isEmpty(git)) {
+    Nil
+  } else {
     val existIds = new scala.collection.mutable.ListBuffer[String]()
     val i = git.log.all.call.iterator
     while(i.hasNext){
