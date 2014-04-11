@@ -12,7 +12,7 @@
   <div class="head">
     <div class="pull-right">
       @defining(repository.commitCount){ commitCount =>
-        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 10000){ @commitCount+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
+        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 10000){ 10000+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
       }
     </div>
     <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /

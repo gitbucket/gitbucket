@@ -264,7 +264,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   private def fileList(repository: RepositoryService.RepositoryInfo, revstr: String = "", path: String = ".") = {
     if(repository.commitCount == 0){
-      repo.html.guide(repository)
+      repo.html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
