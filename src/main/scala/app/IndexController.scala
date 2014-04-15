@@ -46,6 +46,11 @@ trait IndexControllerBase extends ControllerBase {
     redirect("/")
   }
 
+  get("/activities.atom"){
+    contentType = "application/atom+xml; type=feed"
+    xml.feed(getRecentActivities())
+  }
+
   /**
    * Set account information into HttpSession and redirect.
    */

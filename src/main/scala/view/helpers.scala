@@ -16,6 +16,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def datetime(date: Date): String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date)
 
   /**
+   * Format java.util.Date to "yyyy-MM-dd'T'hh:mm:ss'Z'".
+   */
+  def datetimeRFC3339(date: Date): String = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'").format(date).replaceAll("(\\d\\d)(\\d\\d)$","$1:$2")
+
+  /**
    * Format java.util.Date to "yyyy-MM-dd".
    */
   def date(date: Date): String = new SimpleDateFormat("yyyy-MM-dd").format(date)
