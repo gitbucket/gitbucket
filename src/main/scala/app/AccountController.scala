@@ -119,6 +119,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound
   }
 
+  get("/:userName.atom") {
+    val userName = params("userName")
+    contentType = "application/atom+xml; type=feed"
+    helper.xml.feed(getActivitiesByUser(userName, true))
+  }
+
   get("/:userName/_avatar"){
     val userName = params("userName")
     getAccountByUserName(userName).flatMap(_.image).map { image =>
