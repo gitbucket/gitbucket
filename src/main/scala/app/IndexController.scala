@@ -48,7 +48,7 @@ trait IndexControllerBase extends ControllerBase {
 
   get("/activities.atom"){
     contentType = "application/atom+xml; type=feed"
-    xml.feed(getRecentActivities())
+    helper.xml.feed(getRecentActivities())
   }
 
   /**
