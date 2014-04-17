@@ -5,9 +5,6 @@
 @if(activities.isEmpty){
   No activity
 } else {
-  <div style="text-align:right;">
-    <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
-  </div>
   @activities.map { activity =>
     <div class="block">
       @(activity.activityType match {
