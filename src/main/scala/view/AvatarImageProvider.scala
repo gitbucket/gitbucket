@@ -42,9 +42,9 @@ trait AvatarImageProvider { self: RequestCache =>
     }
 
     if(tooltip){
-      Html(s"""<img src="${src}" class="avatar" style="width: ${size}px; height: ${size}px;" data-toggle="tooltip" title="${userName}"/>""")
+      Html(s"""<img src="${src}" class="${if(size > 20){"avatar"} else {"avatar-mini"}}" style="width: ${size}px; height: ${size}px;" data-toggle="tooltip" title="${userName}"/>""")
     } else {
-      Html(s"""<img src="${src}" class="avatar" style="width: ${size}px; height: ${size}px;" />""")
+      Html(s"""<img src="${src}" class="${if(size > 20){"avatar"} else {"avatar-mini"}}" style="width: ${size}px; height: ${size}px;" />""")
     }
   }
 

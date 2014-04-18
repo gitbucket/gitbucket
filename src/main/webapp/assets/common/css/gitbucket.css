@@ -260,6 +260,12 @@ img.avatar {
   -moz-border-radius: 4px;
 }
 
+img.avatar-mini {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
+
 div.activity-message {
   margin-left: 20px;
 }
