@@ -1,0 +1,62 @@
+@(branch: String,
+  repository: service.RepositoryService.RepositoryInfo,
+  pathList: List[String],
+  content: util.JGitUtil.ContentInfo,
+  latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+  @html.header("code", repository)
+  @tab(branch, repository, "files")
+  <div class="head">
+    <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+    @pathList.zipWithIndex.map { case (section, i) =>
+      @if(i == pathList.length - 1){
+        @section
+      } else {
+        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+      }
+    }
+  </div>
+  <style type="text/css" media="screen">
+  #editor {
+    @*
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    *@
+    width: 100%;
+    height: 800px;
+  }
+  </style>
+  <table class="table table-bordered">
+    <tr>
+      <th style="font-weight: normal;">
+        <div class="pull-left">
+          @avatar(latestCommit, 20)
+          @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
+          <span class="muted">@datetime(latestCommit.time)</span>
+          <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
+        </div>
+        <div class="btn-group pull-right">
+          <a class="btn btn-mini" href="?raw=true">Raw</a>
+          <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
+        </div>  
+      </th>
+    </tr>
+    <tr>
+      <td>
+        <div id="editor">@content.content.get</div>
+      </td>
+    </tr>
+  </table>
+}
+<script src="@assets/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+  //editor.getSession().setMode("ace/mode/javascript");
+  editor.getSession().setMode("ace/mode/scala");
+</script>
