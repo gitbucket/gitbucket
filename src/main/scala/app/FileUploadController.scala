@@ -1,31 +1,40 @@
 package app
 
-import _root_.util.{Keys, FileUtil}
+import util.{Keys, FileUtil}
 import util.ControlUtil._
+import util.Directory._
 import org.scalatra._
-import org.scalatra.servlet.{MultipartConfig, FileUploadSupport}
+import org.scalatra.servlet.{MultipartConfig, FileUploadSupport, FileItem}
 import org.apache.commons.io.FileUtils
 
 /**
  * Provides Ajax based file upload functionality.
  *
- * This servlet saves uploaded file as temporary file and returns the unique id.
- * You can get uploaded file using [[app.FileUploadControllerBase#getTemporaryFile()]] with this id.
+ * This servlet saves uploaded file.
  */
-class FileUploadController extends ScalatraServlet with FileUploadSupport with FileUploadControllerBase {
+class FileUploadController extends ScalatraServlet with FileUploadSupport {
 
   configureMultipartHandling(MultipartConfig(maxFileSize = Some(3 * 1024 * 1024)))
 
   post("/image"){
-    fileParams.get("file") match {
-      case Some(file) if(FileUtil.isImage(file.name)) => defining(generateFileId){ fileId =>
-        FileUtils.writeByteArrayToFile(getTemporaryFile(fileId), file.get)
-        session += Keys.Session.Upload(fileId) -> file.name
-        Ok(fileId)
-      }
-      case None => BadRequest
+    execute { (file, fileId) =>
+      FileUtils.writeByteArrayToFile(new java.io.File(getTemporaryDir(session.getId), fileId), file.get)
+      session += Keys.Session.Upload(fileId) -> file.name
     }
   }
 
-}
+  post("/image/:owner/:repository"){
 
+  }
+
+  private def execute(f: (FileItem, String) => Unit) = fileParams.get("file") match {
+    case Some(file) if(FileUtil.isImage(file.name)) =>
+      defining(FileUtil.generateFileId){ fileId =>
+        f(file, fileId)
+
+        Ok(fileId)
+      }
+    case _ => BadRequest
+  }
+
+}

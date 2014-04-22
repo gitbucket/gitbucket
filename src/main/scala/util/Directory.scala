@@ -29,24 +29,10 @@ object Directory {
   }).getAbsolutePath
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
-  
+
   val RepositoryHome = s"${GitBucketHome}/repositories"
 
   val DatabaseHome = s"${GitBucketHome}/data"
-  
-  /**
-   * Repository names of the specified user.
-   */
-  def getRepositories(owner: String): List[String] =
-    defining(new File(s"${RepositoryHome}/${owner}")){ dir =>
-      if(dir.exists){
-        dir.listFiles.filter { file =>
-          file.isDirectory && !file.getName.endsWith(".wiki.git")
-        }.map(_.getName.replaceFirst("\\.git$", "")).toList
-      } else {
-        Nil
-      }
-    }
 
   /**
    * Substance directory of the repository.
@@ -55,9 +41,21 @@ object Directory {
     new File(s"${RepositoryHome}/${owner}/${repository}.git")
 
   /**
+   * Directory for files which are attached to issue.
+   */
+  def getAttachedDir(owner: String, repository: String): File =
+    new File(s"${RepositoryHome}/${owner}/${repository}/issues")
+
+  /**
    * Directory for uploaded files by the specified user.
    */
   def getUserUploadDir(userName: String): File = new File(s"${GitBucketHome}/data/${userName}/files")
+
+  /**
+   * Root of temporary directories for the upload file.
+   */
+  def getTemporaryDir(sessionId: String): File =
+    new File(s"${GitBucketHome}/tmp/_upload/${sessionId}")
 
   /**
    * Root of temporary directories for the specified repository.
