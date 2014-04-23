@@ -29,6 +29,7 @@
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
         </div>
         <div class="btn-group pull-right">
+          <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
           <a class="btn btn-mini" href="?raw=true">Raw</a>
           <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
         </div>  

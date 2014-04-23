@@ -93,33 +93,25 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         treeWalk.setRecursive(true)
         getPathObjectId(path, treeWalk)
       } map { objectId =>
-//        if(raw){
-//          // Download
-//          defining(JGitUtil.getContentFromId(git, objectId, false).get){ bytes =>
-//            contentType = FileUtil.getContentType(path, bytes)
-//            bytes
-//          }
-//        } else {
-          // Viewer
-          val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-          val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
-          val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
+        // Viewer
+        val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+        val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
+        val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
 
-          val content = if(viewer == "other"){
-            if(bytes.isDefined && FileUtil.isText(bytes.get)){
-              // text
-              JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
-            } else {
-              // binary
-              JGitUtil.ContentInfo("binary", None)
-            }
+        val content = if(viewer == "other"){
+          if(bytes.isDefined && FileUtil.isText(bytes.get)){
+            // text
+            JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
           } else {
-            // image or large
-            JGitUtil.ContentInfo(viewer, None)
+            // binary
+            JGitUtil.ContentInfo("binary", None)
           }
+        } else {
+          // image or large
+          JGitUtil.ContentInfo(viewer, None)
+        }
 
-          repo.html.editor(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
-//        }
+        repo.html.editor(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
       } getOrElse NotFound
     }
   })

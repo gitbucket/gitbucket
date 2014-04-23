@@ -20,43 +20,54 @@
   </div>
   <style type="text/css" media="screen">
   #editor {
-    @*
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    *@
     width: 100%;
-    height: 800px;
+    height: 600px;
   }
   </style>
-  <table class="table table-bordered">
-    <tr>
-      <th style="font-weight: normal;">
-        <div class="pull-left">
-          @avatar(latestCommit, 20)
-          @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
-          <span class="muted">@datetime(latestCommit.time)</span>
-          <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
+  <form method="POST" action="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">
+    <table class="table table-bordered">
+      @*
+      <tr>
+        <th style="font-weight: normal;">
+          <div class="pull-left">
+            @avatar(latestCommit, 20)
+            @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
+            <span class="muted">@datetime(latestCommit.time)</span>
+            <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
+          </div>
+          <div class="btn-group pull-right">
+            <a class="btn btn-mini" href="?raw=true">Raw</a>
+            <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
+          </div>
+        </th>
+      </tr>
+      *@
+      <tr>
+        <td>
+          <div id="editor">@content.content.get</div>
+        </td>
+      </tr>
+    </table>
+    <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+      <div class="box issue-comment-box">
+      <div class="box-content">
+        <div>
+          <strong>Commit changes</strong>
         </div>
-        <div class="btn-group pull-right">
-          <a class="btn btn-mini" href="?raw=true">Raw</a>
-          <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
-        </div>  
-      </th>
-    </tr>
-    <tr>
-      <td>
-        <div id="editor">@content.content.get</div>
-      </td>
-    </tr>
-  </table>
+        <div>
+          <input type="text" name="message" style="width: 98%;" placeholder="Update @pathList.last"/>
+        </div>
+        <div style="text-align: right;">
+          <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
+          <input type="submit" class="btn btn-success" value="Commit changes"/>
+        </div>
+      </div>
+    </div>
+  </form>
 }
 <script src="@assets/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
-  //editor.getSession().setMode("ace/mode/javascript");
-  editor.getSession().setMode("ace/mode/scala");
+  editor.getSession().setMode("ace/mode/@editorType(pathList.last)");
 </script>
