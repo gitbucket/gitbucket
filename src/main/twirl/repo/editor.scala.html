@@ -59,7 +59,8 @@
         </div>
         <div style="text-align: right;">
           <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
-          <input type="submit" class="btn btn-success" value="Commit changes"/>
+          <input type="submit" id="commit" class="btn btn-success" value="Commit changes"/>
+          <input type="hidden" id="content" name="content" value=""/>
         </div>
       </div>
     </div>
@@ -70,4 +71,8 @@
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
   editor.getSession().setMode("ace/mode/@editorType(pathList.last)");
+
+  $('#commit').click(function(){
+    $('#content').val(editor.getValue());
+  });
 </script>

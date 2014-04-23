@@ -2,7 +2,8 @@
   repository: service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   content: util.JGitUtil.ContentInfo,
-  latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
+  latestCommit: util.JGitUtil.CommitInfo,
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
@@ -28,8 +29,15 @@
           <span class="muted">@datetime(latestCommit.time)</span>
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
         </div>
+        @if(hasWritePermission){
+          <div class="btn-group pull-right">
+            <a class="btn btn-mini btn-danger" href="@url(repository)/delete/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
+          </div>
+        }
         <div class="btn-group pull-right">
-          <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+          @if(hasWritePermission){
+            <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+          }
           <a class="btn btn-mini" href="?raw=true">Raw</a>
           <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
         </div>  

@@ -12,7 +12,8 @@ import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 import java.util.zip.{ZipEntry, ZipOutputStream}
-import scala.Some
+import jp.sf.amateras.scalatra.forms._
+import org.eclipse.jgit.dircache.DirCache
 
 class RepositoryViewerController extends RepositoryViewerControllerBase 
   with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
@@ -22,6 +23,13 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  */
 trait RepositoryViewerControllerBase extends ControllerBase { 
   self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+
+  case class EditorForm(content: String, message: Option[String])
+
+  val editorForm = mapping(
+    "content" -> trim(label("Content", text())),
+    "message" -> trim(label("Messgae", optional(text())))
+  )(EditorForm.apply)
 
   /**
    * Returns converted HTML from Markdown for preview.
@@ -74,9 +82,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file content of the specified branch or commit.
    */
-  get("/:owner/:repository/edit/*")(referrersOnly { repository =>
+  get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
     val (id, path) = splitPath(repository, multiParams("splat").head)
-//    val raw = params.get("raw").getOrElse("false").toBoolean
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
@@ -114,6 +121,24 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         repo.html.editor(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
       } getOrElse NotFound
     }
+  })
+
+  post("/:owner/:repository/edit/*", editorForm)(collaboratorsOnly { (form, repository) =>
+//    val (id, path) = splitPath(repository, multiParams("splat").head)
+//    val loginAccount = context.loginAccount.get
+//
+//    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+//      val builder  = DirCache.newInCore.builder()
+//      val inserter = git.getRepository.newObjectInserter()
+//      val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
+//
+//      builder.add(JGitUtil.createDirCacheEntry(path, FileMode.REGULAR_FILE,
+//        inserter.insert(Constants.OBJ_BLOB, form.content.getBytes("UTF-8")))) // TODO charset auto detection
+//      builder.finish()
+//
+//      JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+//        loginAccount.fullName, loginAccount.mailAddress, form.message.getOrElse(s"Update ${path.split("/").last}"))
+//    }
   })
 
   /**
@@ -163,7 +188,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             JGitUtil.ContentInfo(viewer, None)
           }
 
-          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
+          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit),
+            hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       } getOrElse NotFound
     }
