@@ -92,8 +92,9 @@ object JGitUtil {
    *
    * @param viewType "image", "large" or "other"
    * @param content the string content
+   * @param charset the character encoding
    */
-  case class ContentInfo(viewType: String, content: Option[String])
+  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String])
 
   /**
    * The tag data.
@@ -480,7 +481,7 @@ object JGitUtil {
   }
 
   def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
-                              fullName: String, mailAddress: String, message: String): String = {
+                              fullName: String, mailAddress: String, message: String): ObjectId = {
     val newCommit = new CommitBuilder()
     newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
     newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
@@ -498,7 +499,7 @@ object JGitUtil {
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
-    newHeadId.getName
+    newHeadId
   }
 
   /**

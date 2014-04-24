@@ -60,6 +60,7 @@
         <div style="text-align: right;">
           <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
           <input type="submit" id="commit" class="btn btn-success" value="Commit changes"/>
+          <input type="hidden" id="charset" name="charset" value="@content.charset"/>
           <input type="hidden" id="content" name="content" value=""/>
         </div>
       </div>

@@ -1,8 +1,9 @@
 package app
 
+import _root_.util.JGitUtil.CommitInfo
 import util.Directory._
 import util.Implicits._
-import util.ControlUtil._
+import _root_.util.ControlUtil._
 import _root_.util._
 import service._
 import org.scalatra._
@@ -14,21 +15,23 @@ import org.eclipse.jgit.treewalk._
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
+import org.eclipse.jgit.revwalk.RevWalk
 
-class RepositoryViewerController extends RepositoryViewerControllerBase 
+class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 /**
  * The repository viewer.
  */
-trait RepositoryViewerControllerBase extends ControllerBase { 
+trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
-  case class EditorForm(content: String, message: Option[String])
+  case class EditorForm(content: String, message: Option[String], charset: String)
 
   val editorForm = mapping(
     "content" -> trim(label("Content", text())),
-    "message" -> trim(label("Messgae", optional(text())))
+    "message" -> trim(label("Messgae", optional(text()))),
+    "charset" -> trim(label("Charset", text()))
   )(EditorForm.apply)
 
   /**
@@ -108,14 +111,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val content = if(viewer == "other"){
           if(bytes.isDefined && FileUtil.isText(bytes.get)){
             // text
-            JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
+            JGitUtil.ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
           } else {
             // binary
-            JGitUtil.ContentInfo("binary", None)
+            JGitUtil.ContentInfo("binary", None, None)
           }
         } else {
           // image or large
-          JGitUtil.ContentInfo(viewer, None)
+          JGitUtil.ContentInfo(viewer, None, None)
         }
 
         repo.html.editor(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
@@ -123,22 +126,63 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
+  // TODO Share this method with WikiService
+  private def processTree(git: Git, id: ObjectId)(f: (String, CanonicalTreeParser) => Unit) = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
+        val index = treeWalk.addTree(revWalk.parseTree(id))
+        treeWalk.setRecursive(true)
+        while(treeWalk.next){
+          f(treeWalk.getPathString, treeWalk.getTree(index, classOf[CanonicalTreeParser]))
+        }
+      }
+    }
+  }
+
   post("/:owner/:repository/edit/*", editorForm)(collaboratorsOnly { (form, repository) =>
-//    val (id, path) = splitPath(repository, multiParams("splat").head)
-//    val loginAccount = context.loginAccount.get
-//
-//    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-//      val builder  = DirCache.newInCore.builder()
-//      val inserter = git.getRepository.newObjectInserter()
-//      val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-//
-//      builder.add(JGitUtil.createDirCacheEntry(path, FileMode.REGULAR_FILE,
-//        inserter.insert(Constants.OBJ_BLOB, form.content.getBytes("UTF-8")))) // TODO charset auto detection
-//      builder.finish()
-//
-//      JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-//        loginAccount.fullName, loginAccount.mailAddress, form.message.getOrElse(s"Update ${path.split("/").last}"))
-//    }
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+
+    LockUtil.lock(s"${repository.owner}/${repository.name}"){
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+        val loginAccount = context.loginAccount.get
+        val builder  = DirCache.newInCore.builder()
+        val inserter = git.getRepository.newObjectInserter()
+        val headName = s"refs/heads/${id}"
+        val headTip  = git.getRepository.resolve(s"refs/heads/${id}")
+
+        processTree(git, headTip){ (treePath, tree) =>
+          if(treePath != path){
+            builder.add(JGitUtil.createDirCacheEntry(treePath, tree.getEntryFileMode, tree.getEntryObjectId))
+          }
+        }
+
+        builder.add(JGitUtil.createDirCacheEntry(path, FileMode.REGULAR_FILE,
+          inserter.insert(Constants.OBJ_BLOB, form.content.getBytes(form.charset))))
+        builder.finish()
+
+        val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
+          loginAccount.fullName, loginAccount.mailAddress, form.message.getOrElse(s"Update ${path.split("/").last}"))
+
+        inserter.flush()
+        inserter.release()
+
+        // update refs
+        val refUpdate = git.getRepository.updateRef(headName)
+        refUpdate.setNewObjectId(commitId)
+        refUpdate.setForceUpdate(false)
+        refUpdate.setRefLogIdent(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+        //refUpdate.setRefLogMessage("merged", true)
+        refUpdate.update()
+
+        // record activity
+        recordPushActivity(repository.owner, repository.name, loginAccount.userName, id,
+          List(new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))))
+
+        // TODO invoke hook
+
+        redirect(s"/${repository.owner}/${repository.name}/blob/${id}/${path}")
+      }
+    }
   })
 
   /**
@@ -178,14 +222,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           val content = if(viewer == "other"){
             if(bytes.isDefined && FileUtil.isText(bytes.get)){
               // text
-              JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
+              JGitUtil.ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
             } else {
               // binary
-              JGitUtil.ContentInfo("binary", None)
+              JGitUtil.ContentInfo("binary", None, None)
             }
           } else {
             // image or large
-            JGitUtil.ContentInfo(viewer, None)
+            JGitUtil.ContentInfo(viewer, None, None)
           }
 
           repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit),
@@ -311,7 +355,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         repository.repository.originRepositoryName.getOrElse(repository.name)),
       repository)
   })
-  
+
   private def splitPath(repository: service.RepositoryService.RepositoryInfo, path: String): (String, String) = {
     val id = repository.branchList.collectFirst {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch
@@ -327,7 +371,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   /**
    * Provides HTML of the file list.
-   * 
+   *
    * @param repository the repository information
    * @param revstr the branch name or commit id(optional)
    * @param path the directory path (optional)
@@ -363,5 +407,5 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       }
     }
   }
-  
+
 }

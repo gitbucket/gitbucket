@@ -262,7 +262,7 @@ trait WikiService {
               message
             })
 
-          Some(newHeadId)
+          Some(newHeadId.getName)
         } else None
       }
     }
