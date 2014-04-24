@@ -44,7 +44,7 @@
       *@
       <tr>
         <td>
-          <div id="editor">@content.content.get</div>
+          <div id="editor"></div>
         </td>
       </tr>
     </table>
@@ -59,9 +59,10 @@
         </div>
         <div style="text-align: right;">
           <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
-          <input type="submit" id="commit" class="btn btn-success" value="Commit changes"/>
+          <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
           <input type="hidden" id="charset" name="charset" value="@content.charset"/>
           <input type="hidden" id="content" name="content" value=""/>
+          <input type="hidden" id="initial" value="@content.content.get"/>
         </div>
       </div>
     </div>
@@ -69,11 +70,17 @@
 }
 <script src="@assets/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>
+$(function(){
+  $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
   editor.getSession().setMode("ace/mode/@editorType(pathList.last)");
+  editor.on('change', function(){
+    $('#commit').attr('disabled', editor.getValue() == $('#initial').val());
+  });
 
   $('#commit').click(function(){
     $('#content').val(editor.getValue());
   });
+})
 </script>
