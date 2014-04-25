@@ -126,19 +126,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  // TODO Share this method with WikiService
-  private def processTree(git: Git, id: ObjectId)(f: (String, CanonicalTreeParser) => Unit) = {
-    using(new RevWalk(git.getRepository)){ revWalk =>
-      using(new TreeWalk(git.getRepository)){ treeWalk =>
-        val index = treeWalk.addTree(revWalk.parseTree(id))
-        treeWalk.setRecursive(true)
-        while(treeWalk.next){
-          f(treeWalk.getPathString, treeWalk.getTree(index, classOf[CanonicalTreeParser]))
-        }
-      }
-    }
-  }
-
   post("/:owner/:repository/edit/*", editorForm)(collaboratorsOnly { (form, repository) =>
     val (id, path) = splitPath(repository, multiParams("splat").head)
 
@@ -150,7 +137,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val headName = s"refs/heads/${id}"
         val headTip  = git.getRepository.resolve(s"refs/heads/${id}")
 
-        processTree(git, headTip){ (treePath, tree) =>
+        JGitUtil.processTree(git, headTip){ (treePath, tree) =>
           if(treePath != path){
             builder.add(JGitUtil.createDirCacheEntry(treePath, tree.getEntryFileMode, tree.getEntryObjectId))
           }

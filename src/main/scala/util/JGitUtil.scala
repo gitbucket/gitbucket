@@ -585,4 +585,17 @@ object JGitUtil {
     existIds.toSeq
   }
 
+  def processTree(git: Git, id: ObjectId)(f: (String, CanonicalTreeParser) => Unit) = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
+        val index = treeWalk.addTree(revWalk.parseTree(id))
+        treeWalk.setRecursive(true)
+        while(treeWalk.next){
+          f(treeWalk.getPathString, treeWalk.getTree(index, classOf[CanonicalTreeParser]))
+        }
+      }
+    }
+  }
+
+
 }

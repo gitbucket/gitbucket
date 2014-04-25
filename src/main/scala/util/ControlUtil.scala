@@ -37,15 +37,4 @@ object ControlUtil {
   def using[T](treeWalk: TreeWalk)(f: TreeWalk => T): T =
     try f(treeWalk) finally treeWalk.release()
 
-
-//  def withTmpRefSpec[T](ref: RefSpec, git: Git)(f: RefSpec => T): T = {
-//    try {
-//      f(ref)
-//    } finally {
-//      val refUpdate = git.getRepository.updateRef(ref.getDestination)
-//      refUpdate.setForceUpdate(true)
-//      refUpdate.delete()
-//    }
-//  }
-
 }
