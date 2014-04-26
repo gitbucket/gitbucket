@@ -164,7 +164,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val userName   = context.loginAccount.get.userName
     if(repository.repository.defaultBranch != branchName){
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        git.branchDelete().setBranchNames(branchName).call()
+        git.branchDelete().setForce(true).setBranchNames(branchName).call()
         recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
       }
     }
