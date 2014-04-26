@@ -1,47 +1,32 @@
 @(branch: String,
   repository: service.RepositoryService.RepositoryInfo,
   pathList: List[String],
-  content: util.JGitUtil.ContentInfo,
-  latestCommit: util.JGitUtil.CommitInfo)(implicit context: app.Context)
+  fileName: Option[String],
+  content: util.JGitUtil.ContentInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+@html.main(if(fileName.isEmpty) "New File" else s"Editing ${path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
   @html.header("code", repository)
   @tab(branch, repository, "files")
-  <div class="head">
-    <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-    @pathList.zipWithIndex.map { case (section, i) =>
-      @if(i == pathList.length - 1){
-        @section
-      } else {
+  <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
+    <span class="error" id="error-newFileName"></span>
+    <div class="head">
+      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+      @pathList.zipWithIndex.map { case (section, i) =>
         <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
       }
+      <input type="text" name="newFileName" id="newFileName" placeholder="Name your file..." value="@fileName"/>
+      <input type="hidden" name="oldFileName" id="oldFileName" value="@fileName"/>
+      <input type="hidden" name="branch" id="branch" value="@branch"/>
+      <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
+    </div>
+    <style type="text/css" media="screen">
+    #editor {
+      width: 100%;
+      height: 600px;
     }
-  </div>
-  <style type="text/css" media="screen">
-  #editor {
-    width: 100%;
-    height: 600px;
-  }
-  </style>
-  <form method="POST" action="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">
+    </style>
     <table class="table table-bordered">
-      @*
-      <tr>
-        <th style="font-weight: normal;">
-          <div class="pull-left">
-            @avatar(latestCommit, 20)
-            @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
-            <span class="muted">@datetime(latestCommit.time)</span>
-            <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
-          </div>
-          <div class="btn-group pull-right">
-            <a class="btn btn-mini" href="?raw=true">Raw</a>
-            <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
-          </div>
-        </th>
-      </tr>
-      *@
       <tr>
         <td>
           <div id="editor"></div>
@@ -55,14 +40,14 @@
           <strong>Commit changes</strong>
         </div>
         <div>
-          <input type="text" name="message" style="width: 98%;" placeholder="Update @pathList.last"/>
+          <input type="text" name="message" style="width: 98%;"/>
         </div>
         <div style="text-align: right;">
           <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
           <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
           <input type="hidden" id="charset" name="charset" value="@content.charset"/>
           <input type="hidden" id="content" name="content" value=""/>
-          <input type="hidden" id="initial" value="@content.content.get"/>
+          <input type="hidden" id="initial" value="@content.content"/>
         </div>
       </div>
     </div>
@@ -74,7 +59,9 @@ $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
-  editor.getSession().setMode("ace/mode/@editorType(pathList.last)");
+  @if(fileName.isDefined){
+    editor.getSession().setMode("ace/mode/@editorType(fileName.get)");
+  }
   editor.on('change', function(){
     $('#commit').attr('disabled', editor.getValue() == $('#initial').val());
   });
@@ -82,5 +69,7 @@ $(function(){
   $('#commit').click(function(){
     $('#content').val(editor.getValue());
   });
+
+
 })
 </script>

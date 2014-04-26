@@ -550,6 +550,26 @@ object JGitUtil {
     }
   }
 
+  def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
+    // Viewer
+    val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+    val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
+    val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
+
+    if(viewer == "other"){
+      if(bytes.isDefined && FileUtil.isText(bytes.get)){
+        // text
+        ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+      } else {
+        // binary
+        ContentInfo("binary", None, None)
+      }
+    } else {
+      // image or large
+      ContentInfo(viewer, None, None)
+    }
+  }
+
   /**
    * Get object content of the given object id as byte array from the Git repository.
    *
