@@ -356,7 +356,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(revCommit), // latest commit
-              files, readme)
+              files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount))
           }
         } getOrElse NotFound
       }
@@ -379,7 +379,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val headTip  = git.getRepository.resolve(s"refs/heads/${branch}")
 
         JGitUtil.processTree(git, headTip){ (path, tree) =>
-          if(path != newPath && !oldPath.exists(_ == path)){
+          if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
             builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
           }
         }
@@ -387,8 +387,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         newPath.foreach { newPath =>
           builder.add(JGitUtil.createDirCacheEntry(newPath, FileMode.REGULAR_FILE,
             inserter.insert(Constants.OBJ_BLOB, content.getBytes(charset))))
-          builder.finish()
         }
+        builder.finish()
 
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
           loginAccount.fullName, loginAccount.mailAddress, message)

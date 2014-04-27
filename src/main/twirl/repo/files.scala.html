@@ -3,7 +3,8 @@
   pathList: List[String],
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
-  readme: Option[(List[String], String)])(implicit context: app.Context)
+  readme: Option[(List[String], String)],
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
@@ -19,8 +20,9 @@
     @pathList.zipWithIndex.map { case (section, i) =>
       <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
     }
-    <!-- TODO Add new file icon for committers -->
-    <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")">+</a>
+    @if(hasWritePermission){
+      <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")">+</a>
+    }
   </div>
   <div class="box">
     <table class="table table-file-list" style="border: 1px solid silver;">

@@ -27,6 +27,21 @@
     }
     </style>
     <table class="table table-bordered">
+      @*
+      <tr>
+        <th>
+          <select id="indent" class="input-small" style="margin-bottom: 0px;">
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="8">8</option>
+          </select>
+          <select id="wrap" class="input-medium" style="margin-bottom: 0px;">
+            <option value="false">No wrap</option>
+            <option value="true">Soft wrap</option>
+          </select>
+        </th>
+      </tr>
+      *@
       <tr>
         <td>
           <div id="editor"></div>
@@ -59,17 +74,34 @@ $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
+  editor.getSession().setUseWrapMode(false);
+
   @if(fileName.isDefined){
     editor.getSession().setMode("ace/mode/@editorType(fileName.get)");
   }
+
   editor.on('change', function(){
     $('#commit').attr('disabled', editor.getValue() == $('#initial').val());
   });
 
+  @*
+  $('#wrap').change(function(){
+    console.log($('#wrap option:selected').val());
+    if($('#wrap option:selected').val() == 'true'){
+      editor.getSession().setUseWrapMode(true);
+    } else {
+      editor.getSession().setUseWrapMode(false);
+    }
+  });
+
+  $('#indent').change(function(){
+    console.log($('#indent option:selected').val());
+    editor.getSession().setUseWrapMode(parseInt($('#indent option:selected').val()));
+  });
+  *@
+
   $('#commit').click(function(){
     $('#content').val(editor.getValue());
   });
-
-
 })
 </script>
