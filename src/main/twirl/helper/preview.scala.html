@@ -50,9 +50,11 @@ $(function(){
     $("div#clickable").dropzone({
       url: '@path/upload/image/@repository.owner/@repository.name',
       maxFilesize: 10,
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images…</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
-        $('#content').val($('#content').val() + "\n" + id + "\n" + file.name);
+        var index = file.name.indexOf('.');
+        $('#content').val($('#content').val() +
+            '\n![' + file.name.substring(0, index) + '](@url(repository)/_attached/' + id + file.name.substring(index) +  ')');
         file.previewElement.remove();
       }
     });
