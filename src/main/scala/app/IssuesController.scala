@@ -274,8 +274,7 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/_attached/:file")(referrersOnly { repository =>
-    println("----" + params("file"))
-
+    new java.io.File(Directory.getAttachedDir(repository.owner, repository.name), params("file"))
   })
 
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")

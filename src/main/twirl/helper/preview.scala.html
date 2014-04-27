@@ -52,9 +52,8 @@ $(function(){
       maxFilesize: 10,
       previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
-        var index = file.name.indexOf('.');
-        $('#content').val($('#content').val() +
-            '\n![' + file.name.substring(0, index) + '](@url(repository)/_attached/' + id + file.name.substring(index) +  ')');
+        var images = '\n![' + file.name.split('.')[0] + '](@url(repository)/_attached/' + id + ')';
+        $('#content').val($('#content').val() + images);
         file.previewElement.remove();
       }
     });
