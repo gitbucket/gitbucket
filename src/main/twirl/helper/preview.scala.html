@@ -15,7 +15,10 @@
   <div class="tab-content">
     <div class="tab-pane active" id="tab1">
       <span id="error-content" class="error"></span>
-      <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
+      <div id="clickable">
+        <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
+        <span class="muted">Attach images by dragging &amp; dropping, or selecting them.</span>
+      </div>
     </div>
     <div class="tab-pane" id="tab2">
       <div class="markdown-body" id="preview-area">
@@ -42,5 +45,17 @@ $(function(){
       prettyPrint();
     });
   });
+
+  @if(!enableWikiLink){
+    $("div#clickable").dropzone({
+      url: '@path/upload/image/@repository.owner/@repository.name',
+      maxFilesize: 10,
+      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images…</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+      success: function(file, id) {
+        $('#content').val($('#content').val() + "\n" + id + "\n" + file.name);
+        file.previewElement.remove();
+      }
+    });
+  }
 });
 </script>

@@ -24,7 +24,9 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport {
   }
 
   post("/image/:owner/:repository"){
+    execute { (file, fileId) =>
 
+    }
   }
 
   private def execute(f: (FileItem, String) => Unit) = fileParams.get("file") match {
