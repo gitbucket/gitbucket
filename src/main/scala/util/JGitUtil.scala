@@ -92,8 +92,9 @@ object JGitUtil {
    *
    * @param viewType "image", "large" or "other"
    * @param content the string content
+   * @param charset the character encoding
    */
-  case class ContentInfo(viewType: String, content: Option[String])
+  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String])
 
   /**
    * The tag data.
@@ -480,7 +481,7 @@ object JGitUtil {
   }
 
   def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
-                              fullName: String, mailAddress: String, message: String): String = {
+                              fullName: String, mailAddress: String, message: String): ObjectId = {
     val newCommit = new CommitBuilder()
     newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
     newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
@@ -498,7 +499,7 @@ object JGitUtil {
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
-    newHeadId.getName
+    newHeadId
   }
 
   /**
@@ -549,6 +550,26 @@ object JGitUtil {
     }
   }
 
+  def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
+    // Viewer
+    val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+    val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
+    val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
+
+    if(viewer == "other"){
+      if(bytes.isDefined && FileUtil.isText(bytes.get)){
+        // text
+        ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+      } else {
+        // binary
+        ContentInfo("binary", None, None)
+      }
+    } else {
+      // image or large
+      ContentInfo(viewer, None, None)
+    }
+  }
+
   /**
    * Get object content of the given object id as byte array from the Git repository.
    *
@@ -583,5 +604,18 @@ object JGitUtil {
     }
     existIds.toSeq
   }
+
+  def processTree(git: Git, id: ObjectId)(f: (String, CanonicalTreeParser) => Unit) = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
+        val index = treeWalk.addTree(revWalk.parseTree(id))
+        treeWalk.setRecursive(true)
+        while(treeWalk.next){
+          f(treeWalk.getPathString, treeWalk.getTree(index, classOf[CanonicalTreeParser]))
+        }
+      }
+    }
+  }
+
 
 }
