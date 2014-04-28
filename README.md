@@ -78,6 +78,12 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 1.13 - xx Apr 2014
+- Direct file editing in the repository viewer using AceEditor
+- File attachment for issues
+- Atom feed for user activities
+- Fix some bugs
+
 ### 1.12 - 29 Mar 2014
 - SSH repository access is available
 - Allow users can create and management their groups
