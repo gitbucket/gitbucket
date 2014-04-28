@@ -21,7 +21,7 @@
       <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
     }
     @if(hasWritePermission){
-      <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")">+</a>
+      <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")"><img src="@assets/common/images/newfile.png"/></a>
     }
   </div>
   <div class="box">
