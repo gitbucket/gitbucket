@@ -49,7 +49,11 @@
           <input type="text" name="message" style="width: 98%;"/>
         </div>
         <div style="text-align: right;">
-          <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
+          @if(fileName.isEmpty){
+            <a href="@url(repository)/tree/@encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
+          } else {
+            <a href="@url(repository)/blob/@encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
+          }
           <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
           <input type="hidden" id="charset" name="charset" value="@content.charset"/>
           <input type="hidden" id="content" name="content" value=""/>
