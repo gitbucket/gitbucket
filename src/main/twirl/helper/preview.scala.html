@@ -6,19 +6,18 @@
   <ul class="nav nav-tabs">
     <li class="active"><a href="#tab1" data-toggle="tab">Write</a></li>
     <li><a href="#tab2" data-toggle="tab" id="preview">Preview</a></li>
-    @*
-    <li class="pull-right">
-      <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown Syntax Guide</a>
-    </li>
-    *@
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" id="tab1">
       <span id="error-content" class="error"></span>
-      <div id="clickable">
+      @textarea = {
         <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
-        <span class="muted">Attach images by dragging &amp; dropping, or selecting them.</span>
-      </div>
+      }
+      @if(enableWikiLink){
+        @textarea
+      } else {
+        @helper.html.attached(repository.owner, repository.name)(textarea)
+      }
     </div>
     <div class="tab-pane" id="tab2">
       <div class="markdown-body" id="preview-area">
@@ -45,18 +44,5 @@ $(function(){
       prettyPrint();
     });
   });
-
-  @if(!enableWikiLink){
-    $("div#clickable").dropzone({
-      url: '@path/upload/image/@repository.owner/@repository.name',
-      maxFilesize: 10,
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-      success: function(file, id) {
-        var images = '\n![' + file.name.split('.')[0] + '](@url(repository)/_attached/' + id + ')';
-        $('#content').val($('#content').val() + images);
-        file.previewElement.remove();
-      }
-    });
-  }
 });
 </script>
