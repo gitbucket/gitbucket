@@ -45,3 +45,25 @@ function displayErrors(data){
     i++;
   });
 }
+
+(function($){
+  $.fn.watch = function(callback){
+    var timer = null;
+    var prevValue = this.val();
+
+    this.on('focus', function(e){
+      window.clearInterval(timer);
+      timer = window.setInterval(function(){
+        var newValue = $(e.target).val();
+        if(prevValue != newValue){
+          callback();
+        }
+        prevValue = newValue;
+      }, 10);
+    });
+
+    this.on('blur', function(){
+      window.clearInterval(timer);
+    });
+  };
+})(jQuery);

@@ -31,12 +31,12 @@
         </div>
         <div class="btn-group pull-right">
           @if(hasWritePermission){
-            <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+            <a class="btn" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
           }
-          <a class="btn btn-mini" href="?raw=true">Raw</a>
-          <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
+          <a class="btn" href="?raw=true">Raw</a>
+          <a class="btn" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
           @if(hasWritePermission){
-            <a class="btn btn-mini btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
+            <a class="btn btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
           }
         </div>
       </th>

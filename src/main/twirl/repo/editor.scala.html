@@ -20,31 +20,22 @@
       <input type="hidden" name="branch" id="branch" value="@branch"/>
       <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
     </div>
-    <style type="text/css" media="screen">
-    #editor {
-      width: 100%;
-      height: 600px;
-    }
-    </style>
     <table class="table table-bordered">
-      @*
       <tr>
         <th>
-          <select id="indent" class="input-small" style="margin-bottom: 0px;">
-            <option value="2">2</option>
-            <option value="4">4</option>
-            <option value="8">8</option>
-          </select>
-          <select id="wrap" class="input-medium" style="margin-bottom: 0px;">
-            <option value="false">No wrap</option>
-            <option value="true">Soft wrap</option>
-          </select>
+          <div class="pull-right">
+            <select id="wrap" class="input-medium" style="margin-bottom: 0px;">
+              <optgroup label="Line Wrap Mode">
+                <option value="false">No wrap</option>
+                <option value="true">Soft wrap</option>
+              </optgroup>
+            </select>
+          </div>
         </th>
       </tr>
-      *@
       <tr>
         <td>
-          <div id="editor"></div>
+          <div id="editor" style="width: 100%; height: 600px;"></div>
         </td>
       </tr>
     </table>
@@ -74,17 +65,24 @@ $(function(){
   $('#editor').text($('#initial').val());
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
-  editor.getSession().setUseWrapMode(false);
+  //editor.getSession().setUseWrapMode(false);
 
   @if(fileName.isDefined){
     editor.getSession().setMode("ace/mode/@editorType(fileName.get)");
   }
 
   editor.on('change', function(){
-    $('#commit').attr('disabled', editor.getValue() == $('#initial').val());
+    updateCommitButtonStatus();
   });
 
-  @*
+  function updateCommitButtonStatus(){
+    if(editor.getValue() == $('#initial').val() && $('#newFileName').val() == $('#oldFileName').val()){
+      $('#commit').attr('disabled', true);
+    } else {
+      $('#commit').attr('disabled', false);
+    }
+  }
+
   $('#wrap').change(function(){
     console.log($('#wrap option:selected').val());
     if($('#wrap option:selected').val() == 'true'){
@@ -94,14 +92,12 @@ $(function(){
     }
   });
 
-  $('#indent').change(function(){
-    console.log($('#indent option:selected').val());
-    editor.getSession().setUseWrapMode(parseInt($('#indent option:selected').val()));
+  $('#newFileName').watch(function(){
+    updateCommitButtonStatus();
   });
-  *@
 
   $('#commit').click(function(){
     $('#content').val(editor.getValue());
   });
-})
+});
 </script>
