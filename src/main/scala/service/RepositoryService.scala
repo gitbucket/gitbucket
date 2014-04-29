@@ -4,6 +4,7 @@ import model._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 import util.JGitUtil
+import service.SystemSettingsService.SystemSettings
 
 trait RepositoryService { self: AccountService =>
   import RepositoryService._
@@ -292,6 +293,11 @@ object RepositoryService {
     lazy val host = """^https?://(.+?)(:\d+)?/""".r.findFirstMatchIn(httpUrl).get.group(1)
 
     def sshUrl(port: Int, userName: String) = s"ssh://${userName}@${host}:${port}/${owner}/${name}.git"
+
+    def sshUrl(settings: SystemSettings, userName: String): String = {
+      val port = settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort)
+      sshUrl(port, userName)
+    }
 
     /**
      * Creates instance with issue count and pull request count.
