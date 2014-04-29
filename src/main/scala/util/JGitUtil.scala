@@ -617,5 +617,16 @@ object JGitUtil {
     }
   }
 
+  /**
+   * Returns the identifier of the root commit (or latest merge commit) of the specified branch.
+   */
+  def getForkedCommitId(oldGit: Git, newGit: Git,
+                        userName: String, repositoryName: String, branch: String,
+                        requestUserName: String, requestRepositoryName: String, requestBranch: String): String =
+    defining(getAllCommitIds(oldGit)){ existIds =>
+      getCommitLogs(newGit, requestBranch, true) { commit =>
+        existIds.contains(commit.name) && getBranchesOfCommit(oldGit, commit.getName).contains(branch)
+      }.head.id
+    }
 
 }

@@ -260,7 +260,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
         val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
 
-        val forkedId = getForkedCommitId(oldGit, newGit,
+        val forkedId = JGitUtil.getForkedCommitId(oldGit, newGit,
           originRepository.owner, originRepository.name, originBranch,
           forkedRepository.owner, forkedRepository.name, forkedBranch)
 
@@ -430,17 +430,6 @@ trait PullRequestsControllerBase extends ControllerBase {
       (array(0), array(1))
     } else {
       (defaultOwner, value)
-    }
-
-  /**
-   * Returns the identifier of the root commit (or latest merge commit) of the specified branch.
-   */
-  private def getForkedCommitId(oldGit: Git, newGit: Git, userName: String, repositoryName: String, branch: String,
-      requestUserName: String, requestRepositoryName: String, requestBranch: String): String =
-    defining(JGitUtil.getAllCommitIds(oldGit)){ existIds =>
-      JGitUtil.getCommitLogs(newGit, requestBranch, true) { commit =>
-        existIds.contains(commit.name) && JGitUtil.getBranchesOfCommit(oldGit, commit.getName).contains(branch)
-      }.head.id
     }
 
   private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
