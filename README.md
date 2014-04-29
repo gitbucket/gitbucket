@@ -3,10 +3,15 @@ GitBucket
 
 GitBucket is the easily installable Github clone written with Scala.
 
+[![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket)
+
+
+Features
+--------
 The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http access only)
-- Repository viewer (some advanced features such as online file editing are not implemented)
+- Repository viewer and online file editing
 - Repository search (Code and Issues)
 - Wiki
 - Issues
@@ -20,7 +25,6 @@ The current version of GitBucket provides a basic features below:
 
 Following features are not implemented, but we will make them in the future release!
 
-- File editing in repository viewer
 - Comment for the changeset
 - Network graph
 - Statistics
@@ -78,7 +82,7 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 1.13 - xx Apr 2014
+### 1.13 - 29 Apr 2014
 - Direct file editing in the repository viewer using AceEditor
 - File attachment for issues
 - Atom feed for user activities
