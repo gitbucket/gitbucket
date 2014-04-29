@@ -1,9 +1,7 @@
-GitBucket
+GitBucket [![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket) [![Build Status](https://buildhive.cloudbees.com/job/takezoe/job/gitbucket/badge/icon)](https://buildhive.cloudbees.com/job/takezoe/job/gitbucket/)
 =========
 
 GitBucket is the easily installable Github clone written with Scala.
-
-[![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket)
 
 
 Features
@@ -85,7 +83,7 @@ Release Notes
 ### 1.13 - 29 Apr 2014
 - Direct file editing in the repository viewer using AceEditor
 - File attachment for issues
-- Atom feed for user activities
+- Atom feed of user activity
 - Fix some bugs
 
 ### 1.12 - 29 Mar 2014
