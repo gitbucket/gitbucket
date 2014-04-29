@@ -1,7 +1,9 @@
 @(content: String, commentId: Int, owner: String, repository: String)(implicit context: app.Context)
 @import context._
 <span id="error-edit-content-@commentId" class="error"></span>
-<textarea style="width: 680px; height: 100px;" id="edit-content-@commentId">@content</textarea>
+@helper.html.attached(owner, repository){
+  <textarea style="width: 680px; height: 100px;" id="edit-content-@commentId">@content</textarea>
+}
 <div>
   <input type="button" id="update-comment-@commentId" class="btn btn-small" value="Update Comment"/>
   <input type="button" id="cancel-comment-@commentId" class="btn btn-small btn-danger pull-right" value="Cancel"/>

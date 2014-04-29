@@ -273,6 +273,12 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
+  get("/:owner/:repository/_attached/:file")(referrersOnly { repository =>
+    defining(new java.io.File(Directory.getAttachedDir(repository.owner, repository.name), params("file"))){ file =>
+      if(file.exists) file else NotFound
+    }
+  })
+
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
   val milestoneId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
 
