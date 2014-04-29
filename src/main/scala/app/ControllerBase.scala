@@ -138,7 +138,7 @@ abstract class ControllerBase extends ScalatraFilter
  */
 case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
 
-  val path = settings.baseUrl.getOrElse(request.getServletContext.getContextPath)
+  val path = settings.baseUrl.getOrElse(request.getContextPath)
   val currentPath = request.getRequestURI.substring(request.getContextPath.length)
   val baseUrl = settings.baseUrl(request)
   val host = new java.net.URL(baseUrl).getHost

@@ -3,16 +3,23 @@ package view
 import java.util.Date
 
 import org.specs2.mutable._
+import org.specs2.mock.Mockito
 import service.RequestCache
 import model.Account
 import service.SystemSettingsService.SystemSettings
 import twirl.api.Html
+import javax.servlet.http.HttpServletRequest
 
-class AvatarImageProviderSpec extends Specification {
+class AvatarImageProviderSpec extends Specification with Mockito {
+
+  val request = mock[HttpServletRequest]
+  request.getRequestURL  returns new StringBuffer("http://localhost:8080/path.html")
+  request.getRequestURI  returns "/path.html"
+  request.getContextPath returns ""
 
   "getAvatarImageHtml" should {
     "show Gravatar image for no image account if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, null)
+      implicit val context = app.Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(Some(createAccount(None)))
 
       provider.toHtml("user", 32).toString mustEqual
@@ -20,7 +27,7 @@ class AvatarImageProviderSpec extends Specification {
     }
 
     "show uploaded image even if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, null)
+      implicit val context = app.Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(Some(createAccount(Some("icon.png"))))
 
       provider.toHtml("user", 32).toString mustEqual
@@ -28,7 +35,7 @@ class AvatarImageProviderSpec extends Specification {
     }
 
     "show local image for no image account if gravatar integration is disabled" in {
-      implicit val context = app.Context(createSystemSettings(false), None, null)
+      implicit val context = app.Context(createSystemSettings(false), None, request)
       val provider = new AvatarImageProviderImpl(Some(createAccount(None)))
 
       provider.toHtml("user", 32).toString mustEqual
@@ -36,7 +43,7 @@ class AvatarImageProviderSpec extends Specification {
     }
 
     "show Gravatar image for specified mail address if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, null)
+      implicit val context = app.Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20, "hoge@hoge.com").toString mustEqual
@@ -44,7 +51,7 @@ class AvatarImageProviderSpec extends Specification {
     }
 
     "show unknown image for unknown user if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, null)
+      implicit val context = app.Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20).toString mustEqual
@@ -52,7 +59,7 @@ class AvatarImageProviderSpec extends Specification {
     }
 
     "show unknown image for specified mail address if gravatar integration is disabled" in {
-      implicit val context = app.Context(createSystemSettings(false), None, null)
+      implicit val context = app.Context(createSystemSettings(false), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20, "hoge@hoge.com").toString mustEqual
@@ -60,7 +67,7 @@ class AvatarImageProviderSpec extends Specification {
     }
 
     "add tooltip if it's enabled" in {
-      implicit val context = app.Context(createSystemSettings(false), None, null)
+      implicit val context = app.Context(createSystemSettings(false), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20, "hoge@hoge.com", true).toString mustEqual
@@ -85,7 +92,7 @@ class AvatarImageProviderSpec extends Specification {
 
   private def createSystemSettings(useGravatar: Boolean) =
     SystemSettings(
-      baseUrl                  = Some(""),
+      baseUrl                  = None,
       allowAccountRegistration = false,
       gravatar                 = useGravatar,
       notification             = false,
