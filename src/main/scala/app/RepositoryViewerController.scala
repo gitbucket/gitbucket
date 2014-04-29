@@ -304,7 +304,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getRepository(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name),
-        baseUrl),
+        context.baseUrl),
       getForkedRepositories(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name)),

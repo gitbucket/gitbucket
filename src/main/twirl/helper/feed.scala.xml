@@ -8,10 +8,10 @@
 
 @header(activities: List[model.Activity]) = {<id>tag:@context.host,2013:gitbucket</id>
   <title>Gitbucket's activities</title>
-  <link type="application/atom+xml" rel="self" href="@context.baseURL/activities.atom"/>
+  <link type="application/atom+xml" rel="self" href="@context.baseUrl/activities.atom"/>
   <author>
     <name>Gitbucket</name>
-    <uri>@context.baseURL</uri>
+    <uri>@context.baseUrl</uri>
   </author>
   <updated>@datetimeRFC3339(activities.map(_.activityDate).max)</updated>}
 
@@ -20,7 +20,7 @@
     <id>tag:@context.host,@date(activity.activityDate):activity:@activity.activityId</id>
     <published>@datetimeRFC3339(activity.activityDate)</published>
     <updated>@datetimeRFC3339(activity.activityDate)</updated>
-    <link type="text/html" rel="alternate" href="@context.baseURL/@activity.userName/@activity.repositoryName" />
+    <link type="text/html" rel="alternate" href="@context.baseUrl/@activity.userName/@activity.repositoryName" />
     <title type="html">@activity.activityType</title>
     <author>
       <name>@activity.activityUserName</name>

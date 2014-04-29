@@ -141,8 +141,8 @@ case class Context(settings: SystemSettingsService.SystemSettings, loginAccount:
 
   val path = settings.baseUrl.getOrElse(request.getServletContext.getContextPath)
   val currentPath = request.getRequestURI.substring(request.getContextPath.length)
-  val baseURL = settings.baseUrl.getOrElse(request.getRequestURL.substring(0, request.getRequestURL.length - request.getRequestURI.length))
-  val host = new java.net.URL(baseURL).getHost
+  val baseUrl = settings.baseUrl(request)
+  val host = new java.net.URL(baseUrl).getHost
 
   /**
    * Get object from cache.

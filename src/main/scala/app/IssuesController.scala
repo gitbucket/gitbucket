@@ -118,7 +118,7 @@ trait IssuesControllerBase extends ControllerBase {
 
       // notifications
       Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
-        Notifier.msgIssue(s"${baseUrl}/${owner}/${name}/issues/${issueId}")
+        Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
       }
 
       redirect(s"/${owner}/${name}/issues/${issueId}")
@@ -342,13 +342,13 @@ trait IssuesControllerBase extends ControllerBase {
           case f =>
             content foreach {
               f.toNotify(repository, issueId, _){
-                Notifier.msgComment(s"${baseUrl}/${owner}/${name}/${
+                Notifier.msgComment(s"${context.baseUrl}/${owner}/${name}/${
                   if(issue.isPullRequest) "pull" else "issues"}/${issueId}#comment-${commentId}")
               }
             }
             action foreach {
               f.toNotify(repository, issueId, _){
-                Notifier.msgStatus(s"${baseUrl}/${owner}/${name}/issues/${issueId}")
+                Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
               }
             }
         }

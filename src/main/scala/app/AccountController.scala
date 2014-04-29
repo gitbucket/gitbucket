@@ -112,7 +112,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           val members = getGroupMembers(account.userName)
           _root_.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)),
+            getVisibleRepositories(context.loginAccount, context.baseUrl, Some(userName)),
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
       }
@@ -292,7 +292,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}/create"){
-      if(getRepository(form.owner, form.name, baseUrl).isEmpty){
+      if(getRepository(form.owner, form.name, context.baseUrl).isEmpty){
         val ownerAccount  = getAccountByUserName(form.owner).get
         val loginAccount  = context.loginAccount.get
         val loginUserName = loginAccount.userName
