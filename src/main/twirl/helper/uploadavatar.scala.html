@@ -4,9 +4,7 @@
   @if(account.nonEmpty && account.get.image.nonEmpty){
     <img src="@path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
   } else {
-    <div id="clickable">
-      <a href="https://www.gravatar.com/" target="_blank">Gravatar</a> is used
-    </div>
+    <div id="clickable">Upload Image</div>
   }
 </div>
 @if(account.nonEmpty && account.get.image.nonEmpty){
