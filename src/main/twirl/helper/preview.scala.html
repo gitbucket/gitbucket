@@ -6,16 +6,18 @@
   <ul class="nav nav-tabs">
     <li class="active"><a href="#tab1" data-toggle="tab">Write</a></li>
     <li><a href="#tab2" data-toggle="tab" id="preview">Preview</a></li>
-    @*
-    <li class="pull-right">
-      <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown Syntax Guide</a>
-    </li>
-    *@
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" id="tab1">
       <span id="error-content" class="error"></span>
-      <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
+      @textarea = {
+        <textarea id="content" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
+      }
+      @if(enableWikiLink){
+        @textarea
+      } else {
+        @helper.html.attached(repository.owner, repository.name)(textarea)
+      }
     </div>
     <div class="tab-pane" id="tab2">
       <div class="markdown-body" id="preview-area">

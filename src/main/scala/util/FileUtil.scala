@@ -4,9 +4,10 @@ import org.apache.commons.io.FileUtils
 import java.net.URLConnection
 import java.io.File
 import util.ControlUtil._
+import scala.util.Random
 
 object FileUtil {
-  
+
   def getMimeType(name: String): String =
     defining(URLConnection.getFileNameMap()){ fileNameMap =>
       fileNameMap.getContentTypeFor(name) match {
@@ -26,14 +27,12 @@ object FileUtil {
   }
 
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
-  
+
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
-  
+
   def isText(content: Array[Byte]): Boolean = !content.contains(0)
 
-  def getFileName(path: String): String = defining(path.lastIndexOf('/')){ i =>
-    if(i >= 0) path.substring(i + 1) else path
-  }
+  def generateFileId: String = System.currentTimeMillis + Random.alphanumeric.take(10).mkString
 
   def getExtension(name: String): String =
     name.lastIndexOf('.') match {
