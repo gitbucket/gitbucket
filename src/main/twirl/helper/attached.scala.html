@@ -12,7 +12,7 @@ $(function(){
     maxFilesize: 10,
     previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
     success: function(file, id) {
-      var images = '\n![' + file.name.split('.')[0] + '](@path/@owner/@repository/_attached/' + id + ')';
+      var images = '\n![' + file.name.split('.')[0] + '](@baseURL/@owner/@repository/_attached/' + id + ')';
       $('#@textareaId').val($('#@textareaId').val() + images);
       file.previewElement.remove();
     }
