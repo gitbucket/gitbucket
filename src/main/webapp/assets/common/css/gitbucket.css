@@ -671,6 +671,26 @@ div.issue-comment-action {
           border-radius: 5px;
 }
 
+div.attachable {
+  margin-bottom: 10px;
+}
+
+div.attachable textarea {
+  margin-bottom: 0px;
+  border-bottom: 1px dashed #ccc;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  border-radius: 0px;
+}
+
+div.attachable div {
+  padding: 2px;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background-color: white;
+}
+
 /****************************************************************************/
 /* Pull Request */
 /****************************************************************************/

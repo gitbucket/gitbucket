@@ -1,13 +1,13 @@
 @(owner: String, repository: String)(textarea: Html)(implicit context: app.Context)
 @import context._
-<div class="muted">
+<div class="muted attachable">
   @textarea
-  Attach images by dragging &amp; dropping, or selecting them.
+  <div>Attach images by dragging &amp; dropping, or selecting them.</div>
 </div>
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
-  $('#@textareaId').closest('div').dropzone({
+  $('#@textareaId').next('div').dropzone({
     url: '@path/upload/image/@owner/@repository',
     maxFilesize: 10,
     acceptedFiles: 'image/*',
@@ -19,6 +19,9 @@ $(function(){
       $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
     }
   });
+
+  // Adjust attachment area width
+  $('div.attachable div').css('width', ($('div.attachable textarea').width() + 8) + 'px');
 });
 </script>
 }
