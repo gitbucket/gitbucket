@@ -22,13 +22,15 @@
   <li@if(active=="branches"){ class="active"}><a href="@url(repository)/branches">Branches@if(repository.branchList.length > 0){ <span class="badge">@repository.branchList.length</span>}</a></li>
   <li@if(active=="tags"    ){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
   <li class="pull-right">
-    @helper.html.copy("repository-url-copy", repository.httpUrl, true){
-      @if(settings.ssh && loginAccount.isDefined){
+    @if(settings.ssh && loginAccount.isDefined){
+      @helper.html.copy("repository-url-copy", repository.sshUrl(settings, loginAccount.get.userName), true){
         <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
           <button type="button" class="btn" id="repository-url-http">HTTP</button><button type="button" class="btn active" id="repository-url-ssh">SSH</button>
         </div>
         <input type="text" value="@repository.sshUrl(settings, loginAccount.get.userName)" id="repository-url" style="width: 150px;" readonly>
-      } else {
+      }
+    } else {
+      @helper.html.copy("repository-url-copy", repository.httpUrl, true){
         <span class="add-on">HTTP</span>
         <input type="text" value="@repository.httpUrl" id="repository-url" style="width: 150px;" readonly>
       }
