@@ -683,7 +683,7 @@ div.attachable textarea {
   border-radius: 0px;
 }
 
-div.attachable div {
+div.attachable div.clickable {
   padding: 2px;
   border-left: 1px solid #ccc;
   border-right: 1px solid #ccc;
