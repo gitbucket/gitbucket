@@ -1,8 +1,9 @@
 package app
 
+import _root_.util.JGitUtil.CommitInfo
 import util.Directory._
 import util.Implicits._
-import util.ControlUtil._
+import _root_.util.ControlUtil._
 import _root_.util._
 import service._
 import org.scalatra._
@@ -12,16 +13,52 @@ import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
 import java.util.zip.{ZipEntry, ZipOutputStream}
-import scala.Some
+import jp.sf.amateras.scalatra.forms._
+import org.eclipse.jgit.dircache.DirCache
+import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 
-class RepositoryViewerController extends RepositoryViewerControllerBase 
+class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 /**
  * The repository viewer.
  */
-trait RepositoryViewerControllerBase extends ControllerBase { 
+trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+
+  case class EditorForm(
+    branch: String,
+    path: String,
+    content: String,
+    message: Option[String],
+    charset: String,
+    newFileName: String,
+    oldFileName: Option[String]
+  )
+
+  case class DeleteForm(
+    branch: String,
+    path: String,
+    message: Option[String],
+    fileName: String
+  )
+
+  val editorForm = mapping(
+    "branch"      -> trim(label("Branch", text(required))),
+    "path"        -> trim(label("Path", text())),
+    "content"     -> trim(label("Content", text(required))),
+    "message"     -> trim(label("Message", optional(text()))),
+    "charset"     -> trim(label("Charset", text(required))),
+    "newFileName" -> trim(label("Filename", text(required))),
+    "oldFileName" -> trim(label("Old filename", optional(text())))
+  )(EditorForm.apply)
+
+  val deleteForm = mapping(
+    "branch"   -> trim(label("Branch", text(required))),
+    "path"     -> trim(label("Path", text())),
+    "message"  -> trim(label("Message", optional(text()))),
+    "fileName" -> trim(label("Filename", text(required)))
+  )(DeleteForm.apply)
 
   /**
    * Returns converted HTML from Markdown for preview.
@@ -71,6 +108,68 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
+  get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
+    val (branch, path) = splitPath(repository, multiParams("splat").head)
+    repo.html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
+      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")))
+  })
+
+  get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
+    val (branch, path) = splitPath(repository, multiParams("splat").head)
+
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+
+      getPathObjectId(git, path, revCommit).map { objectId =>
+        val paths = path.split("/")
+        repo.html.editor(branch, repository, paths.take(paths.size - 1).toList, Some(paths.last),
+          JGitUtil.getContentInfo(git, path, objectId))
+      } getOrElse NotFound
+    }
+  })
+
+  get("/:owner/:repository/remove/*")(collaboratorsOnly { repository =>
+    val (branch, path) = splitPath(repository, multiParams("splat").head)
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+
+      getPathObjectId(git, path, revCommit).map { objectId =>
+        val paths = path.split("/")
+        repo.html.delete(branch, repository, paths.take(paths.size - 1).toList, paths.last,
+          JGitUtil.getContentInfo(git, path, objectId))
+      } getOrElse NotFound
+    }
+  })
+
+  post("/:owner/:repository/create", editorForm)(collaboratorsOnly { (form, repository) =>
+    commitFile(repository, form.branch, form.path, Some(form.newFileName), None, form.content, form.charset,
+      form.message.getOrElse(s"Create ${form.newFileName}"))
+
+    redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
+      if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
+    }")
+  })
+
+  post("/:owner/:repository/update", editorForm)(collaboratorsOnly { (form, repository) =>
+    commitFile(repository, form.branch, form.path, Some(form.newFileName), form.oldFileName, form.content, form.charset,
+      if(form.oldFileName.exists(_ == form.newFileName)){
+        form.message.getOrElse(s"Update ${form.newFileName}")
+      } else {
+        form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
+      })
+
+    redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
+      if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
+    }")
+  })
+
+  post("/:owner/:repository/remove", deleteForm)(collaboratorsOnly { (form, repository) =>
+    commitFile(repository, form.branch, form.path, None, Some(form.fileName), "", "",
+      form.message.getOrElse(s"Delete ${form.fileName}"))
+
+    redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}${if(form.path.length == 0) "" else form.path}")
+  })
+
   /**
    * Displays the file content of the specified branch or commit.
    */
@@ -80,19 +179,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-
-      @scala.annotation.tailrec
-      def getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
-        case true if(walk.getPathString == path) => Some(walk.getObjectId(0))
-        case true  => getPathObjectId(path, walk)
-        case false => None
-      }
-
-      using(new TreeWalk(git.getRepository)){ treeWalk =>
-        treeWalk.addTree(revCommit.getTree)
-        treeWalk.setRecursive(true)
-        getPathObjectId(path, treeWalk)
-      } map { objectId =>
+      getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
           defining(JGitUtil.getContentFromId(git, objectId, false).get){ bytes =>
@@ -100,25 +187,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             bytes
           }
         } else {
-          // Viewer
-          val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-          val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
-          val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
-
-          val content = if(viewer == "other"){
-            if(bytes.isDefined && FileUtil.isText(bytes.get)){
-              // text
-              JGitUtil.ContentInfo("text", bytes.map(StringUtil.convertFromByteArray))
-            } else {
-              // binary
-              JGitUtil.ContentInfo("binary", None)
-            }
-          } else {
-            // image or large
-            JGitUtil.ContentInfo(viewer, None)
-          }
-
-          repo.html.blob(id, repository, path.split("/").toList, content, new JGitUtil.CommitInfo(revCommit))
+          repo.html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
+            new JGitUtil.CommitInfo(revCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       } getOrElse NotFound
     }
@@ -164,7 +234,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val userName   = context.loginAccount.get.userName
     if(repository.repository.defaultBranch != branchName){
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        git.branchDelete().setBranchNames(branchName).call()
+        git.branchDelete().setForce(true).setBranchNames(branchName).call()
         recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
       }
     }
@@ -234,13 +304,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getRepository(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name),
-        baseUrl),
+        context.baseUrl),
       getForkedRepositories(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name)),
       repository)
   })
-  
+
   private def splitPath(repository: service.RepositoryService.RepositoryInfo, path: String): (String, String) = {
     val id = repository.branchList.collectFirst {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch
@@ -252,11 +322,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
 
-  private val readmeFiles = Seq("readme.md", "readme.markdown")
+  private val readmeFiles = view.helpers.renderableSuffixes.map(suffix => s"readme${suffix}") ++ Seq("readme.txt", "readme")
 
   /**
    * Provides HTML of the file list.
-   * 
+   *
    * @param repository the repository information
    * @param revstr the branch name or commit id(optional)
    * @param path the directory path (optional)
@@ -264,31 +334,99 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   private def fileList(repository: RepositoryService.RepositoryInfo, revstr: String = "", path: String = ".") = {
     if(repository.commitCount == 0){
-      repo.html.guide(repository)
+      repo.html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
-          defining(JGitUtil.getRevCommitFromId(git, objectId)){ revCommit =>
-          // get files
+          defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
+            // get files
             val files = JGitUtil.getFileList(git, revision, path)
+            val parentPath = if (path == ".") Nil else path.split("/").toList
             // process README.md or README.markdown
             val readme = files.find { file =>
               readmeFiles.contains(file.name.toLowerCase)
             }.map { file =>
-              file -> StringUtil.convertFromByteArray(JGitUtil.getContentFromId(
+              val path = (file.name :: parentPath.reverse).reverse
+              path -> StringUtil.convertFromByteArray(JGitUtil.getContentFromId(
                 Git.open(getRepositoryDir(repository.owner, repository.name)), file.id, true).get)
             }
 
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(revCommit), // latest commit
-              files, readme)
+              files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount))
           }
         } getOrElse NotFound
       }
     }
   }
-  
+
+  private def commitFile(repository: service.RepositoryService.RepositoryInfo,
+                         branch: String, path: String, newFileName: Option[String], oldFileName: Option[String],
+                         content: String, charset: String, message: String) = {
+
+    val newPath = newFileName.map { newFileName => if(path.length == 0) newFileName else s"${path}/${newFileName}" }
+    val oldPath = oldFileName.map { oldFileName => if(path.length == 0) oldFileName else s"${path}/${oldFileName}" }
+
+    LockUtil.lock(s"${repository.owner}/${repository.name}"){
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+        val loginAccount = context.loginAccount.get
+        val builder  = DirCache.newInCore.builder()
+        val inserter = git.getRepository.newObjectInserter()
+        val headName = s"refs/heads/${branch}"
+        val headTip  = git.getRepository.resolve(s"refs/heads/${branch}")
+
+        JGitUtil.processTree(git, headTip){ (path, tree) =>
+          if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
+            builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+          }
+        }
+
+        newPath.foreach { newPath =>
+          builder.add(JGitUtil.createDirCacheEntry(newPath, FileMode.REGULAR_FILE,
+            inserter.insert(Constants.OBJ_BLOB, content.getBytes(charset))))
+        }
+        builder.finish()
+
+        val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
+          loginAccount.fullName, loginAccount.mailAddress, message)
+
+        inserter.flush()
+        inserter.release()
+
+        // update refs
+        val refUpdate = git.getRepository.updateRef(headName)
+        refUpdate.setNewObjectId(commitId)
+        refUpdate.setForceUpdate(false)
+        refUpdate.setRefLogIdent(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+        //refUpdate.setRefLogMessage("merged", true)
+        refUpdate.update()
+
+        // record activity
+        recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch,
+          List(new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))))
+
+        // TODO invoke hook
+
+      }
+    }
+  }
+
+  private def getPathObjectId(git: Git, path: String, revCommit: RevCommit): Option[ObjectId] = {
+    @scala.annotation.tailrec
+    def _getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
+      case true if(walk.getPathString == path) => Some(walk.getObjectId(0))
+      case true  => _getPathObjectId(path, walk)
+      case false => None
+    }
+
+    using(new TreeWalk(git.getRepository)){ treeWalk =>
+      treeWalk.addTree(revCommit.getTree)
+      treeWalk.setRecursive(true)
+      _getPathObjectId(path, treeWalk)
+    }
+  }
+
 }

@@ -56,6 +56,10 @@ trait SystemSettingsControllerBase extends ControllerBase {
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
 
+    if(form.ssh && SshServer.isActive && context.settings.sshPort != form.sshPort){
+      SshServer.stop()
+    }
+
     if(form.ssh && !SshServer.isActive && form.baseUrl.isDefined){
       SshServer.start(request.getServletContext,
         form.sshPort.getOrElse(SystemSettingsService.DefaultSshPort),

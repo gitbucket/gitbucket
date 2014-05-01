@@ -7,11 +7,7 @@ import javax.servlet.http.HttpServletRequest
 
 trait SystemSettingsService {
 
-  def baseUrl(implicit request: HttpServletRequest): String = loadSystemSettings().baseUrl.getOrElse {
-    defining(request.getRequestURL.toString){ url =>
-      url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
-    }
-  }.replaceFirst("/$", "")
+  def baseUrl(implicit request: HttpServletRequest): String = loadSystemSettings().baseUrl(request)
 
   def saveSystemSettings(settings: SystemSettings): Unit = {
     defining(new java.util.Properties()){ props =>
@@ -112,7 +108,13 @@ object SystemSettingsService {
     sshPort: Option[Int],
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
-    ldap: Option[Ldap])
+    ldap: Option[Ldap]){
+    def baseUrl(request: HttpServletRequest): String = baseUrl.getOrElse {
+      defining(request.getRequestURL.toString){ url =>
+        url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
+      }
+    }.replaceFirst("/$", "")
+  }
 
   case class Ldap(
     host: String,

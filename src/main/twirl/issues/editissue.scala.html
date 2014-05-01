@@ -2,7 +2,9 @@
 @import context._
 <span id="error-edit-title" class="error"></span>
 <input type="text" style="width: 680px;" id="edit-title" value="@title"/>
-<textarea style="width: 680px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
+@helper.html.attached(owner, repository){
+  <textarea style="width: 680px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
+}
 <div>
   <input type="button" id="update" class="btn btn-small" value="Update Issue"/>
   <input type="button" id="cancel" class="btn btn-small btn-danger pull-right" value="Cancel"/>

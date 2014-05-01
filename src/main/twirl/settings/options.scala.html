@@ -20,11 +20,18 @@
           </fieldset>
           <fieldset class="margin">
             <label for="defaultBranch" class="strong">Default Branch:</label>
-            <select name="defaultBranch" id="defaultBranch">
-              @repository.branchList.map { branch =>
-                <option value="@branch"@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
+            <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled}>
+              @if(repository.branchList.isEmpty){
+                <option value="none" selected>No Branch</option>
+              } else {
+                @repository.branchList.map { branch =>
+                  <option@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
+                }
               }
             </select>
+            @if(repository.branchList.isEmpty){
+              <input type="hidden" name="defaultBranch" value="none"/>
+            }
             <span class="error" id="error-defaultBranch"></span>
           </fieldset>
           <fieldset class="margin">

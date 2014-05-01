@@ -153,19 +153,6 @@ trait ActivityService {
       Some(message),
       currentDate)
 
-  def insertCommitId(userName: String, repositoryName: String, commitId: String) = {
-    CommitLog insert (userName, repositoryName, commitId)
-  }
-
-  def insertAllCommitIds(userName: String, repositoryName: String, commitIds: List[String]) =
-    CommitLog insertAll (commitIds.map(commitId => (userName, repositoryName, commitId)): _*)
-
-  def getAllCommitIds(userName: String, repositoryName: String): List[String] =
-    Query(CommitLog).filter(_.byRepository(userName, repositoryName)).map(_.commitId).list
-
-  def existsCommitId(userName: String, repositoryName: String, commitId: String): Boolean =
-    Query(CommitLog).filter(_.byPrimaryKey(userName, repositoryName, commitId)).firstOption.isDefined
-  
-  private def cut(value: String, length: Int): String = 
+  private def cut(value: String, length: Int): String =
     if(value.length > length) value.substring(0, length) + "..." else value
 }

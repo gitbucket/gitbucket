@@ -3,10 +3,15 @@ GitBucket
 
 GitBucket is the easily installable Github clone written with Scala.
 
+[![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket)
+
+
+Features
+--------
 The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http access only)
-- Repository viewer (some advanced features such as online file editing are not implemented)
+- Repository viewer and online file editing
 - Repository search (Code and Issues)
 - Wiki
 - Issues
@@ -20,7 +25,6 @@ The current version of GitBucket provides a basic features below:
 
 Following features are not implemented, but we will make them in the future release!
 
-- File editing in repository viewer
 - Comment for the changeset
 - Network graph
 - Statistics
@@ -51,6 +55,24 @@ To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored i
 For Installation on Windows Server with IIS see [this wiki page](https://github.com/takezoe/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
 
 ### Mac OS X
+#### Installing Via Homebrew
+
+    $ brew install gitbucket
+    ==> Downloading https://github.com/takezoe/gitbucket/releases/download/1.10/gitbucket.war
+    ######################################################################## 100.0%
+    ==> Caveats
+    Note: When using launchctl the port will be 8080.
+
+    To have launchd start gitbucket at login:
+        ln -sfv /usr/local/opt/gitbucket/*.plist ~/Library/LaunchAgents
+    Then to load gitbucket now:
+        launchctl load ~/Library/LaunchAgents/homebrew.mxcl.gitbucket.plist
+    Or, if you don't want/need launchctl, you can just run:
+        java -jar /usr/local/opt/gitbucket/libexec/gitbucket.war
+    ==> Summary
+    /usr/local/Cellar/gitbucket/1.10: 3 files, 42M, built in 11 seconds
+
+#### Manual Installation
 On OS X, copy the [gitbucket.plist](https://raw.github.com/takezoe/gitbucket/master/contrib/macosx/gitbucket.plist) file to `~/Library/LaunchAgents/`
 
 Run the following commands in `Terminal` to
@@ -60,6 +82,12 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 1.13 - 29 Apr 2014
+- Direct file editing in the repository viewer using AceEditor
+- File attachment for issues
+- Atom feed for user activities
+- Fix some bugs
+
 ### 1.12 - 29 Mar 2014
 - SSH repository access is available
 - Allow users can create and management their groups

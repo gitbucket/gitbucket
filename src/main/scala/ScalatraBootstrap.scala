@@ -1,6 +1,6 @@
 import _root_.servlet.{BasicAuthenticationFilter, TransactionFilter}
 import app._
-import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
+//import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
 import org.scalatra._
 import javax.servlet._
 import java.util.EnumSet
@@ -28,7 +28,6 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new IssuesController, "/*")
     context.mount(new PullRequestsController, "/*")
     context.mount(new RepositorySettingsController, "/*")
-    context.mount(new ValidationJavaScriptProvider, "/assets/common/js/*")
 
     // Create GITBUCKET_HOME directory if it does not exist
     val dir = new java.io.File(_root_.util.Directory.GitBucketHome)

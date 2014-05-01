@@ -9,19 +9,24 @@
   } else {
     @repositories.map { repository =>
       <div class="block">
-        <div class="block-header">
-          <a href="@url(repository)">@repository.name</a>
-          @if(repository.repository.isPrivate){
-            <i class="icon-lock"></i>
-          }
+        <div class="repository-icon">
+          @helper.html.repositoryicon(repository, true)
         </div>
-        @if(repository.repository.originUserName.isDefined){
-          <div class="small muted">forked from <a href="@path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
-        }
-        @if(repository.repository.description.isDefined){
-          <div>@repository.repository.description</div>
-        }
-        <div><span class="muted small">Last updated: @datetime(repository.repository.lastActivityDate)</span></div>
+        <div class="repository-content">
+          <div class="block-header">
+            <a href="@url(repository)">@repository.name</a>
+            @if(repository.repository.isPrivate){
+              <i class="icon-lock"></i>
+            }
+          </div>
+          @if(repository.repository.originUserName.isDefined){
+            <div class="small muted">forked from <a href="@path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
+          }
+          @if(repository.repository.description.isDefined){
+            <div>@repository.repository.description</div>
+          }
+          <div><span class="muted small">Last updated: @datetime(repository.repository.lastActivityDate)</span></div>
+        </div>
       </div>
     }
   }

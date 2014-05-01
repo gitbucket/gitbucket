@@ -11,15 +11,7 @@
   </div>
 }
 <div class="head">
-  @if(repository.repository.isPrivate){
-  <img src="@assets/common/images/repo_private_lg.png"/>
-  } else {
-    @if(repository.repository.originUserName.isDefined){
-      <img src="@assets/common/images/repo_fork_lg.png"/>
-    } else {
-      <img src="@assets/common/images/repo_public_lg.png"/>
-    }
-  }
+  @helper.html.repositoryicon(repository, true)
   <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
   
   @defining(repository.repository){ x =>

@@ -72,7 +72,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       repository.owner,
       repository.name,
       form.description,
-      form.defaultBranch,
+      if(repository.branchList.isEmpty) "master" else form.defaultBranch,
       repository.repository.parentUserName.map { _ =>
         repository.repository.isPrivate
       } getOrElse form.isPrivate

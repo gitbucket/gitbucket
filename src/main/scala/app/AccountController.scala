@@ -5,6 +5,7 @@ import util._
 import util.StringUtil._
 import util.Directory._
 import util.ControlUtil._
+import ssh.SshUtil
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
@@ -49,7 +50,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val sshKeyForm = mapping(
     "title"     -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey" -> trim(label("Key"  , text(required)))
+    "publicKey" -> trim(label("Key"  , text(required, validPublicKey)))
   )(SshKeyForm.apply)
 
   case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String)
@@ -111,11 +112,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           val members = getGroupMembers(account.userName)
           _root_.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getVisibleRepositories(context.loginAccount, baseUrl, Some(userName)),
+            getVisibleRepositories(context.loginAccount, context.baseUrl, Some(userName)),
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
       }
     } getOrElse NotFound
+  }
+
+  get("/:userName.atom") {
+    val userName = params("userName")
+    contentType = "application/atom+xml; type=feed"
+    helper.xml.feed(getActivitiesByUser(userName, true))
   }
 
   get("/:userName/_avatar"){
@@ -285,7 +292,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}/create"){
-      if(getRepository(form.owner, form.name, baseUrl).isEmpty){
+      if(getRepository(form.owner, form.name, context.baseUrl).isEmpty){
         val ownerAccount  = getAccountByUserName(form.owner).get
         val loginAccount  = context.loginAccount.get
         val loginUserName = loginAccount.userName
@@ -384,20 +391,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             getWikiRepositoryDir(repository.owner, repository.name),
             getWikiRepositoryDir(loginUserName, repository.name))
 
-          // insert commit id
-          using(Git.open(getRepositoryDir(loginUserName, repository.name))){ git =>
-            JGitUtil.getRepositoryInfo(loginUserName, repository.name, baseUrl).branchList.foreach { branch =>
-              JGitUtil.getCommitLog(git, branch) match {
-                case Right((commits, _)) => commits.foreach { commit =>
-                  if(!existsCommitId(loginUserName, repository.name, commit.id)){
-                    insertCommitId(loginUserName, repository.name, commit.id)
-                  }
-                }
-                case Left(_) => ???
-              }
-            }
-          }
-
           // Record activity
           recordForkActivity(repository.owner, repository.name, loginUserName)
           // redirect to the repository
@@ -433,6 +426,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       if(value.split(",").exists {
         _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
       }) None else Some("Must select one manager at least.")
+    }
+  }
+
+  private def validPublicKey: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] = SshUtil.str2PublicKey(value) match {
+     case Some(_) => None
+     case None => Some("Key is invalid.")
     }
   }
 }

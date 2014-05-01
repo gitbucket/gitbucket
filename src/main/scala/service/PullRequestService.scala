@@ -18,6 +18,9 @@ trait PullRequestService { self: IssuesService =>
   def updateCommitIdTo(owner: String, repository: String, issueId: Int, commitIdTo: String): Unit =
     Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).map(_.commitIdTo).update(commitIdTo)
 
+  def updateCommitIdFrom(owner: String, repository: String, issueId: Int, commitIdFrom: String): Unit =
+    Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).map(_.commitIdFrom).update(commitIdFrom)
+
   def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
     Query(PullRequests)
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }

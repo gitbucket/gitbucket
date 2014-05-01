@@ -28,6 +28,9 @@ object SshUtil {
     }
   }
 
-  def fingerPrint(key: String): String = KeyUtils.getFingerPrint(str2PublicKey(key).get)
+  def fingerPrint(key: String): Option[String] = str2PublicKey(key) match {
+    case Some(publicKey) => Some(KeyUtils.getFingerPrint(publicKey))
+    case None => None
+  }
 
 }

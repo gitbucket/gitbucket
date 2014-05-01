@@ -16,6 +16,7 @@ import service._
 import WebHookService._
 import org.eclipse.jgit.api.Git
 import util.JGitUtil.CommitInfo
+import service.IssuesService.IssueSearchCondition
 
 /**
  * Provides Git repository via HTTP.
@@ -80,7 +81,9 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
       logger.debug("repository:" + owner + "/" + repository)
 
       if(!repository.endsWith(".wiki")){
-        receivePack.setPostReceiveHook(new CommitLogHook(owner, repository, pusher, baseUrl(request)))
+        val hook = new CommitLogHook(owner, repository, pusher, baseUrl(request))
+        receivePack.setPreReceiveHook(hook)
+        receivePack.setPostReceiveHook(hook)
       }
       receivePack
     }
@@ -89,11 +92,25 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String) extends PostReceiveHook
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String) extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
-  
+  private var existIds: Seq[String] = Nil
+
+  def onPreReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
+    try {
+      using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        existIds = JGitUtil.getAllCommitIds(git)
+      }
+    } catch {
+      case ex: Exception => {
+        logger.error(ex.toString, ex)
+        throw ex
+      }
+    }
+  }
+
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
@@ -110,26 +127,20 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             }
           }
 
-          // Extract new commit and apply issue comment
-          val newCommits = if(commits.size > 1000){
-            val existIds = getAllCommitIds(owner, repository)
-            commits.flatMap { commit =>
-              if(!existIds.contains(commit.id)){
-                createIssueComment(commit)
-                Some(commit)
-              } else None
-            }
-          } else {
-            commits.flatMap { commit =>
-              if(!existsCommitId(owner, repository, commit.id)){
-                createIssueComment(commit)
-                Some(commit)
-              } else None
-            }
-          }
+          // Retrieve all issue count in the repository
+          val issueCount =
+            countIssue(IssueSearchCondition(state = "open"), Map.empty, false, owner -> repository) +
+            countIssue(IssueSearchCondition(state = "closed"), Map.empty, false, owner -> repository)
 
-          // batch insert all new commit id
-          insertAllCommitIds(owner, repository, newCommits.map(_.id))
+          // Extract new commit and apply issue comment
+          val newCommits = commits.flatMap { commit =>
+            if (!existIds.contains(commit.id)) {
+              if (issueCount > 0) {
+                createIssueComment(commit)
+              }
+              Some(commit)
+            } else None
+          }
 
           // record activity
           if(refName(1) == "heads"){
@@ -158,10 +169,13 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           }
 
           // close issues
-          val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
-          if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
-            git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach { commit =>
-              closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
+          if(issueCount > 0) {
+            val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
+            if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
+              git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach {
+                commit =>
+                  closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
+              }
             }
           }
 
@@ -204,14 +218,21 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   private def updatePullRequests(branch: String) =
     getPullRequestsByRequest(owner, repository, branch, false).foreach { pullreq =>
       if(getRepository(pullreq.userName, pullreq.repositoryName, baseUrl).isDefined){
-        using(Git.open(Directory.getRepositoryDir(pullreq.userName, pullreq.repositoryName))){ git =>
-          git.fetch
+        using(Git.open(Directory.getRepositoryDir(pullreq.userName, pullreq.repositoryName)),
+              Git.open(Directory.getRepositoryDir(pullreq.requestUserName, pullreq.requestRepositoryName))){ (oldGit, newGit) =>
+          oldGit.fetch
             .setRemote(Directory.getRepositoryDir(owner, repository).toURI.toString)
             .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/pull/${pullreq.issueId}/head").setForceUpdate(true))
             .call
 
-          val commitIdTo = git.getRepository.resolve(s"refs/pull/${pullreq.issueId}/head").getName
+          val commitIdTo = oldGit.getRepository.resolve(s"refs/pull/${pullreq.issueId}/head").getName
           updateCommitIdTo(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo)
+
+          val commitIdFrom = JGitUtil.getForkedCommitId(oldGit, newGit,
+            pullreq.userName, pullreq.repositoryName, pullreq.branch,
+            pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+          // TODO(tanacasino): commitIdFrom and commitIdTo should be updated by one query...
+          updateCommitIdFrom(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdFrom)
         }
       }
     }

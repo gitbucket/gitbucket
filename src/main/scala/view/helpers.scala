@@ -16,6 +16,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def datetime(date: Date): String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date)
 
   /**
+   * Format java.util.Date to "yyyy-MM-dd'T'hh:mm:ss'Z'".
+   */
+  def datetimeRFC3339(date: Date): String = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'").format(date).replaceAll("(\\d\\d)(\\d\\d)$","$1:$2")
+
+  /**
    * Format java.util.Date to "yyyy-MM-dd".
    */
   def date(date: Date): String = new SimpleDateFormat("yyyy-MM-dd").format(date)
@@ -27,12 +32,35 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def plural(count: Int, singular: String, plural: String = ""): String =
     if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
 
+  private[this] val renderersBySuffix: Seq[(String, (List[String], String, String, service.RepositoryService.RepositoryInfo, Boolean, Boolean, app.Context) => Html)] =
+    Seq(
+      ".md" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
+      ".markdown" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context))
+    )
+
+  def renderableSuffixes: Seq[String] = renderersBySuffix.map(_._1)
+
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,
                enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
+
+  def renderMarkup(filePath: List[String], fileContent: String, branch: String,
+                   repository: service.RepositoryService.RepositoryInfo,
+                   enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html = {
+
+    val fileNameLower = filePath.reverse.head.toLowerCase
+    renderersBySuffix.find { case (suffix, _) => fileNameLower.endsWith(suffix) } match {
+      case Some((_, handler)) => handler(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context)
+      case None => Html(
+        s"<tt>${
+          fileContent.split("(\\r\\n)|\\n").map(xml.Utility.escape(_)).mkString("<br/>")
+        }</tt>"
+      )
+    }
+  }
 
   /**
    * Returns &lt;img&gt; which displays the avatar icon for the given user name.
@@ -134,6 +162,45 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Test whether the given Date is past date.
    */
   def isPast(date: Date): Boolean = System.currentTimeMillis > date.getTime
+
+  /**
+   * Returns file type for AceEditor.
+   */
+  def editorType(fileName: String): String = {
+    fileName.toLowerCase match {
+      case x if(x.endsWith(".bat"))     => "batchfile"
+      case x if(x.endsWith(".java"))    => "java"
+      case x if(x.endsWith(".scala"))   => "scala"
+      case x if(x.endsWith(".js"))      => "javascript"
+      case x if(x.endsWith(".css"))     => "css"
+      case x if(x.endsWith(".md"))      => "markdown"
+      case x if(x.endsWith(".html"))    => "html"
+      case x if(x.endsWith(".xml"))     => "xml"
+      case x if(x.endsWith(".c"))       => "c_cpp"
+      case x if(x.endsWith(".cpp"))     => "c_cpp"
+      case x if(x.endsWith(".coffee"))  => "coffee"
+      case x if(x.endsWith(".ejs"))     => "ejs"
+      case x if(x.endsWith(".hs"))      => "haskell"
+      case x if(x.endsWith(".json"))    => "json"
+      case x if(x.endsWith(".jsp"))     => "jsp"
+      case x if(x.endsWith(".jsx"))     => "jsx"
+      case x if(x.endsWith(".cl"))      => "lisp"
+      case x if(x.endsWith(".clojure")) => "lisp"
+      case x if(x.endsWith(".lua"))     => "lua"
+      case x if(x.endsWith(".php"))     => "php"
+      case x if(x.endsWith(".py"))      => "python"
+      case x if(x.endsWith(".rdoc"))    => "rdoc"
+      case x if(x.endsWith(".rhtml"))   => "rhtml"
+      case x if(x.endsWith(".ruby"))    => "ruby"
+      case x if(x.endsWith(".sh"))      => "sh"
+      case x if(x.endsWith(".sql"))     => "sql"
+      case x if(x.endsWith(".tcl"))     => "tcl"
+      case x if(x.endsWith(".vbs"))     => "vbscript"
+      case x if(x.endsWith(".tcl"))     => "tcl"
+      case x if(x.endsWith(".yml"))     => "yaml"
+      case _ => "plain_text"
+    }
+  }
 
   /**
    * Implicit conversion to add mkHtml() to Seq[Html].

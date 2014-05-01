@@ -3,6 +3,7 @@ package servlet
 import javax.servlet._
 import javax.servlet.http._
 import service.{SystemSettingsService, AccountService, RepositoryService}
+import model.Account
 import org.slf4j.LoggerFactory
 import util.Implicits._
 import util.ControlUtil._
@@ -38,9 +39,12 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
               request.getHeader("Authorization") match {
                 case null => requireAuth(response)
                 case auth => decodeAuthHeader(auth).split(":") match {
-                  case Array(username, password) if(isWritableUser(username, password, repository)) => {
-                    request.setAttribute(Keys.Request.UserName, username)
-                    chain.doFilter(req, wrappedResponse)
+                  case Array(username, password) => getWritableUser(username, password, repository) match {
+                    case Some(account) => {
+                      request.setAttribute(Keys.Request.UserName, account.userName)
+                      chain.doFilter(req, wrappedResponse)
+                    }
+                    case None => requireAuth(response)
                   }
                   case _ => requireAuth(response)
                 }
@@ -61,10 +65,10 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
   }
 
-  private def isWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Boolean =
+  private def getWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Option[Account] =
     authenticate(loadSystemSettings(), username, password) match {
-      case Some(account) => hasWritePermission(repository.owner, repository.name, Some(account))
-      case None => false
+      case x @ Some(account) if(hasWritePermission(repository.owner, repository.name, x)) => x
+      case _ => None
     }
 
   private def requireAuth(response: HttpServletResponse): Unit = {
