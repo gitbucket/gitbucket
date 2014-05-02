@@ -226,13 +226,10 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             .call
 
           val commitIdTo = oldGit.getRepository.resolve(s"refs/pull/${pullreq.issueId}/head").getName
-          updateCommitIdTo(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo)
-
           val commitIdFrom = JGitUtil.getForkedCommitId(oldGit, newGit,
             pullreq.userName, pullreq.repositoryName, pullreq.branch,
             pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
-          // TODO(tanacasino): commitIdFrom and commitIdTo should be updated by one query...
-          updateCommitIdFrom(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdFrom)
+          updateCommitId(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo, commitIdFrom)
         }
       }
     }
