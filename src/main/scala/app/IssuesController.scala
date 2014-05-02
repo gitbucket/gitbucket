@@ -275,7 +275,10 @@ trait IssuesControllerBase extends ControllerBase {
 
   get("/:owner/:repository/_attached/:file")(referrersOnly { repository =>
     defining(new java.io.File(Directory.getAttachedDir(repository.owner, repository.name), params("file"))){ file =>
-      if(file.exists) file else NotFound
+      if(file.exists) {
+        contentType = FileUtil.getMimeType(file)
+        file
+      } else NotFound
     }
   })
 
