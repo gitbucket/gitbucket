@@ -3,7 +3,8 @@
   pathList: List[String],
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
-  readme: Option[(List[String], String)])(implicit context: app.Context)
+  readme: Option[(List[String], String)],
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
@@ -12,12 +13,15 @@
   <div class="head">
     <div class="pull-right">
       @defining(repository.commitCount){ commitCount =>
-        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 10000){ @commitCount+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
+        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 10000){ 10000+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
       }
     </div>
     <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
     @pathList.zipWithIndex.map { case (section, i) =>
       <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+    }
+    @if(hasWritePermission){
+      <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")"><img src="@assets/common/images/newfile.png"/></a>
     }
   </div>
   <div class="box">

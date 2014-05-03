@@ -1,0 +1,12 @@
+@(repository: service.RepositoryService.RepositoryInfo, large: Boolean)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@if(repository.repository.isPrivate){
+  <img src="@assets/common/images/repo_private@{if(large){"_lg"}}.png"/>
+} else {
+  @if(repository.repository.originUserName.isDefined){
+    <img src="@assets/common/images/repo_fork@{if(large){"_lg"}}.png"/>
+  } else {
+    <img src="@assets/common/images/repo_public@{if(large){"_lg"}}.png"/>
+  }
+}

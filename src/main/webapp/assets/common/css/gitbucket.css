@@ -260,6 +260,12 @@ img.avatar {
   -moz-border-radius: 4px;
 }
 
+img.avatar-mini {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
+
 div.activity-message {
   margin-left: 20px;
 }
@@ -374,6 +380,17 @@ ul.nav-stacked.side-menu li.active a:hover {
   border-bottom-left-radius: 0px;
   -moz-border-radius-bottomright: 0px;
   -moz-border-radius-bottomleft: 0px;
+}
+
+/****************************************************************************/
+/* Repositories */
+/****************************************************************************/
+div.repository-icon {
+    position: absolute;
+}
+
+div.repository-content {
+    margin-left: 40px;
 }
 
 /****************************************************************************/
@@ -654,6 +671,26 @@ div.issue-comment-action {
           border-radius: 5px;
 }
 
+div.attachable {
+  margin-bottom: 10px;
+}
+
+div.attachable textarea {
+  margin-bottom: 0px;
+  border-bottom: 1px dashed #ccc;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  border-radius: 0px;
+}
+
+div.attachable div.clickable {
+  padding: 2px;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background-color: white;
+}
+
 /****************************************************************************/
 /* Pull Request */
 /****************************************************************************/
@@ -673,6 +710,21 @@ h1.wiki-title {
 
 a.absent {
   color: #c00;
+}
+
+/****************************************************************************/
+/* Diff */
+/****************************************************************************/
+table.inlinediff {
+    width: 100%;
+}
+
+table.inlinediff thead {
+    display: none;
+}
+
+td.insert, td.equal, td.delete {
+    width: 100%;
 }
 
 /****************************************************************************/

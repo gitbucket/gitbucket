@@ -37,16 +37,14 @@ object MyBuild extends Build {
         "org.apache.commons" % "commons-compress" % "1.5",
         "org.apache.commons" % "commons-email" % "1.3.1",
         "org.apache.httpcomponents" % "httpclient" % "4.3",
-        "org.apache.sshd" % "apache-sshd" % "0.10.0",
+        "org.apache.sshd" % "apache-sshd" % "0.11.0",
         "com.typesafe.slick" %% "slick" % "1.0.1",
         "com.novell.ldap" % "jldap" % "2009-10-07",
         "com.h2database" % "h2" % "1.3.173",
         "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
-        "junit" % "junit" % "4.11" % "test",
-        "org.asciidoctor" % "asciidoctor-java-integration" % "0.1.4",
-        "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.7"
+        "junit" % "junit" % "4.11" % "test"
       ),
       EclipseKeys.withSource := true,
       javacOptions in compile ++= Seq("-target", "6", "-source", "6"),

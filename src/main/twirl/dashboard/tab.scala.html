@@ -1,9 +1,13 @@
 @(active: String = "")(implicit context: app.Context)
 @import context._
+@import view.helpers._
 <ul class="nav nav-tabs">
   <li@if(active == ""){ class="active"}><a href="@path/">News Feed</a></li>
   @if(loginAccount.isDefined){
     <li@if(active == "pulls" ){ class="active"}><a href="@path/dashboard/pulls">Pull Requests</a></li>
     <li@if(active == "issues"){ class="active"}><a href="@path/dashboard/issues/repos">Issues</a></li>
+  }
+  @if(active == ""){
+    <li class="pull-right"><a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a></li>
   }
 </ul>

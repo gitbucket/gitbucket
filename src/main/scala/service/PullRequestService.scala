@@ -3,7 +3,6 @@ package service
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
 import model._
-import util.ControlUtil._
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._
@@ -15,8 +14,10 @@ trait PullRequestService { self: IssuesService =>
       }
     }
 
-  def updateCommitIdTo(owner: String, repository: String, issueId: Int, commitIdTo: String): Unit =
-    Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).map(_.commitIdTo).update(commitIdTo)
+  def updateCommitId(owner: String, repository: String, issueId: Int, commitIdTo: String, commitIdFrom: String): Unit =
+    Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId))
+                       .map(pr => pr.commitIdTo ~ pr.commitIdFrom)
+                       .update((commitIdTo, commitIdFrom))
 
   def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
     Query(PullRequests)

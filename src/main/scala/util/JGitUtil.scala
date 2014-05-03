@@ -92,8 +92,9 @@ object JGitUtil {
    *
    * @param viewType "image", "large" or "other"
    * @param content the string content
+   * @param charset the character encoding
    */
-  case class ContentInfo(viewType: String, content: Option[String])
+  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String])
 
   /**
    * The tag data.
@@ -137,7 +138,7 @@ object JGitUtil {
     using(Git.open(getRepositoryDir(owner, repository))){ git =>
       try {
         // get commit count
-        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(10000).sum
+        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(10001).sum
 
         RepositoryInfo(
           owner, repository, s"${baseUrl}/git/${owner}/${repository}.git",
@@ -480,7 +481,7 @@ object JGitUtil {
   }
 
   def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
-                              fullName: String, mailAddress: String, message: String): String = {
+                              fullName: String, mailAddress: String, message: String): ObjectId = {
     val newCommit = new CommitBuilder()
     newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
     newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
@@ -498,7 +499,7 @@ object JGitUtil {
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
-    newHeadId.getName
+    newHeadId
   }
 
   /**
@@ -549,6 +550,26 @@ object JGitUtil {
     }
   }
 
+  def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
+    // Viewer
+    val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
+    val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
+    val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
+
+    if(viewer == "other"){
+      if(bytes.isDefined && FileUtil.isText(bytes.get)){
+        // text
+        ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+      } else {
+        // binary
+        ContentInfo("binary", None, None)
+      }
+    } else {
+      // image or large
+      ContentInfo(viewer, None, None)
+    }
+  }
+
   /**
    * Get object content of the given object id as byte array from the Git repository.
    *
@@ -569,5 +590,43 @@ object JGitUtil {
   } catch {
     case e: MissingObjectException => None
   }
+
+  /**
+   * Returns all commit id in the specified repository.
+   */
+  def getAllCommitIds(git: Git): Seq[String] = if(isEmpty(git)) {
+    Nil
+  } else {
+    val existIds = new scala.collection.mutable.ListBuffer[String]()
+    val i = git.log.all.call.iterator
+    while(i.hasNext){
+      existIds += i.next.name
+    }
+    existIds.toSeq
+  }
+
+  def processTree(git: Git, id: ObjectId)(f: (String, CanonicalTreeParser) => Unit) = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
+        val index = treeWalk.addTree(revWalk.parseTree(id))
+        treeWalk.setRecursive(true)
+        while(treeWalk.next){
+          f(treeWalk.getPathString, treeWalk.getTree(index, classOf[CanonicalTreeParser]))
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the identifier of the root commit (or latest merge commit) of the specified branch.
+   */
+  def getForkedCommitId(oldGit: Git, newGit: Git,
+                        userName: String, repositoryName: String, branch: String,
+                        requestUserName: String, requestRepositoryName: String, requestBranch: String): String =
+    defining(getAllCommitIds(oldGit)){ existIds =>
+      getCommitLogs(newGit, requestBranch, true) { commit =>
+        existIds.contains(commit.name) && getBranchesOfCommit(oldGit, commit.getName).contains(branch)
+      }.head.id
+    }
 
 }

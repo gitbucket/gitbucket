@@ -28,7 +28,7 @@
 
       </div>
       <div class="span8">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" style="margin-bottom: 5px;">
           <li@if(active == "repositories"){ class="active"}><a href="@url(account.userName)?tab=repositories">Repositories</a></li>
           @if(account.isGroupAccount){
             <li@if(active == "members"){ class="active"}><a href="@url(account.userName)?tab=members">Members</a></li>

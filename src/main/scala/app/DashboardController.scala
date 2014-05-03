@@ -49,7 +49,7 @@ trait DashboardControllerBase extends ControllerBase {
     )
 
     val userName = context.loginAccount.get.userName
-    val repositories = getUserRepositories(userName, baseUrl).map(repo => repo.owner -> repo.name)
+    val repositories = getUserRepositories(userName, context.baseUrl).map(repo => repo.owner -> repo.name)
     val filterUser = Map(filter -> userName)
     val page = IssueSearchCondition.page(request)
     // 
@@ -80,7 +80,7 @@ trait DashboardControllerBase extends ControllerBase {
     }.copy(repo = repository))
 
     val userName = context.loginAccount.get.userName
-    val repositories = getUserRepositories(userName, baseUrl).map(repo => repo.owner -> repo.name)
+    val repositories = getUserRepositories(userName, context.baseUrl).map(repo => repo.owner -> repo.name)
     val filterUser = Map(filter -> userName)
     val page = IssueSearchCondition.page(request)
 

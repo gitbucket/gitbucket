@@ -106,7 +106,9 @@ class GitReceivePack(context: ServletContext, owner: String, repoName: String, b
           val repository = git.getRepository
           val receive = new ReceivePack(repository)
           if(!repoName.endsWith(".wiki")){
-            receive.setPostReceiveHook(new CommitLogHook(owner, repoName, user, baseUrl))
+            val hook = new CommitLogHook(owner, repoName, user, baseUrl)
+            receive.setPreReceiveHook(hook)
+            receive.setPostReceiveHook(hook)
           }
           receive.receive(in, out, err)
         }

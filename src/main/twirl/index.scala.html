@@ -30,15 +30,7 @@
           @userRepositories.map { repository =>
             <tr>
               <td>
-                @if(repository.repository.isPrivate){
-                  <img src="@assets/common/images/repo_private.png"/>
-                } else {
-                  @if(repository.repository.originUserName.isDefined){
-                    <img src="@assets/common/images/repo_fork.png"/>
-                  } else {
-                    <img src="@assets/common/images/repo_public.png"/>
-                  }
-                }
+                @helper.html.repositoryicon(repository, false)
                 @if(repository.owner == loginAccount.get.userName){
                   <a href="@url(repository)"><span class="strong">@repository.name</span></a>
                 } else {
@@ -57,7 +49,7 @@
           Recent updated repositories
         </th>
       </tr>
-      @if(recentRepositories.isEmpty){
+      @if(recentRepositories.isEmpty){2
         <tr>
           <td>No repositories</td>
         </tr>
@@ -65,15 +57,7 @@
         @recentRepositories.map { repository =>
           <tr>
             <td>
-              @if(repository.repository.isPrivate){
-                <img src="@assets/common/images/repo_private.png"/>
-              } else {
-                @if(repository.repository.originUserName.isDefined){
-                  <img src="@assets/common/images/repo_fork.png"/>
-                } else {
-                  <img src="@assets/common/images/repo_public.png"/>
-                }
-              }
+              @helper.html.repositoryicon(repository, false)
               <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
             </td>
           </tr>

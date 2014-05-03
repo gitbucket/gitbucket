@@ -1,15 +1,16 @@
 package servlet
 
 import javax.servlet.http.{HttpSessionEvent, HttpSessionListener}
-import app.FileUploadControllerBase
+import org.apache.commons.io.FileUtils
+import util.Directory._
 
 /**
  * Removes session associated temporary files when session is destroyed.
  */
-class SessionCleanupListener extends HttpSessionListener with FileUploadControllerBase {
+class SessionCleanupListener extends HttpSessionListener {
 
   def sessionCreated(se: HttpSessionEvent): Unit = {}
 
-  def sessionDestroyed(se: HttpSessionEvent): Unit = removeTemporaryFiles()(se.getSession)
+  def sessionDestroyed(se: HttpSessionEvent): Unit = FileUtils.deleteDirectory(getTemporaryDir(se.getSession.getId))
 
 }

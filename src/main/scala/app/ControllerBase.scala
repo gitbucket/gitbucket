@@ -11,8 +11,7 @@ import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import model.Account
 import service.{SystemSettingsService, AccountService}
-import javax.servlet.http.{HttpServletResponse, HttpSession, HttpServletRequest}
-import java.text.SimpleDateFormat
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
 import org.scalatra.i18n._
 
@@ -139,9 +138,10 @@ abstract class ControllerBase extends ScalatraFilter
  */
 case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
 
-  lazy val path = settings.baseUrl.getOrElse(request.getServletContext.getContextPath)
-
-  lazy val currentPath = request.getRequestURI.substring(request.getContextPath.length)
+  val path = settings.baseUrl.getOrElse(request.getContextPath)
+  val currentPath = request.getRequestURI.substring(request.getContextPath.length)
+  val baseUrl = settings.baseUrl(request)
+  val host = new java.net.URL(baseUrl).getHost
 
   /**
    * Get object from cache.
@@ -163,7 +163,7 @@ case class Context(settings: SystemSettingsService.SystemSettings, loginAccount:
 /**
  * Base trait for controllers which manages account information.
  */
-trait AccountManagementControllerBase extends ControllerBase with FileUploadControllerBase {
+trait AccountManagementControllerBase extends ControllerBase {
   self: AccountService  =>
 
   protected def updateImage(userName: String, fileId: Option[String], clearImage: Boolean): Unit =
@@ -174,9 +174,9 @@ trait AccountManagementControllerBase extends ControllerBase with FileUploadCont
       }
     } else {
       fileId.map { fileId =>
-        val filename = "avatar." + FileUtil.getExtension(getUploadedFilename(fileId).get)
+        val filename = "avatar." + FileUtil.getExtension(session.getAndRemove(Keys.Session.Upload(fileId)).get)
         FileUtils.moveFile(
-          getTemporaryFile(fileId),
+          new java.io.File(getTemporaryDir(session.getId), fileId),
           new java.io.File(getUserUploadDir(userName), filename)
         )
         updateAvatarImage(userName, Some(filename))
@@ -194,30 +194,5 @@ trait AccountManagementControllerBase extends ControllerBase with FileUploadCont
         .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
         .map    { _ => "Mail address is already registered." }
   }
-
-}
-
-/**
- * Base trait for controllers which needs file uploading feature.
- */
-trait FileUploadControllerBase {
-
-  def generateFileId: String =
-    new SimpleDateFormat("yyyyMMddHHmmSSsss").format(new java.util.Date(System.currentTimeMillis))
-
-  def TemporaryDir(implicit session: HttpSession): java.io.File =
-    new java.io.File(GitBucketHome, s"tmp/_upload/${session.getId}")
-
-  def getTemporaryFile(fileId: String)(implicit session: HttpSession): java.io.File =
-    new java.io.File(TemporaryDir, fileId)
-
-  //  def removeTemporaryFile(fileId: String)(implicit session: HttpSession): Unit =
-  //    getTemporaryFile(fileId).delete()
-
-  def removeTemporaryFiles()(implicit session: HttpSession): Unit =
-    FileUtils.deleteDirectory(TemporaryDir)
-
-  def getUploadedFilename(fileId: String)(implicit session: HttpSession): Option[String] =
-    session.getAndRemove[String](Keys.Session.Upload(fileId))
 
 }
