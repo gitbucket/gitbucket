@@ -5,12 +5,8 @@ import java.net.URLConnection
 import java.io.File
 import util.ControlUtil._
 import scala.util.Random
-import eu.medsea.mimeutil.{MimeUtil2, MimeType}
 
 object FileUtil {
-
-  private val mimeUtil = new MimeUtil2()
-  mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector")
 
   def getMimeType(name: String): String =
     defining(URLConnection.getFileNameMap()){ fileNameMap =>
@@ -19,16 +15,6 @@ object FileUtil {
         case mimeType => mimeType
       }
     }
-
-  /**
-   * Returns mime type detected by file content.
-   *
-   * @param file File object
-   * @return mime type String
-   */
-  def getMimeType(file: File): String = {
-    MimeUtil2.getMostSpecificMimeType(mimeUtil.getMimeTypes(file, new MimeType("application/octet-stream"))).toString
-  }
 
   def getContentType(name: String, bytes: Array[Byte]): String = {
     defining(getMimeType(name)){ mimeType =>

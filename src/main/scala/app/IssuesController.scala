@@ -274,12 +274,14 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/_attached/:file")(referrersOnly { repository =>
-    defining(new java.io.File(Directory.getAttachedDir(repository.owner, repository.name), params("file"))){ file =>
-      if(file.exists) {
-        contentType = FileUtil.getMimeType(file)
-        file
-      } else NotFound
-    }
+    (Directory.getAttachedDir(repository.owner, repository.name) match {
+      case dir if(dir.exists && dir.isDirectory) =>
+        dir.listFiles.find(_.getName.startsWith(params("file") + ".")).map { file =>
+          contentType = FileUtil.getMimeType(file.getName)
+          file
+        }
+      case _ => None
+    }) getOrElse NotFound
   })
 
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
