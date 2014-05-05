@@ -1,4 +1,7 @@
-@(active: String, repository: service.RepositoryService.RepositoryInfo, id: Option[String] = None)(body: Html)(implicit context: app.Context)
+@(active: String,
+  repository: service.RepositoryService.RepositoryInfo,
+  id: Option[String] = None,
+  expand: Boolean = false)(body: Html)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 
@@ -55,6 +58,7 @@ ul.sidemenu li {
   height: 35px;
   border-left: 1px solid #eee;
   margin-left:0px;
+  border-right: 4px solid white;
   list-style-type: none;
 }
 
@@ -62,62 +66,71 @@ ul.sidemenu li.separator {
   border-top: 1px solid #eee;
   height: 1px;
 }
+
+ul.sidemenu span.badge {
+  padding-right: 4px;
+}
 </style>
 <div class="container body">
-  <div style="width: 170px;" class="pull-right">
+  <div style="width: @if(expand){170px} else {40px};" class="pull-right">
     <ul class="sidemenu">
       <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
-      <li class="active">
-        <div class="margin pull-left"></div><a href="@url(repository)"><img src="@assets/common/images/menu-code.png"> Code</a>
+      <li @if(active=="code"){class="active"}>
+        <div class="@if(active=="code"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)"><img src="@assets/common/images/menu-code.png">@if(expand){ Code}</a>
       </li>
-      <li>
-        <div class="gradient pull-left"></div><a href="@url(repository)/issues"><img src="@assets/common/images/menu-issues.png"> Issues</a>
-        @if(repository.issueCount > 0){
+      <li @if(active=="issues"){class="active"}>
+        <div class="@if(active=="issues"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)/issues"><img src="@assets/common/images/menu-issues.png">@if(expand){ Issues}</a>
+        @if(expand && repository.issueCount > 0){
           <div class="pull-right"><span class="label">@repository.issueCount</span></div>
         }
       </li>
-      <li>
-        <div class="gradient pull-left"></div><a href="@url(repository)/pulls"><img src="@assets/common/images/menu-pulls.png"> Pull Requests</a>
-        @if(repository.pullCount > 0){
+      <li @if(active=="pulls"){class="active"}>
+        <div class="@if(active=="pulls"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)/pulls"><img src="@assets/common/images/menu-pulls.png">@if(expand){ Pull Requests}</a>
+        @if(expand && repository.pullCount > 0){
           <div class="pull-right"><span class="label">@repository.pullCount</span></div>
         }
       </li>
-      <li>
-        <div class="gradient pull-left"></div><a href="@url(repository)/wiki"><img src="@assets/common/images/menu-wiki.png"> Wiki</a>
+      <li @if(active=="wiki"){class="active"}>
+        <div class="@if(active=="wiki"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)/wiki"><img src="@assets/common/images/menu-wiki.png">@if(expand){ Wiki}</a>
       </li>
       <li class="separator"></li>
       <li>
-        <div class="gradient pull-left"></div>Settings
+        <div class="gradient pull-left"></div>@if(expand){ Settings}
       </li>
     </ul>
-    <div class="small">
-      <strong>HTTP</strong> <span class="mute">clone URL</span>
-    </div>
-    @helper.html.copy("repository-url-copy", repository.httpUrl){
-      @*
-      @if(settings.ssh && loginAccount.isDefined){
-        <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
-          <button type="button" class="btn active" id="repository-url-http">HTTP</button><button type="button" class="btn" id="repository-url-ssh">SSH</button>
-        </div>
-      } else {
-        <span class="add-on">HTTP</span>
-      }
-      *@
-      <input type="text" value="@repository.httpUrl" id="repository-url" readonly>
-    }
-    @if(settings.ssh && loginAccount.isDefined){
+    @if(expand){
       <div class="small">
-        You can clone <a href="#">HTTP</a> or <a href="#">SSH</a>.
+        <strong>HTTP</strong> <span class="mute">clone URL</span>
       </div>
+      @helper.html.copy("repository-url-copy", repository.httpUrl){
+        @*
+        @if(settings.ssh && loginAccount.isDefined){
+          <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
+            <button type="button" class="btn active" id="repository-url-http">HTTP</button><button type="button" class="btn" id="repository-url-ssh">SSH</button>
+          </div>
+        } else {
+          <span class="add-on">HTTP</span>
+        }
+        *@
+        <input type="text" value="@repository.httpUrl" id="repository-url" readonly>
+      }
+      @if(settings.ssh && loginAccount.isDefined){
+        <div class="small">
+          You can clone <a href="#">HTTP</a> or <a href="#">SSH</a>.
+        </div>
+      }
+      @id.map { id =>
+        <div>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download ZIP</a>
+        </div>
+      }
     }
-    <div>
-      @*
-      <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn"><i class="icon-download-alt"></i>Download ZIP</a>
-      *@
-      <a href="#" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download ZIP</a>
-    </div>
   </div>
-  <div style="margin-right: 180px;">
+  <div style="margin-right: @if(expand){180px} else {50px};">
     @repository.repository.description.map { description =>
       <p class="muted">@description</p>
     }
