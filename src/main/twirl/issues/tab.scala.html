@@ -1,7 +1,7 @@
 @(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs pull-left" style="width: 100%;">
   <li@if(active == "issues"){ class="active"}><a href="@url(repository)/issues">Browse Issues</a></li>
   <li@if(active == "milestones"){ class="active"}><a href="@url(repository)/issues/milestones">Milestones</a></li>
   @if(loginAccount.isDefined){

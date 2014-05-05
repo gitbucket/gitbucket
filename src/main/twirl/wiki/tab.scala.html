@@ -3,7 +3,7 @@
 @import context._
 @import service.WikiService._
 @import view.helpers._
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs pull-left" style="width: 100%;">
   <li@if(active == "home"   ){ class="active"}><a href="@url(repository)/wiki">Home</a></li>
   <li@if(active == "pages"  ){ class="active"}><a href="@url(repository)/wiki/_pages">Pages</a></li>
   <li@if(active == "history"){ class="active"}><a href="@url(repository)/wiki/_history">Wiki History</a></li>
