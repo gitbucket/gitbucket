@@ -10,7 +10,6 @@
 @import util.Implicits._
 @html.main(commit.shortMessage, Some(repository)){
   @html.menu("code", repository){
-    @tab(commitId, repository, "commits")
     <table class="table table-bordered">
       <tr>
         <th>

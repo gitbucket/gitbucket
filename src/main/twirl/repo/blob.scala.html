@@ -8,7 +8,6 @@
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
-    @tab(branch, repository, "files")
     <div class="head">
       <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
       @pathList.zipWithIndex.map { case (section, i) =>

@@ -8,7 +8,6 @@
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
-    @tab(branch, repository, if(pathList.isEmpty) "commits" else "files")
     <div class="head">
       @if(pathList.isEmpty){
         <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> / Commit History

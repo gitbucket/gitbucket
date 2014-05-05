@@ -57,38 +57,6 @@ span.header-version {
 }
 
 /* ======================================================================== */
-/* Repository Header */
-/* ======================================================================== */
-table.global-nav {
-  width: 920px;
-  margin-bottom: 10px;
-}
-
-table.global-nav th {
-  padding-top: 5px;
-  padding-bottom: 8px;
-  width: 16%;
-  border-bottom: 2px solid silver;
-  cursor: pointer;
-}
-
-table.global-nav th.active {
-  border-bottom: 2px solid #D26911;
-}
-
-table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:visited {
-  color: #333;
-  text-decoration: none;
-}
-
-div.input-prepend span.count {
-  background-color: white;
-  -webkit-border-radius: 0 4px 4px 0;
-  -moz-border-radius: 0 4px 4px 0;
-  border-radius: 0 4px 4px 0;
-}
-
-/* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
 div.head {
@@ -301,6 +269,10 @@ ul.dropdown-menu :last-child {
 
 span.highlight {
   background-color: #ffff88;
+}
+
+.fill-width {
+  width: 100%;
 }
 
 /****************************************************************************/

@@ -7,7 +7,6 @@
 @import view.helpers._
 @html.main(if(fileName.isEmpty) "New File" else s"Editing ${path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
-    @tab(branch, repository, "files")
     <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
       <span class="error" id="error-newFileName"></span>
       <div class="head">
