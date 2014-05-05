@@ -3,7 +3,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository){
+  @html.menu("code", repository){
     @if(!hasWritePermission){
       <h3>This is an empty repository</h3>
     } else {

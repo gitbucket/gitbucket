@@ -4,7 +4,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("network", repository){
+  @html.menu("network", repository){
     <ul class="nav nav-tabs">
       <li class="active"><a href="@url(repository)/network/members">Members</a></li>
     </ul>

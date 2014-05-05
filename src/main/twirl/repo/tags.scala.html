@@ -2,7 +2,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository){
+  @html.menu("code", repository){
     @tab(repository.repository.defaultBranch, repository, "tags", true)
     <h1>Tags</h1>
     <table class="table table-bordered">

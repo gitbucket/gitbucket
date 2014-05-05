@@ -12,7 +12,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("pulls", repository){
+  @html.menu("pulls", repository){
     <div class="pullreq-info">
       <div id="compare-info">
         <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>

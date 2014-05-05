@@ -12,7 +12,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"${issue.title} - Pull Request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("pulls", repository){
+  @html.menu("pulls", repository){
     @defining(dayByDayCommits.flatten){ commits =>
       <div class="pullreq-info">
         @if(issue.closed) {

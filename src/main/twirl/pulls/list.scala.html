@@ -11,7 +11,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("pulls", repository){
+  @html.menu("pulls", repository){
     <div class="row-fluid">
       <div class="span3">
         <ul class="nav nav-pills nav-stacked">

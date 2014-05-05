@@ -2,7 +2,7 @@
 @import context._
 @import view.helpers._
 @html.main("Settings", Some(repository)){
-  @html.header("settings", repository){
+  @html.menu("settings", repository){
     @menu("hooks", repository){
       @helper.html.information(info)
       <h3>WebHook URLs</h3>

@@ -5,7 +5,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("wiki", repository){
+  @html.menu("wiki", repository){
     @tab((if(pageName == "Home") "home" else ""), repository)
     <ul class="nav nav-tabs">
       <li>

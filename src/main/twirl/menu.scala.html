@@ -1,0 +1,182 @@
+@(active: String,
+  repository: service.RepositoryService.RepositoryInfo,
+  id: Option[String] = None,
+  expand: Boolean = false)(body: Html)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+
+<div class="container">
+  @if(repository.commitCount > 0){
+    <div class="pull-right">
+      <div class="input-prepend">
+        <a href="@path/@repository.owner/@repository.name/fork" class="btn" style="margin-bottom: 10px;">Fork</a>
+        <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+      </div>
+    </div>
+  }
+  <div class="head">
+    @helper.html.repositoryicon(repository, true)
+    <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+
+    @defining(repository.repository){ x =>
+      @if(repository.repository.originRepositoryName.isDefined){
+        <div class="forked">
+          forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+        </div>
+      }
+    }
+  </div>
+</div>
+<hr style="margin-bottom: 20px;"/>
+<style type="text/css">
+ul.sidemenu {
+  margin-left: 0px;
+}
+
+ul.sidemenu li.active {
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  border-right: 2px solid #bb4444;
+  border-left: 1px solid white;
+}
+
+ul.sidemenu div.gradient {
+  width: 5px;
+  height: 35px;
+  background: linear-gradient(to right, #eee, #fff);
+  margin-right: 4px;
+}
+
+ul.sidemenu div.margin {
+  width: 5px;
+  height: 35px;
+  margin-right: 4px;
+}
+
+ul.sidemenu li {
+  line-height: 35px;
+  height: 35px;
+  border-left: 1px solid #eee;
+  margin-left:0px;
+  border-right: 2px solid white;
+  list-style-type: none;
+}
+
+ul.sidemenu span.badge {
+  padding-right: 4px;
+}
+</style>
+<div class="container body">
+  <div style="width: @if(expand){170px} else {40px};" class="pull-right">
+    <ul class="sidemenu">
+      <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
+      <li @if(active=="code"){class="active"}>
+        <div class="@if(active=="code"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}><img src="@assets/common/images/menu-code.png">@if(expand){ Code}</a>
+      </li>
+      <li @if(active=="issues"){class="active"}>
+        <div class="@if(active=="issues"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)/issues" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Issues"}><img src="@assets/common/images/menu-issues.png">@if(expand){ Issues}</a>
+        @if(expand && repository.issueCount > 0){
+          <div class="pull-right"><span class="label">@repository.issueCount</span></div>
+        }
+      </li>
+      <li @if(active=="pulls"){class="active"}>
+        <div class="@if(active=="pulls"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)/pulls" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Pull Requests"}><img src="@assets/common/images/menu-pulls.png">@if(expand){ Pull Requests}</a>
+        @if(expand && repository.pullCount > 0){
+          <div class="pull-right"><span class="label">@repository.pullCount</span></div>
+        }
+      </li>
+      <li @if(active=="wiki"){class="active"}>
+        <div class="@if(active=="wiki"){margin} else {gradient} pull-left"></div>
+        <a href="@url(repository)/wiki" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Wiki"}><img src="@assets/common/images/menu-wiki.png">@if(expand){ Wiki}</a>
+      </li>
+      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+        <li @if(active=="settings"){class="active"}>
+          <div class="@if(active=="settings"){margin} else {gradient} pull-left"></div>
+          <a href="@url(repository)/settings" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Settings"}><img src="@assets/common/images/menu-settings.png">@if(expand){ Settings}</a>
+        </li>
+      }
+      <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
+    </ul>
+    @if(expand){
+      <div class="small">
+        <strong>HTTP</strong> <span class="mute">clone URL</span>
+      </div>
+      @helper.html.copy("repository-url-copy", repository.httpUrl){
+        @*
+        @if(settings.ssh && loginAccount.isDefined){
+          <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
+            <button type="button" class="btn active" id="repository-url-http">HTTP</button><button type="button" class="btn" id="repository-url-ssh">SSH</button>
+          </div>
+        } else {
+          <span class="add-on">HTTP</span>
+        }
+        *@
+        <input type="text" value="@repository.httpUrl" id="repository-url" readonly>
+      }
+      @if(settings.ssh && loginAccount.isDefined){
+        <div class="small">
+          You can clone <a href="#">HTTP</a> or <a href="#">SSH</a>.
+        </div>
+      }
+      @id.map { id =>
+        <div>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download ZIP</a>
+        </div>
+      }
+    }
+  </div>
+  <div style="margin-right: @if(expand){180px} else {50px};">
+    <style type="text/css">
+    a.header-link {
+      color: #888;
+    }
+    a.header-link strong {
+      color: black;
+    }
+    a.header-link:hover {
+      color: #0088cc;
+      text-decoration: none;
+    }
+    </style>
+    @if(expand){
+      @repository.repository.description.map { description =>
+        <p class="muted">@description</p>
+      }
+      <div style="border: 1px solid silver; padding: 4px; margin-bottom: 10px;">
+        <table style="width: 100%;">
+          <tr>
+            <td style="width: 33%; text-align: center;">
+              <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
+                <img src="@assets/common/images/header-commits.png"/> <strong>@repository.commitCount</strong> commits
+              </a>
+            </td>
+            <td style="width: 33%; text-align: center;">
+              <a href="@url(repository)/branches" class="header-link" class="header-link">
+                <img src="@assets/common/images/header-branches.png"/> <strong>@repository.branchList.length</strong> branches
+              </a>
+            </td>
+            <td style="width: 33%; text-align: center;">
+              <a href="@url(repository)/tags" class="header-link" class="header-link">
+                <img src="@assets/common/images/header-tags.png"/> <strong>@repository.tags.length</strong> releases
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+    }
+    @body
+  </div>
+</div>
+@*
+<script type="text/javascript">
+$(function(){
+  $('table.global-nav th.box-header').click(function(){
+    location.href = $(this).find('a').attr('href');
+    return false;
+  });
+});
+</script>
+*@

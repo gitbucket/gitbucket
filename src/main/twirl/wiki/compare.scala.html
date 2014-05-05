@@ -10,7 +10,7 @@
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @html.main(s"Compare Revisions - ${repository.owner}/${repository.name}", Some(repository)){
   @helper.html.information(info)
-  @html.header("wiki", repository){
+  @html.menu("wiki", repository){
     @tab("history", repository)
     <ul class="nav nav-tabs">
       <li>

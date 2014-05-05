@@ -9,7 +9,7 @@
 @import view.helpers._
 @import util.Implicits._
 @html.main(commit.shortMessage, Some(repository)){
-  @html.header("code", repository){
+  @html.menu("code", repository){
     @tab(commitId, repository, "commits")
     <table class="table table-bordered">
       <tr>

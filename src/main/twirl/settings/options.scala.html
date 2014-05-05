@@ -2,7 +2,7 @@
 @import context._
 @import view.helpers._
 @html.main("Settings", Some(repository)){
-  @html.header("settings", repository){
+  @html.menu("settings", repository){
     @menu("options", repository){
       @helper.html.information(info)
       <form id="form" method="post" action="@url(repository)/settings/options" validate="true">

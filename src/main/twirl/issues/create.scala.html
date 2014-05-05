@@ -6,7 +6,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("issues", repository){
+  @html.menu("issues", repository){
     @tab("", repository)
     <form action="@url(repository)/issues/new" method="POST" validate="true">
     <div class="row-fluid">
