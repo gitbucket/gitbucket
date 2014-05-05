@@ -3,6 +3,7 @@
 /****************************************************************************/
 body {
   color: #333;
+  line-height: 100%;
 }
 
 li p {
@@ -122,7 +123,7 @@ span.error {
 }
 
 .small {
-  font-size: 85%;
+  font-size: 80%;
 }
 
 .strong {
@@ -436,6 +437,7 @@ table.table-file-list td {
 th, td, .table th, .table td {
   padding-top: 4px;
   padding-bottom: 4px;
+  line-height: 100%;
 }
 
 div.commit-avatar-image {
@@ -458,7 +460,16 @@ pre.commit-description {
 #repository-url {
   background-color: white;
   cursor: default;
-  width: 300px;
+  height: 16px;
+  width: 129px;
+  color: silver;
+  font-size: 9pt;
+  font-family: monospace;
+}
+
+#repository-url-copy {
+  height: 18px;
+  padding-top: 2px;
 }
 
 ul#commit-file-list {

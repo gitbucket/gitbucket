@@ -5,26 +5,27 @@
 @import context._
 @import view.helpers._
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("wiki", repository)
-  @tab((if(pageName == "Home") "home" else ""), repository)
-  <ul class="nav nav-tabs">
-    <li>
-      <h1 class="wiki-title">@pageName</h1>
-    </li>
-    <li class="pull-right">
-      <div class="btn-group">
-        @if(hasWritePermission){
-          <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
-          <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
-        }
-        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
-      </div>
-    </li>
-  </ul>
-  <div class="markdown-body">
-    @markdown(page.content, repository, true, false)
-  </div>
-  <div class="small">
-    <span class="muted">Last edited by @page.committer at @datetime(page.time)</span>
-  </div>
+  @html.header("wiki", repository){
+    @tab((if(pageName == "Home") "home" else ""), repository)
+    <ul class="nav nav-tabs">
+      <li>
+        <h1 class="wiki-title">@pageName</h1>
+      </li>
+      <li class="pull-right">
+        <div class="btn-group">
+          @if(hasWritePermission){
+            <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
+            <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+          }
+          <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
+        </div>
+      </li>
+    </ul>
+    <div class="markdown-body">
+      @markdown(page.content, repository, true, false)
+    </div>
+    <div class="small">
+      <span class="muted">Last edited by @page.committer at @datetime(page.time)</span>
+    </div>
+  }
 }

@@ -8,7 +8,7 @@
   <li@if(active == "pages"  ){ class="active"}><a href="@url(repository)/wiki/_pages">Pages</a></li>
   <li@if(active == "history"){ class="active"}><a href="@url(repository)/wiki/_history">Wiki History</a></li>
   <li class="pull-right">
-    @helper.html.copy("repository-url-copy", httpUrl(repository), true){
+    @helper.html.copy("repository-url-copy", httpUrl(repository)){
       @if(settings.ssh && loginAccount.isDefined){
         <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
           <button type="button" class="btn active" id="repository-url-http">HTTP</button><button type="button" class="btn" id="repository-url-ssh">SSH</button>

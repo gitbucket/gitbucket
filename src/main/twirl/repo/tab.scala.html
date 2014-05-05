@@ -2,6 +2,7 @@
   hideBranchPulldown: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._
+@*
 <ul class="nav nav-tabs">
   @if(!hideBranchPulldown){
   <li>
@@ -22,7 +23,7 @@
   <li@if(active=="branches"){ class="active"}><a href="@url(repository)/branches">Branches@if(repository.branchList.length > 0){ <span class="badge">@repository.branchList.length</span>}</a></li>
   <li@if(active=="tags"    ){ class="active"}><a href="@url(repository)/tags">Tags@if(repository.tags.length > 0){ <span class="badge">@repository.tags.length</span>}</a></li>
   <li class="pull-right">
-    @helper.html.copy("repository-url-copy", repository.httpUrl, true){
+    @helper.html.copy("repository-url-copy", repository.httpUrl){
       @if(settings.ssh && loginAccount.isDefined){
         <div class="btn-group add-on" data-toggle="buttons-radio" style="padding: 0px; border-width: 0px;">
           <button type="button" class="btn active" id="repository-url-http">HTTP</button><button type="button" class="btn" id="repository-url-ssh">SSH</button>
@@ -39,6 +40,7 @@
     </div>
   </li>
 </ul>
+*@
 @if(settings.ssh && loginAccount.isDefined){
 <script>
 $(function(){
