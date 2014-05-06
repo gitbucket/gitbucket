@@ -6,35 +6,37 @@
 @import context._
 @import view.helpers._
 @html.main("Your Issues"){
-@dashboard.html.tab("pulls")
-<div class="row-fluid">
-  <div class="span3">
-    <ul class="nav nav-pills nav-stacked">
-      <li@if(filter == "created_by"){ class="active"}>
-        <a href="@path/dashboard/pulls/owned@condition.toURL">
-          <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count).getOrElse(0)</span>
-          Yours
-        </a>
-      </li>
-      <li@if(filter == "not_created_by"){ class="active"}>
-        <a href="@path/dashboard/pulls/public@condition.toURL">
-          <span class="count-right">@counts.filter(_.userName != loginAccount.get.userName).map(_.count).sum</span>
-          Public
-        </a>
-      </li>
-    </ul>
-    <hr/>
-    <ul class="nav nav-pills nav-stacked small">
-      @repositories.map { case (owner, name, count) =>
-      <li@if(condition.repo == Some(owner + "/" + name)){ class="active"}>
-        <a href="@path/dashboard/pulls/for/@owner/@name">
-          <span class="count-right">@count</span>
-          @owner/@name
-        </a>
-      </li>
-      }
-    </ul>
+<div class="container">
+  @dashboard.html.tab("pulls")
+  <div class="row-fluid">
+    <div class="span3">
+      <ul class="nav nav-pills nav-stacked">
+        <li@if(filter == "created_by"){ class="active"}>
+          <a href="@path/dashboard/pulls/owned@condition.toURL">
+            <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count).getOrElse(0)</span>
+            Yours
+          </a>
+        </li>
+        <li@if(filter == "not_created_by"){ class="active"}>
+          <a href="@path/dashboard/pulls/public@condition.toURL">
+            <span class="count-right">@counts.filter(_.userName != loginAccount.get.userName).map(_.count).sum</span>
+            Public
+          </a>
+        </li>
+      </ul>
+      <hr/>
+      <ul class="nav nav-pills nav-stacked small">
+        @repositories.map { case (owner, name, count) =>
+        <li@if(condition.repo == Some(owner + "/" + name)){ class="active"}>
+          <a href="@path/dashboard/pulls/for/@owner/@name">
+            <span class="count-right">@count</span>
+            @owner/@name
+          </a>
+        </li>
+        }
+      </ul>
+    </div>
+    @listparts
   </div>
-  @listparts
 </div>
 }

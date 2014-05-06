@@ -4,67 +4,68 @@
 @import context._
 @import view.helpers._
 @main("GitBucket"){
-@dashboard.html.tab()
-<div class="row-fluid">
-  <div class="span8">
-    @helper.html.activities(activities)
-  </div>
-  <div class="span4">
-    @if(loginAccount.isEmpty){
-      @signinform(settings)
-    } else {
-      <table class="table table-bordered">
-        <tr>
-          <th class="metal">
-            <div class="pull-right">
-              <a href="@path/new" class="btn btn-success btn-mini">New repository</a>
-            </div>
-            Your repositories (@userRepositories.size)
-          </th>
-        </tr>
-        @if(userRepositories.isEmpty){
-          <tr>
-            <td>No repositories</td>
-          </tr>
+  <div class="container">
+    @dashboard.html.tab()
+    <div class="row-fluid">
+      <div class="span8">
+        @helper.html.activities(activities)
+      </div>
+      <div class="span4">
+        @if(loginAccount.isEmpty){
+          @signinform(settings)
         } else {
-          @userRepositories.map { repository =>
+          <table class="table table-bordered">
             <tr>
-              <td>
-                @helper.html.repositoryicon(repository, false)
-                @if(repository.owner == loginAccount.get.userName){
-                  <a href="@url(repository)"><span class="strong">@repository.name</span></a>
-                } else {
-                  <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
-                }
-              </td>
+              <th class="metal">
+                <div class="pull-right">
+                  <a href="@path/new" class="btn btn-success btn-mini">New repository</a>
+                </div>
+                Your repositories (@userRepositories.size)
+              </th>
             </tr>
-          }
+            @if(userRepositories.isEmpty){
+              <tr>
+                <td>No repositories</td>
+              </tr>
+            } else {
+              @userRepositories.map { repository =>
+                <tr>
+                  <td>
+                    @helper.html.repositoryicon(repository, false)
+                    @if(repository.owner == loginAccount.get.userName){
+                      <a href="@url(repository)"><span class="strong">@repository.name</span></a>
+                    } else {
+                      <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </table>
         }
-      </table>
-    }
-    
-    <table class="table table-bordered">
-      <tr>
-        <th class="metal">
-          Recent updated repositories
-        </th>
-      </tr>
-      @if(recentRepositories.isEmpty){2
-        <tr>
-          <td>No repositories</td>
-        </tr>
-      } else {
-        @recentRepositories.map { repository =>
-          <tr>
-            <td>
-              @helper.html.repositoryicon(repository, false)
-              <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
-            </td>
-          </tr>
-        }
-      }
-    </table>
-  </div>
 
-</div>
+        <table class="table table-bordered">
+          <tr>
+            <th class="metal">
+              Recent updated repositories
+            </th>
+          </tr>
+          @if(recentRepositories.isEmpty){2
+            <tr>
+              <td>No repositories</td>
+            </tr>
+          } else {
+            @recentRepositories.map { repository =>
+              <tr>
+                <td>
+                  @helper.html.repositoryicon(repository, false)
+                  <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
+                </td>
+              </tr>
+            }
+          }
+        </table>
+      </div>
+    </div>
+  </div>
 }
