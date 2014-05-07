@@ -72,30 +72,30 @@ ul.sidemenu span.badge {
       <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
       <li @if(active=="code"){class="active"}>
         <div class="@if(active=="code"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}><img src="@assets/common/images/menu-code.png">@if(expand){ Code}</a>
+        <a href="@url(repository)"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}*@><img src="@assets/common/images/menu-code.png">@if(expand){ Code}</a>
       </li>
       <li @if(active=="issues"){class="active"}>
         <div class="@if(active=="issues"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)/issues" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Issues"}><img src="@assets/common/images/menu-issues.png">@if(expand){ Issues}</a>
+        <a href="@url(repository)/issues"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Issues"}*@><img src="@assets/common/images/menu-issues.png">@if(expand){ Issues}</a>
         @if(expand && repository.issueCount > 0){
           <div class="pull-right"><span class="label">@repository.issueCount</span></div>
         }
       </li>
       <li @if(active=="pulls"){class="active"}>
         <div class="@if(active=="pulls"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)/pulls" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Pull Requests"}><img src="@assets/common/images/menu-pulls.png">@if(expand){ Pull Requests}</a>
+        <a href="@url(repository)/pulls"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Pull Requests"}*@><img src="@assets/common/images/menu-pulls.png">@if(expand){ Pull Requests}</a>
         @if(expand && repository.pullCount > 0){
           <div class="pull-right"><span class="label">@repository.pullCount</span></div>
         }
       </li>
       <li @if(active=="wiki"){class="active"}>
         <div class="@if(active=="wiki"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)/wiki" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Wiki"}><img src="@assets/common/images/menu-wiki.png">@if(expand){ Wiki}</a>
+        <a href="@url(repository)/wiki"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Wiki"}*@><img src="@assets/common/images/menu-wiki.png">@if(expand){ Wiki}</a>
       </li>
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         <li @if(active=="settings"){class="active"}>
           <div class="@if(active=="settings"){margin} else {gradient} pull-left"></div>
-          <a href="@url(repository)/settings" @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Settings"}><img src="@assets/common/images/menu-settings.png">@if(expand){ Settings}</a>
+          <a href="@url(repository)/settings"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Settings"}*@><img src="@assets/common/images/menu-settings.png">@if(expand){ Settings}</a>
         </li>
       }
       <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
