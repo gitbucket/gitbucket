@@ -45,12 +45,14 @@ ul.sidemenu div.gradient {
   height: 35px;
   background: linear-gradient(to right, #eee, #fff);
   margin-right: 4px;
+  border-left: 1px solid #eee;
 }
 
 ul.sidemenu div.margin {
   width: 5px;
   height: 35px;
   margin-right: 4px;
+  border-left: 1px solid white;
 }
 
 ul.sidemenu li {
@@ -66,6 +68,16 @@ ul.sidemenu span.badge {
   padding-right: 4px;
 }
 </style>
+<script>
+$(function(){
+  $('ul.sidemenu a').mouseover(function(e){
+    $(e.target).prev('div.gradient').css('border-left', '1px solid silver');
+  });
+  $('ul.sidemenu a').mouseout(function(e){
+    $(e.target).prev('div.gradient').css('border-left', '1px solid #eee');
+  });
+});
+</script>
 <div class="container body">
   <div style="width: @if(expand){170px} else {40px};" class="pull-right">
     <ul class="sidemenu">
