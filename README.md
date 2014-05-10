@@ -8,7 +8,7 @@ Features
 --------
 The current version of GitBucket provides a basic features below:
 
-- Public / Private Git repository (http access only)
+- Public / Private Git repository (http and ssh access)
 - Repository viewer and online file editing
 - Repository search (Code and Issues)
 - Wiki
