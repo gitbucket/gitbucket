@@ -7,7 +7,7 @@
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
     @tab((if(pageName == "Home") "home" else ""), repository)
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title">@pageName</h1>
       </li>

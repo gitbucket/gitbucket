@@ -6,7 +6,7 @@
 @html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
     @tab(if(pageName.isEmpty) "history" else "", repository)
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title">
           @if(pageName.isEmpty){

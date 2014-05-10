@@ -6,7 +6,7 @@
 @html.main(s"${if(pageName.isEmpty) "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
     @tab("", repository)
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
       </li>
