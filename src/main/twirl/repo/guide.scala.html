@@ -13,13 +13,13 @@
     git init
     git add README.md
     git commit -m "first commit"
-    git remote add origin @repository.httpUrl
+    git remote add origin @if(settings.ssh) {@repository.sshUrl(settings, loginAccount.get.userName)} else {@repository.httpUrl}
     git push -u origin master
     </pre>
 
     <h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
     <pre>
-    git remote add origin @repository.httpUrl
+    git remote add origin @if(settings.ssh) {@repository.sshUrl(settings, loginAccount.get.userName)} else {@repository.httpUrl}
     git push -u origin master
     </pre>
   }
