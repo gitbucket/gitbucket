@@ -12,42 +12,43 @@
 @import context._
 @import view.helpers._
 @html.main(s"${issue.title} - Pull Request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("pulls", repository)
-  @defining(dayByDayCommits.flatten){ commits =>
-    <div class="pullreq-info">
-      @if(issue.closed) {
-        @comments.find(_.action == "merge").map{ comment =>
-          <span class="label label-info">Merged</span>
-          @user(comment.commentedUserName, styleClass="username strong") merged @commits.size @plural(commits.size, "commit")
-          into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
-          at @datetime(comment.registeredDate)
-        }.getOrElse {
-          <span class="label label-important">Closed</span>
+  @html.menu("pulls", repository){
+    @defining(dayByDayCommits.flatten){ commits =>
+      <div class="pullreq-info">
+        @if(issue.closed) {
+          @comments.find(_.action == "merge").map{ comment =>
+            <span class="label label-info">Merged</span>
+            @user(comment.commentedUserName, styleClass="username strong") merged @commits.size @plural(commits.size, "commit")
+            into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+            at @datetime(comment.registeredDate)
+          }.getOrElse {
+            <span class="label label-important">Closed</span>
+            @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
+            into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+          }
+        } else {
+          <span class="label label-success">Open</span>
           @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
           into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
         }
-      } else {
-        <span class="label label-success">Open</span>
-        @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
-        into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
-      }
-    </div>
-    <ul class="nav nav-tabs" id="pullreq-tab">
-      <li class="active"><a href="#discussion">Discussion</a></li>
-      <li><a href="#commits">Commits <span class="badge">@commits.size</span></a></li>
-      <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
-    </ul>
-    <div class="tab-content">
-      <div class="tab-pane active" id="discussion">
-        @pulls.html.discussion(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
       </div>
-      <div class="tab-pane" id="commits">
-        @pulls.html.commits(dayByDayCommits, repository)
+      <ul class="nav nav-tabs" id="pullreq-tab">
+        <li class="active"><a href="#discussion">Discussion</a></li>
+        <li><a href="#commits">Commits <span class="badge">@commits.size</span></a></li>
+        <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="discussion">
+          @pulls.html.discussion(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+        </div>
+        <div class="tab-pane" id="commits">
+          @pulls.html.commits(dayByDayCommits, repository)
+        </div>
+        <div class="tab-pane" id="files">
+          @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true)
+        </div>
       </div>
-      <div class="tab-pane" id="files">
-        @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true)
-      </div>
-    </div>
+    }
   }
 }
 <script>

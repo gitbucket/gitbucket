@@ -6,62 +6,62 @@
 @import context._
 @import view.helpers._
 @html.main(if(fileName.isEmpty) "New File" else s"Editing ${path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository)
-  @tab(branch, repository, "files")
-  <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
-    <span class="error" id="error-newFileName"></span>
-    <div class="head">
-      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-      @pathList.zipWithIndex.map { case (section, i) =>
-        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
-      }
-      <input type="text" name="newFileName" id="newFileName" placeholder="Name your file..." value="@fileName"/>
-      <input type="hidden" name="oldFileName" id="oldFileName" value="@fileName"/>
-      <input type="hidden" name="branch" id="branch" value="@branch"/>
-      <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
-    </div>
-    <table class="table table-bordered">
-      <tr>
-        <th>
-          <div class="pull-right">
-            <select id="wrap" class="input-medium" style="margin-bottom: 0px;">
-              <optgroup label="Line Wrap Mode">
-                <option value="false">No wrap</option>
-                <option value="true">Soft wrap</option>
-              </optgroup>
-            </select>
+  @html.menu("code", repository){
+    <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
+      <span class="error" id="error-newFileName"></span>
+      <div class="head">
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
+        <input type="text" name="newFileName" id="newFileName" placeholder="Name your file..." value="@fileName"/>
+        <input type="hidden" name="oldFileName" id="oldFileName" value="@fileName"/>
+        <input type="hidden" name="branch" id="branch" value="@branch"/>
+        <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
+      </div>
+      <table class="table table-bordered">
+        <tr>
+          <th>
+            <div class="pull-right">
+              <select id="wrap" class="input-medium" style="margin-bottom: 0px;">
+                <optgroup label="Line Wrap Mode">
+                  <option value="false">No wrap</option>
+                  <option value="true">Soft wrap</option>
+                </optgroup>
+              </select>
+            </div>
+          </th>
+        </tr>
+        <tr>
+          <td>
+            <div id="editor" style="width: 100%; height: 600px;"></div>
+          </td>
+        </tr>
+      </table>
+      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+        <div class="box issue-comment-box">
+        <div class="box-content">
+          <div>
+            <strong>Commit changes</strong>
           </div>
-        </th>
-      </tr>
-      <tr>
-        <td>
-          <div id="editor" style="width: 100%; height: 600px;"></div>
-        </td>
-      </tr>
-    </table>
-    <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
-      <div class="box issue-comment-box">
-      <div class="box-content">
-        <div>
-          <strong>Commit changes</strong>
-        </div>
-        <div>
-          <input type="text" name="message" style="width: 98%;"/>
-        </div>
-        <div style="text-align: right;">
-          @if(fileName.isEmpty){
-            <a href="@url(repository)/tree/@encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
-          } else {
-            <a href="@url(repository)/blob/@encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
-          }
-          <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
-          <input type="hidden" id="charset" name="charset" value="@content.charset"/>
-          <input type="hidden" id="content" name="content" value=""/>
-          <input type="hidden" id="initial" value="@content.content"/>
+          <div>
+            <input type="text" name="message" style="width: 98%;"/>
+          </div>
+          <div style="text-align: right;">
+            @if(fileName.isEmpty){
+              <a href="@url(repository)/tree/@encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
+            } else {
+              <a href="@url(repository)/blob/@encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
+            }
+            <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
+            <input type="hidden" id="charset" name="charset" value="@content.charset"/>
+            <input type="hidden" id="content" name="content" value=""/>
+            <input type="hidden" id="initial" value="@content.content"/>
+          </div>
         </div>
       </div>
-    </div>
-  </form>
+    </form>
+  }
 }
 <script src="@assets/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 <script>

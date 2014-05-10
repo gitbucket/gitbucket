@@ -2,6 +2,7 @@
 @import context._
 @import view.helpers._
 @html.main("Create your account"){
+<div class="container">
   <h3>Create your account</h3>
   <form action="@path/register" method="POST" validate="true">
     <div class="row-fluid">
@@ -45,4 +46,5 @@
       <input type="submit" class="btn btn-success" value="Create account"/>
     </fieldset>
   </form>
+</div>
 }

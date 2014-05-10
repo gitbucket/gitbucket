@@ -4,31 +4,32 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("network", repository)
-  <ul class="nav nav-tabs">
-    <li class="active"><a href="@url(repository)/network/members">Members</a></li>
-  </ul>
-  <h3>Members of the @repository.name Network</h3>
-  <div class="block">
-    @if(originRepository.isDefined){
-      @avatar(originRepository.get.owner, 20)
-      <span@if(repository.owner == originRepository.get.owner){ class="highlight"}>
-        <a href="@url(originRepository.get)">@originRepository.get.owner</a> / <a href="@path/@originRepository.get.owner/@originRepository.get.name">@originRepository.get.name</a>
-      </span>
-    } else {
-      @avatar(repository.repository.originUserName.get, 20)
-      <span class="highlight">
-        @repository.repository.originUserName / @repository.repository.originRepositoryName
-      </span>
-    }
-    (origin)
-  </div>
-  @members.map { case (owner, name) =>
+  @html.menu("network", repository){
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="@url(repository)/network/members">Members</a></li>
+    </ul>
+    <h3>Members of the @repository.name Network</h3>
     <div class="block">
-      @avatar(owner, 20)
-      <span@if(repository.owner == owner){ class="highlight"}>
-        <a href="@url(owner)">@owner</a> / <a href="@path/@owner/@name">@name</a>
-      </span>
+      @if(originRepository.isDefined){
+        @avatar(originRepository.get.owner, 20)
+        <span@if(repository.owner == originRepository.get.owner){ class="highlight"}>
+          <a href="@url(originRepository.get)">@originRepository.get.owner</a> / <a href="@path/@originRepository.get.owner/@originRepository.get.name">@originRepository.get.name</a>
+        </span>
+      } else {
+        @avatar(repository.repository.originUserName.get, 20)
+        <span class="highlight">
+          @repository.repository.originUserName / @repository.repository.originRepositoryName
+        </span>
+      }
+      (origin)
     </div>
+    @members.map { case (owner, name) =>
+      <div class="block">
+        @avatar(owner, 20)
+        <span@if(repository.owner == owner){ class="highlight"}>
+          <a href="@url(owner)">@owner</a> / <a href="@path/@owner/@name">@name</a>
+        </span>
+      </div>
+    }
   }
 }

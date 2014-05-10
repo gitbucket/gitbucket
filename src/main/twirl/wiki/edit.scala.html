@@ -4,31 +4,31 @@
 @import context._
 @import view.helpers._
 @html.main(s"${if(pageName.isEmpty) "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("wiki", repository)
-  @tab("", repository)
-  <ul class="nav nav-tabs">
-    <li>
-      <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
-    </li>
-    <li class="pull-right">
-      <div class="btn-group">
-      @if(page.isDefined){
-        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
-        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_delete" id="delete">Delete Page</a>
-        <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
-      }
-      </div>
-    </li>
-  </ul>
-  <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
-    <span id="error-pageName" class="error"></span>
-    <input type="text" name="pageName" value="@pageName" style="width: 900px; font-weight: bold;" placeholder="Input a page name."/>
-    @helper.html.preview(repository, page.map(_.content).getOrElse(""), true, false, "width: 900px; height: 400px;", "")
-    <input type="text" name="message" value="" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
-    <input type="hidden" name="currentPageName" value="@pageName"/>
-    <input type="hidden" name="id" value="@page.map(_.id)"/>
-    <input type="submit" value="Save" class="btn btn-success">
-  </form>
+  @html.menu("wiki", repository){
+    <ul class="nav nav-tabs fill-width pull-left">
+      <li>
+        <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
+      </li>
+      <li class="pull-right">
+        <div class="btn-group">
+        @if(page.isDefined){
+          <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
+          <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_delete" id="delete">Delete Page</a>
+          <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
+        }
+        </div>
+      </li>
+    </ul>
+    <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
+      <span id="error-pageName" class="error"></span>
+      <input type="text" name="pageName" value="@pageName" style="width: 850px; font-weight: bold;" placeholder="Input a page name."/>
+      @helper.html.preview(repository, page.map(_.content).getOrElse(""), true, false, "width: 850px; height: 400px;", "")
+      <input type="text" name="message" value="" style="width: 850px;" placeholder="Write a small message here explaining this change. (Optional)"/>
+      <input type="hidden" name="currentPageName" value="@pageName"/>
+      <input type="hidden" name="id" value="@page.map(_.id)"/>
+      <input type="submit" value="Save" class="btn btn-success">
+    </form>
+  }
 }
 <script>
 $(function(){

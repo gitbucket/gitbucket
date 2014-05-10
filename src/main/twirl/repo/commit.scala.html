@@ -9,68 +9,68 @@
 @import view.helpers._
 @import util.Implicits._
 @html.main(commit.shortMessage, Some(repository)){
-  @html.header("code", repository)
-  @tab(commitId, repository, "commits")
-  <table class="table table-bordered">
-    <tr>
-      <th>
-        <div class="pull-right align-right">
-          <a href="@url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
-        </div>
-        <div class="commit-log">@link(commit.summary, repository)</div>
-        @if(commit.description.isDefined){
-          <pre class="commit-description">@link(commit.description.get, repository)</pre>
-        }
-        <div class="small" style="font-weight: normal;">
-          @if(branches.nonEmpty){
-            <span class="muted">
-              <img src="@assets/common/images/branch.png"/>
-              @branches.zipWithIndex.map { case (branch, i) =>
-                <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
-              }
-            </span>
-          }
-          @if(tags.nonEmpty){
-            <span class="muted">
-              <img src="@assets/common/images/tag.png"/>
-              @tags.zipWithIndex.map { case (tag, i) =>
-                <a href="@url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
-              }
-            </span>
-          }
-        </div>
-      </th>
-    </tr>
-    <tr>
-      <td>
-        @avatar(commit, 20)
-        @user(commit.committer, commit.mailAddress, "username strong")
-        <span class="muted">@datetime(commit.time)</span>
-        <div class="pull-right monospace small" style="text-align: right;">
-          <div>
-            @if(commit.parents.size == 0){
-              <span class="muted">0 parent</span>
-            }
-            @if(commit.parents.size == 1){
-              <span class="muted">1 parent</span>
-              <a href="@url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
-            }
-            <span class="muted">commit</span> @commit.id
+  @html.menu("code", repository){
+    <table class="table table-bordered">
+      <tr>
+        <th>
+          <div class="pull-right align-right">
+            <a href="@url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
           </div>
-          @if(commit.parents.size > 1){
-            <div>
-              <span class="muted">@commit.parents.size parents
-              @commit.parents.map { parent =>
-                <a href="@url(repository)/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
-              }.mkHtml(" + ")
-              </span>
-            </div>
+          <div class="commit-log">@link(commit.summary, repository)</div>
+          @if(commit.description.isDefined){
+            <pre class="commit-description">@link(commit.description.get, repository)</pre>
           }
-        </div>
-      </td>
-    </tr>
-  </table>
-  @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true)
+          <div class="small" style="font-weight: normal;">
+            @if(branches.nonEmpty){
+              <span class="muted">
+                <img src="@assets/common/images/branch.png"/>
+                @branches.zipWithIndex.map { case (branch, i) =>
+                  <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
+                }
+              </span>
+            }
+            @if(tags.nonEmpty){
+              <span class="muted">
+                <img src="@assets/common/images/tag.png"/>
+                @tags.zipWithIndex.map { case (tag, i) =>
+                  <a href="@url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
+                }
+              </span>
+            }
+          </div>
+        </th>
+      </tr>
+      <tr>
+        <td>
+          @avatar(commit, 20)
+          @user(commit.committer, commit.mailAddress, "username strong")
+          <span class="muted">@datetime(commit.time)</span>
+          <div class="pull-right monospace small" style="text-align: right;">
+            <div>
+              @if(commit.parents.size == 0){
+                <span class="muted">0 parent</span>
+              }
+              @if(commit.parents.size == 1){
+                <span class="muted">1 parent</span>
+                <a href="@url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
+              }
+              <span class="muted">commit</span> @commit.id
+            </div>
+            @if(commit.parents.size > 1){
+              <div>
+                <span class="muted">@commit.parents.size parents
+                @commit.parents.map { parent =>
+                  <a href="@url(repository)/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
+                }.mkHtml(" + ")
+                </span>
+              </div>
+            }
+          </div>
+        </td>
+      </tr>
+    </table>
+    @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true)
+  }
 }
 <script>
 $(function(){

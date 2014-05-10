@@ -2,36 +2,37 @@
   repository: service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.header("", repository)
-<div class="row-fluid">
-  <div class="span3">
-    <div class="box">
-      <ul class="nav nav-tabs nav-stacked side-menu">
-        <li@if(active=="code"){ class="active"}>
-          <a href="@url(repository)/search?q=@urlEncode(query)&type=code">
-            @if(fileCount != 0){
-              <span class="badge pull-right">@fileCount</span>
-            }
-            Code
-          </a>
-        </li>
-        <li@if(active=="issue"){ class="active"}>
-          <a href="@url(repository)/search?q=@urlEncode(query)&type=issue">
-            @if(issueCount != 0){
-              <span class="badge pull-right">@issueCount</span>
-            }
-            Issue
-          </a>
-        </li>
-      </ul>
+@html.menu("", repository){
+  <div class="row-fluid">
+    <div class="span3">
+      <div class="box">
+        <ul class="nav nav-tabs nav-stacked side-menu">
+          <li@if(active=="code"){ class="active"}>
+            <a href="@url(repository)/search?q=@urlEncode(query)&type=code">
+              @if(fileCount != 0){
+                <span class="badge pull-right">@fileCount</span>
+              }
+              Code
+            </a>
+          </li>
+          <li@if(active=="issue"){ class="active"}>
+            <a href="@url(repository)/search?q=@urlEncode(query)&type=issue">
+              @if(issueCount != 0){
+                <span class="badge pull-right">@issueCount</span>
+              }
+              Issue
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="span9">
+      <form action="@url(repository)/search" method="GET">
+        <input type="text" name="q" value="@query" style="width: 80%; margin-bottom: 0px;"/>
+        <input type="submit" value="Search" class="btn" style="width: 15%;"/>
+        <input type="hidden" name="type" value="@active"/>
+      </form>
+      @body
     </div>
   </div>
-  <div class="span9">
-    <form action="@url(repository)/search" method="GET">
-      <input type="text" name="q" value="@query" style="width: 80%; margin-bottom: 0px;"/>
-      <input type="submit" value="Search" class="btn" style="width: 15%;"/>
-      <input type="hidden" name="type" value="@active"/>
-    </form>
-    @body
-  </div>
-</div>
+}

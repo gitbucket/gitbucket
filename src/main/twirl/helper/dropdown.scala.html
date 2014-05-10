@@ -1,6 +1,6 @@
 @(value: String = "", prefix: String = "", mini: Boolean = true, style: String = "", right: Boolean = false)(body: Html)
 <div class="btn-group"@if(style.nonEmpty){ style="@style"}>
-  <button class="btn dropdown-toggle@if(mini){ btn-mini}" data-toggle="dropdown">
+  <button class="btn dropdown-toggle@if(mini){ btn-mini} else { btn-small}" data-toggle="dropdown">
     @if(value.isEmpty){
       <i class="icon-cog"></i>
     } else {
