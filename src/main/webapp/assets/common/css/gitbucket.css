@@ -10,6 +10,37 @@ li p {
   margin: 0px;
 }
 
+h1 {
+  font-size: 30px;
+  line-height: 32px;
+}
+
+h2 {
+  font-size: 28px;
+  line-height: 30px;
+}
+
+h3 {
+  font-size: 26px;
+  line-height: 28px;
+}
+
+h4 {
+  font-size: 24px;
+}
+
+h5 {
+  font-size: 22px;
+}
+
+h6 {
+  font-size: 18px;
+}
+
+h7 {
+  font-size: 14px;
+}
+
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
@@ -554,7 +585,7 @@ pre.blob {
 }
 
 #readme .box-content {
-  padding: 30px;
+  padding: 20px;
 }
 
 li.highlight {
@@ -977,6 +1008,26 @@ a.markdown-anchor-link {
   display: none;
 }
 
-h1 a.markdown-anchor-link, h2 a.markdown-anchor-link, h3 a.markdown-anchor-link {
-  top: 10px;
+h1 a.markdown-anchor-link {
+  top: 8px;
+}
+
+h2 a.markdown-anchor-link {
+  top: 6px;
+}
+
+h3 a.markdown-anchor-link {
+  top: 6px;
+}
+
+h4 a.markdown-anchor-link {
+  top: 2px;
+}
+
+h5 a.markdown-anchor-link {
+  top: 2px;
+}
+
+h6 a.markdown-anchor-link {
+  top: 2px;
 }

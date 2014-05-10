@@ -12,6 +12,9 @@
     <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title">@pageName</h1>
+        <div class="small">
+          <span class="muted"><strong>@page.committer</strong> edited this page at @datetime(page.time)</span>
+        </div>
       </li>
       <li class="pull-right">
         <div class="btn-group">
@@ -50,12 +53,9 @@
         </div>
       }
     </div>
-    <div style="margin-right: 200px;">
+    <div style="margin-right: 220px;">
       <div class="markdown-body">
         @markdown(page.content, repository, true, false)
-      </div>
-      <div class="small">
-        <span class="muted">Last edited by @page.committer at @datetime(page.time)</span>
       </div>
     </div>
   }
