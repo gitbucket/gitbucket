@@ -92,6 +92,10 @@ div.input-prepend span.count {
   -webkit-border-radius: 0 4px 4px 0;
   -moz-border-radius: 0 4px 4px 0;
   border-radius: 0 4px 4px 0;
+  height: 16px;
+  font-size: 12px;
+  padding-top: 2px;
+  padding-bottom: 6px;
 }
 
 /* ======================================================================== */

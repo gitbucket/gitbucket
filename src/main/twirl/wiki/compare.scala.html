@@ -11,7 +11,6 @@
 @html.main(s"Compare Revisions - ${repository.owner}/${repository.name}", Some(repository)){
   @helper.html.information(info)
   @html.menu("wiki", repository){
-    @tab("history", repository)
     <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title"><span class="muted">Compare Revisions</span></h1>
@@ -19,10 +18,10 @@
       <li class="pull-right">
         <div class="btn-group">
         @if(pageName.isDefined){
-          <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
-          <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Back to Page History</a>
+          <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
+          <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Back to Page History</a>
         } else {
-          <a class="btn" href="@url(repository)/wiki/_history">Back to Wiki History</a>
+          <a class="btn btn-small" href="@url(repository)/wiki/_history">Back to Wiki History</a>
         }
         </div>
       </li>

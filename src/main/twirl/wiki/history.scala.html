@@ -5,7 +5,6 @@
 @import view.helpers._
 @html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
-    @tab(if(pageName.isEmpty) "history" else "", repository)
     <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title">
@@ -20,12 +19,12 @@
         <div class="btn-group">
           @if(pageName.isEmpty){
             @if(loginAccount.isDefined){
-              <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
+              <a class="btn btn-small" href="@url(repository)/wiki/_new">New Page</a>
             }
           } else {
-            <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
+            <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
             @if(loginAccount.isDefined){
-              <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+              <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
             }
           }
         </div>

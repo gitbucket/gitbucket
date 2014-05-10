@@ -5,7 +5,6 @@
 @import view.helpers._
 @html.main(s"Pages - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
-    @tab("pages", repository)
     <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title"><span class="muted">Pages</span></h1>
@@ -13,7 +12,7 @@
       <li class="pull-right">
         <div class="btn-group">
           @if(hasWritePermission){
-            <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
+            <a class="btn btn-small" href="@url(repository)/wiki/_new">New Page</a>
           }
         </div>
       </li>

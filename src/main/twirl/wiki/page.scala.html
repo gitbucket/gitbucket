@@ -8,7 +8,6 @@
 @import view.helpers._
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
-    @tab((if(pageName == "Home") "home" else ""), repository)
     <ul class="nav nav-tabs fill-width pull-left">
       <li>
         <h1 class="wiki-title">@pageName</h1>
@@ -19,10 +18,10 @@
       <li class="pull-right">
         <div class="btn-group">
           @if(hasWritePermission){
-            <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
-            <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+            <a class="btn btn-small" href="@url(repository)/wiki/_new">New Page</a>
+            <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
           }
-          <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
+          <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
         </div>
       </li>
     </ul>
