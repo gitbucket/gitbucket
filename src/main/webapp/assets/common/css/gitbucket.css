@@ -283,6 +283,52 @@ span.highlight {
 }
 
 /****************************************************************************/
+/* Side Menu */
+/****************************************************************************/
+ul.sidemenu {
+  margin-left: 0px;
+}
+
+ul.sidemenu a:hover{
+  text-decoration: none;
+}
+
+ul.sidemenu li.active {
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  border-right: 2px solid #bb4444;
+  border-left: 1px solid white;
+}
+
+ul.sidemenu div.gradient {
+  width: 5px;
+  height: 35px;
+  background: linear-gradient(to right, #eee, #fff);
+  margin-right: 4px;
+  border-left: 1px solid #eee;
+}
+
+ul.sidemenu div.margin {
+  width: 5px;
+  height: 35px;
+  margin-right: 4px;
+  border-left: 1px solid white;
+}
+
+ul.sidemenu li {
+  line-height: 35px;
+  height: 35px;
+  border-left: 1px solid #eee;
+  margin-left:0px;
+  border-right: 2px solid white;
+  list-style-type: none;
+}
+
+ul.sidemenu span.badge {
+  padding-right: 4px;
+}
+
+/****************************************************************************/
 /* Create Repository */
 /****************************************************************************/
 .slash {
@@ -393,6 +439,17 @@ div.activity-content {
 /****************************************************************************/
 /* Repository Viewer */
 /****************************************************************************/
+a.header-link {
+  color: #888;
+}
+a.header-link strong {
+  color: black;
+}
+a.header-link:hover {
+  color: #0088cc;
+  text-decoration: none;
+}
+
 table.table-file-list {
   margin-bottom: 0px;
 }

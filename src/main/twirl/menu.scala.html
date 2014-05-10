@@ -5,6 +5,21 @@
 @import context._
 @import view.helpers._
 
+@sidemenu(path: String, name: String, label: String) = {
+  <li @if(active == name){class="active"}>
+    <div class="@if(active == name){margin} else {gradient} pull-left"></div>
+    <a href="@url(repository)@path"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}*@>
+      @if(active == name){
+        <img src="@assets/common/images/menu-@{name}-active.png">
+      } else {
+        <img src="@assets/common/images/menu-@{name}-active.png" class="menu-icon-active" style="display:none;">
+        <img src="@assets/common/images/menu-@{name}.png" class="menu-icon">
+      }
+      @if(expand){ @label}
+    </a>
+  </li>
+}
+
 <div class="container">
   @if(repository.commitCount > 0){
     <div class="pull-right">
@@ -28,87 +43,16 @@
   </div>
 </div>
 <hr style="margin-bottom: 20px;"/>
-<style type="text/css">
-ul.sidemenu {
-  margin-left: 0px;
-}
-
-ul.sidemenu li.active {
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-  border-right: 2px solid #bb4444;
-  border-left: 1px solid white;
-}
-
-ul.sidemenu div.gradient {
-  width: 5px;
-  height: 35px;
-  background: linear-gradient(to right, #eee, #fff);
-  margin-right: 4px;
-  border-left: 1px solid #eee;
-}
-
-ul.sidemenu div.margin {
-  width: 5px;
-  height: 35px;
-  margin-right: 4px;
-  border-left: 1px solid white;
-}
-
-ul.sidemenu li {
-  line-height: 35px;
-  height: 35px;
-  border-left: 1px solid #eee;
-  margin-left:0px;
-  border-right: 2px solid white;
-  list-style-type: none;
-}
-
-ul.sidemenu span.badge {
-  padding-right: 4px;
-}
-</style>
-<script>
-$(function(){
-  $('ul.sidemenu a').mouseover(function(e){
-    $(e.target).prev('div.gradient').css('border-left', '1px solid silver');
-  });
-  $('ul.sidemenu a').mouseout(function(e){
-    $(e.target).prev('div.gradient').css('border-left', '1px solid #eee');
-  });
-});
-</script>
 <div class="container body">
   <div style="width: @if(expand){170px} else {40px};" class="pull-right">
     <ul class="sidemenu">
       <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
-      <li @if(active=="code"){class="active"}>
-        <div class="@if(active=="code"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}*@><img src="@assets/common/images/menu-code.png">@if(expand){ Code}</a>
-      </li>
-      <li @if(active=="issues"){class="active"}>
-        <div class="@if(active=="issues"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)/issues"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Issues"}*@><img src="@assets/common/images/menu-issues.png">@if(expand){ Issues}</a>
-        @if(expand && repository.issueCount > 0){
-          <div class="pull-right"><span class="label">@repository.issueCount</span></div>
-        }
-      </li>
-      <li @if(active=="pulls"){class="active"}>
-        <div class="@if(active=="pulls"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)/pulls"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Pull Requests"}*@><img src="@assets/common/images/menu-pulls.png">@if(expand){ Pull Requests}</a>
-        @if(expand && repository.pullCount > 0){
-          <div class="pull-right"><span class="label">@repository.pullCount</span></div>
-        }
-      </li>
-      <li @if(active=="wiki"){class="active"}>
-        <div class="@if(active=="wiki"){margin} else {gradient} pull-left"></div>
-        <a href="@url(repository)/wiki"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Wiki"}*@><img src="@assets/common/images/menu-wiki.png">@if(expand){ Wiki}</a>
-      </li>
+      @sidemenu(""       , "code"  , "Code")
+      @sidemenu("/issues", "issues", "Issues")
+      @sidemenu("/pulls" , "pulls" , "Pull Requests")
+      @sidemenu("/wiki"  , "wiki"  , "Wiki")
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-        <li @if(active=="settings"){class="active"}>
-          <div class="@if(active=="settings"){margin} else {gradient} pull-left"></div>
-          <a href="@url(repository)/settings"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Settings"}*@><img src="@assets/common/images/menu-settings.png">@if(expand){ Settings}</a>
-        </li>
+        @sidemenu("/settings", "settings", "Settings")
       }
       <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
     </ul>
@@ -132,18 +76,6 @@ $(function(){
     }
   </div>
   <div style="margin-right: @if(expand){180px} else {50px};">
-    <style type="text/css">
-    a.header-link {
-      color: #888;
-    }
-    a.header-link strong {
-      color: black;
-    }
-    a.header-link:hover {
-      color: #0088cc;
-      text-decoration: none;
-    }
-    </style>
     @if(expand){
       @repository.repository.description.map { description =>
         <p class="muted">@description</p>
@@ -173,17 +105,38 @@ $(function(){
     @body
   </div>
 </div>
-@if(settings.ssh && loginAccount.isDefined){
 <script>
 $(function(){
-  $('#repository-url-http').click(function(){
-    $('#repository-url').val('@repository.httpUrl');
-    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  $('ul.sidemenu a').mouseover(function(e){
+    var target = e.target;
+    if(e.target.tagName == "IMG"){
+      target = e.target.parentElement;
+    }
+    $(target).prev    ('div.gradient'        ).css('border-left', '1px solid silver');
+    $(target).children('img.menu-icon-active').css('display', 'inline');
+    $(target).children('img.menu-icon'       ).css('display', 'none');
   });
-  $('#repository-url-ssh').click(function(){
-    $('#repository-url').val('@repository.sshUrl(settings.sshPort.getOrElse(service.SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
-    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+
+  $('ul.sidemenu a').mouseout(function(e){
+    var target = e.target;
+    if(e.target.tagName == "IMG"){
+      target = e.target.parentElement;
+    }
+    $(target).prev    ('div.gradient'        ).css('border-left', '1px solid #eee');
+    $(target).children('img.menu-icon-active').css('display', 'none');
+    $(target).children('img.menu-icon'       ).css('display', 'inline');
   });
+
+  @if(settings.ssh && loginAccount.isDefined){
+    $('#repository-url-http').click(function(){
+      $('#repository-url').val('@repository.httpUrl');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+
+    $('#repository-url-ssh').click(function(){
+      $('#repository-url').val('@repository.sshUrl(settings.sshPort.getOrElse(service.SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+  }
 });
 </script>
-}
