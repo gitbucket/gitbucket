@@ -9,6 +9,15 @@
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
     <div class="head">
+      @helper.html.dropdown(
+        value  = if(branch.length == 40) branch.substring(0, 10) else branch,
+        prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
+        mini   = true
+      ){
+        @repository.branchList.map { x =>
+          <li><a href="@url(repository)/commits/@encodeRefName(branch)">@helper.html.checkicon(x == branch) @x</a></li>
+        }
+      }
       @if(pathList.isEmpty){
         <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> / Commit History
       }

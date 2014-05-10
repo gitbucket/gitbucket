@@ -67,8 +67,8 @@ div.input-prepend span.count {
 /* General Styles */
 /* ======================================================================== */
 div.head {
-  font-size: large;
   margin-bottom: 10px;
+  font-weight: bold;
 }
 
 div.head div.forked {
