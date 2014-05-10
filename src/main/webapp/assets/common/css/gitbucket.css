@@ -289,6 +289,12 @@ ul.sidemenu {
   margin-left: 0px;
 }
 
+ul.sidemenu img {
+  width: 14px;
+  height: 14px;
+}
+
+
 ul.sidemenu a:hover{
   text-decoration: none;
 }
@@ -302,7 +308,7 @@ ul.sidemenu li.active {
 
 ul.sidemenu div.gradient {
   width: 5px;
-  height: 35px;
+  height: 30px;
   background: linear-gradient(to right, #eee, #fff);
   margin-right: 4px;
   border-left: 1px solid #eee;
@@ -310,18 +316,19 @@ ul.sidemenu div.gradient {
 
 ul.sidemenu div.margin {
   width: 5px;
-  height: 35px;
+  height: 30px;
   margin-right: 4px;
   border-left: 1px solid white;
 }
 
 ul.sidemenu li {
-  line-height: 35px;
-  height: 35px;
+  line-height: 30px;
+  height: 30px;
   border-left: 1px solid #eee;
   margin-left:0px;
   border-right: 2px solid white;
   list-style-type: none;
+  font-size: 90%;
 }
 
 ul.sidemenu span.badge {
@@ -439,12 +446,25 @@ div.activity-content {
 /****************************************************************************/
 /* Repository Viewer */
 /****************************************************************************/
+p.description {
+  color: gray;
+}
+
 a.header-link {
   color: #888;
+  font-size: 90%;
 }
+
+a.header-link img {
+  width: 14px;
+  height: 14px;
+}
+
 a.header-link strong {
   color: black;
+  font-size: 90%;
 }
+
 a.header-link:hover {
   color: #0088cc;
   text-decoration: none;

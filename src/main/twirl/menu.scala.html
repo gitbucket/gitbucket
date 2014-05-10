@@ -5,7 +5,7 @@
 @import context._
 @import view.helpers._
 
-@sidemenu(path: String, name: String, label: String) = {
+@sidemenu(path: String, name: String, label: String, count: Int = 0) = {
   <li @if(active == name){class="active"}>
     <div class="@if(active == name){margin} else {gradient} pull-left"></div>
     <a href="@url(repository)@path"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}*@>
@@ -13,9 +13,12 @@
         <img src="@assets/common/images/menu-@{name}-active.png">
       } else {
         <img src="@assets/common/images/menu-@{name}-active.png" class="menu-icon-active" style="display:none;">
-        <img src="@assets/common/images/menu-@{name}.png" class="menu-icon">
+        <img src="@assets/common/images/menu-@{name}.png"        class="menu-icon">
       }
       @if(expand){ @label}
+      @if(expand && count > 0){
+        <div class="pull-right"><span class="label">@count</span></div>
+      }
     </a>
   </li>
 }
@@ -48,8 +51,8 @@
     <ul class="sidemenu">
       <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
       @sidemenu(""       , "code"  , "Code")
-      @sidemenu("/issues", "issues", "Issues")
-      @sidemenu("/pulls" , "pulls" , "Pull Requests")
+      @sidemenu("/issues", "issues", "Issues", repository.issueCount)
+      @sidemenu("/pulls" , "pulls" , "Pull Requests", repository.pullCount)
       @sidemenu("/wiki"  , "wiki"  , "Wiki")
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         @sidemenu("/settings", "settings", "Settings")
@@ -78,24 +81,30 @@
   <div style="margin-right: @if(expand){180px} else {50px};">
     @if(expand){
       @repository.repository.description.map { description =>
-        <p class="muted">@description</p>
+        <p class="description">@description</p>
       }
-      <div style="border: 1px solid silver; padding: 4px; margin-bottom: 10px;">
+      <div style="border: 1px solid #eee; padding: 4px; margin-bottom: 10px;">
         <table class="fill-width">
           <tr>
             <td style="width: 33%; text-align: center;">
               <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
-                <img src="@assets/common/images/header-commits.png"/> <strong>@repository.commitCount</strong> commits
+                <img src="@assets/common/images/header-commits-hover.png" class="header-icon-hover" style="display: none;"/>
+                <img src="@assets/common/images/header-commits.png"       class="header-icon"/>
+                <strong>@repository.commitCount</strong> commits
               </a>
             </td>
             <td style="width: 33%; text-align: center;">
               <a href="@url(repository)/branches" class="header-link" class="header-link">
-                <img src="@assets/common/images/header-branches.png"/> <strong>@repository.branchList.length</strong> branches
+                <img src="@assets/common/images/header-branches-hover.png" class="header-icon-hover" style="display: none;"/>
+                <img src="@assets/common/images/header-branches.png"       class="header-icon"/>
+                <strong>@repository.branchList.length</strong> branches
               </a>
             </td>
             <td style="width: 33%; text-align: center;">
               <a href="@url(repository)/tags" class="header-link" class="header-link">
-                <img src="@assets/common/images/header-tags.png"/> <strong>@repository.tags.length</strong> releases
+                <img src="@assets/common/images/header-tags-hover.png" class="header-icon-hover" style="display: none;"/>
+                <img src="@assets/common/images/header-tags.png"       class="header-icon"/>
+                <strong>@repository.tags.length</strong> releases
               </a>
             </td>
           </tr>
@@ -107,6 +116,26 @@
 </div>
 <script>
 $(function(){
+  $('a.header-link').mouseover(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', '#0088cc');
+    $(target).children('img.header-icon-hover').css('display', 'inline');
+    $(target).children('img.header-icon'      ).css('display', 'none');
+  });
+
+  $('a.header-link').mouseout(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', 'black');
+    $(target).children('img.header-icon-hover').css('display', 'none');
+    $(target).children('img.header-icon'      ).css('display', 'inline');
+  });
+
   $('ul.sidemenu a').mouseover(function(e){
     var target = e.target;
     if(e.target.tagName == "IMG"){
