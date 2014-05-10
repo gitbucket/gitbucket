@@ -504,6 +504,7 @@ a.header-link:hover {
 
 table.table-file-list {
   margin-bottom: 0px;
+  border: 1px solid #ddd;
 }
 
 table.table-file-list th, table.table-file-list td {
