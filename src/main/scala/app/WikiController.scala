@@ -36,7 +36,8 @@ trait WikiControllerBase extends ControllerBase {
   
   get("/:owner/:repository/wiki")(referrersOnly { repository =>
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
-      wiki.html.page("Home", page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      wiki.html.page("Home", page, getWikiPageList(repository.owner, repository.name),
+        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
@@ -44,7 +45,8 @@ trait WikiControllerBase extends ControllerBase {
     val pageName = StringUtil.urlDecode(params("page"))
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
-      wiki.html.page(pageName, page, repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      wiki.html.page(pageName, page, getWikiPageList(repository.owner, repository.name),
+        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   

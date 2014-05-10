@@ -18,7 +18,7 @@
         </div>
       </li>
     </ul>
-    <ul>
+    <ul class="pull-left">
       @pages.map { page =>
         <li><a href="@url(repository)/wiki/@urlEncode(page)">@page</a></li>
       }
