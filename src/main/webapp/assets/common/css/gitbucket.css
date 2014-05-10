@@ -103,16 +103,13 @@ div.input-prepend span.count {
 /* ======================================================================== */
 div.head {
   margin-bottom: 10px;
-  font-weight: bold;
+  font-size: 18px;
 }
 
 div.head div.forked {
   font-size: 60%;
+  margin-left: 36px;
   color: #999999;
-}
-
-div.head div.forked a {
-  font-weight: normal;
 }
 
 div.container {
