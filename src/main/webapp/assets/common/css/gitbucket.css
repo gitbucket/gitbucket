@@ -586,6 +586,10 @@ pre.blob {
   padding-left: 20px;
 }
 
+#readme {
+  margin-top: 20px;
+}
+
 #readme .box-content {
   padding: 20px;
 }
