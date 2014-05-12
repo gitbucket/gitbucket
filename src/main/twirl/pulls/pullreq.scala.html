@@ -32,12 +32,12 @@
           into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
         }
       </div>
-      <ul class="nav nav-tabs" id="pullreq-tab">
+      <ul class="nav nav-tabs fill-width pull-left" id="pullreq-tab">
         <li class="active"><a href="#discussion">Discussion</a></li>
         <li><a href="#commits">Commits <span class="badge">@commits.size</span></a></li>
         <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
       </ul>
-      <div class="tab-content">
+      <div class="tab-content fill-width pull-left">
         <div class="tab-pane active" id="discussion">
           @pulls.html.discussion(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
         </div>
