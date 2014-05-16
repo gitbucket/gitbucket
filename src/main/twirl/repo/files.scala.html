@@ -16,7 +16,7 @@
         mini   = true
       ){
         @repository.branchList.map { x =>
-          <li><a href="@url(repository)/tree/@encodeRefName(branch)">@helper.html.checkicon(x == branch) @x</a></li>
+          <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
         }
       }
       <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
