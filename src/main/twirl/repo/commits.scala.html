@@ -15,7 +15,7 @@
         mini   = true
       ){
         @repository.branchList.map { x =>
-          <li><a href="@url(repository)/commits/@encodeRefName(branch)">@helper.html.checkicon(x == branch) @x</a></li>
+          <li><a href="@url(repository)/commits/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
         }
       }
       @if(pathList.isEmpty){
