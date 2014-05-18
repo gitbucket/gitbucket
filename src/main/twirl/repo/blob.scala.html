@@ -38,7 +38,7 @@
             <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
           </div>
           <div class="btn-group pull-right">
-            @if(hasWritePermission && content.viewType == "text"){
+            @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
               <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
             }
             <a class="btn btn-mini" href="?raw=true">Raw</a>
@@ -66,8 +66,9 @@
             <img src="?raw=true"/>
           }
           @if(content.viewType == "large" || content.viewType == "binary"){
-            <div style="text-align: center">
+            <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
               <a href="?raw=true">View Raw</a><br>
+              <br>
               (Sorry about that, but we can't show files that are this big right now)
             </div>
           }
