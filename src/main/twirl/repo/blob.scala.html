@@ -54,20 +54,22 @@
           @if(content.viewType == "text"){
             @defining(pathList.reverse.head) { file =>
               @if(renderableSuffixes.find(suffix => file.toLowerCase.endsWith(suffix))) {
-                @renderMarkup(pathList, content.content.get, branch, repository, false, false)
+                <div class="box-content markdown-body" style="border: none; padding-left: 16px; padding-right: 16px;">
+                  @renderMarkup(pathList, content.content.get, branch, repository, false, false)
+                </div>
               } else {
                 <pre class="prettyprint linenums blob">@content.content.get</pre>
               }
             }
           }
           @if(content.viewType == "image"){
-          <img src="?raw=true"/>
+            <img src="?raw=true"/>
           }
           @if(content.viewType == "large" || content.viewType == "binary"){
-          <div style="text-align: center">
-            <a href="?raw=true">View Raw</a><br>
-            (Sorry about that, but we can't show files that are this big right now)
-          </div>
+            <div style="text-align: center">
+              <a href="?raw=true">View Raw</a><br>
+              (Sorry about that, but we can't show files that are this big right now)
+            </div>
           }
         </td>
       </tr>
