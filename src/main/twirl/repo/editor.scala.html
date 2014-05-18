@@ -30,18 +30,16 @@
                 </optgroup>
               </select>
             </div>
-            @if(renderableSuffixes.find(suffix => fileName.map(_.toLowerCase.endsWith(suffix)).getOrElse(false))) {
-              <div class="btn-group" data-toggle="buttons-radio">
-                <input type="button" id="btn-code" class="btn btn-default btn-small active" value="Code">
-                <input type="button" id="btn-preview" class="btn btn-default btn-small" value="Preview">
-              </div>
-            }
+            <div class="btn-group" data-toggle="buttons-radio">
+              <input type="button" id="btn-code" class="btn btn-default btn-small active" value="Code">
+              <input type="button" id="btn-preview" class="btn btn-default btn-small" value="Preview">
+            </div>
           </th>
         </tr>
         <tr>
           <td>
             <div id="editor" style="width: 100%; height: 600px;"></div>
-            <div id="preview" class="box-content markdown-body" style="border: none; padding-left: 16px; padding-right: 16px; width: 100%; display: none;"></div>
+            <div id="preview" style="width: 100%; display: none;"></div>
           </td>
         </tr>
       </table>
@@ -71,6 +69,9 @@
   }
 }
 <script src="@assets/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="@assets/jsdifflib/difflib.js"></script>
+<script type="text/javascript" src="@assets/jsdifflib/diffview.js"></script>
+<link href="@assets/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
@@ -95,7 +96,6 @@ $(function(){
   }
 
   $('#wrap').change(function(){
-    console.log($('#wrap option:selected').val());
     if($('#wrap option:selected').val() == 'true'){
       editor.getSession().setUseWrapMode(true);
     } else {
@@ -120,16 +120,26 @@ $(function(){
     $('#editor').hide();
     $('#preview').show()
 
-    // update preview
-    $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
-    $.post('@url(repository)/_preview', {
-      content        : editor.getValue(),
-      enableWikiLink : false,
-      enableRefsLink : false
-    }, function(data){
-      $('#preview').html(data);
-      prettyPrint();
-    });
+    @if(renderableSuffixes.find(suffix => fileName.map(_.toLowerCase.endsWith(suffix)).getOrElse(false))) {
+      // update preview
+      $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
+      $.post('@url(repository)/_preview', {
+        content        : editor.getValue(),
+        enableWikiLink : false,
+        enableRefsLink : false
+      }, function(data){
+        $('#preview').empty().append(
+          $('<div class="markdown-body" style="padding-left: 16px; padding-right: 16px;">').html(data));
+        prettyPrint();
+      });
+    } else {
+      // Show diff
+      $('#preview').empty()
+        .append($('<div id="diffText">'))
+        .append($('<textarea id="newText" style="display: none;">').html(editor.getValue()))
+        .append($('<textarea id="oldText" style="display: none;">').html($('#initial').val()));
+      diffUsingJS('oldText', 'newText', 'diffText');
+    }
   });
 });
 </script>
