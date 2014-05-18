@@ -100,7 +100,7 @@ $(window).load(function(){
   $('div.source-line-num').click(function(e){
     var line = $(e.target).data('line');
     var hash = location.hash;
-    if(e.ctrlKey == true && hash.match(/#L\d+(-L\d+)?/)){
+    if(e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)){
       var lines = hash.split('-');
       location.hash = lines[0] + '-L' + line;
     } else {
