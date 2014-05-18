@@ -80,6 +80,31 @@ $(window).load(function(){
   $(window).hashchange(function(){
     updateHighlighting();
   }).hashchange();
+
+  $('pre.prettyprint ol.linenums li').each(function(i, e){
+    var pre = $('pre.prettyprint');
+    pre.append($('<div class="source-line-num">')
+       .data('line', (i + 1))
+       .css({
+      cursor  : 'pointer',
+      position: 'absolute',
+      top     : $(e).position().top + 'px',
+      left    : pre.position().left + 'px',
+      width   : ($(e).position().left - pre.position().left) + 'px',
+      height  : '16px'
+    }));
+  });
+
+  $('div.source-line-num').click(function(e){
+    var line = $(e.target).data('line');
+    var hash = location.hash;
+    if(e.ctrlKey == true && hash.match(/#L\d+(-L\d+)?/)){
+      var lines = hash.split('-');
+      location.hash = lines[0] + '-L' + line;
+    } else {
+      location.hash = '#L' + line;
+    }
+  });
 });
 
 /**
