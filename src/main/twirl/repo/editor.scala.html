@@ -23,18 +23,25 @@
         <tr>
           <th>
             <div class="pull-right">
-              <select id="wrap" class="input-medium" style="margin-bottom: 0px;">
+              <select id="wrap" class="input-medium" style="margin-bottom: 0px; height: 26px; padding: 0px;">
                 <optgroup label="Line Wrap Mode">
                   <option value="false">No wrap</option>
                   <option value="true">Soft wrap</option>
                 </optgroup>
               </select>
             </div>
+            @if(renderableSuffixes.find(suffix => fileName.map(_.toLowerCase.endsWith(suffix)).getOrElse(false))) {
+              <div class="btn-group" data-toggle="buttons-radio">
+                <input type="button" id="btn-code" class="btn btn-default btn-small active" value="Code">
+                <input type="button" id="btn-preview" class="btn btn-default btn-small" value="Preview">
+              </div>
+            }
           </th>
         </tr>
         <tr>
           <td>
             <div id="editor" style="width: 100%; height: 600px;"></div>
+            <div id="preview" class="box-content markdown-body" style="border: none; padding-left: 16px; padding-right: 16px; width: 100%; display: none;"></div>
           </td>
         </tr>
       </table>
@@ -102,6 +109,27 @@ $(function(){
 
   $('#commit').click(function(){
     $('#content').val(editor.getValue());
+  });
+
+  $('#btn-code').click(function(){
+    $('#editor').show();
+    $('#preview').hide();
+  });
+
+  $('#btn-preview').click(function(){
+    $('#editor').hide();
+    $('#preview').show()
+
+    // update preview
+    $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
+    $.post('@url(repository)/_preview', {
+      content        : editor.getValue(),
+      enableWikiLink : false,
+      enableRefsLink : false
+    }, function(data){
+      $('#preview').html(data);
+      prettyPrint();
+    });
   });
 });
 </script>
