@@ -5,7 +5,7 @@
   content: util.JGitUtil.ContentInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(if(fileName.isEmpty) "New File" else s"Editing ${path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
+@html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
     <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
       <span class="error" id="error-newFileName"></span>
