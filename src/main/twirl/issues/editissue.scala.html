@@ -1,9 +1,9 @@
 @(title: String, content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: app.Context)
 @import context._
 <span id="error-edit-title" class="error"></span>
-<input type="text" style="width: 680px;" id="edit-title" value="@title"/>
+<input type="text" style="width: 635px;" id="edit-title" value="@title"/>
 @helper.html.attached(owner, repository){
-  <textarea style="width: 680px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
+  <textarea style="width: 635px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
 }
 <div>
   <input type="button" id="update" class="btn btn-small" value="Update Issue"/>
