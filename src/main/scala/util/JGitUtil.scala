@@ -372,7 +372,12 @@ object JGitUtil {
 
       if(commits.length >= 2){
         // not initial commit
-        val oldCommit = commits(1)
+        val oldCommit = if(revCommit.getParentCount >= 2) {
+          // merge commit
+          revCommit.getParents.head
+        } else {
+          commits(1)
+        }
         (getDiffs(git, oldCommit.getName, id, fetchContent), Some(oldCommit.getName))
 
       } else {
