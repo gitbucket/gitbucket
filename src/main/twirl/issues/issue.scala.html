@@ -10,7 +10,7 @@
 @import view.helpers._
 @html.main(s"${issue.title} - Issue #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
-    @tab("issues", repository)
+    @tab("issues", false, repository)
     <ul class="nav nav-tabs pull-left fill-width">
       <li class="pull-left"><a href="@url(repository)/issues"><i class="icon-arrow-left"></i> Back to issue list</a></li>
       <li class="pull-right">Issue #@issue.issueId</li>

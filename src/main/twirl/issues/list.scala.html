@@ -17,7 +17,7 @@
 @import view.helpers._
 @html.main(s"Issues - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
-    @tab("issues", repository)
+    @tab("issues", false, repository)
     <div class="row-fluid">
       <div class="span3">
         <ul class="nav nav-pills nav-stacked">
