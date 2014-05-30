@@ -10,7 +10,7 @@ trait Validations {
    */
   def identifier: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if(!value.matches("^[a-zA-Z0-9\\-_.]+$")){
+      if(!value.matches("[a-zA-Z0-9\\-_.]+")){
         Some(s"${name} contains invalid character.")
       } else if(value.startsWith("_") || value.startsWith("-")){
         Some(s"${name} starts with invalid character.")

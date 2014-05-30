@@ -255,7 +255,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val name = multiParams("splat").head
 
     if(name.endsWith(".zip")){
-      val revision = name.replaceFirst("\\.zip$", "")
+      val revision = name.stripSuffix(".zip")
       val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
       if(workDir.exists){
         FileUtils.deleteDirectory(workDir)
@@ -316,9 +316,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch
     } orElse repository.tags.collectFirst {
       case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
-    } orElse Some(path.split("/")(0)) get
+    } getOrElse path.split("/")(0)
 
-    (id, path.substring(id.length).replaceFirst("^/", ""))
+    (id, path.substring(id.length).stripPrefix("/"))
   }
 
 

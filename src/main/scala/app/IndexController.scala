@@ -59,7 +59,7 @@ trait IndexControllerBase extends ControllerBase {
     updateLastLoginDate(account.userName)
 
     flash.get(Keys.Flash.Redirect).asInstanceOf[Option[String]].map { redirectUrl =>
-      if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
+      if(redirectUrl.stripSuffix("/") == request.getContextPath){
         redirect("/")
       } else {
         redirect(redirectUrl)

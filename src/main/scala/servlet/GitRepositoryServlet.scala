@@ -76,7 +76,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
     defining(request.paths){ paths =>
       val owner      = paths(1)
-      val repository = paths(2).replaceFirst("\\.git$", "")
+      val repository = paths(2).stripSuffix(".git")
 
       logger.debug("repository:" + owner + "/" + repository)
 

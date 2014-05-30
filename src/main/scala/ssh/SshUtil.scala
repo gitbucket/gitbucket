@@ -14,7 +14,7 @@ object SshUtil {
     // TODO RFC 4716 Public Key is not supported...
     val parts = key.split(" ")
     if (parts.size < 2) {
-      logger.debug(s"Invalid PublicKey Format: key")
+      logger.debug(s"Invalid PublicKey Format: ${key}")
       return None
     }
     try {
