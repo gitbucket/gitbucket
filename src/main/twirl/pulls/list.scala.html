@@ -11,40 +11,41 @@
 @import context._
 @import view.helpers._
 @html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("pulls", repository)
-  <div class="row-fluid">
-    <div class="span3">
-      <ul class="nav nav-pills nav-stacked">
-        <li@if(filter.isEmpty){ class="active"}>
-          <a href="@url(repository)/pulls">
-            <span class="count-right">@allCount</span>
-            All Requests
-          </a>
-        </li>
-        @if(loginAccount.isDefined){
-        <li@if(filter.map(_ == loginAccount.get.userName).getOrElse(false)){ class="active"}>
-          <a href="@url(repository)/pulls/@loginAccount.map(_.userName)">
-            <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count).getOrElse(0)</span>
-            Yours
-          </a>
-        </li>
+  @html.menu("pulls", repository){
+    <div class="row-fluid">
+      <div class="span3">
+        <ul class="nav nav-pills nav-stacked">
+          <li@if(filter.isEmpty){ class="active"}>
+            <a href="@url(repository)/pulls">
+              <span class="count-right">@allCount</span>
+              All Requests
+            </a>
+          </li>
+          @if(loginAccount.isDefined){
+          <li@if(filter.map(_ == loginAccount.get.userName).getOrElse(false)){ class="active"}>
+            <a href="@url(repository)/pulls/@loginAccount.map(_.userName)">
+              <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count).getOrElse(0)</span>
+              Yours
+            </a>
+          </li>
+          }
+        </ul>
+        <hr>
+        <ul class="nav nav-pills nav-stacked small">
+        @counts.map { user =>
+          @if(loginAccount.isEmpty || loginAccount.get.userName != user.userName){
+          <li@if(filter.map(_ == user.userName).getOrElse(false)){ class="active"}>
+            <a href="@url(repository)/pulls/@user.userName">
+             <span class="count-right">@user.count</span>
+              @user.userName
+            </a>
+          </li>
+          }
         }
-      </ul>
-      <hr>
-      <ul class="nav nav-pills nav-stacked small">
-      @counts.map { user =>
-        @if(loginAccount.isEmpty || loginAccount.get.userName != user.userName){
-        <li@if(filter.map(_ == user.userName).getOrElse(false)){ class="active"}>
-          <a href="@url(repository)/pulls/@user.userName">
-           <span class="count-right">@user.count</span>
-            @user.userName
-          </a>
-        </li>
-        }
-      }
-      </ul>
+        </ul>
+      </div>
+      @listparts(issues, page, openCount, closedCount, condition, Some(repository), hasWritePermission)
     </div>
-    @listparts(issues, page, openCount, closedCount, condition, Some(repository), hasWritePermission)
-  </div>
+  }
 }
 

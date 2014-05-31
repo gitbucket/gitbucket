@@ -4,38 +4,38 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository)
-  @tab(repository.repository.defaultBranch, repository, "branches", true)
-  <h1>Branches</h1>
-  <table class="table table-bordered">
-    <tr>
-      <th width="40%">Branch</th>
-      <th width="20%">Last update</th>
-      <th width="20%">Compare</th>
-      <th width="20%">Download</th>
-    </tr>
-    @branchInfo.map { case (branchName, latestUpdateDate) =>
+  @html.menu("code", repository){
+    <h1>Branches</h1>
+    <table class="table table-bordered">
       <tr>
-        <td>
-          <a href="@url(repository)/tree/@encodeRefName(branchName)">@branchName</a>
-          @if(hasWritePermission && repository.repository.defaultBranch != branchName){
-            <a href="@url(repository)/delete/@encodeRefName(branchName)" class="btn btn-danger btn-mini pull-right delete-branch" data-name="@branchName">Delete branch</a>
-          }
-        </td>
-        <td>
-          @datetime(latestUpdateDate)
-        </td>
-        <td>
-          @if(repository.repository.defaultBranch == branchName){
-            Base branch
-          } else {
-            <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branchName)}">to @{repository.repository.defaultBranch}</a>
-          }
-        </td>
-        <td><a href="@url(repository)/archive/@{encodeRefName(branchName)}.zip">ZIP</a></td>
+        <th width="40%">Branch</th>
+        <th width="20%">Last update</th>
+        <th width="20%">Compare</th>
+        <th width="20%">Download</th>
       </tr>
-    }
-  </table>
+      @branchInfo.map { case (branchName, latestUpdateDate) =>
+        <tr>
+          <td>
+            <a href="@url(repository)/tree/@encodeRefName(branchName)">@branchName</a>
+            @if(hasWritePermission && repository.repository.defaultBranch != branchName){
+              <a href="@url(repository)/delete/@encodeRefName(branchName)" class="btn btn-danger btn-mini pull-right delete-branch" data-name="@branchName">Delete branch</a>
+            }
+          </td>
+          <td>
+            @datetime(latestUpdateDate)
+          </td>
+          <td>
+            @if(repository.repository.defaultBranch == branchName){
+              Base branch
+            } else {
+              <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branchName)}">to @{repository.repository.defaultBranch}</a>
+            }
+          </td>
+          <td><a href="@url(repository)/archive/@{encodeRefName(branchName)}.zip">ZIP</a></td>
+        </tr>
+      }
+    </table>
+  }
 }
 <script>
 $(function(){

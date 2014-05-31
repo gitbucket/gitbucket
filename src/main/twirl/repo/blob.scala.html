@@ -7,63 +7,75 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository)
-  @tab(branch, repository, "files")
-  <div class="head">
-    <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-    @pathList.zipWithIndex.map { case (section, i) =>
-      @if(i == pathList.length - 1){
-        @section
-      } else {
-        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+  @html.menu("code", repository){
+    <div class="head">
+      @helper.html.dropdown(
+        value  = if(branch.length == 40) branch.substring(0, 10) else branch,
+        prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
+        mini   = true
+      ){
+        @repository.branchList.map { x =>
+          <li><a href="@url(repository)/blob/@encodeRefName(x)/@pathList.mkString("/")">@helper.html.checkicon(x == branch) @x</a></li>
+        }
       }
-    }
-  </div>
+      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+      @pathList.zipWithIndex.map { case (section, i) =>
+        @if(i == pathList.length - 1){
+          @section
+        } else {
+          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
+      }
+    </div>
 
-  <table class="table table-bordered">
-    <tr>
-      <th style="font-weight: normal;">
-        <div class="pull-left">
-          @avatar(latestCommit, 20)
-          @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
-          <span class="muted">@datetime(latestCommit.time)</span>
-          <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
-        </div>
-        <div class="btn-group pull-right">
-          @if(hasWritePermission){
-            <a class="btn" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
-          }
-          <a class="btn" href="?raw=true">Raw</a>
-          <a class="btn" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
-          @if(hasWritePermission){
-            <a class="btn btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
-          }
-        </div>
-      </th>
-    </tr>
-    <tr>
-      <td>
-        @if(content.viewType == "text"){
-          @defining(pathList.reverse.head) { file =>
-            @if(renderableSuffixes.find(suffix => file.toLowerCase.endsWith(suffix))) {
-              @renderMarkup(pathList, content.content.get, branch, repository, false, false)
-            } else {
-              <pre class="prettyprint linenums blob">@content.content.get</pre>
+    <table class="table table-bordered">
+      <tr>
+        <th style="font-weight: normal;">
+          <div class="pull-left">
+            @avatar(latestCommit, 20)
+            @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
+            <span class="muted">@datetime(latestCommit.time)</span>
+            <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
+          </div>
+          <div class="btn-group pull-right">
+            @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
+              <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+            }
+            <a class="btn btn-mini" href="?raw=true">Raw</a>
+            <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
+            @if(hasWritePermission){
+              <a class="btn btn-mini btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
+            }
+          </div>
+        </th>
+      </tr>
+      <tr>
+        <td>
+          @if(content.viewType == "text"){
+            @defining(pathList.reverse.head) { file =>
+              @if(renderableSuffixes.find(suffix => file.toLowerCase.endsWith(suffix))) {
+                <div class="box-content markdown-body" style="border: none; padding-left: 16px; padding-right: 16px;">
+                  @renderMarkup(pathList, content.content.get, branch, repository, false, false)
+                </div>
+              } else {
+                <pre class="prettyprint linenums blob">@content.content.get</pre>
+              }
             }
           }
-        }
-        @if(content.viewType == "image"){
-        <img src="?raw=true"/>
-        }
-        @if(content.viewType == "large" || content.viewType == "binary"){
-        <div style="text-align: center">
-          <a href="?raw=true">View Raw</a><br>
-          (Sorry about that, but we can't show files that are this big right now)
-        </div>
-        }
-      </td>
-    </tr>
-  </table>
+          @if(content.viewType == "image"){
+            <img src="?raw=true"/>
+          }
+          @if(content.viewType == "large" || content.viewType == "binary"){
+            <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+              <a href="?raw=true">View Raw</a><br>
+              <br>
+              (Sorry about that, but we can't show files that are this big right now)
+            </div>
+          }
+        </td>
+      </tr>
+    </table>
+  }
 }
 <script src="@assets/common/js/jquery.ba-hashchange.js"></script>
 <script>
@@ -71,6 +83,31 @@ $(window).load(function(){
   $(window).hashchange(function(){
     updateHighlighting();
   }).hashchange();
+
+  $('pre.prettyprint ol.linenums li').each(function(i, e){
+    var pre = $('pre.prettyprint');
+    pre.append($('<div class="source-line-num">')
+       .data('line', (i + 1))
+       .css({
+      cursor  : 'pointer',
+      position: 'absolute',
+      top     : $(e).position().top + 'px',
+      left    : pre.position().left + 'px',
+      width   : ($(e).position().left - pre.position().left) + 'px',
+      height  : '16px'
+    }));
+  });
+
+  $('div.source-line-num').click(function(e){
+    var line = $(e.target).data('line');
+    var hash = location.hash;
+    if(e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)){
+      var lines = hash.split('-');
+      location.hash = lines[0] + '-L' + line;
+    } else {
+      location.hash = '#L' + line;
+    }
+  });
 });
 
 /**

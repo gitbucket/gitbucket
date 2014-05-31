@@ -3,24 +3,25 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository)
-  @if(!hasWritePermission){
-    <h3>This is an empty repository</h3>
-  } else {
-    <h3 style="margin-top: 30px;">Create a new repository on the command line</h3>
-    <pre>
-    touch README.md
-    git init
-    git add README.md
-    git commit -m "first commit"
-    git remote add origin @repository.httpUrl
-    git push -u origin master
-    </pre>
+  @html.menu("code", repository){
+    @if(!hasWritePermission){
+      <h3>This is an empty repository</h3>
+    } else {
+      <h3 style="margin-top: 30px;">Create a new repository on the command line</h3>
+      <pre>
+      touch README.md
+      git init
+      git add README.md
+      git commit -m "first commit"
+      git remote add origin @repository.httpUrl
+      git push -u origin master
+      </pre>
 
-    <h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
-    <pre>
-    git remote add origin @repository.httpUrl
-    git push -u origin master
-    </pre>
+      <h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
+      <pre>
+      git remote add origin @repository.httpUrl
+      git push -u origin master
+      </pre>
+    }
   }
 }

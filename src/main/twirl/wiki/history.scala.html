@@ -4,68 +4,68 @@
 @import context._
 @import view.helpers._
 @html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.header("wiki", repository)
-  @tab(if(pageName.isEmpty) "history" else "", repository)
-  <ul class="nav nav-tabs">
-    <li>
-      <h1 class="wiki-title">
-        @if(pageName.isEmpty){
-          <span class="muted">History</span>
-        } else {
-          <span class="muted">History for</span> @pageName.get
-        }
-      </h1>
-    </li>
-    <li class="pull-right">
-      <div class="btn-group">
-        @if(pageName.isEmpty){
-          @if(loginAccount.isDefined){
-            <a class="btn" href="@url(repository)/wiki/_new">New Page</a>
+  @html.menu("wiki", repository){
+    <ul class="nav nav-tabs fill-width pull-left">
+      <li>
+        <h1 class="wiki-title">
+          @if(pageName.isEmpty){
+            <span class="muted">History</span>
+          } else {
+            <span class="muted">History for</span> @pageName.get
           }
-        } else {
-          <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
-          @if(loginAccount.isDefined){
-            <a class="btn" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+        </h1>
+      </li>
+      <li class="pull-right">
+        <div class="btn-group">
+          @if(pageName.isEmpty){
+            @if(loginAccount.isDefined){
+              <a class="btn btn-small" href="@url(repository)/wiki/_new">New Page</a>
+            }
+          } else {
+            <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
+            @if(loginAccount.isDefined){
+              <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+            }
           }
-        }
-      </div>
-    </li>
-  </ul>
-  <table class="table table-bordered">
-    @commits.map { commit =>
-      <tr>
-        <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
-        <td>@avatar(commit, 20)&nbsp;@user(commit.committer, commit.mailAddress)</td>
-        <td width="80%">
-          <span class="muted">@datetime(commit.time):</span>&nbsp;@commit.shortMessage
-        </td>
-      </tr>
-    }
-  </table>
-  <input type="button" id="compare" value="Compare Revisions" class="btn"/>
-  <input type="button" id="top" value="Back to Top" class="btn"/>
-  <script>
-  $(function(){
-    $('input[name=commitId]').click(function(){
-      return !($('input[name=commitId]:checked').length == 3);
-    });
-    
-    $('#compare').click(function(){
-      var e = $('input[name=commitId]:checked');
-      if(e.length == 2){
-        @if(pageName.isEmpty){
-          location.href = '@url(repository)/wiki/_compare/' +
-            $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
-        } else {
-          location.href = '@url(repository)/wiki/@urlEncode(pageName.get)/_compare/' +
-            $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
-        }
+        </div>
+      </li>
+    </ul>
+    <table class="table table-bordered fill-width pull-left">
+      @commits.map { commit =>
+        <tr>
+          <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
+          <td>@avatar(commit, 20)&nbsp;@user(commit.committer, commit.mailAddress)</td>
+          <td width="80%">
+            <span class="muted">@datetime(commit.time):</span>&nbsp;@commit.shortMessage
+          </td>
+        </tr>
       }
+    </table>
+    <input type="button" id="compare" value="Compare Revisions" class="btn"/>
+    <input type="button" id="top" value="Back to Top" class="btn"/>
+    <script>
+    $(function(){
+      $('input[name=commitId]').click(function(){
+        return !($('input[name=commitId]:checked').length == 3);
+      });
+
+      $('#compare').click(function(){
+        var e = $('input[name=commitId]:checked');
+        if(e.length == 2){
+          @if(pageName.isEmpty){
+            location.href = '@url(repository)/wiki/_compare/' +
+              $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
+          } else {
+            location.href = '@url(repository)/wiki/@urlEncode(pageName.get)/_compare/' +
+              $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
+          }
+        }
+      });
+
+      $('#top').click(function(){
+        $('html,body').animate({ scrollTop: 0 }, 'fast');
+      });
     });
-    
-    $('#top').click(function(){
-      $('html,body').animate({ scrollTop: 0 }, 'fast');
-    });
-  });
-  </script>
+    </script>
+  }
 }

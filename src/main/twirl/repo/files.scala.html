@@ -8,24 +8,26 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository)
-  @tab(branch, repository, "files")
-  <div class="head">
-    <div class="pull-right">
-      @defining(repository.commitCount){ commitCount =>
-        <a href="@url(repository)/commits/@encodeRefName(branch)">@if(commitCount > 10000){ 10000+ } else { @commitCount } @plural(commitCount, "commit")</a>&nbsp;
+  @html.menu("code", repository, Some(branch), pathList.isEmpty){
+    <div class="head">
+      @helper.html.dropdown(
+        value  = if(branch.length == 40) branch.substring(0, 10) else branch,
+        prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
+        mini   = true
+      ){
+        @repository.branchList.map { x =>
+          <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
+        }
+      }
+      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+      @pathList.zipWithIndex.map { case (section, i) =>
+        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+      }
+      @if(hasWritePermission){
+        <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")"><img src="@assets/common/images/newfile.png"/></a>
       }
     </div>
-    <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-    @pathList.zipWithIndex.map { case (section, i) =>
-      <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
-    }
-    @if(hasWritePermission){
-      <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")"><img src="@assets/common/images/newfile.png"/></a>
-    }
-  </div>
-  <div class="box">
-    <table class="table table-file-list" style="border: 1px solid silver;">
+    <table class="table table-file-list">
       <tr>
         <th colspan="4" style="font-weight: normal;">
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
@@ -41,7 +43,7 @@
             @avatar(latestCommit, 20)
             @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
             <span class="muted">@datetime(latestCommit.time)</span>
-            <div class="pull-right align-right monospace">
+            <div class="pull-right align-right monospace" style="line-height: 18px;">
               <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
             </div>
           </div>
@@ -79,20 +81,19 @@
           <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
         }
         </td>
-        <td>@datetime(file.time)</td>
-        <td>
+        <td class="mute">
           <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a>
           [@user(file.committer, file.mailAddress)]
         </td>
+        <td style="text-align: right;">@datetime(file.time)</td>
       </tr>
       }
     </table>
-  </div>
-  
-  @readme.map { case(filePath, content) =>
-  <div id="readme" class="box">
-    <div class="box-header">@filePath.reverse.head</div>
-    <div class="box-content markdown-body">@renderMarkup(filePath, content, branch, repository, false, false)</div>
-  </div>
+    @readme.map { case(filePath, content) =>
+      <div id="readme">
+        <div class="box-header">@filePath.reverse.head</div>
+        <div class="box-content markdown-body">@renderMarkup(filePath, content, branch, repository, false, false)</div>
+      </div>
+    }
   }
 }
