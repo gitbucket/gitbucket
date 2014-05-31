@@ -80,7 +80,7 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 2.0 - 30 May 2014
+### 2.0 - 31 May 2014
 - Modern Github UI
 - Preview in AceEditor
 - Select lines by clicking line number in blob view
