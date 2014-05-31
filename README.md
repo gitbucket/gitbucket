@@ -80,6 +80,11 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.0 - 30 May 2014
+- Modern Github UI
+- Preview in AceEditor
+- Select lines by clicking line number in blob view
+
 ### 1.13 - 29 Apr 2014
 - Direct file editing in the repository viewer using AceEditor
 - File attachment for issues
