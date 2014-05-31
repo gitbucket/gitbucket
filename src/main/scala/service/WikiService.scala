@@ -97,7 +97,7 @@ trait WikiService {
     using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       JGitUtil.getFileList(git, "master", ".")
         .filter(_.name.endsWith(".md"))
-        .map(_.name.replaceFirst("\\.md$", ""))
+        .map(_.name.stripSuffix(".md"))
         .sortBy(x => x)
     }
   }
@@ -143,7 +143,7 @@ trait WikiService {
           val revertInfo = (p.getFiles.asScala.map { fh =>
             fh.getChangeType match {
               case DiffEntry.ChangeType.MODIFY => {
-                val source = getWikiPage(owner, repository, fh.getNewPath.replaceFirst("\\.md$", "")).map(_.content).getOrElse("")
+                val source = getWikiPage(owner, repository, fh.getNewPath.stripSuffix(".md")).map(_.content).getOrElse("")
                 val applied = PatchUtil.apply(source, patch, fh)
                 if(applied != null){
                   Seq(RevertInfo("ADD", fh.getNewPath, applied))

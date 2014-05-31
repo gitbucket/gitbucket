@@ -44,7 +44,7 @@ trait AccountService {
             getAccountByUserName(ldapUserInfo.userName)
           }
           case Some(x) if(x.isRemoved)  => {
-            logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
+            logger.info("LDAP Authentication Failed: Account is already registered but disabled.")
             defaultAuthentication(userName, password)
           }
           case None => getAccountByMailAddress(ldapUserInfo.mailAddress, true) match {
@@ -53,7 +53,7 @@ trait AccountService {
               getAccountByUserName(ldapUserInfo.userName)
             }
             case Some(x) if(x.isRemoved)  => {
-              logger.info(s"LDAP Authentication Failed: Account is already registered but disabled..")
+              logger.info("LDAP Authentication Failed: Account is already registered but disabled.")
               defaultAuthentication(userName, password)
             }
             case None => {

@@ -196,7 +196,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       case x if(x.endsWith(".sql"))     => "sql"
       case x if(x.endsWith(".tcl"))     => "tcl"
       case x if(x.endsWith(".vbs"))     => "vbscript"
-      case x if(x.endsWith(".tcl"))     => "tcl"
       case x if(x.endsWith(".yml"))     => "yaml"
       case _ => "plain_text"
     }

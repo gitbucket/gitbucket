@@ -6,7 +6,6 @@ import util.ControlUtil._
 import model.Issue
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
-import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
 
@@ -39,7 +38,7 @@ RepositorySearchService { self: IssuesService =>
         Nil
       } else {
         val files = searchRepositoryFiles(git, query)
-        val commits = JGitUtil.getLatestCommitFromPaths(git, files.toList.map(_._1), "HEAD")
+        val commits = JGitUtil.getLatestCommitFromPaths(git, files.map(_._1), "HEAD")
         files.map { case (path, text) =>
           val (highlightText, lineNumber)  = getHighlightText(text, query)
           FileSearchResult(
@@ -60,7 +59,7 @@ RepositorySearchService { self: IssuesService =>
     treeWalk.addTree(revCommit.getTree)
 
     val keywords = StringUtil.splitWords(query.toLowerCase)
-    val list = new ListBuffer[(String, String)]
+    val list = new scala.collection.mutable.ListBuffer[(String, String)]
 
     while (treeWalk.next()) {
       val mode = treeWalk.getFileMode(0)

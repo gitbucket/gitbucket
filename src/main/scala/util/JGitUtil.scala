@@ -146,12 +146,12 @@ object JGitUtil {
           commitCount,
           // branches
           git.branchList.call.asScala.map { ref =>
-            ref.getName.replaceFirst("^refs/heads/", "")
+            ref.getName.stripPrefix("refs/heads/")
           }.toList,
           // tags
           git.tagList.call.asScala.map { ref =>
             val revCommit = getRevCommitFromId(git, ref.getObjectId)
-            TagInfo(ref.getName.replaceFirst("^refs/tags/", ""), revCommit.getCommitterIdent.getWhen, revCommit.getName)
+            TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName)
           }.toList
         )
       } catch {
@@ -190,7 +190,7 @@ object JGitUtil {
               val targetPath = walker.getPathString
               if((path + "/").startsWith(targetPath)){
                 true
-              } else if(targetPath.startsWith(path + "/") && targetPath.substring(path.length + 1).indexOf("/") < 0){
+              } else if(targetPath.startsWith(path + "/") && targetPath.substring(path.length + 1).indexOf('/') < 0){
                 stopRecursive = true
                 treeWalk.setRecursive(false)
                 true
