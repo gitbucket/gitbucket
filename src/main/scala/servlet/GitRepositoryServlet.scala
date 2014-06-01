@@ -114,6 +114,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        val pushedIds = scala.collection.mutable.Set[String]()
         commands.asScala.foreach { command =>
           logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
           val refName = command.getRefName.split("/")
@@ -133,10 +134,16 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             countIssue(IssueSearchCondition(state = "closed"), Map.empty, false, owner -> repository)
 
           // Extract new commit and apply issue comment
+          val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
           val newCommits = commits.flatMap { commit =>
-            if (!existIds.contains(commit.id)) {
+            if (!existIds.contains(commit.id) && !pushedIds.contains(commit.id)) {
               if (issueCount > 0) {
+                pushedIds.add(commit.id)
                 createIssueComment(commit)
+                // close issues
+                if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
+                  closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository)
+                }
               }
               Some(commit)
             } else None
@@ -168,16 +175,16 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             }
           }
 
-          // close issues
-          if(issueCount > 0) {
-            val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
-            if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
-              git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach {
-                commit =>
-                  closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
-              }
-            }
-          }
+//          // close issues
+//          if(issueCount > 0) {
+//            val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
+//            if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
+//              git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach {
+//                commit =>
+//                  closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
+//              }
+//            }
+//          }
 
           // call web hook
           getWebHookURLs(owner, repository) match {
