@@ -43,9 +43,8 @@ trait SystemSettingsService {
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
-      using(new java.io.FileOutputStream(GitBucketConf)) {
-        out =>
-          props.store(out, null)
+      using(new java.io.FileOutputStream(GitBucketConf)){ out =>
+        props.store(out, null)
       }
     }
   }
@@ -54,9 +53,8 @@ trait SystemSettingsService {
   def loadSystemSettings(): SystemSettings = {
     defining(new java.util.Properties()){ props =>
       if(GitBucketConf.exists){
-        using(new java.io.FileInputStream(GitBucketConf)) {
-          in =>
-            props.load(in)
+        using(new java.io.FileInputStream(GitBucketConf)){ in =>
+          props.load(in)
         }
       }
       SystemSettings(
