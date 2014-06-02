@@ -38,7 +38,7 @@
           </div>
         </div>
       }
-      @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName &&
+      @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
         pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
         <div class="box issue-comment-box" style="background-color: #d0eeff;">
           <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
