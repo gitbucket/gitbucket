@@ -1,13 +1,17 @@
-@(active: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(active: String, create: Boolean, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs pull-left fill-width">
   <li@if(active == "issues"){ class="active"}><a href="@url(repository)/issues">Browse Issues</a></li>
   <li@if(active == "milestones"){ class="active"}><a href="@url(repository)/issues/milestones">Milestones</a></li>
   @if(loginAccount.isDefined){
   <li class="pull-right">
     <div class="btn-group">
-      <a class="btn btn-success" href="@url(repository)/issues/new">New Issue</a>
+      @if(create){
+        <a class="btn btn-small btn-success" href="#" disabled="disabled">New Issue</a>
+      } else {
+        <a class="btn btn-small btn-success" href="@url(repository)/issues/new">New Issue</a>
+      }
     </div>
   </li>
   }

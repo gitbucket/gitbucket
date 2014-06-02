@@ -1,0 +1,173 @@
+@(active: String,
+  repository: service.RepositoryService.RepositoryInfo,
+  id: Option[String] = None,
+  expand: Boolean = false)(body: Html)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+
+@sidemenu(path: String, name: String, label: String, count: Int = 0) = {
+  <li @if(active == name){class="active"}>
+    <div class="@if(active == name){margin} else {gradient} pull-left"></div>
+    <a href="@url(repository)@path"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}*@>
+      @if(active == name){
+        <img src="@assets/common/images/menu-@{name}-active.png">
+      } else {
+        <img src="@assets/common/images/menu-@{name}-active.png" class="menu-icon-active" style="display:none;">
+        <img src="@assets/common/images/menu-@{name}.png"        class="menu-icon">
+      }
+      @if(expand){ @label}
+      @if(expand && count > 0){
+        <div class="pull-right"><span class="label">@count</span></div>
+      }
+    </a>
+  </li>
+}
+
+<div class="container">
+  @if(repository.commitCount > 0){
+    <div class="pull-right">
+      <div class="input-prepend">
+        <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
+        <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+      </div>
+    </div>
+  }
+  <div class="head">
+    @helper.html.repositoryicon(repository, true)
+    <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+
+    @defining(repository.repository){ x =>
+      @if(repository.repository.originRepositoryName.isDefined){
+        <div class="forked">
+          forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+        </div>
+      }
+    }
+  </div>
+</div>
+<hr style="margin-bottom: 20px;"/>
+<div class="container body">
+  <div style="width: @if(expand){170px} else {40px};" class="pull-right">
+    <ul class="sidemenu">
+      <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
+      @sidemenu(""       , "code"  , "Code")
+      @sidemenu("/issues", "issues", "Issues", repository.issueCount)
+      @sidemenu("/pulls" , "pulls" , "Pull Requests", repository.pullCount)
+      @sidemenu("/wiki"  , "wiki"  , "Wiki")
+      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+        @sidemenu("/settings", "settings", "Settings")
+      }
+      <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
+    </ul>
+    @if(expand){
+      <div class="small">
+        <strong id="repository-url-proto">HTTP</strong> <span class="mute">clone URL</span>
+      </div>
+      @helper.html.copy("repository-url-copy", repository.httpUrl){
+        <input type="text" value="@repository.httpUrl" id="repository-url" readonly>
+      }
+      @if(settings.ssh && loginAccount.isDefined){
+        <div class="small">
+          <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
+        </div>
+      }
+      @id.map { id =>
+        <div style="margin-top: 10px;">
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download ZIP</a>
+        </div>
+      }
+    }
+  </div>
+  <div style="margin-right: @if(expand){180px} else {50px};">
+    @if(expand){
+      @repository.repository.description.map { description =>
+        <p class="description">@description</p>
+      }
+      <div style="border: 1px solid #eee; padding: 4px; margin-bottom: 10px;">
+        <table class="fill-width">
+          <tr>
+            <td style="width: 33%; text-align: center;">
+              <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
+                <img src="@assets/common/images/header-commits-hover.png" class="header-icon-hover" style="display: none;"/>
+                <img src="@assets/common/images/header-commits.png"       class="header-icon"/>
+                <strong>@repository.commitCount</strong> commits
+              </a>
+            </td>
+            <td style="width: 33%; text-align: center;">
+              <a href="@url(repository)/branches" class="header-link" class="header-link">
+                <img src="@assets/common/images/header-branches-hover.png" class="header-icon-hover" style="display: none;"/>
+                <img src="@assets/common/images/header-branches.png"       class="header-icon"/>
+                <strong>@repository.branchList.length</strong> branches
+              </a>
+            </td>
+            <td style="width: 33%; text-align: center;">
+              <a href="@url(repository)/tags" class="header-link" class="header-link">
+                <img src="@assets/common/images/header-tags-hover.png" class="header-icon-hover" style="display: none;"/>
+                <img src="@assets/common/images/header-tags.png"       class="header-icon"/>
+                <strong>@repository.tags.length</strong> releases
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+    }
+    @body
+  </div>
+</div>
+<script>
+$(function(){
+  $('a.header-link').mouseover(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', '#0088cc');
+    $(target).children('img.header-icon-hover').css('display', 'inline');
+    $(target).children('img.header-icon'      ).css('display', 'none');
+  });
+
+  $('a.header-link').mouseout(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', 'black');
+    $(target).children('img.header-icon-hover').css('display', 'none');
+    $(target).children('img.header-icon'      ).css('display', 'inline');
+  });
+
+  $('ul.sidemenu a').mouseover(function(e){
+    var target = e.target;
+    if(e.target.tagName == "IMG"){
+      target = e.target.parentElement;
+    }
+    $(target).prev    ('div.gradient'        ).css('border-left', '1px solid silver');
+    $(target).children('img.menu-icon-active').css('display', 'inline');
+    $(target).children('img.menu-icon'       ).css('display', 'none');
+  });
+
+  $('ul.sidemenu a').mouseout(function(e){
+    var target = e.target;
+    if(e.target.tagName == "IMG"){
+      target = e.target.parentElement;
+    }
+    $(target).prev    ('div.gradient'        ).css('border-left', '1px solid #eee');
+    $(target).children('img.menu-icon-active').css('display', 'none');
+    $(target).children('img.menu-icon'       ).css('display', 'inline');
+  });
+
+  @if(settings.ssh && loginAccount.isDefined){
+    $('#repository-url-http').click(function(){
+      $('#repository-url-proto').text('HTTP');
+      $('#repository-url').val('@repository.httpUrl');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+
+    $('#repository-url-ssh').click(function(){
+      $('#repository-url-proto').text('SSH');
+      $('#repository-url').val('@repository.sshUrl(settings.sshPort.getOrElse(service.SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+  }
+});
+</script>

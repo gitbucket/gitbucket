@@ -7,60 +7,69 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.header("code", repository)
-  @tab(branch, repository, if(pathList.isEmpty) "commits" else "files")
-  <div class="head">
-    @if(pathList.isEmpty){
-      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> / Commit History
-    }
-    @if(pathList.nonEmpty){
-      <span class="muted">History for</span>
-      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-      @pathList.zipWithIndex.map { case (section, i) =>
-        @if(i == pathList.length - 1){
-          @section
-        } else {
-          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+  @html.menu("code", repository){
+    <div class="head">
+      @helper.html.dropdown(
+        value  = if(branch.length == 40) branch.substring(0, 10) else branch,
+        prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
+        mini   = true
+      ){
+        @repository.branchList.map { x =>
+          <li><a href="@url(repository)/commits/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
         }
       }
-    }
-  </div>
-  @commits.map { day =>
-    <table class="table table-bordered">
-      <tr>
-        <th>@date(day.head.time)</th>
-      </tr>
-      @day.map { commit =>
-      <tr>
-        <td>
-          <div class="pull-right align-right">
-            <a href="@url(repository)/commit/@commit.id" class="btn btn-small monospace">@commit.id.substring(0, 10)</a><br>
-            <a href="@url(repository)/tree/@commit.id" class="small">Browse code</a>
-          </div>
-          <div>
-            <div class="commit-avatar-image">@avatar(commit, 40)</div>
-            <div class="commit-message-box">
-              <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
-              @if(commit.description.isDefined){
-                <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
-              }
-              <br>
-              @if(commit.description.isDefined){
-                <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
-              }
-              <div class="small">
-                @user(commit.committer, commit.mailAddress, "username")
-                <span class="muted">@datetime(commit.time)</span>
+      @if(pathList.isEmpty){
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> / Commit History
+      }
+      @if(pathList.nonEmpty){
+        <span class="muted">History for</span>
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          @if(i == pathList.length - 1){
+            @section
+          } else {
+            <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+          }
+        }
+      }
+    </div>
+    @commits.map { day =>
+      <table class="table table-bordered">
+        <tr>
+          <th>@date(day.head.time)</th>
+        </tr>
+        @day.map { commit =>
+        <tr>
+          <td>
+            <div class="pull-right align-right">
+              <a href="@url(repository)/commit/@commit.id" class="btn btn-small monospace">@commit.id.substring(0, 10)</a><br>
+              <a href="@url(repository)/tree/@commit.id" class="small">Browse code</a>
+            </div>
+            <div>
+              <div class="commit-avatar-image">@avatar(commit, 40)</div>
+              <div class="commit-message-box">
+                <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
+                @if(commit.description.isDefined){
+                  <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
+                }
+                <br>
+                @if(commit.description.isDefined){
+                  <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
+                }
+                <div class="small">
+                  @user(commit.committer, commit.mailAddress, "username")
+                  <span class="muted">@datetime(commit.time)</span>
+                </div>
               </div>
             </div>
-          </div>
-        </td>
-      </tr>
-      }
-    </table>
+          </td>
+        </tr>
+        }
+      </table>
+    }
+    <div class="btn-group">
+      <button class="btn" onclick="location.href='?page=@{page - 1}'"@if(page <= 1){ disabled="true"}>&lt; Newer</button>
+      <button class="btn" onclick="location.href='?page=@{page + 1}'"@if(!hasNext){ disabled="true"}>Older &gt;</button>
+    </div>
   }
-  <div class="btn-group">
-    <button class="btn" onclick="location.href='?page=@{page - 1}'"@if(page <= 1){ disabled="true"}>&lt; Newer</button>
-    <button class="btn" onclick="location.href='?page=@{page + 1}'"@if(!hasNext){ disabled="true"}>Older &gt;</button>
-  </div>   
 }

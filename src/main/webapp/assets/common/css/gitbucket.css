@@ -3,10 +3,42 @@
 /****************************************************************************/
 body {
   color: #333;
+  line-height: 100%;
 }
 
 li p {
   margin: 0px;
+}
+
+h1 {
+  font-size: 30px;
+  line-height: 32px;
+}
+
+h2 {
+  font-size: 28px;
+  line-height: 30px;
+}
+
+h3 {
+  font-size: 26px;
+  line-height: 28px;
+}
+
+h4 {
+  font-size: 24px;
+}
+
+h5 {
+  font-size: 22px;
+}
+
+h6 {
+  font-size: 18px;
+}
+
+h7 {
+  font-size: 14px;
 }
 
 /* ======================================================================== */
@@ -55,53 +87,29 @@ span.header-version {
   font-size: small;
 }
 
-/* ======================================================================== */
-/* Repository Header */
-/* ======================================================================== */
-table.global-nav {
-  width: 920px;
-  margin-bottom: 10px;
-}
-
-table.global-nav th {
-  padding-top: 5px;
-  padding-bottom: 8px;
-  width: 16%;
-  border-bottom: 2px solid silver;
-  cursor: pointer;
-}
-
-table.global-nav th.active {
-  border-bottom: 2px solid #D26911;
-}
-
-table.global-nav th a:link, table.global-nav th a:hover, table.global-nav th a:visited {
-  color: #333;
-  text-decoration: none;
-}
-
 div.input-prepend span.count {
   background-color: white;
   -webkit-border-radius: 0 4px 4px 0;
   -moz-border-radius: 0 4px 4px 0;
   border-radius: 0 4px 4px 0;
+  height: 16px;
+  font-size: 12px;
+  padding-top: 2px;
+  padding-bottom: 6px;
 }
 
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
 div.head {
-  font-size: large;
   margin-bottom: 10px;
+  font-size: 18px;
 }
 
 div.head div.forked {
   font-size: 60%;
+  margin-left: 36px;
   color: #999999;
-}
-
-div.head div.forked a {
-  font-weight: normal;
 }
 
 div.container {
@@ -122,7 +130,7 @@ span.error {
 }
 
 .small {
-  font-size: 85%;
+  font-size: 80%;
 }
 
 .strong {
@@ -302,6 +310,63 @@ span.highlight {
   background-color: #ffff88;
 }
 
+.fill-width {
+  width: 100%;
+}
+
+/****************************************************************************/
+/* Side Menu */
+/****************************************************************************/
+ul.sidemenu {
+  margin-left: 0px;
+}
+
+ul.sidemenu img {
+  width: 14px;
+  height: 14px;
+}
+
+
+ul.sidemenu a:hover{
+  text-decoration: none;
+}
+
+ul.sidemenu li.active {
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  border-right: 2px solid #bb4444;
+  border-left: 1px solid white;
+}
+
+ul.sidemenu div.gradient {
+  width: 5px;
+  height: 30px;
+  background: linear-gradient(to right, #eee, #fff);
+  margin-right: 4px;
+  border-left: 1px solid #eee;
+}
+
+ul.sidemenu div.margin {
+  width: 5px;
+  height: 30px;
+  margin-right: 4px;
+  border-left: 1px solid white;
+}
+
+ul.sidemenu li {
+  line-height: 30px;
+  height: 30px;
+  border-left: 1px solid #eee;
+  margin-left:0px;
+  border-right: 2px solid white;
+  list-style-type: none;
+  font-size: 90%;
+}
+
+ul.sidemenu span.badge {
+  padding-right: 4px;
+}
+
 /****************************************************************************/
 /* Create Repository */
 /****************************************************************************/
@@ -413,8 +478,33 @@ div.activity-content {
 /****************************************************************************/
 /* Repository Viewer */
 /****************************************************************************/
+p.description {
+  color: gray;
+}
+
+a.header-link {
+  color: #888;
+  font-size: 90%;
+}
+
+a.header-link img {
+  width: 14px;
+  height: 14px;
+}
+
+a.header-link strong {
+  color: black;
+  font-size: 90%;
+}
+
+a.header-link:hover {
+  color: #0088cc;
+  text-decoration: none;
+}
+
 table.table-file-list {
   margin-bottom: 0px;
+  border: 1px solid #ddd;
 }
 
 table.table-file-list th, table.table-file-list td {
@@ -436,6 +526,7 @@ table.table-file-list td {
 th, td, .table th, .table td {
   padding-top: 4px;
   padding-bottom: 4px;
+  line-height: 100%;
 }
 
 div.commit-avatar-image {
@@ -458,7 +549,16 @@ pre.commit-description {
 #repository-url {
   background-color: white;
   cursor: default;
-  width: 300px;
+  height: 16px;
+  width: 129px;
+  color: silver;
+  font-size: 9pt;
+  font-family: monospace;
+}
+
+#repository-url-copy {
+  height: 18px;
+  padding-top: 2px;
 }
 
 ul#commit-file-list {
@@ -486,8 +586,12 @@ pre.blob {
   padding-left: 20px;
 }
 
+#readme {
+  margin-top: 20px;
+}
+
 #readme .box-content {
-  padding: 30px;
+  padding: 20px;
 }
 
 li.highlight {
@@ -683,7 +787,7 @@ div.attachable textarea {
   border-radius: 0px;
 }
 
-div.attachable div {
+div.attachable div.clickable {
   padding: 2px;
   border-left: 1px solid #ccc;
   border-right: 1px solid #ccc;
@@ -710,6 +814,21 @@ h1.wiki-title {
 
 a.absent {
   color: #c00;
+}
+
+/****************************************************************************/
+/* Diff */
+/****************************************************************************/
+table.inlinediff {
+    width: 100%;
+}
+
+table.inlinediff thead {
+    display: none;
+}
+
+td.insert, td.equal, td.delete {
+    width: 100%;
 }
 
 /****************************************************************************/
@@ -895,6 +1014,26 @@ a.markdown-anchor-link {
   display: none;
 }
 
-h1 a.markdown-anchor-link, h2 a.markdown-anchor-link, h3 a.markdown-anchor-link {
-  top: 10px;
+h1 a.markdown-anchor-link {
+  top: 8px;
+}
+
+h2 a.markdown-anchor-link {
+  top: 6px;
+}
+
+h3 a.markdown-anchor-link {
+  top: 6px;
+}
+
+h4 a.markdown-anchor-link {
+  top: 2px;
+}
+
+h5 a.markdown-anchor-link {
+  top: 2px;
+}
+
+h6 a.markdown-anchor-link {
+  top: 2px;
 }

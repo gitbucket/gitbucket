@@ -2,20 +2,15 @@
 @import context._
 @import view.helpers._
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
-  @header(activities)
-  @activities.map { activity => @item(activity) }
-</feed>
-
-@header(activities: List[model.Activity]) = {<id>tag:@context.host,2013:gitbucket</id>
+  <id>tag:@context.host,2013:gitbucket</id>
   <title>Gitbucket's activities</title>
   <link type="application/atom+xml" rel="self" href="@context.baseUrl/activities.atom"/>
   <author>
     <name>Gitbucket</name>
     <uri>@context.baseUrl</uri>
   </author>
-  <updated>@datetimeRFC3339(activities.map(_.activityDate).max)</updated>}
-
-@item(activity: model.Activity) = {
+  <updated>@datetimeRFC3339(if(activities.isEmpty) new java.util.Date else activities.map(_.activityDate).max)</updated>
+  @activities.map { activity =>
   <entry>
     <id>tag:@context.host,@date(activity.activityDate):activity:@activity.activityId</id>
     <published>@datetimeRFC3339(activity.activityDate)</published>
@@ -27,4 +22,6 @@
       <uri>@url(activity.activityUserName)</uri>
     </author>
     <content type="html">@activityMessage(activity.message)</content>
-  </entry>}
+  </entry>
+  }
+</feed>

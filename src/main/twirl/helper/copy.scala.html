@@ -1,5 +1,5 @@
-@(id: String, value: String, prepend: Boolean = false)(html: Html)
-<div class="input-append@if(prepend){ input-prepend}">
+@(id: String, value: String)(html: Html)
+<div class="input-append" style="margin-bottom: 0px;">
   @html
   <span id="@id" class="add-on btn" data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="icon-check"></i></span>
 </div>

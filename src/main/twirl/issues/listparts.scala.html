@@ -26,8 +26,8 @@
         @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 7, condition.toURL)
       </div>
       <div class="btn-group">
-        <a class="btn@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
-        <a class="btn@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
+        <a class="btn btn-small@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
+        <a class="btn btn-small@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
       </div>
       @helper.html.dropdown(
         value  = (condition.sort, condition.direction) match {

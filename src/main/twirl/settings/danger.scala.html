@@ -2,37 +2,38 @@
 @import context._
 @import view.helpers._
 @html.main("Danger Zone", Some(repository)){
-  @html.header("settings", repository)
-  @menu("danger", repository){
-    <div class="box">
-      <div class="box-header">Danger Zone</div>
-      <div class="box-content">
-        <form id="transfer-form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
-          <fieldset>
-            <label class="strong">Transfer Ownership</label>
-            <div>
-              Transfer this repo to another user or to group.
-              <div class="pull-right">
-                @helper.html.account("newOwner", 150)
-                <input type="submit" class="btn btn-danger" value="Transfer"/>
-                <div>
-                  <span id="error-newOwner" class="error"></span>
+  @html.menu("settings", repository){
+    @menu("danger", repository){
+      <div class="box">
+        <div class="box-header">Danger Zone</div>
+        <div class="box-content">
+          <form id="transfer-form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
+            <fieldset>
+              <label class="strong">Transfer Ownership</label>
+              <div>
+                Transfer this repo to another user or to group.
+                <div class="pull-right">
+                  @helper.html.account("newOwner", 150)
+                  <input type="submit" class="btn btn-danger" value="Transfer"/>
+                  <div>
+                    <span id="error-newOwner" class="error"></span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </fieldset>
-        </form>
-        <form id="delete-form" method="post" action="@url(repository)/settings/delete">
-          <fieldset class="margin">
-            <label class="strong">Delete repository</label>
-            <div>
-              Once you delete a repository, there is no going back.
-              <input type="submit" class="btn btn-danger pull-right" value="Delete this repository"/>
-            </div>
-          </fieldset>
-        </form>
+            </fieldset>
+          </form>
+          <form id="delete-form" method="post" action="@url(repository)/settings/delete">
+            <fieldset class="margin">
+              <label class="strong">Delete repository</label>
+              <div>
+                Once you delete a repository, there is no going back.
+                <input type="submit" class="btn btn-danger pull-right" value="Delete this repository"/>
+              </div>
+            </fieldset>
+          </form>
+        </div>
       </div>
-    </div>
+    }
   }
 }
 <script>

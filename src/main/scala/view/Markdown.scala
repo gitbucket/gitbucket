@@ -89,7 +89,8 @@ class GitBucketHtmlSerializer(
   ) with LinkConverter with RequestCache {
 
   override protected def printImageTag(imageNode: SuperNode, url: String): Unit =
-    printer.print("<img src=\"").print(fixUrl(url)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/>")
+    printer.print("<a target=\"_blank\" href=\"").print(fixUrl(url)).print("\">")
+           .print("<img src=\"").print(fixUrl(url)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/></a>")
 
   override protected def printLink(rendering: LinkRenderer.Rendering): Unit = {
     printer.print('<').print('a')
@@ -101,7 +102,7 @@ class GitBucketHtmlSerializer(
   }
 
   private def fixUrl(url: String): String = {
-    if(!enableWikiLink || url.startsWith("http://") || url.startsWith("https://")){
+    if(!enableWikiLink || url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#")){
       url
     } else {
       repository.httpUrl.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/wiki/_blob/" + url

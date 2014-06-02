@@ -2,7 +2,7 @@
 @import context._
 @import view.helpers._
 @html.main(if(account.isEmpty) "Create group" else "Edit group"){
-<div>
+<div class="container">
   <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
       <div class="row-fluid">
         <div class="span5">

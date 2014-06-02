@@ -2,12 +2,12 @@
 @import context._
 <div class="muted attachable">
   @textarea
-  <div>Attach images by dragging &amp; dropping, or selecting them.</div>
+  <div class="clickable">Attach images by dragging &amp; dropping, or selecting them.</div>
 </div>
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
-  $('#@textareaId').next('div').dropzone({
+  $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
     url: '@path/upload/image/@owner/@repository',
     maxFilesize: 10,
     acceptedFiles: 'image/*',
@@ -20,8 +20,8 @@ $(function(){
     }
   });
 
-  // Adjust attachment area width
-  $('div.attachable div').css('width', ($('div.attachable textarea').width() + 8) + 'px');
+  // Adjust clickable area width
+  $('#@textareaId').next('div.clickable').css('width', ($('#@textareaId').width() + 8) + 'px');
 });
 </script>
 }

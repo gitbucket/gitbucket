@@ -8,41 +8,43 @@
 @import context._
 @import view.helpers._
 @html.main("Your Issues"){
-@dashboard.html.tab("issues")
-<div class="row-fluid">
-  <div class="span3">
-    <ul class="nav nav-pills nav-stacked">
-      <li@if(filter == "all"){ class="active"}>
-        <a href="@path/dashboard/issues/repos@condition.toURL">
-          <span class="count-right">@allCount</span>
-          In your repositories
-        </a>
-      </li>
-      <li@if(filter == "assigned"){ class="active"}>
-        <a href="@path/dashboard/issues/assigned@condition.toURL">
-          <span class="count-right">@assignedCount</span>
-          Assigned to you
-        </a>
-      </li>
-      <li@if(filter == "created_by"){ class="active"}>
-        <a href="@path/dashboard/issues/created_by@condition.toURL">
-          <span class="count-right">@createdByCount</span>
-          Created by you
-        </a>
-      </li>
-    </ul>
-    <hr/>
-    <ul class="nav nav-pills nav-stacked small">
-      @repositories.map { case (owner, name, count) =>
-      <li@if(condition.repo == Some(owner + "/" + name)){ class="active"}>
-        <a href="@condition.copy(repo = Some(owner + "/" + name)).toURL">
-          <span class="count-right">@count</span>
-          @owner/@name
-        </a>
-      </li>
-      }
-    </ul>
+<div class="container">
+  @dashboard.html.tab("issues")
+  <div class="row-fluid">
+    <div class="span3">
+      <ul class="nav nav-pills nav-stacked">
+        <li@if(filter == "all"){ class="active"}>
+          <a href="@path/dashboard/issues/repos@condition.toURL">
+            <span class="count-right">@allCount</span>
+            In your repositories
+          </a>
+        </li>
+        <li@if(filter == "assigned"){ class="active"}>
+          <a href="@path/dashboard/issues/assigned@condition.toURL">
+            <span class="count-right">@assignedCount</span>
+            Assigned to you
+          </a>
+        </li>
+        <li@if(filter == "created_by"){ class="active"}>
+          <a href="@path/dashboard/issues/created_by@condition.toURL">
+            <span class="count-right">@createdByCount</span>
+            Created by you
+          </a>
+        </li>
+      </ul>
+      <hr/>
+      <ul class="nav nav-pills nav-stacked small">
+        @repositories.map { case (owner, name, count) =>
+        <li@if(condition.repo == Some(owner + "/" + name)){ class="active"}>
+          <a href="@condition.copy(repo = Some(owner + "/" + name)).toURL">
+            <span class="count-right">@count</span>
+            @owner/@name
+          </a>
+        </li>
+        }
+      </ul>
+    </div>
+    @listparts
   </div>
-  @listparts
 </div>
 }

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import util.Directory._
 import util.ControlUtil._
 import org.eclipse.jgit.api.Git
+import util.Directory
 
 object AutoUpdate {
   
@@ -50,6 +51,32 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    new Version(2, 0){
+      override def update(conn: Connection): Unit = {
+        import eu.medsea.mimeutil.{MimeUtil2, MimeType}
+
+        val mimeUtil = new MimeUtil2()
+        mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector")
+
+        super.update(conn)
+        using(conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")){ rs =>
+          while(rs.next){
+            defining(Directory.getAttachedDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))){ dir =>
+              if(dir.exists && dir.isDirectory){
+                dir.listFiles.foreach { file =>
+                  if(file.getName.indexOf('.') < 0){
+                    val mimeType = MimeUtil2.getMostSpecificMimeType(mimeUtil.getMimeTypes(file, new MimeType("application/octet-stream"))).toString
+                    if(mimeType.startsWith("image/")){
+                      file.renameTo(new File(file.getParent, file.getName + "." + mimeType.split("/")(1)))
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     Version(1, 13),
     Version(1, 12),
     Version(1, 11),
