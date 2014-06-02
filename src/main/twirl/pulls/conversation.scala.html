@@ -13,57 +13,59 @@
   <div class="span10">
     @issues.html.issuedetail(issue, comments, collaborators, milestones, hasWritePermission, repository)
     @issues.html.commentlist(issue, comments, hasWritePermission, repository, Some(pullreq))
-    @if(hasWritePermission && !issue.closed){
-      <div class="box issue-comment-box" style="background-color: #d8f5cd;">
-        <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
-          <div id="merge-pull-request">
-            <div class="check-conflict" style="display: none;">
-              <img src="@assets/common/images/indicator.gif"/> Checking...
+    @defining(comments.exists(_.action == "merge")){ merged =>
+      @if(hasWritePermission && !issue.closed){
+        <div class="box issue-comment-box" style="background-color: #d8f5cd;">
+          <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
+            <div id="merge-pull-request">
+              <div class="check-conflict" style="display: none;">
+                <img src="@assets/common/images/indicator.gif"/> Checking...
+              </div>
+            </div>
+            <div id="confirm-merge-form" style="display: none;">
+              <form method="POST" action="@url(repository)/pull/@issue.issueId/merge">
+                <div class="strong">
+                  Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
+                </div>
+                <span id="error-message" class="error"></span>
+                <textarea name="message" style="width: 635px; height: 80px;">@issue.title</textarea>
+                <div>
+                  <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
+                  <input type="submit" class="btn btn-success" value="Confirm merge"/>
+                </div>
+              </form>
             </div>
           </div>
-          <div id="confirm-merge-form" style="display: none;">
-            <form method="POST" action="@url(repository)/pull/@issue.issueId/merge">
-              <div class="strong">
-                Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
-              </div>
-              <span id="error-message" class="error"></span>
-              <textarea name="message" style="width: 635px; height: 80px;">@issue.title</textarea>
-              <div>
-                <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
-                <input type="submit" class="btn btn-success" value="Confirm merge"/>
-              </div>
-            </form>
-          </div>
         </div>
-      </div>
-    }
-    @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName &&
-        pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
-      <div class="box issue-comment-box" style="background-color: #d0eeff;">
-        <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
-          <a href="@url(repository)/pull/@issue.issueId/delete/@pullreq.requestBranch" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
-          <div>
-            <span class="strong">Pull request successfully merged and closed</span>
-          </div>
-          <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
-        </div>
-      </div>
-    }
-    @issues.html.commentform(issue, hasWritePermission, repository)
-  </div>
-  <div class="span2">
-    @if(issue.closed) {
-      @if(comments.exists(_.action == "merge")){
-        <span class="label label-info issue-status">Merged</span>
-      } else {
-        <span class="label label-important issue-status">Closed</span>
       }
-    } else {
-      <span class="label label-success issue-status">Open</span>
-    }
-    <div class="small" style="text-align: center;">
-      <span class="strong">@comments.size</span> @plural(comments.size, "comment")
+      @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName &&
+        pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
+        <div class="box issue-comment-box" style="background-color: #d0eeff;">
+          <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
+            <a href="@url(repository)/pull/@issue.issueId/delete/@pullreq.requestBranch" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+            <div>
+              <span class="strong">Pull request successfully merged and closed</span>
+            </div>
+            <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
+          </div>
+        </div>
+      }
+      @issues.html.commentform(issue, !merged, hasWritePermission, repository)
     </div>
+    <div class="span2">
+      @if(issue.closed) {
+        @if(merged){
+          <span class="label label-info issue-status">Merged</span>
+        } else {
+          <span class="label label-important issue-status">Closed</span>
+        }
+      } else {
+        <span class="label label-success issue-status">Open</span>
+      }
+      <div class="small" style="text-align: center;">
+        <span class="strong">@comments.size</span> @plural(comments.size, "comment")
+      </div>
+    }
     <hr/>
     @issues.html.labels(issue, issueLabels, labels, hasWritePermission, repository)
   </div>
