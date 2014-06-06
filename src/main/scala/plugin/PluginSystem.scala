@@ -29,7 +29,7 @@ object PluginSystem {
     actionList += Action(path, function)
   }
 
-  def evaluateJavaScript(script: String): Unit = {
+  def evaluateJavaScript(script: String): Any = {
     val engine = new ScriptEngineManager().getEngineByName("JavaScript")
     engine.eval(script)
   }

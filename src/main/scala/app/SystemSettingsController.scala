@@ -5,6 +5,7 @@ import SystemSettingsService._
 import util.AdminAuthenticator
 import jp.sf.amateras.scalatra.forms._
 import ssh.SshServer
+import org.scalatra.Ok
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
@@ -71,4 +72,13 @@ trait SystemSettingsControllerBase extends ControllerBase {
     redirect("/admin/system")
   })
 
+  get("/admin/script")(adminOnly {
+    admin.html.script()
+  })
+
+  post("/admin/script")(adminOnly {
+    val script = request.getParameter("script")
+    val result = plugin.PluginSystem.evaluateJavaScript(script)
+    Ok(result)
+  })
 }
