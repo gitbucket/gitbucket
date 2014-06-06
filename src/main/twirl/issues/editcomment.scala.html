@@ -12,6 +12,7 @@
 $(function(){
   var callback = function(data){
     $('#commentContent-@commentId').empty().html(data.content);
+    prettyPrint();
   };
 
   $('#update-comment-@commentId').click(function(){
