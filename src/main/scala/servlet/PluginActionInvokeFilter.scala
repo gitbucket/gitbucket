@@ -18,7 +18,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService {
     (req, res) match {
       case (request: HttpServletRequest, response: HttpServletResponse) => {
         val path = req.asInstanceOf[HttpServletRequest].getRequestURI
-        val action = plugin.PluginSystem.actions.find(_.path == path)
+        val action = plugin.PluginSystem.globalActions.find(_.path == path)
 
         if(action.isDefined){
           val result = action.get.function(request, response)

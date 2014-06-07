@@ -3,7 +3,7 @@
 @import view.helpers._
 @html.main("JavaScript Console"){
   @menu("script"){
-    <form action="@path/admin/script" method="POST">
+    <form method="POST">
       <div class="box">
         <div class="box-header">JavaScript Console</div>
         <div class="box-content">
@@ -11,7 +11,7 @@
         </div>
       </div>
       <fieldset>
-        <input type="submit" id="evaluate" class="btn btn-success" value="Evaluate"/>
+        <input type="button" id="evaluate" class="btn btn-success" value="Evaluate"/>
       </fieldset>
     </form>
   }
@@ -21,12 +21,15 @@
 $(function(){
   var editor = ace.edit("editor");
   editor.setTheme("ace/theme/monokai");
+  editor.getSession().setMode("ace/mode/javascript");
 
   $('#evaluate').click(function(){
     $.post('@path/admin/script', {
       script: editor.getValue()
     }, function(data){
-      console.log(data);
+      alert('Success: ' + data);
+    }).fail(function(error){
+      alert(error.statusText);
     });
   });
 });
