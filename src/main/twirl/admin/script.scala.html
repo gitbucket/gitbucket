@@ -1,0 +1,33 @@
+@()(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("JavaScript Console"){
+  @menu("script"){
+    <form action="@path/admin/script" method="POST">
+      <div class="box">
+        <div class="box-header">JavaScript Console</div>
+        <div class="box-content">
+          <div id="editor" style="width: 100%; height: 600px;"></div>
+        </div>
+      </div>
+      <fieldset>
+        <input type="submit" id="evaluate" class="btn btn-success" value="Evaluate"/>
+      </fieldset>
+    </form>
+  }
+}
+<script src="@assets/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+$(function(){
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+
+  $('#evaluate').click(function(){
+    $.post('@path/admin/script', {
+      script: editor.getValue()
+    }, function(data){
+      console.log(data);
+    });
+  });
+});
+</script>
