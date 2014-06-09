@@ -96,7 +96,7 @@ $(function(){
     });
     return false;
   });
-  $('i.icon-remove-circle').click(function(){
+  $('.issue-comment-box i.icon-remove-circle').click(function(){
     if(confirm('Are you sure you want to delete this?')) {
       var id = $(this).closest('a').data('comment-id');
       $.post('@url(repository)/issue_comments/delete/' + id,
