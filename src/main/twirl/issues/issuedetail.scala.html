@@ -53,7 +53,7 @@
         </div>
         @if(hasWritePermission){
           @helper.html.dropdown() {
-            <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> No milestone</a></li>
+            <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
             @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
               <li>
                 <a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId" data-title="@milestone.title">
