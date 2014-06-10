@@ -14,20 +14,22 @@ object PluginSystem {
 
   private val logger = LoggerFactory.getLogger(PluginSystem.getClass)
 
-  private val plugins = scala.collection.mutable.Map[String, Plugin]()
+  private val pluginsMap = scala.collection.mutable.Map[String, Plugin]()
 
-  def install(id: String, plugin: Plugin): Unit = {
-    plugins.put(id, plugin)
+  def install(plugin: Plugin): Unit = {
+    pluginsMap.put(plugin.id, plugin)
   }
+
+  def plugins: List[Plugin] = pluginsMap.values.toList
 
   def uninstall(id: String): Unit = {
-    plugins.remove(id)
+    pluginsMap.remove(id)
   }
 
-  def repositoryMenus   : List[RepositoryMenu] = plugins.values.flatMap(_.repositoryMenuList).toList
-  def globalMenus       : List[GlobalMenu]     = plugins.values.flatMap(_.globalMenuList).toList
-  def repositoryActions : List[Action]         = plugins.values.flatMap(_.repositoryActionList).toList
-  def globalActions     : List[Action]         = plugins.values.flatMap(_.globalActionList).toList
+  def repositoryMenus   : List[RepositoryMenu] = pluginsMap.values.flatMap(_.repositoryMenuList).toList
+  def globalMenus       : List[GlobalMenu]     = pluginsMap.values.flatMap(_.globalMenuList).toList
+  def repositoryActions : List[Action]         = pluginsMap.values.flatMap(_.repositoryActionList).toList
+  def globalActions     : List[Action]         = pluginsMap.values.flatMap(_.globalActionList).toList
 
   // Case classes to hold plug-ins information internally in GitBucket
   case class GlobalMenu(label: String, url: String, icon: String, condition: Context => Boolean)
@@ -37,7 +39,7 @@ object PluginSystem {
   /**
    * This is a plug-in definition class.
    */
-  class Plugin {
+  class Plugin(val id: String, val author: String, val url: String, val description: String) {
 
     private[PluginSystem] val repositoryMenuList   = ListBuffer[RepositoryMenu]()
     private[PluginSystem] val globalMenuList       = ListBuffer[GlobalMenu]()

@@ -72,6 +72,10 @@ trait SystemSettingsControllerBase extends ControllerBase {
     redirect("/admin/system")
   })
 
+  get("/admin/plugins")(adminOnly {
+    admin.html.plugins(plugin.PluginSystem.plugins)
+  })
+
   get("/admin/script")(adminOnly {
     admin.html.script()
   })

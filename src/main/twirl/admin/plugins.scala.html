@@ -1,0 +1,21 @@
+@(plugins: List[plugin.PluginSystem.Plugin])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Plugins"){
+  @menu("plugins"){
+    <table class="table table-bordered">
+      <tr>
+        <th>ID</th>
+        <th>Provider</th>
+        <th>Description</th>
+      </tr>
+      @plugins.map { plugin =>
+        <tr>
+          <td>@plugin.id</td>
+          <td><a href="@plugin.url">@plugin.author</a></td>
+          <td>@plugin.description</td>
+        </tr>
+      }
+    </table>
+  }
+}
