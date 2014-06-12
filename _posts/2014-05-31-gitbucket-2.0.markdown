@@ -1,0 +1,25 @@
+---
+layout: post
+title: "GitBucket 2.0 released!"
+date: 2014-05-31 00:00:00
+categories: gitbucket
+---
+Today, we are pleased to announce the availability of new version of Scala based Github clone [GitBucket 2.0](https://github.com/takezoe/gitbucket/releases/tag/2.0)!
+
+![GitBucket 2.0 follows modern Github UI]({{site.baseurl}}/images/gitbucket-2.0/newui.png)
+
+This is a first major version up includes modern Github UI and following new features:
+
+## Preview in AceEditor
+
+You can preview Markdown in direct file editing in the repository viewer. And you can also confirm diff for files other than Markdown.
+
+![Preview in AceEditor]({{site.baseurl}}/images/gitbucket-2.0/preview.png)
+
+## Select lines by clicking line number
+
+GitBucket has been supported selecting lines by URL hash like #L10 or #L10-L12. In this version, it's possible by clicking in the source viewer.
+
+![Select lines by clicking line number]({{site.baseurl}}/images/gitbucket-2.0/select_lines.png)
+
+This release contains some improvements and bug fix. See [all closed issues](https://github.com/takezoe/gitbucket/issues?milestone=17&page=1&state=closed) in this release to know details. Upgrade your GitBucket and try new UI and these excellent features.
