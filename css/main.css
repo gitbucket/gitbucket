@@ -19,7 +19,7 @@ body {
 h1, h2, h3, h4, h5, h6 { font-size: 100%; font-weight: 400; }
 
 img {
-  width: 100%;
+  max-width: 100%;
   border: 1px solid #eee;
 }
 
