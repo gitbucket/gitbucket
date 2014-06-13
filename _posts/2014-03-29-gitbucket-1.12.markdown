@@ -1,0 +1,63 @@
+---
+layout: post
+title: "GitBucket 1.12 released!"
+date: 2014-03-29 00:00:00
+categories: gitbucket
+---
+Today, we are pleased to announce the availability of  new version of Scala based Github clone [GitBucket 1.12](https://github.com/takezoe/gitbucket/releases/tag/1.12).
+
+This release contains some new features as below:
+
+## SSH repository access is available
+
+SSH repository access can be enabled in system settings:
+
+![SSH configuration]({{site.baseurl}}/images/gitbucket-1.12/ssh.png)
+
+Users can register public keys in account settings:
+
+![Public keys in user settings]({{site.baseurl}}/images/gitbucket-1.12/pubkey.png)
+
+And ssh repository url can be checked in the repository viewer:
+
+![URL for SSH access]({{site.baseurl}}/images/gitbucket-1.12/ssh-url.png)
+
+## Group management enhancement
+
+All users can create new group. User can manage their groups and group repositories.
+
+![Create new group]({{site.baseurl}}/images/gitbucket-1.12/group1.png)
+
+It's possible to configure permission in the group in group settings:
+
+![Permission in group]({{site.baseurl}}/images/gitbucket-1.12/group2.png)
+
+## Git submodule support
+
+Display the link to the repository for submodules.
+
+![Submodule in the repository viewer]({{site.baseurl}}/images/gitbucket-1.12/submodule.png)
+
+In addition, in the previous version of GitBucket, downloading as the zip file had not been worked if the repository contains submodule. This issue is fixed in this release.
+
+## Close issues via commit messages
+
+Issue can be closed by commit message like `Fix #123` or `Close #123`.
+
+## Show repository description below the name on repository page
+
+![Repository description]({{site.baseurl}}/images/gitbucket-1.12/repository_desc.png)
+
+## Fix presentation of the source viewer
+
+before:
+
+![Previous source viewer presentation]({{site.baseurl}}/images/gitbucket-1.12/blob_before.png)
+
+after:
+
+![Current source viewer presentation]({{site.baseurl}}/images/gitbucket-1.12/blob_after.png)
+
+And also this release contains some improvements and bug fix so we recommend upgrading your GitBucket.
+
+Enjoy!
