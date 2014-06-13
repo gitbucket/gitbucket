@@ -1,0 +1,41 @@
+---
+layout: post
+title: "GitBucket 1.11 released!"
+date: 2014-03-01 00:00:00
+categories: gitbucket
+---
+Today, we released a new version of Scala based Github clone [GitBucket 1.11](https://github.com/takezoe/gitbucket/releases/tag/1.11).
+
+This release contains some new features as below:
+
+- Base URL for redirection, notification and repository URL box is configurable
+
+![Base URL configuration]({{site.baseurl}}/images/gitbucket-1.11/base-url.png)
+
+- Remove `--https` option because it's possible to substitute in the base url
+- Headline anchor is available for Markdown contents such as Wiki page
+
+![Headline anchor]({{site.baseurl}}/images/gitbucket-1.11/headline-anchor.png)
+
+- Label is available for pull requests not only issues
+- Delete branch button is added
+
+![Delete branch button]({{site.baseurl}}/images/gitbucket-1.11/delete_branch.png)
+
+![Delete branch after merging pull request]({{site.baseurl}}/images/gitbucket-1.11/pullreq.png)
+
+- Repository icons are updated
+
+![New repository icons]({{site.baseurl}}/images/gitbucket-1.11/newicons.png)
+
+- Select lines of source code by URL hash like `#L10` or `#L10-L15` in repository viewer
+
+![Select lines by URL hash]({{site.baseurl}}/images/gitbucket-1.11/gitbucket_hash.png)
+
+- Display reference to issue from others in comment list
+
+![Reference to issue from others]({{site.baseurl}}/images/gitbucket-1.11/refer_issue.png)
+
+And also this release contains some improvements and bug fix so we recommend upgrading your GitBucket.
+
+Enjoy!
