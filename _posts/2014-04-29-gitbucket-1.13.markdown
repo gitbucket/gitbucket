@@ -4,13 +4,13 @@ title: "GitBucket 1.13 released!"
 date: 2014-04-29 00:00:00
 categories: gitbucket
 ---
-Today, we are pleased to announce the availability of  new version of Scala based Github clone GitBucket 1.13.
+Today, we are pleased to announce the availability of  new version of Scala based Github clone [GitBucket 1.13](https://github.com/takezoe/gitbucket/releases/tag/1.13).
 
 I introduce new features in GitBucket 1.13 in this entry.
 
 ## Online file editing
 
-Online file editing using AceEditor is available. Commiters can create, edit and remove files in repository on the browser.
+Online file editing using [AceEditor](http://ace.c9.io/#nav=about) is available. Commiters can create, edit and remove files in repository on the browser.
 
 ![Online file editing by AceEditor]({{site.baseurl}}/images/gitbucket-1.13/aceeditor.png)
 
