@@ -1,0 +1,33 @@
+---
+layout: post
+title: "GitBucket 1.13 released!"
+date: 2014-04-29 00:00:00
+categories: gitbucket
+---
+Today, we are pleased to announce the availability of  new version of Scala based Github clone GitBucket 1.13.
+
+I introduce new features in GitBucket 1.13 in this entry.
+
+## Online file editing
+
+Online file editing using AceEditor is available. Commiters can create, edit and remove files in repository on the browser.
+
+![Online file editing by AceEditor]({{site.baseurl}}/images/gitbucket-1.13/aceeditor.png)
+
+## File attachment to issues
+
+Now, we can attach image to issue and its comment. Drop image file into the area under textarea, or click this area and choose image file.
+
+![File attachement to issues]({{site.baseurl}}/images/gitbucket-1.13/attach.png)
+
+## Atom feed of user activity
+
+Atom feed is available in the dashboard and user activity page.
+
+![Atom feed on Dashboard]({{site.baseurl}}/images/gitbucket-1.13/rss1.png)
+
+![Atom feed on user activity page]({{site.baseurl}}/images/gitbucket-1.13/rss2.png)
+
+And also this release contains some improvements and many bug fix. See [all closed issues in this release](https://github.com/takezoe/gitbucket/issues?milestone=16&state=closed) to know details. We highly recommend upgrading your GitBucket.
+
+Enjoy!
