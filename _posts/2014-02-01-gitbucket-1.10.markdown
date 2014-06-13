@@ -1,0 +1,26 @@
+---
+layout: post
+title: "GitBucket 1.10 released!"
+date: 2014-02-01 00:00:00
+categories: gitbucket
+---
+Today, we released a new version of Scala based Github clone [GitBucket 1.10](https://github.com/takezoe/gitbucket/releases/tag/1.10).
+
+This release contains some new features as below:
+
+- Rename repository
+  ![Rename repository]({{site.baseurl}}/images/gitbucket-1.10/gitbucket_rename_repos.png)
+- Transfer repository owner
+  ![Transfer repository ownership]({{site.baseurl}}/images/gitbucket-1.10/gitbucket_transfer_owner.png)
+- Change default data directory to `HOME/.gitbucket` from `HOME/gitbucket`, but if data directory already exist at `HOME/gitbucket`, it continues being used.
+- Add LDAP display name attribute
+- Response performance improvement
+
+Running GitBucket is very easy:
+
+1. Download gitbucket.war from [here](https://github.com/takezoe/gitbucket/releases/tag/1.10) and hit `java -jar gitbucket.war` in console
+2. Access `http://localhost:8080/` by your browser
+
+And also some bugs are fixed in this release. Please upgrade your GitBucket, it's also very easy. You have to only replace gitbucket.war.
+
+Enjoy!
