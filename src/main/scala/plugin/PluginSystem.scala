@@ -2,10 +2,7 @@ package plugin
 
 import app.Context
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import scala.collection.mutable.ListBuffer
 import org.slf4j.LoggerFactory
-import org.mozilla.javascript.{Context => JsContext}
-import org.mozilla.javascript.{Function => JsFunction}
 
 /**
  * Provides extension points to plug-ins.
@@ -26,111 +23,15 @@ object PluginSystem {
     pluginsMap.remove(id)
   }
 
-  def repositoryMenus   : List[RepositoryMenu] = pluginsMap.values.flatMap(_.repositoryMenuList).toList
-  def globalMenus       : List[GlobalMenu]     = pluginsMap.values.flatMap(_.globalMenuList).toList
-  def repositoryActions : List[Action]         = pluginsMap.values.flatMap(_.repositoryActionList).toList
-  def globalActions     : List[Action]         = pluginsMap.values.flatMap(_.globalActionList).toList
+  def repositoryMenus   : List[RepositoryMenu] = pluginsMap.values.flatMap(_.repositoryMenus).toList
+  def globalMenus       : List[GlobalMenu]     = pluginsMap.values.flatMap(_.globalMenus).toList
+  def repositoryActions : List[Action]         = pluginsMap.values.flatMap(_.repositoryActions).toList
+  def globalActions     : List[Action]         = pluginsMap.values.flatMap(_.globalActions).toList
 
   // Case classes to hold plug-ins information internally in GitBucket
   case class GlobalMenu(label: String, url: String, icon: String, condition: Context => Boolean)
   case class RepositoryMenu(label: String, name: String, url: String, icon: String, condition: Context => Boolean)
   case class Action(path: String, function: (HttpServletRequest, HttpServletResponse) => Any)
-
-  /**
-   * This is a plug-in definition class.
-   */
-  class Plugin(val id: String, val author: String, val url: String, val description: String) {
-
-    private[PluginSystem] val repositoryMenuList   = ListBuffer[RepositoryMenu]()
-    private[PluginSystem] val globalMenuList       = ListBuffer[GlobalMenu]()
-    private[PluginSystem] val repositoryActionList = ListBuffer[Action]()
-    private[PluginSystem] val globalActionList     = ListBuffer[Action]()
-
-//    def addRepositoryMenu(label: String, name: String, url: String, icon: String)(condition: Context => Boolean): Unit = {
-//      repositoryMenuList += RepositoryMenu(label, name, url, icon, condition)
-//    }
-
-    def addRepositoryMenu(label: String, name: String, url: String, icon: String, condition: JsFunction): Unit = {
-      repositoryMenuList += RepositoryMenu(label, name, url, icon, (context) => {
-        val context = JsContext.enter()
-        try {
-          condition.call(context, condition, condition, Array(context)).asInstanceOf[Boolean]
-        } finally {
-          JsContext.exit()
-        }
-      })
-    }
-
-//    def addGlobalMenu(label: String, url: String, icon: String)(condition: Context => Boolean): Unit = {
-//      globalMenuList += GlobalMenu(label, url, icon, condition)
-//    }
-
-    def addGlobalMenu(label: String, url: String, icon: String, condition: JsFunction): Unit = {
-      globalMenuList += GlobalMenu(label, url, icon, (context) => {
-        val context = JsContext.enter()
-        try {
-          condition.call(context, condition, condition, Array(context)).asInstanceOf[Boolean]
-        } finally {
-          JsContext.exit()
-        }
-      })
-    }
-
-//    def addGlobalAction(path: String)(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
-//      globalActionList += Action(path, function)
-//    }
-
-    def addGlobalAction(path: String, function: JsFunction): Unit = {
-      globalActionList += Action(path, (request, response) => {
-        val context = JsContext.enter()
-        try {
-          function.call(context, function, function, Array(request, response))
-        } finally {
-          JsContext.exit()
-        }
-      })
-    }
-
-//    def addRepositoryAction(path: String)(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
-//      repositoryActionList += Action(path, function)
-//    }
-
-    def addRepositoryAction(path: String, function: JsFunction): Unit = {
-      repositoryActionList += Action(path, (request, response) => {
-        val context = JsContext.enter()
-        try {
-          function.call(context, function, function, Array(request, response))
-        } finally {
-          JsContext.exit()
-        }
-      })
-    }
-
-  }
-
-  def definePlugin(id: String, author: String, url: String, description: String): Plugin = new Plugin(id, author, url, description)
-
-  def evaluateJavaScript(script: String): Any = {
-    val context = JsContext.enter()
-    try {
-      val scope = context.initStandardObjects()
-      scope.put("PluginSystem", scope, this)
-      val result = context.evaluateString(scope, script, "<cmd>", 1, null)
-      result
-    } finally {
-      JsContext.exit
-    }
-
-
-//    val engine = new ScriptEngineManager().getEngineByName("JavaScript")
-//    logger.debug("Script: " + script)
-//    engine.put("PluginSystem", this)
-//    // TODO Support both of Nashorn and Rhino!
-//    val result = engine.eval("var Plugin = Java.type(\"plugin.PluginSystem.Plugin\"); " + script)
-//    logger.debug("Result: " + result)
-//    result
-  }
-
 
   // TODO This is a test
 //  addGlobalMenu("Google", "http://www.google.co.jp/", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAEvwAABL8BkeKJvAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAIgSURBVEiJtdZNiI1hFAfw36ORhSFFPgYLszOKJAsWRLGzks1gYyFZKFs7C7K2Y2XDRiwmq9kIJWQjJR9Tk48xRtTIRwjH4p473nm99yLNqdNTz/mf//+555x7ektEmEmbNaPs6OkUKKX0YBmWp6/IE8bwIs8xjEfEt0aiiJBl6sEuXMRLfEf8pX/PnIvJ0TPFWxE4+w+Ef/Kzbd5qDx5l8H8tkku7LG17gH7sxWatevdhEUoXsjda5RnDTZzH6jagtMe0lHIa23AJw3iOiSRZlmJ9mfcyfTzFl2AldmI3rkbEkbrAYKrX7S1eVRyWVnxhQ87eiLjQ+o2/mtyve+PuYy3W4+EfsP2/TVGKTHRI+Iz9Fdx8XOmAnZjGWRMYqoF/4ESW4hpOYk1iZ2WsLjDUTeBYBfgeuyux2XiNT5hXud+DD5W8Y90EtifoSfultfjx7MVtrKzcr8No5m7vJtCLx1hQJ8/4IZzClpyoy5ibsYUYQW81Z9o2jYgPeKr15+poEXE9+1XF9WIkOaasaV2P4k4pZUdDbEm+VEQcjIgtEfGxlLIVd/Gs6TX1MhzQquU3HK1t23f4IsuS94fxNXMO/MbXIDBg+tidw5yMbcCmylSdqWEH/kagYLKWeAt9Fcxi3KhhJuXq6SqQBMO15NDalvswmLWux4cbuToIbMS9BpJOfg8bm7imtmmTlVJWaa3hpnU9nufziBjtyDHTny0/AaA7Qnb4AM4aAAAAAElFTkSuQmCC")

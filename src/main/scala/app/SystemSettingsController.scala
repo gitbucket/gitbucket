@@ -82,7 +82,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
   post("/admin/script")(adminOnly {
     val script = request.getParameter("script")
-    val result = plugin.PluginSystem.evaluateJavaScript(script)
+    val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
     Ok(result)
   })
 }
