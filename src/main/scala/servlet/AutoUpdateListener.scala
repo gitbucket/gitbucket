@@ -178,6 +178,10 @@ class AutoUpdateListener extends ServletContextListener {
       }
     }
     logger.debug("End schema update")
+
+    logger.debug("Starting plugin system...")
+    plugin.PluginSystem.init()
+    logger.debug("Plugin system is initialized.")
   }
 
   def contextDestroyed(sce: ServletContextEvent): Unit = {

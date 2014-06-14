@@ -71,7 +71,7 @@ object JavaScriptPlugin {
     val context = JsContext.enter()
     try {
       val scope = context.initStandardObjects()
-      scope.put("PluginSystem", scope, this)
+      scope.put("PluginSystem", scope, PluginSystem)
       scope.put("JavaScriptPlugin", scope, this)
       val result = context.evaluateString(scope, script, "<cmd>", 1, null)
       result

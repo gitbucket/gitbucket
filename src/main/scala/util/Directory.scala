@@ -34,6 +34,8 @@ object Directory {
 
   val DatabaseHome = s"${GitBucketHome}/data"
 
+  val PluginHome = s"${GitBucketHome}/plugins"
+
   /**
    * Substance directory of the repository.
    */

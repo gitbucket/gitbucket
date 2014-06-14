@@ -3,6 +3,9 @@ package plugin
 import app.Context
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.slf4j.LoggerFactory
+import java.util.concurrent.atomic.AtomicBoolean
+import util.Directory._
+import org.apache.commons.io.FileUtils
 
 /**
  * Provides extension points to plug-ins.
@@ -11,6 +14,7 @@ object PluginSystem {
 
   private val logger = LoggerFactory.getLogger(PluginSystem.getClass)
 
+  private val initialized = new AtomicBoolean(false)
   private val pluginsMap = scala.collection.mutable.Map[String, Plugin]()
 
   def install(plugin: Plugin): Unit = {
@@ -21,6 +25,28 @@ object PluginSystem {
 
   def uninstall(id: String): Unit = {
     pluginsMap.remove(id)
+  }
+
+  /**
+   * Initializes the plugin system. Load scripts from GITBUCKET_HOME/plugins.
+   */
+  def init(): Unit = {
+    if(initialized.compareAndSet(false, true)){
+      val pluginDir = new java.io.File(PluginHome)
+      if(pluginDir.exists && pluginDir.isDirectory){
+        pluginDir.listFiles.filter(f => f.isDirectory && !f.getName.startsWith(".")).foreach { dir =>
+          val file = new java.io.File(dir, "plugin.js")
+          if(file.exists && file.isFile){
+            val script = FileUtils.readFileToString(file, "UTF-8")
+            try {
+              JavaScriptPlugin.evaluateJavaScript(script)
+            } catch {
+              case e: Exception => logger.warn(s"Error in plugin loading for ${file.getAbsolutePath}", e)
+            }
+          }
+        }
+      }
+    }
   }
 
   def repositoryMenus   : List[RepositoryMenu] = pluginsMap.values.flatMap(_.repositoryMenus).toList
