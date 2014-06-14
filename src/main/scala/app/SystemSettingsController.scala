@@ -80,15 +80,10 @@ trait SystemSettingsControllerBase extends ControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    admin.html.plugins(plugin.PluginSystem.plugins)
+    admin.plugins.html.installed(plugin.PluginSystem.plugins)
   })
 
   post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
-    // TODO uninstall and delete plugins
-    println("****")
-    println(form.pluginIds)
-    println("****")
-
     form.pluginIds.foreach { pluginId =>
       plugin.PluginSystem.uninstall(pluginId)
       val dir = new java.io.File(PluginHome, pluginId)
@@ -99,11 +94,11 @@ trait SystemSettingsControllerBase extends ControllerBase {
     redirect("/admin/plugins")
   })
 
-  get("/admin/script")(adminOnly {
-    admin.html.script()
+  get("/admin/plugins/console")(adminOnly {
+    admin.plugins.html.console()
   })
 
-  post("/admin/script")(adminOnly {
+  post("/admin/plugins/console")(adminOnly {
     val script = request.getParameter("script")
     val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
     Ok(result)

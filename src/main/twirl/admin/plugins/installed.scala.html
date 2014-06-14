@@ -2,7 +2,8 @@
 @import context._
 @import view.helpers._
 @html.main("Plugins"){
-  @menu("plugins"){
+  @admin.html.menu("plugins"){
+    @tab("installed")
     <form action="@path/admin/plugins/_delete" method="POST" validate="true">
       <table class="table table-bordered">
         <tr>
