@@ -39,6 +39,7 @@ object MyBuild extends Build {
         "org.apache.httpcomponents" % "httpclient" % "4.3",
         "org.apache.sshd" % "apache-sshd" % "0.11.0",
         "com.typesafe.slick" %% "slick" % "1.0.1",
+        "org.mozilla" % "rhino" % "1.7R4",
         "com.novell.ldap" % "jldap" % "2009-10-07",
         "com.h2database" % "h2" % "1.3.173",
         "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",

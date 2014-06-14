@@ -2,10 +2,10 @@ package plugin
 
 import app.Context
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import javax.script.ScriptEngineManager
 import scala.collection.mutable.ListBuffer
 import org.slf4j.LoggerFactory
-import jdk.nashorn.api.scripting.ScriptObjectMirror
+import org.mozilla.javascript.{Context => JsContext}
+import org.mozilla.javascript.{Function => JsFunction}
 
 /**
  * Provides extension points to plug-ins.
@@ -46,47 +46,89 @@ object PluginSystem {
     private[PluginSystem] val repositoryActionList = ListBuffer[Action]()
     private[PluginSystem] val globalActionList     = ListBuffer[Action]()
 
-    def addRepositoryMenu(label: String, name: String, url: String, icon: String)(condition: Context => Boolean): Unit = {
-      repositoryMenuList += RepositoryMenu(label, name, url, icon, condition)
+//    def addRepositoryMenu(label: String, name: String, url: String, icon: String)(condition: Context => Boolean): Unit = {
+//      repositoryMenuList += RepositoryMenu(label, name, url, icon, condition)
+//    }
+
+    def addRepositoryMenu(label: String, name: String, url: String, icon: String, condition: JsFunction): Unit = {
+      repositoryMenuList += RepositoryMenu(label, name, url, icon, (context) => {
+        val context = JsContext.enter()
+        try {
+          condition.call(context, condition, condition, Array(context)).asInstanceOf[Boolean]
+        } finally {
+          JsContext.exit()
+        }
+      })
     }
 
-    def addRepositoryMenu(label: String, name: String, url: String, icon: String, condition: ScriptObjectMirror): Unit = {
-      repositoryMenuList += RepositoryMenu(label, name, url, icon, (context) => condition.call(this, context).asInstanceOf[Boolean])
+//    def addGlobalMenu(label: String, url: String, icon: String)(condition: Context => Boolean): Unit = {
+//      globalMenuList += GlobalMenu(label, url, icon, condition)
+//    }
+
+    def addGlobalMenu(label: String, url: String, icon: String, condition: JsFunction): Unit = {
+      globalMenuList += GlobalMenu(label, url, icon, (context) => {
+        val context = JsContext.enter()
+        try {
+          condition.call(context, condition, condition, Array(context)).asInstanceOf[Boolean]
+        } finally {
+          JsContext.exit()
+        }
+      })
     }
 
-    def addGlobalMenu(label: String, url: String, icon: String)(condition: Context => Boolean): Unit = {
-      globalMenuList += GlobalMenu(label, url, icon, condition)
+//    def addGlobalAction(path: String)(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
+//      globalActionList += Action(path, function)
+//    }
+
+    def addGlobalAction(path: String, function: JsFunction): Unit = {
+      globalActionList += Action(path, (request, response) => {
+        val context = JsContext.enter()
+        try {
+          function.call(context, function, function, Array(request, response))
+        } finally {
+          JsContext.exit()
+        }
+      })
     }
 
-    def addGlobalMenu(label: String, url: String, icon: String, condition: ScriptObjectMirror): Unit = {
-      globalMenuList += GlobalMenu(label, url, icon, (context) => condition.call(this, context).asInstanceOf[Boolean])
+//    def addRepositoryAction(path: String)(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
+//      repositoryActionList += Action(path, function)
+//    }
+
+    def addRepositoryAction(path: String, function: JsFunction): Unit = {
+      repositoryActionList += Action(path, (request, response) => {
+        val context = JsContext.enter()
+        try {
+          function.call(context, function, function, Array(request, response))
+        } finally {
+          JsContext.exit()
+        }
+      })
     }
 
-    def addGlobalAction(path: String)(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
-      globalActionList += Action(path, function)
-    }
-
-    def addGlobalAction(path: String, function: ScriptObjectMirror): Unit = {
-      globalActionList += Action(path, (request, response) => function.call(this, request, response))
-    }
-
-    def addRepositoryAction(path: String)(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
-      repositoryActionList += Action(path, function)
-    }
-
-    def addRepositoryAction(path: String, function: ScriptObjectMirror): Unit = {
-      repositoryActionList += Action(path, (request, response) => function.call(this, request, response))
-    }
   }
 
+  def definePlugin(id: String, author: String, url: String, description: String): Plugin = new Plugin(id, author, url, description)
+
   def evaluateJavaScript(script: String): Any = {
-    val engine = new ScriptEngineManager().getEngineByName("JavaScript")
-    logger.debug("Script: " + script)
-    engine.put("PluginSystem", this)
-    // TODO Support both of Nashorn and Rhino!
-    val result = engine.eval("var Plugin = Java.type(\"plugin.PluginSystem.Plugin\"); " + script)
-    logger.debug("Result: " + result)
-    result
+    val context = JsContext.enter()
+    try {
+      val scope = context.initStandardObjects()
+      scope.put("PluginSystem", scope, this)
+      val result = context.evaluateString(scope, script, "<cmd>", 1, null)
+      result
+    } finally {
+      JsContext.exit
+    }
+
+
+//    val engine = new ScriptEngineManager().getEngineByName("JavaScript")
+//    logger.debug("Script: " + script)
+//    engine.put("PluginSystem", this)
+//    // TODO Support both of Nashorn and Rhino!
+//    val result = engine.eval("var Plugin = Java.type(\"plugin.PluginSystem.Plugin\"); " + script)
+//    logger.debug("Result: " + result)
+//    result
   }
 
 
