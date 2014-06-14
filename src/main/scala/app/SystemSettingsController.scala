@@ -3,9 +3,11 @@ package app
 import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
 import util.AdminAuthenticator
+import util.Directory._
 import jp.sf.amateras.scalatra.forms._
 import ssh.SshServer
 import org.scalatra.Ok
+import org.apache.commons.io.FileUtils
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
@@ -48,6 +50,11 @@ trait SystemSettingsControllerBase extends ControllerBase {
     } else Nil
   }
 
+  private val pluginForm = mapping(
+    "pluginId" -> list(trim(label("", text())))
+  )(PluginForm.apply)
+
+  case class PluginForm(pluginIds: List[String])
 
   get("/admin/system")(adminOnly {
     admin.html.system(flash.get("info"))
@@ -74,6 +81,22 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
   get("/admin/plugins")(adminOnly {
     admin.html.plugins(plugin.PluginSystem.plugins)
+  })
+
+  post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
+    // TODO uninstall and delete plugins
+    println("****")
+    println(form.pluginIds)
+    println("****")
+
+    form.pluginIds.foreach { pluginId =>
+      plugin.PluginSystem.uninstall(pluginId)
+      val dir = new java.io.File(PluginHome, pluginId)
+      if(dir.exists && dir.isDirectory){
+        FileUtils.deleteQuietly(dir)
+      }
+    }
+    redirect("/admin/plugins")
   })
 
   get("/admin/script")(adminOnly {

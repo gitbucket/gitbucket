@@ -3,19 +3,32 @@
 @import view.helpers._
 @html.main("Plugins"){
   @menu("plugins"){
-    <table class="table table-bordered">
-      <tr>
-        <th>ID</th>
-        <th>Provider</th>
-        <th>Description</th>
-      </tr>
-      @plugins.map { plugin =>
+    <form action="@path/admin/plugins/_delete" method="POST" validate="true">
+      <table class="table table-bordered">
         <tr>
-          <td>@plugin.id</td>
-          <td><a href="@plugin.url">@plugin.author</a></td>
-          <td>@plugin.description</td>
+          <th>ID</th>
+          <th>Provider</th>
+          <th>Description</th>
         </tr>
-      }
-    </table>
+        @plugins.zipWithIndex.map { case (plugin, i) =>
+          <tr>
+            <td>
+              <input type="checkbox" name="pluginId[@i]" value="@plugin.id"/>
+              @plugin.id
+            </td>
+            <td><a href="@plugin.url">@plugin.author</a></td>
+            <td>@plugin.description</td>
+          </tr>
+        }
+      </table>
+      <input type="submit" id="delete-plugins" class="btn btn-danger" value="Uninstall selected plugins"/>
+    </form>
   }
 }
+<script>
+$(function(){
+  $('#delete-plugins').click(function(){
+    return confirm('Selected plugin will be removed permanently. Are you sure?');
+  });
+});
+</script>
