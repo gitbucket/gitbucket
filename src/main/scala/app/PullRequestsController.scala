@@ -466,7 +466,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       pulls.html.list(
         searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
-        getPullRequestCountGroupByUser(condition.state == "closed", owner, Some(repoName)),
+        getPullRequestCountGroupByUser(condition.state == "closed", Some(owner), Some(repoName)),
         userName,
         page,
         countIssue(condition.copy(state = "open"  ), filterUser, true, owner -> repoName),
