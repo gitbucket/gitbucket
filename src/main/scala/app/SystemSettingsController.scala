@@ -99,6 +99,8 @@ trait SystemSettingsControllerBase extends ControllerBase {
   })
 
   get("/admin/plugins/available")(adminOnly {
+    // TODO Do periodical and asynchronous...?
+    PluginSystem.updateAllRepositories()
     admin.plugins.html.available(getAvailablePlugins())
   })
 
