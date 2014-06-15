@@ -142,6 +142,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
             SystemSettingsControllerBase.AvailablePlugin(
               repo.id,
               properties.getProperty("id"),
+              properties.getProperty("version"),
               properties.getProperty("author"),
               properties.getProperty("url"),
               properties.getProperty("description"))
@@ -153,5 +154,6 @@ trait SystemSettingsControllerBase extends ControllerBase {
 }
 
 object SystemSettingsControllerBase {
-  case class AvailablePlugin(repository: String, id: String, author: String, url: String, description: String)
+  case class AvailablePlugin(
+    repository: String, id: String, version: String, author: String, url: String, description: String)
 }

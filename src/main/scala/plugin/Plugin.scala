@@ -4,6 +4,7 @@ import plugin.PluginSystem.{Action, GlobalMenu, RepositoryMenu}
 
 trait Plugin {
   val id: String
+  val version: String
   val author: String
   val url: String
   val description: String

@@ -8,6 +8,7 @@
       <table class="table table-bordered">
         <tr>
           <th>ID</th>
+          <th>Version</th>
           <th>Provider</th>
           <th>Description</th>
         </tr>
@@ -17,6 +18,7 @@
               <input type="checkbox" name="pluginId[@i]" value="@plugin.id"/>
               @plugin.id
             </td>
+            <td>@plugin.version</td>
             <td><a href="@plugin.url">@plugin.author</a></td>
             <td>@plugin.description</td>
           </tr>

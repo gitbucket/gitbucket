@@ -5,7 +5,8 @@ import org.mozilla.javascript.{Function => JsFunction}
 import scala.collection.mutable.ListBuffer
 import plugin.PluginSystem.{Action, GlobalMenu, RepositoryMenu}
 
-class JavaScriptPlugin(val id: String, val author: String, val url: String, val description: String) extends Plugin {
+class JavaScriptPlugin(val id: String, val version: String,
+                       val author: String, val url: String, val description: String) extends Plugin {
 
   private val repositoryMenuList   = ListBuffer[RepositoryMenu]()
   private val globalMenuList       = ListBuffer[GlobalMenu]()
@@ -65,7 +66,8 @@ class JavaScriptPlugin(val id: String, val author: String, val url: String, val 
 
 object JavaScriptPlugin {
 
-  def define(id: String, author: String, url: String, description: String) = new JavaScriptPlugin(id, author, url, description)
+  def define(id: String, version: String, author: String, url: String, description: String)
+    = new JavaScriptPlugin(id, version, author, url, description)
 
   def evaluateJavaScript(script: String, vars: Map[String, Any] = Map.empty): Any = {
     val context = JsContext.enter()

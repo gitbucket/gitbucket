@@ -62,6 +62,7 @@ object PluginSystem {
       try {
         JavaScriptPlugin.evaluateJavaScript(script, Map(
           "id"          -> properties.getProperty("id"),
+          "version"     -> properties.getProperty("version"),
           "author"      -> properties.getProperty("author"),
           "url"         -> properties.getProperty("url"),
           "description" -> properties.getProperty("description")

@@ -6,7 +6,8 @@ import plugin.PluginSystem.{Action, GlobalMenu, RepositoryMenu}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 // TODO This is a sample implementation for Scala based plug-ins.
-class ScalaPlugin(val id: String, val author: String, val url: String, val description: String) extends Plugin {
+class ScalaPlugin(val id: String, val version: String,
+                  val author: String, val url: String, val description: String) extends Plugin {
 
   private val repositoryMenuList   = ListBuffer[RepositoryMenu]()
   private val globalMenuList       = ListBuffer[GlobalMenu]()
