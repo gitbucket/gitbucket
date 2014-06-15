@@ -15,8 +15,13 @@
         @plugins.zipWithIndex.map { case (plugin, i) =>
           <tr>
             <td>
+              @*
               <input type="checkbox" name="pluginId[@i]" value="@plugin.id"/>
+              *@
               @plugin.id
+              @if(plugin.status == "installed"){
+                [Installed]
+              }
             </td>
             <td>@plugin.version</td>
             <td><a href="@plugin.url">@plugin.author</a></td>
@@ -24,7 +29,9 @@
           </tr>
         }
       </table>
+      @*
       <input type="submit" id="install-plugins" class="btn btn-primary" value="Install selected plugins"/>
+      *@
     </form>
   }
 }

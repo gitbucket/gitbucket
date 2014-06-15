@@ -128,10 +128,12 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
   // TODO Move to PluginSystem or Service?
   private def getAvailablePlugins(): List[SystemSettingsControllerBase.AvailablePlugin] = {
-    val dir = getPluginCacheDir()
-    if(dir.exists && dir.isDirectory){
+    val installedPlugins = plugin.PluginSystem.plugins
+    val repositoryRoot = getPluginCacheDir()
+
+    if(repositoryRoot.exists && repositoryRoot.isDirectory){
       PluginSystem.repositories.flatMap { repo =>
-        val repoDir = new java.io.File(dir, repo.id)
+        val repoDir = new java.io.File(repositoryRoot, repo.id)
         if(repoDir.exists && repoDir.isDirectory){
           repoDir.listFiles.filter(d => d.isDirectory && !d.getName.startsWith(".")).map { plugin =>
             val propertyFile = new java.io.File(plugin, "plugin.properties")
@@ -147,7 +149,8 @@ trait SystemSettingsControllerBase extends ControllerBase {
               properties.getProperty("version"),
               properties.getProperty("author"),
               properties.getProperty("url"),
-              properties.getProperty("description"))
+              properties.getProperty("description"),
+              if(installedPlugins.exists(_.id == properties.getProperty("id"))) "installed" else "available")
           }
         } else Nil
       }
@@ -156,6 +159,6 @@ trait SystemSettingsControllerBase extends ControllerBase {
 }
 
 object SystemSettingsControllerBase {
-  case class AvailablePlugin(
-    repository: String, id: String, version: String, author: String, url: String, description: String)
+  case class AvailablePlugin(repository: String, id: String, version: String,
+                             author: String, url: String, description: String, status: String)
 }
