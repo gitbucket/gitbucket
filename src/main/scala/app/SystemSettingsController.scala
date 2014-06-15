@@ -4,10 +4,13 @@ import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
 import util.AdminAuthenticator
 import util.Directory._
+import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import ssh.SshServer
 import org.scalatra.Ok
 import org.apache.commons.io.FileUtils
+import java.io.FileInputStream
+import plugin.PluginSystem
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
@@ -89,7 +92,24 @@ trait SystemSettingsControllerBase extends ControllerBase {
       val dir = new java.io.File(PluginHome, pluginId)
       if(dir.exists && dir.isDirectory){
         FileUtils.deleteQuietly(dir)
+        PluginSystem.uninstall(pluginId)
       }
+    }
+    redirect("/admin/plugins")
+  })
+
+  get("/admin/plugins/available")(adminOnly {
+    admin.plugins.html.available(getAvailablePlugins())
+  })
+
+  post("/admin/plugins/_install", pluginForm)(adminOnly { form =>
+    val dir = getPluginCacheDir()
+    getAvailablePlugins().filter(x => form.pluginIds.contains(x.id)).foreach { plugin =>
+      val pluginDir = new java.io.File(PluginHome, plugin.id)
+      if(!pluginDir.exists){
+        FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
+      }
+      PluginSystem.installPlugin(plugin.id)
     }
     redirect("/admin/plugins")
   })
@@ -103,4 +123,35 @@ trait SystemSettingsControllerBase extends ControllerBase {
     val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
     Ok(result)
   })
+
+  // TODO Move to PluginSystem or Service?
+  private def getAvailablePlugins(): List[SystemSettingsControllerBase.AvailablePlugin] = {
+    val dir = getPluginCacheDir()
+    if(dir.exists && dir.isDirectory){
+      PluginSystem.repositories.flatMap { repo =>
+        val repoDir = new java.io.File(dir, repo.id)
+        if(repoDir.exists && repoDir.isDirectory){
+          repoDir.listFiles.filter(d => d.isDirectory && !d.getName.startsWith(".")).map { plugin =>
+            val propertyFile = new java.io.File(plugin, "plugin.properties")
+            val properties = new java.util.Properties()
+            if(propertyFile.exists && propertyFile.isFile){
+              using(new FileInputStream(propertyFile)){ in =>
+                properties.load(in)
+              }
+            }
+            SystemSettingsControllerBase.AvailablePlugin(
+              repo.id,
+              properties.getProperty("id"),
+              properties.getProperty("author"),
+              properties.getProperty("url"),
+              properties.getProperty("description"))
+          }
+        } else Nil
+      }
+    } else Nil
+  }
+}
+
+object SystemSettingsControllerBase {
+  case class AvailablePlugin(repository: String, id: String, author: String, url: String, description: String)
 }

@@ -67,12 +67,15 @@ object JavaScriptPlugin {
 
   def define(id: String, author: String, url: String, description: String) = new JavaScriptPlugin(id, author, url, description)
 
-  def evaluateJavaScript(script: String): Any = {
+  def evaluateJavaScript(script: String, vars: Map[String, Any] = Map.empty): Any = {
     val context = JsContext.enter()
     try {
       val scope = context.initStandardObjects()
       scope.put("PluginSystem", scope, PluginSystem)
       scope.put("JavaScriptPlugin", scope, this)
+      vars.foreach { case (key, value) =>
+        scope.put(key, scope, value)
+      }
       val result = context.evaluateString(scope, script, "<cmd>", 1, null)
       result
     } finally {

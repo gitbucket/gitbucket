@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import util.Directory._
+import util.ControlUtil._
 import org.apache.commons.io.FileUtils
 
 /**
@@ -16,6 +17,7 @@ object PluginSystem {
 
   private val initialized = new AtomicBoolean(false)
   private val pluginsMap = scala.collection.mutable.Map[String, Plugin]()
+  private val repositoriesList = scala.collection.mutable.ListBuffer[PluginRepository]()
 
   def install(plugin: Plugin): Unit = {
     pluginsMap.put(plugin.id, plugin)
@@ -27,24 +29,45 @@ object PluginSystem {
     pluginsMap.remove(id)
   }
 
+  def repositories: List[PluginRepository] = repositoriesList.toList
+
   /**
    * Initializes the plugin system. Load scripts from GITBUCKET_HOME/plugins.
    */
   def init(): Unit = {
     if(initialized.compareAndSet(false, true)){
+      // Load installed plugins
       val pluginDir = new java.io.File(PluginHome)
       if(pluginDir.exists && pluginDir.isDirectory){
         pluginDir.listFiles.filter(f => f.isDirectory && !f.getName.startsWith(".")).foreach { dir =>
-          val file = new java.io.File(dir, "plugin.js")
-          if(file.exists && file.isFile){
-            val script = FileUtils.readFileToString(file, "UTF-8")
-            try {
-              JavaScriptPlugin.evaluateJavaScript(script)
-            } catch {
-              case e: Exception => logger.warn(s"Error in plugin loading for ${file.getAbsolutePath}", e)
-            }
-          }
+          installPlugin(dir.getName)
         }
+      }
+      // Add default plugin repositories
+      repositoriesList += PluginRepository("central", "https://github.com/takezoe/gitbucket_plugins.git")
+    }
+  }
+
+  def installPlugin(id: String): Unit = {
+    val pluginDir = new java.io.File(PluginHome)
+    val javaScriptFile = new java.io.File(pluginDir, id + "/plugin.js")
+
+    if(javaScriptFile.exists && javaScriptFile.isFile){
+      val properties = new java.util.Properties()
+      using(new java.io.FileInputStream(new java.io.File(pluginDir, id + "/plugin.properties"))){ in =>
+        properties.load(in)
+      }
+
+      val script = FileUtils.readFileToString(javaScriptFile, "UTF-8")
+      try {
+        JavaScriptPlugin.evaluateJavaScript(script, Map(
+          "id"          -> properties.getProperty("id"),
+          "author"      -> properties.getProperty("author"),
+          "url"         -> properties.getProperty("url"),
+          "description" -> properties.getProperty("description")
+        ))
+      } catch {
+        case e: Exception => logger.warn(s"Error in plugin loading for ${javaScriptFile.getAbsolutePath}", e)
       }
     }
   }
@@ -55,6 +78,7 @@ object PluginSystem {
   def globalActions     : List[Action]         = pluginsMap.values.flatMap(_.globalActions).toList
 
   // Case classes to hold plug-ins information internally in GitBucket
+  case class PluginRepository(id: String, url: String)
   case class GlobalMenu(label: String, url: String, icon: String, condition: Context => Boolean)
   case class RepositoryMenu(label: String, name: String, url: String, icon: String, condition: Context => Boolean)
   case class Action(path: String, function: (HttpServletRequest, HttpServletResponse) => Any)
