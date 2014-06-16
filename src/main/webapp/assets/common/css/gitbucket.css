@@ -167,6 +167,7 @@ table.table th {
 
 div.block-header {
   font-size: large;
+  margin-bottom: 4px;
   font-weight: bold;
 }
 
@@ -387,6 +388,7 @@ div.signin-form {
 /****************************************************************************/
 .account-fullname {
   font-size: 140%;
+  margin-bottom: 4px;
   font-weight: bold;
 }
 
