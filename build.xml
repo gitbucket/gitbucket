@@ -50,8 +50,8 @@
   </target>
 
   <target name="rename" depends="embed">
-    <rename src="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
-            dest="${target.dir}/scala-${scala.version}/gitbucket.war"/>
+    <move file="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
+            tofile="${target.dir}/scala-${scala.version}/gitbucket.war"/>
   </target>
 
   <target name="all" depends="rename">
