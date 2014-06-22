@@ -8,6 +8,7 @@ class IndexController extends IndexControllerBase
   with RepositoryService with ActivityService with AccountService with UsersAuthenticator
 
 trait IndexControllerBase extends ControllerBase {
+    
   self: RepositoryService with ActivityService with AccountService with UsersAuthenticator =>
 
   case class SignInForm(userName: String, password: String)
@@ -26,7 +27,13 @@ trait IndexControllerBase extends ControllerBase {
             loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
     } else {
-        html.index(getRecentActivitiesByUser(loginAccount.get.userName),
+        val loginUserName = loginAccount.get.userName
+        val loginUserGroups = getGroupsByUserName(loginUserName)
+        var visibleOwnerSet : Set[String] = Set(loginUserName)
+        
+        visibleOwnerSet ++= loginUserGroups
+
+        html.index(getRecentActivitiesByOwners(visibleOwnerSet),
             getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil) 
         )
