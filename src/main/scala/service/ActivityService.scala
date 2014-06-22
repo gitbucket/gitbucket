@@ -3,6 +3,7 @@ package service
 import model._
 import scala.slick.driver.H2Driver.simple._
 import Database.threadLocalSession
+import util.JGitUtil.RepositoryInfo
 
 trait ActivityService {
 
@@ -24,12 +25,20 @@ trait ActivityService {
   def getRecentActivities(): List[Activity] =
     Activities
       .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter { case (t1, t2) => t2.isPrivate is false.bind }
+      .filter { case (t1, t2) =>  t2.isPrivate is false.bind }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }
       .take(30)
       .list
   
+  def getRecentActivitiesByUser(loginUserName : String): List[Activity] =
+    Activities
+      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .filter { case (t1, t2) => (t2.isPrivate is false.bind) || (t2.userName is loginUserName.bind) }
+      .sortBy { case (t1, t2) => t1.activityId desc }
+      .map    { case (t1, t2) => t1 }
+      .take(30)
+      .list
 
   def recordCreateRepositoryActivity(userName: String, repositoryName: String, activityUserName: String): Unit =
     Activities.autoInc insert(userName, repositoryName, activityUserName,

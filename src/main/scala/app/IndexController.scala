@@ -19,11 +19,18 @@ trait IndexControllerBase extends ControllerBase {
 
   get("/"){
     val loginAccount = context.loginAccount
-
-    html.index(getRecentActivities(),
-      getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
-      loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
-    )
+    
+    if(loginAccount.isEmpty) {
+        html.index(getRecentActivities(),
+            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
+        )
+    } else {
+        html.index(getRecentActivitiesByUser(loginAccount.get.userName),
+            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil) 
+        )
+    }
   }
 
   get("/signin"){
