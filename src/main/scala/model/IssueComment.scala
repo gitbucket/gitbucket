@@ -24,7 +24,7 @@ trait IssueCommentComponent extends TemplateComponent { self: Profile =>
     userName: String,
     repositoryName: String,
     issueId: Int,
-    commentId: Int,
+    commentId: Int = 0,
     action: String,
     commentedUserName: String,
     content: String,

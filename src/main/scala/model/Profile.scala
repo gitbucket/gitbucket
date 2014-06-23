@@ -2,7 +2,6 @@ package model
 
 import slick.driver.JdbcProfile
 
-//private[model]
 trait Profile {
   val profile: JdbcProfile
   import profile.simple._

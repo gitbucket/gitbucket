@@ -1,9 +1,7 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
-
 import model._
+import profile.simple._
 import org.slf4j.LoggerFactory
 import service.RepositoryService.RepositoryInfo
 import util.JGitUtil
@@ -12,7 +10,6 @@ import util.JGitUtil.CommitInfo
 import org.eclipse.jgit.api.Git
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.protocol.HTTP
 import org.apache.http.NameValuePair
 
 trait WebHookService {
@@ -20,14 +17,14 @@ trait WebHookService {
 
   private val logger = LoggerFactory.getLogger(classOf[WebHookService])
 
-  def getWebHookURLs(owner: String, repository: String): List[WebHook] =
-    Query(WebHooks).filter(_.byRepository(owner, repository)).sortBy(_.url).list
+  def getWebHookURLs(owner: String, repository: String)(implicit s: Session): List[WebHook] =
+    WebHooks.filter(_.byRepository(owner, repository)).sortBy(_.url).list
 
-  def addWebHookURL(owner: String, repository: String, url :String): Unit =
-    WebHooks.insert(WebHook(owner, repository, url))
+  def addWebHookURL(owner: String, repository: String, url :String)(implicit s: Session): Unit =
+    WebHooks insert WebHook(owner, repository, url)
 
-  def deleteWebHookURL(owner: String, repository: String, url :String): Unit =
-    Query(WebHooks).filter(_.byPrimaryKey(owner, repository, url)).delete
+  def deleteWebHookURL(owner: String, repository: String, url :String)(implicit s: Session): Unit =
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).delete
 
   def callWebHook(owner: String, repository: String, webHookURLs: List[WebHook], payload: WebHookPayload): Unit = {
     import org.json4s._

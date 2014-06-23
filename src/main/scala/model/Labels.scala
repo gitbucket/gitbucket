@@ -18,7 +18,7 @@ trait LabelComponent extends TemplateComponent { self: Profile =>
   case class Label(
     userName: String,
     repositoryName: String,
-    labelId: Int,
+    labelId: Int = 0,
     labelName: String,
     color: String){
 

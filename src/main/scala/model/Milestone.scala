@@ -21,7 +21,7 @@ trait MilestoneComponent extends TemplateComponent { self: Profile =>
   case class Milestone(
     userName: String,
     repositoryName: String,
-    milestoneId: Int,
+    milestoneId: Int = 0,
     title: String,
     description: Option[String],
     dueDate: Option[java.util.Date],

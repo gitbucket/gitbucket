@@ -1,19 +1,17 @@
 package service
 
 import model._
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
+import profile.simple._
 
 trait SshKeyService {
 
-  def addPublicKey(userName: String, title: String, publicKey: String): Unit =
-    SshKeys.ins insert (userName, title, publicKey)
+  def addPublicKey(userName: String, title: String, publicKey: String)(implicit s: Session): Unit =
+    SshKeys insert SshKey(userName = userName, title = title, publicKey = publicKey)
 
-  def getPublicKeys(userName: String): List[SshKey] =
-    Query(SshKeys).filter(_.userName is userName.bind).sortBy(_.sshKeyId).list
+  def getPublicKeys(userName: String)(implicit s: Session): List[SshKey] =
+    SshKeys.filter(_.userName is userName.bind).sortBy(_.sshKeyId).list
 
-  def deletePublicKey(userName: String, sshKeyId: Int): Unit =
+  def deletePublicKey(userName: String, sshKeyId: Int)(implicit s: Session): Unit =
     SshKeys filter (_.byPrimaryKey(userName, sshKeyId)) delete
-
 
 }

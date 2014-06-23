@@ -1,13 +1,9 @@
 package service
 
 import model._
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
+import profile.simple._
 import service.SystemSettingsService.SystemSettings
 import util.StringUtil._
-import model.GroupMember
-import scala.Some
-import model.Account
 import util.LDAPUtil
 import org.slf4j.LoggerFactory
 
@@ -15,7 +11,7 @@ trait AccountService {
 
   private val logger = LoggerFactory.getLogger(classOf[AccountService])
 
-  def authenticate(settings: SystemSettings, userName: String, password: String): Option[Account] =
+  def authenticate(settings: SystemSettings, userName: String, password: String)(implicit s: Session): Option[Account] =
     if(settings.ldapAuthentication){
       ldapAuthentication(settings, userName, password)
     } else {
@@ -25,7 +21,7 @@ trait AccountService {
   /**
    * Authenticate by internal database.
    */
-  private def defaultAuthentication(userName: String, password: String) = {
+  private def defaultAuthentication(userName: String, password: String)(implicit s: Session) = {
     getAccountByUserName(userName).collect {
       case account if(!account.isGroupAccount && account.password == sha1(password)) => Some(account)
     } getOrElse None
@@ -34,7 +30,8 @@ trait AccountService {
   /**
    * Authenticate by LDAP.
    */
-  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String): Option[Account] = {
+  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String)
+                                (implicit s: Session): Option[Account] = {
     LDAPUtil.authenticate(settings.ldap.get, userName, password) match {
       case Right(ldapUserInfo) => {
         // Create or update account by LDAP information
@@ -70,20 +67,21 @@ trait AccountService {
     }
   }
 
-  def getAccountByUserName(userName: String, includeRemoved: Boolean = false): Option[Account] =
-    Query(Accounts) filter(t => (t.userName is userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
+  def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
+    Accounts filter(t => (t.userName is userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
-  def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false): Option[Account] =
-    Query(Accounts) filter(t => (t.mailAddress.toLowerCase is mailAddress.toLowerCase.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
+  def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
+    Accounts filter(t => (t.mailAddress.toLowerCase is mailAddress.toLowerCase.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
-  def getAllUsers(includeRemoved: Boolean = true): List[Account] =
+  def getAllUsers(includeRemoved: Boolean = true)(implicit s: Session): List[Account] =
     if(includeRemoved){
-      Query(Accounts) sortBy(_.userName) list
+      Accounts sortBy(_.userName) list
     } else {
-      Query(Accounts) filter (_.removed is false.bind) sortBy(_.userName) list
+      Accounts filter (_.removed is false.bind) sortBy(_.userName) list
     }
-    
-  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit =
+
+  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
+                   (implicit s: Session): Unit =
     Accounts insert Account(
       userName       = userName,
       password       = password,
@@ -98,10 +96,10 @@ trait AccountService {
       isGroupAccount = false,
       isRemoved      = false)
 
-  def updateAccount(account: Account): Unit =
+  def updateAccount(account: Account)(implicit s: Session): Unit =
     Accounts
-      .filter { a => a.userName is account.userName.bind }
-      .map    { a => a.password ~ a.fullName ~ a.mailAddress ~ a.isAdmin ~ a.url.? ~ a.registeredDate ~ a.updatedDate ~ a.lastLoginDate.? ~ a.removed }
+      .filter { a =>  a.userName is account.userName.bind }
+      .map    { a => (a.password, a.fullName, a.mailAddress, a.isAdmin, a.url.?, a.registeredDate, a.updatedDate, a.lastLoginDate.?, a.removed) }
       .update (
         account.password,
         account.fullName,
@@ -113,13 +111,13 @@ trait AccountService {
         account.lastLoginDate,
         account.isRemoved)
 
-  def updateAvatarImage(userName: String, image: Option[String]): Unit =
+  def updateAvatarImage(userName: String, image: Option[String])(implicit s: Session): Unit =
     Accounts.filter(_.userName is userName.bind).map(_.image.?).update(image)
 
-  def updateLastLoginDate(userName: String): Unit =
+  def updateLastLoginDate(userName: String)(implicit s: Session): Unit =
     Accounts.filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
 
-  def createGroup(groupName: String, url: Option[String]): Unit =
+  def createGroup(groupName: String, url: Option[String])(implicit s: Session): Unit =
     Accounts insert Account(
       userName       = groupName,
       password       = "",
@@ -134,33 +132,33 @@ trait AccountService {
       isGroupAccount = true,
       isRemoved      = false)
 
-  def updateGroup(groupName: String, url: Option[String], removed: Boolean): Unit =
-    Accounts.filter(_.userName is groupName.bind).map(t => t.url.? ~ t.removed).update(url, removed)
+  def updateGroup(groupName: String, url: Option[String], removed: Boolean)(implicit s: Session): Unit =
+    Accounts.filter(_.userName is groupName.bind).map(t => t.url.? -> t.removed).update(url, removed)
 
-  def updateGroupMembers(groupName: String, members: List[(String, Boolean)]): Unit = {
-    Query(GroupMembers).filter(_.groupName is groupName.bind).delete
+  def updateGroupMembers(groupName: String, members: List[(String, Boolean)])(implicit s: Session): Unit = {
+    GroupMembers.filter(_.groupName is groupName.bind).delete
     members.foreach { case (userName, isManager) =>
       GroupMembers insert GroupMember (groupName, userName, isManager)
     }
   }
 
-  def getGroupMembers(groupName: String): List[GroupMember] =
-    Query(GroupMembers)
+  def getGroupMembers(groupName: String)(implicit s: Session): List[GroupMember] =
+    GroupMembers
       .filter(_.groupName is groupName.bind)
       .sortBy(_.userName)
       .list
 
-  def getGroupsByUserName(userName: String): List[String] =
-    Query(GroupMembers)
+  def getGroupsByUserName(userName: String)(implicit s: Session): List[String] =
+    GroupMembers
       .filter(_.userName is userName.bind)
       .sortBy(_.groupName)
       .map(_.groupName)
       .list
 
-  def removeUserRelatedData(userName: String): Unit = {
-    Query(GroupMembers).filter(_.userName is userName.bind).delete
-    Query(Collaborators).filter(_.collaboratorName is userName.bind).delete
-    Query(Repositories).filter(_.userName is userName.bind).delete
+  def removeUserRelatedData(userName: String)(implicit s: Session): Unit = {
+    GroupMembers.filter(_.userName is userName.bind).delete
+    Collaborators.filter(_.collaboratorName is userName.bind).delete
+    Repositories.filter(_.userName is userName.bind).delete
   }
 
 }

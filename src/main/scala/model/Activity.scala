@@ -13,17 +13,17 @@ trait ActivityComponent extends TemplateComponent { self: Profile =>
     val message = column[String]("MESSAGE")
     val additionalInfo = column[String]("ADDITIONAL_INFO")
     val activityDate = column[java.util.Date]("ACTIVITY_DATE")
-    def * = (activityId, userName, repositoryName, activityUserName, activityType, message, additionalInfo.?, activityDate) <> (Activity.tupled, Activity.unapply)
+    def * = (userName, repositoryName, activityUserName, activityType, message, additionalInfo.?, activityDate, activityId) <> (Activity.tupled, Activity.unapply)
   }
 
   case class Activity(
-    activityId: Int,
     userName: String,
     repositoryName: String,
     activityUserName: String,
     activityType: String,
     message: String,
     additionalInfo: Option[String],
-    activityDate: java.util.Date
+    activityDate: java.util.Date,
+    activityId: Int = 0
   )
 }
