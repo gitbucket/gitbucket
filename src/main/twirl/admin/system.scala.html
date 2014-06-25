@@ -161,6 +161,13 @@
                 <span id="error-ldap_keystore" class="error"></span>
               </div>
             </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapHttpSsoHeader">HTTP Single Sign-On header</label>
+              <div class="controls">
+                <input type="text" id="ldapHttpSsoHeader" name="ldap.httpSsoHeader" value="@settings.ldap.map(_.httpSsoHeader)"/>
+                <span id="error-ldap_httpSsoHeader" class="error"></span>
+              </div>
+            </div>
           </div>
           <!--====================================================================-->
           <!-- Notification email -->
