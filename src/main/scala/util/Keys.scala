@@ -62,6 +62,11 @@ object Keys {
   object Request {
 
     /**
+     * Request key for the Slick Session.
+     */
+    val DBSession = "DB_SESSION"
+
+    /**
      * Request key for the Ajax request flag.
      */
     val Ajax = "AJAX"

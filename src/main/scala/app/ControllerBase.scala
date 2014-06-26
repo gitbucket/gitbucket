@@ -9,6 +9,7 @@ import org.scalatra.json._
 import org.json4s._
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
+import slick.jdbc.JdbcBackend
 import model.Account
 import service.{SystemSettingsService, AccountService}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
@@ -23,6 +24,10 @@ abstract class ControllerBase extends ScalatraFilter
   with SystemSettingsService {
 
   implicit val jsonFormats = DefaultFormats
+
+  // Convert to slick session.
+  implicit def request2Session(implicit request: HttpServletRequest): JdbcBackend#Session =
+    request.getAttribute(Keys.Request.DBSession).asInstanceOf[JdbcBackend#Session]
 
   // Don't set content type via Accept header.
   override def format(implicit request: HttpServletRequest) = ""
