@@ -2127,13 +2127,15 @@ function isButtonScopeMarker(node) {
 function isSelectScopeMarker(node) {
 	return !(node.namespaceURI === "http://www.w3.org/1999/xhtml" && node.localName === 'optgroup')
 		&& !(node.namespaceURI === "http://www.w3.org/1999/xhtml" && node.localName === 'option');
-}
+}
+
 function ElementStack() {
 	this.elements = [];
 	this.rootNode = null;
 	this.headElement = null;
 	this.bodyElement = null;
-}
+}
+
 ElementStack.prototype._inScope = function(localName, isMarker) {
 	for (var i = this.elements.length - 1; i >= 0; i--) {
 		var node = this.elements[i];
@@ -2333,9 +2335,15 @@ EntityParser.consumeEntity = function(buffer, tokenizer, additionalAllowedCharac
 				tokenizer._parseError("invalid-numeric-entity-replaced");
 				code = replacement;
 			}
-			if (code > 0xFFFF && code <= 0x10FFFF) {
-		        code -= 0x10000;
-		        var first = ((0xffc00 & code) >> 10) + 0xD800;
+			if (code > 0xFFFF && code <= 0x10FFFF) {
+
+
+		        code -= 0x10000;
+
+
+		        var first = ((0xffc00 & code) >> 10) + 0xD800;
+
+
 		        var second = (0x3ff & code) + 0xDC00;
 				decodedCharacter = String.fromCharCode(first, second);
 			} else
@@ -2662,7 +2670,8 @@ function StackItem(namespaceURI, localName, attributes, node) {
 	this.namespaceURI = namespaceURI;
 	this.attributes = attributes;
 	this.node = node;
-}
+}
+
 StackItem.prototype.isSpecial = function() {
 	return this.namespaceURI in SpecialElements &&
 		SpecialElements[this.namespaceURI].indexOf(this.localName) > -1;
@@ -4387,12 +4396,17 @@ function TreeBuilder() {
 			if (tree.openElements.length > 2) {
 				tree.parseError('expected-closing-tag-but-got-eof');
 			} else if (tree.openElements.length == 2 &&
-				tree.openElements.item(1).localName != 'body') {
+				tree.openElements.item(1).localName != 'body') {
+
 				tree.parseError('expected-closing-tag-but-got-eof');
-			} else if (tree.context && tree.openElements.length > 1) {
+			} else if (tree.context && tree.openElements.length > 1) {
+
+
 			}
 		},
-		processComment: function(data) {
+		processComment: function(data) {
+
+
 			tree.insertComment(data, tree.currentStackItem().node);
 		},
 		processDoctype: function(name, publicId, systemId, forceQuirks) {
@@ -4534,7 +4548,9 @@ function TreeBuilder() {
 				|| (publicId == "-//W3C//DTD HTML 4.01//EN" && (systemId == null || systemId == "http://www.w3.org/TR/html4/strict.dtd"))
 				|| (publicId == "-//W3C//DTD XHTML 1.0 Strict//EN" && (systemId == "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"))
 				|| (publicId == "-//W3C//DTD XHTML 1.1//EN" && (systemId == "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"))
-			) {
+			) {
+
+
 			} else if (!((systemId == null || systemId == "about:legacy-compat") && publicId == null)) {
 				tree.parseError("unknown-doctype");
 			}
@@ -4662,7 +4678,9 @@ function TreeBuilder() {
 		'-default': 'endTagOther'
 	};
 
-	modes.afterBody.processComment = function(data) {
+	modes.afterBody.processComment = function(data) {
+
+
 		tree.insertComment(data, tree.openElements.rootNode);
 	};
 
@@ -4684,7 +4702,12 @@ function TreeBuilder() {
 	modes.afterBody.endTagHtml = function(name) {
 		if (tree.context) {
 			tree.parseError('end-html-in-innerhtml');
-		} else {
+		} else {
+
+
+
+
+
 			tree.setInsertionMode('afterAfterBody');
 		}
 	};
@@ -4854,7 +4877,8 @@ function TreeBuilder() {
 		tree.setInsertionMode('inHeadNoscript');
 	};
 
-	modes.inHead.startTagNoFramesStyle = function(name, attributes) {
+	modes.inHead.startTagNoFramesStyle = function(name, attributes) {
+
 		tree.processGenericRawTextStartTag(name, attributes);
 	};
 
@@ -4870,7 +4894,8 @@ function TreeBuilder() {
 	};
 
 	modes.inHead.startTagMeta = function(name, attributes) {
-		tree.insertSelfClosingElement(name, attributes);
+		tree.insertSelfClosingElement(name, attributes);
+
 	};
 
 	modes.inHead.startTagOther = function(name, attributes, selfClosing) {
@@ -4910,7 +4935,8 @@ function TreeBuilder() {
 		base: 'startTagFromHead',
 		link: 'startTagFromHead',
 		meta: 'startTagFromHead',
-		script: 'startTagFromHead',
+		script: 'startTagFromHead',
+
 		style: 'startTagFromHead',
 		title: 'startTagFromHead',
 		"-default": 'startTagOther'
@@ -4954,7 +4980,8 @@ function TreeBuilder() {
 	};
 
 	modes.afterHead.startTagFromHead = function(name, attributes, selfClosing) {
-		tree.parseError("unexpected-start-tag-out-of-my-head", {name: name});
+		tree.parseError("unexpected-start-tag-out-of-my-head", {name: name});
+
 		tree.openElements.push(tree.head);
 		modes.inHead.processStartTag(name, attributes, selfClosing);
 		tree.openElements.remove(tree.head);
@@ -5160,7 +5187,8 @@ function TreeBuilder() {
 		}
 		tree.reconstructActiveFormattingElements();
 		var characters = buffer.takeRemaining();
-		characters = characters.replace(/\u0000/g, function(match, index){
+		characters = characters.replace(/\u0000/g, function(match, index){
+
 			tree.parseError("invalid-codepoint");
 			return '';
 		});
@@ -5240,7 +5268,8 @@ function TreeBuilder() {
 		tree.insertElement(name, attributes);
 	};
 
-	modes.inBody.startTagListItem = function(name, attributes) {
+	modes.inBody.startTagListItem = function(name, attributes) {
+
 		var stopNames = {li: ['li'], dd: ['dd', 'dt'], dt: ['dd', 'dt']};
 		var stopName = stopNames[name];
 
@@ -5250,12 +5279,14 @@ function TreeBuilder() {
 			if (stopName.indexOf(node.localName) != -1) {
 				tree.insertionMode.processEndTag(node.localName);
 				break;
-			}
+			}
+
 			if (node.isSpecial() && node.localName !== 'p' && node.localName !== 'address' && node.localName !== 'div')
 				break;
 		}
 		if (tree.openElements.inButtonScope('p'))
-			this.endTagP('p');
+			this.endTagP('p');
+
 		tree.insertElement(name, attributes);
 		tree.framesetOk = false;
 	};
@@ -5299,7 +5330,8 @@ function TreeBuilder() {
 		tree.reconstructActiveFormattingElements();
 		if (tree.openElements.inScope('nobr')) {
 			tree.parseError("unexpected-start-tag-implies-end-tag", {startName: 'nobr', endName: 'nobr'});
-			this.processEndTag('nobr');
+			this.processEndTag('nobr');
+
 				tree.reconstructActiveFormattingElements();
 		}
 		tree.insertFormattingElement(name, attributes);
@@ -5371,7 +5403,8 @@ function TreeBuilder() {
 		tree.framesetOk = false;
 	};
 
-	modes.inBody.startTagImage = function(name, attributes) {
+	modes.inBody.startTagImage = function(name, attributes) {
+
 		tree.parseError('unexpected-start-tag-treated-as', {originalName: 'image', newName: 'img'});
 		this.processStartTag('img', attributes);
 	};
@@ -5379,7 +5412,8 @@ function TreeBuilder() {
 	modes.inBody.startTagInput = function(name, attributes) {
 		var currentFramesetOk = tree.framesetOk;
 		this.startTagVoidFormatting(name, attributes);
-		for (var key in attributes) {
+		for (var key in attributes) {
+
 			if (attributes[key].nodeName == 'type') {
 				if (attributes[key].nodeValue.toLowerCase() == 'hidden')
 					tree.framesetOk = currentFramesetOk;
@@ -5423,7 +5457,8 @@ function TreeBuilder() {
 		this.processEndTag('form');
 	};
 
-	modes.inBody.startTagTextarea = function(name, attributes) {
+	modes.inBody.startTagTextarea = function(name, attributes) {
+
 		tree.insertElement(name, attributes);
 		tree.tokenizer.setState(Tokenizer.RCDATA);
 		tree.originalInsertionMode = tree.insertionModeName;
@@ -5462,7 +5497,8 @@ function TreeBuilder() {
 		tree.parseError('unexpected-start-tag-ignored', {name: name});
 	};
 
-	modes.inBody.endTagMisplaced = function(name) {
+	modes.inBody.endTagMisplaced = function(name) {
+
 		tree.parseError("unexpected-end-tag", {name: name});
 	};
 
@@ -5492,7 +5528,8 @@ function TreeBuilder() {
 			if (node.localName == name) {
 				tree.generateImpliedEndTags(name);
 				if (tree.currentStackItem().localName != name)
-					tree.parseError('unexpected-end-tag', {name: name});
+					tree.parseError('unexpected-end-tag', {name: name});
+
 				tree.openElements.remove_openElements_until(function(x) {return x === node;});
 				break;
 			}
@@ -5507,14 +5544,18 @@ function TreeBuilder() {
 		tree.reconstructActiveFormattingElements();
 		attributes = tree.adjustMathMLAttributes(attributes);
 		attributes = tree.adjustForeignAttributes(attributes);
-		tree.insertForeignElement(name, attributes, "http://www.w3.org/1998/Math/MathML", selfClosing);
+		tree.insertForeignElement(name, attributes, "http://www.w3.org/1998/Math/MathML", selfClosing);
+
+
 	};
 
 	modes.inBody.startTagSVG = function(name, attributes, selfClosing) {
 		tree.reconstructActiveFormattingElements();
 		attributes = tree.adjustSVGAttributes(attributes);
 		attributes = tree.adjustForeignAttributes(attributes);
-		tree.insertForeignElement(name, attributes, "http://www.w3.org/2000/svg", selfClosing);
+		tree.insertForeignElement(name, attributes, "http://www.w3.org/2000/svg", selfClosing);
+
+
 	};
 
 	modes.inBody.endTagP = function(name) {
@@ -5534,7 +5575,9 @@ function TreeBuilder() {
 		if (!tree.openElements.inScope('body')) {
 			tree.parseError('unexpected-end-tag', {name: name});
 			return;
-		}
+		}
+
+
 		if (tree.currentStackItem().localName != 'body') {
 			tree.parseError('expected-one-end-tag-but-got-another', {
 				expectedName: tree.currentStackItem().localName,
@@ -5548,7 +5591,9 @@ function TreeBuilder() {
 		if (!tree.openElements.inScope('body')) {
 			tree.parseError('unexpected-end-tag', {name: name});
 			return;
-		}
+		}
+
+
 		if (tree.currentStackItem().localName != 'body') {
 			tree.parseError('expected-one-end-tag-but-got-another', {
 				expectedName: tree.currentStackItem().localName,
@@ -5661,12 +5706,15 @@ function TreeBuilder() {
 	};
 
 	modes.inCaption.endTagCaption = function(name) {
-		if (!tree.openElements.inTableScope('caption')) {
+		if (!tree.openElements.inTableScope('caption')) {
+
 			assert.ok(tree.context);
 			tree.parseError('unexpected-end-tag', {name: name});
-		} else {
+		} else {
+
 			tree.generateImpliedEndTags();
-			if (tree.currentStackItem().localName != 'caption') {
+			if (tree.currentStackItem().localName != 'caption') {
+
 				tree.parseError('expected-one-end-tag-but-got-another', {
 					gotName: "caption",
 					expectedName: tree.currentStackItem().localName
@@ -5733,7 +5781,8 @@ function TreeBuilder() {
 		if (tree.openElements.inTableScope('td') || tree.openElements.inTableScope('th')) {
 			this.closeCell();
 			tree.insertionMode.processStartTag(name, attributes, selfClosing);
-		} else {
+		} else {
+
 			tree.parseError('unexpected-start-tag', {name: name});
 		}
 	};
@@ -5766,7 +5815,8 @@ function TreeBuilder() {
 		if (tree.openElements.inTableScope(name)) {
 			this.closeCell();
 			tree.insertionMode.processEndTag(name);
-		} else {
+		} else {
+
 			tree.parseError('unexpected-end-tag', {name: name});
 		}
 	};
@@ -5824,7 +5874,8 @@ function TreeBuilder() {
 	};
 
 	modes.inColumnGroup.endTagColgroup = function(name) {
-		if (this.ignoreEndTagColgroup()) {
+		if (this.ignoreEndTagColgroup()) {
+
 			assert.ok(tree.context);
 			tree.parseError('unexpected-end-tag', {name: name});
 		} else {
@@ -5894,7 +5945,8 @@ function TreeBuilder() {
 
 	modes.inForeignContent.processCharacters = function(buffer) {
 		var characters = buffer.takeRemaining();
-		characters = characters.replace(/\u0000/g, function(match, index){
+		characters = characters.replace(/\u0000/g, function(match, index){
+
 			tree.parseError('invalid-codepoint');
 			return '\uFFFD';
 		});
@@ -5929,7 +5981,8 @@ function TreeBuilder() {
 		if (leadingWhitespace)
 			tree.insertText(leadingWhitespace);
 		if (!buffer.length)
-			return;
+			return;
+
 		tree.parseError("unexpected-char-in-frameset");
 		this.anythingElse();
 		tree.insertionMode.processCharacters(buffer);
@@ -5943,17 +5996,20 @@ function TreeBuilder() {
 		modes.inHead.processStartTag(name, attributes);
 	};
 
-	modes.inHeadNoscript.startTagHeadNoscript = function(name, attributes) {
+	modes.inHeadNoscript.startTagHeadNoscript = function(name, attributes) {
+
 		tree.parseError("unexpected-start-tag-in-frameset", {name: name});
 	};
 
-	modes.inHeadNoscript.startTagOther = function(name, attributes) {
+	modes.inHeadNoscript.startTagOther = function(name, attributes) {
+
 		tree.parseError("unexpected-start-tag-in-frameset", {name: name});
 		this.anythingElse();
 		tree.insertionMode.processStartTag(name, attributes);
 	};
 
-	modes.inHeadNoscript.endTagBr = function(name, attributes) {
+	modes.inHeadNoscript.endTagBr = function(name, attributes) {
+
 		tree.parseError("unexpected-end-tag-in-frameset", {name: name});
 		this.anythingElse();
 		tree.insertionMode.processEndTag(name, attributes);
@@ -5964,7 +6020,8 @@ function TreeBuilder() {
 		tree.setInsertionMode('inHead');
 	};
 
-	modes.inHeadNoscript.endTagOther = function(name, attributes) {
+	modes.inHeadNoscript.endTagOther = function(name, attributes) {
+
 		tree.parseError("unexpected-end-tag-in-frameset", {name: name});
 	};
 
@@ -6011,13 +6068,15 @@ function TreeBuilder() {
 	};
 
 	modes.inFrameset.endTagFrameset = function(name, attributes) {
-		if (tree.currentStackItem().localName == 'html') {
+		if (tree.currentStackItem().localName == 'html') {
+
 			tree.parseError("unexpected-frameset-in-frameset-innerhtml");
 		} else {
 			tree.popElement();
 		}
 
-		if (!tree.context && tree.currentStackItem().localName != 'frameset') {
+		if (!tree.context && tree.currentStackItem().localName != 'frameset') {
+
 			tree.setInsertionMode('afterFrameset');
 		}
 	};
@@ -6125,7 +6184,8 @@ function TreeBuilder() {
 			if (attributes[key].nodeName.toLowerCase() == 'type') {
 				if (attributes[key].nodeValue.toLowerCase() == 'hidden') {
 					tree.parseError("unexpected-hidden-input-in-table");
-					tree.insertElement(name, attributes);
+					tree.insertElement(name, attributes);
+
 					tree.openElements.pop();
 					return;
 				}
@@ -6171,8 +6231,10 @@ function TreeBuilder() {
 	};
 
 	modes.inTable.endTagOther = function(name) {
-		tree.parseError("unexpected-end-tag-implies-table-voodoo", {name: name});
-		tree.redirectAttachToFosterParent = true;
+		tree.parseError("unexpected-end-tag-implies-table-voodoo", {name: name});
+
+		tree.redirectAttachToFosterParent = true;
+
 		modes.inBody.processEndTag(name);
 		tree.redirectAttachToFosterParent = false;
 	};
@@ -6207,7 +6269,8 @@ function TreeBuilder() {
 
 	modes.inTableText.processCharacters = function(buffer) {
 		var characters = buffer.takeRemaining();
-		characters = characters.replace(/\u0000/g, function(match, index){
+		characters = characters.replace(/\u0000/g, function(match, index){
+
 			tree.parseError("invalid-codepoint");
 			return '';
 		});
@@ -6276,12 +6339,14 @@ function TreeBuilder() {
 		tree.insertionMode.processStartTag(name, attributes);
 	};
 
-	modes.inTableBody.startTagTableOther = function(name, attributes) {
+	modes.inTableBody.startTagTableOther = function(name, attributes) {
+
 		if (tree.openElements.inTableScope('tbody') ||  tree.openElements.inTableScope('thead') || tree.openElements.inTableScope('tfoot')) {
 			tree.openElements.popUntilTableBodyScopeMarker();
 			this.endTagTableRowGroup(tree.currentStackItem().localName);
 			tree.insertionMode.processStartTag(name, attributes);
-		} else {
+		} else {
+
 			tree.parseError('unexpected-start-tag', {name: name});
 		}
 	};
@@ -6305,7 +6370,8 @@ function TreeBuilder() {
 			tree.openElements.popUntilTableBodyScopeMarker();
 			this.endTagTableRowGroup(tree.currentStackItem().localName);
 			tree.insertionMode.processEndTag(name);
-		} else {
+		} else {
+
 			tree.parseError('unexpected-end-tag', {name: name});
 		}
 	};
@@ -6349,7 +6415,8 @@ function TreeBuilder() {
 
 	modes.inSelect.processCharacters = function(buffer) {
 		var data = buffer.takeRemaining();
-		data = data.replace(/\u0000/g, function(match, index){
+		data = data.replace(/\u0000/g, function(match, index){
+
 			tree.parseError("invalid-codepoint");
 			return '';
 		});
@@ -6358,7 +6425,8 @@ function TreeBuilder() {
 		tree.insertText(data);
 	};
 
-	modes.inSelect.startTagOption = function(name, attributes) {
+	modes.inSelect.startTagOption = function(name, attributes) {
+
 		if (tree.currentStackItem().localName == 'option')
 			tree.popElement();
 		tree.insertElement(name, attributes);
@@ -6380,13 +6448,16 @@ function TreeBuilder() {
 		tree.popElement();
 	};
 
-	modes.inSelect.endTagOptgroup = function(name) {
+	modes.inSelect.endTagOptgroup = function(name) {
+
 		if (tree.currentStackItem().localName == 'option' && tree.openElements.item(tree.openElements.length - 2).localName == 'optgroup') {
 			tree.popElement();
-		}
+		}
+
 		if (tree.currentStackItem().localName == 'optgroup') {
 			tree.popElement();
-		} else {
+		} else {
+
 			tree.parseError('unexpected-end-tag-in-select', {name: 'optgroup'});
 		}
 	};
@@ -6400,7 +6471,8 @@ function TreeBuilder() {
 		if (tree.openElements.inTableScope('select')) {
 			tree.openElements.popUntilPopped('select');
 			tree.resetInsertionMode();
-		} else {
+		} else {
+
 			tree.parseError('unexpected-end-tag', {name: name});
 		}
 	};
@@ -6530,7 +6602,8 @@ function TreeBuilder() {
 
 	modes.inRow.startTagTableOther = function(name, attributes) {
 		var ignoreEndTag = this.ignoreEndTagTr();
-		this.endTagTr('tr');
+		this.endTagTr('tr');
+
 		if (!ignoreEndTag) tree.insertionMode.processStartTag(name, attributes);
 	};
 
@@ -6551,7 +6624,9 @@ function TreeBuilder() {
 
 	modes.inRow.endTagTable = function(name) {
 		var ignoreEndTag = this.ignoreEndTagTr();
-		this.endTagTr('tr');
+		this.endTagTr('tr');
+
+
 		if (!ignoreEndTag) tree.insertionMode.processEndTag(name);
 	};
 
@@ -6559,7 +6634,8 @@ function TreeBuilder() {
 		if (tree.openElements.inTableScope(name)) {
 			this.endTagTr('tr');
 			tree.insertionMode.processEndTag(name);
-		} else {
+		} else {
+
 			tree.parseError('unexpected-end-tag', {name: name});
 		}
 	};
@@ -6679,7 +6755,8 @@ TreeBuilder.prototype.adoptionAgencyEndTag = function(name) {
 
 	var outerLoopCounter = 0;
 
-	while (outerLoopCounter++ < outerIterationLimit) {
+	while (outerLoopCounter++ < outerIterationLimit) {
+
 		formattingElement = this.elementInActiveFormattingElements(name);
 
 		if (!formattingElement || (this.openElements.contains(formattingElement) && !this.openElements.inScope(formattingElement.localName))) {
@@ -6697,7 +6774,9 @@ TreeBuilder.prototype.adoptionAgencyEndTag = function(name) {
 
 		if (formattingElement != this.currentStackItem()) {
 			this.parseError('adoption-agency-1.3', {name: name});
-		}
+		}
+
+
 		var furthestBlock = this.openElements.furthestBlockForFormattingElement(formattingElement.node);
 
 		if (!furthestBlock) {
@@ -6801,7 +6880,8 @@ TreeBuilder.prototype.startTokenization = function(tokenizer) {
 			break;
 		}
 		this.insertHtmlElement();
-		this.resetInsertionMode();
+		this.resetInsertionMode();
+
 	} else {
 		this.setInsertionMode('initial');
 	}
@@ -6958,16 +7038,22 @@ TreeBuilder.prototype.popElement = function() {
 TreeBuilder.prototype.shouldFosterParent = function() {
 	return this.redirectAttachToFosterParent && this.currentStackItem().isFosterParenting();
 };
-TreeBuilder.prototype.generateImpliedEndTags = function(exclude) {
+TreeBuilder.prototype.generateImpliedEndTags = function(exclude) {
+
 	var name = this.openElements.top.localName;
 	if (['dd', 'dt', 'li', 'option', 'optgroup', 'p', 'rp', 'rt'].indexOf(name) != -1 && name != exclude) {
 		this.popElement();
 		this.generateImpliedEndTags(exclude);
 	}
 };
-TreeBuilder.prototype.reconstructActiveFormattingElements = function() {
+TreeBuilder.prototype.reconstructActiveFormattingElements = function() {
+
+
+
+
 	if (this.activeFormattingElements.length === 0)
-		return;
+		return;
+
 	var i = this.activeFormattingElements.length - 1;
 	var entry = this.activeFormattingElements[i];
 	if (entry == Marker || this.openElements.contains(entry))
@@ -7025,7 +7111,10 @@ TreeBuilder.prototype.ensureNoahsArkCondition = function(item) {
 			return;
 		candidates = remainingCandidates;
 		remainingCandidates = [];
-	}
+	}
+
+
+
 	for (var i = kNoahsArkCapacity - 1; i < candidates.length; i++)
 		this.removeElementFromActiveFormattingElements(candidates[i]);
 };
@@ -7055,10 +7144,16 @@ TreeBuilder.prototype.clearActiveFormattingElements = function() {
 TreeBuilder.prototype.reparentChildren = function(oldParent, newParent) {
 	throw new Error("Not implemented");
 };
-TreeBuilder.prototype.setFragmentContext = function(context) {
+TreeBuilder.prototype.setFragmentContext = function(context) {
+
+
+
+
+
 	this.context = context;
 };
-TreeBuilder.prototype.parseError = function(code, args) {
+TreeBuilder.prototype.parseError = function(code, args) {
+
 	if (!this.errorHandler)
 		return;
 	var message = formatMessage(messages[code], args);
@@ -7075,8 +7170,10 @@ TreeBuilder.prototype.resetInsertionMode = function() {
 			node = new StackItem("http://www.w3.org/1999/xhtml", this.context, [], null);
 		}
 
-		if (node.namespaceURI === "http://www.w3.org/1999/xhtml") {
-			if (node.localName === 'select')
+		if (node.namespaceURI === "http://www.w3.org/1999/xhtml") {
+
+			if (node.localName === 'select')
+
 				return this.setInsertionMode('inSelect');
 			if (node.localName === 'td' || node.localName === 'th')
 				return this.setInsertionMode('inCell');
@@ -7711,17 +7808,28 @@ SAXTreeBuilder.prototype.addAttributesToElement = function(element, attributes) 
 	}
 };
 
-var NodeType = {
-	CDATA: 1,
-	CHARACTERS: 2,
-	COMMENT: 3,
-	DOCUMENT: 4,
-	DOCUMENT_FRAGMENT: 5,
-	DTD: 6,
-	ELEMENT: 7,
-	ENTITY: 8,
-	IGNORABLE_WHITESPACE: 9,
-	PROCESSING_INSTRUCTION: 10,
+var NodeType = {
+
+	CDATA: 1,
+
+	CHARACTERS: 2,
+
+	COMMENT: 3,
+
+	DOCUMENT: 4,
+
+	DOCUMENT_FRAGMENT: 5,
+
+	DTD: 6,
+
+	ELEMENT: 7,
+
+	ENTITY: 8,
+
+	IGNORABLE_WHITESPACE: 9,
+
+	PROCESSING_INSTRUCTION: 10,
+
 	SKIPPED_ENTITY: 11
 };
 function Node(locator) {
@@ -7735,13 +7843,17 @@ function Node(locator) {
 	this.parentNode = null;
 	this.nextSibling = null;
 	this.firstChild = null;
-}
+}
+
 Node.prototype.visit = function(treeParser) {
 	throw new Error("Not Implemented");
 };
 Node.prototype.revisit = function(treeParser) {
 	return;
-};
+};
+
+
+
 Node.prototype.detach = function() {
 	if (this.parentNode !== null) {
 		this.parentNode.removeChild(this);
@@ -7771,7 +7883,8 @@ function ParentNode(locator) {
 }
 
 ParentNode.prototype = Object.create(Node.prototype);
-ParentNode.prototype.insertBefore = function(child, sibling) {
+ParentNode.prototype.insertBefore = function(child, sibling) {
+
 	if (!sibling) {
 		return this.appendChild(child);
 	}
@@ -7793,7 +7906,12 @@ ParentNode.prototype.insertBefore = function(child, sibling) {
 	return child;
 };
 
-ParentNode.prototype.insertBetween = function(child, prev, next) {
+ParentNode.prototype.insertBetween = function(child, prev, next) {
+
+
+
+
+
 	if (!next) {
 		return this.appendChild(child);
 	}
@@ -7836,7 +7954,8 @@ ParentNode.prototype.appendChildren = function(parent) {
 	another.firstChild = null;
 	another.lastChild = null;
 };
-ParentNode.prototype.removeChild = function(node) {
+ParentNode.prototype.removeChild = function(node) {
+
 	if (this.firstChild == node) {
 		this.firstChild = node.nextSibling;
 		if (this.lastChild == node) {
@@ -7880,14 +7999,16 @@ Document.prototype.visit = function(treeParser) {
 };
 Document.prototype.revisit = function(treeParser) {
 	treeParser.endDocument(this.endLocator);
-};
+};
+
 function DocumentFragment() {
 	ParentNode.call(this, new Locator());
 	this.nodeType = NodeType.DOCUMENT_FRAGMENT;
 }
 
 DocumentFragment.prototype = Object.create(ParentNode.prototype);
-DocumentFragment.prototype.visit = function(treeParser) {
+DocumentFragment.prototype.visit = function(treeParser) {
+
 };
 function Element(locator, uri, localName, qName, atts, prefixMappings) {
 	ParentNode.call(this, locator);
@@ -7938,7 +8059,8 @@ function IgnorableWhitespace(locator, data) {
 IgnorableWhitespace.prototype = Object.create(Node.prototype);
 IgnorableWhitespace.prototype.visit = function(treeParser) {
 	treeParser.ignorableWhitespace(this.data, 0, this.data.length, this);
-};
+};
+
 function Comment(locator, data) {
 	Node.call(this, locator);
 	this.data = data;
@@ -7948,7 +8070,8 @@ function Comment(locator, data) {
 Comment.prototype = Object.create(Node.prototype);
 Comment.prototype.visit = function(treeParser) {
 	treeParser.comment(this.data, 0, this.data.length, this);
-};
+};
+
 function CDATA(locator) {
 	ParentNode.call(this, locator);
 	this.nodeType = NodeType.CDATA;
@@ -7960,7 +8083,8 @@ CDATA.prototype.visit = function(treeParser) {
 };
 CDATA.prototype.revisit = function(treeParser) {
 	treeParser.endCDATA(this.endLocator);
-};
+};
+
 function Entity(name) {
 	ParentNode.call(this);
 	this.name = name;
@@ -7973,7 +8097,8 @@ Entity.prototype.visit = function(treeParser) {
 };
 Entity.prototype.revisit = function(treeParser) {
 	treeParser.endEntity(this.name);
-};
+};
+
 
 function SkippedEntity(name) {
 	Node.call(this);
@@ -7984,7 +8109,12 @@ function SkippedEntity(name) {
 SkippedEntity.prototype = Object.create(Node.prototype);
 SkippedEntity.prototype.visit = function(treeParser) {
 	treeParser.skippedEntity(this.name, this);
-};
+};
+
+
+
+
+
 function ProcessingInstruction(target, data) {
 	Node.call(this);
 	this.target = target;
@@ -8018,8 +8148,10 @@ exports.SAXTreeBuilder = SAXTreeBuilder;
 
 },
 {"../TreeBuilder":6,"util":20}],
-11:[function(_dereq_,module,exports){
-function TreeParser(contentHandler, lexicalHandler){
+11:[function(_dereq_,module,exports){
+
+function TreeParser(contentHandler, lexicalHandler){
+
 	this.contentHandler;
 	this.lexicalHandler;
 	this.locatorDelegate;
@@ -8033,7 +8165,8 @@ function TreeParser(contentHandler, lexicalHandler){
 	} else {
 		this.lexicalHandler = lexicalHandler;
 	}
-}
+}
+
 TreeParser.prototype.parse = function(node) {
 	this.contentHandler.documentLocator = this;
 	var current = node;
@@ -8142,7 +8275,8 @@ Object.defineProperty(TreeParser.prototype, 'lineNumber', {
 		else
 			return this.locatorDelegate.lineNumber;
 	}
-});
+});
+
 function NullLexicalHandler() {
 
 }
