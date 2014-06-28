@@ -35,7 +35,11 @@ object JGitUtil {
    * @param branchList the list of branch names
    * @param tags the list of tags
    */
-  case class RepositoryInfo(owner: String, name: String, url: String, commitCount: Int, branchList: List[String], tags: List[TagInfo])
+  case class RepositoryInfo(owner: String, name: String, url: String, commitCount: Int, branchList: List[String], tags: List[TagInfo]){
+    def this(owner: String, name: String, baseUrl: String) = {
+      this(owner, name, s"${baseUrl}/git/${owner}/${name}.git", 0, Nil, Nil)
+    }
+  }
 
   /**
    * The file data for the file list of the repository viewer.

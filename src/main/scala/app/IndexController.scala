@@ -21,8 +21,8 @@ trait IndexControllerBase extends ControllerBase {
     val loginAccount = context.loginAccount
 
     html.index(getRecentActivities(),
-      getVisibleRepositories(loginAccount, context.baseUrl),
-      loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl) }.getOrElse(Nil)
+      getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
+      loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
     )
   }
 

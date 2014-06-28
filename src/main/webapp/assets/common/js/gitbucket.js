@@ -103,3 +103,7 @@ function diffUsingJS(oldTextId, newTextId, outputId) {
     viewType: 1
   }));
 }
+
+function jqSelectorEscape(val) {
+    return val.replace(/[!"#$%&'()*+,.\/:;<=>?@\[\\\]^`{|}~]/g, '\\$&');
+}
