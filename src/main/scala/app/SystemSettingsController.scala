@@ -7,7 +7,6 @@ import util.Directory._
 import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import ssh.SshServer
-import org.scalatra.Ok
 import org.apache.commons.io.FileUtils
 import java.io.FileInputStream
 import plugin.{Plugin, PluginSystem}
@@ -100,8 +99,6 @@ trait SystemSettingsControllerBase extends ControllerBase {
   })
 
   get("/admin/plugins/available")(adminOnly {
-    // TODO Do periodical and asynchronous...?
-    PluginSystem.updateAllRepositories()
     val installedPlugins = plugin.PluginSystem.plugins
     val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
     admin.plugins.html.available(availablePlugins)
