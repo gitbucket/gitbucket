@@ -10,7 +10,7 @@ import ssh.SshServer
 import org.scalatra.Ok
 import org.apache.commons.io.FileUtils
 import java.io.FileInputStream
-import plugin.PluginSystem
+import plugin.{Plugin, PluginSystem}
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
@@ -83,36 +83,32 @@ trait SystemSettingsControllerBase extends ControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    admin.plugins.html.installed(plugin.PluginSystem.plugins)
+    val installedPlugins = plugin.PluginSystem.plugins
+    val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
+    admin.plugins.html.installed(installedPlugins, updatablePlugins)
+  })
+
+  post("/admin/plugins/_update", pluginForm)(adminOnly { form =>
+    deletePlugins(form.pluginIds)
+    installPlugins(form.pluginIds)
+    redirect("/admin/plugins")
   })
 
   post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
-    form.pluginIds.foreach { pluginId =>
-      plugin.PluginSystem.uninstall(pluginId)
-      val dir = new java.io.File(PluginHome, pluginId)
-      if(dir.exists && dir.isDirectory){
-        FileUtils.deleteQuietly(dir)
-        PluginSystem.uninstall(pluginId)
-      }
-    }
+    deletePlugins(form.pluginIds)
     redirect("/admin/plugins")
   })
 
   get("/admin/plugins/available")(adminOnly {
     // TODO Do periodical and asynchronous...?
     PluginSystem.updateAllRepositories()
-    admin.plugins.html.available(getAvailablePlugins())
+    val installedPlugins = plugin.PluginSystem.plugins
+    val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
+    admin.plugins.html.available(availablePlugins)
   })
 
   post("/admin/plugins/_install", pluginForm)(adminOnly { form =>
-    val dir = getPluginCacheDir()
-    getAvailablePlugins().filter(x => form.pluginIds.contains(x.id)).foreach { plugin =>
-      val pluginDir = new java.io.File(PluginHome, plugin.id)
-      if(!pluginDir.exists){
-        FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
-      }
-      PluginSystem.installPlugin(plugin.id)
-    }
+    installPlugins(form.pluginIds)
     redirect("/admin/plugins")
   })
 
@@ -126,9 +122,31 @@ trait SystemSettingsControllerBase extends ControllerBase {
     Ok(result)
   })
 
-  // TODO Move to PluginSystem or Service?
-  private def getAvailablePlugins(): List[SystemSettingsControllerBase.AvailablePlugin] = {
+  // TODO Move these methods to PluginSystem or Service?
+  private def deletePlugins(pluginIds: List[String]): Unit = {
+    pluginIds.foreach { pluginId =>
+      plugin.PluginSystem.uninstall(pluginId)
+      val dir = new java.io.File(PluginHome, pluginId)
+      if(dir.exists && dir.isDirectory){
+        FileUtils.deleteQuietly(dir)
+        PluginSystem.uninstall(pluginId)
+      }
+    }
+  }
+
+  private def installPlugins(pluginIds: List[String]): Unit = {
+    val dir = getPluginCacheDir()
     val installedPlugins = plugin.PluginSystem.plugins
+    getAvailablePlugins(installedPlugins).filter(x => pluginIds.contains(x.id)).foreach { plugin =>
+      val pluginDir = new java.io.File(PluginHome, plugin.id)
+      if(!pluginDir.exists){
+        FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
+      }
+      PluginSystem.installPlugin(plugin.id)
+    }
+  }
+
+  private def getAvailablePlugins(installedPlugins: List[Plugin]): List[SystemSettingsControllerBase.AvailablePlugin] = {
     val repositoryRoot = getPluginCacheDir()
 
     if(repositoryRoot.exists && repositoryRoot.isDirectory){
@@ -144,16 +162,20 @@ trait SystemSettingsControllerBase extends ControllerBase {
               }
             }
             SystemSettingsControllerBase.AvailablePlugin(
-              repo.id,
-              properties.getProperty("id"),
-              properties.getProperty("version"),
-              properties.getProperty("author"),
-              properties.getProperty("url"),
-              properties.getProperty("description"),
-              if(installedPlugins.exists(_.id == properties.getProperty("id"))) "installed" else "available")
+              repository  = repo.id,
+              id          = properties.getProperty("id"),
+              version     = properties.getProperty("version"),
+              author      = properties.getProperty("author"),
+              url         = properties.getProperty("url"),
+              description = properties.getProperty("description"),
+              status      = installedPlugins.find(_.id == properties.getProperty("id")) match {
+                case Some(x) if(PluginSystem.isUpdatable(x.version, properties.getProperty("version")))=> "updatable"
+                case Some(x) => "installed"
+                case None    => "available"
+              })
           }
         } else Nil
-      }.filter(x => !installedPlugins.exists(_.id == x.id))
+      }
     } else Nil
   }
 }
