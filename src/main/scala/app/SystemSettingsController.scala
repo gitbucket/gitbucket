@@ -153,7 +153,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
               if(installedPlugins.exists(_.id == properties.getProperty("id"))) "installed" else "available")
           }
         } else Nil
-      }
+      }.filter(x => !installedPlugins.exists(_.id == x.id))
     } else Nil
   }
 }
