@@ -2,12 +2,17 @@ package util
 
 import scala.util.matching.Regex
 import scala.util.control.Exception._
+import slick.jdbc.JdbcBackend
+import servlet.Database
 import javax.servlet.http.{HttpSession, HttpServletRequest}
 
 /**
  * Provides some usable implicit conversions.
  */
 object Implicits {
+
+  // Convert to slick session.
+  implicit def request2Session(implicit request: HttpServletRequest): JdbcBackend#Session = Database.getSession(request)
 
   implicit class RichSeq[A](seq: Seq[A]) {
 

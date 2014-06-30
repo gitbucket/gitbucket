@@ -37,4 +37,8 @@ object Database {
     slick.jdbc.JdbcBackend.Database.forURL(context.getInitParameter("db.url"),
         context.getInitParameter("db.user"),
         context.getInitParameter("db.password"))
+
+  def getSession(req: ServletRequest): slick.jdbc.JdbcBackend#Session =
+    req.getAttribute(Keys.Request.DBSession).asInstanceOf[slick.jdbc.JdbcBackend#Session]
+
 }
