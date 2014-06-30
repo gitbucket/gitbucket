@@ -47,11 +47,11 @@ object LDAPUtil {
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "User LDAP Authentication Failed."
     ){ conn =>
-      findMailAddress(conn, userDN, ldapSettings.mailAttribute) match {
+      findMailAddress(conn, userDN, ldapSettings.userNameAttribute, userName, ldapSettings.mailAttribute) match {
         case Some(mailAddress) => Right(LDAPUserInfo(
           userName    = getUserNameFromMailAddress(userName),
           fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
-            findFullName(conn, userDN, fullNameAttribute)
+            findFullName(conn, userDN, ldapSettings.userNameAttribute, userName, fullNameAttribute)
           }.getOrElse(userName),
           mailAddress = mailAddress))
         case None => Left("Can't find mail address.")
@@ -130,15 +130,15 @@ object LDAPUtil {
     }
   }
 
-  private def findMailAddress(conn: LDAPConnection, userDN: String, mailAttribute: String): Option[String] =
-    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](mailAttribute), false)){ results =>
+  private def findMailAddress(conn: LDAPConnection, userDN: String, userNameAttribute: String, userName: String, mailAttribute: String): Option[String] =
+    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, userNameAttribute + "=" + userName, Array[String](mailAttribute), false)){ results =>
       if(results.hasMore) {
         Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
       } else None
     }
 
-  private def findFullName(conn: LDAPConnection, userDN: String, nameAttribute: String): Option[String] =
-    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](nameAttribute), false)){ results =>
+  private def findFullName(conn: LDAPConnection, userDN: String, userNameAttribute: String, userName: String, nameAttribute: String): Option[String] =
+    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, userNameAttribute + "=" + userName, Array[String](nameAttribute), false)){ results =>
       if(results.hasMore) {
         Option(results.next.getAttribute(nameAttribute)).map(_.getStringValue)
       } else None
