@@ -17,7 +17,7 @@ trait SshKeyComponent { self: Profile =>
 
   case class SshKey(
     userName: String,
-    sshKeyId: Int,
+    sshKeyId: Int = 0,
     title: String,
     publicKey: String
   )
