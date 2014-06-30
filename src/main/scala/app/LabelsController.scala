@@ -3,6 +3,7 @@ package app
 import jp.sf.amateras.scalatra.forms._
 import service._
 import util.CollaboratorsAuthenticator
+import util.Implicits._
 import org.scalatra.i18n.Messages
 
 class LabelsController extends LabelsControllerBase

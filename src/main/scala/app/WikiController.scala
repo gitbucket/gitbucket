@@ -4,10 +4,10 @@ import service._
 import util._
 import util.Directory._
 import util.ControlUtil._
+import util.Implicits._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
-import scala.Some
 import java.util.ResourceBundle
 
 class WikiController extends WikiControllerBase 

@@ -5,6 +5,7 @@ import util._
 import util.StringUtil._
 import util.Directory._
 import util.ControlUtil._
+import util.Implicits._
 import ssh.SshUtil
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils

@@ -3,7 +3,7 @@ package servlet
 import javax.servlet._
 import javax.servlet.http._
 import service.{SystemSettingsService, AccountService, RepositoryService}
-import model.Account
+import model._
 import org.slf4j.LoggerFactory
 import slick.jdbc.JdbcBackend
 import util.Implicits._
@@ -22,9 +22,8 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
   def destroy(): Unit = {}
   
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
-    val request  = req.asInstanceOf[HttpServletRequest]
+    implicit val request  = req.asInstanceOf[HttpServletRequest]
     val response = res.asInstanceOf[HttpServletResponse]
-    implicit val session = req.getAttribute(Keys.Request.DBSession).asInstanceOf[JdbcBackend#Session]
 
     val wrappedResponse = new HttpServletResponseWrapper(response){
       override def setCharacterEncoding(encoding: String) = {}

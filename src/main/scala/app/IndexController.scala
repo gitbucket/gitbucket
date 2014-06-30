@@ -1,6 +1,7 @@
 package app
 
 import util._
+import util.Implicits._
 import service._
 import jp.sf.amateras.scalatra.forms._
 

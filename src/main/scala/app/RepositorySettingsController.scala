@@ -2,13 +2,14 @@ package app
 
 import service._
 import util.Directory._
+import util.ControlUtil._
+import util.Implicits._
 import util.{UsersAuthenticator, OwnerAuthenticator}
+import util.JGitUtil.CommitInfo
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import service.WebHookService.WebHookPayload
-import util.JGitUtil.CommitInfo
-import util.ControlUtil._
 import org.eclipse.jgit.api.Git
 
 class RepositorySettingsController extends RepositorySettingsControllerBase

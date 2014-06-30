@@ -2,6 +2,7 @@ package service
 
 import model._
 import slick.jdbc.JdbcBackend
+import util.Implicits.request2Session
 
 /**
  * This service is used for a view helper mainly.
@@ -11,22 +12,25 @@ import slick.jdbc.JdbcBackend
  */
 trait RequestCache extends SystemSettingsService with AccountService with IssuesService {
 
+  private implicit def context2Session(implicit context: app.Context): JdbcBackend#Session =
+    request2Session(context.request)
+
   def getIssue(userName: String, repositoryName: String, issueId: String)
-              (implicit context: app.Context, session: JdbcBackend#Session): Option[Issue] = {
+              (implicit context: app.Context): Option[Issue] = {
     context.cache(s"issue.${userName}/${repositoryName}#${issueId}"){
       super.getIssue(userName, repositoryName, issueId)
     }
   }
 
   def getAccountByUserName(userName: String)
-                          (implicit context: app.Context, session: JdbcBackend#Session): Option[Account] = {
+                          (implicit context: app.Context): Option[Account] = {
     context.cache(s"account.${userName}"){
       super.getAccountByUserName(userName)
     }
   }
 
   def getAccountByMailAddress(mailAddress: String)
-                             (implicit context: app.Context, session: JdbcBackend#Session): Option[Account] = {
+                             (implicit context: app.Context): Option[Account] = {
     context.cache(s"account.${mailAddress}"){
       super.getAccountByMailAddress(mailAddress)
     }
