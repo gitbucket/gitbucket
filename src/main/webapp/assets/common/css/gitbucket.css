@@ -858,12 +858,58 @@ ul.collaborator a.remove {
 /****************************************************************************/
 /* Markdown */
 /****************************************************************************/
+div.markdown-body {
+  line-height: 1.7;
+  font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  word-wrap: break-word;
+}
 div.markdown-body h1 {
   border-bottom: 1px solid #ddd;
+  font-size: 2.5em;
+  font-weight: bold;
 }
 
 div.markdown-body h2 {
   border-bottom: 1px solid #eee;
+  font-size: 2em;
+  margin-top: 30px;
+}
+
+div.markdown-body h3 {
+  font-size: 1.5em;
+}
+
+div.markdown-body h4 {
+  font-size: 1.2em;
+}
+
+div.markdown-body h5 {
+  font-size: 1em;
+}
+
+div.markdown-body h6 {
+  color:#777;
+  font-size: 1em;
+}
+
+div.markdown-body li {
+  line-height: 1.7;
+}
+
+div.markdown-body p {
+  margin: 15px 0;
+  line-height: 1.7;
+}
+
+div.markdown-body pre {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+}
+
+div.markdown-body code {
+  font-size: 12px;
+  padding: 0 5px;
 }
 
 div.markdown-body table {
@@ -1001,6 +1047,7 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 
 .markdown-head {
   position: relative;
+  line-height: 1.7;
 }
 
 a.markdown-anchor-link {
@@ -1014,25 +1061,25 @@ a.markdown-anchor-link {
 }
 
 h1 a.markdown-anchor-link {
-  top: 8px;
+  top: 24px;
 }
 
 h2 a.markdown-anchor-link {
-  top: 6px;
+  top: 20px;
 }
 
 h3 a.markdown-anchor-link {
-  top: 6px;
+  top: 12px;
 }
 
 h4 a.markdown-anchor-link {
-  top: 2px;
+  top: 8px;
 }
 
 h5 a.markdown-anchor-link {
-  top: 2px;
+  top: 6px;
 }
 
 h6 a.markdown-anchor-link {
-  top: 2px;
+  top: 6px;
 }
