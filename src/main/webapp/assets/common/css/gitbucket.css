@@ -97,6 +97,13 @@ div.input-prepend span.count {
   padding-bottom: 6px;
 }
 
+img.plugin-global-menu {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: -2px;
+}
+
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */

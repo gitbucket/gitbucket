@@ -34,6 +34,10 @@ object Directory {
 
   val DatabaseHome = s"${GitBucketHome}/data"
 
+  val PluginHome = s"${GitBucketHome}/plugins"
+
+  val TemporaryHome = s"${GitBucketHome}/tmp"
+
   /**
    * Substance directory of the repository.
    */
@@ -55,13 +59,18 @@ object Directory {
    * Root of temporary directories for the upload file.
    */
   def getTemporaryDir(sessionId: String): File =
-    new File(s"${GitBucketHome}/tmp/_upload/${sessionId}")
+    new File(s"${TemporaryHome}/_upload/${sessionId}")
 
   /**
    * Root of temporary directories for the specified repository.
    */
   def getTemporaryDir(owner: String, repository: String): File =
-    new File(s"${GitBucketHome}/tmp/${owner}/${repository}")
+    new File(s"${TemporaryHome}/${owner}/${repository}")
+
+  /**
+   * Root of plugin cache directory. Plugin repositories are cloned into this directory.
+   */
+  def getPluginCacheDir(): File = new File(s"${TemporaryHome}/_plugins")
 
   /**
    * Temporary directory which is used to create an archive to download repository contents.

@@ -60,11 +60,21 @@
                   <li><a href="@path/groups/new">New group</a></li>
                 </ul>
                 <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
+                @plugin.PluginSystem.globalMenus.map { menu =>
+                  @if(menu.condition(context)){
+                    <a href="@menu.url" class="menu" data-toggle="tooltip" data-placement="bottom" title="@menu.label">@if(menu.icon.nonEmpty){<img src="@menu.icon" class="plugin-global-menu"/>} else {@menu.label}</a>
+                  }
+                }
                 @if(loginAccount.get.isAdmin){
                   <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="icon-wrench"></i></a>
                 }
                 <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
               } else {
+                @plugin.PluginSystem.globalMenus.map { menu =>
+                  @if(menu.condition(context)){
+                    <a href="@menu.url" class="menu" data-toggle="tooltip" data-placement="bottom" title="@menu.label">@if(menu.icon.nonEmpty){<img src="@menu.icon" class="plugin-global-menu"/>} else {@menu.label}</a>
+                  }
+                }
                 <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-last" id="signin">Sign in</a>
               }
             </div><!--/.nav-collapse -->
