@@ -1,7 +1,7 @@
 package service
 
 import model._
-import profile.simple._
+import simple._
 import org.slf4j.LoggerFactory
 import service.RepositoryService.RepositoryInfo
 import util.JGitUtil

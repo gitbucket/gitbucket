@@ -1,6 +1,7 @@
 package object model extends {
   // TODO
   val profile = slick.driver.H2Driver
+  val simple = profile.simple
 
 } with AccountComponent
   with ActivityComponent

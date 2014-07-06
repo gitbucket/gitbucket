@@ -3,12 +3,12 @@ package service
 import util.{FileUtil, StringUtil, JGitUtil}
 import util.Directory._
 import util.ControlUtil._
-import model.Issue
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
-import model.profile.simple.Session
+import model._
+import simple._
 
 trait RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._

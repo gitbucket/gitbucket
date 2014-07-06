@@ -2,21 +2,17 @@ package service
 
 import java.util.Date
 import org.eclipse.jgit.api.Git
-import org.apache.commons.io.FileUtils
 import util._
 import _root_.util.ControlUtil._
-import org.eclipse.jgit.treewalk.{TreeWalk, CanonicalTreeParser}
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.dircache.{DirCache, DirCacheEntry}
-import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
 import java.io.ByteArrayInputStream
 import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
-import scala.Some
 import service.RepositoryService.RepositoryInfo
-
 
 object WikiService {
   

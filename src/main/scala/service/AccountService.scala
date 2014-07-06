@@ -1,7 +1,7 @@
 package service
 
 import model._
-import profile.simple._
+import simple._
 import service.SystemSettingsService.SystemSettings
 import util.StringUtil._
 import util.LDAPUtil

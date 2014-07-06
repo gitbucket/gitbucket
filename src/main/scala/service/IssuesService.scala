@@ -4,7 +4,7 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 import model._
-import profile.simple._
+import simple._
 import util.Implicits._
 import util.StringUtil._
 
