@@ -2,6 +2,7 @@ package service
 
 import model._
 import simple._
+// TODO [Slick 2.0]NOT import directly?
 import model.dateColumnType
 
 trait MilestonesService {

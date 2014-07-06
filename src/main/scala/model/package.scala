@@ -1,6 +1,7 @@
 package object model extends {
-  // TODO
+  // TODO [Slick 2.0]Should be configurable?
   val profile = slick.driver.H2Driver
+  // TODO [Slick 2.0]To avoid compilation error about delete invocation. Why can't this error be resolved by import profile.simple._?
   val simple = profile.simple
 
 } with AccountComponent
