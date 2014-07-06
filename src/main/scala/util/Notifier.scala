@@ -10,12 +10,13 @@ import service.{AccountService, RepositoryService, IssuesService, SystemSettings
 import servlet.Database
 import SystemSettingsService.Smtp
 import _root_.util.ControlUtil.defining
+import model.profile.simple.Session
 
 trait Notifier extends RepositoryService with AccountService with IssuesService {
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
       (msg: String => String)(implicit context: Context): Unit
 
-  protected def recipients(issue: model.Issue)(notify: String => Unit)(implicit context: Context) =
+  protected def recipients(issue: model.Issue)(notify: String => Unit)(implicit session: Session, context: Context) =
     (
         // individual repository's owner
         issue.userName ::
@@ -70,7 +71,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
 
     val f = future {
       // TODO Can we use the Database Session in other than Transaction Filter?
-      database withSession {
+      database withSession { implicit session =>
         getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
           defining(
               s"[${r.name}] ${issue.title} (#${issueId})" ->

@@ -194,7 +194,7 @@ trait RepositoryService { self: AccountService =>
       // for Guests
       case None => Repositories filter(_.isPrivate is false.bind)
     }).filter { t =>
-      repositoryUserName.map { userName => t.userName is userName.bind } getOrElse ConstColumn.TRUE
+      repositoryUserName.map { userName => t.userName is userName.bind } getOrElse LiteralColumn(true)
     }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
         JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),

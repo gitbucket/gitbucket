@@ -8,15 +8,15 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
+import model.profile.simple.Session
 
-trait
-RepositorySearchService { self: IssuesService =>
+trait RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._
 
-  def countIssues(owner: String, repository: String, query: String): Int =
+  def countIssues(owner: String, repository: String, query: String)(implicit session: Session): Int =
     searchIssuesByKeyword(owner, repository, query).length
 
-  def searchIssues(owner: String, repository: String, query: String): List[IssueSearchResult] =
+  def searchIssues(owner: String, repository: String, query: String)(implicit session: Session): List[IssueSearchResult] =
     searchIssuesByKeyword(owner, repository, query).map { case (issue, commentCount, content) =>
       IssueSearchResult(
         issue.issueId,

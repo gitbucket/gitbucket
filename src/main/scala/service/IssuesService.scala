@@ -96,7 +96,7 @@ trait IssuesService {
         t.userName -> t.repositoryName
       }
       .map { case (repo, t) =>
-        repo -> t.length
+        (repo._1, repo._2, t.length)
       }
       .sortBy(_._3 desc)
       .list
