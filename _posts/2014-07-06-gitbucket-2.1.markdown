@@ -6,13 +6,13 @@ categories: gitbucket
 ---
 Today, we are pleased to announce the availability of new version of Scala based Github clone [GitBucket 2.1](https://github.com/takezoe/gitbucket/releases/tag/2.1)!
 
-This release does not have no major feature but it contains many bug fix and improvements. I want to mention about important topics in this release.
+This release does not have no major feature but it contains many bug fix and improvements. Important topics in this release are below:
 
 ## Upgrade Slick to 2.0 from 1.9
 
 Slick 2.0 contains many API changes. This is a first step to upgrade to Scala 2.11. We will try to upgrade frameworks and libraries other than Slick in the next version.
 
-## Base part of plug-in systemß
+## Base part of plug-in system
 
 The base part of plug-in system has been merged. Plug-ins management UI is not provided in this version. Therefore you can't install plug-ins actually but it will be possible in the future version.
 
