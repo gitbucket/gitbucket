@@ -80,7 +80,7 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 2.1 - xx Sep 2014
+### 2.1 - 6 Jul 2014
 - Upgrade to Slick 2.0 from 1.9
 - Base part of the plug-in system is merged
 - Many bug fix and improvements

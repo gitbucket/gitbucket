@@ -52,6 +52,7 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    new Version(2, 1),
     new Version(2, 0){
       override def update(conn: Connection): Unit = {
         import eu.medsea.mimeutil.{MimeUtil2, MimeType}
