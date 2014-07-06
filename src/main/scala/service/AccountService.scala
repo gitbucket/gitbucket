@@ -2,6 +2,7 @@ package service
 
 import model._
 import simple._
+import model.dateColumnType
 import service.SystemSettingsService.SystemSettings
 import util.StringUtil._
 import util.LDAPUtil

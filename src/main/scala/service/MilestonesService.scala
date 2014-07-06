@@ -2,6 +2,7 @@ package service
 
 import model._
 import simple._
+import model.dateColumnType
 
 trait MilestonesService {
 
