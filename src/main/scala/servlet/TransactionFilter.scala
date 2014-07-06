@@ -33,6 +33,7 @@ class TransactionFilter extends Filter {
 }
 
 object Database {
+
   def apply(context: ServletContext): slick.jdbc.JdbcBackend.Database =
     slick.jdbc.JdbcBackend.Database.forURL(context.getInitParameter("db.url"),
         context.getInitParameter("db.user"),

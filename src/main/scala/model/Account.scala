@@ -23,6 +23,7 @@ trait AccountComponent { self: Profile =>
   }
 
   case class Account(
+
     userName: String,
     fullName: String,
     mailAddress: String,

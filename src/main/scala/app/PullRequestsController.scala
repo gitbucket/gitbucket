@@ -13,7 +13,6 @@ import org.eclipse.jgit.lib.{ObjectId, CommitBuilder, PersonIdent}
 import service.IssuesService._
 import service.PullRequestService._
 import util.JGitUtil.DiffInfo
-import service.RepositoryService.RepositoryTreeNode
 import util.JGitUtil.CommitInfo
 import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
@@ -124,7 +123,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     params("id").toIntOpt.flatMap { issueId =>
       val owner = repository.owner
       val name  = repository.name
-      LockUtil.lock(s"${owner}/${name}/merge"){
+      LockUtil.lock(s"${owner}/${name}"){
         getPullRequest(owner, name, issueId).map { case (issue, pullreq) =>
           using(Git.open(getRepositoryDir(owner, name))) { git =>
             // mark issue as merged and close.
@@ -367,7 +366,7 @@ trait PullRequestsControllerBase extends ControllerBase {
    */
   private def checkConflict(userName: String, repositoryName: String, branch: String,
                             requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-    LockUtil.lock(s"${userName}/${repositoryName}/merge-check"){
+    LockUtil.lock(s"${userName}/${repositoryName}"){
       using(Git.open(getRepositoryDir(requestUserName, requestRepositoryName))) { git =>
         val remoteRefName = s"refs/heads/${branch}"
         val tmpRefName = s"refs/merge-check/${userName}/${branch}"
@@ -403,7 +402,7 @@ trait PullRequestsControllerBase extends ControllerBase {
   private def checkConflictInPullRequest(userName: String, repositoryName: String, branch: String,
                                          requestUserName: String, requestRepositoryName: String, requestBranch: String,
                                          issueId: Int): Boolean = {
-    LockUtil.lock(s"${userName}/${repositoryName}/merge") {
+    LockUtil.lock(s"${userName}/${repositoryName}") {
       using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
         // merge
         val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
@@ -466,7 +465,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       pulls.html.list(
         searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
-        getPullRequestCountGroupByUser(condition.state == "closed", owner, Some(repoName)),
+        getPullRequestCountGroupByUser(condition.state == "closed", Some(owner), Some(repoName)),
         userName,
         page,
         countIssue(condition.copy(state = "open"  ), filterUser, true, owner -> repoName),

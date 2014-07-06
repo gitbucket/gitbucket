@@ -4,12 +4,14 @@ import service._
 import util.Directory._
 import util.ControlUtil._
 import util.Implicits._
-import util.{UsersAuthenticator, OwnerAuthenticator}
+import util.{LockUtil, UsersAuthenticator, OwnerAuthenticator}
 import util.JGitUtil.CommitInfo
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import service.WebHookService.WebHookPayload
+import util.JGitUtil.CommitInfo
+import util.ControlUtil._
 import org.eclipse.jgit.api.Git
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -186,15 +188,17 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/transfer", transferForm)(ownerOnly { (form, repository) =>
     // Change repository owner
     if(repository.owner != form.newOwner){
-      // Update database
-      renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
-      // Move git repository
-      defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
-        FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
-      }
-      // Move wiki repository
-      defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
-        FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
+      LockUtil.lock(s"${repository.owner}/${repository.name}"){
+        // Update database
+        renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
+        // Move git repository
+        defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
+          FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
+        }
+        // Move wiki repository
+        defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
+          FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
+        }
       }
     }
     redirect(s"/${form.newOwner}/${repository.name}")
@@ -204,12 +208,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Delete the repository.
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
-    deleteRepository(repository.owner, repository.name)
+    LockUtil.lock(s"${repository.owner}/${repository.name}"){
+      deleteRepository(repository.owner, repository.name)
 
-    FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
-    FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
-    FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
-
+      FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
+      FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
+      FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
+    }
     redirect(s"/${repository.owner}")
   })
 

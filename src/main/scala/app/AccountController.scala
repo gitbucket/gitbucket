@@ -292,7 +292,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Create new repository.
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
-    LockUtil.lock(s"${form.owner}/${form.name}/create"){
+    LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name, context.baseUrl).isEmpty){
         val ownerAccount  = getAccountByUserName(form.owner).get
         val loginAccount  = context.loginAccount.get
@@ -355,7 +355,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val loginAccount   = context.loginAccount.get
     val loginUserName  = loginAccount.userName
 
-    LockUtil.lock(s"${loginUserName}/${repository.name}/create"){
+    LockUtil.lock(s"${loginUserName}/${repository.name}"){
       if(repository.owner == loginUserName || getRepository(loginAccount.userName, repository.name, baseUrl).isDefined){
         // redirect to the repository if repository already exists
         redirect(s"/${loginUserName}/${repository.name}")

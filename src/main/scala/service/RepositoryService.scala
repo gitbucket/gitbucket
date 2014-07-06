@@ -156,13 +156,18 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
-  def getUserRepositories(userName: String, baseUrl: String)(implicit s: Session): List[RepositoryInfo] = {
+  def getUserRepositories(userName: String, baseUrl: String, withoutPhysicalInfo: Boolean = false)
+                         (implicit s: Session): List[RepositoryInfo] = {
     Repositories.filter { t1 =>
       (t1.userName is userName.bind) ||
         (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName is userName.bind)} exists)
     }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
-        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
+        if(withoutPhysicalInfo){
+          new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+        } else {
+          JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+        },
         repository,
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
@@ -179,9 +184,12 @@ trait RepositoryService { self: AccountService =>
    * @param loginAccount the logged in account
    * @param baseUrl the base url of this application
    * @param repositoryUserName the repository owner (if None then returns all repositories which are visible for logged in user)
+   * @param withoutPhysicalInfo if true then the result does not include physical repository information such as commit count,
+   *                            branches and tags
    * @return the repository information which is sorted in descending order of lastActivityDate.
    */
-  def getVisibleRepositories(loginAccount: Option[Account], baseUrl: String, repositoryUserName: Option[String] = None)
+  def getVisibleRepositories(loginAccount: Option[Account], baseUrl: String, repositoryUserName: Option[String] = None,
+                             withoutPhysicalInfo: Boolean = false)
                             (implicit s: Session): List[RepositoryInfo] = {
     (loginAccount match {
       // for Administrators
@@ -197,7 +205,11 @@ trait RepositoryService { self: AccountService =>
       repositoryUserName.map { userName => t.userName is userName.bind } getOrElse LiteralColumn(true)
     }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
-        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
+        if(withoutPhysicalInfo){
+          new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+        } else {
+          JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+        },
         repository,
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),

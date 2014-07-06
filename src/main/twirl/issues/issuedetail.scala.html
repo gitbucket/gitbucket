@@ -116,7 +116,7 @@ $(function(){
           .append($this.find('img.avatar').clone(false)).append(' ')
           .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
           .append(' is assigned');
-        $('a.assign[data-name=' + userName + '] i').attr('class', 'icon-ok');
+        $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').attr('class', 'icon-ok');
       }
     });
   });

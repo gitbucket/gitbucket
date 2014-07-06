@@ -1,0 +1,47 @@
+@(plugins: List[plugin.Plugin],
+  updatablePlugins: List[app.SystemSettingsControllerBase.AvailablePlugin])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@html.main("Plugins"){
+  @admin.html.menu("plugins"){
+    @tab("installed")
+    <form method="POST" validate="true">
+      <table class="table table-bordered">
+        <tr>
+          <th>ID</th>
+          <th>Version</th>
+          <th>Provider</th>
+          <th>Description</th>
+        </tr>
+        @plugins.zipWithIndex.map { case (plugin, i) =>
+          <tr>
+            <td>
+              <input type="checkbox" name="pluginId[@i]" value="@plugin.id"/>
+              @plugin.id
+            </td>
+            <td>
+              @plugin.version
+              @updatablePlugins.find(_.id == plugin.id).map { x =>
+                (@x.version is available)
+              }
+            </td>
+            <td><a href="@plugin.url">@plugin.author</a></td>
+            <td>@plugin.description</td>
+          </tr>
+        }
+      </table>
+      <input type="submit" id="update-plugins" class="btn btn-success" value="Update selected plugins" formaction="@path/admin/plugins/_update"/>
+      <input type="submit" id="delete-plugins" class="btn btn-danger" value="Uninstall selected plugins" formaction="@path/admin/plugins/_delete"/>
+    </form>
+  }
+}
+<script>
+$(function(){
+  $('#update-plugins').click(function(){
+    return confirm('Selected plugin will be updated. Are you sure?');
+  });
+  $('#delete-plugins').click(function(){
+    return confirm('Selected plugin will be removed permanently. Are you sure?');
+  });
+});
+</script>

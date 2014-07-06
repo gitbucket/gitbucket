@@ -43,7 +43,7 @@
       <div class="small">
         <strong>Clone this wiki locally</strong>
       </div>
-      @helper.html.copy("repository-url-copy", repository.httpUrl){
+      @helper.html.copy("repository-url-copy", httpUrl(repository)){
         <input type="text" value="@httpUrl(repository)" id="repository-url" style="width: 160px;" readonly>
       }
       @if(settings.ssh && loginAccount.isDefined){

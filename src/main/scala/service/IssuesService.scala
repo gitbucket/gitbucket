@@ -51,6 +51,7 @@ trait IssuesService {
                  repos: (String, String)*)(implicit s: Session): Int =
     // TODO check SQL
     Query(searchIssueQuery(repos, condition, filterUser, onlyPullRequest).length).first
+
   /**
    * Returns the Map which contains issue count for each labels.
    *

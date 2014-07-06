@@ -20,13 +20,13 @@ trait PullRequestService { self: IssuesService =>
                 .map(pr => pr.commitIdTo -> pr.commitIdFrom)
                 .update((commitIdTo, commitIdFrom))
 
-  def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String])
+  def getPullRequestCountGroupByUser(closed: Boolean, owner: Option[String], repository: Option[String])
                                     (implicit s: Session): List[PullRequestCount] =
     PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
         (t2.closed         is closed.bind) &&
-        (t1.userName       is owner.bind) &&
+        (t1.userName       is owner.get.bind, owner.isDefined) &&
         (t1.repositoryName is repository.get.bind, repository.isDefined)
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
