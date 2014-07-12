@@ -12,12 +12,14 @@ $(function(){
 
 function validate(e){
   var form = $(e.target);
+  $(form).find('[type=submit]').attr('disabled', 'disabled')
   
   if(form.data('validated') == true){
     return true;
   }
 
   $.post(form.attr('action') + '/validate', $(e.target).serialize(), function(data){
+    $(form).find('[type=submit]').removeAttr('disabled')
     // clear all error messages
     $('.error').text('');
     
