@@ -14,11 +14,13 @@ $(function(){
   $('#edit-content').elastic();
 
   var callback = function(data){
+    $('#update, #cancel').removeAttr('disabled');
     $('#issueTitle').empty().text(data.title);
     $('#issueContent').empty().html(data.content);
   };
 
   $('#update').click(function(){
+    $('#update, #cancel').attr('disabled', 'disabled');
     $.ajax({
       url: '@path/@owner/@repository/issues/edit/@issueId',
       type: 'POST',
@@ -29,11 +31,13 @@ $(function(){
     }).done(
       callback
     ).fail(function(req) {
+      $('#update, #cancel').removeAttr('disabled');
       $('#error-edit-title').text($.parseJSON(req.responseText).title);
     });
   });
 
   $('#cancel').click(function(){
+    $('#update, #cancel').attr('disabled', 'disabled');
     $.get('@path/@owner/@repository/issues/_data/@issueId', callback);
     return false;
   });
