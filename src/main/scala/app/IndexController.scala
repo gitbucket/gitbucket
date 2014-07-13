@@ -88,8 +88,6 @@ trait IndexControllerBase extends ControllerBase {
 
   /**
    * JSON API for collaborator completion.
-   *
-   * TODO Move to other controller?
    */
   get("/_user/proposals")(usersOnly {
     contentType = formats("json")
@@ -98,5 +96,11 @@ trait IndexControllerBase extends ControllerBase {
     )
   })
 
+  /**
+   * JSON APU for checking user existence.
+   */
+  post("/_user/existence")(usersOnly {
+    getAccountByUserName(params("userName")).isDefined
+  })
 
 }

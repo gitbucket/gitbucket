@@ -182,11 +182,6 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     }
   })
 
-  // TODO Move to other generic controller?
-  post("/admin/users/_usercheck"){
-    getAccountByUserName(params("userName")).isDefined
-  }
-
   private def members: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
       if(value.split(",").exists {

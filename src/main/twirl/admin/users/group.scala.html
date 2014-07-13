@@ -59,7 +59,7 @@ $(function(){
   });
 
   $('#addMember').click(function(){
-    $('#error-memberName').text('');
+    $('#error-members').text('');
     var userName = $('#memberName').val();
 
     // check empty
@@ -72,18 +72,18 @@ $(function(){
       return $(this).data('name') == userName;
     }).length > 0;
     if(exists){
-      $('#error-memberName').text('User has been already added.');
+      $('#error-members').text('User has been already added.');
       return false;
     }
 
     // check existence
-    $.post('@path/admin/users/_usercheck', {
+    $.post('@path/_user/existence', {
       'userName': userName
     }, function(data, status){
       if(data == 'true'){
         addMemberHTML(userName, false);
       } else {
-        $('#error-memberName').text('User does not exist.');
+        $('#error-members').text('User does not exist.');
       }
     });
   });
