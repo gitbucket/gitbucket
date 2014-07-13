@@ -392,12 +392,14 @@ div.signin-form {
 /* Account page */
 /****************************************************************************/
 .account-fullname {
-  font-size: 140%;
+  margin-top: 20px;
+  font-size: 180%;
   font-weight: bold;
 }
 
 .account-username {
-  font-size: 120%;
+  margin-top: 10px;
+  font-size: 140%;
   color: #888888;
   font-weight: bold;
 }
