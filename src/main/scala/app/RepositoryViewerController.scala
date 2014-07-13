@@ -16,15 +16,18 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
+import service.WebHookService.WebHookPayload
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
-  with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
+  with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+  self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
+    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   case class EditorForm(
     branch: String,
@@ -408,8 +411,19 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch,
           List(new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))))
 
-        // TODO invoke hook
+        // close issue by commit message
+        closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
 
+        // call web hook
+        val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+        getWebHookURLs(repository.owner, repository.name) match {
+          case webHookURLs if(webHookURLs.nonEmpty) =>
+            for(ownerAccount <- getAccountByUserName(repository.owner)){
+              callWebHook(repository.owner, repository.name, webHookURLs,
+                WebHookPayload(git, loginAccount, headName, repository, List(commit), ownerAccount))
+            }
+          case _ =>
+        }
       }
     }
   }
