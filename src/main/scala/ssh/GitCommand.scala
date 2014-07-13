@@ -31,7 +31,7 @@ abstract class GitCommand(val context: ServletContext, val owner: String, val re
 
   private def newTask(user: String): Runnable = new Runnable {
     override def run(): Unit = {
-      Database(context) withTransaction { implicit session =>
+      Database(context) withSession { implicit session =>
         try {
           runTask(user)
           callback.onExit(0)
