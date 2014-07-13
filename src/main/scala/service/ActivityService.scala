@@ -23,7 +23,16 @@ trait ActivityService {
   def getRecentActivities()(implicit s: Session): List[Activity] =
     Activities
       .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter { case (t1, t2) => t2.isPrivate is false.bind }
+      .filter { case (t1, t2) =>  t2.isPrivate is false.bind }
+      .sortBy { case (t1, t2) => t1.activityId desc }
+      .map    { case (t1, t2) => t1 }
+      .take(30)
+      .list
+
+  def getRecentActivitiesByOwners(owners : Set[String])(implicit s: Session): List[Activity] =
+    Activities
+      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .filter { case (t1, t2) => (t2.isPrivate is false.bind) || (t2.userName inSetBind owners) }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }
       .take(30)
