@@ -59,7 +59,7 @@ trait IndexControllerBase extends ControllerBase {
     session.setAttribute(Keys.Session.LoginAccount, account)
     updateLastLoginDate(account.userName)
 
-    if(AccountUtil.hasLdapDummyMailAddress(account)) {
+    if(LDAPUtil.hasLdapDummyMailAddress(account)) {
       redirect("/" + account.userName + "/_edit")
     }
 

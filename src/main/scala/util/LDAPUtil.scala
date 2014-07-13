@@ -7,6 +7,7 @@ import java.security.Security
 import org.slf4j.LoggerFactory
 import service.SystemSettingsService.Ldap
 import scala.annotation.tailrec
+import model.Account
 
 /**
  * Utility for LDAP authentication.
@@ -15,6 +16,26 @@ object LDAPUtil {
 
   private val LDAP_VERSION: Int = LDAPConnection.LDAP_V3
   private val logger = LoggerFactory.getLogger(getClass().getName())
+
+  private val LDAP_DUMMY_MAL = "@ldap-devnull"
+
+  /**
+   * Returns true if mail address ends with "@ldap-devnull"
+   */
+  def hasLdapDummyMailAddress(account: Account): Boolean = {
+    account.mailAddress.endsWith(LDAP_DUMMY_MAL)
+  }
+
+  /**
+   * Creates dummy address (userName@ldap-devnull) for LDAP login.
+   *
+   * If  mail address is not managed in LDAP server, GitBucket stores this dummy address in first LDAP login.
+   * GitBucket does not send any mails to this dummy address. And these users must input their mail address
+   * at the first step after LDAP authentication.
+   */
+  def getLdapDummyMailAddress(userName: String): String = {
+    userName + LDAP_DUMMY_MAL
+  }
 
   /**
    * Try authentication by LDAP using given configuration.
@@ -53,7 +74,7 @@ object LDAPUtil {
           fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
             findFullName(conn, userDN, ldapSettings.userNameAttribute, userName, fullNameAttribute)
           }.getOrElse(userName),
-          mailAddress = AccountUtil.getLdapDummyMailAddress(userName)))
+          mailAddress = getLdapDummyMailAddress(userName)))
       } else {
         findMailAddress(conn, userDN, ldapSettings.userNameAttribute, userName, ldapSettings.mailAttribute.get) match {
           case Some(mailAddress) => Right(LDAPUserInfo(
