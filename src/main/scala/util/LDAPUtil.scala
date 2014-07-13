@@ -22,7 +22,7 @@ object LDAPUtil {
   /**
    * Returns true if mail address ends with "@ldap-devnull"
    */
-  def hasLdapDummyMailAddress(account: Account): Boolean = {
+  def isDummyMailAddress(account: Account): Boolean = {
     account.mailAddress.endsWith(LDAP_DUMMY_MAL)
   }
 
@@ -33,7 +33,7 @@ object LDAPUtil {
    * GitBucket does not send any mails to this dummy address. And these users must input their mail address
    * at the first step after LDAP authentication.
    */
-  def getLdapDummyMailAddress(userName: String): String = {
+  def createDummyMailAddress(userName: String): String = {
     userName + LDAP_DUMMY_MAL
   }
 
@@ -74,7 +74,7 @@ object LDAPUtil {
           fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
             findFullName(conn, userDN, ldapSettings.userNameAttribute, userName, fullNameAttribute)
           }.getOrElse(userName),
-          mailAddress = getLdapDummyMailAddress(userName)))
+          mailAddress = createDummyMailAddress(userName)))
       } else {
         findMailAddress(conn, userDN, ldapSettings.userNameAttribute, userName, ldapSettings.mailAttribute.get) match {
           case Some(mailAddress) => Right(LDAPUserInfo(
