@@ -291,7 +291,7 @@ fieldset.margin {
 }
 
 div.account-image {
-  text-align: center;
+  text-align: left;
   margin-bottom: 8px;
 }
 
@@ -391,16 +391,22 @@ div.signin-form {
 /****************************************************************************/
 /* Account page */
 /****************************************************************************/
+
+.account-username, .account-fullname {
+  margin: 5px 0;
+}
+
 .account-fullname {
-  font-size: 140%;
+  font-size: 180%;
   font-weight: bold;
 }
 
 .account-username {
-  font-size: 120%;
+  font-size: 140%;
   color: #888888;
   font-weight: bold;
 }
+
 
 /****************************************************************************/
 /* Stacked side menu */
