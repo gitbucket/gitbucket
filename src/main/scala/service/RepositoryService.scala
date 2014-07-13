@@ -290,7 +290,6 @@ trait RepositoryService { self: AccountService =>
   }
 
   private def getForkedCount(userName: String, repositoryName: String)(implicit s: Session): Int =
-    // TODO check SQL
     Query(Repositories.filter { t =>
       (t.originUserName is userName.bind) && (t.originRepositoryName is repositoryName.bind)
     }.length).first

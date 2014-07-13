@@ -49,7 +49,6 @@ trait IssuesService {
    */
   def countIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
                  repos: (String, String)*)(implicit s: Session): Int =
-    // TODO check SQL
     Query(searchIssueQuery(repos, condition, filterUser, onlyPullRequest).length).first
 
   /**

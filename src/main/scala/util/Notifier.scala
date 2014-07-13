@@ -70,7 +70,6 @@ class Mailer(private val smtp: Smtp) extends Notifier {
     val database = Database(context.request.getServletContext)
 
     val f = future {
-      // TODO Can we use the Database Session in other than Transaction Filter?
       database withSession { implicit session =>
         getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
           defining(
