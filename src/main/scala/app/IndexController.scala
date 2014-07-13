@@ -59,6 +59,10 @@ trait IndexControllerBase extends ControllerBase {
     session.setAttribute(Keys.Session.LoginAccount, account)
     updateLastLoginDate(account.userName)
 
+    if(AccountUtil.hasLdapDummyMailAddress(account)) {
+      redirect("/" + account.userName + "/_edit")
+    }
+
     flash.get(Keys.Flash.Redirect).asInstanceOf[Option[String]].map { redirectUrl =>
       if(redirectUrl.stripSuffix("/") == request.getContextPath){
         redirect("/")

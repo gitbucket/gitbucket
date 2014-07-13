@@ -37,8 +37,9 @@ trait SystemSettingsService {
           ldap.bindPassword.foreach(x => props.setProperty(LdapBindPassword, x))
           props.setProperty(LdapBaseDN, ldap.baseDN)
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
+          ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
-          props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
+          ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x.toString))
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
@@ -85,8 +86,9 @@ trait SystemSettingsService {
             getOptionValue(props, LdapBindPassword, None),
             getValue(props, LdapBaseDN, ""),
             getValue(props, LdapUserNameAttribute, ""),
+            getOptionValue(props, LdapAdditionalFilterCondition, None),
             getOptionValue(props, LdapFullNameAttribute, None),
-            getValue(props, LdapMailAddressAttribute, ""),
+            getOptionValue(props, LdapMailAddressAttribute, None),
             getOptionValue[Boolean](props, LdapTls, None),
             getOptionValue(props, LdapKeystore, None)))
         } else {
@@ -125,8 +127,9 @@ object SystemSettingsService {
     bindPassword: Option[String],
     baseDN: String,
     userNameAttribute: String,
+    additionalFilterCondition: Option[String],
     fullNameAttribute: Option[String],
-    mailAttribute: String,
+    mailAttribute: Option[String],
     tls: Option[Boolean],
     keystore: Option[String])
 
@@ -163,6 +166,7 @@ object SystemSettingsService {
   private val LdapBindPassword = "ldap.bind_password"
   private val LdapBaseDN = "ldap.baseDN"
   private val LdapUserNameAttribute = "ldap.username_attribute"
+  private val LdapAdditionalFilterCondition = "ldap.additional_filter_condition"
   private val LdapFullNameAttribute = "ldap.fullname_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
   private val LdapTls = "ldap.tls"
