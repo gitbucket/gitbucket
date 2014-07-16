@@ -156,7 +156,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             val personIdent = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
             mergeCommit.setAuthor(personIdent)
             mergeCommit.setCommitter(personIdent)
-            mergeCommit.setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestRepositoryName}\n\n" +
+            mergeCommit.setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" +
                                    form.message)
 
             // insertObject and got mergeCommit Object Id
