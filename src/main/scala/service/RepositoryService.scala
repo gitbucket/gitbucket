@@ -73,7 +73,16 @@ trait RepositoryService { self: AccountService =>
         WebHooks      .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Milestones    .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueId       .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
-        Issues        .insertAll(issues        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+
+        val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
+        Issues.insertAll(issues.map { x => x.copy(
+          userName       = newUserName,
+          repositoryName = newRepositoryName,
+          milestoneId    = x.milestoneId.map { id =>
+            newMilestones.find(_.title == milestones.find(_.milestoneId == id).get.title).get.milestoneId
+          }
+        )} :_*)
+
         PullRequests  .insertAll(pullRequests  .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueComments .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
