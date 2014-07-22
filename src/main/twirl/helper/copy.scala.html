@@ -24,6 +24,7 @@
   });
   var title = $('#@id').attr('title');
   $('#@id').removeAttr('title')
+  clip.htmlBridge = "#global-zeroclipboard-html-bridge";
   clip.on('complete', function(client, args) {
     $(clip.htmlBridge).attr('title', 'copied!').tooltip('fixTitle').tooltip('show');
     $(clip.htmlBridge).attr('title', title).tooltip('fixTitle');
