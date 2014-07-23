@@ -10,6 +10,7 @@ import ssh.SshServer
 import org.apache.commons.io.FileUtils
 import java.io.FileInputStream
 import plugin.{Plugin, PluginSystem}
+import org.scalatra.Ok
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
@@ -82,44 +83,43 @@ trait SystemSettingsControllerBase extends ControllerBase {
     redirect("/admin/system")
   })
 
-// TODO Enable commented code to enable plug-in system
-//  get("/admin/plugins")(adminOnly {
-//    val installedPlugins = plugin.PluginSystem.plugins
-//    val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
-//    admin.plugins.html.installed(installedPlugins, updatablePlugins)
-//  })
-//
-//  post("/admin/plugins/_update", pluginForm)(adminOnly { form =>
-//    deletePlugins(form.pluginIds)
-//    installPlugins(form.pluginIds)
-//    redirect("/admin/plugins")
-//  })
-//
-//  post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
-//    deletePlugins(form.pluginIds)
-//    redirect("/admin/plugins")
-//  })
-//
-//  get("/admin/plugins/available")(adminOnly {
-//    val installedPlugins = plugin.PluginSystem.plugins
-//    val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
-//    admin.plugins.html.available(availablePlugins)
-//  })
-//
-//  post("/admin/plugins/_install", pluginForm)(adminOnly { form =>
-//    installPlugins(form.pluginIds)
-//    redirect("/admin/plugins")
-//  })
+  get("/admin/plugins")(adminOnly {
+    val installedPlugins = plugin.PluginSystem.plugins
+    val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
+    admin.plugins.html.installed(installedPlugins, updatablePlugins)
+  })
 
-//  get("/admin/plugins/console")(adminOnly {
-//    admin.plugins.html.console()
-//  })
-//
-//  post("/admin/plugins/console")(adminOnly {
-//    val script = request.getParameter("script")
-//    val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
-//    Ok(result)
-//  })
+  post("/admin/plugins/_update", pluginForm)(adminOnly { form =>
+    deletePlugins(form.pluginIds)
+    installPlugins(form.pluginIds)
+    redirect("/admin/plugins")
+  })
+
+  post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
+    deletePlugins(form.pluginIds)
+    redirect("/admin/plugins")
+  })
+
+  get("/admin/plugins/available")(adminOnly {
+    val installedPlugins = plugin.PluginSystem.plugins
+    val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
+    admin.plugins.html.available(availablePlugins)
+  })
+
+  post("/admin/plugins/_install", pluginForm)(adminOnly { form =>
+    installPlugins(form.pluginIds)
+    redirect("/admin/plugins")
+  })
+
+  get("/admin/plugins/console")(adminOnly {
+    admin.plugins.html.console()
+  })
+
+  post("/admin/plugins/console")(adminOnly {
+    val script = request.getParameter("script")
+    val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
+    Ok(result)
+  })
 
   // TODO Move these methods to PluginSystem or Service?
   private def deletePlugins(pluginIds: List[String]): Unit = {

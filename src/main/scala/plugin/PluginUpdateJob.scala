@@ -50,18 +50,17 @@ class PluginUpdateJob extends Job {
 object PluginUpdateJob {
 
   def schedule(scheduler: Scheduler): Unit = {
-// TODO Enable commented code to enable plug-in system
-//    val job = newJob(classOf[PluginUpdateJob])
-//      .withIdentity("pluginUpdateJob")
-//      .build()
-//
-//    val trigger = newTrigger()
-//      .withIdentity("pluginUpdateTrigger")
-//      .startNow()
-//      .withSchedule(simpleSchedule().withIntervalInHours(24).repeatForever())
-//      .build()
-//
-//    scheduler.scheduleJob(job, trigger)
+    val job = newJob(classOf[PluginUpdateJob])
+      .withIdentity("pluginUpdateJob")
+      .build()
+
+    val trigger = newTrigger()
+      .withIdentity("pluginUpdateTrigger")
+      .startNow()
+      .withSchedule(simpleSchedule().withIntervalInHours(24).repeatForever())
+      .build()
+
+    scheduler.scheduleJob(job, trigger)
   }
 
 }
