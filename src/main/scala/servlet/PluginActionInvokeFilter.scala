@@ -7,6 +7,7 @@ import twirl.api.Html
 import service.{AccountService, RepositoryService, SystemSettingsService}
 import model.Account
 import util.{JGitUtil, Keys}
+import plugin.PluginConnectionHolder
 
 class PluginActionInvokeFilter extends Filter with SystemSettingsService with RepositoryService with AccountService {
 
@@ -58,7 +59,12 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
       val systemSettings = loadSystemSettings()
       getRepository(owner, name, systemSettings.baseUrl(request)).flatMap { repository =>
         plugin.PluginSystem.repositoryActions.find(_.path == remain).map { action =>
-          val result = action.function(request, response, repository)
+          val result = try {
+            PluginConnectionHolder.threadLocal.set(session.conn)
+            action.function(request, response, repository)
+          } finally {
+            PluginConnectionHolder.threadLocal.remove()
+          }
           result match {
             case x: String => {
               response.setContentType("text/html; charset=UTF-8")

@@ -4,6 +4,11 @@ import org.mozilla.javascript.{Context => JsContext}
 import org.mozilla.javascript.{Function => JsFunction}
 import scala.collection.mutable.ListBuffer
 import plugin.PluginSystem._
+import util.ControlUtil._
+import plugin.PluginSystem.GlobalMenu
+import plugin.PluginSystem.RepositoryAction
+import plugin.PluginSystem.Action
+import plugin.PluginSystem.RepositoryMenu
 
 class JavaScriptPlugin(val id: String, val version: String,
                        val author: String, val url: String, val description: String) extends Plugin {
@@ -60,6 +65,30 @@ class JavaScriptPlugin(val id: String, val version: String,
         JsContext.exit()
       }
     })
+  }
+
+  object db {
+    // TODO Use JavaScript Map instead of java.util.Map
+    def select(sql: String): Array[java.util.Map[String, String]] = {
+      defining(PluginConnectionHolder.threadLocal.get){ conn =>
+        using(conn.prepareStatement(sql)){ stmt =>
+          using(stmt.executeQuery()){ rs =>
+            val list = new java.util.ArrayList[java.util.Map[String, String]]()
+            while(rs.next){
+              defining(rs.getMetaData){ meta =>
+                val map = new java.util.HashMap[String, String]()
+                Range(1, meta.getColumnCount).map { i =>
+                  val name = meta.getColumnName(i)
+                  map.put(name, rs.getString(name))
+                }
+                list.add(map)
+              }
+            }
+            list.toArray(new Array[java.util.Map[String, String]](list.size))
+          }
+        }
+      }
+    }
   }
 
 }

@@ -1,6 +1,7 @@
 package plugin
 
 import plugin.PluginSystem._
+import java.sql.Connection
 
 trait Plugin {
   val id: String
@@ -13,4 +14,8 @@ trait Plugin {
   def globalMenus       : List[GlobalMenu]
   def repositoryActions : List[RepositoryAction]
   def globalActions     : List[Action]
+}
+
+object PluginConnectionHolder {
+  val threadLocal = new ThreadLocal[Connection]
 }
