@@ -1,6 +1,6 @@
 package plugin
 
-import plugin.PluginSystem.{Action, GlobalMenu, RepositoryMenu}
+import plugin.PluginSystem._
 
 trait Plugin {
   val id: String
@@ -11,6 +11,6 @@ trait Plugin {
 
   def repositoryMenus   : List[RepositoryMenu]
   def globalMenus       : List[GlobalMenu]
-  def repositoryActions : List[Action]
+  def repositoryActions : List[RepositoryAction]
   def globalActions     : List[Action]
 }

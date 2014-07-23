@@ -3,20 +3,20 @@ package plugin
 import org.mozilla.javascript.{Context => JsContext}
 import org.mozilla.javascript.{Function => JsFunction}
 import scala.collection.mutable.ListBuffer
-import plugin.PluginSystem.{Action, GlobalMenu, RepositoryMenu}
+import plugin.PluginSystem._
 
 class JavaScriptPlugin(val id: String, val version: String,
                        val author: String, val url: String, val description: String) extends Plugin {
 
   private val repositoryMenuList   = ListBuffer[RepositoryMenu]()
   private val globalMenuList       = ListBuffer[GlobalMenu]()
-  private val repositoryActionList = ListBuffer[Action]()
+  private val repositoryActionList = ListBuffer[RepositoryAction]()
   private val globalActionList     = ListBuffer[Action]()
 
-  def repositoryMenus   : List[RepositoryMenu] = repositoryMenuList.toList
-  def globalMenus       : List[GlobalMenu]     = globalMenuList.toList
-  def repositoryActions : List[Action]         = repositoryActionList.toList
-  def globalActions     : List[Action]         = globalActionList.toList
+  def repositoryMenus   : List[RepositoryMenu]   = repositoryMenuList.toList
+  def globalMenus       : List[GlobalMenu]       = globalMenuList.toList
+  def repositoryActions : List[RepositoryAction] = repositoryActionList.toList
+  def globalActions     : List[Action]           = globalActionList.toList
 
   def addRepositoryMenu(label: String, name: String, url: String, icon: String, condition: JsFunction): Unit = {
     repositoryMenuList += RepositoryMenu(label, name, url, icon, (context) => {
@@ -52,10 +52,10 @@ class JavaScriptPlugin(val id: String, val version: String,
   }
 
   def addRepositoryAction(path: String, function: JsFunction): Unit = {
-    repositoryActionList += Action(path, (request, response) => {
+    repositoryActionList += RepositoryAction(path, (request, response, repository) => {
       val context = JsContext.enter()
       try {
-        function.call(context, function, function, Array(request, response))
+        function.call(context, function, function, Array(request, response, repository))
       } finally {
         JsContext.exit()
       }

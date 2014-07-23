@@ -55,14 +55,15 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
       val owner  = elements(1)
       val name   = elements(2)
       val remain = elements.drop(3).mkString("/", "/", "")
-      getRepository(owner, name, "").flatMap { repository => // TODO fill baseUrl
+      val systemSettings = loadSystemSettings()
+      getRepository(owner, name, systemSettings.baseUrl(request)).flatMap { repository =>
         plugin.PluginSystem.repositoryActions.find(_.path == remain).map { action =>
-          val result = action.function(request, response)
+          val result = action.function(request, response, repository)
           result match {
             case x: String => {
               response.setContentType("text/html; charset=UTF-8")
               val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-              implicit val context = app.Context(loadSystemSettings(), Option(loginAccount), request)
+              implicit val context = app.Context(systemSettings, Option(loginAccount), request)
               val html = _root_.html.main("GitBucket", None)(_root_.html.menu("", repository)(Html(x))) // TODO specify active side menu
               IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
             }
