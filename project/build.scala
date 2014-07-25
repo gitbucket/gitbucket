@@ -42,7 +42,7 @@ object MyBuild extends Build {
         "org.mozilla" % "rhino" % "1.7R4",
         "com.novell.ldap" % "jldap" % "2009-10-07",
         "org.quartz-scheduler" % "quartz" % "2.2.1",
-        "com.h2database" % "h2" % "1.3.173",
+        "com.h2database" % "h2" % "1.4.180",
         "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",
         "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
         "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
