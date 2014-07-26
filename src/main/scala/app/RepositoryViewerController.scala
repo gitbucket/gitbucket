@@ -15,7 +15,7 @@ import org.eclipse.jgit.treewalk._
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
+import org.eclipse.jgit.revwalk.RevCommit
 import service.WebHookService.WebHookPayload
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
@@ -35,6 +35,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     content: String,
     message: Option[String],
     charset: String,
+    lineSeparator: String,
     newFileName: String,
     oldFileName: Option[String]
   )
@@ -47,13 +48,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   )
 
   val editorForm = mapping(
-    "branch"      -> trim(label("Branch", text(required))),
-    "path"        -> trim(label("Path", text())),
-    "content"     -> trim(label("Content", text(required))),
-    "message"     -> trim(label("Message", optional(text()))),
-    "charset"     -> trim(label("Charset", text(required))),
-    "newFileName" -> trim(label("Filename", text(required))),
-    "oldFileName" -> trim(label("Old filename", optional(text())))
+    "branch"        -> trim(label("Branch", text(required))),
+    "path"          -> trim(label("Path", text())),
+    "content"       -> trim(label("Content", text(required))),
+    "message"       -> trim(label("Message", optional(text()))),
+    "charset"       -> trim(label("Charset", text(required))),
+    "lineSeparator" -> trim(label("Line Separator", text(required))),
+    "newFileName"   -> trim(label("Filename", text(required))),
+    "oldFileName"   -> trim(label("Old filename", optional(text())))
   )(EditorForm.apply)
 
   val deleteForm = mapping(
@@ -145,7 +147,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/create", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), None, form.content, form.charset,
+    commitFile(repository, form.branch, form.path, Some(form.newFileName), None,
+      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
       form.message.getOrElse(s"Create ${form.newFileName}"))
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
@@ -154,7 +157,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/update", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), form.oldFileName, form.content, form.charset,
+    commitFile(repository, form.branch, form.path, Some(form.newFileName), form.oldFileName,
+      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
       if(form.oldFileName.exists(_ == form.newFileName)){
         form.message.getOrElse(s"Update ${form.newFileName}")
       } else {

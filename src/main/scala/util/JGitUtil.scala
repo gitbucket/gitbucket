@@ -98,7 +98,12 @@ object JGitUtil {
    * @param content the string content
    * @param charset the character encoding
    */
-  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String])
+  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String]){
+    /**
+     * the line separator of this content ("LF" or "CRLF")
+     */
+    val lineSeparator: String = if(content.exists(_.indexOf("¥r¥n") >= 0)) "CRLF" else "LF"
+  }
 
   /**
    * The tag data.
