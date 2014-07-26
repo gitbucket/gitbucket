@@ -1,7 +1,7 @@
 package service
 
 import model._
-import simple._
+import profile.simple._
 // TODO [Slick 2.0]NOT import directly?
 import model.dateColumnType
 import service.SystemSettingsService.SystemSettings

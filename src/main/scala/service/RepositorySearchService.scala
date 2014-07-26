@@ -8,7 +8,7 @@ import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
 import model._
-import simple._
+import profile.simple._
 
 trait RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._

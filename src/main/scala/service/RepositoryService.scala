@@ -1,7 +1,7 @@
 package service
 
 import model._
-import simple._
+import profile.simple._
 import util.JGitUtil
 
 trait RepositoryService { self: AccountService =>
