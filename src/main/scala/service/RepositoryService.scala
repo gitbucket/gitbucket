@@ -165,6 +165,12 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
+  def getAllRepositories()(implicit s: Session): List[(String, String)] = {
+    Repositories.sortBy(_.lastActivityDate desc).map{ t =>
+      (t.userName, t.repositoryName)
+    }.list
+  }
+
   def getUserRepositories(userName: String, baseUrl: String, withoutPhysicalInfo: Boolean = false)
                          (implicit s: Session): List[RepositoryInfo] = {
     Repositories.filter { t1 =>
