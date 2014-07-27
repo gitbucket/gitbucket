@@ -1,6 +1,6 @@
 package service
 
-import model.simple._
+import model.profile.simple._
 import util.ControlUtil._
 import java.sql.DriverManager
 import org.apache.commons.io.FileUtils
