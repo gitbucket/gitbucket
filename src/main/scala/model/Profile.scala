@@ -1,9 +1,7 @@
 package model
 
-import slick.driver.JdbcProfile
-
 trait Profile {
-  val profile: JdbcProfile
+  val profile = slick.driver.H2Driver
   import profile.simple._
 
   // java.util.Date Mapped Column Types

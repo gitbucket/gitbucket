@@ -50,7 +50,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
   }
 
   private def processRepositoryAction(path: String, request: HttpServletRequest, response: HttpServletResponse)
-                                     (implicit session: model.simple.Session): Boolean = {
+                                     (implicit session: model.profile.simple.Session): Boolean = {
     val elements = path.split("/")
     if(elements.length > 3){
       val owner  = elements(1)
