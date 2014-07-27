@@ -1,7 +1,6 @@
 package service
 
-import model._
-import slick.jdbc.JdbcBackend
+import model.{Account, Issue, Session}
 import util.Implicits.request2Session
 
 /**
@@ -12,7 +11,7 @@ import util.Implicits.request2Session
  */
 trait RequestCache extends SystemSettingsService with AccountService with IssuesService {
 
-  private implicit def context2Session(implicit context: app.Context): JdbcBackend#Session =
+  private implicit def context2Session(implicit context: app.Context): Session =
     request2Session(context.request)
 
   def getIssue(userName: String, repositoryName: String, issueId: String)

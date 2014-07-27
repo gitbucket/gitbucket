@@ -19,16 +19,16 @@ trait IssueCommentComponent extends TemplateComponent { self: Profile =>
 
     def byPrimaryKey(commentId: Int) = this.commentId is commentId.bind
   }
-
-  case class IssueComment(
-    userName: String,
-    repositoryName: String,
-    issueId: Int,
-    commentId: Int = 0,
-    action: String,
-    commentedUserName: String,
-    content: String,
-    registeredDate: java.util.Date,
-    updatedDate: java.util.Date
-  )
 }
+
+case class IssueComment(
+  userName: String,
+  repositoryName: String,
+  issueId: Int,
+  commentId: Int = 0,
+  action: String,
+  commentedUserName: String,
+  content: String,
+  registeredDate: java.util.Date,
+  updatedDate: java.util.Date
+)

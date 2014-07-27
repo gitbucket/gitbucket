@@ -5,7 +5,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.apache.commons.io.IOUtils
 import twirl.api.Html
 import service.{AccountService, RepositoryService, SystemSettingsService}
-import model.Account
+import model.{Account, Session}
 import util.{JGitUtil, Keys}
 import plugin.PluginConnectionHolder
 
@@ -50,7 +50,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
   }
 
   private def processRepositoryAction(path: String, request: HttpServletRequest, response: HttpServletResponse)
-                                     (implicit session: model.profile.simple.Session): Boolean = {
+                                     (implicit session: Session): Boolean = {
     val elements = path.split("/")
     if(elements.length > 3){
       val owner  = elements(1)

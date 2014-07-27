@@ -1,9 +1,10 @@
 package service
 
-import model._
+import model.Profile._
 import profile.simple._
+import model.Milestone
 // TODO [Slick 2.0]NOT import directly?
-import model.dateColumnType
+import model.Profile.dateColumnType
 
 trait MilestonesService {
 

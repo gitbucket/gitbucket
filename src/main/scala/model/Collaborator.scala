@@ -12,10 +12,10 @@ trait CollaboratorComponent extends TemplateComponent { self: Profile =>
     def byPrimaryKey(owner: String, repository: String, collaborator: String) =
       byRepository(owner, repository) && (collaboratorName is collaborator.bind)
   }
-
-  case class Collaborator(
-    userName: String,
-    repositoryName: String,
-    collaboratorName: String
-  )
 }
+
+case class Collaborator(
+  userName: String,
+  repositoryName: String,
+  collaboratorName: String
+)

@@ -11,10 +11,10 @@ trait GroupMemberComponent { self: Profile =>
     val isManager = column[Boolean]("MANAGER")
     def * = (groupName, userName, isManager) <> (GroupMember.tupled, GroupMember.unapply)
   }
-
-  case class GroupMember(
-    groupName: String,
-    userName: String,
-    isManager: Boolean
-  )
 }
+
+case class GroupMember(
+  groupName: String,
+  userName: String,
+  isManager: Boolean
+)

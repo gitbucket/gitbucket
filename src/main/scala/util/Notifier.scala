@@ -6,11 +6,11 @@ import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import org.slf4j.LoggerFactory
 
 import app.Context
+import model.Session
 import service.{AccountService, RepositoryService, IssuesService, SystemSettingsService}
 import servlet.Database
 import SystemSettingsService.Smtp
 import _root_.util.ControlUtil.defining
-import model.profile.simple.Session
 
 trait Notifier extends RepositoryService with AccountService with IssuesService {
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)

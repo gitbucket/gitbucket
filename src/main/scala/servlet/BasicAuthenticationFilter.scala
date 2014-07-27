@@ -5,7 +5,6 @@ import javax.servlet.http._
 import service.{SystemSettingsService, AccountService, RepositoryService}
 import model._
 import org.slf4j.LoggerFactory
-import slick.jdbc.JdbcBackend
 import util.Implicits._
 import util.ControlUtil._
 import util.Keys
@@ -67,7 +66,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
   }
 
   private def getWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo)
-                             (implicit session: JdbcBackend#Session): Option[Account] =
+                             (implicit session: Session): Option[Account] =
     authenticate(loadSystemSettings(), username, password) match {
       case x @ Some(account) if(hasWritePermission(repository.owner, repository.name, x)) => x
       case _ => None

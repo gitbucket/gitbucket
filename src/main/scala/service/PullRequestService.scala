@@ -1,7 +1,8 @@
 package service
 
-import model._
+import model.Profile._
 import profile.simple._
+import model.{PullRequest, Issue}
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._

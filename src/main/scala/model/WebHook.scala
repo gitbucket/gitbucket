@@ -11,10 +11,10 @@ trait WebHookComponent extends TemplateComponent { self: Profile =>
 
     def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url is url.bind)
   }
-
-  case class WebHook(
-    userName: String,
-    repositoryName: String,
-    url: String
-  )
 }
+
+case class WebHook(
+  userName: String,
+  repositoryName: String,
+  url: String
+)

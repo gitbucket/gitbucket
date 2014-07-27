@@ -17,16 +17,16 @@ trait PullRequestComponent extends TemplateComponent { self: Profile =>
     def byPrimaryKey(userName: String, repositoryName: String, issueId: Int) = byIssue(userName, repositoryName, issueId)
     def byPrimaryKey(userName: Column[String], repositoryName: Column[String], issueId: Column[Int]) = byIssue(userName, repositoryName, issueId)
   }
-
-  case class PullRequest(
-    userName: String,
-    repositoryName: String,
-    issueId: Int,
-    branch: String,
-    requestUserName: String,
-    requestRepositoryName: String,
-    requestBranch: String,
-    commitIdFrom: String,
-    commitIdTo: String
-  )
 }
+
+case class PullRequest(
+  userName: String,
+  repositoryName: String,
+  issueId: Int,
+  branch: String,
+  requestUserName: String,
+  requestRepositoryName: String,
+  requestBranch: String,
+  commitIdFrom: String,
+  commitIdTo: String
+)

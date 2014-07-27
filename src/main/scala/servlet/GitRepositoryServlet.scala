@@ -17,7 +17,7 @@ import WebHookService._
 import org.eclipse.jgit.api.Git
 import util.JGitUtil.CommitInfo
 import service.IssuesService.IssueSearchCondition
-import slick.jdbc.JdbcBackend
+import model.Session
 
 /**
  * Provides Git repository via HTTP.
@@ -95,7 +95,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)(implicit session: JdbcBackend#Session)
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)(implicit session: Session)
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   

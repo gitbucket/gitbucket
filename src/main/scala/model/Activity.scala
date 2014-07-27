@@ -15,15 +15,15 @@ trait ActivityComponent extends TemplateComponent { self: Profile =>
     val activityDate = column[java.util.Date]("ACTIVITY_DATE")
     def * = (userName, repositoryName, activityUserName, activityType, message, additionalInfo.?, activityDate, activityId) <> (Activity.tupled, Activity.unapply)
   }
-
-  case class Activity(
-    userName: String,
-    repositoryName: String,
-    activityUserName: String,
-    activityType: String,
-    message: String,
-    additionalInfo: Option[String],
-    activityDate: java.util.Date,
-    activityId: Int = 0
-  )
 }
+
+case class Activity(
+  userName: String,
+  repositoryName: String,
+  activityUserName: String,
+  activityType: String,
+  message: String,
+  additionalInfo: Option[String],
+  activityDate: java.util.Date,
+  activityId: Int = 0
+)

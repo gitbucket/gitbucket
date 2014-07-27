@@ -21,19 +21,19 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
 
     def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
   }
-
-  case class Repository(
-    userName: String,
-    repositoryName: String,
-    isPrivate: Boolean,
-    description: Option[String],
-    defaultBranch: String,
-    registeredDate: java.util.Date,
-    updatedDate: java.util.Date,
-    lastActivityDate: java.util.Date,
-    originUserName: Option[String],
-    originRepositoryName: Option[String],
-    parentUserName: Option[String],
-    parentRepositoryName: Option[String]
-  )
 }
+
+case class Repository(
+  userName: String,
+  repositoryName: String,
+  isPrivate: Boolean,
+  description: Option[String],
+  defaultBranch: String,
+  registeredDate: java.util.Date,
+  updatedDate: java.util.Date,
+  lastActivityDate: java.util.Date,
+  originUserName: Option[String],
+  originRepositoryName: Option[String],
+  parentUserName: Option[String],
+  parentRepositoryName: Option[String]
+)

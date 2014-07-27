@@ -31,18 +31,19 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
 
     def byPrimaryKey(owner: String, repository: String, issueId: Int) = byIssue(owner, repository, issueId)
   }
-
-  case class Issue(
-    userName: String,
-    repositoryName: String,
-    issueId: Int,
-    openedUserName: String,
-    milestoneId: Option[Int],
-    assignedUserName: Option[String],
-    title: String,
-    content: Option[String],
-    closed: Boolean,
-    registeredDate: java.util.Date,
-    updatedDate: java.util.Date,
-    isPullRequest: Boolean)
 }
+
+case class Issue(
+  userName: String,
+  repositoryName: String,
+  issueId: Int,
+  openedUserName: String,
+  milestoneId: Option[Int],
+  assignedUserName: Option[String],
+  title: String,
+  content: Option[String],
+  closed: Boolean,
+  registeredDate: java.util.Date,
+  updatedDate: java.util.Date,
+  isPullRequest: Boolean
+)
