@@ -102,7 +102,7 @@ object JGitUtil {
     /**
      * the line separator of this content ("LF" or "CRLF")
      */
-    val lineSeparator: String = if(content.exists(_.indexOf("¥r¥n") >= 0)) "CRLF" else "LF"
+    val lineSeparator: String = if(content.exists(_.indexOf("\r\n") >= 0)) "CRLF" else "LF"
   }
 
   /**

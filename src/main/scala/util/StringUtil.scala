@@ -54,9 +54,9 @@ object StringUtil {
    * @return the converted content
    */
   def convertLineSeparator(content: String, lineSeparator: String): String = {
-    val lf = content.replaceAll("¥r¥n", "¥n").replaceAll("¥r", "¥n")
+    val lf = content.replace("\r\n", "\n").replace("\r", "\n")
     if(lineSeparator == "CRLF"){
-      lf.replaceAll("¥n", "¥r¥n")
+      lf.replace("\n", "\r\n")
     } else {
       lf
     }
