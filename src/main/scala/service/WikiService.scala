@@ -64,7 +64,7 @@ trait WikiService {
       if(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
           WikiPageInfo(file.name, StringUtil.convertFromByteArray(git.getRepository.open(file.id).getBytes),
-                       file.committer, file.time, file.commitId)
+                       file.author, file.time, file.commitId)
         }
       } else None
     }

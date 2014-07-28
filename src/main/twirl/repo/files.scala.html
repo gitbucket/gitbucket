@@ -41,8 +41,8 @@
         <td colspan="4" class="latest-commit">
           <div>
             @avatar(latestCommit, 20)
-            @user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")
-            <span class="muted">@datetime(latestCommit.commitTime)</span>
+            @user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
+            <span class="muted">@datetime(latestCommit.authorTime)</span>
             <div class="pull-right align-right monospace" style="line-height: 18px;">
               <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
             </div>
@@ -83,7 +83,7 @@
         </td>
         <td class="mute">
           <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a>
-          [@user(file.committer, file.mailAddress)]
+          [@user(file.author, file.mailAddress)]
         </td>
         <td style="text-align: right;">@datetime(file.time)</td>
       </tr>

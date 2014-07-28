@@ -47,15 +47,15 @@ object JGitUtil {
    * @param id the object id
    * @param isDirectory whether is it directory
    * @param name the file (or directory) name
-   * @param time the last modified time
    * @param message the last commit message
    * @param commitId the last commit id
-   * @param committer the last committer name
+   * @param time the last modified time
+   * @param author the last committer name
    * @param mailAddress the committer's mail address
    * @param linkUrl the url of submodule
    */
-  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String,
-                      committer: String, mailAddress: String, linkUrl: Option[String])
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, message: String, commitId: String,
+                      time: Date, author: String, mailAddress: String, linkUrl: Option[String])
 
   /**
    * The commit data.
@@ -240,11 +240,11 @@ object JGitUtil {
           objectId,
           fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
           name,
-          commit.getCommitterIdent.getWhen,
           getSummaryMessage(commit.getFullMessage, commit.getShortMessage),
           commit.getName,
-          commit.getCommitterIdent.getName,
-          commit.getCommitterIdent.getEmailAddress,
+          commit.getAuthorIdent.getWhen,
+          commit.getAuthorIdent.getName,
+          commit.getAuthorIdent.getEmailAddress,
           linkUrl)
       }
     }.sortWith { (file1, file2) =>
