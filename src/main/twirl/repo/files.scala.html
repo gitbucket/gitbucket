@@ -49,7 +49,7 @@
                 <span>@user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
                 <span class="muted"> authored on @datetime(latestCommit.authorTime)</span>
               </div>
-              @if(latestCommit.isDiffrentCommitter) {
+              @if(latestCommit.isDifferentFromAuthor) {
               <div class="committer">
                 <span class="icon-arrow-right"></span>
                 <span>@user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>

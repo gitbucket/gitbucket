@@ -70,7 +70,7 @@
               <span>@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
               <span class="muted">authored on @datetime(commit.authorTime)</span>
             </div>
-            @if(commit.isDiffrentCommitter) {
+            @if(commit.isDifferentFromAuthor) {
             <div class="committer">
               <span class="icon-arrow-right"></span>
               <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>

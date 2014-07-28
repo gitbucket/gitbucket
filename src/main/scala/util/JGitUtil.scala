@@ -95,7 +95,7 @@ object JGitUtil {
       } else None
     }
 
-    def isDiffrentCommitter: Boolean = authorName != committerName || authorEmailAddress != committerEmailAddress
+    def isDifferentFromAuthor: Boolean = authorName != committerName || authorEmailAddress != committerEmailAddress
   }
 
   case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
