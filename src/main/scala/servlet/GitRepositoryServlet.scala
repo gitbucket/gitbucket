@@ -205,7 +205,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   private def createIssueComment(commit: CommitInfo) = {
     StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
       if(getIssue(owner, repository, issueId).isDefined){
-        getAccountByMailAddress(commit.mailAddress).foreach { account =>
+        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
           createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
         }
       }

@@ -89,15 +89,15 @@ object WebHookService {
           WebHookCommit(
             id        = commit.id,
             message   = commit.fullMessage,
-            timestamp = commit.time.toString,
+            timestamp = commit.commitTime.toString,
             url       = commitUrl,
             added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
             removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
             modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
               x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
             author    = WebHookUser(
-              name  = commit.committer,
-              email = commit.mailAddress
+              name  = commit.committerName,
+              email = commit.committerEmailAddress
             )
           )
         },

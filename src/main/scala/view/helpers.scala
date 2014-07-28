@@ -74,7 +74,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * This method looks up Gravatar if avatar icon has not been configured in user settings.
    */
   def avatar(commit: util.JGitUtil.CommitInfo, size: Int)(implicit context: app.Context): Html =
-    getAvatarImageHtml(commit.committer, size, commit.mailAddress)
+    getAvatarImageHtml(commit.authorName, size, commit.authorEmailAddress)
 
   /**
    * Converts commit id, issue id and username to the link.

@@ -36,7 +36,7 @@
     @commits.map { day =>
       <table class="table table-bordered">
         <tr>
-          <th>@date(day.head.time)</th>
+          <th>@date(day.head.commitTime)</th>
         </tr>
         @day.map { commit =>
         <tr>
@@ -57,8 +57,8 @@
                   <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
                 }
                 <div class="small">
-                  @user(commit.committer, commit.mailAddress, "username")
-                  <span class="muted">@datetime(commit.time)</span>
+                  @user(commit.committerName, commit.committerEmailAddress, "username")
+                  <span class="muted">@datetime(commit.commitTime)</span>
                 </div>
               </div>
             </div>

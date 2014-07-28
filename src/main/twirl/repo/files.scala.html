@@ -41,8 +41,8 @@
         <td colspan="4" class="latest-commit">
           <div>
             @avatar(latestCommit, 20)
-            @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
-            <span class="muted">@datetime(latestCommit.time)</span>
+            @user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")
+            <span class="muted">@datetime(latestCommit.commitTime)</span>
             <div class="pull-right align-right monospace" style="line-height: 18px;">
               <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
             </div>
