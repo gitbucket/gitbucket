@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Only tested on Ubuntu 14.04
+
+# Uses information stored in GitBucket git repo on GitHub as defaults.
+# Edit gitbucket.conf before running this script
+
+GITBUCKET_VERSION=2.1
+source gitbucket.conf
+
+function createDir {
+  if [ ! -d "$1" ]; then
+    echo "Making $1 directory."
+    sudo mkdir -p "$1"
+  fi
+}
+
+if [ ! -d "/etc/init.d/" ]; then
+  echo "/etc/init.d/ does not exist. This script requires System V init script compatibility."
+  exit -1
+fi
+
+if [ "$(which iptables)" ]; then
+  echo "Opening port $GITBUCKET_PORT in firewall."
+  sudo iptables -A INPUT -p tcp --dport $GITBUCKET_PORT -j ACCEPT
+fi
+
+createDir "$GITBUCKET_HOME"
+createDir "$GITBUCKET_WAR_DIR"
+createDir "$GITBUCKET_DIR"
+createDir "$GITBUCKET_LOG_DIR"
+
+echo "Fetching GitBucket v$GITBUCKET_VERSION and saving as $GITBUCKET_WAR_FILE"
+sudo wget -qO "$GITBUCKET_WAR_FILE" https://github.com/takezoe/gitbucket/releases/download/$GITBUCKET_VERSION/gitbucket.war
+
+# Install gitbucket as a service that starts when system boots
+sudo cp gitbucket.init "$GITBUCKET_SERVICE"
+echo "Copying gitbucket.conf to $GITBUCKET_DIR"
+sudo cp gitbucket.conf $GITBUCKET_DIR
+sudo chown root:root $GITBUCKET_SERVICE
+sudo chmod 755 $GITBUCKET_SERVICE
+sudo update-rc.d $GITBUCKET_SERVICE defaults
+
+echo "Starting GitBucket service"
+sudo rm -f "$GITBUCKET_LOG_DIR/run.log"
+sudo $GITBUCKET_SERVICE start
+if [ $? != 0 ]; then
+  less "$GITBUCKET_LOG_DIR/run.log"
+fi
