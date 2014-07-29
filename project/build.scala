@@ -34,6 +34,7 @@ object MyBuild extends Build {
         "jp.sf.amateras" %% "scalatra-forms" % "0.0.14",
         "commons-io" % "commons-io" % "2.4",
         "org.pegdown" % "pegdown" % "1.4.1",
+        "org.apache.ant" % "ant" % "1.9.4",
         "org.apache.commons" % "commons-compress" % "1.5",
         "org.apache.commons" % "commons-email" % "1.3.1",
         "org.apache.httpcomponents" % "httpclient" % "4.3",

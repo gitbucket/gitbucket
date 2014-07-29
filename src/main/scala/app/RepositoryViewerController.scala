@@ -260,49 +260,35 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/archive/*")(referrersOnly { repository =>
     val name = multiParams("splat").head
+    val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
+    if(workDir.exists){
+      FileUtils.deleteDirectory(workDir)
+    }
+    workDir.mkdirs
 
-    if(name.endsWith(".zip")){
-      val revision = name.stripSuffix(".zip")
-      val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
-      if(workDir.exists){
-        FileUtils.deleteDirectory(workDir)
-      }
-      workDir.mkdirs
+    val archiveInfo = name match {
+      case n if (n.endsWith(".zip")) =>
+        val revision = name.stripSuffix(".zip")
+        val file = new File(workDir, repository.name + "-" +
+          (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + ".zip")
+        Some(ZipArchiver, revision, file)
+      case n if (n.endsWith(".tar.gz")) =>
+        val revision = name.stripSuffix(".tar.gz")
+        val file = new File(workDir, repository.name + "-" +
+          (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + ".tar.gz")
+        Some(TarGzArchiver, revision, file)
+      case _ =>
+        None
+    }
 
-      val zipFile = new File(workDir, repository.name + "-" +
-        (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + ".zip")
-
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
-        using(new TreeWalk(git.getRepository)){ walk =>
-          val reader   = walk.getObjectReader
-          val objectId = new MutableObjectId
-
-          using(new ZipOutputStream(new java.io.FileOutputStream(zipFile))){ out =>
-            walk.addTree(revCommit.getTree)
-            walk.setRecursive(true)
-
-            while(walk.next){
-              val name = walk.getPathString
-              val mode = walk.getFileMode(0)
-              if(mode == FileMode.REGULAR_FILE || mode == FileMode.EXECUTABLE_FILE){
-                walk.getObjectId(objectId, 0)
-                val entry = new ZipEntry(name)
-                val loader = reader.open(objectId)
-                entry.setSize(loader.getSize)
-                out.putNextEntry(entry)
-                loader.copyTo(out)
-              }
-            }
-          }
-        }
-      }
-
-      contentType = "application/octet-stream"
-      response.setHeader("Content-Disposition", s"attachment; filename=${zipFile.getName}")
-      zipFile
-    } else {
-      BadRequest
+    archiveInfo match {
+      case Some((ar, rev, file)) =>
+        ar.archive(repository.owner, repository.name, rev, file)
+        contentType = "application/octet-stream"
+        response.setHeader("Content-Disposition", s"attachment; filename=${file.getName}")
+        file
+      case _ =>
+        BadRequest
     }
   })
 
