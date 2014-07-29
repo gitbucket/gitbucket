@@ -25,6 +25,11 @@ function createDir {
 if [ "$(which iptables)" ]; then
   echo "Opening port $GITBUCKET_PORT in firewall."
   sudo iptables -A INPUT -p tcp --dport $GITBUCKET_PORT -j ACCEPT
+  echo "Please use iptables-persistent:"
+  echo "  sudo apt-get install iptables-persistent"
+  echo "After installed, you can save/reload iptables rules anytime:"
+  echo "  sudo /etc/init.d/iptables-persistent save"
+  echo "  sudo /etc/init.d/iptables-persistent reload"
 fi
 
 createDir "$GITBUCKET_HOME"
