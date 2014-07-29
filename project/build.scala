@@ -8,8 +8,8 @@ object MyBuild extends Build {
   val Organization = "jp.sf.amateras"
   val Name = "gitbucket"
   val Version = "0.0.1"
-  val ScalaVersion = "2.10.3"
-  val ScalatraVersion = "2.2.1"
+  val ScalaVersion = "2.11.1"
+  val ScalatraVersion = "2.3.0"
 
   lazy val project = Project (
     "gitbucket",
@@ -30,15 +30,15 @@ object MyBuild extends Build {
         "org.scalatra" %% "scalatra" % ScalatraVersion,
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
         "org.scalatra" %% "scalatra-json" % ScalatraVersion,
-        "org.json4s" %% "json4s-jackson" % "3.2.5",
-        "jp.sf.amateras" %% "scalatra-forms" % "0.0.14",
+        "org.json4s" %% "json4s-jackson" % "3.2.10",
+        "jp.sf.amateras" %% "scalatra-forms" % "0.1.0",
         "commons-io" % "commons-io" % "2.4",
         "org.pegdown" % "pegdown" % "1.4.1",
         "org.apache.commons" % "commons-compress" % "1.5",
         "org.apache.commons" % "commons-email" % "1.3.1",
         "org.apache.httpcomponents" % "httpclient" % "4.3",
         "org.apache.sshd" % "apache-sshd" % "0.11.0",
-        "com.typesafe.slick" %% "slick" % "2.0.2",
+        "com.typesafe.slick" %% "slick" % "2.1.0-RC3",
         "org.mozilla" % "rhino" % "1.7R4",
         "com.novell.ldap" % "jldap" % "2009-10-07",
         "org.quartz-scheduler" % "quartz" % "2.2.1",

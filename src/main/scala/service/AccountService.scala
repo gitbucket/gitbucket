@@ -75,16 +75,16 @@ trait AccountService {
   }
 
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
-    Accounts filter(t => (t.userName is userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
+    Accounts filter(t => (t.userName === userName.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
-    Accounts filter(t => (t.mailAddress.toLowerCase is mailAddress.toLowerCase.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
+    Accounts filter(t => (t.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) && (t.removed is false.bind, !includeRemoved)) firstOption
 
   def getAllUsers(includeRemoved: Boolean = true)(implicit s: Session): List[Account] =
     if(includeRemoved){
       Accounts sortBy(_.userName) list
     } else {
-      Accounts filter (_.removed is false.bind) sortBy(_.userName) list
+      Accounts filter (_.removed === false.bind) sortBy(_.userName) list
     }
 
   def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
@@ -105,7 +105,7 @@ trait AccountService {
 
   def updateAccount(account: Account)(implicit s: Session): Unit =
     Accounts
-      .filter { a =>  a.userName is account.userName.bind }
+      .filter { a =>  a.userName === account.userName.bind }
       .map    { a => (a.password, a.fullName, a.mailAddress, a.isAdmin, a.url.?, a.registeredDate, a.updatedDate, a.lastLoginDate.?, a.removed) }
       .update (
         account.password,
@@ -119,10 +119,10 @@ trait AccountService {
         account.isRemoved)
 
   def updateAvatarImage(userName: String, image: Option[String])(implicit s: Session): Unit =
-    Accounts.filter(_.userName is userName.bind).map(_.image.?).update(image)
+    Accounts.filter(_.userName === userName.bind).map(_.image.?).update(image)
 
   def updateLastLoginDate(userName: String)(implicit s: Session): Unit =
-    Accounts.filter(_.userName is userName.bind).map(_.lastLoginDate).update(currentDate)
+    Accounts.filter(_.userName === userName.bind).map(_.lastLoginDate).update(currentDate)
 
   def createGroup(groupName: String, url: Option[String])(implicit s: Session): Unit =
     Accounts insert Account(
@@ -140,10 +140,10 @@ trait AccountService {
       isRemoved      = false)
 
   def updateGroup(groupName: String, url: Option[String], removed: Boolean)(implicit s: Session): Unit =
-    Accounts.filter(_.userName is groupName.bind).map(t => t.url.? -> t.removed).update(url, removed)
+    Accounts.filter(_.userName === groupName.bind).map(t => t.url.? -> t.removed).update(url, removed)
 
   def updateGroupMembers(groupName: String, members: List[(String, Boolean)])(implicit s: Session): Unit = {
-    GroupMembers.filter(_.groupName is groupName.bind).delete
+    GroupMembers.filter(_.groupName === groupName.bind).delete
     members.foreach { case (userName, isManager) =>
       GroupMembers insert GroupMember (groupName, userName, isManager)
     }
@@ -151,21 +151,21 @@ trait AccountService {
 
   def getGroupMembers(groupName: String)(implicit s: Session): List[GroupMember] =
     GroupMembers
-      .filter(_.groupName is groupName.bind)
+      .filter(_.groupName === groupName.bind)
       .sortBy(_.userName)
       .list
 
   def getGroupsByUserName(userName: String)(implicit s: Session): List[String] =
     GroupMembers
-      .filter(_.userName is userName.bind)
+      .filter(_.userName === userName.bind)
       .sortBy(_.groupName)
       .map(_.groupName)
       .list
 
   def removeUserRelatedData(userName: String)(implicit s: Session): Unit = {
-    GroupMembers.filter(_.userName is userName.bind).delete
-    Collaborators.filter(_.collaboratorName is userName.bind).delete
-    Repositories.filter(_.userName is userName.bind).delete
+    GroupMembers.filter(_.userName === userName.bind).delete
+    Collaborators.filter(_.collaboratorName === userName.bind).delete
+    Repositories.filter(_.userName === userName.bind).delete
   }
 
 }

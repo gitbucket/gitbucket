@@ -26,9 +26,9 @@ trait PullRequestService { self: IssuesService =>
     PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
-        (t2.closed         is closed.bind) &&
-        (t1.userName       is owner.get.bind, owner.isDefined) &&
-        (t1.repositoryName is repository.get.bind, repository.isDefined)
+        (t2.closed         === closed.bind) &&
+        (t1.userName       === owner.get.bind, owner.isDefined) &&
+        (t1.repositoryName === repository.get.bind, repository.isDefined)
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
       .map { case (userName, t) => userName -> t.length }
@@ -55,10 +55,10 @@ trait PullRequestService { self: IssuesService =>
     PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
-        (t1.requestUserName       is userName.bind) &&
-        (t1.requestRepositoryName is repositoryName.bind) &&
-        (t1.requestBranch         is branch.bind) &&
-        (t2.closed                is closed.bind)
+        (t1.requestUserName       === userName.bind) &&
+        (t1.requestRepositoryName === repositoryName.bind) &&
+        (t1.requestBranch         === branch.bind) &&
+        (t2.closed                === closed.bind)
       }
       .map { case (t1, t2) => t1 }
       .list
