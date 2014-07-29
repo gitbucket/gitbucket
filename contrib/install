@@ -49,7 +49,7 @@ if [ `isUbuntu` ] || [ `isRedHat` ]; then
   # Install gitbucket as a service that starts when system boots
   sudo chown root:root $GITBUCKET_SERVICE
   sudo chmod 755 $GITBUCKET_SERVICE
-  sudo update-rc.d "$(basename $GITBUCKET_SERVICE)" defaults
+  sudo update-rc.d "$(basename $GITBUCKET_SERVICE)" defaults 98 02
   echo "Starting GitBucket service"
   sudo $GITBUCKET_SERVICE start
 elif [ `isMac` ]; then
