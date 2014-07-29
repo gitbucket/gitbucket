@@ -2,6 +2,7 @@
 #
 # RedHat: /etc/rc.d/init.d/gitbucket
 # Ubuntu: /etc/init.d/gitbucket
+# Mac OS/X: /Library/StartupItems/GitBucket
 #
 # Starts the GitBucket server
 #
@@ -9,22 +10,22 @@
 # description: Run GitBucket server
 # processname: java
 
-[ -f /etc/rc.d/init.d/functions ] && source /etc/rc.d/init.d/functions
+set -e
+
+[ -f /etc/rc.d/init.d/functions ] && source /etc/rc.d/init.d/functions  # RedHat
+[ -f /etc/rc.common ] && source /etc/rc.common # Mac OS/X
 
 # Default values
 GITBUCKET_HOME=/var/lib/gitbucket
 GITBUCKET_WAR_FILE=/usr/share/gitbucket/lib/gitbucket.war
 
 # Pull in cq settings
-[ -f /etc/sysconfig/gitbucket ] && source /etc/sysconfig/gitbucket
-[ -f $GITBUCKET_DIR/gitbucket.conf ] && source $GITBUCKET_DIR/gitbucket.conf  # added for non-redhat systems
+[ -f /etc/sysconfig/gitbucket ] && source /etc/sysconfig/gitbucket # RedHat
+[ -f gitbucket.conf ] && source gitbucket.conf  # For all systems
 
 # Location of the log and PID file
 LOG_FILE=$GITBUCKET_LOG_DIR/run.log
 PID_FILE=/var/run/gitbucket.pid
-
-# Default return value
-RETVAL=0
 
 RED='\033[1m\E[37;41m'
 GREEN='\033[1m\E[37;42m'
@@ -41,9 +42,12 @@ if [ -z "$(which failure)" ]; then
   }
 fi
 
+RETVAL=0
+
 start() {
 	echo -n $"Starting GitBucket server: "
 
+  START_OPTS=
 	if [ $GITBUCKET_PORT ]; then
 		START_OPTS="${START_OPTS} --port=${GITBUCKET_PORT}"
 	fi
@@ -95,24 +99,39 @@ restart() {
 }
 
 
-case "$1" in
-start)
+StartService() {
 	start
-	;;
-stop)
+}
+
+StopService() {
 	stop
-	;;
-restart)
+}
+
+RestartService() {
 	restart
-	;;
-status)
-	status -p $PID_FILE java
-	RETVAL=$?
-	;;
-*)
-	echo $"Usage: $0 [start|stop|restart|status]"
-	RETVAL=2
-esac
+}
 
 
-exit $RETVAL
+if [ `isMac` ]; then
+  RunService "$1"
+else
+	case "$1" in
+		start)
+			start
+			;;
+		stop)
+			stop
+			;;
+		restart)
+			restart
+			;;
+		status)
+			status -p $PID_FILE java
+			RETVAL=$?
+			;;
+		*)
+			echo $"Usage: $0 [start|stop|restart|status]"
+			RETVAL=2
+	esac
+  exit $RETVAL
+fi

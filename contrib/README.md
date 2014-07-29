@@ -1,6 +1,12 @@
 # Contrib Notes #
-RedHat directory also contains scripts for Ubuntu, and the configuration adapts according to the OS.
-Ideally the Mac scripts would also be folded in as well.
 
-This version of scripts has so far only been tested on Ubuntu. I'll test on Mac also, but someone else will have to test on RedHat.
+The configuration adapts according to the OS.
+Linux directory contains scripts for Ubuntu and RedHat.
+The Mac scripts have been folded in as well.
+Common scripts are in this directory.
 
+This version of scripts has so far only been tested on Ubuntu and Mac. Someone else will have to test on RedHat.
+
+To run, type:
+
+    install
