@@ -33,7 +33,7 @@
         <th style="font-weight: normal;">
           <div class="pull-left">
             @avatar(latestCommit, 20)
-            @user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")
+            @user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
             <span class="muted">@datetime(latestCommit.commitTime)</span>
             <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
           </div>
