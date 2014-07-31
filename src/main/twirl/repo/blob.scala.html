@@ -33,8 +33,8 @@
         <th style="font-weight: normal;">
           <div class="pull-left">
             @avatar(latestCommit, 20)
-            @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
-            <span class="muted">@datetime(latestCommit.time)</span>
+            @user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
+            <span class="muted">@datetime(latestCommit.commitTime)</span>
             <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
           </div>
           <div class="btn-group pull-right">

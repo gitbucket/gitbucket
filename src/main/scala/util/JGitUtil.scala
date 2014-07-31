@@ -47,38 +47,45 @@ object JGitUtil {
    * @param id the object id
    * @param isDirectory whether is it directory
    * @param name the file (or directory) name
-   * @param time the last modified time
    * @param message the last commit message
    * @param commitId the last commit id
-   * @param committer the last committer name
+   * @param time the last modified time
+   * @param author the last committer name
    * @param mailAddress the committer's mail address
    * @param linkUrl the url of submodule
    */
-  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String,
-                      committer: String, mailAddress: String, linkUrl: Option[String])
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, message: String, commitId: String,
+                      time: Date, author: String, mailAddress: String, linkUrl: Option[String])
 
   /**
    * The commit data.
    *
    * @param id the commit id
-   * @param time the commit time
-   * @param committer  the committer name
-   * @param mailAddress the mail address of the committer
    * @param shortMessage the short message
    * @param fullMessage the full message
    * @param parents the list of parent commit id
+   * @param authorTime the author time
+   * @param authorName the author name
+   * @param authorEmailAddress the mail address of the author
+   * @param commitTime the commit time
+   * @param committerName  the committer name
+   * @param committerEmailAddress the mail address of the committer
    */
-  case class CommitInfo(id: String, time: Date, committer: String, mailAddress: String,
-                        shortMessage: String, fullMessage: String, parents: List[String]){
+  case class CommitInfo(id: String, shortMessage: String, fullMessage: String, parents: List[String],
+                        authorTime: Date, authorName: String, authorEmailAddress: String,
+                        commitTime: Date, committerName: String, committerEmailAddress: String){
     
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) = this(
         rev.getName,
+        rev.getFullMessage,
+        rev.getShortMessage,
+        rev.getParents().map(_.name).toList,
+        rev.getAuthorIdent.getWhen,
+        rev.getAuthorIdent.getName,
+        rev.getAuthorIdent.getEmailAddress,
         rev.getCommitterIdent.getWhen,
         rev.getCommitterIdent.getName,
-        rev.getCommitterIdent.getEmailAddress,
-        rev.getShortMessage,
-        rev.getFullMessage,
-        rev.getParents().map(_.name).toList)
+        rev.getCommitterIdent.getEmailAddress)
 
     val summary = getSummaryMessage(fullMessage, shortMessage)
 
@@ -87,6 +94,8 @@ object JGitUtil {
         Some(fullMessage.trim.substring(i).trim)
       } else None
     }
+
+    def isDifferentFromAuthor: Boolean = authorName != committerName || authorEmailAddress != committerEmailAddress
   }
 
   case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
@@ -231,11 +240,11 @@ object JGitUtil {
           objectId,
           fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
           name,
-          commit.getCommitterIdent.getWhen,
           getSummaryMessage(commit.getFullMessage, commit.getShortMessage),
           commit.getName,
-          commit.getCommitterIdent.getName,
-          commit.getCommitterIdent.getEmailAddress,
+          commit.getAuthorIdent.getWhen,
+          commit.getAuthorIdent.getName,
+          commit.getAuthorIdent.getEmailAddress,
           linkUrl)
       }
     }.sortWith { (file1, file2) =>

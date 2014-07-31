@@ -42,9 +42,6 @@
       </tr>
       <tr>
         <td>
-          @avatar(commit, 20)
-          @user(commit.committer, commit.mailAddress, "username strong")
-          <span class="muted">@datetime(commit.time)</span>
           <div class="pull-right monospace small" style="text-align: right;">
             <div>
               @if(commit.parents.size == 0){
@@ -64,6 +61,21 @@
                 }.mkHtml(" + ")
                 </span>
               </div>
+            }
+          </div>
+
+          <div class="author-info">
+            <div class="author">
+              @avatar(commit, 20)
+              <span>@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
+              <span class="muted">authored on @datetime(commit.authorTime)</span>
+            </div>
+            @if(commit.isDifferentFromAuthor) {
+            <div class="committer">
+              <span class="icon-arrow-right"></span>
+              <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
+              <span class="muted"> committed on @datetime(commit.commitTime)</span>
+            </div>
             }
           </div>
         </td>

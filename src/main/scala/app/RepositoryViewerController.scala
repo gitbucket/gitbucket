@@ -106,7 +106,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         case Right((logs, hasNext)) =>
           repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
-              view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+              view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
             }, page, hasNext)
         case Left(_) => NotFound
       }

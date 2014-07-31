@@ -443,7 +443,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
         new CommitInfo(revCommit)
       }.toList.splitWith { (commit1, commit2) =>
-        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+        view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
       }
 
       val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true)
