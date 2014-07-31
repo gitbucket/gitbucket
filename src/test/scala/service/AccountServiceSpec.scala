@@ -16,7 +16,7 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
     }}
 
     "getAccountByUserName" in { withTestDB { implicit session =>
-      AccountService.getAccountByUserName("root") must beSome.like{
+      AccountService.getAccountByUserName("root") must beSome.like {
         case user => user.userName must_== "root"
       }
 

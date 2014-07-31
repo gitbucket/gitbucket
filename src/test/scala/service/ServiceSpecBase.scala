@@ -1,6 +1,7 @@
 package service
 
-import model.profile.simple._
+import model.Profile._
+import profile.simple._
 import util.ControlUtil._
 import java.sql.DriverManager
 import org.apache.commons.io.FileUtils
