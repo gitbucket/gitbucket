@@ -26,7 +26,8 @@ object MyBuild extends Build {
       ),
       scalacOptions := Seq("-deprecation", "-language:postfixOps"),
       libraryDependencies ++= Seq(
-        "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.0.0.201306101825-r",
+        "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.4.1.201406201815-r",
+        "org.eclipse.jgit" % "org.eclipse.jgit.archive" % "3.4.1.201406201815-r",
         "org.scalatra" %% "scalatra" % ScalatraVersion,
         "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
         "org.scalatra" %% "scalatra-json" % ScalatraVersion,

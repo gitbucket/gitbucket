@@ -8,11 +8,12 @@ import _root_.util._
 import service._
 import org.scalatra._
 import java.io.File
-import org.eclipse.jgit.api.Git
+
+import org.eclipse.jgit.api.{ArchiveCommand, Git}
+import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
-import java.util.zip.{ZipEntry, ZipOutputStream}
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.revwalk.RevCommit
@@ -22,12 +23,16 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
   with ReferrerAuthenticator with CollaboratorsAuthenticator
 
+
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
     with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+
+  ArchiveCommand.registerFormat("zip", new ZipFormat)
+  ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
 
   case class EditorForm(
     branch: String,
@@ -259,50 +264,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Download repository contents as an archive.
    */
   get("/:owner/:repository/archive/*")(referrersOnly { repository =>
-    val name = multiParams("splat").head
-
-    if(name.endsWith(".zip")){
-      val revision = name.stripSuffix(".zip")
-      val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
-      if(workDir.exists){
-        FileUtils.deleteDirectory(workDir)
-      }
-      workDir.mkdirs
-
-      val zipFile = new File(workDir, repository.name + "-" +
-        (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + ".zip")
-
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
-        using(new TreeWalk(git.getRepository)){ walk =>
-          val reader   = walk.getObjectReader
-          val objectId = new MutableObjectId
-
-          using(new ZipOutputStream(new java.io.FileOutputStream(zipFile))){ out =>
-            walk.addTree(revCommit.getTree)
-            walk.setRecursive(true)
-
-            while(walk.next){
-              val name = walk.getPathString
-              val mode = walk.getFileMode(0)
-              if(mode == FileMode.REGULAR_FILE || mode == FileMode.EXECUTABLE_FILE){
-                walk.getObjectId(objectId, 0)
-                val entry = new ZipEntry(name)
-                val loader = reader.open(objectId)
-                entry.setSize(loader.getSize)
-                out.putNextEntry(entry)
-                loader.copyTo(out)
-              }
-            }
-          }
-        }
-      }
-
-      contentType = "application/octet-stream"
-      response.setHeader("Content-Disposition", s"attachment; filename=${zipFile.getName}")
-      zipFile
-    } else {
-      BadRequest
+    multiParams("splat").head match {
+      case name if name.endsWith(".zip") =>
+        archiveRepository(name, ".zip", repository)
+      case name if name.endsWith(".tar.gz") =>
+        archiveRepository(name, ".tar.gz", repository)
+      case _ => BadRequest
     }
   })
 
@@ -447,4 +414,29 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   }
 
+  private def archiveRepository(name: String, suffix: String, repository: RepositoryService.RepositoryInfo): File = {
+    val revision = name.stripSuffix(suffix)
+    val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
+    if(workDir.exists) {
+      FileUtils.deleteDirectory(workDir)
+    }
+    workDir.mkdirs
+
+    val file = new File(workDir, repository.name + "-" +
+      (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + suffix)
+
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+      using(new java.io.FileOutputStream(file))  { out =>
+        git.archive
+           .setFormat(suffix.tail)
+           .setTree(revCommit.getTree)
+           .setOutputStream(out)
+           .call()
+      }
+      contentType = "application/octet-stream"
+      response.setHeader("Content-Disposition", s"attachment; filename=${file.getName}")
+      file
+    }
+  }
 }
