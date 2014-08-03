@@ -1,0 +1,37 @@
+---
+layout: post
+title: "GitBucket 2.2 released!"
+date: 2014-08-04 00:00:00
+categories: gitbucket
+---
+Today, we are pleased to announce the availability of new version of Scala based Github clone [GitBucket 2.2](https://github.com/takezoe/gitbucket/releases/tag/2.2)!
+
+Plug-in system is available since this release and some bug fix and improvements are contained in this release also. Important topics in this release are below:
+
+## Plug-in system is available
+
+Plug-in system is available since this release. You can install, update and uninstall plug-ins at system settings page.
+
+![Plug-in system]({{site.baseurl}}/images/gitbucket-2.2/plugin.png)
+
+You can write plug-in by JavaScript but plug-in system is still unstable. Therefore plug-in API will be changed in the future version.
+
+## Move to Scala 2.11
+
+Move to Scala 2.11 from 2.10. And it's also upgrade frameworks. We are now using Scalatra 2.3 and Slick 2.1. Especially, moving to Slick 2.1 is a first step of multiple database driver support.
+
+## tar.gz export for repository contents
+
+You can export repository contents as tar.gz not only zip.
+
+![Export as tar.gx]({{site.baseurl}}/images/gitbucket-2.2/export.png)
+
+## LDAP authentication improvement
+
+LDAP authentication has been improved. The mail address became optional. If LDAP server does not have a mail address field, you have to input your mail address after the initial LDAP authentication.
+
+## Show news feed of a private repository to members
+
+Show news feed of a private repository to members in the dashboard.
+
+Enjoy GitBucket!
