@@ -28,10 +28,10 @@ You can export repository contents as tar.gz not only zip.
 
 LDAP authentication has been improved. The mail address became optional. If LDAP server does not have a mail address field, you have to input your mail address after the initial LDAP authentication.
 
-## Show news feed of a private repository to members
+## News feed of private repositories
 
 Show news feed of a private repository to members in the dashboard.
 
-In additionm some bug fix and improvements are contained in this release also. See [all closed issues in this release](https://github.com/takezoe/gitbucket/issues?q=is%3Aclosed+milestone%3A2.2) to know details.
+In addition, some bug fix and improvements are contained in this release. See [all closed issues in this release](https://github.com/takezoe/gitbucket/issues?q=is%3Aclosed+milestone%3A2.2) to know details.
 
 Enjoy GitBucket!
