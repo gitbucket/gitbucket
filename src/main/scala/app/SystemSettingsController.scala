@@ -111,15 +111,15 @@ trait SystemSettingsControllerBase extends ControllerBase {
     redirect("/admin/plugins")
   })
 
-  get("/admin/plugins/console")(adminOnly {
-    admin.plugins.html.console()
-  })
-
-  post("/admin/plugins/console")(adminOnly {
-    val script = request.getParameter("script")
-    val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
-    Ok(result)
-  })
+//  get("/admin/plugins/console")(adminOnly {
+//    admin.plugins.html.console()
+//  })
+//
+//  post("/admin/plugins/console")(adminOnly {
+//    val script = request.getParameter("script")
+//    val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
+//    Ok(result)
+//  })
 
   // TODO Move these methods to PluginSystem or Service?
   private def deletePlugins(pluginIds: List[String]): Unit = {
