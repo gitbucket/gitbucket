@@ -12,7 +12,7 @@ Plug-in system is available since this release and some bug fix and improvements
 
 Plug-in system is available since this release. You can install, update and uninstall plug-ins at system settings page.
 
-![Plug-in system]({{site.baseurl}}/images/gitbucket-2.2/plugin.png)
+![Plug-in system]({{site.baseurl}}/images/gitbucket-2.2/plugins.png)
 
 You can write plug-in by JavaScript but plug-in system is still unstable. Therefore plug-in API will be changed in the future version.
 
