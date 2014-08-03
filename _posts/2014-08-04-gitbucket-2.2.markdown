@@ -22,7 +22,7 @@ Move to Scala 2.11 from 2.10. And it's also upgrade frameworks. We are now using
 
 You can export repository contents as tar.gz not only zip.
 
-![Export as tar.gx]({{site.baseurl}}/images/gitbucket-2.2/export.png)
+![Export as tar.gz]({{site.baseurl}}/images/gitbucket-2.2/export.png)
 
 ## LDAP authentication improvement
 
