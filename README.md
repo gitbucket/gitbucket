@@ -80,6 +80,14 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.2 - 4 Aug 2014
+- Plug-in system is available
+- Move to Scala 2.11, Scalatra 2.3 and Slick 2.1
+- tar.gz export for repository contents
+- LDAP authentication improvement (mail address became optional)
+- Show news feed of a private repository to members
+- Some bug fix and improvements
+
 ### 2.1 - 6 Jul 2014
 - Upgrade to Slick 2.0 from 1.9
 - Base part of the plug-in system is merged
