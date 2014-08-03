@@ -168,7 +168,7 @@ trait IssuesService {
           .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           === (condition.state == "closed").bind) &&
       (t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
-      (t1.milestoneId      isEmpty, condition.milestoneId == Some(None)) &&
+      (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
       (t1.assignedUserName === filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
       (t1.openedUserName   === filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
       (t1.openedUserName   =!= filterUser("not_created_by").bind, filterUser.get("not_created_by").isDefined) &&

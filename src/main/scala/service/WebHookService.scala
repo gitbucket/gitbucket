@@ -44,7 +44,7 @@ trait WebHookService {
       val httpClient = HttpClientBuilder.create.build
 
       webHookURLs.foreach { webHookUrl =>
-        val f = future {
+        val f = Future {
           logger.debug(s"start web hook invocation for ${webHookUrl}")
           val httpPost = new HttpPost(webHookUrl.url)
 

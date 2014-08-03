@@ -102,7 +102,7 @@ trait RepositoryService { self: AccountService =>
         }.map { t => t.activityId -> t.message }.list
 
         updateActivities.foreach { case (activityId, message) =>
-          Activities.filter(_.activityId is activityId.bind).map(_.message).update(
+          Activities.filter(_.activityId === activityId.bind).map(_.message).update(
             message
               .replace(s"[repo:${oldUserName}/${oldRepositoryName}]"   ,s"[repo:${newUserName}/${newRepositoryName}]")
               .replace(s"[branch:${oldUserName}/${oldRepositoryName}#" ,s"[branch:${newUserName}/${newRepositoryName}#")

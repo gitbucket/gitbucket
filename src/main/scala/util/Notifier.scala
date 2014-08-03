@@ -69,7 +69,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       (msg: String => String)(implicit context: Context) = {
     val database = Database(context.request.getServletContext)
 
-    val f = future {
+    val f = Future {
       database withSession { implicit session =>
         getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
           defining(
