@@ -8,6 +8,8 @@ import service.{AccountService, RepositoryService, SystemSettingsService}
 import model.{Account, Session}
 import util.{JGitUtil, Keys}
 import plugin.PluginConnectionHolder
+import service.RepositoryService.RepositoryInfo
+import service.SystemSettingsService.SystemSettings
 
 class PluginActionInvokeFilter extends Filter with SystemSettingsService with RepositoryService with AccountService {
 
@@ -31,18 +33,14 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
   private def processGlobalAction(path: String, request: HttpServletRequest, response: HttpServletResponse): Boolean = {
     plugin.PluginSystem.globalActions.find(_.path == path).map { action =>
       val result = action.function(request, response)
+      val systemSettings = loadSystemSettings()
       result match {
-        case x: String => {
-          response.setContentType("text/html; charset=UTF-8")
-          val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-          implicit val context = app.Context(loadSystemSettings(), Option(loginAccount), request)
-          val html = _root_.html.main("GitBucket", None)(Html(x))
-          IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
-        }
-        case x => {
-          // TODO returns as JSON?
-          response.setContentType("application/json; charset=UTF-8")
-
+        case x: String => renderGlobalHtml(request, response, systemSettings, x)
+        case x: org.mozilla.javascript.NativeObject => {
+          x.get("format") match {
+            case "html" => renderGlobalHtml(request, response, systemSettings, x.get("body").toString)
+            case "json" => renderJson(request, response, x.get("body").toString)
+          }
         }
       }
       true
@@ -66,23 +64,41 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
             PluginConnectionHolder.threadLocal.remove()
           }
           result match {
-            case x: String => {
-              response.setContentType("text/html; charset=UTF-8")
-              val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-              implicit val context = app.Context(systemSettings, Option(loginAccount), request)
-              val html = _root_.html.main("GitBucket", None)(_root_.html.menu("", repository)(Html(x))) // TODO specify active side menu
-              IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
-            }
-            case x => {
-              // TODO returns as JSON?
-              response.setContentType("application/json; charset=UTF-8")
-
+            case x: String => renderRepositoryHtml(request, response, systemSettings, repository, x)
+            case x: org.mozilla.javascript.NativeObject => {
+              x.get("format") match {
+                case "html" => renderRepositoryHtml(request, response, systemSettings, repository, x.get("body").toString)
+                case "json" => renderJson(request, response, x.get("body").toString)
+              }
             }
           }
           true
         }
       } getOrElse false
     } else false
+  }
+
+  private def renderGlobalHtml(request: HttpServletRequest, response: HttpServletResponse,
+                               systemSettings: SystemSettings, body: String): Unit = {
+    response.setContentType("text/html; charset=UTF-8")
+    val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
+    implicit val context = app.Context(systemSettings, Option(loginAccount), request)
+    val html = _root_.html.main("GitBucket", None)(Html(body))
+    IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
+  }
+
+  private def renderRepositoryHtml(request: HttpServletRequest, response: HttpServletResponse,
+                                   systemSettings: SystemSettings, repository: RepositoryInfo, body: String): Unit = {
+    response.setContentType("text/html; charset=UTF-8")
+    val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
+    implicit val context = app.Context(systemSettings, Option(loginAccount), request)
+    val html = _root_.html.main("GitBucket", None)(_root_.html.menu("", repository)(Html(body))) // TODO specify active side menu
+    IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
+  }
+
+  private def renderJson(request: HttpServletRequest, response: HttpServletResponse, body: String): Unit = {
+    response.setContentType("application/json; charset=UTF-8")
+    IOUtils.write(body.getBytes("UTF-8"), response.getOutputStream)
   }
 
 }
