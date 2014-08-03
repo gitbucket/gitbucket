@@ -166,13 +166,13 @@ trait IssuesService {
           .getOrElse (repos)
           .map { case (owner, repository) => t1.byRepository(owner, repository) }
           .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
-      (t1.closed           is (condition.state == "closed").bind) &&
-      (t1.milestoneId      is condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
-      (t1.milestoneId      isNull, condition.milestoneId == Some(None)) &&
-      (t1.assignedUserName is filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
-      (t1.openedUserName   is filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
-      (t1.openedUserName   isNot filterUser("not_created_by").bind, filterUser.get("not_created_by").isDefined) &&
-      (t1.pullRequest      is true.bind, onlyPullRequest) &&
+      (t1.closed           === (condition.state == "closed").bind) &&
+      (t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
+      (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
+      (t1.assignedUserName === filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
+      (t1.openedUserName   === filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
+      (t1.openedUserName   =!= filterUser("not_created_by").bind, filterUser.get("not_created_by").isDefined) &&
+      (t1.pullRequest      === true.bind, onlyPullRequest) &&
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
         (t2.labelId in

@@ -8,40 +8,40 @@ protected[model] trait TemplateComponent { self: Profile =>
     val repositoryName = column[String]("REPOSITORY_NAME")
 
     def byRepository(owner: String, repository: String) =
-      (userName is owner.bind) && (repositoryName is repository.bind)
+      (userName === owner.bind) && (repositoryName === repository.bind)
 
     def byRepository(userName: Column[String], repositoryName: Column[String]) =
-      (this.userName is userName) && (this.repositoryName is repositoryName)
+      (this.userName === userName) && (this.repositoryName === repositoryName)
   }
 
   trait IssueTemplate extends BasicTemplate { self: Table[_] =>
     val issueId = column[Int]("ISSUE_ID")
 
     def byIssue(owner: String, repository: String, issueId: Int) =
-      byRepository(owner, repository) && (this.issueId is issueId.bind)
+      byRepository(owner, repository) && (this.issueId === issueId.bind)
 
     def byIssue(userName: Column[String], repositoryName: Column[String], issueId: Column[Int]) =
-      byRepository(userName, repositoryName) && (this.issueId is issueId)
+      byRepository(userName, repositoryName) && (this.issueId === issueId)
   }
 
   trait LabelTemplate extends BasicTemplate { self: Table[_] =>
     val labelId = column[Int]("LABEL_ID")
 
     def byLabel(owner: String, repository: String, labelId: Int) =
-      byRepository(owner, repository) && (this.labelId is labelId.bind)
+      byRepository(owner, repository) && (this.labelId === labelId.bind)
 
     def byLabel(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) =
-      byRepository(userName, repositoryName) && (this.labelId is labelId)
+      byRepository(userName, repositoryName) && (this.labelId === labelId)
   }
 
   trait MilestoneTemplate extends BasicTemplate { self: Table[_] =>
     val milestoneId = column[Int]("MILESTONE_ID")
 
     def byMilestone(owner: String, repository: String, milestoneId: Int) =
-      byRepository(owner, repository) && (this.milestoneId is milestoneId.bind)
+      byRepository(owner, repository) && (this.milestoneId === milestoneId.bind)
 
     def byMilestone(userName: Column[String], repositoryName: Column[String], milestoneId: Column[Int]) =
-      byRepository(userName, repositoryName) && (this.milestoneId is milestoneId)
+      byRepository(userName, repositoryName) && (this.milestoneId === milestoneId)
   }
 
 }

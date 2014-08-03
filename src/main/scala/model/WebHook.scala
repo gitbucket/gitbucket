@@ -9,7 +9,7 @@ trait WebHookComponent extends TemplateComponent { self: Profile =>
     val url = column[String]("URL")
     def * = (userName, repositoryName, url) <> (WebHook.tupled, WebHook.unapply)
 
-    def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url is url.bind)
+    def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url === url.bind)
   }
 }
 
