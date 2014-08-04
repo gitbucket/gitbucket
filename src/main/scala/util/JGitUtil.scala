@@ -77,8 +77,8 @@ object JGitUtil {
     
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) = this(
         rev.getName,
-        rev.getFullMessage,
         rev.getShortMessage,
+        rev.getFullMessage,
         rev.getParents().map(_.name).toList,
         rev.getAuthorIdent.getWhen,
         rev.getAuthorIdent.getName,
