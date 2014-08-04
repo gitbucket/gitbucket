@@ -80,6 +80,9 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.2.1 - 5 Aug 2014
+- Bug fix
+
 ### 2.2 - 4 Aug 2014
 - Plug-in system is available
 - Move to Scala 2.11, Scalatra 2.3 and Slick 2.1
