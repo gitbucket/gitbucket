@@ -22,7 +22,7 @@
         case "fork"              => simpleActivity(activity, "activity-fork.png")
         case "push"  => customActivity(activity, "activity-commit.png"){
           <div class="small activity-message">
-            {activity.additionalInfo.get.split("\n").reverse.filter(_ matches "[0-9a-z]{40}:.*").take(4).zipWithIndex.map{ case (commit, i) =>
+            {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
               if(i == 3){
                 <div>...</div>
               } else {
