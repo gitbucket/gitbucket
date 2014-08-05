@@ -52,6 +52,25 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    new Version(2, 3) {
+      override def update(conn: Connection): Unit = {
+        super.update(conn)
+        using(conn.createStatement.executeQuery("SELECT ACTIVITY_ID, ADDITIONAL_INFO FROM ACTIVITY WHERE ACTIVITY_TYPE='push'")){ rs =>
+          while(rs.next) {
+            val info = rs.getString("ADDITIONAL_INFO")
+            val newInfo = info.split("\n").filter(_ matches "^[0-9a-z]{40}:.*").mkString("\n")
+            if (info != newInfo) {
+              val id = rs.getString("ACTIVITY_ID")
+              using(conn.prepareStatement("UPDATE ACTIVITY SET ADDITIONAL_INFO=? WHERE ACTIVITY_ID=?")) { sql =>
+                sql.setString(1, newInfo)
+                sql.setLong(2, id.toLong)
+                sql.executeUpdate
+              }
+            }
+          }
+        }
+      }
+    },
     new Version(2, 2),
     new Version(2, 1),
     new Version(2, 0){
