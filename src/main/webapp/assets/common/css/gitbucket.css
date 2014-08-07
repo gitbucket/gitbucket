@@ -510,6 +510,10 @@ a.header-link:hover {
   text-decoration: none;
 }
 
+table.blobview {
+  table-layout: fixed;
+}
+
 table.table-file-list {
   margin-bottom: 0px;
   border: 1px solid #ddd;
