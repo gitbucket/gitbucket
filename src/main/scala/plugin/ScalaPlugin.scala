@@ -1,10 +1,15 @@
 package plugin
 
-import app.Context
 import scala.collection.mutable.ListBuffer
-import plugin.PluginSystem._
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import plugin.PluginSystem.GlobalMenu
+import plugin.PluginSystem.Action
+import plugin.PluginSystem.RepositoryAction
+import app.Context
+import plugin.PluginSystem.RepositoryMenu
 import service.RepositoryService.RepositoryInfo
+import scala.reflect.runtime.currentMirror
+import scala.tools.reflect.ToolBox
 
 // TODO This is a sample implementation for Scala based plug-ins.
 class ScalaPlugin(val id: String, val version: String,
@@ -34,6 +39,19 @@ class ScalaPlugin(val id: String, val version: String,
 
   def addRepositoryAction(path: String)(function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
     repositoryActionList += RepositoryAction(path, function)
+  }
+
+}
+
+object ScalaPlugin {
+
+  def define(id: String, version: String, author: String, url: String, description: String)
+    = new ScalaPlugin(id, version, author, url, description)
+
+  def eval(source: String): Any = {
+    val toolbox = currentMirror.mkToolBox()
+    val tree = toolbox.parse(source)
+    toolbox.eval(tree)
   }
 
 }

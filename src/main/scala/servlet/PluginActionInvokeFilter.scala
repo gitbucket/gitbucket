@@ -10,6 +10,7 @@ import util.{JGitUtil, Keys}
 import plugin.PluginConnectionHolder
 import service.RepositoryService.RepositoryInfo
 import service.SystemSettingsService.SystemSettings
+import org.json4s.jackson.Json
 
 class PluginActionInvokeFilter extends Filter with SystemSettingsService with RepositoryService with AccountService {
 
@@ -36,12 +37,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
       val systemSettings = loadSystemSettings()
       result match {
         case x: String => renderGlobalHtml(request, response, systemSettings, x)
-        case x: org.mozilla.javascript.NativeObject => {
-          x.get("format") match {
-            case "html" => renderGlobalHtml(request, response, systemSettings, x.get("body").toString)
-            case "json" => renderJson(request, response, x.get("body").toString)
-          }
-        }
+        case x: AnyRef => renderJson(request, response, x)
       }
       true
     } getOrElse false
@@ -65,12 +61,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
           }
           result match {
             case x: String => renderRepositoryHtml(request, response, systemSettings, repository, x)
-            case x: org.mozilla.javascript.NativeObject => {
-              x.get("format") match {
-                case "html" => renderRepositoryHtml(request, response, systemSettings, repository, x.get("body").toString)
-                case "json" => renderJson(request, response, x.get("body").toString)
-              }
-            }
+            case x: AnyRef => renderJson(request, response, x)
           }
           true
         }
@@ -96,9 +87,16 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
   }
 
-  private def renderJson(request: HttpServletRequest, response: HttpServletResponse, body: String): Unit = {
+  private def renderJson(request: HttpServletRequest, response: HttpServletResponse, obj: AnyRef): Unit = {
+    import org.json4s._
+    import org.json4s.jackson.Serialization
+    import org.json4s.jackson.Serialization.write
+    implicit val formats = Serialization.formats(NoTypeHints)
+
+    val json = write(obj)
+
     response.setContentType("application/json; charset=UTF-8")
-    IOUtils.write(body.getBytes("UTF-8"), response.getOutputStream)
+    IOUtils.write(json.getBytes("UTF-8"), response.getOutputStream)
   }
 
 }
