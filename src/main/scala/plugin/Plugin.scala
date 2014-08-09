@@ -10,10 +10,11 @@ trait Plugin {
   val url: String
   val description: String
 
-  def repositoryMenus   : List[RepositoryMenu]
-  def globalMenus       : List[GlobalMenu]
-  def repositoryActions : List[RepositoryAction]
-  def globalActions     : List[Action]
+  def repositoryMenus       : List[RepositoryMenu]
+  def globalMenus           : List[GlobalMenu]
+  def repositoryActions     : List[RepositoryAction]
+  def globalActions         : List[Action]
+  def buttons(name: String) : List[Button]
 }
 
 object PluginConnectionHolder {

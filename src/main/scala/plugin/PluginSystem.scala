@@ -81,10 +81,11 @@ object PluginSystem {
     }
   }
 
-  def repositoryMenus   : List[RepositoryMenu]   = pluginsMap.values.flatMap(_.repositoryMenus).toList
-  def globalMenus       : List[GlobalMenu]       = pluginsMap.values.flatMap(_.globalMenus).toList
-  def repositoryActions : List[RepositoryAction] = pluginsMap.values.flatMap(_.repositoryActions).toList
-  def globalActions     : List[Action]           = pluginsMap.values.flatMap(_.globalActions).toList
+  def repositoryMenus       : List[RepositoryMenu]   = pluginsMap.values.flatMap(_.repositoryMenus).toList
+  def globalMenus           : List[GlobalMenu]       = pluginsMap.values.flatMap(_.globalMenus).toList
+  def repositoryActions     : List[RepositoryAction] = pluginsMap.values.flatMap(_.repositoryActions).toList
+  def globalActions         : List[Action]           = pluginsMap.values.flatMap(_.globalActions).toList
+  def buttons(name: String) : List[Button]           = pluginsMap.values.flatMap(_.buttons(name)).toList
 
   // Case classes to hold plug-ins information internally in GitBucket
   case class PluginRepository(id: String, url: String)
@@ -92,6 +93,7 @@ object PluginSystem {
   case class RepositoryMenu(label: String, name: String, url: String, icon: String, condition: Context => Boolean)
   case class Action(path: String, function: (HttpServletRequest, HttpServletResponse) => Any)
   case class RepositoryAction(path: String, function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any)
+  case class Button(label: String, href: String)
 
   /**
    * Checks whether the plugin is updatable.

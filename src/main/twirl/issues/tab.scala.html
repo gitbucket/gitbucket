@@ -1,4 +1,5 @@
-@(active: String, create: Boolean, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(active: String, create: Boolean, repository: service.RepositoryService.RepositoryInfo,
+  buttons: List[plugin.PluginSystem.Button] = Nil)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 <ul class="nav nav-tabs pull-left fill-width">
@@ -7,6 +8,9 @@
   @if(loginAccount.isDefined){
   <li class="pull-right">
     <div class="btn-group">
+      @buttons.map { button =>
+        <a class="btn btn-small" href="@button.href">@button.label</a>
+      }
       @if(create){
         <a class="btn btn-small btn-success" href="#" disabled="disabled">New Issue</a>
       } else {

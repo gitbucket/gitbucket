@@ -1,10 +1,9 @@
 package plugin
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{Map => MutableMap}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import plugin.PluginSystem.GlobalMenu
-import plugin.PluginSystem.Action
-import plugin.PluginSystem.RepositoryAction
+import plugin.PluginSystem._
 import app.Context
 import plugin.PluginSystem.RepositoryMenu
 import service.RepositoryService.RepositoryInfo
@@ -19,11 +18,13 @@ class ScalaPlugin(val id: String, val version: String,
   private val globalMenuList       = ListBuffer[GlobalMenu]()
   private val repositoryActionList = ListBuffer[RepositoryAction]()
   private val globalActionList     = ListBuffer[Action]()
+  private val buttonMap            = MutableMap[String, ListBuffer[Button]]()
 
-  def repositoryMenus   : List[RepositoryMenu]   = repositoryMenuList.toList
-  def globalMenus       : List[GlobalMenu]       = globalMenuList.toList
-  def repositoryActions : List[RepositoryAction] = repositoryActionList.toList
-  def globalActions     : List[Action]           = globalActionList.toList
+  def repositoryMenus       : List[RepositoryMenu]   = repositoryMenuList.toList
+  def globalMenus           : List[GlobalMenu]       = globalMenuList.toList
+  def repositoryActions     : List[RepositoryAction] = repositoryActionList.toList
+  def globalActions         : List[Action]           = globalActionList.toList
+  def buttons(name: String) : List[Button]           = buttonMap.get(name).map(_.toList).getOrElse(Nil)
 
   def addRepositoryMenu(label: String, name: String, url: String, icon: String)(condition: (Context) => Boolean): Unit = {
     repositoryMenuList += RepositoryMenu(label, name, url, icon, condition)
@@ -39,6 +40,14 @@ class ScalaPlugin(val id: String, val version: String,
 
   def addRepositoryAction(path: String)(function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
     repositoryActionList += RepositoryAction(path, function)
+  }
+
+  def addButton(name: String, label: String, href: String): Unit = {
+    if(!buttonMap.contains(name)){
+      buttonMap.put(name, ListBuffer[Button]())
+    }
+    val list = buttonMap(name)
+    list += Button(label, href)
   }
 
 }
