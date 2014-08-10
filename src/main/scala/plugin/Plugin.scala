@@ -14,7 +14,7 @@ trait Plugin {
   def globalMenus           : List[GlobalMenu]
   def repositoryActions     : List[RepositoryAction]
   def globalActions         : List[Action]
-  def buttons(name: String) : List[Button]
+  def javaScripts           : List[JavaScript]
 }
 
 object PluginConnectionHolder {

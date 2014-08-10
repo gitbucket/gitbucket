@@ -18,13 +18,13 @@ class ScalaPlugin(val id: String, val version: String,
   private val globalMenuList       = ListBuffer[GlobalMenu]()
   private val repositoryActionList = ListBuffer[RepositoryAction]()
   private val globalActionList     = ListBuffer[Action]()
-  private val buttonMap            = MutableMap[String, ListBuffer[Button]]()
+  private val javaScriptList       = ListBuffer[JavaScript]()
 
   def repositoryMenus       : List[RepositoryMenu]   = repositoryMenuList.toList
   def globalMenus           : List[GlobalMenu]       = globalMenuList.toList
   def repositoryActions     : List[RepositoryAction] = repositoryActionList.toList
   def globalActions         : List[Action]           = globalActionList.toList
-  def buttons(name: String) : List[Button]           = buttonMap.get(name).map(_.toList).getOrElse(Nil)
+  def javaScripts           : List[JavaScript]       = javaScriptList.toList
 
   def addRepositoryMenu(label: String, name: String, url: String, icon: String)(condition: (Context) => Boolean): Unit = {
     repositoryMenuList += RepositoryMenu(label, name, url, icon, condition)
@@ -42,12 +42,8 @@ class ScalaPlugin(val id: String, val version: String,
     repositoryActionList += RepositoryAction(path, function)
   }
 
-  def addButton(name: String, label: String, href: String): Unit = {
-    if(!buttonMap.contains(name)){
-      buttonMap.put(name, ListBuffer[Button]())
-    }
-    val list = buttonMap(name)
-    list += Button(label, href)
+  def addJavaScript(filter: String => Boolean, script: String): Unit = {
+    javaScriptList += JavaScript(filter, script)
   }
 
 }

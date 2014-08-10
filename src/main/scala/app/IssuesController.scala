@@ -397,8 +397,7 @@ trait IssuesControllerBase extends ControllerBase {
           condition,
           filter,
           repository,
-          hasWritePermission(owner, repoName, context.loginAccount),
-          PluginSystem.buttons("issues"))
+          hasWritePermission(owner, repoName, context.loginAccount))
     }
   }
 
