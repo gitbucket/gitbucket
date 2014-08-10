@@ -329,6 +329,12 @@ object RepositoryService {
 
     def sshUrl(port: Int, userName: String) = s"ssh://${userName}@${host}:${port}/${owner}/${name}.git"
 
+    def sshOpenRepoUrl(userAgent: String, port: Int, userName: String) = openRepoUrl(userAgent, sshUrl(port, userName))
+
+    def httpOpenRepoUrl(userAgent: String) = openRepoUrl(userAgent, httpUrl)
+
+    def openRepoUrl(userAgent: String, openUrl: String) = s"github-${userAgent}://openRepo/${openUrl}"
+
     /**
      * Creates instance with issue count and pull request count.
      */
