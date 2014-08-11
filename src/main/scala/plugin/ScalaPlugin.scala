@@ -34,12 +34,12 @@ class ScalaPlugin(val id: String, val version: String,
     globalMenuList += GlobalMenu(label, url, icon, condition)
   }
 
-  def addGlobalAction(path: String)(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
-    globalActionList += Action(path, function)
+  def addGlobalAction(path: String, security: String = "all")(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
+    globalActionList += Action(path, security, function)
   }
 
-  def addRepositoryAction(path: String)(function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
-    repositoryActionList += RepositoryAction(path, function)
+  def addRepositoryAction(path: String, security: String = "all")(function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
+    repositoryActionList += RepositoryAction(path, security, function)
   }
 
   def addJavaScript(filter: String => Boolean, script: String): Unit = {

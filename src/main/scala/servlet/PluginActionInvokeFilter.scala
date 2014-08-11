@@ -33,11 +33,18 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
 
   private def processGlobalAction(path: String, request: HttpServletRequest, response: HttpServletResponse): Boolean = {
     plugin.PluginSystem.globalActions.find(_.path == path).map { action =>
-      val result = action.function(request, response)
+      val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       val systemSettings = loadSystemSettings()
-      result match {
-        case x: String => renderGlobalHtml(request, response, systemSettings, x)
-        case x: AnyRef => renderJson(request, response, x)
+      implicit val context = app.Context(systemSettings, Option(loginAccount), request)
+
+      if(filterAction(action.security, context)){
+        val result = action.function(request, response)
+        result match {
+          case x: String => renderGlobalHtml(request, response, context, x)
+          case x: AnyRef => renderJson(request, response, x)
+        }
+      } else {
+        // TODO NotFound or Error?
       }
       true
     } getOrElse false
@@ -50,18 +57,26 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
       val owner  = elements(1)
       val name   = elements(2)
       val remain = elements.drop(3).mkString("/", "/", "")
+
+      val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       val systemSettings = loadSystemSettings()
+      implicit val context = app.Context(systemSettings, Option(loginAccount), request)
+
       getRepository(owner, name, systemSettings.baseUrl(request)).flatMap { repository =>
         plugin.PluginSystem.repositoryActions.find(_.path == remain).map { action =>
-          val result = try {
-            PluginConnectionHolder.threadLocal.set(session.conn)
-            action.function(request, response, repository)
-          } finally {
-            PluginConnectionHolder.threadLocal.remove()
-          }
-          result match {
-            case x: String => renderRepositoryHtml(request, response, systemSettings, repository, x)
-            case x: AnyRef => renderJson(request, response, x)
+          if(filterAction(action.security, context)){
+            val result = try {
+              PluginConnectionHolder.threadLocal.set(session.conn)
+              action.function(request, response, repository)
+            } finally {
+              PluginConnectionHolder.threadLocal.remove()
+            }
+            result match {
+              case x: String => renderRepositoryHtml(request, response, context, repository, x)
+              case x: AnyRef => renderJson(request, response, x)
+            }
+          } else {
+            // TODO NotFound or Error?
           }
           true
         }
@@ -69,21 +84,41 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     } else false
   }
 
-  private def renderGlobalHtml(request: HttpServletRequest, response: HttpServletResponse,
-                               systemSettings: SystemSettings, body: String): Unit = {
+  private def filterAction(security: String, context: app.Context, repository: Option[RepositoryInfo] = None): Boolean = {
+    if(repository.isDefined){
+      if(repository.get.repository.isPrivate){
+        security match {
+          case "owner"  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
+          case "member" => false // TODO owner or collaborator
+          case "admin"  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+        }
+      } else {
+        security match {
+          case "all"    => true
+          case "login"  => context.loginAccount.isDefined
+          case "owner"  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
+          case "member" => false // TODO owner or collaborator
+          case "admin"  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+        }
+      }
+    } else {
+      security match {
+        case "all"    => true
+        case "login"  => context.loginAccount.isDefined
+        case "admin"  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+      }
+    }
+  }
+
+  private def renderGlobalHtml(request: HttpServletRequest, response: HttpServletResponse, context: app.Context, body: String): Unit = {
     response.setContentType("text/html; charset=UTF-8")
-    val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-    implicit val context = app.Context(systemSettings, Option(loginAccount), request)
-    val html = _root_.html.main("GitBucket", None)(Html(body))
+    val html = _root_.html.main("GitBucket", None)(Html(body))(context)
     IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
   }
 
-  private def renderRepositoryHtml(request: HttpServletRequest, response: HttpServletResponse,
-                                   systemSettings: SystemSettings, repository: RepositoryInfo, body: String): Unit = {
+  private def renderRepositoryHtml(request: HttpServletRequest, response: HttpServletResponse, context: app.Context, repository: RepositoryInfo, body: String): Unit = {
     response.setContentType("text/html; charset=UTF-8")
-    val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-    implicit val context = app.Context(systemSettings, Option(loginAccount), request)
-    val html = _root_.html.main("GitBucket", None)(_root_.html.menu("", repository)(Html(body))) // TODO specify active side menu
+    val html = _root_.html.main("GitBucket", None)(_root_.html.menu("", repository)(Html(body))(context))(context) // TODO specify active side menu
     IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
   }
 

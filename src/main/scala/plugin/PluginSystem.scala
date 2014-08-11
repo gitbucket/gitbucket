@@ -91,8 +91,8 @@ object PluginSystem {
   case class PluginRepository(id: String, url: String)
   case class GlobalMenu(label: String, url: String, icon: String, condition: Context => Boolean)
   case class RepositoryMenu(label: String, name: String, url: String, icon: String, condition: Context => Boolean)
-  case class Action(path: String, function: (HttpServletRequest, HttpServletResponse) => Any)
-  case class RepositoryAction(path: String, function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any)
+  case class Action(path: String, security: String, function: (HttpServletRequest, HttpServletResponse) => Any)
+  case class RepositoryAction(path: String, security: String, function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any)
   case class Button(label: String, href: String)
   case class JavaScript(filter: String => Boolean, script: String)
 
