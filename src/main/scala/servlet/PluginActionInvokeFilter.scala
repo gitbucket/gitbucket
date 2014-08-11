@@ -11,6 +11,7 @@ import plugin.PluginConnectionHolder
 import service.RepositoryService.RepositoryInfo
 import service.SystemSettingsService.SystemSettings
 import org.json4s.jackson.Json
+import plugin.Security._
 
 class PluginActionInvokeFilter extends Filter with SystemSettingsService with RepositoryService with AccountService {
 
@@ -84,28 +85,28 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     } else false
   }
 
-  private def filterAction(security: String, context: app.Context, repository: Option[RepositoryInfo] = None): Boolean = {
+  private def filterAction(security: Security, context: app.Context, repository: Option[RepositoryInfo] = None): Boolean = {
     if(repository.isDefined){
       if(repository.get.repository.isPrivate){
         security match {
-          case "owner"  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
-          case "member" => false // TODO owner or collaborator
-          case "admin"  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+          case Owner()  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
+          case Member() => false // TODO owner or collaborator
+          case Admin()  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
         }
       } else {
         security match {
-          case "all"    => true
-          case "login"  => context.loginAccount.isDefined
-          case "owner"  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
-          case "member" => false // TODO owner or collaborator
-          case "admin"  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+          case All()    => true
+          case Login()  => context.loginAccount.isDefined
+          case Owner()  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
+          case Member() => false // TODO owner or collaborator
+          case Admin()  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
         }
       }
     } else {
       security match {
-        case "all"    => true
-        case "login"  => context.loginAccount.isDefined
-        case "admin"  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+        case All()    => true
+        case Login()  => context.loginAccount.isDefined
+        case Admin()  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
       }
     }
   }
