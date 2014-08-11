@@ -3,9 +3,10 @@ package plugin
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.{Map => MutableMap}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import plugin.PluginSystem._
 import app.Context
+import plugin.PluginSystem._
 import plugin.PluginSystem.RepositoryMenu
+import plugin.Security._
 import service.RepositoryService.RepositoryInfo
 import scala.reflect.runtime.currentMirror
 import scala.tools.reflect.ToolBox
@@ -34,11 +35,11 @@ class ScalaPlugin(val id: String, val version: String,
     globalMenuList += GlobalMenu(label, url, icon, condition)
   }
 
-  def addGlobalAction(path: String, security: String = "all")(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
+  def addGlobalAction(path: String, security: Security = All())(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
     globalActionList += Action(path, security, function)
   }
 
-  def addRepositoryAction(path: String, security: String = "all")(function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
+  def addRepositoryAction(path: String, security: Security = All())(function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
     repositoryActionList += RepositoryAction(path, security, function)
   }
 

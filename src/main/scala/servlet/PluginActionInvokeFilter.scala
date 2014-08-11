@@ -9,8 +9,6 @@ import model.{Account, Session}
 import util.{JGitUtil, Keys}
 import plugin.PluginConnectionHolder
 import service.RepositoryService.RepositoryInfo
-import service.SystemSettingsService.SystemSettings
-import org.json4s.jackson.Json
 import plugin.Security._
 
 class PluginActionInvokeFilter extends Filter with SystemSettingsService with RepositoryService with AccountService {
@@ -32,13 +30,14 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     }
   }
 
-  private def processGlobalAction(path: String, request: HttpServletRequest, response: HttpServletResponse): Boolean = {
+  private def processGlobalAction(path: String, request: HttpServletRequest, response: HttpServletResponse)
+                                 (implicit session: Session): Boolean = {
     plugin.PluginSystem.globalActions.find(_.path == path).map { action =>
       val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       val systemSettings = loadSystemSettings()
       implicit val context = app.Context(systemSettings, Option(loginAccount), request)
 
-      if(filterAction(action.security, context)){
+      if(authenticate(action.security, context)){
         val result = action.function(request, response)
         result match {
           case x: String => renderGlobalHtml(request, response, context, x)
@@ -65,7 +64,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
 
       getRepository(owner, name, systemSettings.baseUrl(request)).flatMap { repository =>
         plugin.PluginSystem.repositoryActions.find(_.path == remain).map { action =>
-          if(filterAction(action.security, context)){
+          if(authenticate(action.security, context, repository)){
             val result = try {
               PluginConnectionHolder.threadLocal.set(session.conn)
               action.function(request, response, repository)
@@ -85,28 +84,50 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     } else false
   }
 
-  private def filterAction(security: Security, context: app.Context, repository: Option[RepositoryInfo] = None): Boolean = {
-    if(repository.isDefined){
-      if(repository.get.repository.isPrivate){
-        security match {
-          case Owner()  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
-          case Member() => false // TODO owner or collaborator
-          case Admin()  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+  /**
+   * Authentication for global action
+   */
+  private def authenticate(security: Security, context: app.Context)(implicit session: Session): Boolean = {
+    // Global Action
+    security match {
+      case All() => true
+      case Login() => context.loginAccount.isDefined
+      case Admin() => context.loginAccount.exists(_.isAdmin)
+      case _ => false // TODO throw Exception?
+    }
+  }
+
+  /**
+   * Authenticate for repository action
+   */
+  private def authenticate(security: Security, context: app.Context, repository: RepositoryInfo)(implicit session: Session): Boolean = {
+    if(repository.repository.isPrivate){
+      // Private Repository
+      security match {
+        case Admin() => context.loginAccount.exists(_.isAdmin)
+        case Owner() => context.loginAccount.exists { account =>
+          account.userName == repository.owner ||
+            getGroupMembers(repository.owner).exists(m => m.userName == account.userName && m.isManager)
         }
-      } else {
-        security match {
-          case All()    => true
-          case Login()  => context.loginAccount.isDefined
-          case Owner()  => context.loginAccount.isDefined && context.loginAccount.get.userName == repository.get.owner // TODO for group repository
-          case Member() => false // TODO owner or collaborator
-          case Admin()  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+        case _ => context.loginAccount.exists { account =>
+          account.isAdmin || account.userName == repository.owner ||
+            getCollaborators(repository.owner, repository.name).contains(account.userName)
         }
       }
     } else {
+      // Public Repository
       security match {
-        case All()    => true
-        case Login()  => context.loginAccount.isDefined
-        case Admin()  => context.loginAccount.isDefined && context.loginAccount.get.isAdmin
+        case All() => true
+        case Login() => context.loginAccount.isDefined
+        case Owner() => context.loginAccount.exists { account =>
+          account.userName == repository.owner ||
+            getGroupMembers(repository.owner).exists(m => m.userName == account.userName && m.isManager)
+        }
+        case Member() => context.loginAccount.exists { account =>
+          account.userName == repository.owner ||
+            getCollaborators(repository.owner, repository.name).contains(account.userName)
+        }
+        case Admin() => context.loginAccount.exists(_.isAdmin)
       }
     }
   }
