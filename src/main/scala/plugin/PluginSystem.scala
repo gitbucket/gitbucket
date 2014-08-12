@@ -9,12 +9,12 @@ import util.ControlUtil._
 import org.apache.commons.io.FileUtils
 import service.RepositoryService.RepositoryInfo
 import Security._
-
+import service.PluginService
 
 /**
  * Provides extension points to plug-ins.
  */
-object PluginSystem {
+object PluginSystem extends PluginService {
 
   private val logger = LoggerFactory.getLogger(PluginSystem.getClass)
 
@@ -62,16 +62,27 @@ object PluginSystem {
         properties.load(in)
       }
 
+      val pluginId     = properties.getProperty("id")
+      val version      = properties.getProperty("version")
+      val author       = properties.getProperty("author")
+      val url          = properties.getProperty("url")
+      val description  = properties.getProperty("description")
+
       val source = s"""
-        |val id          = "${properties.getProperty("id")}"
-        |val version     = "${properties.getProperty("version")}"
-        |val author      = "${properties.getProperty("author")}"
-        |val url         = "${properties.getProperty("url")}"
-        |val description = "${properties.getProperty("description")}"
+        |val id          = "${pluginId}"
+        |val version     = "${version}"
+        |val author      = "${author}"
+        |val url         = "${url}"
+        |val description = "${description}"
       """.stripMargin + FileUtils.readFileToString(scalaFile, "UTF-8")
 
       try {
         ScalaPlugin.eval(source)
+        if(getPlugin(pluginId).isDefined){
+          registerPlugin(model.Plugin(pluginId, version))
+        } else {
+          updatePlugin(model.Plugin(pluginId, version))
+        }
       } catch {
         case e: Exception => logger.warn(s"Error in plugin loading for ${scalaFile.getAbsolutePath}", e)
       }
