@@ -1,19 +1,19 @@
 package plugin
 
-import app.Context
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import util.Directory._
 import util.ControlUtil._
 import org.apache.commons.io.{IOUtils, FileUtils}
-import service.RepositoryService.RepositoryInfo
 import Security._
 import service.PluginService
 import model.Profile._
 import profile.simple._
 import java.io.FileInputStream
 import java.sql.Connection
+import app.Context
+import service.RepositoryService.RepositoryInfo
 
 /**
  * Provides extension points to plug-ins.
@@ -34,7 +34,19 @@ object PluginSystem extends PluginService {
 
   def uninstall(id: String)(implicit session: Session): Unit = {
     pluginsMap.remove(id)
+
+    // Delete from PLUGIN table
     deletePlugin(id)
+
+    // Drop tables
+    val pluginDir = new java.io.File(PluginHome)
+    val sqlFile = new java.io.File(pluginDir, s"${id}/sql/drop.sql")
+    if(sqlFile.exists){
+      val sql = IOUtils.toString(new FileInputStream(sqlFile), "UTF-8")
+      using(session.conn.createStatement()){ stmt =>
+        stmt.executeUpdate(sql)
+      }
+    }
   }
 
   def repositories: List[PluginRepository] = repositoriesList.toList
@@ -63,7 +75,7 @@ object PluginSystem extends PluginService {
     val scalaFile = new java.io.File(pluginDir, id + "/plugin.scala")
     if(scalaFile.exists && scalaFile.isFile){
       val properties = new java.util.Properties()
-      using(new java.io.FileInputStream(new java.io.File(pluginDir, id + "/plugin.properties"))){ in =>
+      using(new java.io.FileInputStream(new java.io.File(pluginDir, s"${id}/plugin.properties"))){ in =>
         properties.load(in)
       }
 
@@ -108,13 +120,15 @@ object PluginSystem extends PluginService {
     val dim = current.split("\\.")
     val currentVersion = Version(dim(0).toInt, dim(1).toInt)
 
-    val sqlDir = new java.io.File(pluginDir, pluginId + "/sql")
+    val sqlDir = new java.io.File(pluginDir, s"${pluginId}/sql")
     if(sqlDir.exists && sqlDir.isDirectory){
       sqlDir.listFiles.filter(_.getName.endsWith(".sql")).map { file =>
         val array = file.getName.replaceFirst("\\.sql", "").split("_")
         Version(array(0).toInt, array(1).toInt)
-      }.sorted.reverse.takeWhile(_ > currentVersion).reverse.foreach { version =>
-        val sqlFile = new java.io.File(pluginDir, pluginId + "/sql/" + version.major + "_" + version.minor + ".sql")
+      }
+      .sorted.reverse.takeWhile(_ > currentVersion)
+      .reverse.foreach { version =>
+        val sqlFile = new java.io.File(pluginDir, s"${pluginId}/sql/${version.major}_${version.minor}.sql")
         val sql = IOUtils.toString(new FileInputStream(sqlFile), "UTF-8")
         using(conn.createStatement()){ stmt =>
           stmt.executeUpdate(sql)
