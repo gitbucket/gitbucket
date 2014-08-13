@@ -180,10 +180,12 @@ class AutoUpdateListener extends ServletContextListener {
       System.setProperty("gitbucket.home", datadir)
     }
     org.h2.Driver.load()
-    event.getServletContext.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome};MVCC=true")
 
-    logger.debug("Start schema update")
+    val context = event.getServletContext
+    context.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome};MVCC=true")
+
     defining(getConnection(event.getServletContext)){ conn =>
+      logger.debug("Start schema update")
       try {
         defining(getCurrentVersion()){ currentVersion =>
           if(currentVersion == headVersion){
@@ -193,7 +195,6 @@ class AutoUpdateListener extends ServletContextListener {
           } else {
             versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
             FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
-            conn.commit()
             logger.debug(s"Updated from ${currentVersion.versionString} to ${headVersion.versionString}")
           }
         }
@@ -204,17 +205,27 @@ class AutoUpdateListener extends ServletContextListener {
           conn.rollback()
         }
       }
+      logger.debug("End schema update")
     }
-    logger.debug("End schema update")
 
-    logger.debug("Starting plugin system...")
-    plugin.PluginSystem.init()
+    getDatabase(context).withSession { implicit session =>
+      logger.debug("Starting plugin system...")
+      try {
+        plugin.PluginSystem.init()
 
-    scheduler.start()
-    PluginUpdateJob.schedule(scheduler)
-    logger.debug("PluginUpdateJob is started.")
+        scheduler.start()
+        PluginUpdateJob.schedule(scheduler)
+        logger.debug("PluginUpdateJob is started.")
 
-    logger.debug("Plugin system is initialized.")
+        logger.debug("Plugin system is initialized.")
+      } catch {
+        case ex: Throwable => {
+          logger.error("Failed to initialize plugin system", ex)
+          ex.printStackTrace()
+          session.rollback()
+        }
+      }
+    }
   }
 
   def contextDestroyed(sce: ServletContextEvent): Unit = {
@@ -223,6 +234,12 @@ class AutoUpdateListener extends ServletContextListener {
 
   private def getConnection(servletContext: ServletContext): Connection =
     DriverManager.getConnection(
+      servletContext.getInitParameter("db.url"),
+      servletContext.getInitParameter("db.user"),
+      servletContext.getInitParameter("db.password"))
+
+  private def getDatabase(servletContext: ServletContext): scala.slick.jdbc.JdbcBackend.Database =
+    slick.jdbc.JdbcBackend.Database.forURL(
       servletContext.getInitParameter("db.url"),
       servletContext.getInitParameter("db.user"),
       servletContext.getInitParameter("db.password"))

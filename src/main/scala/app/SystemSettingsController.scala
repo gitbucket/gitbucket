@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils
 import java.io.FileInputStream
 import plugin.{Plugin, PluginSystem}
 import org.scalatra.Ok
+import util.Implicits._
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator

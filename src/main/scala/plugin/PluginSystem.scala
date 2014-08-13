@@ -10,6 +10,8 @@ import org.apache.commons.io.FileUtils
 import service.RepositoryService.RepositoryInfo
 import Security._
 import service.PluginService
+import model.Profile._
+import profile.simple._
 
 /**
  * Provides extension points to plug-ins.
@@ -22,14 +24,15 @@ object PluginSystem extends PluginService {
   private val pluginsMap = scala.collection.mutable.Map[String, Plugin]()
   private val repositoriesList = scala.collection.mutable.ListBuffer[PluginRepository]()
 
-  def install(plugin: Plugin): Unit = {
+  def install(plugin: Plugin)(implicit session: Session): Unit = {
     pluginsMap.put(plugin.id, plugin)
   }
 
   def plugins: List[Plugin] = pluginsMap.values.toList
 
-  def uninstall(id: String): Unit = {
+  def uninstall(id: String)(implicit session: Session): Unit = {
     pluginsMap.remove(id)
+    deletePlugin(id)
   }
 
   def repositories: List[PluginRepository] = repositoriesList.toList
@@ -37,7 +40,7 @@ object PluginSystem extends PluginService {
   /**
    * Initializes the plugin system. Load scripts from GITBUCKET_HOME/plugins.
    */
-  def init(): Unit = {
+  def init()(implicit session: Session): Unit = {
     if(initialized.compareAndSet(false, true)){
       // Load installed plugins
       val pluginDir = new java.io.File(PluginHome)
@@ -52,7 +55,7 @@ object PluginSystem extends PluginService {
   }
 
   // TODO Method name seems to not so good.
-  def installPlugin(id: String): Unit = {
+  def installPlugin(id: String)(implicit session: Session): Unit = {
     val pluginDir = new java.io.File(PluginHome)
 
     val scalaFile = new java.io.File(pluginDir, id + "/plugin.scala")

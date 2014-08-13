@@ -14,6 +14,6 @@ trait PluginService {
 
   def deletePlugin(pluginId: String)(implicit s: Session): Unit = Plugins.filter(_.pluginId === pluginId.bind).delete
 
-  def getPlugin(pluginId: String): Option[Plugin] = Plugins.filter(_.pluginId === pluginId.bind).firstOption
+  def getPlugin(pluginId: String)(implicit s: Session): Option[Plugin] = Plugins.filter(_.pluginId === pluginId.bind).firstOption
 
 }
