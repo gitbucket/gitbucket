@@ -6,12 +6,14 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import util.Directory._
 import util.ControlUtil._
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{IOUtils, FileUtils}
 import service.RepositoryService.RepositoryInfo
 import Security._
 import service.PluginService
 import model.Profile._
 import profile.simple._
+import java.io.FileInputStream
+import java.sql.Connection
 
 /**
  * Provides extension points to plug-ins.
@@ -24,7 +26,7 @@ object PluginSystem extends PluginService {
   private val pluginsMap = scala.collection.mutable.Map[String, Plugin]()
   private val repositoriesList = scala.collection.mutable.ListBuffer[PluginRepository]()
 
-  def install(plugin: Plugin)(implicit session: Session): Unit = {
+  def install(plugin: Plugin): Unit = {
     pluginsMap.put(plugin.id, plugin)
   }
 
@@ -80,16 +82,58 @@ object PluginSystem extends PluginService {
       """.stripMargin + FileUtils.readFileToString(scalaFile, "UTF-8")
 
       try {
+        // Compile and eval Scala source code
         ScalaPlugin.eval(source)
-        if(getPlugin(pluginId).isDefined){
+
+        // Migrate database
+        val plugin = getPlugin(pluginId)
+        if(plugin.isEmpty){
           registerPlugin(model.Plugin(pluginId, version))
+          migrate(session.conn, pluginId, "0.0")
         } else {
           updatePlugin(model.Plugin(pluginId, version))
+          migrate(session.conn, pluginId, plugin.get.version)
         }
       } catch {
         case e: Exception => logger.warn(s"Error in plugin loading for ${scalaFile.getAbsolutePath}", e)
       }
     }
+  }
+
+  // TODO Should PluginSystem provide a way to migrate resources other than H2?
+  private def migrate(conn: Connection, pluginId: String, current: String): Unit = {
+    val pluginDir = new java.io.File(PluginHome)
+
+    // TODO Is ot possible to use this migration system in GitBucket migration?
+    val dim = current.split("\\.")
+    val currentVersion = Version(dim(0).toInt, dim(1).toInt)
+
+    val sqlDir = new java.io.File(pluginDir, pluginId + "/sql")
+    if(sqlDir.exists && sqlDir.isDirectory){
+      sqlDir.listFiles.filter(_.getName.endsWith(".sql")).map { file =>
+        val array = file.getName.replaceFirst("\\.sql", "").split("_")
+        Version(array(0).toInt, array(1).toInt)
+      }.sorted.reverse.takeWhile(_ > currentVersion).reverse.foreach { version =>
+        val sqlFile = new java.io.File(pluginDir, pluginId + "/sql/" + version.major + "_" + version.minor + ".sql")
+        val sql = IOUtils.toString(new FileInputStream(sqlFile), "UTF-8")
+        using(conn.createStatement()){ stmt =>
+          stmt.executeUpdate(sql)
+        }
+      }
+    }
+  }
+
+  case class Version(major: Int, minor: Int) extends Ordered[Version] {
+
+    override def compare(that: Version): Int = {
+      if(major != that.major){
+        major.compare(that.major)
+      } else{
+        minor.compare(that.minor)
+      }
+    }
+
+    def displayString: String = major + "." + minor
   }
 
   def repositoryMenus       : List[RepositoryMenu]   = pluginsMap.values.flatMap(_.repositoryMenus).toList

@@ -222,7 +222,7 @@ class AutoUpdateListener extends ServletContextListener {
         case ex: Throwable => {
           logger.error("Failed to initialize plugin system", ex)
           ex.printStackTrace()
-          session.rollback()
+          throw ex
         }
       }
     }
