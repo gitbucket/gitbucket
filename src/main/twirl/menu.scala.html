@@ -84,7 +84,7 @@
         </div>
       }
       @id.map { id =>
-        @if(context.platform != "linux" || context.platform != null){
+        @if(context.platform != "linux" && context.platform != null){
         <div style="margin-top: 10px;">
           <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Clone in Desktop</a>
         </div>
