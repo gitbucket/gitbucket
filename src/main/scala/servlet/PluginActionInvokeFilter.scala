@@ -3,7 +3,7 @@ package servlet
 import javax.servlet._
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.apache.commons.io.IOUtils
-import twirl.api.Html
+import play.twirl.api.Html
 import service.{AccountService, RepositoryService, SystemSettingsService}
 import model.{Account, Session}
 import util.{JGitUtil, Keys}

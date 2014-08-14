@@ -10,6 +10,7 @@ import plugin.Security._
 import service.RepositoryService.RepositoryInfo
 import scala.reflect.runtime.currentMirror
 import scala.tools.reflect.ToolBox
+import play.twirl.compiler.TwirlCompiler
 
 // TODO This is a sample implementation for Scala based plug-ins.
 class ScalaPlugin(val id: String, val version: String,
@@ -49,7 +50,7 @@ class ScalaPlugin(val id: String, val version: String,
 
 }
 
-object ScalaPlugin {
+object ScalaPlugin extends App {
 
   def define(id: String, version: String, author: String, url: String, description: String)
     = new ScalaPlugin(id, version, author, url, description)
@@ -60,4 +61,23 @@ object ScalaPlugin {
     toolbox.eval(tree)
   }
 
+  def compileTemplate(source: String) = {
+    val result = TwirlCompiler.compileVirtual(source,
+      new java.io.File("./sample.scala.html"),
+      new java.io.File("."),
+      "twirl.api.HtmlFormat.Appendable",
+      "twirl.api.HtmlFormat")
+
+    println(result.content)
+  }
+
+    compileTemplate(
+      """@(value: String)
+        | <html>@value</html>
+        | """.stripMargin)
+
+  compileTemplate(
+    """@(value: String)
+      | <b>@value</b>
+      | """.stripMargin)
 }
