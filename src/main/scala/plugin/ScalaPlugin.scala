@@ -1,7 +1,6 @@
 package plugin
 
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.{Map => MutableMap}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import app.Context
 import plugin.PluginSystem._
@@ -11,6 +10,7 @@ import service.RepositoryService.RepositoryInfo
 import scala.reflect.runtime.currentMirror
 import scala.tools.reflect.ToolBox
 import play.twirl.compiler.TwirlCompiler
+import scala.io.Codec
 
 // TODO This is a sample implementation for Scala based plug-ins.
 class ScalaPlugin(val id: String, val version: String,
@@ -61,23 +61,17 @@ object ScalaPlugin extends App {
     toolbox.eval(tree)
   }
 
-  def compileTemplate(source: String) = {
-    val result = TwirlCompiler.compileVirtual(source,
-      new java.io.File("./sample.scala.html"),
-      new java.io.File("."),
-      "twirl.api.HtmlFormat.Appendable",
-      "twirl.api.HtmlFormat")
+  def compileTemplate(packageName: String, name: String, source: String): String = {
+    val result = TwirlCompiler.parseAndGenerateCodeNewParser(
+      Array(packageName, name),
+      source.getBytes("UTF-8"),
+      Codec(scala.util.Properties.sourceEncoding),
+      "",
+      "play.twirl.api.HtmlFormat.Appendable",
+      "play.twirl.api.HtmlFormat",
+      "",
+      false)
 
-    println(result.content)
+    result.replaceFirst("package .*", "")
   }
-
-    compileTemplate(
-      """@(value: String)
-        | <html>@value</html>
-        | """.stripMargin)
-
-  compileTemplate(
-    """@(value: String)
-      | <b>@value</b>
-      | """.stripMargin)
 }

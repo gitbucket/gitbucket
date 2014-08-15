@@ -41,6 +41,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
         val result = action.function(request, response)
         result match {
           case x: String => renderGlobalHtml(request, response, context, x)
+          case x: Html   => renderGlobalHtml(request, response, context, x.toString)
           case x: AnyRef => renderJson(request, response, x)
         }
       } else {
@@ -73,6 +74,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
             }
             result match {
               case x: String => renderRepositoryHtml(request, response, context, repository, x)
+              case x: Html   => renderGlobalHtml(request, response, context, x.toString)
               case x: AnyRef => renderJson(request, response, x)
             }
           } else {

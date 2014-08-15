@@ -70,12 +70,13 @@ object PluginSystem extends PluginService {
 
   // TODO Method name seems to not so good.
   def installPlugin(id: String)(implicit session: Session): Unit = {
-    val pluginDir = new java.io.File(PluginHome)
+    val pluginHome = new java.io.File(PluginHome)
+    val pluginDir  = new java.io.File(pluginHome, id)
 
-    val scalaFile = new java.io.File(pluginDir, id + "/plugin.scala")
+    val scalaFile = new java.io.File(pluginDir, "plugin.scala")
     if(scalaFile.exists && scalaFile.isFile){
       val properties = new java.util.Properties()
-      using(new java.io.FileInputStream(new java.io.File(pluginDir, s"${id}/plugin.properties"))){ in =>
+      using(new java.io.FileInputStream(new java.io.File(pluginDir, "plugin.properties"))){ in =>
         properties.load(in)
       }
 
@@ -95,7 +96,12 @@ object PluginSystem extends PluginService {
 
       try {
         // Compile and eval Scala source code
-        ScalaPlugin.eval(source)
+        ScalaPlugin.eval(pluginDir.listFiles.filter(_.getName.endsWith(".scala.html")).map { file =>
+          ScalaPlugin.compileTemplate(
+            id.replaceAll("-", ""),
+            file.getName.replaceAll("\\.scala\\.html$", ""),
+            IOUtils.toString(new FileInputStream(file)))
+        }.mkString("\n") + source)
 
         // Migrate database
         val plugin = getPlugin(pluginId)
@@ -186,4 +192,3 @@ object PluginSystem extends PluginService {
   }
 
 }
-
