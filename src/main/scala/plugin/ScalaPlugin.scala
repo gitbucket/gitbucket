@@ -36,12 +36,12 @@ class ScalaPlugin(val id: String, val version: String,
     globalMenuList += GlobalMenu(label, url, icon, condition)
   }
 
-  def addGlobalAction(path: String, security: Security = All())(function: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
-    globalActionList += Action(path, security, function)
+  def addGlobalAction(method: String, path: String, security: Security = All())(function: (HttpServletRequest, HttpServletResponse, Context) => Any): Unit = {
+    globalActionList += Action(method, path, security, function)
   }
 
-  def addRepositoryAction(path: String, security: Security = All())(function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
-    repositoryActionList += RepositoryAction(path, security, function)
+  def addRepositoryAction(method: String, path: String, security: Security = All())(function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any): Unit = {
+    repositoryActionList += RepositoryAction(method, path, security, function)
   }
 
   def addJavaScript(filter: String => Boolean, script: String): Unit = {

@@ -32,13 +32,15 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
 
   private def processGlobalAction(path: String, request: HttpServletRequest, response: HttpServletResponse)
                                  (implicit session: Session): Boolean = {
-    plugin.PluginSystem.globalActions.find(_.path == path).map { action =>
+    plugin.PluginSystem.globalActions.find(x =>
+      x.method.toLowerCase == request.getMethod.toLowerCase && x.path == path
+    ).map { action =>
       val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       val systemSettings = loadSystemSettings()
       implicit val context = app.Context(systemSettings, Option(loginAccount), request)
 
       if(authenticate(action.security, context)){
-        val result = action.function(request, response)
+        val result = action.function(request, response, context)
         result match {
           case x: String => renderGlobalHtml(request, response, context, x)
           case x: Html   => renderGlobalHtml(request, response, context, x.toString)
@@ -68,7 +70,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
           if(authenticate(action.security, context, repository)){
             val result = try {
               PluginConnectionHolder.threadLocal.set(session.conn)
-              action.function(request, response, repository)
+              action.function(request, response, context, repository)
             } finally {
               PluginConnectionHolder.threadLocal.remove()
             }
