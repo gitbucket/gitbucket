@@ -350,7 +350,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val builder  = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
         val headName = s"refs/heads/${branch}"
-        val headTip  = git.getRepository.resolve(s"refs/heads/${branch}")
+        val headTip  = git.getRepository.resolve(headName)
 
         JGitUtil.processTree(git, headTip){ (path, tree) =>
           if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
@@ -365,7 +365,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         builder.finish()
 
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
-          loginAccount.fullName, loginAccount.mailAddress, message)
+          headName, loginAccount.fullName, loginAccount.mailAddress, message)
 
         inserter.flush()
         inserter.release()

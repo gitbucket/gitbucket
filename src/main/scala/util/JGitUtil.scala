@@ -504,7 +504,7 @@ object JGitUtil {
   }
 
   def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
-                              fullName: String, mailAddress: String, message: String): ObjectId = {
+                      ref: String, fullName: String, mailAddress: String, message: String): ObjectId = {
     val newCommit = new CommitBuilder()
     newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
     newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
@@ -518,7 +518,7 @@ object JGitUtil {
     inserter.flush()
     inserter.release()
 
-    val refUpdate = git.getRepository.updateRef(Constants.HEAD)
+    val refUpdate = git.getRepository.updateRef(ref)
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
