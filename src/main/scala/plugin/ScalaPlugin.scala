@@ -50,7 +50,7 @@ class ScalaPlugin(val id: String, val version: String,
 
 }
 
-object ScalaPlugin extends App {
+object ScalaPlugin {
 
   def define(id: String, version: String, author: String, url: String, description: String)
     = new ScalaPlugin(id, version, author, url, description)
