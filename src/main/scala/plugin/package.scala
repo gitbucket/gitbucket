@@ -24,6 +24,14 @@ package object plugin {
         }
       }
     }
+
+    def update(sql: String): Int = {
+      defining(PluginConnectionHolder.threadLocal.get){ conn =>
+        using(conn.prepareStatement(sql)){ stmt =>
+          stmt.executeUpdate()
+        }
+      }
+    }
   }
 
 }
