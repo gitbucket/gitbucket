@@ -10,6 +10,7 @@ import util.{JGitUtil, Keys}
 import plugin.PluginConnectionHolder
 import service.RepositoryService.RepositoryInfo
 import plugin.Security._
+import plugin.Redirect
 
 class PluginActionInvokeFilter extends Filter with SystemSettingsService with RepositoryService with AccountService {
 
@@ -33,18 +34,24 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
   private def processGlobalAction(path: String, request: HttpServletRequest, response: HttpServletResponse)
                                  (implicit session: Session): Boolean = {
     plugin.PluginSystem.globalActions.find(x =>
-      x.method.toLowerCase == request.getMethod.toLowerCase && x.path == path
+      x.method.toLowerCase == request.getMethod.toLowerCase && path.matches(x.path)
     ).map { action =>
       val loginAccount = request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
       val systemSettings = loadSystemSettings()
       implicit val context = app.Context(systemSettings, Option(loginAccount), request)
 
       if(authenticate(action.security, context)){
-        val result = action.function(request, response, context)
+        val result = try {
+          PluginConnectionHolder.threadLocal.set(session.conn)
+          action.function(request, response, context)
+        } finally {
+          PluginConnectionHolder.threadLocal.remove()
+        }
         result match {
-          case x: String => renderGlobalHtml(request, response, context, x)
-          case x: Html   => renderGlobalHtml(request, response, context, x.toString)
-          case x: AnyRef => renderJson(request, response, x)
+          case x: String   => renderGlobalHtml(request, response, context, x)
+          case x: Html     => renderGlobalHtml(request, response, context, x.toString)
+          case x: Redirect => response.sendRedirect(x.path)
+          case x: AnyRef   => renderJson(request, response, x)
         }
       } else {
         // TODO NotFound or Error?
@@ -66,7 +73,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
       implicit val context = app.Context(systemSettings, Option(loginAccount), request)
 
       getRepository(owner, name, systemSettings.baseUrl(request)).flatMap { repository =>
-        plugin.PluginSystem.repositoryActions.find(_.path == remain).map { action =>
+        plugin.PluginSystem.repositoryActions.find(x => remain.matches(x.path)).map { action =>
           if(authenticate(action.security, context, repository)){
             val result = try {
               PluginConnectionHolder.threadLocal.set(session.conn)
@@ -75,9 +82,10 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
               PluginConnectionHolder.threadLocal.remove()
             }
             result match {
-              case x: String => renderRepositoryHtml(request, response, context, repository, x)
-              case x: Html   => renderGlobalHtml(request, response, context, x.toString)
-              case x: AnyRef => renderJson(request, response, x)
+              case x: String   => renderRepositoryHtml(request, response, context, repository, x)
+              case x: Html     => renderGlobalHtml(request, response, context, x.toString)
+              case x: Redirect => response.sendRedirect(x.path)
+              case x: AnyRef   => renderJson(request, response, x)
             }
           } else {
             // TODO NotFound or Error?

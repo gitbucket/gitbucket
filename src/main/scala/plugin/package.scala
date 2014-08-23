@@ -1,13 +1,17 @@
+import java.sql.PreparedStatement
 import util.ControlUtil._
 import scala.collection.mutable.ListBuffer
 
 package object plugin {
 
+  case class Redirect(path: String)
+
   object db {
-    // TODO Use JavaScript Map instead of java.util.Map
-    def select(sql: String): Seq[Map[String, String]] = {
+    // TODO labelled place holder support
+    def select(sql: String, params: Any*): Seq[Map[String, String]] = {
       defining(PluginConnectionHolder.threadLocal.get){ conn =>
         using(conn.prepareStatement(sql)){ stmt =>
+          setParams(stmt, params: _*)
           using(stmt.executeQuery()){ rs =>
             val list = new ListBuffer[Map[String, String]]()
             while(rs.next){
@@ -25,10 +29,22 @@ package object plugin {
       }
     }
 
-    def update(sql: String): Int = {
+    // TODO labelled place holder support
+    def update(sql: String, params: Any*): Int = {
       defining(PluginConnectionHolder.threadLocal.get){ conn =>
         using(conn.prepareStatement(sql)){ stmt =>
+          setParams(stmt, params: _*)
           stmt.executeUpdate()
+        }
+      }
+    }
+
+    private def setParams(stmt: PreparedStatement, params: Any*): Unit = {
+      params.zipWithIndex.foreach { case (p, i) =>
+        p match {
+          case x: String  => stmt.setString(i + 1, x)
+          case x: Int     => stmt.setInt(i + 1, x)
+          case x: Boolean => stmt.setBoolean(i + 1, x)
         }
       }
     }
