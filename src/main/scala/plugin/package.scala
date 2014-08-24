@@ -1,10 +1,12 @@
 import java.sql.PreparedStatement
+import play.twirl.api.Html
 import util.ControlUtil._
 import scala.collection.mutable.ListBuffer
 
 package object plugin {
 
   case class Redirect(path: String)
+  case class Fragment(html: Html)
 
   object db {
     // TODO labelled place holder support

@@ -7,10 +7,9 @@ import play.twirl.api.Html
 import service.{AccountService, RepositoryService, SystemSettingsService}
 import model.{Account, Session}
 import util.{JGitUtil, Keys}
-import plugin.PluginConnectionHolder
+import plugin.{Fragment, PluginConnectionHolder, Redirect}
 import service.RepositoryService.RepositoryInfo
 import plugin.Security._
-import plugin.Redirect
 
 class PluginActionInvokeFilter extends Filter with SystemSettingsService with RepositoryService with AccountService {
 
@@ -50,6 +49,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
         result match {
           case x: String   => renderGlobalHtml(request, response, context, x)
           case x: Html     => renderGlobalHtml(request, response, context, x.toString)
+          case x: Fragment => renderFragmentHtml(request, response, context, x.html.toString)
           case x: Redirect => response.sendRedirect(x.path)
           case x: AnyRef   => renderJson(request, response, x)
         }
@@ -84,6 +84,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
             result match {
               case x: String   => renderRepositoryHtml(request, response, context, repository, x)
               case x: Html     => renderGlobalHtml(request, response, context, x.toString)
+              case x: Fragment => renderFragmentHtml(request, response, context, x.html.toString)
               case x: Redirect => response.sendRedirect(x.path)
               case x: AnyRef   => renderJson(request, response, x)
             }
@@ -154,6 +155,11 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     response.setContentType("text/html; charset=UTF-8")
     val html = _root_.html.main("GitBucket", None)(_root_.html.menu("", repository)(Html(body))(context))(context) // TODO specify active side menu
     IOUtils.write(html.toString.getBytes("UTF-8"), response.getOutputStream)
+  }
+
+  private def renderFragmentHtml(request: HttpServletRequest, response: HttpServletResponse, context: app.Context, body: String): Unit = {
+    response.setContentType("text/html; charset=UTF-8")
+    IOUtils.write(body.getBytes("UTF-8"), response.getOutputStream)
   }
 
   private def renderJson(request: HttpServletRequest, response: HttpServletResponse, obj: AnyRef): Unit = {
