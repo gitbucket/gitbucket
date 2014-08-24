@@ -191,7 +191,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      val lastModifiedCommit = git.log.add(revCommit).addPath(path).setMaxCount(1).call.iterator.next()
+      val lastModifiedCommit = JGitUtil.getLastModifiedCommit(git, revCommit, path)
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
@@ -315,7 +315,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
-            val lastModifiedCommit = if(path != ".") git.log.add(revCommit).addPath(path).setMaxCount(1).call.iterator.next else revCommit
+            val lastModifiedCommit = if(path == ".") revCommit else JGitUtil.getLastModifiedCommit(git, revCommit, path)
             // get files
             val files = JGitUtil.getFileList(git, revision, path)
             val parentPath = if (path == ".") Nil else path.split("/").toList

@@ -652,4 +652,15 @@ object JGitUtil {
       }.head.id
     }
 
+  /**
+   * Returns the last modified commit of specified path
+   * @param git the Git object
+   * @param startCommit the search base commit id
+   * @param path the path of target file or directory
+   * @return the last modified commit of specified path
+   */
+  def getLastModifiedCommit(git: Git, startCommit: RevCommit, path: String): RevCommit = {
+    return git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
+  }
+
 }
