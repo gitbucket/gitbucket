@@ -191,6 +191,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+      val lastModifiedCommit = git.log.add(revCommit).addPath(path).setMaxCount(1).call.iterator.next()
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
@@ -200,7 +201,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
         } else {
           repo.html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
-            new JGitUtil.CommitInfo(revCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
+            new JGitUtil.CommitInfo(lastModifiedCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       } getOrElse NotFound
     }
@@ -311,10 +312,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repo.html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
+            val lastModifiedCommit = if(path != ".") git.log.add(revCommit).addPath(path).setMaxCount(1).call.iterator.next else revCommit
             // get files
             val files = JGitUtil.getFileList(git, revision, path)
             val parentPath = if (path == ".") Nil else path.split("/").toList
@@ -329,7 +330,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
-              new JGitUtil.CommitInfo(revCommit), // latest commit
+              new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount))
           }
         } getOrElse NotFound
