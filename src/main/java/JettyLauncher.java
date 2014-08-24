@@ -1,10 +1,7 @@
-import org.eclipse.jetty.io.EndPoint;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import java.io.IOException;
 import java.net.URL;
 import java.security.ProtectionDomain;
 
