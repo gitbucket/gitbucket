@@ -1,5 +1,5 @@
 package view
-import java.util.Date
+import java.util.{Date, TimeZone}
 import java.text.SimpleDateFormat
 import twirl.api.Html
 import util.StringUtil
@@ -18,7 +18,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Format java.util.Date to "yyyy-MM-dd'T'hh:mm:ss'Z'".
    */
-  def datetimeRFC3339(date: Date): String = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'").format(date).replaceAll("(\\d\\d)(\\d\\d)$","$1:$2")
+  def datetimeRFC3339(date: Date): String = {
+    val sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    sf.setTimeZone(TimeZone.getTimeZone("UTC"))
+    sf.format(date)
+  }
 
   /**
    * Format java.util.Date to "yyyy-MM-dd".
