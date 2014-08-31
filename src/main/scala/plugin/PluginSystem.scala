@@ -113,7 +113,7 @@ object PluginSystem extends PluginService {
           migrate(session.conn, pluginId, plugin.get.version)
         }
       } catch {
-        case e: Exception => logger.warn(s"Error in plugin loading for ${scalaFile.getAbsolutePath}", e)
+        case e: Throwable => logger.warn(s"Error in plugin loading for ${scalaFile.getAbsolutePath}", e)
       }
     }
   }

@@ -139,9 +139,10 @@ trait SystemSettingsControllerBase extends ControllerBase {
     val installedPlugins = plugin.PluginSystem.plugins
     getAvailablePlugins(installedPlugins).filter(x => pluginIds.contains(x.id)).foreach { plugin =>
       val pluginDir = new java.io.File(PluginHome, plugin.id)
-      if(!pluginDir.exists){
-        FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
+      if(pluginDir.exists){
+        FileUtils.deleteDirectory(pluginDir)
       }
+      FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
       PluginSystem.installPlugin(plugin.id)
     }
   }
