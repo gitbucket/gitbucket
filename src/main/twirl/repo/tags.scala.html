@@ -11,7 +11,7 @@
         <th width="20%">Commit</th>
         <th width="20%">Download</th>
       </tr>
-      @repository.tags.map { tag =>
+      @repository.tags.reverse.map { tag =>
         <tr>
           <td><a href="@url(repository)/tree/@encodeRefName(tag.name)">@tag.name</a></td>
           <td>@datetime(tag.time)</td>

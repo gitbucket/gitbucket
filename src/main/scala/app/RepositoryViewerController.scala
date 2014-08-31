@@ -191,6 +191,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+      val lastModifiedCommit = JGitUtil.getLastModifiedCommit(git, revCommit, path)
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
@@ -200,7 +201,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
         } else {
           repo.html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
-            new JGitUtil.CommitInfo(revCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
+            new JGitUtil.CommitInfo(lastModifiedCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       } getOrElse NotFound
     }
@@ -311,10 +312,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repo.html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
+            val lastModifiedCommit = if(path == ".") revCommit else JGitUtil.getLastModifiedCommit(git, revCommit, path)
             // get files
             val files = JGitUtil.getFileList(git, revision, path)
             val parentPath = if (path == ".") Nil else path.split("/").toList
@@ -329,7 +330,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
-              new JGitUtil.CommitInfo(revCommit), // latest commit
+              new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount))
           }
         } getOrElse NotFound
@@ -350,7 +351,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val builder  = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
         val headName = s"refs/heads/${branch}"
-        val headTip  = git.getRepository.resolve(s"refs/heads/${branch}")
+        val headTip  = git.getRepository.resolve(headName)
 
         JGitUtil.processTree(git, headTip){ (path, tree) =>
           if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
@@ -365,7 +366,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         builder.finish()
 
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
-          loginAccount.fullName, loginAccount.mailAddress, message)
+          headName, loginAccount.fullName, loginAccount.mailAddress, message)
 
         inserter.flush()
         inserter.release()

@@ -36,9 +36,6 @@ h6 {
   font-size: 18px;
 }
 
-h7 {
-  font-size: 14px;
-}
 
 /* ======================================================================== */
 /* Global Header */
@@ -596,6 +593,7 @@ pre.blob {
   border: none;
   background-color: white;
   padding-left: 20px;
+  font-size: 12px;
 }
 
 #readme {
@@ -841,6 +839,8 @@ div.author-info div.committer {
 /* Diff */
 /****************************************************************************/
 table.inlinediff {
+    font-size: 12px;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     width: 100%;
 }
 

@@ -504,7 +504,7 @@ object JGitUtil {
   }
 
   def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
-                              fullName: String, mailAddress: String, message: String): ObjectId = {
+                      ref: String, fullName: String, mailAddress: String, message: String): ObjectId = {
     val newCommit = new CommitBuilder()
     newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
     newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
@@ -518,7 +518,7 @@ object JGitUtil {
     inserter.flush()
     inserter.release()
 
-    val refUpdate = git.getRepository.updateRef(Constants.HEAD)
+    val refUpdate = git.getRepository.updateRef(ref)
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
@@ -651,5 +651,16 @@ object JGitUtil {
         existIds.contains(commit.name) && getBranchesOfCommit(oldGit, commit.getName).contains(branch)
       }.head.id
     }
+
+  /**
+   * Returns the last modified commit of specified path
+   * @param git the Git object
+   * @param startCommit the search base commit id
+   * @param path the path of target file or directory
+   * @return the last modified commit of specified path
+   */
+  def getLastModifiedCommit(git: Git, startCommit: RevCommit, path: String): RevCommit = {
+    return git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
+  }
 
 }

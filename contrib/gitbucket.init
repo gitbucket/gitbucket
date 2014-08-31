@@ -1,6 +1,8 @@
 #!/bin/bash
 #
-# /etc/rc.d/init.d/gitbucket
+# RedHat: /etc/rc.d/init.d/gitbucket
+# Ubuntu: /etc/init.d/gitbucket
+# Mac OS/X: /Library/StartupItems/GitBucket
 #
 # Starts the GitBucket server
 #
@@ -8,28 +10,44 @@
 # description: Run GitBucket server
 # processname: java
 
-# Source function library
-. /etc/rc.d/init.d/functions
+set -e
+
+[ -f /etc/rc.d/init.d/functions ] && source /etc/rc.d/init.d/functions  # RedHat
+[ -f /etc/rc.common ] && source /etc/rc.common # Mac OS/X
 
 # Default values
 GITBUCKET_HOME=/var/lib/gitbucket
 GITBUCKET_WAR_FILE=/usr/share/gitbucket/lib/gitbucket.war
 
 # Pull in cq settings
-[ -f /etc/sysconfig/gitbucket ] && . /etc/sysconfig/gitbucket
+[ -f /etc/sysconfig/gitbucket ] && source /etc/sysconfig/gitbucket # RedHat
+[ -f gitbucket.conf ] && source gitbucket.conf  # For all systems
 
 # Location of the log and PID file
-LOG_FILE=/var/log/gitbucket/run.log
+LOG_FILE=$GITBUCKET_LOG_DIR/run.log
 PID_FILE=/var/run/gitbucket.pid
 
-# Default return value
-RETVAL=0
+RED='\033[1m\E[37;41m'
+GREEN='\033[1m\E[37;42m'
+OFF='\E[0m'
 
+if [ -z "$(which success)" ]; then
+	function success {
+	  printf "%b\n" "$GREEN $* $OFF"
+  }
+fi
+if [ -z "$(which failure)" ]; then
+	function failure {
+	  printf "%b\n" "$RED $* $OFF"
+  }
+fi
+
+RETVAL=0
 
 start() {
 	echo -n $"Starting GitBucket server: "
 
-	# Compile statup parameters
+  START_OPTS=
 	if [ $GITBUCKET_PORT ]; then
 		START_OPTS="${START_OPTS} --port=${GITBUCKET_PORT}"
 	fi
@@ -40,17 +58,15 @@ start() {
 		START_OPTS="${START_OPTS} --host=${GITBUCKET_HOST}"
 	fi
 
-	# Run the Java process
 	GITBUCKET_HOME="${GITBUCKET_HOME}" java $GITBUCKET_JVM_OPTS -jar $GITBUCKET_WAR_FILE $START_OPTS >>$LOG_FILE 2>&1 &
 	RETVAL=$?
 
-	# Store PID of the Java process into a file
 	echo $! > $PID_FILE
 
 	if [ $RETVAL -eq 0 ] ; then
-		success "GitBucket startup"
+		success "Success"
 	else
-		failure "GitBucket startup"
+		failure "Exit code $RETVAL"
 	fi
 
 	echo
@@ -82,25 +98,41 @@ restart() {
 	start
 }
 
-
-case "$1" in
-start)
+## MacOS proxies for System V service hooks:
+StartService() {
 	start
-	;;
-stop)
+}
+
+StopService() {
 	stop
-	;;
-restart)
+}
+
+RestartService() {
 	restart
-	;;
-status)
-	status -p $PID_FILE java
-	RETVAL=$?
-	;;
-*)
-	echo $"Usage: $0 [start|stop|restart|status]"
-	RETVAL=2
-esac
+}
 
 
-exit $RETVAL
+if [ `isMac` ]; then
+  RunService "$1"
+else
+	case "$1" in
+		start)
+			start
+			;;
+		stop)
+			stop
+			;;
+		restart)
+			restart
+			;;
+		status)
+			status -p $PID_FILE java
+			RETVAL=$?
+			;;
+		*)
+			echo $"Usage: $0 [start|stop|restart|status]"
+			RETVAL=2
+	esac
+  exit $RETVAL
+fi
+
