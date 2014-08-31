@@ -69,6 +69,8 @@ object AutoUpdate {
             }
           }
         }
+        FileUtils.deleteDirectory(Directory.getPluginCacheDir())
+        FileUtils.deleteDirectory(new File(Directory.PluginHome))
       }
     },
     new Version(2, 2),
