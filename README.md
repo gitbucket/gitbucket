@@ -80,6 +80,11 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.3 - 1 Sep 2014
+- Scala based plugin system
+- Embedded Jetty war extraction directory moved to `GITBUCKET_HOME/tmp`
+- Some bug fix and improvements
+
 ### 2.2.1 - 5 Aug 2014
 - Bug fix
 
