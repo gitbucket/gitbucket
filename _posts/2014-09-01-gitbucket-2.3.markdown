@@ -12,7 +12,9 @@ The plugin system is available since GitBucket 2.2, but it had been still experi
 
 In GitBucket 2.3, the plugin system moved to Scala based. We also provide some plugin examples include code snippet management system like Gist.
 
-TODO: Image
+![Snippet plugin (1)]({{site.baseurl}}/images/gitbucket-2.3/gist_plugin_1.png)
+
+![Snippet plugin (2)]({{site.baseurl}}/images/gitbucket-2.3/gist_plugin_2.png)
 
 However the plugin system is not still so stable and API for plugins is not enough. Note large changes in the future release.
 
