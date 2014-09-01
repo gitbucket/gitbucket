@@ -1,0 +1,27 @@
+---
+layout: post
+title: "GitBucket 2.3 released!"
+date: 2014-09-01 00:00:00
+categories: gitbucket
+---
+Today, we are pleased to announce the availability of new version of Scala based Github clone [GitBucket 2.3](https://github.com/takezoe/gitbucket/releases/tag/2.3)!
+
+## Scala based plugin system
+
+The plugin system is available since GitBucket 2.2, but it had been still experimental in 2.2.
+
+In GitBucket 2.3, the plugin system moved to Scala based. We also provide some plugin examples include code snippet management system like Gist.
+
+TODO: Image
+
+However the plugin system is not still so stable and API for plugins is not enough. Note large changes in the future release.
+
+## Embedded Jetty extraction directory
+
+Embedded Jetty extracts war file into `/tmp` in Linux. However `/tmp` is cleaned by operating system periodically. It causes error.
+
+In GitBucket 2.3, it extracts into `GITBUCKET_HOME/tmp` to solve this issue.
+
+In addition, some bug fix and improvements are contained in this release. See [all closed issues in this release](https://github.com/takezoe/gitbucket/issues?q=milestone%3A2.3+is%3Aclosed) to know details.
+
+Enjoy GitBucket!
