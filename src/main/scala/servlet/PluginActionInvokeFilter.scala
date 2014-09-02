@@ -7,7 +7,7 @@ import play.twirl.api.Html
 import service.{AccountService, RepositoryService, SystemSettingsService}
 import model.{Account, Session}
 import util.{JGitUtil, Keys}
-import plugin.{Fragment, PluginConnectionHolder, Redirect}
+import plugin.{RawData, Fragment, PluginConnectionHolder, Redirect}
 import service.RepositoryService.RepositoryInfo
 import plugin.Security._
 
@@ -46,13 +46,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
         } finally {
           PluginConnectionHolder.threadLocal.remove()
         }
-        result match {
-          case x: String   => renderGlobalHtml(request, response, context, x)
-          case x: Html     => renderGlobalHtml(request, response, context, x.toString)
-          case x: Fragment => renderFragmentHtml(request, response, context, x.html.toString)
-          case x: Redirect => response.sendRedirect(x.path)
-          case x: AnyRef   => renderJson(request, response, x)
-        }
+        processActionResult(result, request, response, context)
       } else {
         // TODO NotFound or Error?
       }
@@ -81,13 +75,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
             } finally {
               PluginConnectionHolder.threadLocal.remove()
             }
-            result match {
-              case x: String   => renderRepositoryHtml(request, response, context, repository, x)
-              case x: Html     => renderGlobalHtml(request, response, context, x.toString)
-              case x: Fragment => renderFragmentHtml(request, response, context, x.html.toString)
-              case x: Redirect => response.sendRedirect(x.path)
-              case x: AnyRef   => renderJson(request, response, x)
-            }
+            processActionResult(result, request, response, context)
           } else {
             // TODO NotFound or Error?
           }
@@ -95,6 +83,24 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
         }
       } getOrElse false
     } else false
+  }
+
+  private def processActionResult(result: Any, request: HttpServletRequest, response: HttpServletResponse,
+                                   context: app.Context): Unit = {
+    result match {
+      case null|None         => renderError(request, response, context, 404)
+      case x: String         => renderGlobalHtml(request, response, context, x)
+      case Some(x: String)   => renderGlobalHtml(request, response, context, x)
+      case x: Html           => renderGlobalHtml(request, response, context, x.toString)
+      case Some(x: Html)     => renderGlobalHtml(request, response, context, x.toString)
+      case x: Fragment       => renderFragmentHtml(request, response, context, x.html.toString)
+      case Some(x: Fragment) => renderFragmentHtml(request, response, context, x.html.toString)
+      case x: RawData        => renderRawData(request, response, context, x)
+      case Some(x: RawData)  => renderRawData(request, response, context, x)
+      case x: Redirect       => response.sendRedirect(x.path)
+      case Some(x: Redirect) => response.sendRedirect(x.path)
+      case x: AnyRef         => renderJson(request, response, x)
+    }
   }
 
   /**
@@ -145,6 +151,10 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     }
   }
 
+  private def renderError(request: HttpServletRequest, response: HttpServletResponse, context: app.Context, error: Int): Unit = {
+    response.sendError(error)
+  }
+
   private def renderGlobalHtml(request: HttpServletRequest, response: HttpServletResponse, context: app.Context, body: String): Unit = {
     response.setContentType("text/html; charset=UTF-8")
     val html = _root_.html.main("GitBucket", None)(Html(body))(context)
@@ -160,6 +170,11 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
   private def renderFragmentHtml(request: HttpServletRequest, response: HttpServletResponse, context: app.Context, body: String): Unit = {
     response.setContentType("text/html; charset=UTF-8")
     IOUtils.write(body.getBytes("UTF-8"), response.getOutputStream)
+  }
+
+  private def renderRawData(request: HttpServletRequest, response: HttpServletResponse, context: app.Context, rawData: RawData): Unit = {
+    response.setContentType(rawData.contentType)
+    IOUtils.write(rawData.content, response.getOutputStream)
   }
 
   private def renderJson(request: HttpServletRequest, response: HttpServletResponse, obj: AnyRef): Unit = {

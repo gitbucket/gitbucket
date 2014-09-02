@@ -7,6 +7,7 @@ package object plugin {
 
   case class Redirect(path: String)
   case class Fragment(html: Html)
+  case class RawData(contentType: String, content: Array[Byte])
 
   object db {
     // TODO labelled place holder support
