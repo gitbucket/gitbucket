@@ -21,7 +21,7 @@ class PluginActionInvokeFilter extends Filter with SystemSettingsService with Re
     (req, res) match {
       case (request: HttpServletRequest, response: HttpServletResponse) => {
         Database(req.getServletContext) withTransaction { implicit session =>
-          val path = req.asInstanceOf[HttpServletRequest].getRequestURI
+          val path = request.getRequestURI.substring(request.getServletContext.getContextPath.length)
           if(!processGlobalAction(path, request, response) && !processRepositoryAction(path, request, response)){
             chain.doFilter(req, res)
           }
