@@ -6,7 +6,7 @@ categories: gitbucket
 ---
 [ScalaMatsuri](http://scalamatsuri.org/en/) the interational conference for Scala developers in Japan was held at last weekend. I gave a speech about GitBucket in the first day of this conference. In my talk, described technologies and tools which support GitBucket and its development.
 
-![ScalaMatsuri]({{site.baseurl}}/images/scalamatsuri/scalamatsuri.png)
+![ScalaMatsuri]({{site.baseurl}}/images/scalamatsuri/scalamatsuri.jpg)
 
 <iframe src="//www.slideshare.net/slideshow/embed_code/38770371" width="427" height="356" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:5px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:5px"> <strong> <a href="https://www.slideshare.net/takezoe/scala-matsuri-gitbucket" title="GitBucket: The perfect Github clone by Scala" target="_blank">GitBucket: The perfect Github clone by Scala</a> </strong> from <strong><a href="http://www.slideshare.net/takezoe" target="_blank">takezoe</a></strong> </div>
 
