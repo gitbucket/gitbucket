@@ -4,6 +4,7 @@ import org.eclipse.jgit.api.Git
 import util.Directory._
 import util.StringUtil._
 import util.ControlUtil._
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
@@ -190,38 +191,23 @@ object JGitUtil {
    * @return HTML of the file list
    */
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
-    val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
+    var list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
 
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(revision)
       val revCommit = revWalk.parseCommit(objectId)
 
-      using(new TreeWalk(git.getRepository)){ treeWalk =>
+      val treeWalk = if (path == ".") {
+        val treeWalk = new TreeWalk(git.getRepository)
         treeWalk.addTree(revCommit.getTree)
-        if(path != "."){
-          treeWalk.setRecursive(true)
-          treeWalk.setFilter(new TreeFilter(){
+        treeWalk
+      } else {
+        val treeWalk = TreeWalk.forPath(git.getRepository, path, revCommit.getTree)
+        treeWalk.enterSubtree()
+        treeWalk
+      }
 
-            var stopRecursive = false
-
-            def include(walker: TreeWalk): Boolean = {
-              val targetPath = walker.getPathString
-              if((path + "/").startsWith(targetPath)){
-                true
-              } else if(targetPath.startsWith(path + "/") && targetPath.substring(path.length + 1).indexOf('/') < 0){
-                stopRecursive = true
-                treeWalk.setRecursive(false)
-                true
-              } else {
-                false
-              }
-            }
-
-            def shouldBeRecursive(): Boolean = !stopRecursive
-
-            override def clone: TreeFilter = return this
-          })
-        }
+      using(treeWalk) { treeWalk =>
         while (treeWalk.next()) {
           // submodule
           val linkUrl = if(treeWalk.getFileMode(0) == FileMode.GITLINK){
@@ -229,6 +215,32 @@ object JGitUtil {
           } else None
 
           list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString, linkUrl))
+        }
+
+        list = list.map(tuple =>
+          if (tuple._2 != FileMode.TREE)
+            tuple
+          else
+            simplifyPath(tuple)
+        )
+
+        @tailrec
+        def simplifyPath(tuple: (ObjectId, FileMode, String, String, Option[String])): (ObjectId, FileMode, String, String, Option[String]) = {
+          val walk = new TreeWalk(git.getRepository)
+          walk.addTree(tuple._1)
+          val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
+          while (walk.next()) {
+            if (list.size > 0)
+              return tuple
+            val linkUrl = if (walk.getFileMode(0) == FileMode.GITLINK) {
+              getSubmodules(git, revCommit.getTree).find(_.path == walk.getPathString).map(_.url)
+            } else None
+            list.append((walk.getObjectId(0), walk.getFileMode(0), tuple._3 + "/" + walk.getPathString, tuple._4 + "/" + walk.getNameString, linkUrl))
+          }
+          if (list.size == 0 || list.exists(_._2 != FileMode.TREE))
+            tuple
+          else
+            simplifyPath(list(0))
         }
       }
     }
