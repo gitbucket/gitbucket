@@ -226,18 +226,17 @@ object JGitUtil {
 
         @tailrec
         def simplifyPath(tuple: (ObjectId, FileMode, String, String, Option[String])): (ObjectId, FileMode, String, String, Option[String]) = {
-          val walk = new TreeWalk(git.getRepository)
-          walk.addTree(tuple._1)
           val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
-          while (walk.next()) {
-            if (list.size > 0)
-              return tuple
-            val linkUrl = if (walk.getFileMode(0) == FileMode.GITLINK) {
-              getSubmodules(git, revCommit.getTree).find(_.path == walk.getPathString).map(_.url)
-            } else None
-            list.append((walk.getObjectId(0), walk.getFileMode(0), tuple._3 + "/" + walk.getPathString, tuple._4 + "/" + walk.getNameString, linkUrl))
+          using(new TreeWalk(git.getRepository)) { walk =>
+            walk.addTree(tuple._1)
+            while (walk.next() && list.size < 2) {
+              val linkUrl = if (walk.getFileMode(0) == FileMode.GITLINK) {
+                getSubmodules(git, revCommit.getTree).find(_.path == walk.getPathString).map(_.url)
+              } else None
+              list.append((walk.getObjectId(0), walk.getFileMode(0), tuple._3 + "/" + walk.getPathString, tuple._4 + "/" + walk.getNameString, linkUrl))
+            }
           }
-          if (list.size == 0 || list.exists(_._2 != FileMode.TREE))
+          if (list.size != 1 || list.exists(_._2 != FileMode.TREE))
             tuple
           else
             simplifyPath(list(0))
