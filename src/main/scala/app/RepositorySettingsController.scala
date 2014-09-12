@@ -13,6 +13,7 @@ import service.WebHookService.WebHookPayload
 import util.JGitUtil.CommitInfo
 import util.ControlUtil._
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Constants
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
   with RepositoryService with AccountService with WebHookService
@@ -71,11 +72,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Save the repository options.
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
+    val defaultBranch = if(repository.branchList.isEmpty) "master" else form.defaultBranch
     saveRepositoryOptions(
       repository.owner,
       repository.name,
       form.description,
-      if(repository.branchList.isEmpty) "master" else form.defaultBranch,
+      defaultBranch,
       repository.repository.parentUserName.map { _ =>
         repository.repository.isPrivate
       } getOrElse form.isPrivate
@@ -92,6 +94,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
         FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
       }
+    }
+    // Change repository HEAD
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + defaultBranch)
     }
     flash += "info" -> "Repository settings has been updated."
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
