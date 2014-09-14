@@ -102,8 +102,15 @@ class GitBucketHtmlSerializer(
   }
 
   private def fixUrl(url: String): String = {
-    if(!enableWikiLink || url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#")){
-      url
+    if(!enableWikiLink){
+      if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#") || url.startsWith("/") ||
+          context.currentPath.contains("/blob/")){
+        url
+      } else {
+        val paths = context.currentPath.split("/")
+        val branch = if(paths.length > 3) paths.last else repository.repository.defaultBranch
+        repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url
+      }
     } else {
       repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url
     }
