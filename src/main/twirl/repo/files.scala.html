@@ -84,9 +84,19 @@
         <td>
         @if(file.isDirectory){
           @if(file.linkUrl.isDefined){
-            <a href="@file.linkUrl">@file.name</a>
+            <a href="@file.linkUrl">
+              <span class="simplified-path">@file.name.split("/").toList.init match {
+                case Nil => {}
+                case list => {@list.mkString("", "/", "/")}
+              }</span>@file.name.split("/").toList.last
+            </a>
           } else {
-            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
+              <span class="simplified-path">@file.name.split("/").toList.init match {
+                case Nil => {}
+                case list => {@list.mkString("", "/", "/")}
+              }</span>@file.name.split("/").toList.last
+            </a>
           }
         } else {
           <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
