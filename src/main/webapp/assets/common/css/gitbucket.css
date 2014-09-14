@@ -119,6 +119,11 @@ div.container {
   width: 920px;
 }
 
+div.container-wide {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 div.pagination {
   margin-top: 0px;
   margin-bottom: 0px;

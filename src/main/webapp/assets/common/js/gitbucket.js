@@ -68,7 +68,15 @@ function displayErrors(data){
   };
 })(jQuery);
 
-function diffUsingJS(oldTextId, newTextId, outputId) {
+/**
+ * Render diff using jsdifflib.
+ *
+ * @param oldTextId {String} element id of old text
+ * @param newTextId {String} element id of new text
+ * @param outputId {String} element id of output element
+ * @param viewType {Number} 0: split, 1: unified
+ */
+function diffUsingJS(oldTextId, newTextId, outputId, viewType) {
   // get the baseText and newText values from the two textboxes, and split them into lines
   var oldText = document.getElementById(oldTextId).value;
   var oldLines = [];
@@ -98,7 +106,7 @@ function diffUsingJS(oldTextId, newTextId, outputId) {
     newTextLines: newLines,
     opcodes: opcodes,
     contextSize: 4,
-    viewType: 1
+    viewType: viewType
   }));
 }
 

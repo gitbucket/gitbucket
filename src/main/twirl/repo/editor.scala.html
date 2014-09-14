@@ -139,7 +139,7 @@ $(function(){
         .append($('<div id="diffText">'))
         .append($('<textarea id="newText" style="display: none;">').html(editor.getValue()))
         .append($('<textarea id="oldText" style="display: none;">').html($('#initial').val()));
-      diffUsingJS('oldText', 'newText', 'diffText');
+      diffUsingJS('oldText', 'newText', 'diffText', 1);
     }
   });
 });
