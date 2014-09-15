@@ -14,7 +14,7 @@ function validate(e){
   var form = $(e.target);
   $(form).find('[type=submit]').attr('disabled', 'disabled');
 
-  if(form.data('validated') !== true){
+  if(form.data('validated') === true){
     return true;
   }
 
