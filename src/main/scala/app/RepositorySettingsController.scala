@@ -2,10 +2,8 @@ package app
 
 import service._
 import util.Directory._
-import util.ControlUtil._
 import util.Implicits._
 import util.{LockUtil, UsersAuthenticator, OwnerAuthenticator}
-import util.JGitUtil.CommitInfo
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
@@ -137,7 +135,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook page.
    */
   get("/:owner/:repository/settings/hooks")(ownerOnly { repository =>
-    settings.html.hooks(getWebHookURLs(repository.owner, repository.name), repository, flash.get("info"))
+    settings.html.hooks(getWebHookURLs(repository.owner, repository.name), flash.get("url"), repository, flash.get("info"))
   })
 
   /**
@@ -159,7 +157,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Send the test request to registered web hook URLs.
    */
-  get("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
+  post("/:owner/:repository/settings/hooks/test", webHookForm)(ownerOnly { (form, repository) =>
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       import scala.collection.JavaConverters._
       val commits = git.log
@@ -167,15 +165,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         .setMaxCount(3)
         .call.iterator.asScala.map(new CommitInfo(_))
 
-      getWebHookURLs(repository.owner, repository.name) match {
-        case webHookURLs if(webHookURLs.nonEmpty) =>
-          for(ownerAccount <- getAccountByUserName(repository.owner)){
-            callWebHook(repository.owner, repository.name, webHookURLs,
-              WebHookPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount))
-          }
-        case _ =>
+      getAccountByUserName(repository.owner).foreach { ownerAccount =>
+        callWebHook(repository.owner, repository.name,
+          List(model.WebHook(repository.owner, repository.name, form.url)),
+          WebHookPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
+        )
       }
-
+      flash += "url"  -> form.url
       flash += "info" -> "Test payload deployed!"
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
