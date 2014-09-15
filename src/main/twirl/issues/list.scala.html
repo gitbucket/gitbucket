@@ -19,6 +19,7 @@
   @html.menu("issues", repository){
     @tab("issues", false, repository)
     <div class="row-fluid">
+      @*
       <div class="span3">
         <ul class="nav nav-pills nav-stacked">
           <li@if(filter == "all"){ class="active"}>
@@ -131,6 +132,7 @@
           @_root_.issues.labels.html.edit(None, repository)
         }
       </div>
+      *@
       @***** show issue list *****@
       @listparts(issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
     </div>

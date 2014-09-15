@@ -620,6 +620,16 @@ span.simplified-path {
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
+a.button-link {
+    font-weight: normal;
+    color: gray;
+}
+
+a.selected {
+    font-weight: bold;
+    color: black;
+}
+
 span.issue-status {
   display: block;
   font-size: large;
@@ -634,7 +644,7 @@ table.table-issues {
 a.issue-title {
   color: #333;
   font-weight: bold;
-  size: 110%;
+  font-size: 120%;
 }
 
 ul.label-list {
