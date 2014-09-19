@@ -3,21 +3,20 @@ package service
 import util.{FileUtil, StringUtil, JGitUtil}
 import util.Directory._
 import util.ControlUtil._
-import model.Issue
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
-import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
+import model.Profile._
+import profile.simple._
 
-trait
-RepositorySearchService { self: IssuesService =>
+trait RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._
 
-  def countIssues(owner: String, repository: String, query: String): Int =
+  def countIssues(owner: String, repository: String, query: String)(implicit session: Session): Int =
     searchIssuesByKeyword(owner, repository, query).length
 
-  def searchIssues(owner: String, repository: String, query: String): List[IssueSearchResult] =
+  def searchIssues(owner: String, repository: String, query: String)(implicit session: Session): List[IssueSearchResult] =
     searchIssuesByKeyword(owner, repository, query).map { case (issue, commentCount, content) =>
       IssueSearchResult(
         issue.issueId,
@@ -39,7 +38,7 @@ RepositorySearchService { self: IssuesService =>
         Nil
       } else {
         val files = searchRepositoryFiles(git, query)
-        val commits = JGitUtil.getLatestCommitFromPaths(git, files.toList.map(_._1), "HEAD")
+        val commits = JGitUtil.getLatestCommitFromPaths(git, files.map(_._1), "HEAD")
         files.map { case (path, text) =>
           val (highlightText, lineNumber)  = getHighlightText(text, query)
           FileSearchResult(
@@ -60,7 +59,7 @@ RepositorySearchService { self: IssuesService =>
     treeWalk.addTree(revCommit.getTree)
 
     val keywords = StringUtil.splitWords(query.toLowerCase)
-    val list = new ListBuffer[(String, String)]
+    val list = new scala.collection.mutable.ListBuffer[(String, String)]
 
     while (treeWalk.next()) {
       val mode = treeWalk.getFileMode(0)
@@ -108,7 +107,7 @@ object RepositorySearchService {
 
   case class SearchResult(
     files : List[(String, String)],
-    issues: List[(Issue, Int, String)])
+    issues: List[(model.Issue, Int, String)])
 
   case class IssueSearchResult(
     issueId: Int,

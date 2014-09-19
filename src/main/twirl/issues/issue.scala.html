@@ -19,7 +19,7 @@
       <div class="span10">
         @issuedetail(issue, comments, collaborators, milestones, hasWritePermission, repository)
         @commentlist(issue, comments, hasWritePermission, repository)
-        @commentform(issue, hasWritePermission, repository)
+        @commentform(issue, true, hasWritePermission, repository)
       </div>
       <div class="span2">
         @if(issue.closed) {

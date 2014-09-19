@@ -47,6 +47,22 @@ object StringUtil {
     }
 
   /**
+   * Converts line separator in the given content.
+   *
+   * @param content the content
+   * @param lineSeparator "LF" or "CRLF"
+   * @return the converted content
+   */
+  def convertLineSeparator(content: String, lineSeparator: String): String = {
+    val lf = content.replace("\r\n", "\n").replace("\r", "\n")
+    if(lineSeparator == "CRLF"){
+      lf.replace("\n", "\r\n")
+    } else {
+      lf
+    }
+  }
+
+  /**
    * Extract issue id like ```#issueId``` from the given message.
    *
    *@param message the message which may contains issue id

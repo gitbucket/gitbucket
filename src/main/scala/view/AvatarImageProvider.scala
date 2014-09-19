@@ -1,7 +1,7 @@
 package view
 
 import service.RequestCache
-import twirl.api.Html
+import play.twirl.api.Html
 import util.StringUtil
 
 trait AvatarImageProvider { self: RequestCache =>

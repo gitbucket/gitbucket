@@ -3,7 +3,7 @@ package servlet
 import javax.servlet._
 import javax.servlet.http._
 import service.{SystemSettingsService, AccountService, RepositoryService}
-import model.Account
+import model._
 import org.slf4j.LoggerFactory
 import util.Implicits._
 import util.ControlUtil._
@@ -21,7 +21,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
   def destroy(): Unit = {}
   
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
-    val request  = req.asInstanceOf[HttpServletRequest]
+    implicit val request  = req.asInstanceOf[HttpServletRequest]
     val response = res.asInstanceOf[HttpServletResponse]
 
     val wrappedResponse = new HttpServletResponseWrapper(response){
@@ -65,7 +65,8 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
   }
 
-  private def getWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo): Option[Account] =
+  private def getWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo)
+                             (implicit session: Session): Option[Account] =
     authenticate(loadSystemSettings(), username, password) match {
       case x @ Some(account) if(hasWritePermission(repository.owner, repository.name, x)) => x
       case _ => None

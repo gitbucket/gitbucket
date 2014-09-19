@@ -6,6 +6,7 @@ import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import org.slf4j.LoggerFactory
 
 import app.Context
+import model.Session
 import service.{AccountService, RepositoryService, IssuesService, SystemSettingsService}
 import servlet.Database
 import SystemSettingsService.Smtp
@@ -15,7 +16,7 @@ trait Notifier extends RepositoryService with AccountService with IssuesService 
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
       (msg: String => String)(implicit context: Context): Unit
 
-  protected def recipients(issue: model.Issue)(notify: String => Unit)(implicit context: Context) =
+  protected def recipients(issue: model.Issue)(notify: String => Unit)(implicit session: Session, context: Context) =
     (
         // individual repository's owner
         issue.userName ::
@@ -27,7 +28,7 @@ trait Notifier extends RepositoryService with AccountService with IssuesService 
     )
     .distinct
     .withFilter ( _ != context.loginAccount.get.userName )	// the operation in person is excluded
-    .foreach ( getAccountByUserName(_) filterNot (_.isGroupAccount) foreach (x => notify(x.mailAddress)) )
+    .foreach ( getAccountByUserName(_) filterNot (_.isGroupAccount) filterNot (LDAPUtil.isDummyMailAddress(_)) foreach (x => notify(x.mailAddress)) )
 
 }
 
@@ -68,9 +69,8 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       (msg: String => String)(implicit context: Context) = {
     val database = Database(context.request.getServletContext)
 
-    val f = future {
-      // TODO Can we use the Database Session in other than Transaction Filter?
-      database withSession {
+    val f = Future {
+      database withSession { implicit session =>
         getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
           defining(
               s"[${r.name}] ${issue.title} (#${issueId})" ->

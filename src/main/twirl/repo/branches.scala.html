@@ -31,7 +31,10 @@
               <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branchName)}">to @{repository.repository.defaultBranch}</a>
             }
           </td>
-          <td><a href="@url(repository)/archive/@{encodeRefName(branchName)}.zip">ZIP</a></td>
+          <td>
+            <a href="@url(repository)/archive/@{encodeRefName(branchName)}.zip">ZIP</a>
+            <a href="@url(repository)/archive/@{encodeRefName(branchName)}.tar.gz">TAR.GZ</a>
+          </td>
         </tr>
       }
     </table>

@@ -37,13 +37,16 @@ trait SystemSettingsService {
           ldap.bindPassword.foreach(x => props.setProperty(LdapBindPassword, x))
           props.setProperty(LdapBaseDN, ldap.baseDN)
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
+          ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
-          props.setProperty(LdapMailAddressAttribute, ldap.mailAttribute)
+          ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x.toString))
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
-      props.store(new java.io.FileOutputStream(GitBucketConf), null)
+      using(new java.io.FileOutputStream(GitBucketConf)){ out =>
+        props.store(out, null)
+      }
     }
   }
 
@@ -51,7 +54,9 @@ trait SystemSettingsService {
   def loadSystemSettings(): SystemSettings = {
     defining(new java.util.Properties()){ props =>
       if(GitBucketConf.exists){
-        props.load(new java.io.FileInputStream(GitBucketConf))
+        using(new java.io.FileInputStream(GitBucketConf)){ in =>
+          props.load(in)
+        }
       }
       SystemSettings(
         getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
@@ -81,8 +86,9 @@ trait SystemSettingsService {
             getOptionValue(props, LdapBindPassword, None),
             getValue(props, LdapBaseDN, ""),
             getValue(props, LdapUserNameAttribute, ""),
+            getOptionValue(props, LdapAdditionalFilterCondition, None),
             getOptionValue(props, LdapFullNameAttribute, None),
-            getValue(props, LdapMailAddressAttribute, ""),
+            getOptionValue(props, LdapMailAddressAttribute, None),
             getOptionValue[Boolean](props, LdapTls, None),
             getOptionValue(props, LdapKeystore, None)))
         } else {
@@ -111,7 +117,7 @@ object SystemSettingsService {
       defining(request.getRequestURL.toString){ url =>
         url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
       }
-    }.replaceFirst("/$", "")
+    }.stripSuffix("/")
   }
 
   case class Ldap(
@@ -121,8 +127,9 @@ object SystemSettingsService {
     bindPassword: Option[String],
     baseDN: String,
     userNameAttribute: String,
+    additionalFilterCondition: Option[String],
     fullNameAttribute: Option[String],
-    mailAttribute: String,
+    mailAttribute: Option[String],
     tls: Option[Boolean],
     keystore: Option[String])
 
@@ -159,6 +166,7 @@ object SystemSettingsService {
   private val LdapBindPassword = "ldap.bind_password"
   private val LdapBaseDN = "ldap.baseDN"
   private val LdapUserNameAttribute = "ldap.username_attribute"
+  private val LdapAdditionalFilterCondition = "ldap.additional_filter_condition"
   private val LdapFullNameAttribute = "ldap.fullname_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
   private val LdapTls = "ldap.tls"

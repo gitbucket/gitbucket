@@ -5,6 +5,7 @@ import util._
 import util.StringUtil._
 import util.Directory._
 import util.ControlUtil._
+import util.Implicits._
 import ssh.SshUtil
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
@@ -291,7 +292,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Create new repository.
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
-    LockUtil.lock(s"${form.owner}/${form.name}/create"){
+    LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name, context.baseUrl).isEmpty){
         val ownerAccount  = getAccountByUserName(form.owner).get
         val loginAccount  = context.loginAccount.get
@@ -334,7 +335,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             builder.finish()
 
             JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-              loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
+              Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
           }
         }
 
@@ -354,7 +355,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val loginAccount   = context.loginAccount.get
     val loginUserName  = loginAccount.userName
 
-    LockUtil.lock(s"${loginUserName}/${repository.name}/create"){
+    LockUtil.lock(s"${loginUserName}/${repository.name}"){
       if(repository.owner == loginUserName || getRepository(loginAccount.userName, repository.name, baseUrl).isDefined){
         // redirect to the repository if repository already exists
         redirect(s"/${loginUserName}/${repository.name}")

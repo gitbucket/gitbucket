@@ -2,21 +2,17 @@ package service
 
 import java.util.Date
 import org.eclipse.jgit.api.Git
-import org.apache.commons.io.FileUtils
 import util._
 import _root_.util.ControlUtil._
-import org.eclipse.jgit.treewalk.{TreeWalk, CanonicalTreeParser}
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.dircache.{DirCache, DirCacheEntry}
-import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
 import java.io.ByteArrayInputStream
 import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
-import scala.Some
 import service.RepositoryService.RepositoryInfo
-
 
 object WikiService {
   
@@ -68,7 +64,7 @@ trait WikiService {
       if(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
           WikiPageInfo(file.name, StringUtil.convertFromByteArray(git.getRepository.open(file.id).getBytes),
-                       file.committer, file.time, file.commitId)
+                       file.author, file.time, file.commitId)
         }
       } else None
     }
@@ -97,7 +93,7 @@ trait WikiService {
     using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       JGitUtil.getFileList(git, "master", ".")
         .filter(_.name.endsWith(".md"))
-        .map(_.name.replaceFirst("\\.md$", ""))
+        .map(_.name.stripSuffix(".md"))
         .sortBy(x => x)
     }
   }
@@ -143,7 +139,7 @@ trait WikiService {
           val revertInfo = (p.getFiles.asScala.map { fh =>
             fh.getChangeType match {
               case DiffEntry.ChangeType.MODIFY => {
-                val source = getWikiPage(owner, repository, fh.getNewPath.replaceFirst("\\.md$", "")).map(_.content).getOrElse("")
+                val source = getWikiPage(owner, repository, fh.getNewPath.stripSuffix(".md")).map(_.content).getOrElse("")
                 val applied = PatchUtil.apply(source, patch, fh)
                 if(applied != null){
                   Seq(RevertInfo("ADD", fh.getNewPath, applied))
@@ -186,7 +182,8 @@ trait WikiService {
             }
             builder.finish()
 
-            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
+            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+              Constants.HEAD, committer.fullName, committer.mailAddress,
               pageName match {
                 case Some(x) => s"Revert ${from} ... ${to} on ${x}"
                 case None    => s"Revert ${from} ... ${to}"
@@ -233,7 +230,8 @@ trait WikiService {
         if(created || updated || removed){
           builder.add(JGitUtil.createDirCacheEntry(newPageName + ".md", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
           builder.finish()
-          val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
+          val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+            Constants.HEAD, committer.fullName, committer.mailAddress,
             if(message.trim.length == 0) {
               if(removed){
                 s"Rename ${currentPageName} to ${newPageName}"
@@ -273,7 +271,8 @@ trait WikiService {
         }
         if(removed){
           builder.finish()
-          JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer, mailAddress, message)
+          JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+            Constants.HEAD, committer, mailAddress, message)
         }
       }
     }

@@ -9,6 +9,7 @@ import util.Implicits._
 import util.ControlUtil._
 import org.scalatra.Ok
 import model.Issue
+import plugin.PluginSystem
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService

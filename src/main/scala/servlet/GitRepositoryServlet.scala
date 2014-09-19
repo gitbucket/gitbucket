@@ -17,6 +17,7 @@ import WebHookService._
 import org.eclipse.jgit.api.Git
 import util.JGitUtil.CommitInfo
 import service.IssuesService.IssueSearchCondition
+import model.Session
 
 /**
  * Provides Git repository via HTTP.
@@ -64,7 +65,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 }
 
 class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest] with SystemSettingsService {
-  
+
   private val logger = LoggerFactory.getLogger(classOf[GitBucketReceivePackFactory])
 
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
@@ -76,14 +77,16 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
     defining(request.paths){ paths =>
       val owner      = paths(1)
-      val repository = paths(2).replaceFirst("\\.git$", "")
+      val repository = paths(2).stripSuffix(".git")
 
       logger.debug("repository:" + owner + "/" + repository)
 
       if(!repository.endsWith(".wiki")){
-        val hook = new CommitLogHook(owner, repository, pusher, baseUrl(request))
-        receivePack.setPreReceiveHook(hook)
-        receivePack.setPostReceiveHook(hook)
+        defining(request) { implicit r =>
+          val hook = new CommitLogHook(owner, repository, pusher, baseUrl)
+          receivePack.setPreReceiveHook(hook)
+          receivePack.setPostReceiveHook(hook)
+        }
       }
       receivePack
     }
@@ -92,7 +95,8 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String) extends PostReceiveHook with PreReceiveHook
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)(implicit session: Session)
+  extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
@@ -114,6 +118,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        val pushedIds = scala.collection.mutable.Set[String]()
         commands.asScala.foreach { command =>
           logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
           val refName = command.getRefName.split("/")
@@ -133,10 +138,16 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             countIssue(IssueSearchCondition(state = "closed"), Map.empty, false, owner -> repository)
 
           // Extract new commit and apply issue comment
+          val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
           val newCommits = commits.flatMap { commit =>
-            if (!existIds.contains(commit.id)) {
+            if (!existIds.contains(commit.id) && !pushedIds.contains(commit.id)) {
               if (issueCount > 0) {
+                pushedIds.add(commit.id)
                 createIssueComment(commit)
+                // close issues
+                if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
+                  closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository)
+                }
               }
               Some(commit)
             } else None
@@ -168,17 +179,6 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             }
           }
 
-          // close issues
-          if(issueCount > 0) {
-            val defaultBranch = getRepository(owner, repository, baseUrl).get.repository.defaultBranch
-            if (refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE) {
-              git.log.addRange(command.getOldId, command.getNewId).call.asScala.foreach {
-                commit =>
-                  closeIssuesFromMessage(commit.getFullMessage, pusher, owner, repository)
-              }
-            }
-          }
-
           // call web hook
           getWebHookURLs(owner, repository) match {
             case webHookURLs if(webHookURLs.nonEmpty) =>
@@ -205,7 +205,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   private def createIssueComment(commit: CommitInfo) = {
     StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
       if(getIssue(owner, repository, issueId).isDefined){
-        getAccountByMailAddress(commit.mailAddress).foreach { account =>
+        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
           createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
         }
       }

@@ -4,7 +4,7 @@
   <property name="target.dir" value="target"/>
   <property name="embed.classes.dir" value="${target.dir}/embed-classes"/>
   <property name="jetty.dir" value="embed-jetty"/>
-  <property name="scala.version" value="2.10"/>
+  <property name="scala.version" value="2.11"/>
   <property name="gitbucket.version" value="0.0.1"/>
   <property name="jetty.version" value="8.1.8.v20121106"/>
   <property name="servlet.version" value="3.0.0.v201112011016"/>
@@ -50,8 +50,8 @@
   </target>
 
   <target name="rename" depends="embed">
-    <rename src="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
-            dest="${target.dir}/scala-${scala.version}/gitbucket.war"/>
+    <move file="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
+            tofile="${target.dir}/scala-${scala.version}/gitbucket.war"/>
   </target>
 
   <target name="all" depends="rename">

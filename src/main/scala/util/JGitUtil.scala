@@ -4,6 +4,7 @@ import org.eclipse.jgit.api.Git
 import util.Directory._
 import util.StringUtil._
 import util.ControlUtil._
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
@@ -35,7 +36,11 @@ object JGitUtil {
    * @param branchList the list of branch names
    * @param tags the list of tags
    */
-  case class RepositoryInfo(owner: String, name: String, url: String, commitCount: Int, branchList: List[String], tags: List[TagInfo])
+  case class RepositoryInfo(owner: String, name: String, url: String, commitCount: Int, branchList: List[String], tags: List[TagInfo]){
+    def this(owner: String, name: String, baseUrl: String) = {
+      this(owner, name, s"${baseUrl}/git/${owner}/${name}.git", 0, Nil, Nil)
+    }
+  }
 
   /**
    * The file data for the file list of the repository viewer.
@@ -43,38 +48,45 @@ object JGitUtil {
    * @param id the object id
    * @param isDirectory whether is it directory
    * @param name the file (or directory) name
-   * @param time the last modified time
    * @param message the last commit message
    * @param commitId the last commit id
-   * @param committer the last committer name
+   * @param time the last modified time
+   * @param author the last committer name
    * @param mailAddress the committer's mail address
    * @param linkUrl the url of submodule
    */
-  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, time: Date, message: String, commitId: String,
-                      committer: String, mailAddress: String, linkUrl: Option[String])
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, message: String, commitId: String,
+                      time: Date, author: String, mailAddress: String, linkUrl: Option[String])
 
   /**
    * The commit data.
    *
    * @param id the commit id
-   * @param time the commit time
-   * @param committer  the committer name
-   * @param mailAddress the mail address of the committer
    * @param shortMessage the short message
    * @param fullMessage the full message
    * @param parents the list of parent commit id
+   * @param authorTime the author time
+   * @param authorName the author name
+   * @param authorEmailAddress the mail address of the author
+   * @param commitTime the commit time
+   * @param committerName  the committer name
+   * @param committerEmailAddress the mail address of the committer
    */
-  case class CommitInfo(id: String, time: Date, committer: String, mailAddress: String,
-                        shortMessage: String, fullMessage: String, parents: List[String]){
+  case class CommitInfo(id: String, shortMessage: String, fullMessage: String, parents: List[String],
+                        authorTime: Date, authorName: String, authorEmailAddress: String,
+                        commitTime: Date, committerName: String, committerEmailAddress: String){
     
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) = this(
         rev.getName,
-        rev.getCommitterIdent.getWhen,
-        rev.getCommitterIdent.getName,
-        rev.getCommitterIdent.getEmailAddress,
         rev.getShortMessage,
         rev.getFullMessage,
-        rev.getParents().map(_.name).toList)
+        rev.getParents().map(_.name).toList,
+        rev.getAuthorIdent.getWhen,
+        rev.getAuthorIdent.getName,
+        rev.getAuthorIdent.getEmailAddress,
+        rev.getCommitterIdent.getWhen,
+        rev.getCommitterIdent.getName,
+        rev.getCommitterIdent.getEmailAddress)
 
     val summary = getSummaryMessage(fullMessage, shortMessage)
 
@@ -83,6 +95,8 @@ object JGitUtil {
         Some(fullMessage.trim.substring(i).trim)
       } else None
     }
+
+    def isDifferentFromAuthor: Boolean = authorName != committerName || authorEmailAddress != committerEmailAddress
   }
 
   case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
@@ -94,7 +108,12 @@ object JGitUtil {
    * @param content the string content
    * @param charset the character encoding
    */
-  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String])
+  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String]){
+    /**
+     * the line separator of this content ("LF" or "CRLF")
+     */
+    val lineSeparator: String = if(content.exists(_.indexOf("\r\n") >= 0)) "CRLF" else "LF"
+  }
 
   /**
    * The tag data.
@@ -146,12 +165,12 @@ object JGitUtil {
           commitCount,
           // branches
           git.branchList.call.asScala.map { ref =>
-            ref.getName.replaceFirst("^refs/heads/", "")
+            ref.getName.stripPrefix("refs/heads/")
           }.toList,
           // tags
           git.tagList.call.asScala.map { ref =>
             val revCommit = getRevCommitFromId(git, ref.getObjectId)
-            TagInfo(ref.getName.replaceFirst("^refs/tags/", ""), revCommit.getCommitterIdent.getWhen, revCommit.getName)
+            TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName)
           }.toList
         )
       } catch {
@@ -172,38 +191,23 @@ object JGitUtil {
    * @return HTML of the file list
    */
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
-    val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
+    var list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
 
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(revision)
       val revCommit = revWalk.parseCommit(objectId)
 
-      using(new TreeWalk(git.getRepository)){ treeWalk =>
+      val treeWalk = if (path == ".") {
+        val treeWalk = new TreeWalk(git.getRepository)
         treeWalk.addTree(revCommit.getTree)
-        if(path != "."){
-          treeWalk.setRecursive(true)
-          treeWalk.setFilter(new TreeFilter(){
+        treeWalk
+      } else {
+        val treeWalk = TreeWalk.forPath(git.getRepository, path, revCommit.getTree)
+        treeWalk.enterSubtree()
+        treeWalk
+      }
 
-            var stopRecursive = false
-
-            def include(walker: TreeWalk): Boolean = {
-              val targetPath = walker.getPathString
-              if((path + "/").startsWith(targetPath)){
-                true
-              } else if(targetPath.startsWith(path + "/") && targetPath.substring(path.length + 1).indexOf("/") < 0){
-                stopRecursive = true
-                treeWalk.setRecursive(false)
-                true
-              } else {
-                false
-              }
-            }
-
-            def shouldBeRecursive(): Boolean = !stopRecursive
-
-            override def clone: TreeFilter = return this
-          })
-        }
+      using(treeWalk) { treeWalk =>
         while (treeWalk.next()) {
           // submodule
           val linkUrl = if(treeWalk.getFileMode(0) == FileMode.GITLINK){
@@ -211,6 +215,31 @@ object JGitUtil {
           } else None
 
           list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString, linkUrl))
+        }
+
+        list = list.map(tuple =>
+          if (tuple._2 != FileMode.TREE)
+            tuple
+          else
+            simplifyPath(tuple)
+        )
+
+        @tailrec
+        def simplifyPath(tuple: (ObjectId, FileMode, String, String, Option[String])): (ObjectId, FileMode, String, String, Option[String]) = {
+          val list = new scala.collection.mutable.ListBuffer[(ObjectId, FileMode, String, String, Option[String])]
+          using(new TreeWalk(git.getRepository)) { walk =>
+            walk.addTree(tuple._1)
+            while (walk.next() && list.size < 2) {
+              val linkUrl = if (walk.getFileMode(0) == FileMode.GITLINK) {
+                getSubmodules(git, revCommit.getTree).find(_.path == walk.getPathString).map(_.url)
+              } else None
+              list.append((walk.getObjectId(0), walk.getFileMode(0), tuple._3 + "/" + walk.getPathString, tuple._4 + "/" + walk.getNameString, linkUrl))
+            }
+          }
+          if (list.size != 1 || list.exists(_._2 != FileMode.TREE))
+            tuple
+          else
+            simplifyPath(list(0))
         }
       }
     }
@@ -222,11 +251,11 @@ object JGitUtil {
           objectId,
           fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
           name,
-          commit.getCommitterIdent.getWhen,
           getSummaryMessage(commit.getFullMessage, commit.getShortMessage),
           commit.getName,
-          commit.getCommitterIdent.getName,
-          commit.getCommitterIdent.getEmailAddress,
+          commit.getAuthorIdent.getWhen,
+          commit.getAuthorIdent.getName,
+          commit.getAuthorIdent.getEmailAddress,
           linkUrl)
       }
     }.sortWith { (file1, file2) =>
@@ -486,7 +515,7 @@ object JGitUtil {
   }
 
   def createNewCommit(git: Git, inserter: ObjectInserter, headId: AnyObjectId, treeId: AnyObjectId,
-                              fullName: String, mailAddress: String, message: String): ObjectId = {
+                      ref: String, fullName: String, mailAddress: String, message: String): ObjectId = {
     val newCommit = new CommitBuilder()
     newCommit.setCommitter(new PersonIdent(fullName, mailAddress))
     newCommit.setAuthor(new PersonIdent(fullName, mailAddress))
@@ -500,7 +529,7 @@ object JGitUtil {
     inserter.flush()
     inserter.release()
 
-    val refUpdate = git.getRepository.updateRef(Constants.HEAD)
+    val refUpdate = git.getRepository.updateRef(ref)
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
@@ -633,5 +662,16 @@ object JGitUtil {
         existIds.contains(commit.name) && getBranchesOfCommit(oldGit, commit.getName).contains(branch)
       }.head.id
     }
+
+  /**
+   * Returns the last modified commit of specified path
+   * @param git the Git object
+   * @param startCommit the search base commit id
+   * @param path the path of target file or directory
+   * @return the last modified commit of specified path
+   */
+  def getLastModifiedCommit(git: Git, startCommit: RevCommit, path: String): RevCommit = {
+    return git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
+  }
 
 }

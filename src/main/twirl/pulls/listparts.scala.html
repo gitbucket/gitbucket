@@ -12,7 +12,7 @@
     @if(hasWritePermission){
       <div class="pull-right">
         @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 7, condition.toURL)
-        <a href="@url(repository)/compare" class="btn btn-success">New pull request</a>
+        <a href="@url(repository)/compare" class="btn btn-small btn-success">New pull request</a>
       </div>
     }
   }

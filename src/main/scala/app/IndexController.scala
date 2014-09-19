@@ -1,6 +1,7 @@
 package app
 
 import util._
+import util.Implicits._
 import service._
 import jp.sf.amateras.scalatra.forms._
 
@@ -19,11 +20,23 @@ trait IndexControllerBase extends ControllerBase {
 
   get("/"){
     val loginAccount = context.loginAccount
+    if(loginAccount.isEmpty) {
+        html.index(getRecentActivities(),
+            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
+        )
+    } else {
+        val loginUserName = loginAccount.get.userName
+        val loginUserGroups = getGroupsByUserName(loginUserName)
+        var visibleOwnerSet : Set[String] = Set(loginUserName)
+        
+        visibleOwnerSet ++= loginUserGroups
 
-    html.index(getRecentActivities(),
-      getVisibleRepositories(loginAccount, context.baseUrl),
-      loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl) }.getOrElse(Nil)
-    )
+        html.index(getRecentActivitiesByOwners(visibleOwnerSet),
+            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil) 
+        )
+    }
   }
 
   get("/signin"){
@@ -58,8 +71,12 @@ trait IndexControllerBase extends ControllerBase {
     session.setAttribute(Keys.Session.LoginAccount, account)
     updateLastLoginDate(account.userName)
 
+    if(LDAPUtil.isDummyMailAddress(account)) {
+      redirect("/" + account.userName + "/_edit")
+    }
+
     flash.get(Keys.Flash.Redirect).asInstanceOf[Option[String]].map { redirectUrl =>
-      if(redirectUrl.replaceFirst("/$", "") == request.getContextPath){
+      if(redirectUrl.stripSuffix("/") == request.getContextPath){
         redirect("/")
       } else {
         redirect(redirectUrl)
@@ -71,8 +88,6 @@ trait IndexControllerBase extends ControllerBase {
 
   /**
    * JSON API for collaborator completion.
-   *
-   * TODO Move to other controller?
    */
   get("/_user/proposals")(usersOnly {
     contentType = formats("json")
@@ -81,5 +96,11 @@ trait IndexControllerBase extends ControllerBase {
     )
   })
 
+  /**
+   * JSON APU for checking user existence.
+   */
+  post("/_user/existence")(usersOnly {
+    getAccountByUserName(params("userName")).isDefined
+  })
 
 }

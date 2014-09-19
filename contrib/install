@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Only tested on Ubuntu 14.04
+
+# Uses information stored in GitBucket git repo on GitHub as defaults.
+# Edit gitbucket.conf before running this
+
+set -e
+
+GITBUCKET_VERSION=2.1
+
+if [ ! -f gitbucket.conf ]; then
+  echo "gitbucket.conf not found, aborting"
+  exit -3
+fi
+source gitbucket.conf
+
+function createDir {
+  if [ ! -d "$1" ]; then
+    echo "Making $1 directory."
+    sudo mkdir -p "$1"
+  fi
+}
+
+if [ "$(which iptables)" ]; then
+  echo "Opening port $GITBUCKET_PORT in firewall."
+  sudo iptables -A INPUT -p tcp --dport $GITBUCKET_PORT -j ACCEPT
+  echo "Please use iptables-persistent:"
+  echo "  sudo apt-get install iptables-persistent"
+  echo "After installed, you can save/reload iptables rules anytime:"
+  echo "  sudo /etc/init.d/iptables-persistent save"
+  echo "  sudo /etc/init.d/iptables-persistent reload"
+fi
+
+createDir "$GITBUCKET_HOME"
+createDir "$GITBUCKET_WAR_DIR"
+createDir "$GITBUCKET_DIR"
+createDir "$GITBUCKET_LOG_DIR"
+
+echo "Fetching GitBucket v$GITBUCKET_VERSION and saving as $GITBUCKET_WAR_FILE"
+sudo wget -qO "$GITBUCKET_WAR_FILE" https://github.com/takezoe/gitbucket/releases/download/$GITBUCKET_VERSION/gitbucket.war
+
+sudo rm -f "$GITBUCKET_LOG_DIR/run.log"
+
+echo "Copying gitbucket.conf to $GITBUCKET_DIR"
+sudo cp gitbucket.conf $GITBUCKET_DIR
+if [ `isUbuntu` ] || [ `isRedHat` ]; then
+  sudo cp gitbucket.init "$GITBUCKET_SERVICE"
+  # Install gitbucket as a service that starts when system boots
+  sudo chown root:root $GITBUCKET_SERVICE
+  sudo chmod 755 $GITBUCKET_SERVICE
+  sudo update-rc.d "$(basename $GITBUCKET_SERVICE)" defaults 98 02
+  echo "Starting GitBucket service"
+  sudo $GITBUCKET_SERVICE start
+elif [ `isMac` ]; then
+  sudo macosx/makePlist
+  echo "Starting GitBucket service"
+  sudo cp gitbucket.conf "$GITBUCKET_SERVICE"
+  sudo cp gitbucket.init "$GITBUCKET_SERVICE"
+  sudo chmod a+x "$GITBUCKET_SERVICE"
+  sudo "$GITBUCKET_SERVICE" start
+else
+  echo "Don't know how to install this OS"
+  exit -2
+fi
+
+if [ $? != 0 ]; then
+  less "$GITBUCKET_LOG_DIR/run.log"
+fi

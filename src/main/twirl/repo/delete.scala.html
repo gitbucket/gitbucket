@@ -51,11 +51,11 @@
     </form>
   }
 }
-<script type="text/javascript" src="@assets/jsdifflib/difflib.js"></script>
-<script type="text/javascript" src="@assets/jsdifflib/diffview.js"></script>
-<link href="@assets/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
+<script type="text/javascript" src="@assets/vendors/jsdifflib/diffview.js"></script>
+<link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
-  diffUsingJS('oldText', 'newText', 'diffText');
+  diffUsingJS('oldText', 'newText', 'diffText', 1);
 });
 </script>

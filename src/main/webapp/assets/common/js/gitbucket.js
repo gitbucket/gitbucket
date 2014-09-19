@@ -4,7 +4,7 @@ $(function(){
 
   // repository url text field
   $('#repository-url').click(function(){
-    this.select(0, this.value.length); 
+    this.select(0, this.value.length);
   });
 
   // activate tooltip
@@ -17,7 +17,7 @@ $(function(){
   });
   $('.markdown-head').mouseleave(function(e){
     var anchorLink = $(e.target).children('a.markdown-anchor-link');
-    if(anchorLink.data('active') != true){
+    if(anchorLink.data('active') !== true){
       anchorLink.hide();
     }
   });
@@ -39,7 +39,7 @@ function displayErrors(data){
   var i = 0;
   $.each(data, function(key, value){
     $('#error-' + key.split(".").join("_")).text(value);
-    if(i == 0){
+    if(i === 0){
       $('#' + key).focus();
     }
     i++;
@@ -68,20 +68,26 @@ function displayErrors(data){
   };
 })(jQuery);
 
-function diffUsingJS(oldTextId, newTextId, outputId) {
+/**
+ * Render diff using jsdifflib.
+ *
+ * @param oldTextId {String} element id of old text
+ * @param newTextId {String} element id of new text
+ * @param outputId {String} element id of output element
+ * @param viewType {Number} 0: split, 1: unified
+ */
+function diffUsingJS(oldTextId, newTextId, outputId, viewType) {
   // get the baseText and newText values from the two textboxes, and split them into lines
   var oldText = document.getElementById(oldTextId).value;
-  if(oldText == ''){
-    var oldLines = [];
-  } else {
-    var oldLines = difflib.stringAsLines(oldText);
+  var oldLines = [];
+  if(oldText !== ''){
+    oldLines = difflib.stringAsLines(oldText);
   }
 
-  var newText = document.getElementById(newTextId).value
-  if(newText == ''){
-    var newLines = [];
-  } else {
-    var newLines = difflib.stringAsLines(newText);
+  var newText = document.getElementById(newTextId).value;
+  var newLines = [];
+  if(newText !== ''){
+    newLines = difflib.stringAsLines(newText);
   }
 
   // create a SequenceMatcher instance that diffs the two sets of lines
@@ -100,6 +106,10 @@ function diffUsingJS(oldTextId, newTextId, outputId) {
     newTextLines: newLines,
     opcodes: opcodes,
     contextSize: 4,
-    viewType: 1
+    viewType: viewType
   }));
+}
+
+function jqSelectorEscape(val) {
+    return val.replace(/[!"#$%&'()*+,.\/:;<=>?@\[\\\]^`{|}~]/g, '\\$&');
 }

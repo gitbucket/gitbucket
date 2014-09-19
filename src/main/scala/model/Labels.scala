@@ -1,21 +1,25 @@
 package model
 
-import scala.slick.driver.H2Driver.simple._
+trait LabelComponent extends TemplateComponent { self: Profile =>
+  import profile.simple._
 
-object Labels extends Table[Label]("LABEL") with LabelTemplate {
-  def labelName = column[String]("LABEL_NAME")
-  def color = column[String]("COLOR")
-  def * = userName ~ repositoryName ~ labelId ~ labelName ~ color <> (Label, Label.unapply _)
+  lazy val Labels = TableQuery[Labels]
 
-  def ins = userName ~ repositoryName ~ labelName ~ color
-  def byPrimaryKey(owner: String, repository: String, labelId: Int) = byLabel(owner, repository, labelId)
-  def byPrimaryKey(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) = byLabel(userName, repositoryName, labelId)
+  class Labels(tag: Tag) extends Table[Label](tag, "LABEL") with LabelTemplate {
+    override val labelId = column[Int]("LABEL_ID", O AutoInc)
+    val labelName = column[String]("LABEL_NAME")
+    val color = column[String]("COLOR")
+    def * = (userName, repositoryName, labelId, labelName, color) <> (Label.tupled, Label.unapply)
+
+    def byPrimaryKey(owner: String, repository: String, labelId: Int) = byLabel(owner, repository, labelId)
+    def byPrimaryKey(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) = byLabel(userName, repositoryName, labelId)
+  }
 }
 
 case class Label(
   userName: String,
   repositoryName: String,
-  labelId: Int,
+  labelId: Int = 0,
   labelName: String,
   color: String){
 
@@ -30,5 +34,4 @@ case class Label(
       "FFFFFF"
     }
   }
-
 }

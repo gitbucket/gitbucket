@@ -40,11 +40,22 @@
       <tr>
         <td colspan="4" class="latest-commit">
           <div>
-            @avatar(latestCommit, 20)
-            @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
-            <span class="muted">@datetime(latestCommit.time)</span>
             <div class="pull-right align-right monospace" style="line-height: 18px;">
               <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
+            </div>
+            <div class="author-info">
+              <div class="author">
+                @avatar(latestCommit, 20)
+                <span>@user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
+                <span class="muted"> authored on @datetime(latestCommit.authorTime)</span>
+              </div>
+              @if(latestCommit.isDifferentFromAuthor) {
+              <div class="committer">
+                <span class="icon-arrow-right"></span>
+                <span>@user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
+                <span class="muted"> committed on @datetime(latestCommit.commitTime)</span>
+              </div>
+              }
             </div>
           </div>
         </td>
@@ -73,9 +84,19 @@
         <td>
         @if(file.isDirectory){
           @if(file.linkUrl.isDefined){
-            <a href="@file.linkUrl">@file.name</a>
+            <a href="@file.linkUrl">
+              <span class="simplified-path">@file.name.split("/").toList.init match {
+                case Nil => {}
+                case list => {@list.mkString("", "/", "/")}
+              }</span>@file.name.split("/").toList.last
+            </a>
           } else {
-            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
+              <span class="simplified-path">@file.name.split("/").toList.init match {
+                case Nil => {}
+                case list => {@list.mkString("", "/", "/")}
+              }</span>@file.name.split("/").toList.last
+            </a>
           }
         } else {
           <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
@@ -83,7 +104,7 @@
         </td>
         <td class="mute">
           <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a>
-          [@user(file.committer, file.mailAddress)]
+          [@user(file.author, file.mailAddress)]
         </td>
         <td style="text-align: right;">@datetime(file.time)</td>
       </tr>

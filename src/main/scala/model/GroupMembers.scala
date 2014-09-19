@@ -1,12 +1,16 @@
 package model
 
-import scala.slick.driver.H2Driver.simple._
+trait GroupMemberComponent { self: Profile =>
+  import profile.simple._
 
-object GroupMembers extends Table[GroupMember]("GROUP_MEMBER") {
-  def groupName = column[String]("GROUP_NAME", O PrimaryKey)
-  def userName = column[String]("USER_NAME", O PrimaryKey)
-  def isManager = column[Boolean]("MANAGER")
-  def * = groupName ~ userName ~ isManager <> (GroupMember, GroupMember.unapply _)
+  lazy val GroupMembers = TableQuery[GroupMembers]
+
+  class GroupMembers(tag: Tag) extends Table[GroupMember](tag, "GROUP_MEMBER") {
+    val groupName = column[String]("GROUP_NAME", O PrimaryKey)
+    val userName = column[String]("USER_NAME", O PrimaryKey)
+    val isManager = column[Boolean]("MANAGER")
+    def * = (groupName, userName, isManager) <> (GroupMember.tupled, GroupMember.unapply)
+  }
 }
 
 case class GroupMember(

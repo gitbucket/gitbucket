@@ -9,25 +9,25 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
   "AccountService" should {
     val RootMailAddress = "root@localhost"
 
-    "getAllUsers" in { withTestDB{
+    "getAllUsers" in { withTestDB { implicit session =>
       AccountService.getAllUsers() must be like{
         case List(model.Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false)) => ok
       }
     }}
 
-    "getAccountByUserName" in { withTestDB{
-      AccountService.getAccountByUserName("root") must beSome.like{
+    "getAccountByUserName" in { withTestDB { implicit session =>
+      AccountService.getAccountByUserName("root") must beSome.like {
         case user => user.userName must_== "root"
       }
 
       AccountService.getAccountByUserName("invalid user name") must beNone
     }}
 
-    "getAccountByMailAddress" in { withTestDB{
+    "getAccountByMailAddress" in { withTestDB { implicit session =>
       AccountService.getAccountByMailAddress(RootMailAddress) must beSome
     }}
 
-    "updateLastLoginDate" in { withTestDB{
+    "updateLastLoginDate" in { withTestDB { implicit session =>
       val root = "root"
       def user() =
         AccountService.getAccountByUserName(root).getOrElse(sys.error(s"user $root does not exists"))
@@ -46,7 +46,7 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
       }
     }}
 
-    "updateAccount" in { withTestDB{
+    "updateAccount" in { withTestDB { implicit session =>
       val root = "root"
       def user() =
         AccountService.getAccountByUserName(root).getOrElse(sys.error(s"user $root does not exists"))
@@ -56,7 +56,7 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
       user().mailAddress must_== newAddress
     }}
 
-    "group" in { withTestDB {
+    "group" in { withTestDB { implicit session =>
       val group1 = "group1"
       val user1 = "root"
       AccountService.createGroup(group1, None)

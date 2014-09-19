@@ -4,10 +4,11 @@ import service._
 import util.AdminAuthenticator
 import util.StringUtil._
 import util.ControlUtil._
+import util.Directory._
+import util.Implicits._
 import jp.sf.amateras.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.apache.commons.io.FileUtils
-import util.Directory._
 
 class UserManagementController extends UserManagementControllerBase
   with AccountService with RepositoryService with AdminAuthenticator
@@ -180,11 +181,6 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
       } getOrElse NotFound
     }
   })
-
-  // TODO Move to other generic controller?
-  post("/admin/users/_usercheck"){
-    getAccountByUserName(params("userName")).isDefined
-  }
 
   private def members: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {

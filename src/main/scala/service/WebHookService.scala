@@ -1,9 +1,8 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
-
-import model._
+import model.Profile._
+import profile.simple._
+import model.{WebHook, Account}
 import org.slf4j.LoggerFactory
 import service.RepositoryService.RepositoryInfo
 import util.JGitUtil
@@ -12,7 +11,6 @@ import util.JGitUtil.CommitInfo
 import org.eclipse.jgit.api.Git
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.protocol.HTTP
 import org.apache.http.NameValuePair
 
 trait WebHookService {
@@ -20,14 +18,14 @@ trait WebHookService {
 
   private val logger = LoggerFactory.getLogger(classOf[WebHookService])
 
-  def getWebHookURLs(owner: String, repository: String): List[WebHook] =
-    Query(WebHooks).filter(_.byRepository(owner, repository)).sortBy(_.url).list
+  def getWebHookURLs(owner: String, repository: String)(implicit s: Session): List[WebHook] =
+    WebHooks.filter(_.byRepository(owner, repository)).sortBy(_.url).list
 
-  def addWebHookURL(owner: String, repository: String, url :String): Unit =
-    WebHooks.insert(WebHook(owner, repository, url))
+  def addWebHookURL(owner: String, repository: String, url :String)(implicit s: Session): Unit =
+    WebHooks insert WebHook(owner, repository, url)
 
-  def deleteWebHookURL(owner: String, repository: String, url :String): Unit =
-    Query(WebHooks).filter(_.byPrimaryKey(owner, repository, url)).delete
+  def deleteWebHookURL(owner: String, repository: String, url :String)(implicit s: Session): Unit =
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).delete
 
   def callWebHook(owner: String, repository: String, webHookURLs: List[WebHook], payload: WebHookPayload): Unit = {
     import org.json4s._
@@ -46,7 +44,7 @@ trait WebHookService {
       val httpClient = HttpClientBuilder.create.build
 
       webHookURLs.foreach { webHookUrl =>
-        val f = future {
+        val f = Future {
           logger.debug(s"start web hook invocation for ${webHookUrl}")
           val httpPost = new HttpPost(webHookUrl.url)
 
@@ -87,23 +85,23 @@ object WebHookService {
         refName,
         commits.map { commit =>
           val diffs = JGitUtil.getDiffs(git, commit.id, false)
-          val commitUrl = repositoryInfo.httpUrl.replaceFirst("/git/", "/").replaceFirst("\\.git$", "") + "/commit/" + commit.id
+          val commitUrl = repositoryInfo.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/commit/" + commit.id
 
           WebHookCommit(
             id        = commit.id,
             message   = commit.fullMessage,
-            timestamp = commit.time.toString,
+            timestamp = commit.commitTime.toString,
             url       = commitUrl,
             added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
             removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
             modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
               x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
             author    = WebHookUser(
-              name  = commit.committer,
-              email = commit.mailAddress
+              name  = commit.committerName,
+              email = commit.committerEmailAddress
             )
           )
-        }.toList,
+        },
         WebHookRepository(
           name        = repositoryInfo.name,
           url         = repositoryInfo.httpUrl,

@@ -11,12 +11,15 @@
         <th width="20%">Commit</th>
         <th width="20%">Download</th>
       </tr>
-      @repository.tags.map { tag =>
+      @repository.tags.reverse.map { tag =>
         <tr>
           <td><a href="@url(repository)/tree/@encodeRefName(tag.name)">@tag.name</a></td>
           <td>@datetime(tag.time)</td>
           <td class="monospace"><a href="@url(repository)/commit/@tag.id">@tag.id.substring(0, 10)</a></td>
-          <td><a href="@url(repository)/archive/@{encodeRefName(tag.name)}.zip">ZIP</a></td>
+          <td>
+              <a href="@url(repository)/archive/@{encodeRefName(tag.name)}.zip">ZIP</a>
+              <a href="@url(repository)/archive/@{encodeRefName(tag.name)}.tar.gz">TAR.GZ</a>
+          </td>
         </tr>
       }
     </table>

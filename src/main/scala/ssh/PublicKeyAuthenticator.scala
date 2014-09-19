@@ -10,7 +10,7 @@ import javax.servlet.ServletContext
 class PublicKeyAuthenticator(context: ServletContext) extends PublickeyAuthenticator with SshKeyService {
 
   override def authenticate(username: String, key: PublicKey, session: ServerSession): Boolean = {
-    Database(context) withTransaction {
+    Database(context) withSession { implicit session =>
       getPublicKeys(username).exists { sshKey =>
         SshUtil.str2PublicKey(sshKey.publicKey) match {
           case Some(publicKey) => key.equals(publicKey)

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# From http://docstore.mik.ua/orelly/unix3/mac/ch02_02.htm
+source gitbucket.conf
+GITBUCKET_SERVICE_DIR=`dirname "$GITBUCKET_SERVICE"`
+mkdir -p "$GITBUCKET_SERVICE_DIR"
+cat << EOF > "$GITBUCKET_SERVICE_DIR/gitbucket.plist"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>gitbucket</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/bin/java</string>
+      <string>$GITBUCKET_JVM_OPTS</string>
+      <string>-jar</string>
+      <string>gitbucket.war</string>
+      <string>--host=$GITBUCKET_HOST</string>
+      <string>--port=$GITBUCKET_PORT</string>
+      <string>--https=true</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+  </dict>
+</plist>
+EOF

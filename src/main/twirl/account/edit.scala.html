@@ -1,6 +1,7 @@
 @(account: model.Account, info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
+@import util.LDAPUtil
 @html.main("Edit your profile"){
 <div class="container">
   <div class="row-fluid">
@@ -9,6 +10,7 @@
     </div>
     <div class="span9">
       @helper.html.information(info)
+      @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
       <form action="@url(account.userName)/_edit" method="POST" validate="true">
       <div class="box">
         <div class="box-header">Profile</div>
@@ -31,7 +33,7 @@
               </fieldset>
               <fieldset>
                 <label for="mailAddress" class="strong">Mail Address:</label>
-                <input type="text" name="mailAddress" id="mailAddress" value="@account.mailAddress"/>
+                <input type="text" name="mailAddress" id="mailAddress" value="@if(!LDAPUtil.isDummyMailAddress(account)){@account.mailAddress}"/>
                 <span id="error-mailAddress" class="error"></span>
               </fieldset>
               <fieldset>
@@ -52,7 +54,7 @@
               <a href="@path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
             </div>
             <input type="submit" class="btn btn-success" value="Save"/>
-            <a href="@url(account.userName)" class="btn">Cancel</a>
+            @if(!LDAPUtil.isDummyMailAddress(account)){<a href="@url(account.userName)" class="btn">Cancel</a>}
           </div>
         </div>
       </div>

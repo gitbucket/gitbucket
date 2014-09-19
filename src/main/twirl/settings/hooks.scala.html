@@ -1,4 +1,7 @@
-@(webHooks: List[model.WebHook], repository: service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: app.Context)
+@(webHooks: List[model.WebHook],
+  enteredUrl: Option[Any],
+  repository: service.RepositoryService.RepositoryInfo,
+  info: Option[Any])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Settings", Some(repository)){
@@ -11,13 +14,13 @@
           <li>@webHook.url <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="remove">(remove)</a></li>
         }
       </ul>
-      <form method="POST" action="@url(repository)/settings/hooks/add" validate="true">
+      <form method="POST" validate="true">
         <div>
           <span class="error" id="error-url"></span>
         </div>
-        <input type="text" name="url" id="url" style="width: 300px; margin-bottom: 0px;"/>
-        <input type="submit" class="btn" value="Add"/>
-        <a href="@url(repository)/settings/hooks/test" class="btn">Test Hook</a>
+        <input type="text" name="url" id="url" value="@enteredUrl" style="width: 300px; margin-bottom: 0px;"/>
+        <input type="submit" class="btn" formaction="@url(repository)/settings/hooks/add"  value="Add"/>
+        <input type="submit" class="btn" formaction="@url(repository)/settings/hooks/test" value="Test Hook"/>
       </form>
     }
   }

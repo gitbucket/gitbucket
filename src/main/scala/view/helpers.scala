@@ -1,7 +1,7 @@
 package view
-import java.util.Date
+import java.util.{Date, TimeZone}
 import java.text.SimpleDateFormat
-import twirl.api.Html
+import play.twirl.api.Html
 import util.StringUtil
 import service.RequestCache
 
@@ -18,7 +18,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Format java.util.Date to "yyyy-MM-dd'T'hh:mm:ss'Z'".
    */
-  def datetimeRFC3339(date: Date): String = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'").format(date).replaceAll("(\\d\\d)(\\d\\d)$","$1:$2")
+  def datetimeRFC3339(date: Date): String = {
+    val sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    sf.setTimeZone(TimeZone.getTimeZone("UTC"))
+    sf.format(date)
+  }
 
   /**
    * Format java.util.Date to "yyyy-MM-dd".
@@ -74,7 +78,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * This method looks up Gravatar if avatar icon has not been configured in user settings.
    */
   def avatar(commit: util.JGitUtil.CommitInfo, size: Int)(implicit context: app.Context): Html =
-    getAvatarImageHtml(commit.committer, size, commit.mailAddress)
+    getAvatarImageHtml(commit.authorName, size, commit.authorEmailAddress)
 
   /**
    * Converts commit id, issue id and username to the link.
@@ -196,7 +200,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       case x if(x.endsWith(".sql"))     => "sql"
       case x if(x.endsWith(".tcl"))     => "tcl"
       case x if(x.endsWith(".vbs"))     => "vbscript"
-      case x if(x.endsWith(".tcl"))     => "tcl"
       case x if(x.endsWith(".yml"))     => "yaml"
       case _ => "plain_text"
     }

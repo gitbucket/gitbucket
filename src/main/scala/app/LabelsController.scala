@@ -3,6 +3,7 @@ package app
 import jp.sf.amateras.scalatra.forms._
 import service._
 import util.CollaboratorsAuthenticator
+import util.Implicits._
 import org.scalatra.i18n.Messages
 
 class LabelsController extends LabelsControllerBase
@@ -53,7 +54,7 @@ trait LabelsControllerBase extends ControllerBase {
    */
   private def labelName: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      if(!value.matches("^[^,]+$")){
+      if(value.contains(',')){
         Some(s"${name} contains invalid character.")
       } else if(value.startsWith("_") || value.startsWith("-")){
         Some(s"${name} starts with invalid character.")

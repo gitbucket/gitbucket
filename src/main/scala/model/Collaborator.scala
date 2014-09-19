@@ -1,13 +1,17 @@
 package model
 
-import scala.slick.driver.H2Driver.simple._
+trait CollaboratorComponent extends TemplateComponent { self: Profile =>
+  import profile.simple._
 
-object Collaborators extends Table[Collaborator]("COLLABORATOR") with BasicTemplate {
-  def collaboratorName = column[String]("COLLABORATOR_NAME")
-  def * = userName ~ repositoryName ~ collaboratorName <> (Collaborator, Collaborator.unapply _)
+  lazy val Collaborators = TableQuery[Collaborators]
 
-  def byPrimaryKey(owner: String, repository: String, collaborator: String) =
-    byRepository(owner, repository) && (collaboratorName is collaborator.bind)
+  class Collaborators(tag: Tag) extends Table[Collaborator](tag, "COLLABORATOR") with BasicTemplate {
+    val collaboratorName = column[String]("COLLABORATOR_NAME")
+    def * = (userName, repositoryName, collaboratorName) <> (Collaborator.tupled, Collaborator.unapply)
+
+    def byPrimaryKey(owner: String, repository: String, collaborator: String) =
+      byRepository(owner, repository) && (collaboratorName === collaborator.bind)
+  }
 }
 
 case class Collaborator(

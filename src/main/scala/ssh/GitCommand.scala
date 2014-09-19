@@ -12,7 +12,7 @@ import servlet.{Database, CommitLogHook}
 import service.{AccountService, RepositoryService, SystemSettingsService}
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 import javax.servlet.ServletContext
-
+import model.Session
 
 object GitCommand {
   val CommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-_.]+).git'\Z""".r
@@ -27,11 +27,11 @@ abstract class GitCommand(val context: ServletContext, val owner: String, val re
   protected var out: OutputStream = null
   protected var callback: ExitCallback = null
 
-  protected def runTask(user: String): Unit
+  protected def runTask(user: String)(implicit session: Session): Unit
 
   private def newTask(user: String): Runnable = new Runnable {
     override def run(): Unit = {
-      Database(context) withTransaction {
+      Database(context) withSession { implicit session =>
         try {
           runTask(user)
           callback.onExit(0)
@@ -71,7 +71,8 @@ abstract class GitCommand(val context: ServletContext, val owner: String, val re
     this.in = in
   }
 
-  protected def isWritableUser(username: String, repositoryInfo: RepositoryService.RepositoryInfo): Boolean =
+  protected def isWritableUser(username: String, repositoryInfo: RepositoryService.RepositoryInfo)
+                              (implicit session: Session): Boolean =
     getAccountByUserName(username) match {
       case Some(account) => hasWritePermission(repositoryInfo.owner, repositoryInfo.name, Some(account))
       case None => false
@@ -82,7 +83,7 @@ abstract class GitCommand(val context: ServletContext, val owner: String, val re
 class GitUploadPack(context: ServletContext, owner: String, repoName: String, baseUrl: String) extends GitCommand(context, owner, repoName)
     with RepositoryService with AccountService {
 
-  override protected def runTask(user: String): Unit = {
+  override protected def runTask(user: String)(implicit session: Session): Unit = {
     getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""), baseUrl).foreach { repositoryInfo =>
       if(!repositoryInfo.repository.isPrivate || isWritableUser(user, repositoryInfo)){
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
@@ -99,7 +100,7 @@ class GitUploadPack(context: ServletContext, owner: String, repoName: String, ba
 class GitReceivePack(context: ServletContext, owner: String, repoName: String, baseUrl: String) extends GitCommand(context, owner, repoName)
     with SystemSettingsService with RepositoryService with AccountService {
 
-  override protected def runTask(user: String): Unit = {
+  override protected def runTask(user: String)(implicit session: Session): Unit = {
     getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""), baseUrl).foreach { repositoryInfo =>
       if(isWritableUser(user, repositoryInfo)){
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>

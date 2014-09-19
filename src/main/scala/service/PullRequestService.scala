@@ -1,42 +1,45 @@
 package service
 
-import scala.slick.driver.H2Driver.simple._
-import Database.threadLocalSession
-import model._
+import model.Profile._
+import profile.simple._
+import model.{PullRequest, Issue}
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._
 
-  def getPullRequest(owner: String, repository: String, issueId: Int): Option[(Issue, PullRequest)] =
+  def getPullRequest(owner: String, repository: String, issueId: Int)
+                    (implicit s: Session): Option[(Issue, PullRequest)] =
     getIssue(owner, repository, issueId.toString).flatMap{ issue =>
-      Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId)).firstOption.map{
+      PullRequests.filter(_.byPrimaryKey(owner, repository, issueId)).firstOption.map{
         pullreq => (issue, pullreq)
       }
     }
 
-  def updateCommitId(owner: String, repository: String, issueId: Int, commitIdTo: String, commitIdFrom: String): Unit =
-    Query(PullRequests).filter(_.byPrimaryKey(owner, repository, issueId))
-                       .map(pr => pr.commitIdTo ~ pr.commitIdFrom)
-                       .update((commitIdTo, commitIdFrom))
+  def updateCommitId(owner: String, repository: String, issueId: Int, commitIdTo: String, commitIdFrom: String)
+                    (implicit s: Session): Unit =
+    PullRequests.filter(_.byPrimaryKey(owner, repository, issueId))
+                .map(pr => pr.commitIdTo -> pr.commitIdFrom)
+                .update((commitIdTo, commitIdFrom))
 
-  def getPullRequestCountGroupByUser(closed: Boolean, owner: String, repository: Option[String]): List[PullRequestCount] =
-    Query(PullRequests)
+  def getPullRequestCountGroupByUser(closed: Boolean, owner: Option[String], repository: Option[String])
+                                    (implicit s: Session): List[PullRequestCount] =
+    PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
-        (t2.closed         is closed.bind) &&
-        (t1.userName       is owner.bind) &&
-        (t1.repositoryName is repository.get.bind, repository.isDefined)
+        (t2.closed         === closed.bind) &&
+        (t1.userName       === owner.get.bind, owner.isDefined) &&
+        (t1.repositoryName === repository.get.bind, repository.isDefined)
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
-      .map { case (userName, t) => userName ~ t.length }
+      .map { case (userName, t) => userName -> t.length }
       .sortBy(_._2 desc)
       .list
       .map { x => PullRequestCount(x._1, x._2) }
 
   def createPullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
         originBranch: String, requestUserName: String, requestRepositoryName: String, requestBranch: String,
-        commitIdFrom: String, commitIdTo: String): Unit =
-    PullRequests insert (PullRequest(
+        commitIdFrom: String, commitIdTo: String)(implicit s: Session): Unit =
+    PullRequests insert PullRequest(
       originUserName,
       originRepositoryName,
       issueId,
@@ -45,16 +48,17 @@ trait PullRequestService { self: IssuesService =>
       requestRepositoryName,
       requestBranch,
       commitIdFrom,
-      commitIdTo))
+      commitIdTo)
 
-  def getPullRequestsByRequest(userName: String, repositoryName: String, branch: String, closed: Boolean): List[PullRequest] =
-    Query(PullRequests)
+  def getPullRequestsByRequest(userName: String, repositoryName: String, branch: String, closed: Boolean)
+                              (implicit s: Session): List[PullRequest] =
+    PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
-        (t1.requestUserName       is userName.bind) &&
-        (t1.requestRepositoryName is repositoryName.bind) &&
-        (t1.requestBranch         is branch.bind) &&
-        (t2.closed                is closed.bind)
+        (t1.requestUserName       === userName.bind) &&
+        (t1.requestRepositoryName === repositoryName.bind) &&
+        (t1.requestBranch         === branch.bind) &&
+        (t2.closed                === closed.bind)
       }
       .map { case (t1, t2) => t1 }
       .list

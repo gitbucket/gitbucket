@@ -1,12 +1,16 @@
 package model
 
-import scala.slick.driver.H2Driver.simple._
+trait WebHookComponent extends TemplateComponent { self: Profile =>
+  import profile.simple._
 
-object WebHooks extends Table[WebHook]("WEB_HOOK") with BasicTemplate {
-  def url = column[String]("URL")
-  def * = userName ~ repositoryName ~ url <> (WebHook, WebHook.unapply _)
+  lazy val WebHooks = TableQuery[WebHooks]
 
-  def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url is url.bind)
+  class WebHooks(tag: Tag) extends Table[WebHook](tag, "WEB_HOOK") with BasicTemplate {
+    val url = column[String]("URL")
+    def * = (userName, repositoryName, url) <> (WebHook.tupled, WebHook.unapply)
+
+    def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url === url.bind)
+  }
 }
 
 case class WebHook(

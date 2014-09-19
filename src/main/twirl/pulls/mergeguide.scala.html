@@ -42,7 +42,7 @@
     <p>
       <span class="strong">Step 1:</span> Check out a new branch to test the changes — run this from your project directory
     </p>
-    @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.requestBranch}"){ command =>
+    @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}"){ command =>
       @helper.html.copy("merge-command-copy-1", command){
         <pre style="width: 500px; float: left;">@command</pre>
       }
@@ -62,7 +62,7 @@
     <p>
       <span class="strong">Step 3:</span> Merge the changes and update the server
     </p>
-    @defining(s"git checkout master\ngit merge ${pullreq.requestUserName}-${pullreq.branch}\ngit push origin ${pullreq.branch}"){ command =>
+    @defining(s"git checkout master\ngit merge ${pullreq.requestUserName}-${pullreq.requestBranch}\ngit push origin ${pullreq.branch}"){ command =>
       @helper.html.copy("merge-command-copy-3", command){
         <pre style="width: 500px; float: left;">@command</pre>
       }

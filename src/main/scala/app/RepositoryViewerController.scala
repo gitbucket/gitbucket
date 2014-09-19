@@ -8,23 +8,31 @@ import _root_.util._
 import service._
 import org.scalatra._
 import java.io.File
-import org.eclipse.jgit.api.Git
+
+import org.eclipse.jgit.api.{ArchiveCommand, Git}
+import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.lib._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.treewalk._
-import java.util.zip.{ZipEntry, ZipOutputStream}
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
+import org.eclipse.jgit.revwalk.RevCommit
+import service.WebHookService.WebHookPayload
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
-  with RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
+  with ReferrerAuthenticator with CollaboratorsAuthenticator
+
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with ActivityService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+  self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
+    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+
+  ArchiveCommand.registerFormat("zip", new ZipFormat)
+  ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
 
   case class EditorForm(
     branch: String,
@@ -32,6 +40,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     content: String,
     message: Option[String],
     charset: String,
+    lineSeparator: String,
     newFileName: String,
     oldFileName: Option[String]
   )
@@ -44,13 +53,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   )
 
   val editorForm = mapping(
-    "branch"      -> trim(label("Branch", text(required))),
-    "path"        -> trim(label("Path", text())),
-    "content"     -> trim(label("Content", text(required))),
-    "message"     -> trim(label("Message", optional(text()))),
-    "charset"     -> trim(label("Charset", text(required))),
-    "newFileName" -> trim(label("Filename", text(required))),
-    "oldFileName" -> trim(label("Old filename", optional(text())))
+    "branch"        -> trim(label("Branch", text(required))),
+    "path"          -> trim(label("Path", text())),
+    "content"       -> trim(label("Content", text(required))),
+    "message"       -> trim(label("Message", optional(text()))),
+    "charset"       -> trim(label("Charset", text(required))),
+    "lineSeparator" -> trim(label("Line Separator", text(required))),
+    "newFileName"   -> trim(label("Filename", text(required))),
+    "oldFileName"   -> trim(label("Old filename", optional(text())))
   )(EditorForm.apply)
 
   val deleteForm = mapping(
@@ -102,7 +112,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         case Right((logs, hasNext)) =>
           repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
-              view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+              view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
             }, page, hasNext)
         case Left(_) => NotFound
       }
@@ -143,7 +153,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/create", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), None, form.content, form.charset,
+    commitFile(repository, form.branch, form.path, Some(form.newFileName), None,
+      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
       form.message.getOrElse(s"Create ${form.newFileName}"))
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
@@ -152,7 +163,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/update", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), form.oldFileName, form.content, form.charset,
+    commitFile(repository, form.branch, form.path, Some(form.newFileName), form.oldFileName,
+      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
       if(form.oldFileName.exists(_ == form.newFileName)){
         form.message.getOrElse(s"Update ${form.newFileName}")
       } else {
@@ -180,6 +192,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+      val lastModifiedCommit = JGitUtil.getLastModifiedCommit(git, revCommit, path)
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
@@ -189,7 +202,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
         } else {
           repo.html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
-            new JGitUtil.CommitInfo(revCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
+            new JGitUtil.CommitInfo(lastModifiedCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       } getOrElse NotFound
     }
@@ -253,50 +266,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Download repository contents as an archive.
    */
   get("/:owner/:repository/archive/*")(referrersOnly { repository =>
-    val name = multiParams("splat").head
-
-    if(name.endsWith(".zip")){
-      val revision = name.replaceFirst("\\.zip$", "")
-      val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
-      if(workDir.exists){
-        FileUtils.deleteDirectory(workDir)
-      }
-      workDir.mkdirs
-
-      val zipFile = new File(workDir, repository.name + "-" +
-        (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + ".zip")
-
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
-        using(new TreeWalk(git.getRepository)){ walk =>
-          val reader   = walk.getObjectReader
-          val objectId = new MutableObjectId
-
-          using(new ZipOutputStream(new java.io.FileOutputStream(zipFile))){ out =>
-            walk.addTree(revCommit.getTree)
-            walk.setRecursive(true)
-
-            while(walk.next){
-              val name = walk.getPathString
-              val mode = walk.getFileMode(0)
-              if(mode == FileMode.REGULAR_FILE || mode == FileMode.EXECUTABLE_FILE){
-                walk.getObjectId(objectId, 0)
-                val entry = new ZipEntry(name)
-                val loader = reader.open(objectId)
-                entry.setSize(loader.getSize)
-                out.putNextEntry(entry)
-                loader.copyTo(out)
-              }
-            }
-          }
-        }
-      }
-
-      contentType = "application/octet-stream"
-      response.setHeader("Content-Disposition", s"attachment; filename=${zipFile.getName}")
-      zipFile
-    } else {
-      BadRequest
+    multiParams("splat").head match {
+      case name if name.endsWith(".zip") =>
+        archiveRepository(name, ".zip", repository)
+      case name if name.endsWith(".tar.gz") =>
+        archiveRepository(name, ".tar.gz", repository)
+      case _ => BadRequest
     }
   })
 
@@ -317,9 +292,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch
     } orElse repository.tags.collectFirst {
       case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
-    } orElse Some(path.split("/")(0)) get
+    } getOrElse path.split("/")(0)
 
-    (id, path.substring(id.length).replaceFirst("^/", ""))
+    (id, path.substring(id.length).stripPrefix("/"))
   }
 
 
@@ -338,10 +313,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repo.html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-        //val revisions = Seq(if(revstr.isEmpty) repository.repository.defaultBranch else revstr, repository.branchList.head)
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
+            val lastModifiedCommit = if(path == ".") revCommit else JGitUtil.getLastModifiedCommit(git, revCommit, path)
             // get files
             val files = JGitUtil.getFileList(git, revision, path)
             val parentPath = if (path == ".") Nil else path.split("/").toList
@@ -356,7 +331,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
-              new JGitUtil.CommitInfo(revCommit), // latest commit
+              new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount))
           }
         } getOrElse NotFound
@@ -377,7 +352,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val builder  = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
         val headName = s"refs/heads/${branch}"
-        val headTip  = git.getRepository.resolve(s"refs/heads/${branch}")
+        val headTip  = git.getRepository.resolve(headName)
 
         JGitUtil.processTree(git, headTip){ (path, tree) =>
           if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
@@ -392,7 +367,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         builder.finish()
 
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
-          loginAccount.fullName, loginAccount.mailAddress, message)
+          headName, loginAccount.fullName, loginAccount.mailAddress, message)
 
         inserter.flush()
         inserter.release()
@@ -409,8 +384,19 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch,
           List(new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))))
 
-        // TODO invoke hook
+        // close issue by commit message
+        closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
 
+        // call web hook
+        val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+        getWebHookURLs(repository.owner, repository.name) match {
+          case webHookURLs if(webHookURLs.nonEmpty) =>
+            for(ownerAccount <- getAccountByUserName(repository.owner)){
+              callWebHook(repository.owner, repository.name, webHookURLs,
+                WebHookPayload(git, loginAccount, headName, repository, List(commit), ownerAccount))
+            }
+          case _ =>
+        }
       }
     }
   }
@@ -430,4 +416,29 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   }
 
+  private def archiveRepository(name: String, suffix: String, repository: RepositoryService.RepositoryInfo): File = {
+    val revision = name.stripSuffix(suffix)
+    val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
+    if(workDir.exists) {
+      FileUtils.deleteDirectory(workDir)
+    }
+    workDir.mkdirs
+
+    val file = new File(workDir, repository.name + "-" +
+      (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + suffix)
+
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+      using(new java.io.FileOutputStream(file))  { out =>
+        git.archive
+           .setFormat(suffix.tail)
+           .setTree(revCommit.getTree)
+           .setOutputStream(out)
+           .call()
+      }
+      contentType = "application/octet-stream"
+      response.setHeader("Content-Disposition", s"attachment; filename=${file.getName}")
+      file
+    }
+  }
 }

@@ -23,6 +23,13 @@
   </li>
 }
 
+@sidemenuPlugin(path: String, name: String, label: String, icon: String) = {
+  <li @if(active == name){class="active"}>
+    <div class="@if(active == name){margin} else {gradient} pull-left"></div>
+    <a href="@url(repository)@path"><img src="@icon"/>@if(expand){ @label}</a>
+  </li>
+}
+
 <div class="container">
   @if(repository.commitCount > 0){
     <div class="pull-right">
@@ -54,6 +61,11 @@
       @sidemenu("/issues", "issues", "Issues", repository.issueCount)
       @sidemenu("/pulls" , "pulls" , "Pull Requests", repository.pullCount)
       @sidemenu("/wiki"  , "wiki"  , "Wiki")
+      @plugin.PluginSystem.repositoryMenus.map { menu =>
+        @if(menu.condition(context)){
+          @sidemenuPlugin(menu.url, menu.label, menu.label, menu.icon)
+        }
+      }
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         @sidemenu("/settings", "settings", "Settings")
       }
@@ -74,6 +86,9 @@
       @id.map { id =>
         <div style="margin-top: 10px;">
           <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download ZIP</a>
+        </div>
+        <div style="margin-top: 10px;">
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download TAR.GZ</a>
         </div>
       }
     }

@@ -60,6 +60,7 @@
             }
             <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
             <input type="hidden" id="charset" name="charset" value="@content.charset"/>
+            <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.lineSeparator"/>
             <input type="hidden" id="content" name="content" value=""/>
             <input type="hidden" id="initial" value="@content.content"/>
           </div>
@@ -68,10 +69,10 @@
     </form>
   }
 }
-<script src="@assets/ace/ace.js" type="text/javascript" charset="utf-8"></script>
-<script type="text/javascript" src="@assets/jsdifflib/difflib.js"></script>
-<script type="text/javascript" src="@assets/jsdifflib/diffview.js"></script>
-<link href="@assets/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script src="@assets/vendors/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
+<script type="text/javascript" src="@assets/vendors/jsdifflib/diffview.js"></script>
+<link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
@@ -138,7 +139,7 @@ $(function(){
         .append($('<div id="diffText">'))
         .append($('<textarea id="newText" style="display: none;">').html(editor.getValue()))
         .append($('<textarea id="oldText" style="display: none;">').html($('#initial').val()));
-      diffUsingJS('oldText', 'newText', 'diffText');
+      diffUsingJS('oldText', 'newText', 'diffText', 1);
     }
   });
 });

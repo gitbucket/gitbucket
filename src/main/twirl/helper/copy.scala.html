@@ -6,6 +6,24 @@
 <script>
 // copy to clipboard
 (function() {
+  // Check flash availablibity
+  var flashAvailable = false;
+  try {
+    var flashObject = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+    if(flashObject) flashAvailable = true;
+  } catch (e) {
+    if (navigator.mimeTypes
+        && navigator.mimeTypes['application/x-shockwave-flash'] != undefined
+        && navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
+      flashAvailable = true;
+    }
+  }
+  // if flash is not available, remove the copy button.
+  if(!flashAvailable) {
+    $('#@id').remove();
+    return
+  }
+
   // Find ZeroClipboard.swf file URI from ZeroClipboard JavaScript file path.
   // NOTE(tanacasino) I think this way is wrong... but i don't know correct way.
   var moviePath = (function() {
@@ -24,6 +42,7 @@
   });
   var title = $('#@id').attr('title');
   $('#@id').removeAttr('title')
+  clip.htmlBridge = "#global-zeroclipboard-html-bridge";
   clip.on('complete', function(client, args) {
     $(clip.htmlBridge).attr('title', 'copied!').tooltip('fixTitle').tooltip('show');
     $(clip.htmlBridge).attr('title', title).tooltip('fixTitle');

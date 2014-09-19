@@ -7,6 +7,7 @@ import java.security.Security
 import org.slf4j.LoggerFactory
 import service.SystemSettingsService.Ldap
 import scala.annotation.tailrec
+import model.Account
 
 /**
  * Utility for LDAP authentication.
@@ -15,6 +16,26 @@ object LDAPUtil {
 
   private val LDAP_VERSION: Int = LDAPConnection.LDAP_V3
   private val logger = LoggerFactory.getLogger(getClass().getName())
+
+  private val LDAP_DUMMY_MAL = "@ldap-devnull"
+
+  /**
+   * Returns true if mail address ends with "@ldap-devnull"
+   */
+  def isDummyMailAddress(account: Account): Boolean = {
+    account.mailAddress.endsWith(LDAP_DUMMY_MAL)
+  }
+
+  /**
+   * Creates dummy address (userName@ldap-devnull) for LDAP login.
+   *
+   * If  mail address is not managed in LDAP server, GitBucket stores this dummy address in first LDAP login.
+   * GitBucket does not send any mails to this dummy address. And these users must input their mail address
+   * at the first step after LDAP authentication.
+   */
+  def createDummyMailAddress(userName: String): String = {
+    userName + LDAP_DUMMY_MAL
+  }
 
   /**
    * Try authentication by LDAP using given configuration.
@@ -30,7 +51,7 @@ object LDAPUtil {
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "System LDAP authentication failed."
     ){ conn =>
-      findUser(conn, userName, ldapSettings.baseDN, ldapSettings.userNameAttribute) match {
+      findUser(conn, userName, ldapSettings.baseDN, ldapSettings.userNameAttribute, ldapSettings.additionalFilterCondition) match {
         case Some(userDN) => userAuthentication(ldapSettings, userDN, userName, password)
         case None         => Left("User does not exist.")
       }
@@ -47,14 +68,23 @@ object LDAPUtil {
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "User LDAP Authentication Failed."
     ){ conn =>
-      findMailAddress(conn, userDN, ldapSettings.mailAttribute) match {
-        case Some(mailAddress) => Right(LDAPUserInfo(
-          userName    = getUserNameFromMailAddress(userName),
+      if(ldapSettings.mailAttribute.getOrElse("").isEmpty) {
+        Right(LDAPUserInfo(
+          userName    = userName,
           fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
-            findFullName(conn, userDN, fullNameAttribute)
+            findFullName(conn, userDN, ldapSettings.userNameAttribute, userName, fullNameAttribute)
           }.getOrElse(userName),
-          mailAddress = mailAddress))
-        case None => Left("Can't find mail address.")
+          mailAddress = createDummyMailAddress(userName)))
+      } else {
+        findMailAddress(conn, userDN, ldapSettings.userNameAttribute, userName, ldapSettings.mailAttribute.get) match {
+          case Some(mailAddress) => Right(LDAPUserInfo(
+            userName    = getUserNameFromMailAddress(userName),
+            fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
+              findFullName(conn, userDN, ldapSettings.userNameAttribute, userName, fullNameAttribute)
+            }.getOrElse(userName),
+            mailAddress = mailAddress))
+          case None => Left("Can't find mail address.")
+        }
       }
     }
   }
@@ -112,7 +142,7 @@ object LDAPUtil {
   /**
    * Search a specified user and returns userDN if exists.
    */
-  private def findUser(conn: LDAPConnection, userName: String, baseDN: String, userNameAttribute: String): Option[String] = {
+  private def findUser(conn: LDAPConnection, userName: String, baseDN: String, userNameAttribute: String, additionalFilterCondition: Option[String]): Option[String] = {
     @tailrec
     def getEntries(results: LDAPSearchResults, entries: List[Option[LDAPEntry]] = Nil): List[LDAPEntry] = {
       if(results.hasMore){
@@ -125,20 +155,26 @@ object LDAPUtil {
         entries.flatten
       }
     }
-    getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, userNameAttribute + "=" + userName, null, false)).collectFirst {
+
+    val filterCond = additionalFilterCondition.getOrElse("") match {
+      case "" => userNameAttribute + "=" + userName
+      case x => "(&(" + x + ")(" + userNameAttribute + "=" + userName + "))"
+    }
+
+    getEntries(conn.search(baseDN, LDAPConnection.SCOPE_SUB, filterCond, null, false)).collectFirst {
       case x => x.getDN
     }
   }
 
-  private def findMailAddress(conn: LDAPConnection, userDN: String, mailAttribute: String): Option[String] =
-    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](mailAttribute), false)){ results =>
+  private def findMailAddress(conn: LDAPConnection, userDN: String, userNameAttribute: String, userName: String, mailAttribute: String): Option[String] =
+    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, userNameAttribute + "=" + userName, Array[String](mailAttribute), false)){ results =>
       if(results.hasMore) {
         Option(results.next.getAttribute(mailAttribute)).map(_.getStringValue)
       } else None
     }
 
-  private def findFullName(conn: LDAPConnection, userDN: String, nameAttribute: String): Option[String] =
-    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, null, Array[String](nameAttribute), false)){ results =>
+  private def findFullName(conn: LDAPConnection, userDN: String, userNameAttribute: String, userName: String, nameAttribute: String): Option[String] =
+    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, userNameAttribute + "=" + userName, Array[String](nameAttribute), false)){ results =>
       if(results.hasMore) {
         Option(results.next.getAttribute(nameAttribute)).map(_.getStringValue)
       } else None

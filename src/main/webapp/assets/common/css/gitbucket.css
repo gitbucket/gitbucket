@@ -3,7 +3,6 @@
 /****************************************************************************/
 body {
   color: #333;
-  line-height: 100%;
 }
 
 li p {
@@ -37,9 +36,6 @@ h6 {
   font-size: 18px;
 }
 
-h7 {
-  font-size: 14px;
-}
 
 /* ======================================================================== */
 /* Global Header */
@@ -98,6 +94,13 @@ div.input-prepend span.count {
   padding-bottom: 6px;
 }
 
+img.plugin-global-menu {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: -2px;
+}
+
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
@@ -114,6 +117,11 @@ div.head div.forked {
 
 div.container {
   width: 920px;
+}
+
+div.container-wide {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 div.pagination {
@@ -386,12 +394,14 @@ div.signin-form {
 /* Account page */
 /****************************************************************************/
 .account-fullname {
-  font-size: 140%;
+  margin-top: 20px;
+  font-size: 180%;
   font-weight: bold;
 }
 
 .account-username {
-  font-size: 120%;
+  margin-top: 10px;
+  font-size: 140%;
   color: #888888;
   font-weight: bold;
 }
@@ -502,6 +512,10 @@ a.header-link:hover {
   text-decoration: none;
 }
 
+table.blobview {
+  table-layout: fixed;
+}
+
 table.table-file-list {
   margin-bottom: 0px;
   border: 1px solid #ddd;
@@ -584,6 +598,7 @@ pre.blob {
   border: none;
   background-color: white;
   padding-left: 20px;
+  font-size: 12px;
 }
 
 #readme {
@@ -596,6 +611,10 @@ pre.blob {
 
 li.highlight {
   background-color: #ffb;
+}
+
+span.simplified-path {
+  color: #888;
 }
 
 /****************************************************************************/
@@ -817,9 +836,20 @@ a.absent {
 }
 
 /****************************************************************************/
+/* Commit */
+/****************************************************************************/
+div.author-info div.committer {
+  display: block;
+  margin-left: 25px;
+  font-size: 12px;
+}
+
+/****************************************************************************/
 /* Diff */
 /****************************************************************************/
 table.inlinediff {
+    font-size: 12px;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     width: 100%;
 }
 
@@ -859,12 +889,57 @@ ul.collaborator a.remove {
 /****************************************************************************/
 /* Markdown */
 /****************************************************************************/
+div.markdown-body {
+  line-height: 1.7;
+  font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  word-wrap: break-word;
+}
 div.markdown-body h1 {
   border-bottom: 1px solid #ddd;
+  font-size: 2.5em;
+  font-weight: bold;
 }
 
 div.markdown-body h2 {
   border-bottom: 1px solid #eee;
+  font-size: 2em;
+}
+
+div.markdown-body h3 {
+  font-size: 1.5em;
+}
+
+div.markdown-body h4 {
+  font-size: 1.2em;
+}
+
+div.markdown-body h5 {
+  font-size: 1em;
+}
+
+div.markdown-body h6 {
+  color:#777;
+  font-size: 1em;
+}
+
+div.markdown-body li {
+  line-height: 1.7;
+}
+
+div.markdown-body p {
+  margin: 15px 0;
+  line-height: 1.7;
+}
+
+div.markdown-body pre {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+}
+
+div.markdown-body code {
+  font-size: 12px;
+  padding: 0 5px;
 }
 
 div.markdown-body table {
@@ -1002,6 +1077,7 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 
 .markdown-head {
   position: relative;
+  line-height: 1.7;
 }
 
 a.markdown-anchor-link {
@@ -1015,25 +1091,25 @@ a.markdown-anchor-link {
 }
 
 h1 a.markdown-anchor-link {
-  top: 8px;
+  top: 24px;
 }
 
 h2 a.markdown-anchor-link {
-  top: 6px;
+  top: 20px;
 }
 
 h3 a.markdown-anchor-link {
-  top: 6px;
+  top: 12px;
 }
 
 h4 a.markdown-anchor-link {
-  top: 2px;
+  top: 8px;
 }
 
 h5 a.markdown-anchor-link {
-  top: 2px;
+  top: 6px;
 }
 
 h6 a.markdown-anchor-link {
-  top: 2px;
+  top: 6px;
 }

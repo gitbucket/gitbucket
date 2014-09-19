@@ -11,10 +11,13 @@
 <script>
 $(function(){
   var callback = function(data){
+    $('#update-comment-@commentId, #cancel-comment-@commentId').removeAttr('disabled');
     $('#commentContent-@commentId').empty().html(data.content);
+    prettyPrint();
   };
 
   $('#update-comment-@commentId').click(function(){
+    $('#update-comment-@commentId, #cancel-comment-@commentId').attr('disabled', 'disabled');
     $.ajax({
       url: '@path/@owner/@repository/issue_comments/edit/@commentId',
       type: 'POST',
@@ -25,11 +28,13 @@ $(function(){
     }).done(
       callback
     ).fail(function(req) {
+      $('#update-comment-@commentId, #cancel-comment-@commentId').removeAttr('disabled');
       $('#error-edit-content-@commentId').text($.parseJSON(req.responseText).content);
     });
   });
 
   $('#cancel-comment-@commentId').click(function(){
+    $('#update-comment-@commentId, #cancel-comment-@commentId').attr('disabled', 'disabled');
     $.get('@path/@owner/@repository/issue_comments/_data/@commentId', callback);
     return false;
   });
