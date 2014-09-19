@@ -1,4 +1,4 @@
-@(issues: List[(model.Issue, List[model.Label], Int)],
+@(issues: List[(model.Issue, List[model.Label], Option[String], Int)],
   counts: List[service.PullRequestService.PullRequestCount],
   filter: Option[String],
   page: Int,

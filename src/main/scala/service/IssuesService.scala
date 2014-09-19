@@ -116,7 +116,7 @@ trait IssuesService {
    */
   def searchIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
                   offset: Int, limit: Int, repos: (String, String)*)
-                 (implicit s: Session): List[(Issue, List[Label], Int)] = {
+                 (implicit s: Session): List[(Issue, List[Label], Option[String], Int)] = {
 
     // get issues and comment count and labels
     searchIssueQuery(repos, condition, filterUser, onlyPullRequest)
@@ -136,21 +136,23 @@ trait IssuesService {
         .drop(offset).take(limit)
         .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
         .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
-        .map { case (((t1, t2), t3), t4) =>
-          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?)
+        .leftJoin (Milestones)  .on { case ((((t1, t2), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
+        .map { case ((((t1, t2), t3), t4), t5) =>
+          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?, t5.title.?)
         }
         .list
         .splitWith { (c1, c2) =>
-          c1._1.userName == c2._1.userName &&
+          c1._1.userName       == c2._1.userName &&
           c1._1.repositoryName == c2._1.repositoryName &&
-          c1._1.issueId == c2._1.issueId
+          c1._1.issueId        == c2._1.issueId
         }
         .map { issues => issues.head match {
-          case (issue, commentCount, _,_,_) =>
+          case (issue, commentCount, _, _, _, milestone) =>
             (issue,
              issues.flatMap { t => t._3.map (
                  Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
              )} toList,
+             milestone,
              commentCount)
         }} toList
   }

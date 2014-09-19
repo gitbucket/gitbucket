@@ -1,4 +1,4 @@
-@(issues: List[(model.Issue, List[model.Label], Int)],
+@(issues: List[(model.Issue, List[model.Label], Option[String], Int)],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -146,7 +146,7 @@
           }
           *@
         }
-        @issues.map { case (issue, labels, commentCount) =>
+        @issues.map { case (issue, labels, milestone, commentCount) =>
           <tr>
             <td style="padding-top: 15px; padding-bottom: 15px;">
               @if(hasWritePermission){
@@ -177,6 +177,7 @@
               </span>
               <div class="small muted" style="margin-left: 40px; margin-top: 5px;">
                 #@issue.issueId opened by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)
+                <span style="margin: 20px;"><a href="@condition.copy(milestoneId = Some(Some(1))).toURL" class="username">@milestone</a></span>
               </div>
               @if(hasWritePermission){
                 </label>

@@ -1,4 +1,4 @@
-@(issues: List[(model.Issue, List[model.Label], Int)],
+@(issues: List[(model.Issue, List[model.Label], Option[String], Int)],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -71,7 +71,7 @@
       </td>
     </tr>
   }
-  @issues.map { case (issue, labels, commentCount) =>
+  @issues.map { case (issue, labels, milestone, commentCount) =>
     <tr>
       <td>
         <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
