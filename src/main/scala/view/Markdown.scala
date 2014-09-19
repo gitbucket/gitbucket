@@ -11,7 +11,7 @@ import java.text.Normalizer
 import java.util.Locale
 import java.util.regex.Pattern
 import scala.collection.JavaConverters._
-import service.{RepositoryService, RequestCache, WikiService}
+import service.{RequestCache, WikiService}
 
 object Markdown {
 
@@ -19,7 +19,8 @@ object Markdown {
    * Converts Markdown of Wiki pages to HTML.
    */
   def toHtml(markdown: String, repository: service.RepositoryService.RepositoryInfo,
-             enableWikiLink: Boolean, enableRefsLink: Boolean, enableTaskList: Boolean = false)(implicit context: app.Context): String = {
+             enableWikiLink: Boolean, enableRefsLink: Boolean,
+             enableTaskList: Boolean = false, hasWritePermission: Boolean = false)(implicit context: app.Context): String = {
     // escape issue id
     val s = if(enableRefsLink){
       markdown.replaceAll("(?<=(\\W|^))#(\\d+)(?=(\\W|$))", "issue:$2")
@@ -34,7 +35,7 @@ object Markdown {
       Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES | Extensions.HARDWRAPS
     ).parseMarkdown(source.toCharArray)
 
-    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink, enableTaskList).toHtml(rootNode)
+    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission).toHtml(rootNode)
   }
 }
 
@@ -89,11 +90,12 @@ class GitBucketHtmlSerializer(
     repository: service.RepositoryService.RepositoryInfo,
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
-    enableTaskList: Boolean
+    enableTaskList: Boolean,
+    hasWritePermission: Boolean
   )(implicit val context: app.Context) extends ToHtmlSerializer(
     new GitBucketLinkRender(context, repository, enableWikiLink),
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
-  ) with RepositoryService with LinkConverter with RequestCache {
+  ) with LinkConverter with RequestCache {
 
   override protected def printImageTag(imageNode: SuperNode, url: String): Unit =
     printer.print("<a target=\"_blank\" href=\"").print(fixUrl(url)).print("\">")
@@ -147,7 +149,7 @@ class GitBucketHtmlSerializer(
     val t = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
 
     // convert task list to checkbox.
-    val text = if(enableTaskList) GitBucketHtmlSerializer.convertCheckBox(t, hasWritePermission(repository.owner, repository.name, context.loginAccount)) else t
+    val text = if(enableTaskList) GitBucketHtmlSerializer.convertCheckBox(t, hasWritePermission) else t
 
     if (abbreviations.isEmpty) {
       printer.print(text)

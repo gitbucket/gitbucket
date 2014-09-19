@@ -78,7 +78,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     view.helpers.markdown(params("content"), repository,
       params("enableWikiLink").toBoolean,
       params("enableRefsLink").toBoolean,
-      params("enableTaskList").toBoolean)
+      params("enableTaskList").toBoolean,
+      hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
   /**

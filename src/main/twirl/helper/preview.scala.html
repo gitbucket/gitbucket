@@ -1,4 +1,4 @@
-@(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean, enableRefsLink: Boolean, enableTaskList: Boolean,
+@(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean, enableRefsLink: Boolean, enableTaskList: Boolean, hasWritePermission: Boolean,
   style: String = "", placeholder: String = "Leave a comment", elastic: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._

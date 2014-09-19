@@ -77,7 +77,7 @@
       </div>
     </div>
     <div class="issue-content" id="issueContent">
-      @markdown(issue.content getOrElse "No description given.", repository, false, true, true)
+      @markdown(issue.content getOrElse "No description given.", repository, false, true, true, hasWritePermission)
     </div>
   </div>
 </div>
