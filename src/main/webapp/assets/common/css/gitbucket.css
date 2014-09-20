@@ -814,6 +814,20 @@ div.attachable div.clickable {
   background-color: white;
 }
 
+ul.task-list {
+  padding-left: 2em;
+  margin-left: 0;
+}
+
+li.task-list-item {
+  list-style-type: none;
+}
+
+li.task-list-item input.task-list-item-checkbox {
+  margin: 0 4px 0.25em -20px;
+  vertical-align: middle;
+}
+
 /****************************************************************************/
 /* Pull Request */
 /****************************************************************************/

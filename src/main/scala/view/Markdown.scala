@@ -157,6 +157,28 @@ class GitBucketHtmlSerializer(
       printWithAbbreviations(text)
     }
   }
+
+  override def visit(node: BulletListNode): Unit = {
+    if (printChildrenToString(node).contains("""class="task-list-item-checkbox" """)) {
+      printer.println().print("""<ul class="task-list">""").indent(+2)
+      visitChildren(node)
+      printer.indent(-2).println().print("</ul>")
+    } else {
+      printIndentedTag(node, "ul")
+    }
+  }
+
+  override def visit(node: ListItemNode): Unit = {
+    if (printChildrenToString(node).contains("""class="task-list-item-checkbox" """)) {
+      printer.println()
+      printer.print("""<li class="task-list-item">""")
+      visitChildren(node)
+      printer.print("</li>")
+    } else {
+      printer.println()
+      printTag(node, "li")
+    }
+  }
 }
 
 object GitBucketHtmlSerializer {
@@ -171,12 +193,12 @@ object GitBucketHtmlSerializer {
   }
 
   def escapeTaskList(text: String): String = {
-    Pattern.compile("""^ *- \[([x| ])\] """, Pattern.MULTILINE).matcher(text).replaceAll("task:$1: ")
+    Pattern.compile("""^( *)- \[([x| ])\] """, Pattern.MULTILINE).matcher(text).replaceAll("$1* task:$2: ")
   }
 
   def convertCheckBox(text: String, hasWritePermission: Boolean): String = {
     val disabled = if (hasWritePermission) "" else "disabled"
-    text.replaceAll("task:x:", """<input type="checkbox" checked="checked" """ + disabled + "/>")
-        .replaceAll("task: :", """<input type="checkbox" """ + disabled + "/>")
+    text.replaceAll("task:x:", """<input type="checkbox" class="task-list-item-checkbox" checked="checked" """ + disabled + "/>")
+        .replaceAll("task: :", """<input type="checkbox" class="task-list-item-checkbox" """ + disabled + "/>")
   }
 }

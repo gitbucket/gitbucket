@@ -27,28 +27,28 @@ class GitBucketHtmlSerializerSpec extends Specification {
   }
 
   "escapeTaskList" should {
-    "convert '- [ ] ' to 'task: :'" in {
+    "convert '- [ ] ' to '* task: :'" in {
       val before = "- [ ] aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "task: : aaaa"
+      after mustEqual "* task: : aaaa"
     }
 
-    "convert '  - [ ] ' to 'task: :'" in {
+    "convert '  - [ ] ' to '  * task: :'" in {
       val before = "  - [ ]   aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "task: :   aaaa"
+      after mustEqual "  * task: :   aaaa"
     }
 
     "convert only first '- [ ] '" in {
       val before = "   - [ ]   aaaa - [ ] bbb"
       val after = escapeTaskList(before)
-      after mustEqual "task: :   aaaa - [ ] bbb"
+      after mustEqual "   * task: :   aaaa - [ ] bbb"
     }
 
-    "convert '- [x] ' to 'task: :'" in {
+    "convert '- [x] ' to '* task:x:'" in {
       val before = "  - [x]   aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "task:x:   aaaa"
+      after mustEqual "  * task:x:   aaaa"
     }
 
     "convert multi lines" in {
@@ -60,8 +60,8 @@ tasks
       val after = escapeTaskList(before)
       after mustEqual """
 tasks
-task:x: aaaa
-task: : bbb
+* task:x: aaaa
+* task: : bbb
 """
     }
 
