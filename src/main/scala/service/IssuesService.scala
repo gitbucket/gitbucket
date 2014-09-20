@@ -116,7 +116,7 @@ trait IssuesService {
    */
   def searchIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
                   offset: Int, limit: Int, repos: (String, String)*)
-                 (implicit s: Session): List[(Issue, List[Label], Option[String], Int)] = {
+                 (implicit s: Session): List[IssueInfo] = {
 
     // get issues and comment count and labels
     searchIssueQuery(repos, condition, filterUser, onlyPullRequest)
@@ -148,7 +148,7 @@ trait IssuesService {
         }
         .map { issues => issues.head match {
           case (issue, commentCount, _, _, _, milestone) =>
-            (issue,
+            IssueInfo(issue,
              issues.flatMap { t => t._3.map (
                  Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
              )} toList,
@@ -384,5 +384,7 @@ object IssuesService {
       case e: NumberFormatException => 1
     }
   }
+
+  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], commentCount: Int)
 
 }

@@ -1,4 +1,4 @@
-@(issues: List[(model.Issue, List[model.Label], Option[String], Int)],
+@(issues: List[service.IssuesService.IssueInfo],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -10,7 +10,7 @@
   hasWritePermission: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-
+@import service.IssuesService.IssueInfo
     <div class="span12">
       @*
       @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
@@ -146,7 +146,7 @@
           }
           *@
         }
-        @issues.map { case (issue, labels, milestone, commentCount) =>
+        @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
           <tr>
             <td style="padding-top: 15px; padding-bottom: 15px;">
               @if(hasWritePermission){

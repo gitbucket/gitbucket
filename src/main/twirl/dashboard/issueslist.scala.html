@@ -1,4 +1,4 @@
-@(issues: List[(model.Issue, List[model.Label], Option[String], Int)],
+@(issues: List[service.IssuesService.IssueInfo],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -10,7 +10,7 @@
   hasWritePermission: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-
+@import service.IssuesService.IssueInfo
     <div class="span9">
       @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
         <a href="@condition.copy(labels = Set.empty, milestoneId = None).toURL" id="clear-filter">
@@ -135,7 +135,7 @@
         </tr>
         }
       }
-      @issues.map { case (issue, labels, milestone, commentCount) =>
+      @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
         <tr>
           <td>
             @if(hasWritePermission){
