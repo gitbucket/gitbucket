@@ -620,6 +620,13 @@ span.simplified-path {
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
+.btn-group.open .dropdown-toggle.flat {
+    background-image: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
 a.button-link {
     font-weight: normal;
     color: gray;

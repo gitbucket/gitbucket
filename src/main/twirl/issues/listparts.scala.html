@@ -129,18 +129,7 @@
                   </li>
                 }
               }
-              @helper.html.dropdown(
-                value  = (condition.sort, condition.direction) match {
-                  case ("created" , "desc") => "Newest"
-                  case ("created" , "asc" ) => "Oldest"
-                  case ("comments", "desc") => "Most commented"
-                  case ("comments", "asc" ) => "Least commented"
-                  case ("updated" , "desc") => "Recently updated"
-                  case ("updated" , "asc" ) => "Least recently updated"
-                },
-                prefix = "Sort",
-                flat   = true
-              ){
+              @helper.html.dropdown("Sort", flat = true){
                 <li>
                   <a href="@condition.copy(sort="created",  direction="desc").toURL">
                   @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
