@@ -42,7 +42,7 @@ object MyBuild extends Build {
       "org.apache.commons" % "commons-email" % "1.3.1",
       "org.apache.httpcomponents" % "httpclient" % "4.3",
       "org.apache.sshd" % "apache-sshd" % "0.11.0",
-      "com.typesafe.slick" %% "slick" % "2.1.0-RC3",
+      "com.typesafe.slick" %% "slick" % "2.1.0",
       "com.novell.ldap" % "jldap" % "2009-10-07",
       "org.quartz-scheduler" % "quartz" % "2.2.1",
       "com.h2database" % "h2" % "1.4.180",
