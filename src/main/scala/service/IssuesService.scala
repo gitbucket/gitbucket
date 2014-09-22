@@ -341,6 +341,13 @@ object IssuesService {
       sort: String = "created",
       direction: String = "desc"){
 
+    def isEmpty: Boolean = {
+      labels.isEmpty && milestoneId.isEmpty && author.isEmpty && assigned.isEmpty &&
+        state == "open" && sort == "created" && direction == "desc"
+    }
+
+    def nonEmpty: Boolean = !isEmpty
+
     def toURL: String =
       "?" + List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(","))),

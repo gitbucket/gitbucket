@@ -74,6 +74,9 @@
         </li>
       }
       *@
+      @if(condition.nonEmpty){
+        <a href="@service.IssuesService.IssueSearchCondition().toURL">Clear current search query, filters, and sorts</a>
+      }
       <table class="table table-bordered table-hover table-issues">
         <tr>
           <th style="background-color: #eee;">
