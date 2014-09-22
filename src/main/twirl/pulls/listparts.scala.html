@@ -12,16 +12,6 @@
 @import view.helpers._
 @import service.IssuesService.IssueInfo
 @*
-@repository.map { repository =>
-  @if(hasWritePermission){
-    <div class="pull-right">
-      @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 7, condition.toURL)
-      <a href="@url(repository)/compare" class="btn btn-small btn-success">New pull request</a>
-    </div>
-  }
-}
-*@
-@*
 <div class="btn-group">
   <a class="btn btn-small@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
   <a class="btn btn-small@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
