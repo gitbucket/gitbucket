@@ -453,7 +453,6 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name){ case (owner, repoName) =>
-      //val filterUser = userName.map { x => Map("created_by" -> x) } getOrElse Map("all" -> "")
       val page       = IssueSearchCondition.page(request)
       val sessionKey = Keys.Session.Pulls(owner, repoName)
 
@@ -466,8 +465,10 @@ trait PullRequestsControllerBase extends ControllerBase {
       pulls.html.list(
         searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         getPullRequestCountGroupByUser(condition.state == "closed", Some(owner), Some(repoName)),
-        userName,
         page,
+        (getCollaborators(owner, repoName) :+ owner).sorted,
+        getMilestones(owner, repoName),
+        getLabels(owner, repoName),
         countIssue(condition.copy(state = "open"  ), true, owner -> repoName),
         countIssue(condition.copy(state = "closed"), true, owner -> repoName),
         countIssue(condition.copy(assigned = None, author = None), true, owner -> repoName),

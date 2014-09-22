@@ -1,7 +1,9 @@
 @(issues: List[service.IssuesService.IssueInfo],
   counts: List[service.PullRequestService.PullRequestCount],
-  filter: Option[String],
   page: Int,
+  collaborators: List[String],
+  milestones: List[model.Milestone],
+  labels: List[model.Label],
   openCount: Int,
   closedCount: Int,
   allCount: Int,
@@ -13,7 +15,9 @@
 @import service.IssuesService.IssueInfo
 @html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("pulls", repository){
+    @_root_.issues.html.tab("pulls", false, repository)
     <div class="row-fluid">
+      @*
       <div class="span3">
         <ul class="nav nav-pills nav-stacked">
           <li@if(filter.isEmpty){ class="active"}>
@@ -45,7 +49,10 @@
         }
         </ul>
       </div>
-      @listparts(issues, page, openCount, closedCount, condition, Some(repository), hasWritePermission)
+      *@
+      <div class="span12">
+        @listparts(issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
+      </div>
     </div>
   }
 }
