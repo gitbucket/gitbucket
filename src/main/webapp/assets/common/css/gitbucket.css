@@ -861,7 +861,7 @@ table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delet
     width: 100%;
 }
 
-td.insert, td.equal, td.delete {
+td.insert, td.equal, td.delete, td.empty {
     width: 50%;
 }
 
