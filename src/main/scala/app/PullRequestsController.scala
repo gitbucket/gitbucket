@@ -453,7 +453,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name){ case (owner, repoName) =>
-      val filterUser = userName.map { x => Map("created_by" -> x) } getOrElse Map("all" -> "")
+      //val filterUser = userName.map { x => Map("created_by" -> x) } getOrElse Map("all" -> "")
       val page       = IssueSearchCondition.page(request)
       val sessionKey = Keys.Session.Pulls(owner, repoName)
 

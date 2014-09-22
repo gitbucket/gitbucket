@@ -104,18 +104,18 @@ trait IssuesService {
    * Returns the search result against  issues.
    *
    * @param condition the search condition
-   * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
+   * @param pullRequest if true then returns only pull requests, false then returns only issues.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
    * @param repos Tuple of the repository owner and the repository name
    * @return the search result (list of tuples which contain issue, labels and comment count)
    */
-  def searchIssue(condition: IssueSearchCondition, onlyPullRequest: Boolean,
+  def searchIssue(condition: IssueSearchCondition, pullRequest: Boolean,
                   offset: Int, limit: Int, repos: (String, String)*)
                  (implicit s: Session): List[IssueInfo] = {
 
     // get issues and comment count and labels
-    searchIssueQuery(repos, condition, onlyPullRequest)
+    searchIssueQuery(repos, condition, pullRequest)
         .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
         .sortBy { case (t1, t2) =>
           (condition.sort match {
@@ -157,7 +157,7 @@ trait IssuesService {
    * Assembles query for conditional issue searching.
    */
   private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition,
-                               onlyPullRequest: Boolean)(implicit s: Session) =
+                               pullRequest: Boolean)(implicit s: Session) =
     Issues filter { t1 =>
       condition.repo
           .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
@@ -169,7 +169,7 @@ trait IssuesService {
       (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
       (t1.assignedUserName === condition.assigned.get.bind, condition.assigned.isDefined) &&
       (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
-      (t1.pullRequest      === true.bind, onlyPullRequest) &&
+      (t1.pullRequest      === pullRequest.bind) &&
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
         (t2.labelId in
