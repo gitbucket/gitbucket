@@ -48,16 +48,8 @@ trait IssuesControllerBase extends ControllerBase {
       "content" -> trim(optional(text()))
     )(IssueStateForm.apply)
 
-  get("/:owner/:repository/issues")(referrersOnly {
-    searchIssues("all", _)
-  })
-
-  get("/:owner/:repository/issues/assigned/:userName")(referrersOnly {
-    searchIssues("assigned", _)
-  })
-
-  get("/:owner/:repository/issues/created_by/:userName")(referrersOnly {
-    searchIssues("created_by", _)
+  get("/:owner/:repository/issues")(referrersOnly { repository =>
+    searchIssues(repository)
   })
 
   get("/:owner/:repository/issues/:id")(referrersOnly { repository =>
@@ -370,9 +362,8 @@ trait IssuesControllerBase extends ControllerBase {
     }
   }
 
-  private def searchIssues(filter: String, repository: RepositoryService.RepositoryInfo) = {
+  private def searchIssues(repository: RepositoryService.RepositoryInfo) = {
     defining(repository.owner, repository.name){ case (owner, repoName) =>
-      val filterUser = Map(filter -> params.getOrElse("userName", ""))
       val page       = IssueSearchCondition.page(request)
       val sessionKey = Keys.Session.Issues(owner, repoName)
 
@@ -383,19 +374,18 @@ trait IssuesControllerBase extends ControllerBase {
       )
 
       issues.html.list(
-          searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           (getCollaborators(owner, repoName) :+ owner).sorted,
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), filterUser, false, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), filterUser, false, owner -> repoName),
-          countIssue(condition, Map.empty, false, owner -> repoName),
-          context.loginAccount.map(x => countIssue(condition, Map("assigned" -> x.userName), false, owner -> repoName)),
-          context.loginAccount.map(x => countIssue(condition, Map("created_by" -> x.userName), false, owner -> repoName)),
-          countIssueGroupByLabels(owner, repoName, condition, filterUser),
+          countIssue(condition.copy(state = "open"), false, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), false, owner -> repoName),
+          countIssue(condition.copy(assigned = None, author = None), false, owner -> repoName),
+          context.loginAccount.map(x => countIssue(condition.copy(assigned = Some(x.userName), author = None), false, owner -> repoName)),
+          context.loginAccount.map(x => countIssue(condition.copy(assigned = None, author = Some(x.userName)), false, owner -> repoName)),
+          countIssueGroupByLabels(owner, repoName, condition),
           condition,
-          filter,
           repository,
           hasWritePermission(owner, repoName, context.loginAccount))
     }

@@ -464,13 +464,13 @@ trait PullRequestsControllerBase extends ControllerBase {
       )
 
       pulls.html.list(
-        searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
+        searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         getPullRequestCountGroupByUser(condition.state == "closed", Some(owner), Some(repoName)),
         userName,
         page,
-        countIssue(condition.copy(state = "open"  ), filterUser, true, owner -> repoName),
-        countIssue(condition.copy(state = "closed"), filterUser, true, owner -> repoName),
-        countIssue(condition, Map.empty, true, owner -> repoName),
+        countIssue(condition.copy(state = "open"  ), true, owner -> repoName),
+        countIssue(condition.copy(state = "closed"), true, owner -> repoName),
+        countIssue(condition.copy(assigned = None, author = None), true, owner -> repoName),
         condition,
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))
