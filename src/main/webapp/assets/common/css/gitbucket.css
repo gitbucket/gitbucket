@@ -847,18 +847,22 @@ div.author-info div.committer {
 /****************************************************************************/
 /* Diff */
 /****************************************************************************/
-table.inlinediff {
+table.diff {
     font-size: 12px;
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     width: 100%;
 }
 
-table.inlinediff thead {
+table.diff thead {
     display: none;
 }
 
-td.insert, td.equal, td.delete {
+table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delete {
     width: 100%;
+}
+
+td.insert, td.equal, td.delete {
+    width: 50%;
 }
 
 /****************************************************************************/
