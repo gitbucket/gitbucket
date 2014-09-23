@@ -381,12 +381,8 @@ trait IssuesControllerBase extends ControllerBase {
           (getCollaborators(owner, repoName) :+ owner).sorted,
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), false, owner -> repoName),
+          countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
           countIssue(condition.copy(state = "closed"), false, owner -> repoName),
-          countIssue(condition.copy(assigned = None, author = None), false, owner -> repoName),
-          context.loginAccount.map(x => countIssue(condition.copy(assigned = Some(x.userName), author = None), false, owner -> repoName)),
-          context.loginAccount.map(x => countIssue(condition.copy(assigned = None, author = Some(x.userName)), false, owner -> repoName)),
-          countIssueGroupByLabels(owner, repoName, condition),
           condition,
           repository,
           hasWritePermission(owner, repoName, context.loginAccount))

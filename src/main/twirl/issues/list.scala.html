@@ -5,10 +5,6 @@
   labels: List[model.Label],
   openCount: Int,
   closedCount: Int,
-  allCount: Int,
-  assignedCount: Option[Int],
-  createdByCount: Option[Int],
-  labelCounts: Map[String, Int],
   condition: service.IssuesService.IssueSearchCondition,
   repository: service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: app.Context)

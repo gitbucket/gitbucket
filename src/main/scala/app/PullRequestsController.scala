@@ -467,7 +467,6 @@ trait PullRequestsControllerBase extends ControllerBase {
         getLabels(owner, repoName),
         countIssue(condition.copy(state = "open"  ), true, owner -> repoName),
         countIssue(condition.copy(state = "closed"), true, owner -> repoName),
-        countIssue(condition.copy(assigned = None, author = None), true, owner -> repoName),
         condition,
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))
