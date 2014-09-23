@@ -287,7 +287,10 @@ trait IssuesControllerBase extends ControllerBase {
 
   private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
     params("checked").split(',') map(_.toInt) foreach execute
-    redirect(s"/${repository.owner}/${repository.name}/issues")
+    params("from") match {
+      case "issues" => redirect(s"/${repository.owner}/${repository.name}/issues")
+      case "pulls"  => redirect(s"/${repository.owner}/${repository.name}/pulls")
+    }
   }
 
   private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {

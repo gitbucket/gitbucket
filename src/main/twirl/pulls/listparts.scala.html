@@ -96,35 +96,37 @@
           </li>
         }
       </div>
-      <div class="pull-right" id="table-issues-batchedit">
-        @helper.html.dropdown("Mark as", flat = true) {
-          <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
-          <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
-        }
-        @helper.html.dropdown("Label", flat = true) {
-          @labels.map { label =>
-            <li>
-              <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
-                <i class="icon-white"></i>
-                <span class="label" style="background-color: #@label.color;">&nbsp;</span>
-                @label.labelName
-              </a>
-            </li>
+      @if(hasWritePermission){
+        <div class="pull-right" id="table-issues-batchedit">
+          @helper.html.dropdown("Mark as", flat = true) {
+            <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
+            <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
           }
-        }
-        @helper.html.dropdown("Milestone", flat = true) {
-          <li><a href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a></li>
-          @milestones.filter(_.closedDate.isEmpty).map { milestone =>
-            <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+          @helper.html.dropdown("Label", flat = true) {
+            @labels.map { label =>
+              <li>
+                <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
+                  <i class="icon-white"></i>
+                  <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                  @label.labelName
+                </a>
+              </li>
+            }
           }
-        }
-        @helper.html.dropdown("Assignee", flat = true) {
-          <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
-          @collaborators.map { collaborator =>
-            <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
+          @helper.html.dropdown("Milestone", flat = true) {
+            <li><a href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a></li>
+            @milestones.filter(_.closedDate.isEmpty).map { milestone =>
+              <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+            }
           }
-        }
-      </div>
+          @helper.html.dropdown("Assignee", flat = true) {
+            <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+            @collaborators.map { collaborator =>
+              <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
+            }
+          }
+        </div>
+      }
     </th>
   </tr>
   @if(issues.isEmpty){
