@@ -1,4 +1,5 @@
-@(issues: List[service.IssuesService.IssueInfo],
+@(target: String,
+  issues: List[service.IssuesService.IssueInfo],
   page: Int,
   collaborators: List[String],
   milestones: List[model.Milestone],
@@ -12,7 +13,7 @@
 @import view.helpers._
 @html.main(s"Issues - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
-    @tab("issues", false, repository)
+    @tab(target, false, repository)
     <div class="row-fluid">
       <div class="span12">
         @listparts(issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
@@ -22,7 +23,7 @@
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
         <input type="hidden" name="checked"/>
-        <input type="hidden" name="from" value="issues"/>
+        <input type="hidden" name="from" value="@target"/>
       </form>
     }
   }

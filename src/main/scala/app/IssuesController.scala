@@ -379,6 +379,7 @@ trait IssuesControllerBase extends ControllerBase {
       )
 
       issues.html.list(
+          "issues",
           searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           (getCollaborators(owner, repoName) :+ owner).sorted,

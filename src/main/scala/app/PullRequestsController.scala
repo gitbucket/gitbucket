@@ -458,7 +458,8 @@ trait PullRequestsControllerBase extends ControllerBase {
         else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 
-      pulls.html.list(
+      issues.html.list(
+        "pulls",
         searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         page,
         (getCollaborators(owner, repoName) :+ owner).sorted,
