@@ -1,4 +1,4 @@
-@(active: String, creationPage: Boolean,
+@(active: String, newButton: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -10,14 +10,7 @@
   @if(loginAccount.isDefined){
   <li class="pull-right">
     <div class="btn-group">
-      @if(creationPage){
-        @if(active == "issues"){
-          <a class="btn btn-small btn-success" href="#" disabled="disabled">New issue</a>
-        }
-        @if(active == "pulls"){
-          <a class="btn btn-small btn-success" href="#" disabled="disabled">New pull request</a>
-        }
-      } else {
+      @if(newButton){
         @if(active == "issues"){
           <a class="btn btn-small btn-success" href="@url(repository)/issues/new">New issue</a>
         }

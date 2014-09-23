@@ -13,7 +13,7 @@
 @import view.helpers._
 @html.main(s"Issues - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
-    @tab(target, false, repository)
+    @tab(target, true, repository)
     <div class="row-fluid">
       <div class="span12">
         @listparts(issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
