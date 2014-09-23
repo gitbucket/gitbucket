@@ -7,7 +7,8 @@
 @import view.helpers._
 @html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
-    @tab("", true, repository)
+    @tab("issues", false, repository)
+    <br/><br/><hr style="margin-bottom: 10px;">
     <form action="@url(repository)/issues/new" method="POST" validate="true">
     <div class="row-fluid">
       <div class="span9">
@@ -65,7 +66,7 @@
       </div>
       <div class="span3">
         @if(hasWritePermission){
-          <span class="strong">Add Labels</span>
+          <span class="strong">Labels</span>
           <div>
             <div id="label-list">
               <ul class="label-list nav nav-pills nav-stacked">
