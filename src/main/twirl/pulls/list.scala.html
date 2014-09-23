@@ -17,43 +17,52 @@
   @html.menu("pulls", repository){
     @_root_.issues.html.tab("pulls", false, repository)
     <div class="row-fluid">
-      @*
-      <div class="span3">
-        <ul class="nav nav-pills nav-stacked">
-          <li@if(filter.isEmpty){ class="active"}>
-            <a href="@url(repository)/pulls">
-              <span class="count-right">@allCount</span>
-              All Requests
-            </a>
-          </li>
-          @if(loginAccount.isDefined){
-          <li@if(filter.map(_ == loginAccount.get.userName).getOrElse(false)){ class="active"}>
-            <a href="@url(repository)/pulls/@loginAccount.map(_.userName)">
-              <span class="count-right">@counts.find(_.userName == loginAccount.get.userName).map(_.count).getOrElse(0)</span>
-              Yours
-            </a>
-          </li>
-          }
-        </ul>
-        <hr>
-        <ul class="nav nav-pills nav-stacked small">
-        @counts.map { user =>
-          @if(loginAccount.isEmpty || loginAccount.get.userName != user.userName){
-          <li@if(filter.map(_ == user.userName).getOrElse(false)){ class="active"}>
-            <a href="@url(repository)/pulls/@user.userName">
-             <span class="count-right">@user.count</span>
-              @user.userName
-            </a>
-          </li>
-          }
-        }
-        </ul>
-      </div>
-      *@
       <div class="span12">
         @listparts(issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
       </div>
     </div>
+    @if(hasWritePermission){
+      <form id="batcheditForm" method="POST">
+        <input type="hidden" name="value"/>
+        <input type="hidden" name="checked"/>
+      </form>
+    }
   }
 }
+@if(hasWritePermission){
+<script>
+$(function(){
+  $('.table-issues input[type=checkbox]').change(function(){
+    if($('.table-issues input[type=checkbox]').filter(':checked').length == 0){
+      $('#table-issues-control').show();
+      $('#table-issues-batchedit').hide();
+    } else {
+      $('#table-issues-control').hide();
+      $('#table-issues-batchedit').show();
+    }
+  }).filter(':first').change();
 
+  var submitBatchEdit = function(action, value) {
+    var checked = $('.table-issues input[type=checkbox]').filter(':checked').map(function(){ return this.value; }).get().join();
+    var form = $('#batcheditForm');
+    form.find('input[name=value]').val(value);
+    form.find('input[name=checked]').val(checked);
+    form.attr('action', action);
+    form.submit();
+  };
+
+  $('a.toggle-state').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/state', $(this).data('id'));
+  });
+  $('a.toggle-label').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/label', $(this).data('id'));
+  });
+  $('a.toggle-assign').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/assign', $(this).data('name'));
+  });
+  $('a.toggle-milestone').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/milestone', $(this).data('id'));
+  });
+});
+</script>
+}

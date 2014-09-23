@@ -62,10 +62,6 @@ trait PullRequestsControllerBase extends ControllerBase {
     searchPullRequests(None, repository)
   })
 
-  get("/:owner/:repository/pulls/:userName")(referrersOnly { repository =>
-    searchPullRequests(Some(params("userName")), repository)
-  })
-
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner

@@ -11,138 +11,118 @@
 @import context._
 @import view.helpers._
 @import service.IssuesService.IssueInfo
-@*
-<div class="btn-group">
-  <a class="btn btn-small@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
-  <a class="btn btn-small@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
-</div>
-@helper.html.dropdown(
-  value  = (condition.sort, condition.direction) match {
-    case ("created" , "desc") => "Newest"
-    case ("created" , "asc" ) => "Oldest"
-    case ("comments", "desc") => "Most commented"
-    case ("comments", "asc" ) => "Least commented"
-    case ("updated" , "desc") => "Recently updated"
-    case ("updated" , "asc" ) => "Least recently updated"
-  },
-  prefix = "Sort",
-  mini   = false
-){
-  <li>
-    <a href="@condition.copy(sort="created",  direction="desc").toURL">
-      @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
-    </a>
-  </li>
-  <li>
-    <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
-      @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
-    </a>
-  </li>
-  <li>
-    <a href="@condition.copy(sort="comments", direction="desc").toURL">
-      @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
-    </a>
-  </li>
-  <li>
-    <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
-      @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
-    </a>
-  </li>
-  <li>
-    <a href="@condition.copy(sort="updated",  direction="desc").toURL">
-      @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
-    </a>
-  </li>
-  <li>
-    <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
-      @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
-    </a>
-  </li>
-}
-*@
 <table class="table table-bordered table-hover table-issues">
   <tr>
     <th style="background-color: #eee;">
       <input type="checkbox"/>
       <a class="button-link@if(condition.state == "open"  ){ selected}" href="@condition.copy(state = "open"  ).toURL">@openCount Open</a>
       <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
-      <div class="pull-right">
+      <div class="pull-right" id="table-issues-control">
         @helper.html.dropdown("Author", flat = true) {
-        @collaborators.map { collaborator =>
-        <li>
-          <a href="@condition.copy(author = (if(condition.author == Some(collaborator)) None else Some(collaborator))).toURL">
-            @helper.html.checkicon(condition.author == Some(collaborator))
-            @avatar(collaborator, 20) @collaborator
-          </a>
-        </li>
-        }
+          @collaborators.map { collaborator =>
+          <li>
+            <a href="@condition.copy(author = (if(condition.author == Some(collaborator)) None else Some(collaborator))).toURL">
+              @helper.html.checkicon(condition.author == Some(collaborator))
+              @avatar(collaborator, 20) @collaborator
+            </a>
+          </li>
+          }
         }
         @helper.html.dropdown("Label", flat = true) {
-        @labels.map { label =>
-        <li>
-          <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL">
-            @helper.html.checkicon(condition.labels.contains(label.labelName))
-            <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
-            @label.labelName
-          </a>
-        </li>
-        }
+          @labels.map { label =>
+            <li>
+              <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL">
+                @helper.html.checkicon(condition.labels.contains(label.labelName))
+                <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
+                @label.labelName
+              </a>
+            </li>
+          }
         }
         @helper.html.dropdown("Milestone", flat = true) {
-        <li>
-          <a href="@condition.copy(milestoneId = Some(None)).toURL">
-            @helper.html.checkicon(condition.milestoneId == Some(None)) Issues with no milestone
-          </a>
-        </li>
-        @milestones.filter(_.closedDate.isEmpty).map { milestone =>
-        <li>
-          <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
-            @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
-          </a>
-        </li>
-        }
+          <li>
+            <a href="@condition.copy(milestoneId = Some(None)).toURL">
+              @helper.html.checkicon(condition.milestoneId == Some(None)) Issues with no milestone
+            </a>
+          </li>
+          @milestones.filter(_.closedDate.isEmpty).map { milestone =>
+            <li>
+              <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
+                @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
+              </a>
+            </li>
+          }
         }
         @helper.html.dropdown("Assignee", flat = true) {
-        @collaborators.map { collaborator =>
-        <li>
-          <a href="@condition.copy(assigned = Some(collaborator)).toURL">
-            @helper.html.checkicon(condition.assigned == Some(collaborator))
-            @avatar(collaborator, 20) @collaborator
-          </a>
-        </li>
-        }
+          @collaborators.map { collaborator =>
+            <li>
+              <a href="@condition.copy(assigned = Some(collaborator)).toURL">
+                @helper.html.checkicon(condition.assigned == Some(collaborator))
+                @avatar(collaborator, 20) @collaborator
+              </a>
+            </li>
+          }
         }
         @helper.html.dropdown("Sort", flat = true){
-        <li>
-          <a href="@condition.copy(sort="created",  direction="desc").toURL">
-          @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
-          </a>
-        </li>
-        <li>
-          <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
-          @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
-          </a>
-        </li>
-        <li>
-          <a href="@condition.copy(sort="comments", direction="desc").toURL">
-          @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
-          </a>
-        </li>
-        <li>
-          <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
-          @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
-          </a>
-        </li>
-        <li>
-          <a href="@condition.copy(sort="updated",  direction="desc").toURL">
-          @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
-          </a>
-        </li>
-        <li>
-          <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
-          @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
-          </a>
-        </li>
+          <li>
+            <a href="@condition.copy(sort="created",  direction="desc").toURL">
+            @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
+            @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="desc").toURL">
+            @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
+            @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="desc").toURL">
+            @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+            </a>
+          </li>
+          <li>
+            <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+            @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+            </a>
+          </li>
+        }
+      </div>
+      <div class="pull-right" id="table-issues-batchedit">
+        @helper.html.dropdown("Mark as", flat = true) {
+          <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
+          <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
+        }
+        @helper.html.dropdown("Label", flat = true) {
+          @labels.map { label =>
+            <li>
+              <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
+                <i class="icon-white"></i>
+                <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                @label.labelName
+              </a>
+            </li>
+          }
+        }
+        @helper.html.dropdown("Milestone", flat = true) {
+          <li><a href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a></li>
+          @milestones.filter(_.closedDate.isEmpty).map { milestone =>
+            <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
+          }
+        }
+        @helper.html.dropdown("Assignee", flat = true) {
+          <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+          @collaborators.map { collaborator =>
+            <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
+          }
         }
       </div>
     </th>
@@ -158,7 +138,6 @@
     <tr>
       <td style="padding-top: 15px; padding-bottom: 15px;">
         @if(hasWritePermission){
-          <label class="checkbox" style="cursor: default;">
           <input type="checkbox" value="@issue.issueId"/>
         }
         <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png" style="margin-right: 20px;"/>
@@ -176,9 +155,6 @@
           #@issue.issueId opened by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)
           <span style="margin: 20px;"><a href="@condition.copy(milestoneId = Some(Some(1))).toURL" class="username">@milestone</a></span>
         </div>
-        @if(hasWritePermission){
-          </label>
-        }
       </td>
     </tr>
   }

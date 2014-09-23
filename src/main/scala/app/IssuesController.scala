@@ -234,8 +234,10 @@ trait IssuesControllerBase extends ControllerBase {
 
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
     defining(params.get("value")){ action =>
-      executeBatch(repository) {
-        handleComment(_, None, repository)( _ => action)
+      action match {
+        case Some("open")  => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("reopen")) }
+        case Some("close") => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("close"))  }
+        case _ => // TODO BadRequest
       }
     }
   })
@@ -311,15 +313,15 @@ trait IssuesControllerBase extends ControllerBase {
         val (action, recordActivity) =
           getAction(issue)
             .collect {
-            case "close"  => true  -> (Some("close")  ->
-              Some(if(issue.isPullRequest) recordClosePullRequestActivity _ else recordCloseIssueActivity _))
-            case "reopen" => false -> (Some("reopen") ->
-              Some(recordReopenIssueActivity _))
-          }
+              case "close" if(!issue.closed) => true  ->
+                (Some("close")  -> Some(if(issue.isPullRequest) recordClosePullRequestActivity _ else recordCloseIssueActivity _))
+              case "reopen" if(issue.closed) => false ->
+                (Some("reopen") -> Some(recordReopenIssueActivity _))
+            }
             .map { case (closed, t) =>
-            updateClosed(owner, name, issueId, closed)
-            t
-          }
+              updateClosed(owner, name, issueId, closed)
+              t
+            }
             .getOrElse(None -> None)
 
         val commentId = content
@@ -329,7 +331,7 @@ trait IssuesControllerBase extends ControllerBase {
           case (content, action) => createComment(owner, name, userName, issueId, content, action)
         }
 
-        // record activity
+        // record comment activity if comment is entered
         content foreach {
           (if(issue.isPullRequest) recordCommentPullRequestActivity _ else recordCommentIssueActivity _)
           (owner, name, userName, issueId, _)
