@@ -12,14 +12,28 @@
 @import view.helpers._
 @import service.IssuesService.IssueInfo
 @if(condition.nonEmpty){
-  <a href="@service.IssuesService.IssueSearchCondition().toURL">Clear current search query, filters, and sorts</a>
+  <div style="margin-top: 10px;">
+    <a href="@service.IssuesService.IssueSearchCondition().toURL" class="header-link">
+      <img src="@assets/common/images/clear.png" class="header-icon"/>
+      <img src="@assets/common/images/clear_hover.png" class="header-icon-hover" style="display: none;"/>
+      <span class="strong">Clear current search query, filters, and sorts</span>
+    </a>
+  </div>
 }
 <table class="table table-bordered table-hover table-issues">
   <tr>
     <th style="background-color: #eee;">
       <input type="checkbox"/>
-      <a class="button-link@if(condition.state == "open"  ){ selected}" href="@condition.copy(state = "open"  ).toURL">@openCount Open</a>
-      <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
+      <span class="small">
+        <a class="button-link@if(condition.state == "open"){ selected}" href="@condition.copy(state = "open").toURL">
+          <img src="@assets/common/images/status-open@(if(condition.state == "open"){"-active"}).png"/>
+          @openCount Open
+        </a>&nbsp;&nbsp;
+        <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">
+          <img src="@assets/common/images/status-closed@(if(condition.state == "closed"){"-active"}).png"/>
+          @closedCount Closed
+        </a>
+      </span>
       <div class="pull-right" id="table-issues-control">
         @helper.html.dropdown("Author", flat = true) {
           @collaborators.map { collaborator =>
@@ -160,15 +174,25 @@
         @labels.map { label =>
           <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
         }
-        <span class="pull-right muted">
+        <span class="pull-right small">
           @issue.assignedUserName.map { userName =>
             @avatar(userName, 20, tooltip = true)
           }
-          <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count"><i class="icon-comment"></i>@commentCount</a>
+          @if(commentCount > 0){
+            <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">
+              <img src="@assets/common/images/comment-active.png"> @commentCount
+            </a>
+          } else {
+            <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count" style="color: silver;">
+              <img src="@assets/common/images/comment.png"> @commentCount
+            </a>
+          }
         </span>
         <div class="small muted" style="margin-left: 40px; margin-top: 5px;">
           #@issue.issueId opened by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)
-          <span style="margin: 20px;"><a href="@condition.copy(milestoneId = Some(Some(1))).toURL" class="username">@milestone</a></span>
+          @milestone.map { milestone =>
+            <span style="margin: 20px;"><a href="@condition.copy(milestoneId = Some(Some(1))).toURL" class="username"><img src="@assets/common/images/milestone.png"> @milestone</a></span>
+          }
         </div>
       </td>
     </tr>

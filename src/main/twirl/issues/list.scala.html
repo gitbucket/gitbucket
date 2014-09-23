@@ -31,6 +31,26 @@
 @if(hasWritePermission){
 <script>
 $(function(){
+  $('a.header-link').mouseover(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', '#0088cc');
+    $(target).children('img.header-icon-hover').css('display', 'inline');
+    $(target).children('img.header-icon'      ).css('display', 'none');
+  });
+
+  $('a.header-link').mouseout(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', 'black');
+    $(target).children('img.header-icon-hover').css('display', 'none');
+    $(target).children('img.header-icon'      ).css('display', 'inline');
+  });
+
   $('.table-issues input[type=checkbox]').change(function(){
     if($('.table-issues input[type=checkbox]').filter(':checked').length == 0){
       $('#table-issues-control').show();
