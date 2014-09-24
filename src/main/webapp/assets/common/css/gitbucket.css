@@ -688,8 +688,7 @@ span.milestone-alert {
 }
 
 a.milestone-title {
-  font-size: 120%;
-  font-weight: bold;
+  font-size: 180%;
 }
 
 div.milestone-description {
@@ -697,13 +696,12 @@ div.milestone-description {
   color: #666;
 }
 
-div.milestone-menu {
-  font-size: 80%;
+a.milestone-title {
+  color: #333;
 }
 
-div.milestone-menu a {
-  margin-left: 8px;
-  font-weight: bold;
+div.milestone-menu {
+ margin-top: 8px;
 }
 
 div.milestone-menu a.delete {
@@ -740,11 +738,6 @@ span.milestone-progress {
   border-radius: 4px;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
-}
-
-span.milestone-percentage {
-  position: absolute;
-  padding-left: 8px;
 }
 
 div.issue-header {

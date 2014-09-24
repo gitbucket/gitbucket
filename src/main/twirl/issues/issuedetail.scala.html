@@ -47,7 +47,7 @@
         <div id="milestone-progress-area">
           @issue.milestoneId.map { milestoneId =>
             @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
-              @issues.milestones.html.progress(openCount + closeCount, closeCount, false)
+              @issues.milestones.html.progress(openCount + closeCount, closeCount)
             }
           }
         </div>
