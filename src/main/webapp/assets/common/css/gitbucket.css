@@ -638,7 +638,6 @@ a.selected {
 }
 
 span.issue-status {
-  display: block;
   font-size: large;
   text-align: center;
   padding: 8px;

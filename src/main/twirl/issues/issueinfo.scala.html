@@ -5,7 +5,7 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import view.helpers._
 <div style="margin-bottom: 8px;">
-  <span class="strong">Labels</span>
+  <span class="muted small strong">Labels</span>
   @if(hasWritePermission){
     <div class="pull-right">
       @helper.html.dropdown(right = true) {
@@ -25,6 +25,17 @@
 <ul class="label-list nav nav-pills nav-stacked">
   @labellist(issueLabels)
 </ul>
+<hr/>
+<div style="margin-bottom: 8px;">
+  <span class="muted small strong">Milestone</span>
+
+</div>
+<hr/>
+<div style="margin-bottom: 8px;">
+  <span class="muted small strong">Assignee</span>
+
+</div>
+
 <script>
 $(function(){
   $('a.toggle-label').click(function(){
