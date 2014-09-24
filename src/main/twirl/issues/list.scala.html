@@ -11,8 +11,8 @@
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(s"Issues - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.menu("issues", repository){
+@html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
+  @html.menu(target, repository){
     @tab(target, true, repository)
     <div class="row-fluid">
       <div class="span12">
