@@ -227,7 +227,7 @@ trait IssuesControllerBase extends ControllerBase {
     milestoneId("milestoneId").map { milestoneId =>
       getMilestonesWithIssueCount(repository.owner, repository.name)
           .find(_._1.milestoneId == milestoneId).map { case (_, openCount, closeCount) =>
-        issues.milestones.html.progress(openCount + closeCount, closeCount, false)
+        issues.milestones.html.progress(openCount + closeCount, closeCount)
       } getOrElse NotFound
     } getOrElse Ok()
   })
