@@ -2,12 +2,18 @@
 @import context._
 @import view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
-  @html.menu("milestones", repository){
-    @issues.html.tab("milestones", false, repository)
+  @html.menu("issues", repository){
+    @if(milestone.isEmpty){
+      <h4>New milestone</h4>
+      <div class="muted">Create a new milestone to help organize your issues and pull requests.</div>
+    } else {
+      @issues.html.tab("milestones", false, repository)
+      <br><br>
+    }
+    <hr style="margin-top: 12px; margin-bottom: 18px;" class="fill-width"/>
     <form method="POST" action="@url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true">
       <fieldset>
-        <label for="title"><string>Title</string></label>
-        <input type="text" id="title" name="title" style="width: 400px;" value="@milestone.map(_.title)"/>
+        <input type="text" id="title" name="title" style="width: 500px;" value="@milestone.map(_.title)" placeholder="Title"/>
         <span id="error-title" class="error"></span>
       </fieldset>
       <fieldset>

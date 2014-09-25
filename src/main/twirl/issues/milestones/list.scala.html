@@ -6,7 +6,7 @@
 @import view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @html.menu("issues", repository){
-    @issues.html.tab("milestones", false, repository)
+    @issues.html.tab("milestones", hasWritePermission, repository)
     <div class="row-fluid">
       <div class="span12">
         <table class="table table-bordered table-hover table-issues">
@@ -63,7 +63,7 @@
                       </div>
                       <div class="milestone-menu">
                         @if(hasWritePermission){
-                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit &nbsp;&nbsp;
+                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit</a> &nbsp;&nbsp;
                           @if(milestone.closedDate.isDefined){
                             <a href="@url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a> &nbsp;&nbsp;
                           } else {
