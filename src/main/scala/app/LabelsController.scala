@@ -24,29 +24,33 @@ trait LabelsControllerBase extends ControllerBase {
     "editColor"     -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
-  post("/:owner/:repository/issues/label/new", newForm)(collaboratorsOnly { (form, repository) =>
+  get("/:owner/:repository/issues/labels")(collaboratorsOnly { repository =>
+    issues.labels.html.list(getLabels(repository.owner, repository.name), repository, true) // TODO hasWritePermission
+  })
+
+  ajaxGet("/:owner/:repository/issues/labels/new")(collaboratorsOnly { repository =>
+    issues.labels.html.edit(None, repository)
+  })
+
+  post("/:owner/:repository/issues/labels/new", newForm)(collaboratorsOnly { (form, repository) =>
     createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
-    redirect(s"/${repository.owner}/${repository.name}/issues")
+    redirect(s"/${repository.owner}/${repository.name}/issues/labels")
   })
 
-  ajaxGet("/:owner/:repository/issues/label/edit")(collaboratorsOnly { repository =>
-    issues.labels.html.editlist(getLabels(repository.owner, repository.name), repository)
-  })
-
-  ajaxGet("/:owner/:repository/issues/label/:labelId/edit")(collaboratorsOnly { repository =>
+  ajaxGet("/:owner/:repository/issues/labels/:labelId/edit")(collaboratorsOnly { repository =>
     getLabel(repository.owner, repository.name, params("labelId").toInt).map { label =>
       issues.labels.html.edit(Some(label), repository)
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/label/:labelId/edit", editForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/issues/labels/:labelId/edit", editForm)(collaboratorsOnly { (form, repository) =>
     updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
-    issues.labels.html.editlist(getLabels(repository.owner, repository.name), repository)
+    redirect(s"/${repository.owner}/${repository.name}/issues/labels")
   })
 
-  ajaxGet("/:owner/:repository/issues/label/:labelId/delete")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/issues/labels/:labelId/delete")(collaboratorsOnly { repository =>
     deleteLabel(repository.owner, repository.name, params("labelId").toInt)
-    issues.labels.html.editlist(getLabels(repository.owner, repository.name), repository)
+    redirect(s"/${repository.owner}/${repository.name}/issues/labels")
   })
 
   /**

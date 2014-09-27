@@ -1,18 +1,21 @@
 @(label: Option[model.Label], repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@defining((if(label.isEmpty) ("new", 190, 4) else ("edit", 180, 8))){ case (mode, width, margin) =>
-<div id="@(mode)LabelArea">
-  <form method="POST" id="edit-label-form" validate="true" style="margin-bottom: 8px;"
-        action="@url(repository)/issues/label/@{if(mode == "new") "new" else label.get.labelId + "/edit"}">
+@defining(if(label.isEmpty) "new" else "edit"){ mode =>
+<div id="@(mode)-label-area">
+  <form method="POST" id="edit-label-form" validate="true" style="margin-bottom: 0px;"
+        action="@url(repository)/issues/labels/@{if(mode == "new") "new" else label.get.labelId + "/edit"}">
     <span id="error-@(mode)LabelName" class="error"></span>
-    <input type="text" name="@(mode)LabelName" id="@(mode)LabelName" style="width: @(width)px; margin-left: @(margin)px; margin-bottom: 0px;" value="@label.map(_.labelName)"@if(mode == "new"){ placeholder="New label name"}/>
+    <input type="text" name="@(mode)LabelName" id="@(mode)LabelName" style="width: 300px; margin-bottom: 0px;" value="@label.map(_.labelName)"@if(mode == "new"){ placeholder="New label name"}/>
     <span id="error-@(mode)Color" class="error"></span>
-    <div class="input-append color bscp" data-color="#@label.map(_.color).getOrElse("888888")" data-color-format="hex" id="@(mode)Color" style="width: @(width)px; margin-bottom: 0px;">
-      <input type="text" class="span3" name="@(mode)Color" value="#@label.map(_.color)" readonly style="width: @(width - 12)px; margin-left: @(margin)px;">
+    <div class="input-append color bscp" data-color="#@label.map(_.color).getOrElse("888888")" data-color-format="hex" id="@(mode)Color" style="width: 100px; margin-bottom: 0px;">
+      <input type="text" class="span3" name="@(mode)Color" value="#@label.map(_.color)" readonly style="width: 100px;">
       <span class="add-on"><i style="background-color: #@label.map(_.color).getOrElse("888888");"></i></span>
     </div>
-    <input type="submit" class="btn" style="margin-left: @(margin)px; margin-bottom: 0px;" value="@if(mode == "new"){Create} else {Save}"/>
+    <span class="pull-right">
+      <input type="button" class="btn label-edit-cancel" value="Cancel">
+      <input type="submit" class="btn btn-success" style="margin-bottom: 0px;" value="@(if(mode == "new") "Create label"  else "Save changes")"/>
+    </span>
     @if(mode == "edit"){
       <input type="hidden" name="editLabelId" value="@label.map(_.labelId)"/>
     }
@@ -23,22 +26,15 @@
       $('#newColor').colorpicker();
     } else {
       $('#editColor').colorpicker();
-
-      $('#edit-label-form').submit(function(e){
-        $.ajax($(this).attr('action'), {
-          type: 'POST',
-          data: $(this).serialize()
-        })
-        .done(function(data){
-          $('#label-edit').parent().empty().html(data);
-        })
-        .fail(function(data, status){
-          displayErrors($.parseJSON(data.responseText));
-        });
-
-        return false;
-      });
     }
+
+    $.each($('form[validate=true]'), function(i, form){
+      $(form).submit(validate);
+    });
+
+    $('.label-edit-cancel').click(function(e){
+      closeLabelForm();
+    });
   });
   </script>
 </div>

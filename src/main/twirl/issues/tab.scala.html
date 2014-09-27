@@ -2,10 +2,10 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<ul class="nav nav-pills pull-left fill-width" style="margin-bottom: 0px;">
+<ul class="nav nav-pills pull-left fill-width">
   <li@if(active == "issues"    ){ class="active"}><a href="@url(repository)/issues">Issues</a></li>
   <li@if(active == "pulls"     ){ class="active"}><a href="@url(repository)/pulls">Pull requests</a></li>
-  <li@if(active == "labels"    ){ class="active"}><a href="@url(repository)/labels">Labels</a></li>
+  <li@if(active == "labels"    ){ class="active"}><a href="@url(repository)/issues/labels">Labels</a></li>
   <li@if(active == "milestones"){ class="active"}><a href="@url(repository)/issues/milestones">Milestones</a></li>
   @if(loginAccount.isDefined){
   <li class="pull-right">
@@ -18,6 +18,7 @@
           <a class="btn btn-small btn-success" href="@url(repository)/compare">New pull request</a>
         }
         @if(active == "labels"){
+          <a class="btn btn-small btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
         }
         @if(active == "milestones"){
           <a class="btn btn-small btn-success" href="@url(repository)/issues/milestones/new">New milestone</a>
