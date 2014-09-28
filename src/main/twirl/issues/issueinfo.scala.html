@@ -1,4 +1,5 @@
 @(issue: model.Issue,
+  comments: List[model.IssueComment],
   issueLabels: List[model.Label],
   collaborators: List[String],
   milestones: List[(model.Milestone, Int, Int)],
@@ -30,22 +31,8 @@
 <hr/>
 <div style="margin-bottom: 8px;">
   <span class="muted small strong">Milestone</span>
-  <div class="pull-right">
-    <span id="label-milestone">
-      @issue.milestoneId.map { milestoneId =>
-        @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
-          Milestone: <span class="strong">@milestone.title</span>
-        }
-      }.getOrElse("No milestone")
-    </span>
-    <div id="milestone-progress-area">
-      @issue.milestoneId.map { milestoneId =>
-        @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
-          @issues.milestones.html.progress(openCount + closeCount, closeCount)
-        }
-      }
-    </div>
-    @if(hasWritePermission){
+  @if(hasWritePermission){
+    <div class="pull-right">
       @helper.html.dropdown() {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
         @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
@@ -67,31 +54,53 @@
           </li>
         }
       }
-    }
-  </div>
+    </div>
+  }
 </div>
-<hr/>
-<div style="margin-bottom: 8px;">
-  <span class="muted small strong">Assignee</span>
-  <span id="label-assigned">
-    @issue.assignedUserName.map { userName =>
-      @avatar(userName, 20) @user(userName, styleClass="username strong") is assigned
-    }.getOrElse("No one is assigned")
-  </span>
-  @if(hasWritePermission){
-    @helper.html.dropdown() {
-      <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
-      @collaborators.map { collaborator =>
-        <li>
-          <a href="javascript:void(0);" class="assign" data-name="@collaborator">
-            @helper.html.checkicon(Some(collaborator) == issue.assignedUserName)@avatar(collaborator, 20) @collaborator
-          </a>
-        </li>
-      }
+<div id="milestone-progress-area">
+  @issue.milestoneId.map { milestoneId =>
+    @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
+      @issues.milestones.html.progress(openCount + closeCount, closeCount)
     }
   }
 </div>
-
+<span id="label-milestone">
+  @issue.milestoneId.map { milestoneId =>
+    @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
+      <span class="strong">@milestone.title</span>
+    }
+  }.getOrElse(<span class="muted small">No milestone</span>)
+</span>
+<hr/>
+<div style="margin-bottom: 8px;">
+  <span class="muted small strong">Assignee</span>
+  @if(hasWritePermission){
+    <div class="pull-right">
+      @helper.html.dropdown() {
+        <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+        @collaborators.map { collaborator =>
+          <li>
+            <a href="javascript:void(0);" class="assign" data-name="@collaborator">
+              @helper.html.checkicon(Some(collaborator) == issue.assignedUserName)@avatar(collaborator, 20) @collaborator
+            </a>
+          </li>
+        }
+      }
+    </div>
+  }
+</div>
+<span id="label-assigned">
+  @issue.assignedUserName.map { userName =>
+    @avatar(userName, 20) @user(userName, styleClass="username strong")
+  }.getOrElse(<span class="muted small">No one</span>)
+</span>
+<hr/>
+<div style="margin-bottom: 8px;">
+  @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
+    <div class="muted small strong">@participants.size @plural(participants.size, "participant")</div>
+    @participants.map { participant => @avatarLink(participant, 20, tooltip = true) }
+  }
+</div>
 <script>
 $(function(){
   $('a.toggle-label').click(function(){
