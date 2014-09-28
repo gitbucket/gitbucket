@@ -2,11 +2,11 @@
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<ul class="nav nav-pills pull-left fill-width">
-  <li@if(active == "issues"    ){ class="active"}><a href="@url(repository)/issues">Issues</a></li>
-  <li@if(active == "pulls"     ){ class="active"}><a href="@url(repository)/pulls">Pull requests</a></li>
-  <li@if(active == "labels"    ){ class="active"}><a href="@url(repository)/issues/labels">Labels</a></li>
-  <li@if(active == "milestones"){ class="active"}><a href="@url(repository)/issues/milestones">Milestones</a></li>
+<ul class="nav nav-pills-group  pull-left fill-width">
+  <li class="@if(active == "issues"    ){active} first"><a href="@url(repository)/issues">Issues</a></li>
+  <li class="@if(active == "pulls"     ){active}"><a href="@url(repository)/pulls">Pull requests</a></li>
+  <li class="@if(active == "labels"    ){active}"><a href="@url(repository)/issues/labels">Labels</a></li>
+  <li class="@if(active == "milestones"){active} last"><a href="@url(repository)/issues/milestones">Milestones</a></li>
   @if(loginAccount.isDefined){
   <li class="pull-right">
     <div class="btn-group">
