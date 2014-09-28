@@ -7,11 +7,11 @@ import util.Implicits._
 import org.scalatra.i18n.Messages
 
 class LabelsController extends LabelsControllerBase
-  with LabelsService with RepositoryService with AccountService
+  with LabelsService with IssuesService with RepositoryService with AccountService
 with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
-  self: LabelsService with RepositoryService
+  self: LabelsService with IssuesService with RepositoryService
     with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
@@ -29,6 +29,7 @@ trait LabelsControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/labels")(referrersOnly { repository =>
     issues.labels.html.list(
       getLabels(repository.owner, repository.name),
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
       repository,
       hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })

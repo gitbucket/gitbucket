@@ -1,4 +1,5 @@
 @(labels: List[model.Label],
+  counts: Map[String, Int],
   repository: service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
@@ -28,7 +29,7 @@
               </div>
               <div class="@if(hasWritePermission){span2} else {span4}">
                 <div class="pull-right">
-                  <span class="muted">x open issues</span>
+                  <span class="muted">@counts.get(label.labelName).getOrElse(0) open issues</span>
                 </div>
               </div>
               @if(hasWritePermission){
