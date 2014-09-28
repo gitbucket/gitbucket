@@ -2,15 +2,17 @@ package app
 
 import jp.sf.amateras.scalatra.forms._
 import service._
-import util.CollaboratorsAuthenticator
+import util.{ReferrerAuthenticator, CollaboratorsAuthenticator}
 import util.Implicits._
 import org.scalatra.i18n.Messages
 
 class LabelsController extends LabelsControllerBase
-  with LabelsService with RepositoryService with AccountService with CollaboratorsAuthenticator
+  with LabelsService with RepositoryService with AccountService
+with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
-  self: LabelsService with RepositoryService with CollaboratorsAuthenticator =>
+  self: LabelsService with RepositoryService
+    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
 
@@ -24,8 +26,11 @@ trait LabelsControllerBase extends ControllerBase {
     "editColor"     -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
-  get("/:owner/:repository/issues/labels")(collaboratorsOnly { repository =>
-    issues.labels.html.list(getLabels(repository.owner, repository.name), repository, true) // TODO hasWritePermission
+  get("/:owner/:repository/issues/labels")(referrersOnly { repository =>
+    issues.labels.html.list(
+      getLabels(repository.owner, repository.name),
+      repository,
+      hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
   ajaxGet("/:owner/:repository/issues/labels/new")(collaboratorsOnly { repository =>

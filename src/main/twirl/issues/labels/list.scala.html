@@ -22,21 +22,24 @@
               <div class="span8">
                 <div style="margin-top: 6px">
                   <a href="@url(repository)/issues?labels=@urlEncode(label.labelName)">
-                    <span class="label-color" style="background-color: #@label.color; color: #@label.fontColor; padding: 8px; font-size: 120%;">@label.labelName</span>
+                    <span style="background-color: #@label.color; color: #@label.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">@label.labelName</span>
                   </a>
                 </div>
               </div>
-              <div class="span2">
-                <span class="muted">x open issues</span>
+              <div class="@if(hasWritePermission){span2} else {span4}">
+                <div class="pull-right">
+                  <span class="muted">x open issues</span>
+                </div>
               </div>
-              <div class="span2">
-                @if(hasWritePermission){
+              @if(hasWritePermission){
+                <div class="span2">
                   <div class="pull-right">
                     <a href="javascript:void(0);" class="label-edit-link" data-label-id="@label.labelId">Edit</a>
+                    &nbsp;&nbsp;
                     <a href="@url(repository)/issues/labels/@label.labelId/delete" class="delete">Delete</a>
                   </div>
-                }
-              </div>
+                </div>
+              }
             </div>
           </td>
         </tr>
