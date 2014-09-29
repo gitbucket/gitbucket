@@ -176,6 +176,7 @@ trait RepositoryService { self: AccountService =>
   def getAllRepositories(userName: String)(implicit s: Session): List[(String, String)] = {
     Repositories.filter { t1 =>
       (t1.isPrivate === false.bind) ||
+        (t1.userName === userName.bind) ||
         (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
     }.sortBy(_.lastActivityDate desc).map{ t =>
       (t.userName, t.repositoryName)
