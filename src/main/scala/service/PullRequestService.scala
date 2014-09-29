@@ -41,11 +41,12 @@ trait PullRequestService { self: IssuesService =>
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .innerJoin(Repositories).on { (t, t3) => t._2.byRepository(t3.userName, t3.repositoryName) }
       .filter { case (t, t3) =>
-        (t._2.closed         === closed.bind) && (
-          (t3.isPrivate === false.bind) ||
-          (t3.userName === userName.bind) ||
-          (Collaborators.filter { t4 => t4.byRepository(t3.userName, t3.repositoryName) && (t4.collaboratorName === userName.bind)} exists)
-        )
+        (t._2.closed === closed.bind) &&
+          (
+            (t3.isPrivate === false.bind) ||
+            (t3.userName  === userName.bind) ||
+            (Collaborators.filter { t4 => t4.byRepository(t3.userName, t3.repositoryName) && (t4.collaboratorName === userName.bind)} exists)
+          )
       }
       .groupBy { case (t, t3) => t._2.openedUserName }
       .map { case (userName, t) => userName -> t.length }
