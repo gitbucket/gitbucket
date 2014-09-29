@@ -80,7 +80,7 @@ trait DashboardControllerBase extends ControllerBase {
     }.copy(repo = repository))
 
     val userName   = context.loginAccount.get.userName
-    val allRepos   = getAllRepositories()
+    val allRepos   = getAllRepositories(userName)
     val userRepos  = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
     val filterUser = Map(filter -> userName)
     val page = IssueSearchCondition.page(request)
@@ -97,7 +97,7 @@ trait DashboardControllerBase extends ControllerBase {
         condition,
         None,
         false),
-      getPullRequestCountGroupByUser(condition.state == "closed", None, None),
+      getAllPullRequestCountGroupByUser(condition.state == "closed", userName),
       userRepos.map { case (userName, repoName) =>
         (userName, repoName, counts.find { x => x._1 == userName && x._2 == repoName }.map(_._3).getOrElse(0))
       }.sortBy(_._3).reverse,
