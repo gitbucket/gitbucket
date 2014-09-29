@@ -97,7 +97,7 @@ trait DashboardControllerBase extends ControllerBase {
         condition,
         None,
         false),
-      getPullRequestCountGroupByUser(condition.state == "closed", None, None),
+      getAllPullRequestCountGroupByUser(condition.state == "closed", userName),
       userRepos.map { case (userName, repoName) =>
         (userName, repoName, counts.find { x => x._1 == userName && x._2 == repoName }.map(_._3).getOrElse(0))
       }.sortBy(_._3).reverse,
