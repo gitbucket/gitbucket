@@ -80,7 +80,7 @@ trait DashboardControllerBase extends ControllerBase {
     }.copy(repo = repository))
 
     val userName   = context.loginAccount.get.userName
-    val allRepos   = getAllRepositories()
+    val allRepos   = getAllRepositories(userName)
     val userRepos  = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
     val filterUser = Map(filter -> userName)
     val page = IssueSearchCondition.page(request)

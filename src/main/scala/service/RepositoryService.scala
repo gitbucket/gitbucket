@@ -166,8 +166,18 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
-  def getAllRepositories()(implicit s: Session): List[(String, String)] = {
-    Repositories.sortBy(_.lastActivityDate desc).map{ t =>
+  /**
+   * Returns the repositories without private repository that user does not have access right.
+   * Include public repository, private own repository and private but collaborator repository.
+   *
+   * @param userName the user name of collaborator
+   * @return the repository infomation list
+   */
+  def getAllRepositories(userName: String)(implicit s: Session): List[(String, String)] = {
+    Repositories.filter { t1 =>
+      (t1.isPrivate === false.bind) ||
+        (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
+    }.sortBy(_.lastActivityDate desc).map{ t =>
       (t.userName, t.repositoryName)
     }.list
   }
