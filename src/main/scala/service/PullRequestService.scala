@@ -39,16 +39,16 @@ trait PullRequestService { self: IssuesService =>
   def getAllPullRequestCountGroupByUser(closed: Boolean, userName: String)(implicit s: Session): List[PullRequestCount] =
     PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
-      .innerJoin(Repositories).on { (t, t3) => t._2.byRepository(t3.userName, t3.repositoryName) }
-      .filter { case (t, t3) =>
-        (t._2.closed === closed.bind) &&
+      .innerJoin(Repositories).on { case ((t1, t2), t3) => t2.byRepository(t3.userName, t3.repositoryName) }
+      .filter { case ((t1, t2), t3) =>
+        (t2.closed === closed.bind) &&
           (
             (t3.isPrivate === false.bind) ||
             (t3.userName  === userName.bind) ||
             (Collaborators.filter { t4 => t4.byRepository(t3.userName, t3.repositoryName) && (t4.collaboratorName === userName.bind)} exists)
           )
       }
-      .groupBy { case (t, t3) => t._2.openedUserName }
+      .groupBy { case ((t1, t2), t3) => t2.openedUserName }
       .map { case (userName, t) => userName -> t.length }
       .sortBy(_._2 desc)
       .list
