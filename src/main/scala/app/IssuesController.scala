@@ -21,7 +21,7 @@ trait IssuesControllerBase extends ControllerBase {
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
-  case class IssueEditForm(title: String, content: Option[String])
+//  case class IssueEditForm(title: String, content: Option[String])
   case class CommentForm(issueId: Int, content: String)
   case class IssueStateForm(issueId: Int, content: Option[String])
 
@@ -33,10 +33,13 @@ trait IssuesControllerBase extends ControllerBase {
       "labelNames"       -> trim(optional(text()))
     )(IssueCreateForm.apply)
 
-  val issueEditForm = mapping(
-      "title"   -> trim(label("Title", text(required))),
-      "content" -> trim(optional(text()))
-    )(IssueEditForm.apply)
+  val issueTitleEditForm = mapping(
+    "title" -> trim(label("Title", text(required)))
+    )(x => x)
+//  val issueEditForm = mapping(
+//    "title"   -> trim(label("Title", text(required))),
+//    "content" -> trim(optional(text()))
+//  )(IssueEditForm.apply)
 
   val commentForm = mapping(
       "issueId" -> label("Issue Id", number()),
@@ -118,20 +121,36 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/issues/edit_title/:id", issueTitleEditForm)(readableUsersOnly { (title, repository) =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       getIssue(owner, name, params("id")).map { issue =>
         if(isEditable(owner, name, issue.openedUserName)){
           // update issue
-          updateIssue(owner, name, issue.issueId, form.title, form.content)
+          updateIssueTitle(owner, name, issue.issueId, title)
           // extract references and create refer comment
-          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+          // TODO Confirmation(about "issue" parameter)
+          createReferComment(owner, name, issue, title)
 
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
         } else Unauthorized
       } getOrElse NotFound
     }
   })
+
+//  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (form, repository) =>
+//    defining(repository.owner, repository.name){ case (owner, name) =>
+//      getIssue(owner, name, params("id")).map { issue =>
+//        if(isEditable(owner, name, issue.openedUserName)){
+//          // update issue
+//          updateIssue(owner, name, issue.issueId, form.title, form.content)
+//          // extract references and create refer comment
+//          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+//
+//          redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
+//        } else Unauthorized
+//      } getOrElse NotFound
+//    }
+//  })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
     handleComment(form.issueId, Some(form.content), repository)() map { case (issue, id) =>
