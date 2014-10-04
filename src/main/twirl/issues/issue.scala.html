@@ -12,7 +12,8 @@
   @html.menu("issues", repository){
     <ul class="nav nav-tabs pull-left fill-width">
       <li class="pull-left">
-        <h1>@issue.title <span class="muted">#@issue.issueId</span></h1>
+        <h1 id="show-title">@issue.title <span class="muted">#@issue.issueId</span></h1>
+        <input type="text" style="width: 635px; display: none" id="edit-title" value="@issue.title"/>
         @if(issue.closed) {
           <span class="label label-important issue-status">Closed</span>
         } else {
@@ -49,3 +50,11 @@
     </div>
   }
 }
+<script>
+$(function(){
+  $('#edit').click(function(){
+    $('#edit-title').show();
+    $('#show-title').hide();
+  });
+});
+</script>
