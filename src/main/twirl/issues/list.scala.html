@@ -14,7 +14,7 @@
 @html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu(target, repository){
     @tab(target, true, repository)
-    @listparts(issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
+    @listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
     @if(hasWritePermission){
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
