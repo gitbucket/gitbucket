@@ -12,7 +12,16 @@
   @html.menu("issues", repository){
     <ul class="nav nav-tabs pull-left fill-width">
       <li class="pull-left">
-        <h1>@issue.title <span class="muted">#@issue.issueId</span></h1>
+        <h1>
+          <span class="show-title">
+            <span id="show-title">@issue.title</span>
+            <span class="muted">#@issue.issueId</span>
+          </span>
+          <span class="edit-title" style="display: none;">
+            <span id="error-edit-title" class="error"></span>
+            <input type="text" class="span9" id="edit-title" value="@issue.title"/>
+          </span>
+        </h1>
         @if(issue.closed) {
           <span class="label label-important issue-status">Closed</span>
         } else {
@@ -28,11 +37,14 @@
         <br/><br/>
       </li>
       <li class="pull-right">
-        <div>
+        <div class="show-title">
           @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
             <a class="btn btn-small" href="#" id="edit">Edit</a>
           }
           <a class="btn btn-small btn-success" href="@url(repository)/issues/new">New issue</a>
+        </div>
+        <div class="edit-title" style="display: none;">
+          <a class="btn" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
         </div>
       </li>
     </ul>
@@ -43,9 +55,38 @@
       </div>
       <div class="span2">
         @issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
-        <hr/>
-
       </div>
     </div>
   }
 }
+<script>
+$(function(){
+  $('#edit').click(function(){
+    $('.edit-title').show();
+    $('.show-title').hide();
+  });
+
+  $('#update').click(function(){
+    $(this).attr('disabled', 'disabled');
+    $.ajax({
+      url: '@url(repository)/issues/edit_title/@issue.issueId',
+      type: 'POST',
+      data: {
+        title   : $('#edit-title').val()
+      }
+    }).done(function(data){
+      $('#show-title').empty().text(data.title);
+      $('#cancel').click();
+      $(this).removeAttr('disabled');
+    }).fail(function(req){
+      $(this).removeAttr('disabled');
+      $('#error-edit-title').text($.parseJSON(req.responseText).title);
+    });
+  });
+
+  $('#cancel').click(function(){
+    $('.edit-title').hide();
+    $('.show-title').show();
+  });
+});
+</script>
