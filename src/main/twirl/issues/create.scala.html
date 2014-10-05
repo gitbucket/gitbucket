@@ -33,7 +33,7 @@
                 @if(hasWritePermission){
                   <input type="hidden" name="milestoneId" value=""/>
                   @helper.html.dropdown() {
-                    <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> No milestone</a></li>
+                    <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
                     @milestones.filter(_.closedDate.isEmpty).map { milestone =>
                       <li>
                         <a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId" data-title="@milestone.title">
@@ -41,9 +41,9 @@
                           <div class="small" style="padding-left: 20px;">
                             @milestone.dueDate.map { dueDate =>
                               @if(isPast(dueDate)){
-                                <img src="@assets/common/images/alert_mono.png"/>Due in @date(dueDate)
+                                <img src="@assets/common/images/alert.png"/><span class="milestone-alert">Due by @date(dueDate)</span>
                               } else {
-                                <span class="muted">Due in @date(dueDate)</span>
+                                <span class="muted">Due by @date(dueDate)</span>
                               }
                             }.getOrElse {
                               <span class="muted">No due date</span>
@@ -113,7 +113,7 @@ $(function(){
     if(milestoneId == ''){
       $('#label-milestone').text('No milestone');
     } else {
-      $('#label-milestone').html($('<span>').append('Milestone: ').append($('<span class="strong">').text(title)));
+      $('#label-milestone').html($('<span class="strong">').text(title));
       $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
     }
     $('input[name=milestoneId]').val(milestoneId);

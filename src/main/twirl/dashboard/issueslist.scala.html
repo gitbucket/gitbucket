@@ -119,9 +119,9 @@
                     <div class="small" style="padding-left: 20px;">
                       @milestone.dueDate.map { dueDate =>
                         @if(isPast(dueDate)){
-                          <img src="@assets/common/images/alert_mono.png"/>Due in @date(dueDate)
+                          <img src="@assets/common/images/alert.png"/><span class="milestone-alert">Due by @date(dueDate)</span>
                         } else {
-                          <span class="muted">Due in @date(dueDate)</span>
+                          <span class="muted">Due by @date(dueDate)</span>
                         }
                       }.getOrElse {
                         <span class="muted">No due date</span>

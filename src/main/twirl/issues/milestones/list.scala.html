@@ -37,9 +37,9 @@
                   } else {
                     @milestone.dueDate.map { dueDate =>
                       @if(isPast(dueDate)){
-                        <img src="@assets/common/images/alert.png"/><span class="muted milestone-alert">Due in @date(dueDate)</span>
+                        <img src="@assets/common/images/alert.png"/><span class="muted milestone-alert">Due by @date(dueDate)</span>
                       } else {
-                        <span class="muted">Due in @date(dueDate)</span>
+                        <span class="muted">Due by @date(dueDate)</span>
                       }
                     }.getOrElse {
                       <span class="muted">No due date</span>

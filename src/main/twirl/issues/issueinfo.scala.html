@@ -42,9 +42,9 @@
               <div class="small" style="padding-left: 20px;">
                 @milestone.dueDate.map { dueDate =>
                   @if(isPast(dueDate)){
-                    <img src="@assets/common/images/alert_mono.png"/>Due in @date(dueDate)
+                    <img src="@assets/common/images/alert.png"/><span class="milestone-alert">Due by @date(dueDate)</span>
                   } else {
-                    <span class="muted">Due in @date(dueDate)</span>
+                    <span class="muted">Due by @date(dueDate)</span>
                   }
                 }.getOrElse {
                   <span class="muted">No due date</span>
@@ -67,7 +67,7 @@
 <span id="label-milestone">
   @issue.milestoneId.map { milestoneId =>
     @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
-      <span class="strong">@milestone.title</span>
+      <span class="strong small">@milestone.title</span>
     }
   }.getOrElse(<span class="muted small">No milestone</span>)
 </span>
@@ -123,5 +123,27 @@ $(function(){
     });
     return false;
   });
+
+  $('a.milestone').click(function(){
+    var title = $(this).data('title');
+    var milestoneId = $(this).data('id');
+    $.post('@url(repository)/issues/@issue.issueId/milestone',
+    {
+      milestoneId: milestoneId
+    },
+    function(data){
+      console.log(data);
+      $('a.milestone i.icon-ok').attr('class', 'icon-white');
+      if(milestoneId == ''){
+        $('#label-milestone').html($('<span class="muted small">').text('No milestone'));
+        $('#milestone-progress-area').empty();
+      } else {
+        $('#label-milestone').html($('<span class="strong small">').text(title));
+        $('#milestone-progress-area').html(data);
+        $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
+      }
+    });
+  });
+
 });
 </script>
