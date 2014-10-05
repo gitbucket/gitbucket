@@ -5,6 +5,7 @@ import service._
 import util.{ReferrerAuthenticator, CollaboratorsAuthenticator}
 import util.Implicits._
 import org.scalatra.i18n.Messages
+import org.scalatra.Ok
 
 class LabelsController extends LabelsControllerBase
   with LabelsService with IssuesService with RepositoryService with AccountService
@@ -16,14 +17,9 @@ trait LabelsControllerBase extends ControllerBase {
 
   case class LabelForm(labelName: String, color: String)
 
-  val newForm = mapping(
-    "newLabelName" -> trim(label("Label name", text(required, labelName, maxlength(100)))),
-    "newColor"     -> trim(label("Color",      text(required, color)))
-  )(LabelForm.apply)
-
-  val editForm = mapping(
-    "editLabelName" -> trim(label("Label name", text(required, labelName, maxlength(100)))),
-    "editColor"     -> trim(label("Color",      text(required, color)))
+  val labelForm = mapping(
+    "labelName"  -> trim(label("Label name", text(required, labelName, maxlength(100)))),
+    "labelColor" -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
   get("/:owner/:repository/issues/labels")(referrersOnly { repository =>
@@ -38,9 +34,14 @@ trait LabelsControllerBase extends ControllerBase {
     issues.labels.html.edit(None, repository)
   })
 
-  post("/:owner/:repository/issues/labels/new", newForm)(collaboratorsOnly { (form, repository) =>
-    createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
-    redirect(s"/${repository.owner}/${repository.name}/issues/labels")
+  ajaxPost("/:owner/:repository/issues/labels/new", labelForm)(collaboratorsOnly { (form, repository) =>
+    val labelId = createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
+    issues.labels.html.label(
+      getLabel(repository.owner, repository.name, labelId).get,
+      // TODO futility
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
+      repository,
+      hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
   ajaxGet("/:owner/:repository/issues/labels/:labelId/edit")(collaboratorsOnly { repository =>
@@ -49,14 +50,19 @@ trait LabelsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/issues/labels/:labelId/edit", editForm)(collaboratorsOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/issues/labels/:labelId/edit", labelForm)(collaboratorsOnly { (form, repository) =>
     updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
-    redirect(s"/${repository.owner}/${repository.name}/issues/labels")
+    issues.labels.html.label(
+      getLabel(repository.owner, repository.name, params("labelId").toInt).get,
+      // TODO futility
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
+      repository,
+      hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
-  get("/:owner/:repository/issues/labels/:labelId/delete")(collaboratorsOnly { repository =>
+  ajaxPost("/:owner/:repository/issues/labels/:labelId/delete")(collaboratorsOnly { repository =>
     deleteLabel(repository.owner, repository.name, params("labelId").toInt)
-    redirect(s"/${repository.owner}/${repository.name}/issues/labels")
+    Ok()
   })
 
   /**
