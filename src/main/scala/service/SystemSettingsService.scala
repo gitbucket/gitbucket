@@ -191,4 +191,7 @@ object SystemSettingsService {
       else value
     }
 
+  // TODO temporary flag
+  val enablePluginSystem = Option(System.getProperty("enable.plugin")).getOrElse("false").toBoolean
+
 }

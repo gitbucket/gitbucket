@@ -11,6 +11,7 @@ import util.ControlUtil._
 import org.eclipse.jgit.api.Git
 import util.Directory
 import plugin.PluginUpdateJob
+import service.SystemSettingsService
 
 object AutoUpdate {
   
@@ -168,18 +169,15 @@ object AutoUpdate {
  */
 class AutoUpdateListener extends ServletContextListener {
   import org.quartz.impl.StdSchedulerFactory
-  import org.quartz.JobBuilder._
-  import org.quartz.TriggerBuilder._
-  import org.quartz.SimpleScheduleBuilder._
   import AutoUpdate._
 
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
   private val scheduler = StdSchedulerFactory.getDefaultScheduler
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
-    val datadir = event.getServletContext.getInitParameter("gitbucket.home")
-    if(datadir != null){
-      System.setProperty("gitbucket.home", datadir)
+    val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
+    if(dataDir != null){
+      System.setProperty("gitbucket.home", dataDir)
     }
     org.h2.Driver.load()
 
@@ -210,21 +208,23 @@ class AutoUpdateListener extends ServletContextListener {
       logger.debug("End schema update")
     }
 
-    getDatabase(context).withSession { implicit session =>
-      logger.debug("Starting plugin system...")
-      try {
-        plugin.PluginSystem.init()
+    if(SystemSettingsService.enablePluginSystem){
+      getDatabase(context).withSession { implicit session =>
+        logger.debug("Starting plugin system...")
+        try {
+          plugin.PluginSystem.init()
 
-        scheduler.start()
-        PluginUpdateJob.schedule(scheduler)
-        logger.debug("PluginUpdateJob is started.")
+          scheduler.start()
+          PluginUpdateJob.schedule(scheduler)
+          logger.debug("PluginUpdateJob is started.")
 
-        logger.debug("Plugin system is initialized.")
-      } catch {
-        case ex: Throwable => {
-          logger.error("Failed to initialize plugin system", ex)
-          ex.printStackTrace()
-          throw ex
+          logger.debug("Plugin system is initialized.")
+        } catch {
+          case ex: Throwable => {
+            logger.error("Failed to initialize plugin system", ex)
+            ex.printStackTrace()
+            throw ex
+          }
         }
       }
     }
