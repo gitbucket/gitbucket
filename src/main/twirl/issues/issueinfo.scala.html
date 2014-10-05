@@ -91,7 +91,7 @@
 </div>
 <span id="label-assigned">
   @issue.assignedUserName.map { userName =>
-    @avatar(userName, 20) @user(userName, styleClass="username strong")
+    @avatar(userName, 20) @user(userName, styleClass="username strong small")
   }.getOrElse(<span class="muted small">No one</span>)
 </span>
 <hr/>
@@ -141,6 +141,26 @@ $(function(){
         $('#label-milestone').html($('<span class="strong small">').text(title));
         $('#milestone-progress-area').html(data);
         $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
+      }
+    });
+  });
+
+  $('a.assign').click(function(){
+    var $this = $(this);
+    var userName = $this.data('name');
+    $.post('@url(repository)/issues/@issue.issueId/assign',
+    {
+      assignedUserName: userName
+    },
+    function(){
+      $('a.assign i.icon-ok').attr('class', 'icon-white');
+      if(userName == ''){
+        $('#label-assigned').html($('<span class="muted small">').text('No one'));
+      } else {
+        $('#label-assigned').empty()
+          .append($this.find('img.avatar-mini').clone(false)).append(' ')
+          .append($('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName));
+        $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').attr('class', 'icon-ok');
       }
     });
   });
