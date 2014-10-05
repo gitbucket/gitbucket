@@ -225,22 +225,14 @@ trait IssuesService {
         registeredDate    = currentDate,
         updatedDate       = currentDate)
 
-  def updateIssueTitle(owner: String, repository: String, issueId: Int, title: String)(implicit s: Session) =
+  def updateIssue(owner: String, repository: String, issueId: Int,
+      title: String, content: Option[String])(implicit s: Session) =
     Issues
       .filter (_.byPrimaryKey(owner, repository, issueId))
       .map { t =>
-        (t.title, t.updatedDate)
+        (t.title, t.content.?, t.updatedDate)
       }
-      .update (title, currentDate)
-
-//  def updateIssue(owner: String, repository: String, issueId: Int,
-//      title: String, content: Option[String])(implicit s: Session) =
-//    Issues
-//      .filter (_.byPrimaryKey(owner, repository, issueId))
-//      .map { t =>
-//        (t.title, t.content.?, t.updatedDate)
-//      }
-//      .update (title, content, currentDate)
+      .update (title, content, currentDate)
 
   def updateAssignedUserName(owner: String, repository: String, issueId: Int,
                              assignedUserName: Option[String])(implicit s: Session) =

@@ -64,6 +64,7 @@ $(function(){
   $('#edit').click(function(){
     $('.edit-title').show();
     $('.show-title').hide();
+    return false;
   });
 
   $('#update').click(function(){
@@ -82,11 +83,13 @@ $(function(){
       $(this).removeAttr('disabled');
       $('#error-edit-title').text($.parseJSON(req.responseText).title);
     });
+    return false;
   });
 
   $('#cancel').click(function(){
     $('.edit-title').hide();
     $('.show-title').show();
+    return false;
   });
 });
 </script>
