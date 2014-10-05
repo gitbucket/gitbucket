@@ -126,8 +126,7 @@ trait IssuesControllerBase extends ControllerBase {
           // update issue
           updateIssue(owner, name, issue.issueId, title, issue.content)
           // extract references and create refer comment
-          // TODO Confirmation(about "issue" parameter)
-          createReferComment(owner, name, issue, title)
+          createReferComment(owner, name, issue.copy(title = title), title)
 
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
         } else Unauthorized
