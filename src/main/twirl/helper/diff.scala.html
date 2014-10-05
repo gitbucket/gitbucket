@@ -41,7 +41,7 @@
   <a name="diff-@i"></a>
   <table class="table table-bordered">
     <tr>
-      <th style="font-weight: normal;" class="box-header">
+      <th style="font-weight: normal; line-height: 27px;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @diff.oldPath -> @diff.newPath
           @if(newCommitId.isDefined){
@@ -69,7 +69,7 @@
       </th>
     </tr>
     <tr>
-      <td>
+      <td style="padding: 0;">
         @if(diff.newContent != None || diff.oldContent != None){
           <div id="diffText-@i"></div>
           <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
