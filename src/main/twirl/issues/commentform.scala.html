@@ -5,6 +5,7 @@
 @import context._
 @import view.helpers._
 @if(loginAccount.isDefined){
+  <hr/><br/>
   <form method="POST" validate="true">
     <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
       <div class="box issue-comment-box">

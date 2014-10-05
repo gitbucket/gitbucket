@@ -1,0 +1,184 @@
+@(issues: List[service.IssuesService.IssueInfo],
+  page: Int,
+  openCount: Int,
+  closedCount: Int,
+  condition: service.IssuesService.IssueSearchCondition,
+  collaborators: List[String] = Nil,
+  milestones: List[model.Milestone] = Nil,
+  labels: List[model.Label] = Nil,
+  repository: Option[service.RepositoryService.RepositoryInfo] = None,
+  hasWritePermission: Boolean = false)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@import service.IssuesService.IssueInfo
+    <div class="span9">
+      @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
+        <a href="@condition.copy(labels = Set.empty, milestoneId = None).toURL" id="clear-filter">
+          <i class="icon-remove-circle"></i> Clear milestone and label filters
+        </a>
+      }
+      @if(condition.repo.isDefined){
+        <a href="@condition.copy(repo = None).toURL" id="clear-filter">
+          <i class="icon-remove-circle"></i> Clear filter on @condition.repo
+        </a>
+      }
+      <div class="pull-right">
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 7, condition.toURL)
+      </div>
+      <div class="btn-group">
+        <a class="btn btn-small@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
+        <a class="btn btn-small@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
+      </div>
+      @helper.html.dropdown(
+        value  = (condition.sort, condition.direction) match {
+          case ("created" , "desc") => "Newest"
+          case ("created" , "asc" ) => "Oldest"
+          case ("comments", "desc") => "Most commented"
+          case ("comments", "asc" ) => "Least commented"
+          case ("updated" , "desc") => "Recently updated"
+          case ("updated" , "asc" ) => "Least recently updated"
+        },
+        prefix = "Sort",
+        mini   = false
+      ){
+        <li>
+          <a href="@condition.copy(sort="created",  direction="desc").toURL">
+            @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
+            @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="comments", direction="desc").toURL">
+            @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
+            @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="updated",  direction="desc").toURL">
+            @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+            @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+          </a>
+        </li>
+      }
+      <table class="table table-bordered table-hover table-issues">
+      @if(issues.isEmpty){
+        <tr>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            No issues to show.
+            @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
+              <a href="@condition.copy(labels = Set.empty, milestoneId = None).toURL">Clear active filters.</a>
+            } else {
+              @if(repository.isDefined){
+              <a href="@url(repository.get)/issues/new">Create a new issue.</a>
+              }
+            }
+          </td>
+        </tr>
+      } else {
+        @if(hasWritePermission){
+        <tr>
+          <td style="background-color: #eee;">
+            <div class="btn-group">
+              <button class="btn btn-mini strong" id="state">@{if(condition.state == "open") "Close" else "Reopen"}</button>
+            </div>
+            @helper.html.dropdown("Label") {
+              @labels.map { label =>
+                <li>
+                  <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
+                    <i class="icon-white"></i>
+                    <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+                    @label.labelName
+                  </a>
+                </li>
+              }
+            }
+            @helper.html.dropdown("Assignee") {
+              <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+              @collaborators.map { collaborator =>
+                <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
+              }
+            }
+            @helper.html.dropdown("Milestone") {
+              <li><a href="javascript:void(0);" class="toggle-milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
+              @milestones.map { milestone =>
+                <li>
+                  <a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">
+                    <i class="icon-white"></i> @milestone.title
+                    <div class="small" style="padding-left: 20px;">
+                      @milestone.dueDate.map { dueDate =>
+                        @if(isPast(dueDate)){
+                          <img src="@assets/common/images/alert.png"/><span class="milestone-alert">Due by @date(dueDate)</span>
+                        } else {
+                          <span class="muted">Due by @date(dueDate)</span>
+                        }
+                      }.getOrElse {
+                        <span class="muted">No due date</span>
+                      }
+                    </div>
+                  </a>
+                </li>
+              }
+            }
+          </td>
+        </tr>
+        }
+      }
+      @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
+        <tr>
+          <td>
+            @if(hasWritePermission){
+            <label class="checkbox" style="cursor: default;">
+              <input type="checkbox" value="@issue.issueId"/>
+            }
+              @if(issue.isPullRequest){
+              <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
+              } else {
+              <img src="@assets/common/images/issue-@(if(issue.closed) "closed" else "open").png"/>
+              }
+              @if(repository.isEmpty){
+              <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
+              }
+              @if(issue.isPullRequest){
+              <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+              } else {
+              <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
+              }
+              @labels.map { label =>
+              <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
+              }
+              <span class="pull-right muted">
+                @issue.assignedUserName.map { userName =>
+                  @avatar(userName, 20, tooltip = true)
+                }
+                #@issue.issueId
+              </span>
+              <div class="small muted" style="margin-left: 20px;">
+                Opened by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)&nbsp;
+                @if(commentCount > 0){
+                  <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+                }
+              </div>
+            @if(hasWritePermission){
+            </label>
+            }
+          </td>
+        </tr>
+      }
+      </table>
+      <div class="pull-right">
+        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.IssuesService.IssueLimit, 10, condition.toURL)
+      </div>
+    </div>
+
