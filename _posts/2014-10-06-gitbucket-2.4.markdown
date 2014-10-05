@@ -1,0 +1,39 @@
+---
+layout: post
+title: "GitBucket 2.4 released!"
+date: 2014-10-06 00:00:00
+categories: gitbucket
+---
+Today, we are pleased to announce the availability of new version of Scala based GitHub clone [GitBucket 2.4](https://github.com/takezoe/gitbucket/releases/tag/2.4)!
+
+## New Issues UI
+
+In GitBucket 2.4, Issues and Pull requests have been renewed to GitHub like modern UI.
+
+![New Issues UI]({{site.baseurl}}/images/gitbucket-2.4/new_issues_ui.png)
+
+## Side-by-side diff
+
+Recently, GitHub supported side-by-side diff. In GitBucket 2.4 has been supported side-by-side diff too. You can switch merged style and side-by-side style in the diff view.
+
+![Side-by-side diff]({{site.baseurl}}/images/gitbucket-2.4/side_by_side_diff.png)
+
+## Fix link url problem in Markdown
+
+GitBucket had some problems in resolving relative path in Markdown redering (e.g. Wiki, README.md and blob view for Markdown files).
+
+In this release, this problem has been fixed, so relative path is available as links or images. For example, the following Markdown was not rendered in GitBucket 2.3, but it renders the image correctly in 2.4.
+
+```
+![Sample Image](images/sample.png)
+```
+
+## Plugin System is disabled in default
+
+Plugin system has been disabled in default in this release, because it need many improvements but we can't do it soon. If you want to enable plugin system, add `-Denable.plugin=true` to the JavaVM option.
+
+----
+
+In addition, some bug fix and improvements are contained in this release. See [all closed issues in this release](https://github.com/takezoe/gitbucket/issues?q=is%3Aissue+milestone%3A2.4+is%3Aclosed) to know details.
+
+Enjoy GitBucket!
