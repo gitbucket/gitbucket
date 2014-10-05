@@ -53,6 +53,7 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    new Version(2, 4),
     new Version(2, 3) {
       override def update(conn: Connection): Unit = {
         super.update(conn)
