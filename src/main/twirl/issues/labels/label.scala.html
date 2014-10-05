@@ -10,8 +10,8 @@
       <div class="span8">
         <div style="margin-top: 6px">
           <a href="@url(repository)/issues?labels=@urlEncode(label.labelName)" id="label-row-content-@label.labelId">
-            <span style="background-color: #@label.color; color: @label.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">
-              <img src="@assets/common/images/label_@(label.fontColor).png" style="width: 12px;"/>
+            <span style="background-color: #@label.color; color: #@label.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">
+              <img src="@assets/common/images/label_@(if(label.fontColor == "ffffff") "white" else "black").png" style="width: 12px;"/>
               @label.labelName
             </span>
           </a>
