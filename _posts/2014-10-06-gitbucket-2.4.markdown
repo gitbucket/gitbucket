@@ -5,7 +5,7 @@ date: 2014-10-06 00:00:00
 categories: gitbucket
 ---
 
-> **Note:** [GitBucket 2.4.1](https://github.com/takezoe/gitbucket/releases/tag/2.4.1) has been already available. This is hotfix for critical bugs in 2.4. Please use it instead of 2.4.
+> **Note:** [GitBucket 2.4.1](https://github.com/takezoe/gitbucket/releases/tag/2.4.1) is available. This is hotfix for critical bugs in 2.4. If you've already installed 2.4, please replace it with 2.4.1.
 
 Today, we are pleased to announce the availability of new version of Scala based GitHub clone [GitBucket 2.4](https://github.com/takezoe/gitbucket/releases/tag/2.4)!
 
