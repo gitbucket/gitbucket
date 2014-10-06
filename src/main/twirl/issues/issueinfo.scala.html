@@ -33,7 +33,7 @@
   <span class="muted small strong">Milestone</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown() {
+      @helper.html.dropdown(right = true) {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
         @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
           <li>
@@ -69,14 +69,16 @@
     @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
       <span class="strong small">@milestone.title</span>
     }
-  }.getOrElse(<span class="muted small">No milestone</span>)
+  }.getOrElse {
+    <span class="muted small">No milestone</span>
+  }
 </span>
 <hr/>
 <div style="margin-bottom: 8px;">
   <span class="muted small strong">Assignee</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown() {
+      @helper.html.dropdown(right = true) {
         <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
         @collaborators.map { collaborator =>
           <li>
@@ -92,7 +94,9 @@
 <span id="label-assigned">
   @issue.assignedUserName.map { userName =>
     @avatar(userName, 20) @user(userName, styleClass="username strong small")
-  }.getOrElse(<span class="muted small">No one</span>)
+  }.getOrElse{
+    <span class="muted small">No one</span>
+  }
 </span>
 <hr/>
 <div style="margin-bottom: 8px;">
