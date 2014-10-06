@@ -103,10 +103,10 @@ class GitBucketHtmlSerializer(
   }
 
   private def fixUrl(url: String, isImage: Boolean = false): String = {
-    if(!enableWikiLink){
-      if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#") || url.startsWith("/")){
-        url
-      } else if(context.currentPath.contains("/blob/")){
+    if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#") || url.startsWith("/")){
+      url
+    } else if(!enableWikiLink){
+      if(context.currentPath.contains("/blob/")){
         url + (if(isImage) "?raw=true" else "")
       } else if(context.currentPath.contains("/tree/")){
         val paths = context.currentPath.split("/")
