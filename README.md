@@ -80,6 +80,9 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.4.1 - 6 Oct 2014
+- Bug fix
+
 ### 2.4 - 6 Oct 2014
 - New UI is applied to Issues and Pull requests
 - Side-by-side diff is available
