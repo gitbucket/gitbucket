@@ -617,6 +617,30 @@ span.simplified-path {
   color: #888;
 }
 
+#branch-control-title {
+  margin: 5px 10px;
+  font-weight: bold;
+}
+
+#branch-control-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-weight: bold;
+  line-height: 15px;
+}
+
+#branch-control-input {
+  border: solid 1px #ccc;
+  margin: 10px;
+}
+
+.new-branch-name {
+  font-weight: bold;
+  font-size: 1.2em;
+  padding-left: 16px;
+}
+
 /****************************************************************************/
 /* nav pulls group */
 /****************************************************************************/
