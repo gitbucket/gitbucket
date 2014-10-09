@@ -94,7 +94,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       }
     }
     // Change repository HEAD
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+    using(Git.open(getRepositoryDir(repository.owner, form.repositoryName))) { git =>
       git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + defaultBranch)
     }
     flash += "info" -> "Repository settings has been updated."
