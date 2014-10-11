@@ -1,9 +1,8 @@
-import sbt._
-import Keys._
-import org.scalatra.sbt._
 import com.typesafe.sbteclipse.plugin.EclipsePlugin.EclipseKeys
+import org.scalatra.sbt._
 import play.twirl.sbt.SbtTwirl
-import play.twirl.sbt.Import.TwirlKeys._
+import sbt.Keys._
+import sbt._
 
 object MyBuild extends Build {
   val Organization = "jp.sf.amateras"
@@ -55,6 +54,15 @@ object MyBuild extends Build {
     EclipseKeys.withSource := true,
     javacOptions in compile ++= Seq("-target", "6", "-source", "6"),
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),
-    packageOptions += Package.MainClass("JettyLauncher")
+    packageOptions += Package.MainClass("JettyLauncher"),
+    dependencyClasspath in Runtime ++= {
+      val base = baseDirectory.value
+      val baseDirectories = (base / "embed-jetty")
+      val customJars = (baseDirectories ** "*.jar")
+      customJars.classpath
+    },
+    unmanagedResourceDirectories in Compile := List(file("src/main/webapp"))
   ).enablePlugins(SbtTwirl)
+
 }
+
