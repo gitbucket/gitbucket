@@ -1,4 +1,4 @@
-@(issues: List[(model.Issue, List[model.Label], Int)],
+@(issues: List[service.IssuesService.IssueInfo],
   page: Int,
   openCount: Int,
   closedCount: Int,
@@ -7,6 +7,7 @@
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
+@import service.IssuesService.IssueInfo
 <div class="span9">
   @repository.map { repository =>
     @if(hasWritePermission){
@@ -71,7 +72,7 @@
       </td>
     </tr>
   }
-  @issues.map { case (issue, labels, commentCount) =>
+  @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
     <tr>
       <td>
         <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>

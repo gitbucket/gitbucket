@@ -6,94 +6,94 @@
 @import view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @html.menu("issues", repository){
-    @issues.html.tab("milestones", false, repository)
-    <div class="row-fluid">
-      <div class="span3">
-        <ul class="nav nav-pills nav-stacked">
-          <li@if(state == "open"){ class="active"}>
-            <a href="?state=open">
-              <span class="count-right">@milestones.filter(_._1.closedDate.isEmpty).size</span>
-              Open Milestones
+    @issues.html.tab("milestones", hasWritePermission, repository)
+    &nbsp;
+    <table class="table table-bordered table-hover table-issues">
+      <tr>
+        <th style="background-color: #eee;">
+          <span class="small">
+            <a class="button-link@if(state == "open"){ selected}" href="?state=open">
+              <img src="@assets/common/images/milestone@(if(state == "open"){"-active"}).png"/>
+              @milestones.filter(_._1.closedDate.isEmpty).size Open
+            </a>&nbsp;&nbsp;
+            <a class="button-link@if(state == "closed"){ selected}" href="?state=closed">
+              <img src="@assets/common/images/milestone@(if(state == "closed"){"-active"}).png"/>
+              @milestones.filter(_._1.closedDate.isDefined).size Closed
             </a>
-          </li>
-          <li@if(state == "closed"){ class="active"}>
-            <a href="?state=closed">
-              <span class="count-right">@milestones.filter(_._1.closedDate.isDefined).size</span>
-              Closed Milestones
-            </a>
-          </li>
-        </ul>
-        @if(hasWritePermission){
-          <hr>
-          <a href="@url(repository)/issues/milestones/new" class="btn btn-block">Create a new milestone</a>
-        }
-      </div>
-      <div class="span9">
-        <table class="table table-bordered table-hover">
-          @defining(milestones.filter { case (milestone, _, _) =>
-            milestone.closedDate.map(_ => state == "closed").getOrElse(state == "open")
-          }){ milestones =>
-            @milestones.map { case (milestone, openCount, closedCount) =>
-            <tr>
-              <td>
-                <div class="milestone row-fluid">
-                  <div class="span4">
-                    <a href="@url(repository)/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a><br>
-                    @if(milestone.closedDate.isDefined){
-                      <span class="muted">Closed @datetime(milestone.closedDate.get)</span>
-                    } else {
-                      @milestone.dueDate.map { dueDate =>
-                        @if(isPast(dueDate)){
-                          <img src="@assets/common/images/alert.png"/><span class="muted milestone-alert">Due in @date(dueDate)</span>
-                        } else {
-                          <span class="muted">Due in @date(dueDate)</span>
-                        }
-                      }.getOrElse {
-                        <span class="muted">No due date</span>
+          </span>
+        </th>
+      </tr>
+      @defining(milestones.filter { case (milestone, _, _) =>
+        milestone.closedDate.map(_ => state == "closed").getOrElse(state == "open")
+      }){ milestones =>
+        @milestones.map { case (milestone, openCount, closedCount) =>
+        <tr>
+          <td style="padding-top: 15px; padding-bottom: 15px;">
+            <div class="milestone row-fluid">
+              <div class="span4">
+                <a href="@url(repository)/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a>
+                <div style="margin-top: 6px">
+                  @if(milestone.closedDate.isDefined){
+                    <span class="muted">Closed @datetime(milestone.closedDate.get)</span>
+                  } else {
+                    @milestone.dueDate.map { dueDate =>
+                      @if(isPast(dueDate)){
+                        <img src="@assets/common/images/alert.png"/><span class="muted milestone-alert">Due by @date(dueDate)</span>
+                      } else {
+                        <span class="muted">Due by @date(dueDate)</span>
                       }
+                    }.getOrElse {
+                      <span class="muted">No due date</span>
+                    }
+                  }
+                </div>
+              </div>
+              <div class="span8">
+                @progress(openCount + closedCount, closedCount)
+                <div>
+                  <div>
+                    @if(closedCount == 0){
+                      0%
+                    } else {
+                      @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%
+                    } <span class="muted">complete</span> &nbsp;&nbsp;
+                    @openCount <span class="muted">open</span> &nbsp;&nbsp;
+                    @closedCount <span class="muted">closed</span>
+                  </div>
+                  <div class="milestone-menu">
+                    @if(hasWritePermission){
+                      <a href="@url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit</a> &nbsp;&nbsp;
+                      @if(milestone.closedDate.isDefined){
+                        <a href="@url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a> &nbsp;&nbsp;
+                      } else {
+                        <a href="@url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a> &nbsp;&nbsp;
+                      }
+                      <a href="@url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                     }
                   </div>
-                  <div class="span8">
-                    <div class="milestone-menu">
-                      <div class="pull-right">
-                        @if(hasWritePermission){
-                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit
-                          @if(milestone.closedDate.isDefined){
-                            <a href="@url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a>
-                          } else {
-                            <a href="@url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a>
-                          }
-                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
-                        }
-                        <a href="@url(repository)/issues?milestone=@milestone.milestoneId&state=open">Browse issues</a>
-                      </div>
-                      <span class="muted">@closedCount closed - @openCount open</span>
-                    </div>
-                    @progress(openCount + closedCount, closedCount, true)
-                  </div>
                 </div>
-                @if(milestone.description.isDefined){
-                  <div class="milestone-description">
-                    @markdown(milestone.description.get, repository, false, false)
-                  </div>
-                }
-              </td>
-            </tr>
+              </div>
+            </div>
+            @if(milestone.description.isDefined){
+              <div class="milestone-description">
+                @markdown(milestone.description.get, repository, false, false)
+              </div>
             }
-            @if(milestones.isEmpty){
-            <tr>
-              <td style="padding: 20px; background-color: #eee; text-align: center;">
-                No milestones to show.
-                @if(hasWritePermission){
-                  <a href="@url(repository)/issues/milestones/new">Create a new milestone.</a>
-                }
-              </td>
-            </tr>
+          </td>
+        </tr>
+        }
+        @if(milestones.isEmpty){
+        <tr>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            No milestones to show.
+            @if(hasWritePermission){
+              <a href="@url(repository)/issues/milestones/new">Create a new milestone.</a>
             }
-          }
-        </table>
-      </div>
-    </div>
+          </td>
+        </tr>
+        }
+      }
+    </table>
   }
 }
 <script>

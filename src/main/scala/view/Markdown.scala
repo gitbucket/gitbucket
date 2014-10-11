@@ -97,9 +97,10 @@ class GitBucketHtmlSerializer(
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
   ) with LinkConverter with RequestCache {
 
-  override protected def printImageTag(imageNode: SuperNode, url: String): Unit =
-    printer.print("<a target=\"_blank\" href=\"").print(fixUrl(url)).print("\">")
-           .print("<img src=\"").print(fixUrl(url)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/></a>")
+  override protected def printImageTag(imageNode: SuperNode, url: String): Unit = {
+    printer.print("<a target=\"_blank\" href=\"").print(fixUrl(url, true)).print("\">")
+           .print("<img src=\"").print(fixUrl(url, true)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/></a>")
+  }
 
   override protected def printLink(rendering: LinkRenderer.Rendering): Unit = {
     printer.print('<').print('a')
@@ -110,15 +111,20 @@ class GitBucketHtmlSerializer(
     printer.print('>').print(rendering.text).print("</a>")
   }
 
-  private def fixUrl(url: String): String = {
-    if(!enableWikiLink){
-      if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#") || url.startsWith("/") ||
-          context.currentPath.contains("/blob/")){
-        url
+  private def fixUrl(url: String, isImage: Boolean = false): String = {
+    if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#") || url.startsWith("/")){
+      url
+    } else if(!enableWikiLink){
+      if(context.currentPath.contains("/blob/")){
+        url + (if(isImage) "?raw=true" else "")
+      } else if(context.currentPath.contains("/tree/")){
+        val paths = context.currentPath.split("/")
+        val branch = if(paths.length > 3) paths.drop(4).mkString("/") else repository.repository.defaultBranch
+        repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url + (if(isImage) "?raw=true" else "")
       } else {
         val paths = context.currentPath.split("/")
         val branch = if(paths.length > 3) paths.last else repository.repository.defaultBranch
-        repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url
+        repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url + (if(isImage) "?raw=true" else "")
       }
     } else {
       repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url

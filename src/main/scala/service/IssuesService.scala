@@ -43,14 +43,13 @@ trait IssuesService {
    * Returns the count of the search result against  issues.
    *
    * @param condition the search condition
-   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
    * @param onlyPullRequest if true then counts only pull request, false then counts both of issue and pull request.
    * @param repos Tuple of the repository owner and the repository name
    * @return the count of the search result
    */
-  def countIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
-                 repos: (String, String)*)(implicit s: Session): Int =
-    Query(searchIssueQuery(repos, condition, filterUser, onlyPullRequest).length).first
+  def countIssue(condition: IssueSearchCondition, onlyPullRequest: Boolean, repos: (String, String)*)
+                (implicit s: Session): Int =
+    Query(searchIssueQuery(repos, condition, onlyPullRequest).length).first
 
   /**
    * Returns the Map which contains issue count for each labels.
@@ -58,13 +57,12 @@ trait IssuesService {
    * @param owner the repository owner
    * @param repository the repository name
    * @param condition the search condition
-   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
    * @return the Map which contains issue count for each labels (key is label name, value is issue count)
    */
-  def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
-                              filterUser: Map[String, String])(implicit s: Session): Map[String, Int] = {
+  def countIssueGroupByLabels(owner: String, repository: String,
+                              condition: IssueSearchCondition)(implicit s: Session): Map[String, Int] = {
 
-    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), filterUser, false)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
       .innerJoin(IssueLabels).on { (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
@@ -84,15 +82,14 @@ trait IssuesService {
    * If the issue does not exist, its repository is not included in the result.
    *
    * @param condition the search condition
-   * @param filterUser the filter user name (key is "all", "assigned" or "created_by", value is the user name)
    * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
    * @param repos Tuple of the repository owner and the repository name
    * @return list which contains issue count for each repository
    */
   def countIssueGroupByRepository(
-      condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+      condition: IssueSearchCondition, onlyPullRequest: Boolean,
       repos: (String, String)*)(implicit s: Session): List[(String, String, Int)] = {
-    searchIssueQuery(repos, condition.copy(repo = None), filterUser, onlyPullRequest)
+    searchIssueQuery(repos, condition.copy(repo = None), onlyPullRequest)
       .groupBy { t =>
         t.userName -> t.repositoryName
       }
@@ -107,19 +104,18 @@ trait IssuesService {
    * Returns the search result against  issues.
    *
    * @param condition the search condition
-   * @param filterUser the filter user name (key is "all", "assigned", "created_by" or "not_created_by", value is the user name)
-   * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
+   * @param pullRequest if true then returns only pull requests, false then returns only issues.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
    * @param repos Tuple of the repository owner and the repository name
    * @return the search result (list of tuples which contain issue, labels and comment count)
    */
-  def searchIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+  def searchIssue(condition: IssueSearchCondition, pullRequest: Boolean,
                   offset: Int, limit: Int, repos: (String, String)*)
-                 (implicit s: Session): List[(Issue, List[Label], Int)] = {
+                 (implicit s: Session): List[IssueInfo] = {
 
     // get issues and comment count and labels
-    searchIssueQuery(repos, condition, filterUser, onlyPullRequest)
+    searchIssueQuery(repos, condition, pullRequest)
         .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
         .sortBy { case (t1, t2) =>
           (condition.sort match {
@@ -136,21 +132,23 @@ trait IssuesService {
         .drop(offset).take(limit)
         .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
         .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
-        .map { case (((t1, t2), t3), t4) =>
-          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?)
+        .leftJoin (Milestones)  .on { case ((((t1, t2), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
+        .map { case ((((t1, t2), t3), t4), t5) =>
+          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?, t5.title.?)
         }
         .list
         .splitWith { (c1, c2) =>
-          c1._1.userName == c2._1.userName &&
+          c1._1.userName       == c2._1.userName &&
           c1._1.repositoryName == c2._1.repositoryName &&
-          c1._1.issueId == c2._1.issueId
+          c1._1.issueId        == c2._1.issueId
         }
         .map { issues => issues.head match {
-          case (issue, commentCount, _,_,_) =>
-            (issue,
+          case (issue, commentCount, _, _, _, milestone) =>
+            IssueInfo(issue,
              issues.flatMap { t => t._3.map (
                  Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
              )} toList,
+             milestone,
              commentCount)
         }} toList
   }
@@ -159,7 +157,7 @@ trait IssuesService {
    * Assembles query for conditional issue searching.
    */
   private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition,
-                               filterUser: Map[String, String], onlyPullRequest: Boolean)(implicit s: Session) =
+                               pullRequest: Boolean)(implicit s: Session) =
     Issues filter { t1 =>
       condition.repo
           .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
@@ -169,10 +167,9 @@ trait IssuesService {
       (t1.closed           === (condition.state == "closed").bind) &&
       (t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
-      (t1.assignedUserName === filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
-      (t1.openedUserName   === filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
-      (t1.openedUserName   =!= filterUser("not_created_by").bind, filterUser.get("not_created_by").isDefined) &&
-      (t1.pullRequest      === true.bind, onlyPullRequest) &&
+      (t1.assignedUserName === condition.assigned.get.bind, condition.assigned.isDefined) &&
+      (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
+      (t1.pullRequest      === pullRequest.bind) &&
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
         (t2.labelId in
@@ -337,10 +334,19 @@ object IssuesService {
   case class IssueSearchCondition(
       labels: Set[String] = Set.empty,
       milestoneId: Option[Option[Int]] = None,
+      author: Option[String] = None,
+      assigned: Option[String] = None,
       repo: Option[String] = None,
       state: String = "open",
       sort: String = "created",
       direction: String = "desc"){
+
+    def isEmpty: Boolean = {
+      labels.isEmpty && milestoneId.isEmpty && author.isEmpty && assigned.isEmpty &&
+        state == "open" && sort == "created" && direction == "desc"
+    }
+
+    def nonEmpty: Boolean = !isEmpty
 
     def toURL: String =
       "?" + List(
@@ -349,6 +355,8 @@ object IssuesService {
           case Some(x) => x.toString
           case None    => "none"
         })},
+        author  .map(x => "author="   + urlEncode(x)),
+        assigned.map(x => "assigned=" + urlEncode(x)),
         repo.map("for="   + urlEncode(_)),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
@@ -370,6 +378,8 @@ object IssuesService {
           case "none" => None
           case x      => x.toIntOpt
         },
+        param(request, "author"),
+        param(request, "assigned"),
         param(request, "for"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
@@ -382,5 +392,7 @@ object IssuesService {
       case e: NumberFormatException => 1
     }
   }
+
+  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], commentCount: Int)
 
 }

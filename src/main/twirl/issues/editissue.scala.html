@@ -1,42 +1,35 @@
-@(title: String, content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: app.Context)
+@(content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: app.Context)
 @import context._
-<span id="error-edit-title" class="error"></span>
-<input type="text" style="width: 635px;" id="edit-title" value="@title"/>
 @helper.html.attached(owner, repository){
   <textarea style="width: 635px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
 }
 <div>
-  <input type="button" id="update" class="btn btn-small" value="Update Issue"/>
-  <input type="button" id="cancel" class="btn btn-small btn-danger pull-right" value="Cancel"/>
+  <input type="button" id="cancel-issue" class="btn btn-small btn-danger" value="Cancel"/>
+  <input type="button" id="update-issue" class="btn btn-small pull-right" value="Update comment"/>
 </div>
 <script>
 $(function(){
-  $('#edit-content').elastic();
-
   var callback = function(data){
     $('#update, #cancel').removeAttr('disabled');
-    $('#issueTitle').empty().text(data.title);
     $('#issueContent').empty().html(data.content);
   };
 
-  $('#update').click(function(){
+  $('#update-issue').click(function(){
     $('#update, #cancel').attr('disabled', 'disabled');
     $.ajax({
       url: '@path/@owner/@repository/issues/edit/@issueId',
       type: 'POST',
       data: {
-        title   : $('#edit-title').val(),
         content : $('#edit-content').val()
       }
     }).done(
       callback
     ).fail(function(req) {
       $('#update, #cancel').removeAttr('disabled');
-      $('#error-edit-title').text($.parseJSON(req.responseText).title);
     });
   });
 
-  $('#cancel').click(function(){
+  $('#cancel-issue').click(function(){
     $('#update, #cancel').attr('disabled', 'disabled');
     $.get('@path/@owner/@repository/issues/_data/@issueId', callback);
     return false;

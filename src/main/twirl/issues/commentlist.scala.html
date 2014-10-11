@@ -5,20 +5,36 @@
   pullreq: Option[model.PullRequest] = None)(implicit context: app.Context)
 @import context._
 @import view.helpers._
+<div class="issue-avatar-image">@avatar(issue.openedUserName, 48)</div>
+<div class="box issue-comment-box">
+  <div class="box-header-small">
+    @user(issue.openedUserName, styleClass="username strong") <span class="muted">commented on @datetime(issue.registeredDate)</span>
+    <span class="pull-right">
+      @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
+        <a href="#" data-issue-id="@issue.issueId"><i class="icon-pencil"></i></a>
+      }
+    </span>
+  </div>
+  <div class="box-content issue-content" id="issueContent">
+    @markdown(issue.content getOrElse "No description provided.", repository, false, true)
+  </div>
+</div>
+
 @comments.map { comment =>
   @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"){
     <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
     <div class="box issue-comment-box" id="comment-@comment.commentId">
       <div class="box-header-small">
-        <i class="icon-comment"></i>
         @user(comment.commentedUserName, styleClass="username strong")
-        @if(comment.action == "comment"){
-          commented
-        } else {
-          @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
-        }
+        <span class="muted">
+          @if(comment.action == "comment"){
+            commented
+          } else {
+            @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
+          }
+          on @datetime(comment.registeredDate)
+        </span>
         <span class="pull-right">
-          @datetime(comment.registeredDate)
           @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer" &&
                 (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
             <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
@@ -86,13 +102,22 @@
 <script>
 $(function(){
   $('i.icon-pencil').click(function(){
-    var id = $(this).closest('a').data('comment-id');
-    $.get('@url(repository)/issue_comments/_data/' + id,
+    var id  = $(this).closest('a').data('comment-id');
+    var url = '@url(repository)/issue_comments/_data/' + id;
+    var $content = $('#commentContent-' + id);
+
+    if(!id){
+      id  = $(this).closest('a').data('issue-id');
+      url = '@url(repository)/issues/_data/' + id;
+      $content = $('#issueContent');
+    }
+
+    $.get(url,
     {
       dataType : 'html'
     },
     function(data){
-      $('#commentContent-' + id).empty().html(data);
+      $content.empty().html(data);
     });
     return false;
   });

@@ -1,143 +1,25 @@
-@(issues: List[(model.Issue, List[model.Label], Int)],
+@(target: String,
+  issues: List[service.IssuesService.IssueInfo],
   page: Int,
   collaborators: List[String],
   milestones: List[model.Milestone],
   labels: List[model.Label],
   openCount: Int,
   closedCount: Int,
-  allCount: Int,
-  assignedCount: Option[Int],
-  createdByCount: Option[Int],
-  labelCounts: Map[String, Int],
   condition: service.IssuesService.IssueSearchCondition,
-  filter: String,
   repository: service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-@html.main(s"Issues - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.menu("issues", repository){
-    @tab("issues", false, repository)
-    <div class="row-fluid">
-      <div class="span3">
-        <ul class="nav nav-pills nav-stacked">
-          <li@if(filter == "all"){ class="active"}>
-            <a href="@url(repository)/issues@condition.toURL">
-              <span class="count-right">@allCount</span>
-              Everyone's Issues
-            </a>
-          </li>
-          @if(loginAccount.isDefined){
-          <li@if(filter == "assigned"){ class="active"}>
-            <a href="@url(repository)/issues/assigned/@loginAccount.map(_.userName)@condition.toURL">
-              <span class="count-right">@assignedCount</span>
-              Assigned to you
-            </a>
-          </li>
-          <li@if(filter == "created_by"){ class="active"}>
-            <a href="@url(repository)/issues/created_by/@loginAccount.map(_.userName)@condition.toURL">
-              <span class="count-right">@createdByCount</span>
-              Created by you
-            </a>
-          </li>
-          }
-        </ul>
-        <hr/>
-        @if(condition.milestoneId.isEmpty){
-          <span class="muted small">No milestone selected</span>
-        } else {
-          @if(condition.milestoneId.get.isEmpty){
-            <span class="muted small">Issues with no milestone</span>
-          } else {
-            <span class="muted small">Milestone:</span> @milestones.find(_.milestoneId == condition.milestoneId.get.get).map(_.title)
-          }
-        }
-        @helper.html.dropdown() {
-          @if(condition.milestoneId.isDefined){
-            <li>
-              <a href="@condition.copy(milestoneId = None).toURL">
-                <i class="icon-remove-circle"></i> Clear milestone filter
-              </a>
-            </li>
-          }
-          <li>
-             <a href="@condition.copy(milestoneId = Some(None)).toURL">
-               @helper.html.checkicon(condition.milestoneId == Some(None)) Issues with no milestone
-             </a>
-          </li>
-          @milestones.filter(_.closedDate.isEmpty).map { milestone =>
-            <li>
-              <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
-                @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
-                <div class="small" style="padding-left: 20px;">
-                  @milestone.dueDate.map { dueDate =>
-                    @if(isPast(dueDate)){
-                      <img src="@assets/common/images/alert_mono.png"/>Due in @date(dueDate)
-                    } else {
-                      <span class="muted">Due in @date(dueDate)</span>
-                    }
-                  }.getOrElse {
-                    <span class="muted">No due date</span>
-                  }
-                </div>
-              </a>
-            </li>
-          }
-        }
-        @if(condition.milestoneId.isDefined && condition.milestoneId.get.isDefined){
-          @milestones.find(_.milestoneId == condition.milestoneId.get.get).map { milestone =>
-            <div style="margin-top: 4px;">
-              @_root_.issues.milestones.html.progress(openCount + closedCount, closedCount, false)
-            </div>
-            <span class="muted small">@openCount open issues</span>
-            @if(milestone.closedDate.isDefined){
-              @milestone.closedDate.map { closedDate =>
-                <span class="small">Closed in @date(closedDate)</span>
-              }
-            } else {
-              @milestone.dueDate.map { dueDate =>
-                @if(isPast(dueDate)){
-                  <img src="@assets/common/images/alert.png"/><span class="small milestone-alert">Due in @date(dueDate)</span>
-                } else {
-                  <span class="small">Due in @date(dueDate)</span>
-                }
-              }
-            }
-          }
-        }
-        <hr/>
-        <span class="strong">Labels</span>
-        <div>
-          <div id="label-list">
-            <ul class="label-list nav nav-pills nav-stacked">
-              @labels.map { label =>
-                <li>
-                  <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL"
-                     @if(condition.labels.contains(label.labelName)){style="background-color: #@label.color; color: #@label.fontColor;"}>
-                    <span class="count-right">@labelCounts.getOrElse(label.labelName, 0)</span>
-                    <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
-                    @label.labelName
-                  </a>
-                </li>
-               }
-            </ul>
-          </div>
-        </div>
-        @if(hasWritePermission){
-          <hr/>
-          <input type="button" class="btn btn-block" id="manageLabel" data-toggle="button" value="Manage Labels"/>
-          <br/>
-          <span class="strong">New label</span>
-          @_root_.issues.labels.html.edit(None, repository)
-        }
-      </div>
-      @***** show issue list *****@
-      @listparts(issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
-    </div>
+@html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
+  @html.menu(target, repository){
+    @tab(target, true, repository)
+    @listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
     @if(hasWritePermission){
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
         <input type="hidden" name="checked"/>
+        <input type="hidden" name="from" value="@target"/>
       </form>
     }
   }
@@ -145,20 +27,34 @@
 @if(hasWritePermission){
 <script>
 $(function(){
-  $('#manageLabel').click(function(){
-    if($(this).data('toggle-state')){
-      location.href = '@url(repository)/issues';
-    } else {
-      $(this).data('toggle-state', 'on');
-      $.get('@url(repository)/issues/label/edit', function(data){
-        $('#label-list').parent().empty().html(data);
-      });
+  $('a.header-link').mouseover(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
     }
+    $(target).children('strong'               ).css('color', '#0088cc');
+    $(target).children('img.header-icon-hover').css('display', 'inline');
+    $(target).children('img.header-icon'      ).css('display', 'none');
+  });
+
+  $('a.header-link').mouseout(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', 'black');
+    $(target).children('img.header-icon-hover').css('display', 'none');
+    $(target).children('img.header-icon'      ).css('display', 'inline');
   });
 
   $('.table-issues input[type=checkbox]').change(function(){
-    $('.table-issues button').prop('disabled',
-            !$('.table-issues input[type=checkbox]').filter(':checked').length);
+    if($('.table-issues input[type=checkbox]').filter(':checked').length == 0){
+      $('#table-issues-control').show();
+      $('#table-issues-batchedit').hide();
+    } else {
+      $('#table-issues-control').hide();
+      $('#table-issues-batchedit').show();
+    }
   }).filter(':first').change();
 
   var submitBatchEdit = function(action, value) {
@@ -170,8 +66,8 @@ $(function(){
     form.submit();
   };
 
-  $('#state').click(function(){
-    submitBatchEdit('@url(repository)/issues/batchedit/state', $(this).text().toLowerCase());
+  $('a.toggle-state').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/state', $(this).data('id'));
   });
   $('a.toggle-label').click(function(){
     submitBatchEdit('@url(repository)/issues/batchedit/label', $(this).data('id'));
