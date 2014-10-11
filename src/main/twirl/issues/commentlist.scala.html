@@ -16,7 +16,7 @@
     </span>
   </div>
   <div class="box-content issue-content" id="issueContent">
-    @markdown(issue.content getOrElse "No description provided.", repository, false, true)
+    @markdown(issue.content getOrElse "No description provided.", repository, false, true, true, hasWritePermission)
   </div>
 </div>
 
@@ -143,7 +143,39 @@ $(function(){
     return markdown;
   };
 
-  $('div[id^=commentContent-').on('click', ':checkbox', function(ev){
+  var replaceTaskList = function(issueContentHtml, checkboxes) {
+    var ss = [],
+        markdown = extractMarkdown(issueContentHtml),
+        xs = markdown.split(/- \[[x| ]\]/g);
+    for (var i=0; i<xs.length; i++) {
+      ss.push(xs[i]);
+      if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
+      else ss.push('- [ ]');
+    }
+    ss.pop();
+    return ss.join('');
+  };
+
+  $('#issueContent').on('click', ':checkbox', function(ev){
+    var checkboxes = $('#issueContent :checkbox');
+    $.get('@url(repository)/issues/_data/@issue.issueId',
+      {
+        dataType : 'html'
+      },
+      function(responseContent){
+        $.ajax({
+          url: '@url(repository)/issues/edit/@issue.issueId',
+          type: 'POST',
+          data: {
+            title   : $('#issueTitle').text(),
+            content : replaceTaskList(responseContent, checkboxes)
+          }
+        });
+      }
+    );
+  });
+
+  $('div[id^=commentContent-]').on('click', ':checkbox', function(ev){
     var $commentContent = $(ev.target).parents('div[id^=commentContent-]'),
         commentId = $commentContent.attr('id').replace(/commentContent-/, ''),
         checkboxes = $commentContent.find(':checkbox');
@@ -151,22 +183,13 @@ $(function(){
       {
         dataType : 'html'
       },
-      function(data){
-        var ss = [],
-            markdown = extractMarkdown(data),
-            xs = markdown.split(/- \[[x| ]\]/g);
-        for (var i=0; i<xs.length; i++) {
-          ss.push(xs[i]);
-          if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
-          else ss.push('- [ ]');
-        }
-        ss.pop();
+      function(responseContent){
         $.ajax({
           url: '@url(repository)/issue_comments/edit/' + commentId,
           type: 'POST',
           data: {
             issueId : 0,
-            content : ss.join('')
+            content : replaceTaskList(responseContent, checkboxes)
           }
         });
       }
