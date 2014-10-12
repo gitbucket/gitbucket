@@ -36,14 +36,14 @@
 <script>
 $(function(){
   $('#new-label-button').click(function(e){
-    if($('#new-label-area').size() != 0){
+    if($('#edit-label-area-new').size() != 0){
+      $('div#edit-label-area-new').remove();
       $('#new-label-table').hide();
-      $('#new-label-area').remove();
     } else {
       $.get('@url(repository)/issues/labels/new',
-          function(data){
-            $('#new-label-table').show().find('tr td').append(data);
-          }
+        function(data){
+          $('#new-label-table').show().find('tr td').append(data);
+        }
       );
     }
   });

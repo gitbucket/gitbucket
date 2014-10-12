@@ -6,14 +6,14 @@
   <form style="margin-bottom: 0px;">
     <input type="text" id="labelName-@labelId" style="width: 300px; margin-bottom: 0px;" value="@label.map(_.labelName)"@if(labelId == "new"){ placeholder="New label name"}/>
     <div id="label-color-@labelId" class="input-append color bscp" data-color="#@label.map(_.color).getOrElse("888888")" data-color-format="hex" style="width: 100px; margin-bottom: 0px;">
-      <input type="text" class="span3" id="labelColor-@labelId" value="#@label.map(_.color)" readonly style="width: 100px;">
+      <input type="text" class="span3" id="labelColor-@labelId" value="#@label.map(_.color).getOrElse("888888")" readonly style="width: 100px;">
       <span class="add-on"><i style="background-color: #@label.map(_.color).getOrElse("888888");"></i></span>
     </div>
     <script>
     $('div#label-color-@labelId').colorpicker();
     </script>
-    <span id="label-error-@labelId" class="error" style="padding-left: 40px;"></span>
     <span class="pull-right">
+      <span id="label-error-@labelId" class="error"></span>
       <input type="button" id="cancel-@labelId" class="btn label-edit-cancel" value="Cancel">
       <input type="button" id="submit-@labelId" class="btn btn-success" style="margin-bottom: 0px;" value="@(if(labelId == "new") "Create label"  else "Save changes")"/>
     </span>
