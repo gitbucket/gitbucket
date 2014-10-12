@@ -53,7 +53,7 @@ object MyBuild extends Build {
       "com.typesafe.play" %% "twirl-compiler" % "1.0.2"
     ),
     EclipseKeys.withSource := true,
-    javacOptions in compile ++= Seq("-target", "6", "-source", "6"),
+    javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),
     packageOptions += Package.MainClass("JettyLauncher")
   ).enablePlugins(SbtTwirl)
