@@ -45,15 +45,13 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    */
   def datetimeAgoRecentOnly(date: Date): String = {
     val duration = new Date().getTime - date.getTime
-    val list = timeUnits.map(tuple => (duration / tuple._1, tuple._2)).filter(tuple => tuple._1 > 0)
-    if (list.isEmpty)
-      "just now"
-    else {
-      list.head match {
-        case (_, "month") => s"on ${new SimpleDateFormat("d MMM", Locale.ENGLISH).format(date)}"
-        case (_, "year") => s"on ${new SimpleDateFormat("d MMM yyyy", Locale.ENGLISH).format(date)}"
-        case (value, unitString) => s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
-      }
+    timeUnits.find(tuple => duration / tuple._1 > 0) match {
+      case Some((_, "month")) => s"on ${new SimpleDateFormat("d MMM", Locale.ENGLISH).format(date)}"
+      case Some((_, "year")) => s"on ${new SimpleDateFormat("d MMM yyyy", Locale.ENGLISH).format(date)}"
+      case Some((unitValue, unitString)) =>
+        val value = duration / unitValue
+        s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
+      case None => "just now"
     }
   }
 
