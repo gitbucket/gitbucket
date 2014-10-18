@@ -86,7 +86,7 @@
             }
           </div>
         <div class="small muted" style="margin-left: 20px;">
-          @avatarLink(issue.openedUserName, 20) by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)&nbsp;
+          @avatarLink(issue.openedUserName, 20) by @user(issue.openedUserName, styleClass="username") @helper.html.datetimeago(issue.registeredDate)&nbsp;
           @if(commentCount > 0){
             <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
           }

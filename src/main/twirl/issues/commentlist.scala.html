@@ -8,7 +8,7 @@
 <div class="issue-avatar-image">@avatar(issue.openedUserName, 48)</div>
 <div class="box issue-comment-box">
   <div class="box-header-small">
-    @user(issue.openedUserName, styleClass="username strong") <span class="muted">commented on @datetime(issue.registeredDate)</span>
+    @user(issue.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.registeredDate)</span>
     <span class="pull-right">
       @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
         <a href="#" data-issue-id="@issue.issueId"><i class="icon-pencil"></i></a>
@@ -32,7 +32,7 @@
           } else {
             @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
           }
-          on @datetime(comment.registeredDate)
+          @helper.html.datetimeago(comment.registeredDate)
         </span>
         <span class="pull-right">
           @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer" &&
@@ -70,7 +70,7 @@
       } else {
         <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> to <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
       }
-      @datetime(comment.registeredDate)
+      @helper.html.datetimeago(comment.registeredDate)
     </div>
   }
   @if(comment.action == "close" || comment.action == "close_comment"){
@@ -78,9 +78,9 @@
       <span class="label label-important">Closed</span>
       @avatar(comment.commentedUserName, 20)
       @if(issue.isPullRequest){
-        @user(comment.commentedUserName, styleClass="username strong") closed the pull request @datetime(comment.registeredDate)
+        @user(comment.commentedUserName, styleClass="username strong") closed the pull request @helper.html.datetimeago(comment.registeredDate)
       } else {
-        @user(comment.commentedUserName, styleClass="username strong") closed the issue @datetime(comment.registeredDate)
+        @user(comment.commentedUserName, styleClass="username strong") closed the issue @helper.html.datetimeago(comment.registeredDate)
       }
     </div>
   }
@@ -88,14 +88,14 @@
     <div class="small issue-comment-action">
       <span class="label label-success">Reopened</span>
       @avatar(comment.commentedUserName, 20)
-      @user(comment.commentedUserName, styleClass="username strong") reopened the issue @datetime(comment.registeredDate)
+      @user(comment.commentedUserName, styleClass="username strong") reopened the issue @helper.html.datetimeago(comment.registeredDate)
     </div>
   }
   @if(comment.action == "delete_branch"){
     <div class="small issue-comment-action">
       <span class="label">Deleted</span>
       @avatar(comment.commentedUserName, 20)
-      @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @datetime(comment.registeredDate)
+      @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @helper.html.datetimeago(comment.registeredDate)
     </div>
   }
 }
