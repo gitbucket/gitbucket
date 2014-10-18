@@ -47,9 +47,9 @@ trait IssuesService {
    * @param repos Tuple of the repository owner and the repository name
    * @return the count of the search result
    */
-  def countIssue(condition: IssueSearchCondition, onlyPullRequest: Boolean, repos: (String, String)*)
-                (implicit s: Session): Int =
-    Query(searchIssueQuery(repos, condition, onlyPullRequest).length).first
+  def countIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+                 repos: (String, String)*)(implicit s: Session): Int =
+    Query(searchIssueQuery(repos, condition, filterUser, onlyPullRequest).length).first
 
   /**
    * Returns the Map which contains issue count for each labels.
@@ -59,10 +59,10 @@ trait IssuesService {
    * @param condition the search condition
    * @return the Map which contains issue count for each labels (key is label name, value is issue count)
    */
-  def countIssueGroupByLabels(owner: String, repository: String,
-                              condition: IssueSearchCondition)(implicit s: Session): Map[String, Int] = {
+  def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
+                              filterUser: Map[String, String])(implicit s: Session): Map[String, Int] = {
 
-    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), filterUser, false)
       .innerJoin(IssueLabels).on { (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
@@ -87,9 +87,9 @@ trait IssuesService {
    * @return list which contains issue count for each repository
    */
   def countIssueGroupByRepository(
-      condition: IssueSearchCondition, onlyPullRequest: Boolean,
+      condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
       repos: (String, String)*)(implicit s: Session): List[(String, String, Int)] = {
-    searchIssueQuery(repos, condition.copy(repo = None), onlyPullRequest)
+    searchIssueQuery(repos, condition.copy(repo = None), filterUser, onlyPullRequest)
       .groupBy { t =>
         t.userName -> t.repositoryName
       }
@@ -104,18 +104,19 @@ trait IssuesService {
    * Returns the search result against  issues.
    *
    * @param condition the search condition
+   * @param filterUser the filter user name (key is "all", "assigned", "created_by" or "not_created_by", value is the user name)
    * @param pullRequest if true then returns only pull requests, false then returns only issues.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
    * @param repos Tuple of the repository owner and the repository name
    * @return the search result (list of tuples which contain issue, labels and comment count)
    */
-  def searchIssue(condition: IssueSearchCondition, pullRequest: Boolean,
+  def searchIssue(condition: IssueSearchCondition, filterUser: Map[String, String], pullRequest: Boolean,
                   offset: Int, limit: Int, repos: (String, String)*)
                  (implicit s: Session): List[IssueInfo] = {
 
     // get issues and comment count and labels
-    searchIssueQuery(repos, condition, pullRequest)
+    searchIssueQuery(repos, condition, filterUser, pullRequest)
         .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
         .sortBy { case (t1, t2) =>
           (condition.sort match {
@@ -157,7 +158,7 @@ trait IssuesService {
    * Assembles query for conditional issue searching.
    */
   private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition,
-                               pullRequest: Boolean)(implicit s: Session) =
+                               filterUser: Map[String, String], pullRequest: Boolean)(implicit s: Session) =
     Issues filter { t1 =>
       condition.repo
           .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
@@ -167,6 +168,9 @@ trait IssuesService {
       (t1.closed           === (condition.state == "closed").bind) &&
       (t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
+      (t1.assignedUserName === filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
+      (t1.openedUserName   === filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
+      (t1.openedUserName   =!= filterUser("not_created_by").bind, filterUser.get("not_created_by").isDefined) &&
       (t1.assignedUserName === condition.assigned.get.bind, condition.assigned.isDefined) &&
       (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
       (t1.pullRequest      === pullRequest.bind) &&

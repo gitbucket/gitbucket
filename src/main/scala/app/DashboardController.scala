@@ -50,20 +50,20 @@ trait DashboardControllerBase extends ControllerBase {
 
     val userName   = context.loginAccount.get.userName
     val userRepos  = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
-    //val filterUser = Map(filter -> userName)
+    val filterUser = Map(filter -> userName)
     val page = IssueSearchCondition.page(request)
 
     dashboard.html.issues(
         dashboard.html.issueslist(
-            searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+            searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
             page,
-            countIssue(condition.copy(state = "open"  ), false, userRepos: _*),
-            countIssue(condition.copy(state = "closed"), false, userRepos: _*),
+            countIssue(condition.copy(state = "open"  ), filterUser, false, userRepos: _*),
+            countIssue(condition.copy(state = "closed"), filterUser, false, userRepos: _*),
             condition),
-        countIssue(condition.copy(assigned = None, author = None), false, userRepos: _*),
-        countIssue(condition.copy(assigned = Some(userName), author = None), false, userRepos: _*),
-        countIssue(condition.copy(assigned = None, author = Some(userName)), false, userRepos: _*),
-        countIssueGroupByRepository(condition, false, userRepos: _*),
+        countIssue(condition.copy(assigned = None, author = None), filterUser, false, userRepos: _*),
+        countIssue(condition.copy(assigned = Some(userName), author = None), filterUser, false, userRepos: _*),
+        countIssue(condition.copy(assigned = None, author = Some(userName)), filterUser, false, userRepos: _*),
+        countIssueGroupByRepository(condition, filterUser, false, userRepos: _*),
         condition,
         filter)    
     
@@ -86,14 +86,14 @@ trait DashboardControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
 
     val counts = countIssueGroupByRepository(
-      IssueSearchCondition().copy(state = condition.state), true, userRepos: _*)
+      IssueSearchCondition().copy(state = condition.state), filterUser, true, userRepos: _*)
 
     dashboard.html.pulls(
       dashboard.html.pullslist(
-        searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
+        searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
         page,
-        countIssue(condition.copy(state = "open"  ), true, allRepos: _*),
-        countIssue(condition.copy(state = "closed"), true, allRepos: _*),
+        countIssue(condition.copy(state = "open"  ), filterUser, true, allRepos: _*),
+        countIssue(condition.copy(state = "closed"), filterUser, true, allRepos: _*),
         condition,
         None,
         false),

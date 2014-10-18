@@ -25,7 +25,7 @@ trait LabelsControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/labels")(referrersOnly { repository =>
     issues.labels.html.list(
       getLabels(repository.owner, repository.name),
-      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
       hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
@@ -39,7 +39,7 @@ trait LabelsControllerBase extends ControllerBase {
     issues.labels.html.label(
       getLabel(repository.owner, repository.name, labelId).get,
       // TODO futility
-      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
       hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
@@ -55,7 +55,7 @@ trait LabelsControllerBase extends ControllerBase {
     issues.labels.html.label(
       getLabel(repository.owner, repository.name, params("labelId").toInt).get,
       // TODO futility
-      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition()),
+      countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
       hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
