@@ -12,7 +12,7 @@ trait DashboardControllerBase extends ControllerBase {
   self: IssuesService with PullRequestService with RepositoryService with UsersAuthenticator =>
 
   get("/dashboard/issues/repos")(usersOnly {
-    searchIssues("all")
+    searchIssues("created_by")
   })
 
   get("/dashboard/issues/assigned")(usersOnly {
@@ -54,19 +54,12 @@ trait DashboardControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
 
     dashboard.html.issues(
-        dashboard.html.issueslist(
-            searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
-            page,
-            countIssue(condition.copy(state = "open"  ), filterUser, false, userRepos: _*),
-            countIssue(condition.copy(state = "closed"), filterUser, false, userRepos: _*),
-            condition),
-        countIssue(condition.copy(assigned = None, author = None), filterUser, false, userRepos: _*),
-        countIssue(condition.copy(assigned = Some(userName), author = None), filterUser, false, userRepos: _*),
-        countIssue(condition.copy(assigned = None, author = Some(userName)), filterUser, false, userRepos: _*),
-        countIssueGroupByRepository(condition, filterUser, false, userRepos: _*),
-        condition,
-        filter)    
-    
+      searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+      page,
+      countIssue(condition.copy(state = "open"  ), filterUser, false, userRepos: _*),
+      countIssue(condition.copy(state = "closed"), filterUser, false, userRepos: _*),
+      condition,
+      filter)
   }
 
   private def searchPullRequests(filter: String, repository: Option[String]) = {
