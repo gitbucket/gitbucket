@@ -50,22 +50,8 @@
         </div>
       }
       @issues.html.commentform(issue, !merged, hasWritePermission, repository)
-    </div>
-    <div class="span2">
-      @if(issue.closed) {
-        @if(merged){
-          <span class="label label-info issue-status">Merged</span>
-        } else {
-          <span class="label label-important issue-status">Closed</span>
-        }
-      } else {
-        <span class="label label-success issue-status">Open</span>
-      }
-      <div class="small" style="text-align: center;">
-        <span class="strong">@comments.size</span> @plural(comments.size, "comment")
-      </div>
-    }
-    <hr/>
+  </div>
+  <div class="span2">
     @issues.html.issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
   </div>
 </div>
