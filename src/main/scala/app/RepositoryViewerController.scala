@@ -20,16 +20,16 @@ import org.eclipse.jgit.revwalk.RevCommit
 import service.WebHookService.WebHookPayload
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
-  with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
-  with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService
-    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+  self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -52,6 +52,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     fileName: String
   )
 
+  case class CommentForm(
+    fileName: Option[String],
+    oldLineNumber: Option[Int],
+    newLineNumber: Option[Int],
+    content: String
+  )
+
   val editorForm = mapping(
     "branch"        -> trim(label("Branch", text(required))),
     "path"          -> trim(label("Path", text())),
@@ -69,6 +76,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "message"  -> trim(label("Message", optional(text()))),
     "fileName" -> trim(label("Filename", text(required)))
   )(DeleteForm.apply)
+
+  val commentForm = mapping(
+    "fileName" -> trim(label("Filename", optional(text()))),
+    "oldLineNumber" -> trim(label("Old line number", optional(number()))),
+    "newLineNumber" -> trim(label("New line number", optional(number()))),
+    "content" -> trim(label("Content", text(required)))
+  )(CommentForm.apply)
 
   /**
    * Returns converted HTML from Markdown for preview.
@@ -221,9 +235,78 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
             JGitUtil.getBranchesOfCommit(git, revCommit.getName),
             JGitUtil.getTagsOfCommit(git, revCommit.getName),
-            repository, diffs, oldCommitId)
+            getCommitComments(repository.owner, repository.name, id),
+            repository, diffs, oldCommitId, hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       }
+    }
+  })
+
+  post("/:owner/:repository/commit/:id/comment/new", commentForm)(readableUsersOnly { (form, repository) =>
+    val id = params("id")
+    createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName, form.content,
+      form.fileName, form.oldLineNumber, form.newLineNumber)
+    recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
+    redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
+  })
+
+  ajaxGet("/:owner/:repository/commit/:id/comment/_form")(readableUsersOnly { repository =>
+    val id = params("id")
+    val fileName = params.get("fileName")
+    val oldLineNumber = params.get("oldLineNumber") flatMap {b => Some(b.toInt)}
+    val newLineNumber = params.get("newLineNumber") flatMap {b => Some(b.toInt)}
+    repo.html.commentform(
+      commitId = id,
+      fileName, oldLineNumber, newLineNumber,
+      hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount),
+      repository = repository
+    )
+  })
+
+  ajaxPost("/:owner/:repository/commit/:id/comment/_data/new", commentForm)(readableUsersOnly { (form, repository) =>
+    val id = params("id")
+    val commentId = createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName,
+      form.content, form.fileName, form.oldLineNumber, form.newLineNumber)
+    recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
+    helper.html.commitcomment(getCommitComment(repository.owner, repository.name, commentId.toString).get,
+      hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
+  })
+
+  ajaxGet("/:owner/:repository/commit_comments/_data/:id")(readableUsersOnly { repository =>
+    getCommitComment(repository.owner, repository.name, params("id")) map { x =>
+      if(isEditable(x.userName, x.repositoryName, x.commentedUserName)){
+        params.get("dataType") collect {
+          case t if t == "html" => repo.html.editcomment(
+            x.content, x.commentId, x.userName, x.repositoryName)
+        } getOrElse {
+          contentType = formats("json")
+          org.json4s.jackson.Serialization.write(
+            Map("content" -> view.Markdown.toHtml(x.content,
+              repository, false, true, true, isEditable(x.userName, x.repositoryName, x.commentedUserName))
+            ))
+        }
+      } else Unauthorized
+    } getOrElse NotFound
+  })
+
+  ajaxPost("/:owner/:repository/commit_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      getCommitComment(owner, name, params("id")).map { comment =>
+        if(isEditable(owner, name, comment.commentedUserName)){
+          updateCommitComment(comment.commentId, form.content)
+          redirect(s"/${owner}/${name}/commit_comments/_data/${comment.commentId}")
+        } else Unauthorized
+      } getOrElse NotFound
+    }
+  })
+
+  ajaxPost("/:owner/:repository/commit_comments/delete/:id")(readableUsersOnly { repository =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      getCommitComment(owner, name, params("id")).map { comment =>
+        if(isEditable(owner, name, comment.commentedUserName)){
+          Ok(deleteCommitComment(comment.commentId))
+        } else Unauthorized
+      } getOrElse NotFound
     }
   })
 
@@ -461,4 +544,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       file
     }
   }
+
+  private def isEditable(owner: String, repository: String, author: String)(implicit context: app.Context): Boolean =
+    hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 }

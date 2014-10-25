@@ -34,7 +34,7 @@ $(function(){
   }
 
   $('#preview').click(function(){
-    $('#preview-area').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
+    $(this).closest('#preview-area').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
     $.post('@url(repository)/_preview', {
       content        : $('#content').val(),
       enableWikiLink : @enableWikiLink,

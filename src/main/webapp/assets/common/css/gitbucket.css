@@ -226,6 +226,10 @@ div.box-header-small {
   text-shadow: 0 1px 0 #fff
 }
 
+.inline-comment div.box-header-small {
+  background: #f2f8fa;
+}
+
 div.box-content {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -860,9 +864,10 @@ div.issue-participants {
   margin-left: 50px;
 }
 
-div.issue-comment-box {
+div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
   margin-left: 50px;
+  max-width: 820px;
 }
 
 div.issue-comment-action {
@@ -964,6 +969,38 @@ table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delet
 
 td.insert, td.equal, td.delete, td.empty {
     width: 50%;
+}
+
+table.diff .add-comment {
+    position: absolute;
+    background: blue;
+    top: 0;
+    color: white;
+    padding: 2px;
+    border: solid 1px blue;
+    border-radius: 3px;
+    z-index: 99;
+}
+
+table.diff .add-comment:hover {
+    padding: 4px;
+    top: -1px;
+}
+
+table.diff tbody tr.not-diff {
+    font-family: '"Helvetica Neue", Helvetica, Arial, sans-serif';
+}
+
+tr.not-diff .box {
+    margin-bottom: 0px;
+}
+
+table.diff tbody tr.not-diff:hover {
+    background-color: #fff;
+}
+
+table.diff tbody tr.not-diff:hover td{
+    background-color: #fff;
 }
 
 /****************************************************************************/

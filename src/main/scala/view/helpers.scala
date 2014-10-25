@@ -152,6 +152,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       .replaceAll("\\[branch:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]", (m: Match) => s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/tree/${encodeRefName(m.group(3))}">${m.group(3)}</a>""")
       .replaceAll("\\[tag:([^\\s]+?)/([^\\s]+?)#([^\\s]+?)\\]"   , (m: Match) => s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/tree/${encodeRefName(m.group(3))}">${m.group(3)}</a>""")
       .replaceAll("\\[user:([^\\s]+?)\\]"                        , (m: Match) => user(m.group(1)).body)
+      .replaceAll("\\[commit:([^\\s]+?)/([^\\s]+?)\\@([^\\s]+?)\\]", (m: Match) => s"""<a href="${context.path}/${m.group(1)}/${m.group(2)}/commit/${m.group(3)}">${m.group(1)}/${m.group(2)}@${m.group(3).substring(0, 7)}</a>""")
     )
 
   /**

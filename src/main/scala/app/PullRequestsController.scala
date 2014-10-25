@@ -12,23 +12,21 @@ import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib.{ObjectId, CommitBuilder, PersonIdent}
 import service.IssuesService._
 import service.PullRequestService._
-import util.JGitUtil.DiffInfo
-import util.JGitUtil.CommitInfo
 import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
 import service.WebHookService.WebHookPayload
 import util.JGitUtil.DiffInfo
-import scala.Some
 import util.JGitUtil.CommitInfo
+
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
-  with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with CommitsService with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
-    with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with CommitsService with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -81,7 +79,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
           pulls.html.pullreq(
             issue, pullreq,
-            getComments(owner, name, issueId),
+            (commits.flatten.map(commit => getCommitComments(owner, name, commit.id)).flatten.toList ::: getComments(owner, name, issueId))
+              .sortWith((a, b) => a.registeredDate before b.registeredDate),
             getIssueLabels(owner, name, issueId),
             (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
             getMilestonesWithIssueCount(owner, name),
@@ -281,6 +280,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
             case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
           },
+          commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id)).flatten.toList,
           originBranch,
           forkedBranch,
           oldId.getName,

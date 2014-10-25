@@ -1,12 +1,8 @@
 $(function(){
-  $.each($('form[validate=true]'), function(i, form){
-    $(form).submit(validate);
-  });
-  $.each($('input[formaction]'), function(i, input){
-    $(input).click(function(){
-      var form = $(input).parents('form');
-      $(form).attr('action', $(input).attr('formaction'));
-    });
+  $(document).on('submit', 'form[validate=true]', validate);
+  $(document).on('click', 'input[formaction]', function(e){
+    var form = $(e.target).parents('form');
+    $(form).attr('action', $(e.target).attr('formaction'));
   });
 });
 
@@ -29,7 +25,7 @@ function validate(e){
       form.data('validated', false);
     } else {
       form.data('validated', false);
-      displayErrors(data);
+      displayErrors(data, form);
     }
   }, 'json');
   return false;
