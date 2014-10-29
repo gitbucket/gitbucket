@@ -16,6 +16,9 @@
                 <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
                 Disable
               </label>
+              <div>
+                <span id="error-removed" class="error"></span>
+              </div>
             }
           </fieldset>
           @if(account.map(_.password.nonEmpty).getOrElse(true)){
