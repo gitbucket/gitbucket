@@ -4,16 +4,18 @@
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
-  hasWritePermission: Boolean)(implicit context: app.Context)
+  hasWritePermission: Boolean,
+  info: Option[Any] = None,
+  error: Option[Any] = None)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository, Some(branch), pathList.isEmpty){
+  @html.menu("code", repository, Some(branch), pathList.isEmpty, info, error){
     <div class="head">
-      @helper.html.dropdown(
-        value  = if(branch.length == 40) branch.substring(0, 10) else branch,
-        prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
-        mini   = true
+      @helper.html.branchcontrol(
+        branch,
+        repository,
+        hasWritePermission
       ){
         @repository.branchList.map { x =>
           <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>

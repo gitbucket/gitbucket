@@ -14,7 +14,7 @@ import org.eclipse.jgit.treewalk.filter._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
 import java.util.Date
-import org.eclipse.jgit.api.errors.NoHeadException
+import org.eclipse.jgit.api.errors.{JGitInternalException, InvalidRefNameException, RefAlreadyExistsException, NoHeadException}
 import service.RepositoryService
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.slf4j.LoggerFactory
@@ -505,6 +505,17 @@ object JGitUtil {
       case Some(rev) => Some((git.getRepository.resolve(rev), rev))
       case None      => None
     }.find(_._1 != null)
+  }
+
+  def createBranch(git: Git, fromBranch: String, newBranch: String) = {
+    try {
+      git.branchCreate().setStartPoint(fromBranch).setName(newBranch).call()
+      Right("Branch created.")
+    } catch {
+      case e: RefAlreadyExistsException => Left("Sorry, that branch already exists.")
+      // JGitInternalException occurs when new branch name is 'a' and the branch whose name is 'a/*' exists.
+      case _: InvalidRefNameException | _: JGitInternalException => Left("Sorry, that name is invalid.")
+    }
   }
 
   def createDirCacheEntry(path: String, mode: FileMode, objectId: ObjectId): DirCacheEntry = {
