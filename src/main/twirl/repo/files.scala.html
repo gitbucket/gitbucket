@@ -47,13 +47,13 @@
               <div class="author">
                 @avatar(latestCommit, 20)
                 <span>@user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
-                <span class="muted"> authored on @datetime(latestCommit.authorTime)</span>
+                <span class="muted"> authored @helper.html.datetimeago(latestCommit.authorTime)</span>
               </div>
               @if(latestCommit.isDifferentFromAuthor) {
               <div class="committer">
                 <span class="icon-arrow-right"></span>
                 <span>@user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
-                <span class="muted"> committed on @datetime(latestCommit.commitTime)</span>
+                <span class="muted"> committed @helper.html.datetimeago(latestCommit.commitTime)</span>
               </div>
               }
             </div>
@@ -106,7 +106,7 @@
           <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a>
           [@user(file.author, file.mailAddress)]
         </td>
-        <td style="text-align: right;">@datetime(file.time)</td>
+        <td style="text-align: right;">@helper.html.datetimeago(file.time, false)</td>
       </tr>
       }
     </table>

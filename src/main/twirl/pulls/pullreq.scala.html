@@ -20,7 +20,7 @@
             <span class="label label-info">Merged</span>
             @user(comment.commentedUserName, styleClass="username strong") merged @commits.size @plural(commits.size, "commit")
             into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
-            at @datetime(comment.registeredDate)
+            @helper.html.datetimeago(comment.registeredDate)
           }.getOrElse {
             <span class="label label-important">Closed</span>
             @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")

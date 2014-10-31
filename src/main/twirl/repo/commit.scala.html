@@ -68,13 +68,13 @@
             <div class="author">
               @avatar(commit, 20)
               <span>@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
-              <span class="muted">authored on @datetime(commit.authorTime)</span>
+              <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
             </div>
             @if(commit.isDifferentFromAuthor) {
             <div class="committer">
               <span class="icon-arrow-right"></span>
               <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
-              <span class="muted"> committed on @datetime(commit.commitTime)</span>
+              <span class="muted"> committed @helper.html.datetimeago(commit.commitTime)</span>
             </div>
             }
           </div>

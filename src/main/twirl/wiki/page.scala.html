@@ -12,7 +12,7 @@
       <li>
         <h1 class="wiki-title">@pageName</h1>
         <div class="small">
-          <span class="muted"><strong>@page.committer</strong> edited this page at @datetime(page.time)</span>
+          <span class="muted"><strong>@page.committer</strong> edited this page @helper.html.datetimeago(page.time)</span>
         </div>
       </li>
       <li class="pull-right">
