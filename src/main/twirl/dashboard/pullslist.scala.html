@@ -3,20 +3,19 @@
   openCount: Int,
   closedCount: Int,
   condition: service.IssuesService.IssueSearchCondition,
-  repository: Option[service.RepositoryService.RepositoryInfo],
-  hasWritePermission: Boolean)(implicit context: app.Context)
+  filter: String)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import service.IssuesService.IssueInfo
+<ul class="nav nav-pills-group pull-left fill-width">
+  <li class="@if(filter == "created_by"){active} first"><a href="@path/dashboard/pulls/created_by@condition.toURL">Created</a></li>
+  <li class="@if(filter == "assigned"){active} last"><a href="@path/dashboard/pulls/assigned@condition.toURL">Assigned</a></li>
+  @*
+  <li class="last"><a href="#">Mentioned</a></li>
+  *@
+</ul>
+@*
 <div class="span9">
-  @repository.map { repository =>
-    @if(hasWritePermission){
-      <div class="pull-right">
-        @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 7, condition.toURL)
-        <a href="@url(repository)/compare" class="btn btn-small btn-success">New pull request</a>
-      </div>
-    }
-  }
   <div class="btn-group">
     <a class="btn btn-small@if(condition.state == "open"){ active}" href="@condition.copy(state = "open").toURL">@openCount Open</a>
     <a class="btn btn-small@if(condition.state == "closed"){ active}" href="@condition.copy(state = "closed").toURL">@closedCount Closed</a>
@@ -64,38 +63,96 @@
       </a>
     </li>
   }
-  <table class="table table-bordered table-hover table-issues">
-  @if(issues.isEmpty){
-    <tr>
-      <td style="padding: 20px; background-color: #eee; text-align: center;">
-        No pull requests to show.
-      </td>
-    </tr>
-  }
+  *@
+<table class="table table-bordered table-hover table-issues">
+  <tr>
+    <th style="background-color: #eee;">
+      <span class="small">
+        <a class="button-link@if(condition.state == "open"){ selected}" href="@condition.copy(state = "open").toURL">
+          <img src="@assets/common/images/status-open@(if(condition.state == "open"){"-active"}).png"/>
+          @openCount Open
+        </a>&nbsp;&nbsp;
+        <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">
+          <img src="@assets/common/images/status-closed@(if(condition.state == "closed"){"-active"}).png"/>
+          @closedCount Closed
+        </a>
+      </span>
+      <div class="pull-right" id="table-issues-control">
+        @helper.html.dropdown("Visibility", flat = true){
+          <li>
+            <a href="@(condition.copy(visibility = (if(condition.visibility == Some("private")) None else Some("private"))).toURL)">
+              @helper.html.checkicon(condition.visibility == Some("private"))
+              Private repository only
+            </a>
+          </li>
+          <li>
+            <a href="@(condition.copy(visibility = (if(condition.visibility == Some("public")) None else Some("public"))).toURL)">
+              @helper.html.checkicon(condition.visibility == Some("public"))
+              Public repository only
+            </a>
+          </li>
+        }
+        @helper.html.dropdown("Organization", flat = true){
+        <li>TODO</li>
+        }
+        @helper.html.dropdown("Sort", flat = true){
+        <li>
+          <a href="@condition.copy(sort="created",  direction="desc").toURL">
+          @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
+          @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="comments", direction="desc").toURL">
+          @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
+          @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="updated",  direction="desc").toURL">
+          @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+          </a>
+        </li>
+        <li>
+          <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
+          @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+          </a>
+        </li>
+        }
+      </div>
+    </th>
+  </tr>
   @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
-    <tr>
-      <td>
-        <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
-        <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
-        <span class="pull-right muted">#@issue.issueId</span>
-          <div style="margin-left: 20px;">
-            @issue.content.map { content =>
-              @cut(content, 90)
-            }.getOrElse {
-              <span class="muted">No description available</span>
-            }
-          </div>
-        <div class="small muted" style="margin-left: 20px;">
-          @avatarLink(issue.openedUserName, 20) by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)&nbsp;
-          @if(commentCount > 0){
-            <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+  <tr>
+    <td>
+      <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
+      <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+      <span class="pull-right muted">#@issue.issueId</span>
+        <div style="margin-left: 20px;">
+          @issue.content.map { content =>
+            @cut(content, 90)
+          }.getOrElse {
+            <span class="muted">No description available</span>
           }
         </div>
-      </td>
-    </tr>
+      <div class="small muted" style="margin-left: 20px;">
+        @avatarLink(issue.openedUserName, 20) by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)&nbsp;
+        @if(commentCount > 0){
+          <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+        }
+      </div>
+    </td>
+  </tr>
   }
-  </table>
-  <div class="pull-right">
-    @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 10, condition.toURL)
-  </div>
+</table>
+<div class="pull-right">
+  @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 10, condition.toURL)
 </div>

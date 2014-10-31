@@ -77,28 +77,29 @@ trait IssuesService {
       }
       .toMap
   }
-  /**
-   * Returns list which contains issue count for each repository.
-   * If the issue does not exist, its repository is not included in the result.
-   *
-   * @param condition the search condition
-   * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
-   * @param repos Tuple of the repository owner and the repository name
-   * @return list which contains issue count for each repository
-   */
-  def countIssueGroupByRepository(
-      condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
-      repos: (String, String)*)(implicit s: Session): List[(String, String, Int)] = {
-    searchIssueQuery(repos, condition.copy(repo = None), filterUser, onlyPullRequest)
-      .groupBy { t =>
-        t.userName -> t.repositoryName
-      }
-      .map { case (repo, t) =>
-        (repo._1, repo._2, t.length)
-      }
-      .sortBy(_._3 desc)
-      .list
-  }
+
+//  /**
+//   * Returns list which contains issue count for each repository.
+//   * If the issue does not exist, its repository is not included in the result.
+//   *
+//   * @param condition the search condition
+//   * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
+//   * @param repos Tuple of the repository owner and the repository name
+//   * @return list which contains issue count for each repository
+//   */
+//  def countIssueGroupByRepository(
+//      condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+//      repos: (String, String)*)(implicit s: Session): List[(String, String, Int)] = {
+//    searchIssueQuery(repos, condition.copy(repo = None), filterUser, onlyPullRequest)
+//      .groupBy { t =>
+//        t.userName -> t.repositoryName
+//      }
+//      .map { case (repo, t) =>
+//        (repo._1, repo._2, t.length)
+//      }
+//      .sortBy(_._3 desc)
+//      .list
+//  }
 
   /**
    * Returns the search result against  issues.
@@ -181,7 +182,11 @@ trait IssuesService {
             (t3.byRepository(t1.userName, t1.repositoryName)) &&
             (t3.labelName inSetBind condition.labels)
           } map(_.labelId)))
-      } exists, condition.labels.nonEmpty)
+      } exists, condition.labels.nonEmpty) &&
+      (Repositories filter { t3 =>
+        (t3.byRepository(t1.userName, t1.repositoryName)) &&
+        (t3.isPrivate === (condition.visibility == Some("private")).bind)
+      } exists, condition.visibility.nonEmpty)
     }
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
@@ -343,11 +348,12 @@ object IssuesService {
       repo: Option[String] = None,
       state: String = "open",
       sort: String = "created",
-      direction: String = "desc"){
+      direction: String = "desc",
+      visibility: Option[String] = None){
 
     def isEmpty: Boolean = {
       labels.isEmpty && milestoneId.isEmpty && author.isEmpty && assigned.isEmpty &&
-        state == "open" && sort == "created" && direction == "desc"
+        state == "open" && sort == "created" && direction == "desc" && visibility.isEmpty
     }
 
     def nonEmpty: Boolean = !isEmpty
@@ -364,7 +370,9 @@ object IssuesService {
         repo.map("for="   + urlEncode(_)),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
-        Some("direction=" + urlEncode(direction))).flatten.mkString("&")
+        Some("direction=" + urlEncode(direction)),
+        visibility.map(x => "visibility=" + urlEncode(x))
+      ).flatten.mkString("&")
 
   }
 
@@ -378,7 +386,7 @@ object IssuesService {
     def apply(request: HttpServletRequest): IssueSearchCondition =
       IssueSearchCondition(
         param(request, "labels").map(_.split(",").toSet).getOrElse(Set.empty),
-        param(request, "milestone").map{
+        param(request, "milestone").map {
           case "none" => None
           case x      => x.toIntOpt
         },
@@ -387,7 +395,9 @@ object IssuesService {
         param(request, "for"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
-        param(request, "direction", Seq("asc", "desc")).getOrElse("desc"))
+        param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
+        param(request, "visibility")
+      )
 
     def page(request: HttpServletRequest) = try {
       val i = param(request, "page").getOrElse("1").toInt

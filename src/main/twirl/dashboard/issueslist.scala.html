@@ -29,7 +29,18 @@
       </span>
       <div class="pull-right" id="table-issues-control">
         @helper.html.dropdown("Visibility", flat = true){
-          <li>TODO</li>
+          <li>
+            <a href="@(condition.copy(visibility = (if(condition.visibility == Some("private")) None else Some("private"))).toURL)">
+              @helper.html.checkicon(condition.visibility == Some("private"))
+              Private repository only
+            </a>
+          </li>
+          <li>
+            <a href="@(condition.copy(visibility = (if(condition.visibility == Some("public")) None else Some("public"))).toURL)">
+              @helper.html.checkicon(condition.visibility == Some("public"))
+              Public repository only
+            </a>
+          </li>
         }
         @helper.html.dropdown("Organization", flat = true){
           <li>TODO</li>

@@ -74,29 +74,16 @@ trait DashboardControllerBase extends ControllerBase {
 
     val userName   = context.loginAccount.get.userName
     val allRepos   = getAllRepositories(userName)
-    val userRepos  = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
     val filterUser = Map(filter -> userName)
     val page = IssueSearchCondition.page(request)
 
-    val counts = countIssueGroupByRepository(
-      IssueSearchCondition().copy(state = condition.state), filterUser, true, userRepos: _*)
-
     dashboard.html.pulls(
-      dashboard.html.pullslist(
-        searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
-        page,
-        countIssue(condition.copy(state = "open"  ), filterUser, true, allRepos: _*),
-        countIssue(condition.copy(state = "closed"), filterUser, true, allRepos: _*),
-        condition,
-        None,
-        false),
-      getAllPullRequestCountGroupByUser(condition.state == "closed", userName),
-      userRepos.map { case (userName, repoName) =>
-        (userName, repoName, counts.find { x => x._1 == userName && x._2 == repoName }.map(_._3).getOrElse(0))
-      }.sortBy(_._3).reverse,
+      searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
+      page,
+      countIssue(condition.copy(state = "open"  ), filterUser, true, allRepos: _*),
+      countIssue(condition.copy(state = "closed"), filterUser, true, allRepos: _*),
       condition,
       filter)
-
   }
 
 
