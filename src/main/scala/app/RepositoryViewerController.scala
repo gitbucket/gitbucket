@@ -77,7 +77,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     contentType = "text/html"
     view.helpers.markdown(params("content"), repository,
       params("enableWikiLink").toBoolean,
-      params("enableRefsLink").toBoolean)
+      params("enableRefsLink").toBoolean,
+      params("enableTaskList").toBoolean,
+      hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
   /**
@@ -112,7 +114,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
-            }, page, hasNext)
+            }, page, hasNext, hasWritePermission(repository.owner, repository.name, context.loginAccount))
         case Left(_) => NotFound
       }
     }
@@ -240,6 +242,24 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   /**
+   * Creates a branch.
+   */
+  post("/:owner/:repository/branches")(collaboratorsOnly { repository =>
+    val newBranchName = params.getOrElse("new", halt(400))
+    val fromBranchName = params.getOrElse("from", halt(400))
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      JGitUtil.createBranch(git, fromBranchName, newBranchName)
+    } match {
+      case Right(message) =>
+        flash += "info" -> message
+        redirect(s"/${repository.owner}/${repository.name}/tree/${StringUtil.urlEncode(newBranchName).replace("%2F", "/")}")
+      case Left(message) =>
+        flash += "error" -> message
+        redirect(s"/${repository.owner}/${repository.name}/tree/${fromBranchName}")
+    }
+  })
+
+  /**
    * Deletes branch.
    */
   get("/:owner/:repository/delete/*")(collaboratorsOnly { repository =>
@@ -331,7 +351,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
-              files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+              files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount),
+              flash.get("info"), flash.get("error"))
           }
         } getOrElse NotFound
       }

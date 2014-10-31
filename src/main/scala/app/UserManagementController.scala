@@ -49,7 +49,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      ,optional(text()))),
     "clearImage"  -> trim(label("Clear image"  ,boolean())),
-    "removed"     -> trim(label("Disable"      ,boolean()))
+    "removed"     -> trim(label("Disable"      ,boolean(disableByNotYourself("userName"))))
   )(EditUserForm.apply)
 
   val newGroupForm = mapping(
@@ -190,4 +190,14 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
     }
   }
 
+  protected def disableByNotYourself(paramName: String): Constraint = new Constraint() {
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
+      params.get(paramName).flatMap { userName =>
+        if(userName == context.loginAccount.get.userName)
+          Some("You can't disable your account yourself")
+        else
+          None
+      }
+    }
+  }
 }

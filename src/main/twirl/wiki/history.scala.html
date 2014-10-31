@@ -36,7 +36,7 @@
           <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
           <td>@avatar(commit, 20)&nbsp;@user(commit.authorName, commit.authorEmailAddress)</td>
           <td width="80%">
-            <span class="muted">@datetime(commit.authorTime):</span>&nbsp;@commit.shortMessage
+            <span class="muted">@helper.html.datetimeago(commit.authorTime):</span>&nbsp;@commit.shortMessage
           </td>
         </tr>
       }

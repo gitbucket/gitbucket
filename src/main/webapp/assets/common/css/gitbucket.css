@@ -617,6 +617,30 @@ span.simplified-path {
   color: #888;
 }
 
+#branch-control-title {
+  margin: 5px 10px;
+  font-weight: bold;
+}
+
+#branch-control-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-weight: bold;
+  line-height: 15px;
+}
+
+#branch-control-input {
+  border: solid 1px #ccc;
+  margin: 10px;
+}
+
+.new-branch-name {
+  font-weight: bold;
+  font-size: 1.2em;
+  padding-left: 16px;
+}
+
 /****************************************************************************/
 /* nav pulls group */
 /****************************************************************************/
@@ -875,6 +899,20 @@ div.attachable div.clickable {
   border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
   background-color: white;
+}
+
+ul.task-list {
+  padding-left: 2em;
+  margin-left: 0;
+}
+
+li.task-list-item {
+  list-style-type: none;
+}
+
+li.task-list-item input.task-list-item-checkbox {
+  margin: 0 4px 0.25em -20px;
+  vertical-align: middle;
 }
 
 /****************************************************************************/

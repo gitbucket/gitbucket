@@ -8,7 +8,7 @@
 <div class="issue-avatar-image">@avatar(issue.openedUserName, 48)</div>
 <div class="box issue-comment-box">
   <div class="box-header-small">
-    @user(issue.openedUserName, styleClass="username strong") <span class="muted">commented on @datetime(issue.registeredDate)</span>
+    @user(issue.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.registeredDate)</span>
     <span class="pull-right">
       @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
         <a href="#" data-issue-id="@issue.issueId"><i class="icon-pencil"></i></a>
@@ -16,7 +16,7 @@
     </span>
   </div>
   <div class="box-content issue-content" id="issueContent">
-    @markdown(issue.content getOrElse "No description provided.", repository, false, true)
+    @markdown(issue.content getOrElse "No description provided.", repository, false, true, true, hasWritePermission)
   </div>
 </div>
 
@@ -32,7 +32,7 @@
           } else {
             @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
           }
-          on @datetime(comment.registeredDate)
+          @helper.html.datetimeago(comment.registeredDate)
         </span>
         <span class="pull-right">
           @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer" &&
@@ -46,7 +46,7 @@
         @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
           @defining(comment.content.substring(comment.content.length - 40)){ id =>
             <div class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></div>
-            @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true)
+            @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true, true, hasWritePermission)
           }
         } else {
           @if(comment.action == "refer"){
@@ -54,7 +54,7 @@
               <strong><a href="@path/@repository.owner/@repository.name/issues/@issueId">Issue #@issueId</a>: @rest.mkString(":")</strong>
             }
           } else {
-            @markdown(comment.content, repository, false, true)
+            @markdown(comment.content, repository, false, true, true, hasWritePermission)
           }
         }
       </div>
@@ -70,7 +70,7 @@
       } else {
         <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> to <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
       }
-      @datetime(comment.registeredDate)
+      @helper.html.datetimeago(comment.registeredDate)
     </div>
   }
   @if(comment.action == "close" || comment.action == "close_comment"){
@@ -78,9 +78,9 @@
       <span class="label label-important">Closed</span>
       @avatar(comment.commentedUserName, 20)
       @if(issue.isPullRequest){
-        @user(comment.commentedUserName, styleClass="username strong") closed the pull request @datetime(comment.registeredDate)
+        @user(comment.commentedUserName, styleClass="username strong") closed the pull request @helper.html.datetimeago(comment.registeredDate)
       } else {
-        @user(comment.commentedUserName, styleClass="username strong") closed the issue @datetime(comment.registeredDate)
+        @user(comment.commentedUserName, styleClass="username strong") closed the issue @helper.html.datetimeago(comment.registeredDate)
       }
     </div>
   }
@@ -88,14 +88,14 @@
     <div class="small issue-comment-action">
       <span class="label label-success">Reopened</span>
       @avatar(comment.commentedUserName, 20)
-      @user(comment.commentedUserName, styleClass="username strong") reopened the issue @datetime(comment.registeredDate)
+      @user(comment.commentedUserName, styleClass="username strong") reopened the issue @helper.html.datetimeago(comment.registeredDate)
     </div>
   }
   @if(comment.action == "delete_branch"){
     <div class="small issue-comment-action">
       <span class="label">Deleted</span>
       @avatar(comment.commentedUserName, 20)
-      @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @datetime(comment.registeredDate)
+      @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @helper.html.datetimeago(comment.registeredDate)
     </div>
   }
 }
@@ -134,5 +134,67 @@ $(function(){
     }
     return false;
   });
+
+  var extractMarkdown = function(data){
+    $('body').append('<div id="tmp"></div>');
+    $('#tmp').html(data);
+    var markdown = $('#tmp textarea').val();
+    $('#tmp').remove();
+    return markdown;
+  };
+
+  var replaceTaskList = function(issueContentHtml, checkboxes) {
+    var ss = [],
+        markdown = extractMarkdown(issueContentHtml),
+        xs = markdown.split(/- \[[x| ]\]/g);
+    for (var i=0; i<xs.length; i++) {
+      ss.push(xs[i]);
+      if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
+      else ss.push('- [ ]');
+    }
+    ss.pop();
+    return ss.join('');
+  };
+
+  $('#issueContent').on('click', ':checkbox', function(ev){
+    var checkboxes = $('#issueContent :checkbox');
+    $.get('@url(repository)/issues/_data/@issue.issueId',
+      {
+        dataType : 'html'
+      },
+      function(responseContent){
+        $.ajax({
+          url: '@url(repository)/issues/edit/@issue.issueId',
+          type: 'POST',
+          data: {
+            title   : $('#issueTitle').text(),
+            content : replaceTaskList(responseContent, checkboxes)
+          }
+        });
+      }
+    );
+  });
+
+  $('div[id^=commentContent-]').on('click', ':checkbox', function(ev){
+    var $commentContent = $(ev.target).parents('div[id^=commentContent-]'),
+        commentId = $commentContent.attr('id').replace(/commentContent-/, ''),
+        checkboxes = $commentContent.find(':checkbox');
+    $.get('@url(repository)/issue_comments/_data/' + commentId,
+      {
+        dataType : 'html'
+      },
+      function(responseContent){
+        $.ajax({
+          url: '@url(repository)/issue_comments/edit/' + commentId,
+          type: 'POST',
+          data: {
+            issueId : 0,
+            content : replaceTaskList(responseContent, checkboxes)
+          }
+        });
+      }
+    );
+  });
+
 });
 </script>
