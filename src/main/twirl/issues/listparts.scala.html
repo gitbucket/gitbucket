@@ -12,6 +12,7 @@
 @import context._
 @import view.helpers._
 @import service.IssuesService.IssueInfo
+<br>
 @if(condition.nonEmpty){
   <div>
     <a href="@service.IssuesService.IssueSearchCondition().toURL" class="header-link">
@@ -21,7 +22,6 @@
     </a>
   </div>
 }
-&nbsp;
 <table class="table table-bordered table-hover table-issues">
   <tr>
     <th style="background-color: #eee;">

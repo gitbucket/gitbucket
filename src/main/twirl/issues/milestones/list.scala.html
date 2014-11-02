@@ -7,7 +7,7 @@
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @html.menu("issues", repository){
     @issues.html.tab("milestones", hasWritePermission, repository)
-    &nbsp;
+    <br>
     <table class="table table-bordered table-hover table-issues">
       <tr>
         <th style="background-color: #eee;">
