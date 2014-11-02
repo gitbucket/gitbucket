@@ -8,8 +8,8 @@
 @import context._
 @import view.helpers._
 @html.main("Pull Requests"){
+  @dashboard.html.tab("pulls")
   <div class="container">
-    @dashboard.html.tab("pulls")
     @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
   </div>
 }

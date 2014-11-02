@@ -1,13 +1,44 @@
 @(active: String = "")(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<ul class="nav nav-tabs">
-  <li@if(active == ""){ class="active"}><a href="@path/">News Feed</a></li>
-  @if(loginAccount.isDefined){
-    <li@if(active == "pulls" ){ class="active"}><a href="@path/dashboard/pulls">Pull Requests</a></li>
-    <li@if(active == "issues"){ class="active"}><a href="@path/dashboard/issues/repos">Issues</a></li>
-  }
-  @if(active == ""){
-    <li class="pull-right"><a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a></li>
-  }
-</ul>
+<div class="dashboard-nav">
+  <div class="container">
+    <a href="@path/" @if(active == ""){ class="active"}>News Feed</a>
+    @if(loginAccount.isDefined){
+      <a href="@path/dashboard/pulls" @if(active == "pulls" ){ class="active"}>
+        <img src="@assets/common/images/activity-merge.png" width="16">
+        Pull Requests
+      </a>
+      <a href="@path/dashboard/issues/repos" @if(active == "issues"){ class="active"}>
+        <img src="@assets/common/images/activity-issue.png" width="16">
+        Issues
+      </a>
+    }
+    @*
+    @if(active == ""){
+      <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
+    }
+    *@
+  </div>
+</div>
+<style type="text/css">
+div.dashboard-nav {
+  border-bottom: 1px solid #ddd;
+  text-align: right;
+  height: 32px;
+  margin-bottom: 20px;
+}
+div.dashboard-nav a  {
+  line-height: 10px;
+  margin-left: 20px;
+  padding-bottom: 12px;
+  padding-left: 4px;
+  padding-right: 4px;
+  color: #888;
+}
+
+div.dashboard-nav a.active {
+  border-bottom: 2px solid #bb4444;
+  color: #333;
+}
+</style>
