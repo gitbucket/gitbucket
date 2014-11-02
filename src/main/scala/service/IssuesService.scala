@@ -105,7 +105,7 @@ trait IssuesService {
    * Returns the search result against  issues.
    *
    * @param condition the search condition
-   * @param filterUser the filter user name (key is "all", "assigned", "created_by" or "not_created_by", value is the user name)
+   * @param filterUser the filter user name (key is "all", "assigned", "created_by", "not_created_by" or "mentioned", value is the user name)
    * @param pullRequest if true then returns only pull requests, false then returns only issues.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
@@ -175,6 +175,7 @@ trait IssuesService {
       (t1.assignedUserName === condition.assigned.get.bind, condition.assigned.isDefined) &&
       (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
       (t1.pullRequest      === pullRequest.bind) &&
+      // Label filter
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
         (t2.labelId in
@@ -183,11 +184,18 @@ trait IssuesService {
             (t3.labelName inSetBind condition.labels)
           } map(_.labelId)))
       } exists, condition.labels.nonEmpty) &&
-      (Repositories filter { t3 =>
-        (t3.byRepository(t1.userName, t1.repositoryName)) &&
-        (t3.isPrivate === (condition.visibility == Some("private")).bind)
+      // Visibility filter
+      (Repositories filter { t2 =>
+        (t2.byRepository(t1.userName, t1.repositoryName)) &&
+        (t2.isPrivate === (condition.visibility == Some("private")).bind)
       } exists, condition.visibility.nonEmpty) &&
-      (t1.userName inSetBind condition.groups, condition.groups.nonEmpty)
+      // Organization (group) filter
+      (t1.userName inSetBind condition.groups, condition.groups.nonEmpty) &&
+      // Mentioned filter
+      ((t1.openedUserName === filterUser("mentioned").bind) || t1.assignedUserName === filterUser("mentioned").bind ||
+        (IssueComments filter { t2 =>
+          (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === filterUser("mentioned").bind)
+        } exists), filterUser.get("mentioned").isDefined)
     }
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],

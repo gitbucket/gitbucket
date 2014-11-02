@@ -24,12 +24,20 @@ trait DashboardControllerBase extends ControllerBase {
     searchIssues("created_by")
   })
 
+  get("/dashboard/issues/mentioned")(usersOnly {
+    searchIssues("mentioned")
+  })
+
   get("/dashboard/pulls")(usersOnly {
     searchPullRequests("created_by", None)
   })
 
   get("/dashboard/pulls/owned")(usersOnly {
     searchPullRequests("created_by", None)
+  })
+
+  get("/dashboard/pulls/mentioned")(usersOnly {
+    searchPullRequests("mentioned", None)
   })
 
   get("/dashboard/pulls/public")(usersOnly {
