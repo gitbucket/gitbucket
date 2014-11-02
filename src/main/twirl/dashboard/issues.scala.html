@@ -3,12 +3,13 @@
   openCount: Int,
   closedCount: Int,
   condition: service.IssuesService.IssueSearchCondition,
-  filter: String)(implicit context: app.Context)
+  filter: String,
+  groups: List[String])(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Issues"){
   <div class="container">
     @dashboard.html.tab("issues")
-    @issueslist(issues, page, openCount, closedCount, condition, filter)
+    @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
   </div>
 }

@@ -186,7 +186,8 @@ trait IssuesService {
       (Repositories filter { t3 =>
         (t3.byRepository(t1.userName, t1.repositoryName)) &&
         (t3.isPrivate === (condition.visibility == Some("private")).bind)
-      } exists, condition.visibility.nonEmpty)
+      } exists, condition.visibility.nonEmpty) &&
+      (t1.userName inSetBind condition.groups, condition.groups.nonEmpty)
     }
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
@@ -349,7 +350,8 @@ object IssuesService {
       state: String = "open",
       sort: String = "created",
       direction: String = "desc",
-      visibility: Option[String] = None){
+      visibility: Option[String] = None,
+      groups: Set[String] = Set.empty){
 
     def isEmpty: Boolean = {
       labels.isEmpty && milestoneId.isEmpty && author.isEmpty && assigned.isEmpty &&
@@ -371,7 +373,8 @@ object IssuesService {
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
         Some("direction=" + urlEncode(direction)),
-        visibility.map(x => "visibility=" + urlEncode(x))
+        visibility.map(x => "visibility=" + urlEncode(x)),
+        if(groups.isEmpty) None else Some("groups=" + urlEncode(groups.mkString(",")))
       ).flatten.mkString("&")
 
   }
@@ -396,7 +399,8 @@ object IssuesService {
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
-        param(request, "visibility")
+        param(request, "visibility"),
+        param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)
       )
 
     def page(request: HttpServletRequest) = try {

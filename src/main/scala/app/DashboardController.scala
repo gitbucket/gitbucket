@@ -9,7 +9,8 @@ class DashboardController extends DashboardControllerBase
   with UsersAuthenticator
 
 trait DashboardControllerBase extends ControllerBase {
-  self: IssuesService with PullRequestService with RepositoryService with UsersAuthenticator =>
+  self: IssuesService with PullRequestService with RepositoryService with AccountService
+    with UsersAuthenticator =>
 
   get("/dashboard/issues/repos")(usersOnly {
     searchIssues("created_by")
@@ -59,7 +60,8 @@ trait DashboardControllerBase extends ControllerBase {
       countIssue(condition.copy(state = "open"  ), filterUser, false, userRepos: _*),
       countIssue(condition.copy(state = "closed"), filterUser, false, userRepos: _*),
       condition,
-      filter)
+      filter,
+      getGroupNames(userName))
   }
 
   private def searchPullRequests(filter: String, repository: Option[String]) = {
@@ -83,7 +85,8 @@ trait DashboardControllerBase extends ControllerBase {
       countIssue(condition.copy(state = "open"  ), filterUser, true, allRepos: _*),
       countIssue(condition.copy(state = "closed"), filterUser, true, allRepos: _*),
       condition,
-      filter)
+      filter,
+      getGroupNames(userName))
   }
 
 
