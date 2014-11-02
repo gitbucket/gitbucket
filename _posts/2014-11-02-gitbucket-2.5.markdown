@@ -1,0 +1,46 @@
+---
+layout: post
+title: "GitBucket 2.5 released!"
+date: 2014-11-02 00:00:00
+categories: gitbucket
+---
+
+Today, we are pleased to announce the availability of new version of Scala based GitHub clone [GitBucket 2.5](https://github.com/takezoe/gitbucket/releases/tag/2.5)!
+
+## New Dashboard
+
+New Issues UI has been applied to dashboard too.
+
+![New dashboard]({{site.baseurl}}/images/gitbucket-2.5/dashboard.png)
+
+## Change datetime format
+
+All datetime in GitBucket has been shown as `xx days ago` like GitHub.
+
+![Datetime format]({{site.baseurl}}/images/gitbucket-2.5/dateformat.png)
+
+
+## Create branch from Web UI
+
+It has been possible to create new branch from the branch selector in Web UI.
+
+![Create branch from Web UI]({{site.baseurl}}/images/gitbucket-2.5/create_branch.png)
+
+## Task list in Markdown
+
+GitBucket markdown has been supported Task list as below:
+
+```
+- [ ] sample
+- [ ] sample2
+```
+
+![Task list in Markdown]({{site.baseurl}}/images/gitbucket-2.5/tasklist.png)
+
+If we check "Task List" checkbox, then markdown content is updated.
+
+----
+
+In addition, some bug fix and improvements are contained in this release. See [all closed issues in this release](https://github.com/takezoe/gitbucket/issues?q=is%3Aissue+milestone%3A2.5+is%3Aclosed) to know details.
+
+Enjoy GitBucket!
