@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "GitBucket 2.5 released!"
-date: 2014-11-02 00:00:00
+date: 2014-11-04 00:00:00
 categories: gitbucket
 ---
 
