@@ -80,6 +80,13 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.5 - 4 Nov 2014
+- New Dashboard
+- Change datetime format
+- Create branch from Web UI
+- Task list in Markdown
+- Some bug fix and improvements
+
 ### 2.4.1 - 6 Oct 2014
 - Bug fix
 
