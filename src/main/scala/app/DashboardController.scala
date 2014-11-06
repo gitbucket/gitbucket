@@ -29,11 +29,7 @@ trait DashboardControllerBase extends ControllerBase {
   })
 
   get("/dashboard/pulls")(usersOnly {
-    searchPullRequests("all", None)
-  })
-
-  get("/dashboard/pulls/all")(usersOnly {
-    searchPullRequests("all", None)
+    searchPullRequests("created_by", None)
   })
 
   get("/dashboard/pulls/created_by")(usersOnly {
