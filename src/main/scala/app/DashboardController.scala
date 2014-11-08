@@ -32,16 +32,16 @@ trait DashboardControllerBase extends ControllerBase {
     searchPullRequests("created_by", None)
   })
 
-  get("/dashboard/pulls/owned")(usersOnly {
+  get("/dashboard/pulls/created_by")(usersOnly {
     searchPullRequests("created_by", None)
+  })
+
+  get("/dashboard/pulls/assigned")(usersOnly {
+    searchPullRequests("assigned", None)
   })
 
   get("/dashboard/pulls/mentioned")(usersOnly {
     searchPullRequests("mentioned", None)
-  })
-
-  get("/dashboard/pulls/public")(usersOnly {
-    searchPullRequests("not_created_by", None)
   })
 
   get("/dashboard/pulls/for/:owner/:repository")(usersOnly {
