@@ -7,7 +7,7 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
-import model._
+import model.Profile._
 import profile.simple._
 
 trait RepositorySearchService { self: IssuesService =>
@@ -107,7 +107,7 @@ object RepositorySearchService {
 
   case class SearchResult(
     files : List[(String, String)],
-    issues: List[(Issue, Int, String)])
+    issues: List[(model.Issue, Int, String)])
 
   case class IssueSearchResult(
     issueId: Int,

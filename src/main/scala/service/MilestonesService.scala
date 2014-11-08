@@ -1,9 +1,10 @@
 package service
 
-import model._
+import model.Profile._
 import profile.simple._
+import model.Milestone
 // TODO [Slick 2.0]NOT import directly?
-import model.dateColumnType
+import model.Profile.dateColumnType
 
 trait MilestonesService {
 
@@ -40,7 +41,7 @@ trait MilestonesService {
 
   def getMilestonesWithIssueCount(owner: String, repository: String)(implicit s: Session): List[(Milestone, Int, Int)] = {
     val counts = Issues
-      .filter  { t => (t.byRepository(owner, repository)) && (t.milestoneId isNotNull) }
+      .filter  { t => (t.byRepository(owner, repository)) && (t.milestoneId.? isDefined) }
       .groupBy { t => t.milestoneId -> t.closed }
       .map     { case (t1, t2) => t1._1 -> t1._2 -> t2.length }
       .toMap

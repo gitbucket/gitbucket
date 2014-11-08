@@ -1,7 +1,8 @@
 package service
 
-import model._
+import model.Profile._
 import profile.simple._
+import model.Label
 
 trait LabelsService {
 
@@ -11,8 +12,8 @@ trait LabelsService {
   def getLabel(owner: String, repository: String, labelId: Int)(implicit s: Session): Option[Label] =
     Labels.filter(_.byPrimaryKey(owner, repository, labelId)).firstOption
 
-  def createLabel(owner: String, repository: String, labelName: String, color: String)(implicit s: Session): Unit =
-    Labels insert Label(
+  def createLabel(owner: String, repository: String, labelName: String, color: String)(implicit s: Session): Int =
+    Labels returning Labels.map(_.labelId) += Label(
       userName       = owner,
       repositoryName = repository,
       labelName      = labelName,

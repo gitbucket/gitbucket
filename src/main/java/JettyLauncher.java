@@ -1,10 +1,8 @@
-import org.eclipse.jetty.io.EndPoint;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import java.io.IOException;
+import java.io.File;
 import java.net.URL;
 import java.security.ProtectionDomain;
 
@@ -44,6 +42,14 @@ public class JettyLauncher {
         server.addConnector(connector);
 
         WebAppContext context = new WebAppContext();
+
+        File tmpDir = new File(getGitBucketHome(), "tmp");
+        if(tmpDir.exists()){
+            deleteDirectory(tmpDir);
+        }
+        tmpDir.mkdirs();
+        context.setTempDirectory(tmpDir);
+
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
         URL location = domain.getCodeSource().getLocation();
 
@@ -58,5 +64,28 @@ public class JettyLauncher {
         server.setHandler(context);
         server.start();
         server.join();
+    }
+
+    private static File getGitBucketHome(){
+        String home = System.getProperty("gitbucket.home");
+        if(home != null && home.length() > 0){
+            return new File(home);
+        }
+        home = System.getenv("GITBUCKET_HOME");
+        if(home != null && home.length() > 0){
+            return new File(home);
+        }
+        return new File(System.getProperty("user.home"), ".gitbucket");
+    }
+
+    private static void deleteDirectory(File dir){
+        for(File file: dir.listFiles()){
+            if(file.isFile()){
+                file.delete();
+            } else if(file.isDirectory()){
+                deleteDirectory(file);
+            }
+        }
+        dir.delete();
     }
 }

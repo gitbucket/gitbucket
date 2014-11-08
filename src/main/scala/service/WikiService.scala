@@ -64,7 +64,7 @@ trait WikiService {
       if(!JGitUtil.isEmpty(git)){
         JGitUtil.getFileList(git, "master", ".").find(_.name == pageName + ".md").map { file =>
           WikiPageInfo(file.name, StringUtil.convertFromByteArray(git.getRepository.open(file.id).getBytes),
-                       file.committer, file.time, file.commitId)
+                       file.author, file.time, file.commitId)
         }
       } else None
     }
@@ -182,7 +182,8 @@ trait WikiService {
             }
             builder.finish()
 
-            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
+            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+              Constants.HEAD, committer.fullName, committer.mailAddress,
               pageName match {
                 case Some(x) => s"Revert ${from} ... ${to} on ${x}"
                 case None    => s"Revert ${from} ... ${to}"
@@ -229,7 +230,8 @@ trait WikiService {
         if(created || updated || removed){
           builder.add(JGitUtil.createDirCacheEntry(newPageName + ".md", FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
           builder.finish()
-          val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer.fullName, committer.mailAddress,
+          val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+            Constants.HEAD, committer.fullName, committer.mailAddress,
             if(message.trim.length == 0) {
               if(removed){
                 s"Rename ${currentPageName} to ${newPageName}"
@@ -269,7 +271,8 @@ trait WikiService {
         }
         if(removed){
           builder.finish()
-          JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter), committer, mailAddress, message)
+          JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+            Constants.HEAD, committer, mailAddress, message)
         }
       }
     }

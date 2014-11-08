@@ -335,7 +335,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             builder.finish()
 
             JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-              loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
+              Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
           }
         }
 

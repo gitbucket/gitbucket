@@ -4,10 +4,13 @@
 @import context._
 @import view.helpers._
 @main("GitBucket"){
+  @dashboard.html.tab()
   <div class="container">
-    @dashboard.html.tab()
     <div class="row-fluid">
       <div class="span8">
+        <div class="pull-right">
+          <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
+        </div>
         @helper.html.activities(activities)
       </div>
       <div class="span4">

@@ -173,8 +173,13 @@ diffview = {
 						addCellsInline(node, b++, n++, baseTextLines, change);
 					}
 				} else {
-					b = addCells(node, b, be, baseTextLines, change);
-					n = addCells(node, n, ne, newTextLines, change);
+				    var changeBase = change, changeNew = change;
+					if (change === "replace") {
+						if (b < be) changeBase = "delete";
+						if (n < ne) changeNew = "insert";
+					}
+					b = addCells(node, b, be, baseTextLines, changeBase);
+					n = addCells(node, n, ne, newTextLines, changeNew);
 				}
 			}
 

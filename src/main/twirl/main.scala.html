@@ -88,6 +88,9 @@
         $('#search').submit(function(){
           return $.trim($(this).find('input[name=query]').val()) != '';
         });
+        @plugin.PluginSystem.javaScripts.filter(_.filter(context.currentPath)).map { js =>
+          @Html(js.script)
+        }
       });
     </script>
   </body>

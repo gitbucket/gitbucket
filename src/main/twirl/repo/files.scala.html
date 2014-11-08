@@ -4,16 +4,18 @@
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
-  hasWritePermission: Boolean)(implicit context: app.Context)
+  hasWritePermission: Boolean,
+  info: Option[Any] = None,
+  error: Option[Any] = None)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository, Some(branch), pathList.isEmpty){
+  @html.menu("code", repository, Some(branch), pathList.isEmpty, info, error){
     <div class="head">
-      @helper.html.dropdown(
-        value  = if(branch.length == 40) branch.substring(0, 10) else branch,
-        prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
-        mini   = true
+      @helper.html.branchcontrol(
+        branch,
+        repository,
+        hasWritePermission
       ){
         @repository.branchList.map { x =>
           <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
@@ -40,11 +42,22 @@
       <tr>
         <td colspan="4" class="latest-commit">
           <div>
-            @avatar(latestCommit, 20)
-            @user(latestCommit.committer, latestCommit.mailAddress, "username strong")
-            <span class="muted">@datetime(latestCommit.time)</span>
             <div class="pull-right align-right monospace" style="line-height: 18px;">
               <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
+            </div>
+            <div class="author-info">
+              <div class="author">
+                @avatar(latestCommit, 20)
+                <span>@user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
+                <span class="muted"> authored @helper.html.datetimeago(latestCommit.authorTime)</span>
+              </div>
+              @if(latestCommit.isDifferentFromAuthor) {
+              <div class="committer">
+                <span class="icon-arrow-right"></span>
+                <span>@user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
+                <span class="muted"> committed @helper.html.datetimeago(latestCommit.commitTime)</span>
+              </div>
+              }
             </div>
           </div>
         </td>
@@ -73,9 +86,19 @@
         <td>
         @if(file.isDirectory){
           @if(file.linkUrl.isDefined){
-            <a href="@file.linkUrl">@file.name</a>
+            <a href="@file.linkUrl">
+              <span class="simplified-path">@file.name.split("/").toList.init match {
+                case Nil => {}
+                case list => {@list.mkString("", "/", "/")}
+              }</span>@file.name.split("/").toList.last
+            </a>
           } else {
-            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
+              <span class="simplified-path">@file.name.split("/").toList.init match {
+                case Nil => {}
+                case list => {@list.mkString("", "/", "/")}
+              }</span>@file.name.split("/").toList.last
+            </a>
           }
         } else {
           <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
@@ -83,9 +106,9 @@
         </td>
         <td class="mute">
           <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a>
-          [@user(file.committer, file.mailAddress)]
+          [@user(file.author, file.mailAddress)]
         </td>
-        <td style="text-align: right;">@datetime(file.time)</td>
+        <td style="text-align: right;">@helper.html.datetimeago(file.time, false)</td>
       </tr>
       }
     </table>

@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils
 import java.io.FileInputStream
 import plugin.{Plugin, PluginSystem}
 import org.scalatra.Ok
+import util.Implicits._
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
@@ -84,41 +85,55 @@ trait SystemSettingsControllerBase extends ControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    val installedPlugins = plugin.PluginSystem.plugins
-    val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
-    admin.plugins.html.installed(installedPlugins, updatablePlugins)
+    if(enablePluginSystem){
+      val installedPlugins = plugin.PluginSystem.plugins
+      val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
+      admin.plugins.html.installed(installedPlugins, updatablePlugins)
+    } else NotFound
   })
 
   post("/admin/plugins/_update", pluginForm)(adminOnly { form =>
-    deletePlugins(form.pluginIds)
-    installPlugins(form.pluginIds)
-    redirect("/admin/plugins")
+    if(enablePluginSystem){
+      deletePlugins(form.pluginIds)
+      installPlugins(form.pluginIds)
+      redirect("/admin/plugins")
+    } else NotFound
   })
 
   post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
-    deletePlugins(form.pluginIds)
-    redirect("/admin/plugins")
+    if(enablePluginSystem){
+      deletePlugins(form.pluginIds)
+      redirect("/admin/plugins")
+    } else NotFound
   })
 
   get("/admin/plugins/available")(adminOnly {
-    val installedPlugins = plugin.PluginSystem.plugins
-    val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
-    admin.plugins.html.available(availablePlugins)
+    if(enablePluginSystem){
+      val installedPlugins = plugin.PluginSystem.plugins
+      val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
+      admin.plugins.html.available(availablePlugins)
+    } else NotFound
   })
 
   post("/admin/plugins/_install", pluginForm)(adminOnly { form =>
-    installPlugins(form.pluginIds)
-    redirect("/admin/plugins")
+    if(enablePluginSystem){
+      installPlugins(form.pluginIds)
+      redirect("/admin/plugins")
+    } else NotFound
   })
 
   get("/admin/plugins/console")(adminOnly {
-    admin.plugins.html.console()
+    if(enablePluginSystem){
+      admin.plugins.html.console()
+    } else NotFound
   })
 
   post("/admin/plugins/console")(adminOnly {
-    val script = request.getParameter("script")
-    val result = plugin.JavaScriptPlugin.evaluateJavaScript(script)
-    Ok(result)
+    if(enablePluginSystem){
+      val script = request.getParameter("script")
+      val result = plugin.ScalaPlugin.eval(script)
+      Ok()
+    } else NotFound
   })
 
   // TODO Move these methods to PluginSystem or Service?
@@ -138,9 +153,10 @@ trait SystemSettingsControllerBase extends ControllerBase {
     val installedPlugins = plugin.PluginSystem.plugins
     getAvailablePlugins(installedPlugins).filter(x => pluginIds.contains(x.id)).foreach { plugin =>
       val pluginDir = new java.io.File(PluginHome, plugin.id)
-      if(!pluginDir.exists){
-        FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
+      if(pluginDir.exists){
+        FileUtils.deleteDirectory(pluginDir)
       }
+      FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
       PluginSystem.installPlugin(plugin.id)
     }
   }

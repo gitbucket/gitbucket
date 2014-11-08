@@ -9,10 +9,11 @@ class DashboardController extends DashboardControllerBase
   with UsersAuthenticator
 
 trait DashboardControllerBase extends ControllerBase {
-  self: IssuesService with PullRequestService with RepositoryService with UsersAuthenticator =>
+  self: IssuesService with PullRequestService with RepositoryService with AccountService
+    with UsersAuthenticator =>
 
   get("/dashboard/issues/repos")(usersOnly {
-    searchIssues("all")
+    searchIssues("created_by")
   })
 
   get("/dashboard/issues/assigned")(usersOnly {
@@ -23,12 +24,20 @@ trait DashboardControllerBase extends ControllerBase {
     searchIssues("created_by")
   })
 
+  get("/dashboard/issues/mentioned")(usersOnly {
+    searchIssues("mentioned")
+  })
+
   get("/dashboard/pulls")(usersOnly {
     searchPullRequests("created_by", None)
   })
 
   get("/dashboard/pulls/owned")(usersOnly {
     searchPullRequests("created_by", None)
+  })
+
+  get("/dashboard/pulls/mentioned")(usersOnly {
+    searchPullRequests("mentioned", None)
   })
 
   get("/dashboard/pulls/public")(usersOnly {
@@ -54,19 +63,13 @@ trait DashboardControllerBase extends ControllerBase {
     val page = IssueSearchCondition.page(request)
 
     dashboard.html.issues(
-        issues.html.listparts(
-            searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
-            page,
-            countIssue(condition.copy(state = "open"  ), filterUser, false, userRepos: _*),
-            countIssue(condition.copy(state = "closed"), filterUser, false, userRepos: _*),
-            condition),
-        countIssue(condition, Map.empty, false, userRepos: _*),
-        countIssue(condition, Map("assigned"   -> userName), false, userRepos: _*),
-        countIssue(condition, Map("created_by" -> userName), false, userRepos: _*),
-        countIssueGroupByRepository(condition, filterUser, false, userRepos: _*),
-        condition,
-        filter)    
-    
+      searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+      page,
+      countIssue(condition.copy(state = "open"  ), filterUser, false, userRepos: _*),
+      countIssue(condition.copy(state = "closed"), filterUser, false, userRepos: _*),
+      condition,
+      filter,
+      getGroupNames(userName))
   }
 
   private def searchPullRequests(filter: String, repository: Option[String]) = {
@@ -80,30 +83,18 @@ trait DashboardControllerBase extends ControllerBase {
     }.copy(repo = repository))
 
     val userName   = context.loginAccount.get.userName
-    val allRepos   = getAllRepositories()
-    val userRepos  = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
+    val allRepos   = getAllRepositories(userName)
     val filterUser = Map(filter -> userName)
     val page = IssueSearchCondition.page(request)
 
-    val counts = countIssueGroupByRepository(
-      IssueSearchCondition().copy(state = condition.state), Map.empty, true, userRepos: _*)
-
     dashboard.html.pulls(
-      pulls.html.listparts(
-        searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
-        page,
-        countIssue(condition.copy(state = "open"  ), filterUser, true, allRepos: _*),
-        countIssue(condition.copy(state = "closed"), filterUser, true, allRepos: _*),
-        condition,
-        None,
-        false),
-      getPullRequestCountGroupByUser(condition.state == "closed", None, None),
-      userRepos.map { case (userName, repoName) =>
-        (userName, repoName, counts.find { x => x._1 == userName && x._2 == repoName }.map(_._3).getOrElse(0))
-      }.sortBy(_._3).reverse,
+      searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
+      page,
+      countIssue(condition.copy(state = "open"  ), filterUser, true, allRepos: _*),
+      countIssue(condition.copy(state = "closed"), filterUser, true, allRepos: _*),
       condition,
-      filter)
-
+      filter,
+      getGroupNames(userName))
   }
 
 

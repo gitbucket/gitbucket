@@ -1,16 +1,28 @@
-@(active: String, create: Boolean, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(active: String, newButton: Boolean,
+  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
-<ul class="nav nav-tabs pull-left fill-width">
-  <li@if(active == "issues"){ class="active"}><a href="@url(repository)/issues">Browse Issues</a></li>
-  <li@if(active == "milestones"){ class="active"}><a href="@url(repository)/issues/milestones">Milestones</a></li>
+<ul class="nav nav-pills-group  pull-left fill-width">
+  <li class="@if(active == "issues"    ){active} first"><a href="@url(repository)/issues">Issues</a></li>
+  <li class="@if(active == "pulls"     ){active}"><a href="@url(repository)/pulls">Pull requests</a></li>
+  <li class="@if(active == "labels"    ){active}"><a href="@url(repository)/issues/labels">Labels</a></li>
+  <li class="@if(active == "milestones"){active} last"><a href="@url(repository)/issues/milestones">Milestones</a></li>
   @if(loginAccount.isDefined){
   <li class="pull-right">
     <div class="btn-group">
-      @if(create){
-        <a class="btn btn-small btn-success" href="#" disabled="disabled">New Issue</a>
-      } else {
-        <a class="btn btn-small btn-success" href="@url(repository)/issues/new">New Issue</a>
+      @if(newButton){
+        @if(active == "issues"){
+          <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
+        }
+        @if(active == "pulls"){
+          <a class="btn btn-success" href="@url(repository)/compare">New pull request</a>
+        }
+        @if(active == "labels"){
+          <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
+        }
+        @if(active == "milestones"){
+          <a class="btn btn-success" href="@url(repository)/issues/milestones/new">New milestone</a>
+        }
       }
     </div>
   </li>

@@ -1,20 +1,24 @@
 package plugin
 
-import app.Context
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 import util.Directory._
 import util.ControlUtil._
-import org.apache.commons.io.FileUtils
-import util.JGitUtil
-import org.eclipse.jgit.api.Git
+import org.apache.commons.io.{IOUtils, FileUtils}
+import Security._
+import service.PluginService
+import model.Profile._
+import profile.simple._
+import java.io.FileInputStream
+import java.sql.Connection
+import app.Context
 import service.RepositoryService.RepositoryInfo
 
 /**
  * Provides extension points to plug-ins.
  */
-object PluginSystem {
+object PluginSystem extends PluginService {
 
   private val logger = LoggerFactory.getLogger(PluginSystem.getClass)
 
@@ -28,8 +32,21 @@ object PluginSystem {
 
   def plugins: List[Plugin] = pluginsMap.values.toList
 
-  def uninstall(id: String): Unit = {
+  def uninstall(id: String)(implicit session: Session): Unit = {
     pluginsMap.remove(id)
+
+    // Delete from PLUGIN table
+    deletePlugin(id)
+
+    // Drop tables
+    val pluginDir = new java.io.File(PluginHome)
+    val sqlFile = new java.io.File(pluginDir, s"${id}/sql/drop.sql")
+    if(sqlFile.exists){
+      val sql = IOUtils.toString(new FileInputStream(sqlFile), "UTF-8")
+      using(session.conn.createStatement()){ stmt =>
+        stmt.executeUpdate(sql)
+      }
+    }
   }
 
   def repositories: List[PluginRepository] = repositoriesList.toList
@@ -37,7 +54,7 @@ object PluginSystem {
   /**
    * Initializes the plugin system. Load scripts from GITBUCKET_HOME/plugins.
    */
-  def init(): Unit = {
+  def init()(implicit session: Session): Unit = {
     if(initialized.compareAndSet(false, true)){
       // Load installed plugins
       val pluginDir = new java.io.File(PluginHome)
@@ -52,42 +69,107 @@ object PluginSystem {
   }
 
   // TODO Method name seems to not so good.
-  def installPlugin(id: String): Unit = {
-    val pluginDir = new java.io.File(PluginHome)
-    val javaScriptFile = new java.io.File(pluginDir, id + "/plugin.js")
+  def installPlugin(id: String)(implicit session: Session): Unit = {
+    val pluginHome = new java.io.File(PluginHome)
+    val pluginDir  = new java.io.File(pluginHome, id)
 
-    if(javaScriptFile.exists && javaScriptFile.isFile){
+    val scalaFile = new java.io.File(pluginDir, "plugin.scala")
+    if(scalaFile.exists && scalaFile.isFile){
       val properties = new java.util.Properties()
-      using(new java.io.FileInputStream(new java.io.File(pluginDir, id + "/plugin.properties"))){ in =>
+      using(new java.io.FileInputStream(new java.io.File(pluginDir, "plugin.properties"))){ in =>
         properties.load(in)
       }
 
-      val script = FileUtils.readFileToString(javaScriptFile, "UTF-8")
+      val pluginId     = properties.getProperty("id")
+      val version      = properties.getProperty("version")
+      val author       = properties.getProperty("author")
+      val url          = properties.getProperty("url")
+      val description  = properties.getProperty("description")
+
+      val source = s"""
+        |val id          = "${pluginId}"
+        |val version     = "${version}"
+        |val author      = "${author}"
+        |val url         = "${url}"
+        |val description = "${description}"
+      """.stripMargin + FileUtils.readFileToString(scalaFile, "UTF-8")
+
       try {
-        JavaScriptPlugin.evaluateJavaScript(script, Map(
-          "id"          -> properties.getProperty("id"),
-          "version"     -> properties.getProperty("version"),
-          "author"      -> properties.getProperty("author"),
-          "url"         -> properties.getProperty("url"),
-          "description" -> properties.getProperty("description")
-        ))
+        // Compile and eval Scala source code
+        ScalaPlugin.eval(pluginDir.listFiles.filter(_.getName.endsWith(".scala.html")).map { file =>
+          ScalaPlugin.compileTemplate(
+            id.replaceAll("-", ""),
+            file.getName.replaceAll("\\.scala\\.html$", ""),
+            IOUtils.toString(new FileInputStream(file)))
+        }.mkString("\n") + source)
+
+        // Migrate database
+        val plugin = getPlugin(pluginId)
+        if(plugin.isEmpty){
+          registerPlugin(model.Plugin(pluginId, version))
+          migrate(session.conn, pluginId, "0.0")
+        } else {
+          updatePlugin(model.Plugin(pluginId, version))
+          migrate(session.conn, pluginId, plugin.get.version)
+        }
       } catch {
-        case e: Exception => logger.warn(s"Error in plugin loading for ${javaScriptFile.getAbsolutePath}", e)
+        case e: Throwable => logger.warn(s"Error in plugin loading for ${scalaFile.getAbsolutePath}", e)
       }
     }
   }
 
-  def repositoryMenus   : List[RepositoryMenu]   = pluginsMap.values.flatMap(_.repositoryMenus).toList
-  def globalMenus       : List[GlobalMenu]       = pluginsMap.values.flatMap(_.globalMenus).toList
-  def repositoryActions : List[RepositoryAction] = pluginsMap.values.flatMap(_.repositoryActions).toList
-  def globalActions     : List[Action]           = pluginsMap.values.flatMap(_.globalActions).toList
+  // TODO Should PluginSystem provide a way to migrate resources other than H2?
+  private def migrate(conn: Connection, pluginId: String, current: String): Unit = {
+    val pluginDir = new java.io.File(PluginHome)
+
+    // TODO Is ot possible to use this migration system in GitBucket migration?
+    val dim = current.split("\\.")
+    val currentVersion = Version(dim(0).toInt, dim(1).toInt)
+
+    val sqlDir = new java.io.File(pluginDir, s"${pluginId}/sql")
+    if(sqlDir.exists && sqlDir.isDirectory){
+      sqlDir.listFiles.filter(_.getName.endsWith(".sql")).map { file =>
+        val array = file.getName.replaceFirst("\\.sql", "").split("_")
+        Version(array(0).toInt, array(1).toInt)
+      }
+      .sorted.reverse.takeWhile(_ > currentVersion)
+      .reverse.foreach { version =>
+        val sqlFile = new java.io.File(pluginDir, s"${pluginId}/sql/${version.major}_${version.minor}.sql")
+        val sql = IOUtils.toString(new FileInputStream(sqlFile), "UTF-8")
+        using(conn.createStatement()){ stmt =>
+          stmt.executeUpdate(sql)
+        }
+      }
+    }
+  }
+
+  case class Version(major: Int, minor: Int) extends Ordered[Version] {
+
+    override def compare(that: Version): Int = {
+      if(major != that.major){
+        major.compare(that.major)
+      } else{
+        minor.compare(that.minor)
+      }
+    }
+
+    def displayString: String = major + "." + minor
+  }
+
+  def repositoryMenus       : List[RepositoryMenu]   = pluginsMap.values.flatMap(_.repositoryMenus).toList
+  def globalMenus           : List[GlobalMenu]       = pluginsMap.values.flatMap(_.globalMenus).toList
+  def repositoryActions     : List[RepositoryAction] = pluginsMap.values.flatMap(_.repositoryActions).toList
+  def globalActions         : List[Action]           = pluginsMap.values.flatMap(_.globalActions).toList
+  def javaScripts           : List[JavaScript]       = pluginsMap.values.flatMap(_.javaScripts).toList
 
   // Case classes to hold plug-ins information internally in GitBucket
   case class PluginRepository(id: String, url: String)
   case class GlobalMenu(label: String, url: String, icon: String, condition: Context => Boolean)
   case class RepositoryMenu(label: String, name: String, url: String, icon: String, condition: Context => Boolean)
-  case class Action(path: String, function: (HttpServletRequest, HttpServletResponse) => Any)
-  case class RepositoryAction(path: String, function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any)
+  case class Action(method: String, path: String, security: Security, function: (HttpServletRequest, HttpServletResponse, Context) => Any)
+  case class RepositoryAction(method: String, path: String, security: Security, function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any)
+  case class Button(label: String, href: String)
+  case class JavaScript(filter: String => Boolean, script: String)
 
   /**
    * Checks whether the plugin is updatable.
@@ -109,17 +191,4 @@ object PluginSystem {
     }
   }
 
-  // TODO This is a test
-//  addGlobalMenu("Google", "http://www.google.co.jp/", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAEvwAABL8BkeKJvAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAIgSURBVEiJtdZNiI1hFAfw36ORhSFFPgYLszOKJAsWRLGzks1gYyFZKFs7C7K2Y2XDRiwmq9kIJWQjJR9Tk48xRtTIRwjH4p473nm99yLNqdNTz/mf//+555x7ektEmEmbNaPs6OkUKKX0YBmWp6/IE8bwIs8xjEfEt0aiiJBl6sEuXMRLfEf8pX/PnIvJ0TPFWxE4+w+Ef/Kzbd5qDx5l8H8tkku7LG17gH7sxWatevdhEUoXsjda5RnDTZzH6jagtMe0lHIa23AJw3iOiSRZlmJ9mfcyfTzFl2AldmI3rkbEkbrAYKrX7S1eVRyWVnxhQ87eiLjQ+o2/mtyve+PuYy3W4+EfsP2/TVGKTHRI+Iz9Fdx8XOmAnZjGWRMYqoF/4ESW4hpOYk1iZ2WsLjDUTeBYBfgeuyux2XiNT5hXud+DD5W8Y90EtifoSfultfjx7MVtrKzcr8No5m7vJtCLx1hQJ8/4IZzClpyoy5ibsYUYQW81Z9o2jYgPeKr15+poEXE9+1XF9WIkOaasaV2P4k4pZUdDbEm+VEQcjIgtEfGxlLIVd/Gs6TX1MhzQquU3HK1t23f4IsuS94fxNXMO/MbXIDBg+tidw5yMbcCmylSdqWEH/kagYLKWeAt9Fcxi3KhhJuXq6SqQBMO15NDalvswmLWux4cbuToIbMS9BpJOfg8bm7imtmmTlVJWaa3hpnU9nufziBjtyDHTny0/AaA7Qnb4AM4aAAAAAElFTkSuQmCC")
-//    { context => context.loginAccount.isDefined }
-//
-//  addRepositoryMenu("Board", "board", "/board", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAEvwAABL8BkeKJvAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAIgSURBVEiJtdZNiI1hFAfw36ORhSFFPgYLszOKJAsWRLGzks1gYyFZKFs7C7K2Y2XDRiwmq9kIJWQjJR9Tk48xRtTIRwjH4p473nm99yLNqdNTz/mf//+555x7ektEmEmbNaPs6OkUKKX0YBmWp6/IE8bwIs8xjEfEt0aiiJBl6sEuXMRLfEf8pX/PnIvJ0TPFWxE4+w+Ef/Kzbd5qDx5l8H8tkku7LG17gH7sxWatevdhEUoXsjda5RnDTZzH6jagtMe0lHIa23AJw3iOiSRZlmJ9mfcyfTzFl2AldmI3rkbEkbrAYKrX7S1eVRyWVnxhQ87eiLjQ+o2/mtyve+PuYy3W4+EfsP2/TVGKTHRI+Iz9Fdx8XOmAnZjGWRMYqoF/4ESW4hpOYk1iZ2WsLjDUTeBYBfgeuyux2XiNT5hXud+DD5W8Y90EtifoSfultfjx7MVtrKzcr8No5m7vJtCLx1hQJ8/4IZzClpyoy5ibsYUYQW81Z9o2jYgPeKr15+poEXE9+1XF9WIkOaasaV2P4k4pZUdDbEm+VEQcjIgtEfGxlLIVd/Gs6TX1MhzQquU3HK1t23f4IsuS94fxNXMO/MbXIDBg+tidw5yMbcCmylSdqWEH/kagYLKWeAt9Fcxi3KhhJuXq6SqQBMO15NDalvswmLWux4cbuToIbMS9BpJOfg8bm7imtmmTlVJWaa3hpnU9nufziBjtyDHTny0/AaA7Qnb4AM4aAAAAAElFTkSuQmCC")
-//    { context => true}
-//
-//  addGlobalAction("/hello"){ (request, response) =>
-//    "Hello World!"
-//  }
-
 }
-
-

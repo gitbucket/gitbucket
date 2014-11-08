@@ -7,7 +7,7 @@ import org.specs2.mock.Mockito
 import service.RequestCache
 import model.Account
 import service.SystemSettingsService.SystemSettings
-import twirl.api.Html
+import play.twirl.api.Html
 import javax.servlet.http.HttpServletRequest
 
 class AvatarImageProviderSpec extends Specification with Mockito {

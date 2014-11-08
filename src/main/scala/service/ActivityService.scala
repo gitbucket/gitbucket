@@ -1,7 +1,8 @@
 package service
 
-import model._
+import model.Profile._
 import profile.simple._
+import model.Activity
 
 trait ActivityService {
 
@@ -10,9 +11,9 @@ trait ActivityService {
       .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
       .filter { case (t1, t2) =>
         if(isPublic){
-          (t1.activityUserName is activityUserName.bind) && (t2.isPrivate is false.bind)
+          (t1.activityUserName === activityUserName.bind) && (t2.isPrivate === false.bind)
         } else {
-          (t1.activityUserName is activityUserName.bind)
+          (t1.activityUserName === activityUserName.bind)
         }
       }
       .sortBy { case (t1, t2) => t1.activityId desc }
@@ -23,7 +24,7 @@ trait ActivityService {
   def getRecentActivities()(implicit s: Session): List[Activity] =
     Activities
       .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter { case (t1, t2) =>  t2.isPrivate is false.bind }
+      .filter { case (t1, t2) =>  t2.isPrivate === false.bind }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }
       .take(30)
@@ -32,7 +33,7 @@ trait ActivityService {
   def getRecentActivitiesByOwners(owners : Set[String])(implicit s: Session): List[Activity] =
     Activities
       .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
-      .filter { case (t1, t2) => (t2.isPrivate is false.bind) || (t2.userName inSetBind owners) }
+      .filter { case (t1, t2) => (t2.isPrivate === false.bind) || (t2.userName inSetBind owners) }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }
       .take(30)

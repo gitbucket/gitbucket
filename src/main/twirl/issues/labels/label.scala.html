@@ -1,0 +1,36 @@
+@(label: model.Label,
+  counts: Map[String, Int],
+  repository: service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: app.Context)
+@import context._
+@import view.helpers._
+<tr id="label-row-@label.labelId">
+  <td style="padding-top: 15px; padding-bottom: 15px;">
+    <div class="milestone row-fluid" id="label-@label.labelId">
+      <div class="span8">
+        <div style="margin-top: 6px">
+          <a href="@url(repository)/issues?labels=@urlEncode(label.labelName)" id="label-row-content-@label.labelId">
+            <span style="background-color: #@label.color; color: #@label.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">
+              <img src="@assets/common/images/label_@(if(label.fontColor == "ffffff") "white" else "black").png" style="width: 12px;"/>
+              @label.labelName
+            </span>
+          </a>
+        </div>
+      </div>
+      <div class="@if(hasWritePermission){span2} else {span4}">
+        <div class="pull-right">
+          <span class="muted">@counts.get(label.labelName).getOrElse(0) open issues</span>
+        </div>
+      </div>
+      @if(hasWritePermission){
+        <div class="span2">
+          <div class="pull-right">
+            <a href="javascript:void(0);" onclick="editLabel(@label.labelId)">Edit</a>
+            &nbsp;&nbsp;
+            <a href="javascript:void(0);" onclick="deleteLabel(@label.labelId)">Delete</a>
+          </div>
+        </div>
+      }
+    </div>
+  </td>
+</tr>

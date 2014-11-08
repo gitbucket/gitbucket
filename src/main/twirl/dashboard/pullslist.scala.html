@@ -1,0 +1,47 @@
+@(issues: List[service.IssuesService.IssueInfo],
+  page: Int,
+  openCount: Int,
+  closedCount: Int,
+  condition: service.IssuesService.IssueSearchCondition,
+  filter: String,
+  groups: List[String])(implicit context: app.Context)
+@import context._
+@import view.helpers._
+@import service.IssuesService.IssueInfo
+<ul class="nav nav-pills-group pull-left fill-width">
+  <li class="@if(filter == "created_by"){active} first"><a href="@path/dashboard/pulls/created_by@condition.toURL">Created</a></li>
+  <li class="@if(filter == "assigned"){active}"><a href="@path/dashboard/pulls/assigned@condition.toURL">Assigned</a></li>
+  <li class="@if(filter == "mentioned"){active} last"><a href="@path/dashboard/pulls/mentioned@condition.toURL">Mentioned</a></li>
+</ul>
+<table class="table table-bordered table-hover table-issues">
+  <tr>
+    <th style="background-color: #eee;">
+      @dashboard.html.header(openCount, closedCount, condition, groups)
+    </th>
+  </tr>
+  @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
+  <tr>
+    <td>
+      <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
+      <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+      <span class="pull-right muted">#@issue.issueId</span>
+        <div style="margin-left: 20px;">
+          @issue.content.map { content =>
+            @cut(content, 90)
+          }.getOrElse {
+            <span class="muted">No description available</span>
+          }
+        </div>
+      <div class="small muted" style="margin-left: 20px;">
+        @avatarLink(issue.openedUserName, 20) by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)&nbsp;
+        @if(commentCount > 0){
+          <i class="icon-comment"></i><a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">@commentCount @plural(commentCount, "comment")</a>
+        }
+      </div>
+    </td>
+  </tr>
+  }
+</table>
+<div class="pull-right">
+  @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), service.PullRequestService.PullRequestLimit, 10, condition.toURL)
+</div>

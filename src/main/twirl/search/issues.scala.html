@@ -22,7 +22,7 @@
         }
         <div class="small muted">
           Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a>
-          at @datetime(issue.registeredDate)
+          @helper.html.datetimeago(issue.registeredDate)
           @if(issue.commentCount > 0){
             &nbsp;&nbsp;<i class="icon-comment"></i><span class="strong">@issue.commentCount</span> @plural(issue.commentCount, "comment")
           }

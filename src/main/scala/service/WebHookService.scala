@@ -1,7 +1,8 @@
 package service
 
-import model._
+import model.Profile._
 import profile.simple._
+import model.{WebHook, Account}
 import org.slf4j.LoggerFactory
 import service.RepositoryService.RepositoryInfo
 import util.JGitUtil
@@ -43,7 +44,7 @@ trait WebHookService {
       val httpClient = HttpClientBuilder.create.build
 
       webHookURLs.foreach { webHookUrl =>
-        val f = future {
+        val f = Future {
           logger.debug(s"start web hook invocation for ${webHookUrl}")
           val httpPost = new HttpPost(webHookUrl.url)
 
@@ -89,15 +90,15 @@ object WebHookService {
           WebHookCommit(
             id        = commit.id,
             message   = commit.fullMessage,
-            timestamp = commit.time.toString,
+            timestamp = commit.commitTime.toString,
             url       = commitUrl,
             added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
             removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
             modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
               x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
             author    = WebHookUser(
-              name  = commit.committer,
-              email = commit.mailAddress
+              name  = commit.committerName,
+              email = commit.committerEmailAddress
             )
           )
         },

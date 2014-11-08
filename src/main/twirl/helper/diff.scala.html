@@ -9,9 +9,12 @@
 @if(showIndex){
   <div>
     <div class="pull-right" style="margin-bottom: 10px;">
-      <input id="toggle-file-list" type="button" class="btn" value="Show file list"/>
+      <div class="btn-group" data-toggle="buttons-radio">
+        <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
+        <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
+      </div>
     </div>
-    Showing @diffs.size changed @plural(diffs.size, "file")
+    Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @plural(diffs.size, "file")</a>
   </div>
   <ul id="commit-file-list" style="display: none;">
   @diffs.zipWithIndex.map { case (diff, i) =>
@@ -38,7 +41,7 @@
   <a name="diff-@i"></a>
   <table class="table table-bordered">
     <tr>
-      <th style="font-weight: normal;" class="box-header">
+      <th style="font-weight: normal; line-height: 27px;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @diff.oldPath -> @diff.newPath
           @if(newCommitId.isDefined){
@@ -66,7 +69,7 @@
       </th>
     </tr>
     <tr>
-      <td>
+      <td style="padding: 0;">
         @if(diff.newContent != None || diff.oldContent != None){
           <div id="diffText-@i"></div>
           <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
@@ -94,10 +97,25 @@ $(function(){
     });
   }
 
-  @diffs.zipWithIndex.map { case (diff, i) =>
-    @if(diff.newContent != None || diff.oldContent != None){
-      if($('#oldText-@i').length > 0){
-        diffUsingJS('oldText-@i', 'newText-@i', 'diffText-@i');
+  // Render diffs as unified mode initially
+  renderDiffs(1);
+
+  $('#btn-unified').click(function(){
+    $('.container-wide').removeClass('container-wide').addClass('container');
+    renderDiffs(1);
+  });
+
+  $('#btn-split').click(function(){
+    $('.container').removeClass('container').addClass('container-wide');
+    renderDiffs(0);
+  });
+
+  function renderDiffs(viewType){
+    @diffs.zipWithIndex.map { case (diff, i) =>
+      @if(diff.newContent != None || diff.oldContent != None){
+        if($('#oldText-@i').length > 0){
+          diffUsingJS('oldText-@i', 'newText-@i', 'diffText-@i', viewType);
+        }
       }
     }
   }

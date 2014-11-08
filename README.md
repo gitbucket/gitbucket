@@ -80,6 +80,39 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.5 - 4 Nov 2014
+- New Dashboard
+- Change datetime format
+- Create branch from Web UI
+- Task list in Markdown
+- Some bug fix and improvements
+
+### 2.4.1 - 6 Oct 2014
+- Bug fix
+
+### 2.4 - 6 Oct 2014
+- New UI is applied to Issues and Pull requests
+- Side-by-side diff is available
+- Fix relative path problem in Markdown links and images
+- Plugin System is disabled in default
+- Some bug fix and improvements
+
+### 2.3 - 1 Sep 2014
+- Scala based plugin system
+- Embedded Jetty war extraction directory moved to `GITBUCKET_HOME/tmp`
+- Some bug fix and improvements
+
+### 2.2.1 - 5 Aug 2014
+- Bug fix
+
+### 2.2 - 4 Aug 2014
+- Plug-in system is available
+- Move to Scala 2.11, Scalatra 2.3 and Slick 2.1
+- tar.gz export for repository contents
+- LDAP authentication improvement (mail address became optional)
+- Show news feed of a private repository to members
+- Some bug fix and improvements
+
 ### 2.1 - 6 Jul 2014
 - Upgrade to Slick 2.0 from 1.9
 - Base part of the plug-in system is merged

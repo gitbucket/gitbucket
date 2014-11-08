@@ -3,16 +3,17 @@
   repository: service.RepositoryService.RepositoryInfo,
   commits: Seq[Seq[util.JGitUtil.CommitInfo]],
   page: Int,
-  hasNext: Boolean)(implicit context: app.Context)
+  hasNext: Boolean,
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
     <div class="head">
-      @helper.html.dropdown(
-        value  = if(branch.length == 40) branch.substring(0, 10) else branch,
-        prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
-        mini   = true
+      @helper.html.branchcontrol(
+        branch,
+        repository,
+        hasWritePermission
       ){
         @repository.branchList.map { x =>
           <li><a href="@url(repository)/commits/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
@@ -36,7 +37,7 @@
     @commits.map { day =>
       <table class="table table-bordered">
         <tr>
-          <th>@date(day.head.time)</th>
+          <th>@date(day.head.commitTime)</th>
         </tr>
         @day.map { commit =>
         <tr>
@@ -57,8 +58,13 @@
                   <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
                 }
                 <div class="small">
-                  @user(commit.committer, commit.mailAddress, "username")
-                  <span class="muted">@datetime(commit.time)</span>
+                  @user(commit.authorName, commit.authorEmailAddress, "username")
+                  <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+                  @if(commit.isDifferentFromAuthor) {
+                    <span class="icon-arrow-right" style="margin-top : -2px ;"></span>
+                    @user(commit.committerName, commit.committerEmailAddress, "username")
+                    <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
+                  }
                 </div>
               </div>
             </div>

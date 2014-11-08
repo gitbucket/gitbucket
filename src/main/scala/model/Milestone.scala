@@ -17,13 +17,14 @@ trait MilestoneComponent extends TemplateComponent { self: Profile =>
     def byPrimaryKey(owner: String, repository: String, milestoneId: Int) = byMilestone(owner, repository, milestoneId)
     def byPrimaryKey(userName: Column[String], repositoryName: Column[String], milestoneId: Column[Int]) = byMilestone(userName, repositoryName, milestoneId)
   }
-
-  case class Milestone(
-    userName: String,
-    repositoryName: String,
-    milestoneId: Int = 0,
-    title: String,
-    description: Option[String],
-    dueDate: Option[java.util.Date],
-    closedDate: Option[java.util.Date])
 }
+
+case class Milestone(
+  userName: String,
+  repositoryName: String,
+  milestoneId: Int = 0,
+  title: String,
+  description: Option[String],
+  dueDate: Option[java.util.Date],
+  closedDate: Option[java.util.Date]
+)

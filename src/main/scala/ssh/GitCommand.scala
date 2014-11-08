@@ -12,7 +12,7 @@ import servlet.{Database, CommitLogHook}
 import service.{AccountService, RepositoryService, SystemSettingsService}
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 import javax.servlet.ServletContext
-import model.profile.simple.Session
+import model.Session
 
 object GitCommand {
   val CommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-_.]+).git'\Z""".r

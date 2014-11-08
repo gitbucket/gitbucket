@@ -1,7 +1,7 @@
 package view
-import java.util.Date
+import java.util.{Locale, Date, TimeZone}
 import java.text.SimpleDateFormat
-import twirl.api.Html
+import play.twirl.api.Html
 import util.StringUtil
 import service.RequestCache
 
@@ -15,10 +15,55 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    */
   def datetime(date: Date): String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date)
 
+  val timeUnits = List(
+    (1000L, "second"),
+    (1000L * 60, "minute"),
+    (1000L * 60 * 60, "hour"),
+    (1000L * 60 * 60 * 24, "day"),
+    (1000L * 60 * 60 * 24 * 30, "month"),
+    (1000L * 60 * 60 * 24 * 365, "year")
+  ).reverse
+
+  /**
+   * Format java.util.Date to "x {seconds/minutes/hours/days/months/years} ago"
+   */
+  def datetimeAgo(date: Date): String = {
+    val duration = new Date().getTime - date.getTime
+    timeUnits.find(tuple => duration / tuple._1 > 0) match {
+      case Some((unitValue, unitString)) =>
+        val value = duration / unitValue
+        s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
+      case None => "just now"
+    }
+  }
+
+  /**
+   *
+   * Format java.util.Date to "x {seconds/minutes/hours/days} ago"
+   * If duration over 1 month, format to "d MMM (yyyy)"
+   *
+   */
+  def datetimeAgoRecentOnly(date: Date): String = {
+    val duration = new Date().getTime - date.getTime
+    timeUnits.find(tuple => duration / tuple._1 > 0) match {
+      case Some((_, "month")) => s"on ${new SimpleDateFormat("d MMM", Locale.ENGLISH).format(date)}"
+      case Some((_, "year")) => s"on ${new SimpleDateFormat("d MMM yyyy", Locale.ENGLISH).format(date)}"
+      case Some((unitValue, unitString)) =>
+        val value = duration / unitValue
+        s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
+      case None => "just now"
+    }
+  }
+
+
   /**
    * Format java.util.Date to "yyyy-MM-dd'T'hh:mm:ss'Z'".
    */
-  def datetimeRFC3339(date: Date): String = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'").format(date).replaceAll("(\\d\\d)(\\d\\d)$","$1:$2")
+  def datetimeRFC3339(date: Date): String = {
+    val sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    sf.setTimeZone(TimeZone.getTimeZone("UTC"))
+    sf.format(date)
+  }
 
   /**
    * Format java.util.Date to "yyyy-MM-dd".
@@ -44,8 +89,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,
-               enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
-    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
+               enableWikiLink: Boolean, enableRefsLink: Boolean, enableTaskList: Boolean = false, hasWritePermission: Boolean = false)(implicit context: app.Context): Html =
+    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission))
 
   def renderMarkup(filePath: List[String], fileContent: String, branch: String,
                    repository: service.RepositoryService.RepositoryInfo,
@@ -74,7 +119,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * This method looks up Gravatar if avatar icon has not been configured in user settings.
    */
   def avatar(commit: util.JGitUtil.CommitInfo, size: Int)(implicit context: app.Context): Html =
-    getAvatarImageHtml(commit.committer, size, commit.mailAddress)
+    getAvatarImageHtml(commit.authorName, size, commit.authorEmailAddress)
 
   /**
    * Converts commit id, issue id and username to the link.

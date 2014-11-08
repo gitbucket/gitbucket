@@ -1,7 +1,8 @@
 package service
 
-import model._
+import model.Profile._
 import profile.simple._
+import model.{PullRequest, Issue}
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._
@@ -25,15 +26,33 @@ trait PullRequestService { self: IssuesService =>
     PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
-        (t2.closed         is closed.bind) &&
-        (t1.userName       is owner.get.bind, owner.isDefined) &&
-        (t1.repositoryName is repository.get.bind, repository.isDefined)
+        (t2.closed         === closed.bind) &&
+        (t1.userName       === owner.get.bind, owner.isDefined) &&
+        (t1.repositoryName === repository.get.bind, repository.isDefined)
       }
       .groupBy { case (t1, t2) => t2.openedUserName }
       .map { case (userName, t) => userName -> t.length }
       .sortBy(_._2 desc)
       .list
       .map { x => PullRequestCount(x._1, x._2) }
+
+//  def getAllPullRequestCountGroupByUser(closed: Boolean, userName: String)(implicit s: Session): List[PullRequestCount] =
+//    PullRequests
+//      .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+//      .innerJoin(Repositories).on { case ((t1, t2), t3) => t2.byRepository(t3.userName, t3.repositoryName) }
+//      .filter { case ((t1, t2), t3) =>
+//        (t2.closed === closed.bind) &&
+//          (
+//            (t3.isPrivate === false.bind) ||
+//            (t3.userName  === userName.bind) ||
+//            (Collaborators.filter { t4 => t4.byRepository(t3.userName, t3.repositoryName) && (t4.collaboratorName === userName.bind)} exists)
+//          )
+//      }
+//      .groupBy { case ((t1, t2), t3) => t2.openedUserName }
+//      .map { case (userName, t) => userName -> t.length }
+//      .sortBy(_._2 desc)
+//      .list
+//      .map { x => PullRequestCount(x._1, x._2) }
 
   def createPullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
         originBranch: String, requestUserName: String, requestRepositoryName: String, requestBranch: String,
@@ -54,10 +73,10 @@ trait PullRequestService { self: IssuesService =>
     PullRequests
       .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
-        (t1.requestUserName       is userName.bind) &&
-        (t1.requestRepositoryName is repositoryName.bind) &&
-        (t1.requestBranch         is branch.bind) &&
-        (t2.closed                is closed.bind)
+        (t1.requestUserName       === userName.bind) &&
+        (t1.requestRepositoryName === repositoryName.bind) &&
+        (t1.requestBranch         === branch.bind) &&
+        (t2.closed                === closed.bind)
       }
       .map { case (t1, t2) => t1 }
       .list

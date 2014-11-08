@@ -62,10 +62,6 @@ trait PullRequestsControllerBase extends ControllerBase {
     searchPullRequests(None, repository)
   })
 
-  get("/:owner/:repository/pulls/:userName")(referrersOnly { repository =>
-    searchPullRequests(Some(params("userName")), repository)
-  })
-
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
@@ -443,7 +439,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
         new CommitInfo(revCommit)
       }.toList.splitWith { (commit1, commit2) =>
-        view.helpers.date(commit1.time) == view.helpers.date(commit2.time)
+        view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
       }
 
       val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true)
@@ -453,7 +449,6 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name){ case (owner, repoName) =>
-      val filterUser = userName.map { x => Map("created_by" -> x) } getOrElse Map("all" -> "")
       val page       = IssueSearchCondition.page(request)
       val sessionKey = Keys.Session.Pulls(owner, repoName)
 
@@ -463,14 +458,15 @@ trait PullRequestsControllerBase extends ControllerBase {
         else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 
-      pulls.html.list(
-        searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
-        getPullRequestCountGroupByUser(condition.state == "closed", Some(owner), Some(repoName)),
-        userName,
+      issues.html.list(
+        "pulls",
+        searchIssue(condition, Map.empty, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         page,
-        countIssue(condition.copy(state = "open"  ), filterUser, true, owner -> repoName),
-        countIssue(condition.copy(state = "closed"), filterUser, true, owner -> repoName),
-        countIssue(condition, Map.empty, true, owner -> repoName),
+        (getCollaborators(owner, repoName) :+ owner).sorted,
+        getMilestones(owner, repoName),
+        getLabels(owner, repoName),
+        countIssue(condition.copy(state = "open"  ), Map.empty, true, owner -> repoName),
+        countIssue(condition.copy(state = "closed"), Map.empty, true, owner -> repoName),
         condition,
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))

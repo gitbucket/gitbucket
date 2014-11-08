@@ -1,7 +1,9 @@
 @(active: String,
   repository: service.RepositoryService.RepositoryInfo,
   id: Option[String] = None,
-  expand: Boolean = false)(body: Html)(implicit context: app.Context)
+  expand: Boolean = false,
+  info: Option[Any] = None,
+  error: Option[Any] = None)(body: Html)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 
@@ -31,6 +33,8 @@
 }
 
 <div class="container">
+  @helper.html.information(info)
+  @helper.html.error(error)
   @if(repository.commitCount > 0){
     <div class="pull-right">
       <div class="input-prepend">
@@ -86,6 +90,9 @@
       @id.map { id =>
         <div style="margin-top: 10px;">
           <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download ZIP</a>
+        </div>
+        <div style="margin-top: 10px;">
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-small" style="width: 147px;"><i class="icon-download-alt"></i>Download TAR.GZ</a>
         </div>
       }
     }

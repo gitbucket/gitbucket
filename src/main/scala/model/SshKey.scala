@@ -12,13 +12,13 @@ trait SshKeyComponent { self: Profile =>
     val publicKey = column[String]("PUBLIC_KEY")
     def * = (userName, sshKeyId, title, publicKey) <> (SshKey.tupled, SshKey.unapply)
 
-    def byPrimaryKey(userName: String, sshKeyId: Int) = (this.userName is userName.bind) && (this.sshKeyId is sshKeyId.bind)
+    def byPrimaryKey(userName: String, sshKeyId: Int) = (this.userName === userName.bind) && (this.sshKeyId === sshKeyId.bind)
   }
-
-  case class SshKey(
-    userName: String,
-    sshKeyId: Int = 0,
-    title: String,
-    publicKey: String
-  )
 }
+
+case class SshKey(
+  userName: String,
+  sshKeyId: Int = 0,
+  title: String,
+  publicKey: String
+)
