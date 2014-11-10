@@ -368,13 +368,34 @@ object IssuesService {
 
     def nonEmpty: Boolean = !isEmpty
 
+    def toFilterString: String =
+      (List(
+        Some(s"is:${state}"),
+        author.map(author => s"author:${author}"),
+        assigned.map(assignee => s"assignee:${assignee}")
+      ).flatten ++ labels.map(label => s"label:${label}") ++
+      List(
+        milestoneId.map { _ match {
+          case Some(x) => s"milestone:${milestoneId}"
+          case None    => "no:milestone"
+        }},
+        (sort, direction) match {
+          case ("created" , "desc") => None
+          case ("created" , "asc" ) => Some("sort:created-asc")
+          case ("comments", "desc") => Some("sort:comments-desc")
+          case ("comments", "asc" ) => Some("sort:comments-asc")
+          case ("updated" , "desc") => Some("sort:updated-desc")
+          case ("updated" , "asc" ) => Some("sort:updated-asc")
+        }
+      ).flatten).mkString(" ")
+
     def toURL: String =
       "?" + List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(","))),
-        milestoneId.map { id => "milestone=" + (id match {
-          case Some(x) => x.toString
-          case None    => "none"
-        })},
+        milestoneId.map { _ match {
+          case Some(x) => "milestone=" + x
+          case None    => "milestone=none"
+        }},
         author  .map(x => "author="   + urlEncode(x)),
         assigned.map(x => "assigned=" + urlEncode(x)),
         repo.map("for="   + urlEncode(_)),

@@ -1,5 +1,7 @@
-@(active: String, newButton: Boolean,
-  repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
+@(active: String,
+  newButton: Boolean,
+  repository: service.RepositoryService.RepositoryInfo,
+  condition: Option[service.IssuesService.IssueSearchCondition] = None)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 <ul class="nav nav-pills-group  pull-left fill-width">
@@ -7,24 +9,42 @@
   <li class="@if(active == "pulls"     ){active}"><a href="@url(repository)/pulls">Pull requests</a></li>
   <li class="@if(active == "labels"    ){active}"><a href="@url(repository)/issues/labels">Labels</a></li>
   <li class="@if(active == "milestones"){active} last"><a href="@url(repository)/issues/milestones">Milestones</a></li>
-  @if(loginAccount.isDefined){
   <li class="pull-right">
-    <div class="btn-group">
-      @if(newButton){
-        @if(active == "issues"){
-          <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
+    @condition.map { condition =>
+      <div class="input-prepend" style="margin-bottom: 0px;">
+        <div class="btn-group">
+          <button class="btn dropdown-toggle" data-toggle="dropdown" style="height: 34px;">
+            Filter
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a href="#">Open issues and pull requests</a></li>
+            <li><a href="#">Your issues</a></li>
+            <li><a href="#">Your pull requests</a></li>
+            <li><a href="#">Everything assigned to you</a></li>
+            <li><a href="#">Everything mentioning you</a></li>
+          </ul>
+        </div>
+        <input type="text" class="input-xlarge" style="height: 24px;" value="@condition.toFilterString"/>
+      </div>
+    }
+    @if(loginAccount.isDefined){
+      <div class="btn-group">
+        @if(newButton){
+          @if(active == "issues"){
+            <a class="btn btn-success" href="@url(repository)/issues/new" style="height: 24px;">New issue</a>
+          }
+          @if(active == "pulls"){
+            <a class="btn btn-success" href="@url(repository)/compare" style="height: 24px;">New pull request</a>
+          }
+          @if(active == "labels"){
+            <a class="btn btn-success" href="javascript:void(0);" id="new-label-button" style="height: 24px;">New label</a>
+          }
+          @if(active == "milestones"){
+            <a class="btn btn-success" href="@url(repository)/issues/milestones/new" style="height: 24px;">New milestone</a>
+          }
         }
-        @if(active == "pulls"){
-          <a class="btn btn-success" href="@url(repository)/compare">New pull request</a>
-        }
-        @if(active == "labels"){
-          <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
-        }
-        @if(active == "milestones"){
-          <a class="btn btn-success" href="@url(repository)/issues/milestones/new">New milestone</a>
-        }
-      }
-    </div>
+      </div>
+    }
   </li>
-  }
 </ul>
