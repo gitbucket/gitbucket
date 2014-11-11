@@ -9,7 +9,6 @@ import util.Implicits._
 import util.ControlUtil._
 import org.scalatra.Ok
 import model.Issue
-import plugin.PluginSystem
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
@@ -50,7 +49,12 @@ trait IssuesControllerBase extends ControllerBase {
     )(IssueStateForm.apply)
 
   get("/:owner/:repository/issues")(referrersOnly { repository =>
-    searchIssues(repository)
+    val q = request.getParameter("q")
+    if(Option(q).exists(_.contains("is:pr"))){
+      redirect(s"/${repository.owner}/${repository.name}/pulls?q=" + StringUtil.urlEncode(q))
+    } else {
+      searchIssues(repository)
+    }
   })
 
   get("/:owner/:repository/issues/:id")(referrersOnly { repository =>
@@ -390,7 +394,14 @@ trait IssuesControllerBase extends ControllerBase {
 
       // retrieve search condition
       val condition = session.putAndGet(sessionKey,
-        if(request.hasQueryString) IssueSearchCondition(request)
+        if(request.hasQueryString){
+          val q = request.getParameter("q")
+          if(q == null){
+            IssueSearchCondition(request)
+          } else {
+            IssueSearchCondition(q, getMilestones(owner, repoName).map(x => (x.title, x.milestoneId)).toMap)
+          }
+        }
         else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 

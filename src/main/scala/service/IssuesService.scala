@@ -415,6 +415,47 @@ object IssuesService {
       if(value == null || value.isEmpty || (allow.nonEmpty && !allow.contains(value))) None else Some(value)
     }
 
+    /**
+     * Restores IssueSearchCondition instance from filter query.
+     */
+    def apply(filter: String, milestones: Map[String, Int]): IssueSearchCondition = {
+      val conditions = filter.split("[ 　\t]+").map { x =>
+        val dim = x.split(":")
+        dim(0) -> dim(1)
+      }.groupBy(_._1).map { case (key, values) =>
+        key -> values.map(_._2).toSeq
+      }
+
+      val (sort, direction) = conditions.get("sort").flatMap(_.headOption).getOrElse("created-desc") match {
+        case "created-asc"   => ("created" , "asc" )
+        case "comments-desc" => ("comments", "desc")
+        case "comments-asc"  => ("comments", "asc" )
+        case "updated-desc"  => ("comments", "desc")
+        case "updated-asc"   => ("comments", "asc" )
+        case _               => ("created" , "desc")
+      }
+
+      IssueSearchCondition(
+        conditions.get("label").map(_.toSet).getOrElse(Set.empty),
+        conditions.get("milestone").flatMap(_.headOption) match {
+          case None         => None
+          case Some("none") => Some(None)
+          case Some(x)      => Some(milestones.get(x))
+        },
+        conditions.get("author").flatMap(_.headOption),
+        conditions.get("assignee").flatMap(_.headOption),
+        None, // TODO??
+        conditions.get("is").getOrElse(Seq.empty).filter(x => x == "open" || x == "closed").headOption.getOrElse("open"),
+        sort,
+        direction,
+        None, // TODO??
+        Set.empty // TODO??
+      )
+    }
+
+    /**
+     * Restores IssueSearchCondition instance from request parameters.
+     */
     def apply(request: HttpServletRequest): IssueSearchCondition =
       IssueSearchCondition(
         param(request, "labels").map(_.split(",").toSet).getOrElse(Set.empty),

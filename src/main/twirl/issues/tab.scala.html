@@ -11,22 +11,24 @@
   <li class="@if(active == "milestones"){active} last"><a href="@url(repository)/issues/milestones">Milestones</a></li>
   <li class="pull-right">
     @condition.map { condition =>
-      <div class="input-prepend" style="margin-bottom: 0px;">
-        <div class="btn-group">
-          <button class="btn dropdown-toggle" data-toggle="dropdown" style="height: 34px;">
-            Filter
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu">
-            <li><a href="#">Open issues and pull requests</a></li>
-            <li><a href="#">Your issues</a></li>
-            <li><a href="#">Your pull requests</a></li>
-            <li><a href="#">Everything assigned to you</a></li>
-            <li><a href="#">Everything mentioning you</a></li>
-          </ul>
+      <form method="GET" id="search-filter-form">
+        <div class="input-prepend" style="margin-bottom: 0px;">
+          <div class="btn-group">
+            <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" style="height: 34px;">
+              Filter
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="#">Open issues and pull requests</a></li>
+              <li><a href="#">Your issues</a></li>
+              <li><a href="#">Your pull requests</a></li>
+              <li><a href="#">Everything assigned to you</a></li>
+              <li><a href="#">Everything mentioning you</a></li>
+            </ul>
+          </div>
+          <input type="text" id="search-filter-box" class="input-xlarge" name="q" style="height: 24px;" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
         </div>
-        <input type="text" class="input-xlarge" style="height: 24px;" value="@condition.toFilterString"/>
-      </div>
+      </form>
     }
     @if(loginAccount.isDefined){
       <div class="btn-group">

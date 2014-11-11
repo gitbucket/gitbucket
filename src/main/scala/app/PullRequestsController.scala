@@ -1,6 +1,6 @@
 package app
 
-import util.{LockUtil, CollaboratorsAuthenticator, JGitUtil, ReferrerAuthenticator, Notifier, Keys}
+import util._
 import util.Directory._
 import util.Implicits._
 import util.ControlUtil._
@@ -18,6 +18,9 @@ import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
 import service.WebHookService.WebHookPayload
+import util.JGitUtil.DiffInfo
+import scala.Some
+import util.JGitUtil.CommitInfo
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
@@ -59,7 +62,12 @@ trait PullRequestsControllerBase extends ControllerBase {
   case class MergeForm(message: String)
 
   get("/:owner/:repository/pulls")(referrersOnly { repository =>
-    searchPullRequests(None, repository)
+    val q = request.getParameter("q")
+    if(Option(q).exists(_.contains("is:issue"))){
+      redirect(s"/${repository.owner}/${repository.name}/issues?q=" + StringUtil.urlEncode(q))
+    } else {
+      searchPullRequests(None, repository)
+    }
   })
 
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
