@@ -29,23 +29,19 @@ trait DashboardControllerBase extends ControllerBase {
   })
 
   get("/dashboard/pulls")(usersOnly {
-    searchPullRequests("created_by", None)
+    searchPullRequests("created_by")
   })
 
   get("/dashboard/pulls/created_by")(usersOnly {
-    searchPullRequests("created_by", None)
+    searchPullRequests("created_by")
   })
 
   get("/dashboard/pulls/assigned")(usersOnly {
-    searchPullRequests("assigned", None)
+    searchPullRequests("assigned")
   })
 
   get("/dashboard/pulls/mentioned")(usersOnly {
-    searchPullRequests("mentioned", None)
-  })
-
-  get("/dashboard/pulls/for/:owner/:repository")(usersOnly {
-    searchPullRequests("all", Some(params("owner") + "/" + params("repository")))
+    searchPullRequests("mentioned")
   })
 
   private def searchIssues(filter: String) = {
@@ -72,7 +68,7 @@ trait DashboardControllerBase extends ControllerBase {
       getGroupNames(userName))
   }
 
-  private def searchPullRequests(filter: String, repository: Option[String]) = {
+  private def searchPullRequests(filter: String) = {
     import IssuesService._
     import PullRequestService._
 
@@ -80,7 +76,7 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = session.putAndGet(Keys.Session.DashboardPulls, {
       if(request.hasQueryString) IssueSearchCondition(request)
       else session.getAs[IssueSearchCondition](Keys.Session.DashboardPulls).getOrElse(IssueSearchCondition())
-    }.copy(repo = repository))
+    })
 
     val userName   = context.loginAccount.get.userName
     val allRepos   = getAllRepositories(userName)

@@ -78,29 +78,6 @@ trait IssuesService {
       .toMap
   }
 
-//  /**
-//   * Returns list which contains issue count for each repository.
-//   * If the issue does not exist, its repository is not included in the result.
-//   *
-//   * @param condition the search condition
-//   * @param onlyPullRequest if true then returns only pull request, false then returns both of issue and pull request.
-//   * @param repos Tuple of the repository owner and the repository name
-//   * @return list which contains issue count for each repository
-//   */
-//  def countIssueGroupByRepository(
-//      condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
-//      repos: (String, String)*)(implicit s: Session): List[(String, String, Int)] = {
-//    searchIssueQuery(repos, condition.copy(repo = None), filterUser, onlyPullRequest)
-//      .groupBy { t =>
-//        t.userName -> t.repositoryName
-//      }
-//      .map { case (repo, t) =>
-//        (repo._1, repo._2, t.length)
-//      }
-//      .sortBy(_._3 desc)
-//      .list
-//  }
-
   /**
    * Returns the search result against  issues.
    *
@@ -161,11 +138,6 @@ trait IssuesService {
   private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition,
                                filterUser: Map[String, String], pullRequest: Boolean)(implicit s: Session) =
     Issues filter { t1 =>
-      condition.repo
-          .map { _.split('/') match { case array => Seq(array(0) -> array(1)) } }
-          .getOrElse (repos)
-          .map { case (owner, repository) => t1.byRepository(owner, repository) }
-          .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           === (condition.state == "closed").bind) &&
       (t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
@@ -354,7 +326,6 @@ object IssuesService {
       milestoneId: Option[Option[Int]] = None,
       author: Option[String] = None,
       assigned: Option[String] = None,
-      repo: Option[String] = None,
       state: String = "open",
       sort: String = "created",
       direction: String = "desc",
@@ -398,7 +369,6 @@ object IssuesService {
         }},
         author  .map(x => "author="   + urlEncode(x)),
         assigned.map(x => "assigned=" + urlEncode(x)),
-        repo.map("for="   + urlEncode(_)),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
         Some("direction=" + urlEncode(direction)),
@@ -444,7 +414,6 @@ object IssuesService {
         },
         conditions.get("author").flatMap(_.headOption),
         conditions.get("assignee").flatMap(_.headOption),
-        None, // TODO??
         conditions.get("is").getOrElse(Seq.empty).filter(x => x == "open" || x == "closed").headOption.getOrElse("open"),
         sort,
         direction,
@@ -465,7 +434,6 @@ object IssuesService {
         },
         param(request, "author"),
         param(request, "assigned"),
-        param(request, "for"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
