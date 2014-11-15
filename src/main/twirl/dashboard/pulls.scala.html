@@ -10,6 +10,7 @@
 @html.main("Pull Requests"){
   @dashboard.html.tab("pulls")
   <div class="container">
+    @issuesnavi(filter, "pulls", condition)
     @pullslist(issues, page, openCount, closedCount, condition, filter, groups)
   </div>
 }

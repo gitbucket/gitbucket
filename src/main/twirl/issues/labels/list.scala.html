@@ -6,7 +6,7 @@
 @import view.helpers._
 @html.main(s"Labels - ${repository.owner}/${repository.name}"){
   @html.menu("issues", repository){
-    @issues.html.tab("labels", hasWritePermission, repository)
+    @issues.html.navigation("labels", hasWritePermission, repository)
     <br>
     <table class="table table-bordered table-hover table-issues" id="new-label-table" style="display: none;">
       <tr><td></td></tr>

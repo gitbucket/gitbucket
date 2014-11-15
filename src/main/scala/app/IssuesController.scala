@@ -401,8 +401,7 @@ trait IssuesControllerBase extends ControllerBase {
           } else {
             IssueSearchCondition(q, getMilestones(owner, repoName).map(x => (x.title, x.milestoneId)).toMap)
           }
-        }
-        else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
+        } else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 
       issues.html.list(

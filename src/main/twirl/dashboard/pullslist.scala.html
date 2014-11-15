@@ -8,11 +8,31 @@
 @import context._
 @import view.helpers._
 @import service.IssuesService.IssueInfo
+@*
 <ul class="nav nav-pills-group pull-left fill-width">
   <li class="@if(filter == "created_by"){active} first"><a href="@path/dashboard/pulls/created_by@condition.toURL">Created</a></li>
   <li class="@if(filter == "assigned"){active}"><a href="@path/dashboard/pulls/assigned@condition.toURL">Assigned</a></li>
   <li class="@if(filter == "mentioned"){active} last"><a href="@path/dashboard/pulls/mentioned@condition.toURL">Mentioned</a></li>
+  <li class="pull-right">
+    <div class="input-prepend" style="margin-bottom: 0px;">
+      <div class="btn-group">
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" style="height: 34px;">
+          Filter
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="?q=is:open">Open issues and pull requests</a></li>
+          <li><a href="?q=is:open+is:issue+author:@urlEncode(loginAccount.get.userName)">Your issues</a></li>
+          <li><a href="?q=is:open+is:pr+author:@urlEncode(loginAccount.get.userName)">Your pull requests</a></li>
+          <li><a href="?q=is:open+assignee:@urlEncode(loginAccount.get.userName)">Everything assigned to you</a></li>
+          <li><a href="?q=is:open+mentions:@urlEncode(loginAccount.get.userName)">Everything mentioning you</a></li>
+        </ul>
+      </div>
+      <input type="text" id="search-filter-box" class="input-xlarge" name="q" style="height: 24px;" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+    </div>
+  </li>
 </ul>
+*@
 <table class="table table-bordered table-hover table-issues">
   <tr>
     <th style="background-color: #eee;">

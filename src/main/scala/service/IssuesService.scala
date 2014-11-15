@@ -326,6 +326,7 @@ object IssuesService {
       milestoneId: Option[Option[Int]] = None,
       author: Option[String] = None,
       assigned: Option[String] = None,
+      mentioned: Option[String] = None,
       state: String = "open",
       sort: String = "created",
       direction: String = "desc",
@@ -339,12 +340,14 @@ object IssuesService {
 
     def nonEmpty: Boolean = !isEmpty
 
-    def toFilterString: String =
-      (List(
+    def toFilterString: String = (
+      List(
         Some(s"is:${state}"),
         author.map(author => s"author:${author}"),
-        assigned.map(assignee => s"assignee:${assignee}")
-      ).flatten ++ labels.map(label => s"label:${label}") ++
+        assigned.map(assignee => s"assignee:${assignee}"),
+        mentioned.map(mentioned => s"mentions:${mentioned}")
+      ).flatten ++
+      labels.map(label => s"label:${label}") ++
       List(
         milestoneId.map { _ match {
           case Some(x) => s"milestone:${milestoneId}"
@@ -357,8 +360,11 @@ object IssuesService {
           case ("comments", "asc" ) => Some("sort:comments-asc")
           case ("updated" , "desc") => Some("sort:updated-desc")
           case ("updated" , "asc" ) => Some("sort:updated-asc")
-        }
-      ).flatten).mkString(" ")
+        },
+        visibility.map(visibility => s"visibility:${visibility}")
+      ).flatten ++
+      groups.map(group => s"group:${group}")
+    ).mkString(" ")
 
     def toURL: String =
       "?" + List(
@@ -410,15 +416,16 @@ object IssuesService {
         conditions.get("milestone").flatMap(_.headOption) match {
           case None         => None
           case Some("none") => Some(None)
-          case Some(x)      => Some(milestones.get(x))
+          case Some(x)      => milestones.get(x).map(x => Some(x))
         },
         conditions.get("author").flatMap(_.headOption),
         conditions.get("assignee").flatMap(_.headOption),
+        None,
         conditions.get("is").getOrElse(Seq.empty).filter(x => x == "open" || x == "closed").headOption.getOrElse("open"),
         sort,
         direction,
-        None, // TODO??
-        Set.empty // TODO??
+        conditions.get("visibility").flatMap(_.headOption),
+        conditions.get("group").map(_.toSet).getOrElse(Set.empty)
       )
     }
 
@@ -434,6 +441,7 @@ object IssuesService {
         },
         param(request, "author"),
         param(request, "assigned"),
+        None,
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
