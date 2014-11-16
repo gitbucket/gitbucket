@@ -47,9 +47,9 @@ trait IssuesService {
    * @param repos Tuple of the repository owner and the repository name
    * @return the count of the search result
    */
-  def countIssue(condition: IssueSearchCondition, filterUser: Map[String, String], onlyPullRequest: Boolean,
+  def countIssue(condition: IssueSearchCondition, onlyPullRequest: Boolean,
                  repos: (String, String)*)(implicit s: Session): Int =
-    Query(searchIssueQuery(repos, condition, filterUser, onlyPullRequest).length).first
+    Query(searchIssueQuery(repos, condition, onlyPullRequest).length).first
 
   /**
    * Returns the Map which contains issue count for each labels.
@@ -62,7 +62,7 @@ trait IssuesService {
   def countIssueGroupByLabels(owner: String, repository: String, condition: IssueSearchCondition,
                               filterUser: Map[String, String])(implicit s: Session): Map[String, Int] = {
 
-    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), filterUser, false)
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
       .innerJoin(IssueLabels).on { (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
@@ -82,19 +82,17 @@ trait IssuesService {
    * Returns the search result against  issues.
    *
    * @param condition the search condition
-   * @param filterUser the filter user name (key is "all", "assigned", "created_by", "not_created_by" or "mentioned", value is the user name)
    * @param pullRequest if true then returns only pull requests, false then returns only issues.
    * @param offset the offset for pagination
    * @param limit the limit for pagination
    * @param repos Tuple of the repository owner and the repository name
    * @return the search result (list of tuples which contain issue, labels and comment count)
    */
-  def searchIssue(condition: IssueSearchCondition, filterUser: Map[String, String], pullRequest: Boolean,
-                  offset: Int, limit: Int, repos: (String, String)*)
+  def searchIssue(condition: IssueSearchCondition, pullRequest: Boolean, offset: Int, limit: Int, repos: (String, String)*)
                  (implicit s: Session): List[IssueInfo] = {
 
     // get issues and comment count and labels
-    searchIssueQuery(repos, condition, filterUser, pullRequest)
+    searchIssueQuery(repos, condition, pullRequest)
         .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
         .sortBy { case (t1, t2) =>
           (condition.sort match {
@@ -135,15 +133,11 @@ trait IssuesService {
   /**
    * Assembles query for conditional issue searching.
    */
-  private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition,
-                               filterUser: Map[String, String], pullRequest: Boolean)(implicit s: Session) =
+  private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition, pullRequest: Boolean)(implicit s: Session) =
     Issues filter { t1 =>
       (t1.closed           === (condition.state == "closed").bind) &&
       (t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
-      (t1.assignedUserName === filterUser("assigned").bind, filterUser.get("assigned").isDefined) &&
-      (t1.openedUserName   === filterUser("created_by").bind, filterUser.get("created_by").isDefined) &&
-      (t1.openedUserName   =!= filterUser("not_created_by").bind, filterUser.get("not_created_by").isDefined) &&
       (t1.assignedUserName === condition.assigned.get.bind, condition.assigned.isDefined) &&
       (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
       (t1.pullRequest      === pullRequest.bind) &&
@@ -164,10 +158,10 @@ trait IssuesService {
       // Organization (group) filter
       (t1.userName inSetBind condition.groups, condition.groups.nonEmpty) &&
       // Mentioned filter
-      ((t1.openedUserName === filterUser("mentioned").bind) || t1.assignedUserName === filterUser("mentioned").bind ||
+      ((t1.openedUserName === condition.mentioned.get.bind) || t1.assignedUserName === condition.mentioned.get.bind ||
         (IssueComments filter { t2 =>
-          (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === filterUser("mentioned").bind)
-        } exists), filterUser.get("mentioned").isDefined)
+          (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) && (t2.commentedUserName === condition.mentioned.get.bind)
+        } exists), condition.mentioned.isDefined)
     }
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
@@ -373,8 +367,9 @@ object IssuesService {
           case Some(x) => "milestone=" + x
           case None    => "milestone=none"
         }},
-        author  .map(x => "author="   + urlEncode(x)),
-        assigned.map(x => "assigned=" + urlEncode(x)),
+        author   .map(x => "author="    + urlEncode(x)),
+        assigned .map(x => "assigned="  + urlEncode(x)),
+        mentioned.map(x => "mentioned=" + urlEncode(x)),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
         Some("direction=" + urlEncode(direction)),
@@ -420,7 +415,7 @@ object IssuesService {
         },
         conditions.get("author").flatMap(_.headOption),
         conditions.get("assignee").flatMap(_.headOption),
-        None,
+        conditions.get("mentions").flatMap(_.headOption),
         conditions.get("is").getOrElse(Seq.empty).filter(x => x == "open" || x == "closed").headOption.getOrElse("open"),
         sort,
         direction,
@@ -441,7 +436,7 @@ object IssuesService {
         },
         param(request, "author"),
         param(request, "assigned"),
-        None,
+        param(request, "mentioned"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),

@@ -406,13 +406,13 @@ trait IssuesControllerBase extends ControllerBase {
 
       issues.html.list(
           "issues",
-          searchIssue(condition, Map.empty, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           (getCollaborators(owner, repoName) :+ owner).sorted,
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"  ), Map.empty, false, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), Map.empty, false, owner -> repoName),
+          countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), false, owner -> repoName),
           condition,
           repository,
           hasWritePermission(owner, repoName, context.loginAccount))

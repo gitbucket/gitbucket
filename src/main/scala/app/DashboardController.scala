@@ -71,8 +71,8 @@ trait DashboardControllerBase extends ControllerBase {
     searchPullRequests("mentioned")
   })
 
-  private def getOrCreateCondition(key: String) = {
-    session.putAndGet(key, if(request.hasQueryString){
+  private def getOrCreateCondition(key: String, filter: String, userName: String) = {
+    val condition = session.putAndGet(key, if(request.hasQueryString){
       val q = request.getParameter("q")
       if(q == null){
         IssueSearchCondition(request)
@@ -80,22 +80,27 @@ trait DashboardControllerBase extends ControllerBase {
         IssueSearchCondition(q, Map[String, Int]())
       }
     } else session.getAs[IssueSearchCondition](key).getOrElse(IssueSearchCondition()))
+
+    filter match {
+      case "assigned"  => condition.copy(assigned = Some(userName), author = None          , mentioned = None)
+      case "mentioned" => condition.copy(assigned = None          , author = None          , mentioned = Some(userName))
+      case _           => condition.copy(assigned = None          , author = Some(userName), mentioned = None)
+    }
   }
 
   private def searchIssues(filter: String) = {
     import IssuesService._
 
-    val condition  = getOrCreateCondition(Keys.Session.DashboardIssues)
-    val userName   = context.loginAccount.get.userName
-    val userRepos  = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
-    val filterUser = Map(filter -> userName)
-    val page = IssueSearchCondition.page(request)
+    val userName  = context.loginAccount.get.userName
+    val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
+    val userRepos = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
+    val page      = IssueSearchCondition.page(request)
 
     dashboard.html.issues(
-      searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
+      searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
       page,
-      countIssue(condition.copy(state = "open"  ), filterUser, false, userRepos: _*),
-      countIssue(condition.copy(state = "closed"), filterUser, false, userRepos: _*),
+      countIssue(condition.copy(state = "open"  ), false, userRepos: _*),
+      countIssue(condition.copy(state = "closed"), false, userRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned  = Some(userName))
         case "mentioned" => condition.copy(mentioned = Some(userName))
@@ -109,17 +114,16 @@ trait DashboardControllerBase extends ControllerBase {
     import IssuesService._
     import PullRequestService._
 
-    val condition  = getOrCreateCondition(Keys.Session.DashboardPulls)
-    val userName   = context.loginAccount.get.userName
-    val allRepos   = getAllRepositories(userName)
-    val filterUser = Map(filter -> userName)
-    val page = IssueSearchCondition.page(request)
+    val userName  = context.loginAccount.get.userName
+    val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
+    val allRepos  = getAllRepositories(userName)
+    val page      = IssueSearchCondition.page(request)
 
     dashboard.html.pulls(
-      searchIssue(condition, filterUser, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
+      searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
       page,
-      countIssue(condition.copy(state = "open"  ), filterUser, true, allRepos: _*),
-      countIssue(condition.copy(state = "closed"), filterUser, true, allRepos: _*),
+      countIssue(condition.copy(state = "open"  ), true, allRepos: _*),
+      countIssue(condition.copy(state = "closed"), true, allRepos: _*),
       filter match {
         case "assigned"  => condition.copy(assigned  = Some(userName))
         case "mentioned" => condition.copy(mentioned = Some(userName))

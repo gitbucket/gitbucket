@@ -15,7 +15,7 @@
   </li>
   <li class="pull-right">
     <form method="GET" id="search-filter-form" action="@path/dashboard/@active" style="margin-bottom: 0px;">
-      <input type="text" id="search-filter-box" class="input-xlarge" name="q" style="height: 24px;"
+      <input type="text" id="search-filter-box" class="input-xlarge" name="q" style="height: 24px; width: 400px;"
              value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
     </form>
   </li>
