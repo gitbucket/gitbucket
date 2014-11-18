@@ -135,6 +135,9 @@ trait IssuesService {
    */
   private def searchIssueQuery(repos: Seq[(String, String)], condition: IssueSearchCondition, pullRequest: Boolean)(implicit s: Session) =
     Issues filter { t1 =>
+      repos
+        .map { case (owner, repository) => t1.byRepository(owner, repository) }
+        .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           === (condition.state == "closed").bind) &&
       (t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
       (t1.milestoneId.?    isEmpty, condition.milestoneId == Some(None)) &&
