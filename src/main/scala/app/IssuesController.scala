@@ -9,7 +9,6 @@ import util.Implicits._
 import util.ControlUtil._
 import org.scalatra.Ok
 import model.Issue
-import plugin.PluginSystem
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
@@ -50,7 +49,12 @@ trait IssuesControllerBase extends ControllerBase {
     )(IssueStateForm.apply)
 
   get("/:owner/:repository/issues")(referrersOnly { repository =>
-    searchIssues(repository)
+    val q = request.getParameter("q")
+    if(Option(q).exists(_.contains("is:pr"))){
+      redirect(s"/${repository.owner}/${repository.name}/pulls?q=" + StringUtil.urlEncode(q))
+    } else {
+      searchIssues(repository)
+    }
   })
 
   get("/:owner/:repository/issues/:id")(referrersOnly { repository =>
@@ -195,7 +199,7 @@ trait IssuesControllerBase extends ControllerBase {
           org.json4s.jackson.Serialization.write(
               Map("title"   -> x.title,
                   "content" -> view.Markdown.toHtml(x.content getOrElse "No description given.",
-                      repository, false, true)
+                      repository, false, true, true, isEditable(x.userName, x.repositoryName, x.openedUserName))
               ))
         }
       } else Unauthorized
@@ -212,7 +216,7 @@ trait IssuesControllerBase extends ControllerBase {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
               Map("content" -> view.Markdown.toHtml(x.content,
-                  repository, false, true)
+                  repository, false, true, true, isEditable(x.userName, x.repositoryName, x.commentedUserName))
               ))
         }
       } else Unauthorized
@@ -390,19 +394,25 @@ trait IssuesControllerBase extends ControllerBase {
 
       // retrieve search condition
       val condition = session.putAndGet(sessionKey,
-        if(request.hasQueryString) IssueSearchCondition(request)
-        else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
+        if(request.hasQueryString){
+          val q = request.getParameter("q")
+          if(q == null){
+            IssueSearchCondition(request)
+          } else {
+            IssueSearchCondition(q, getMilestones(owner, repoName).map(x => (x.title, x.milestoneId)).toMap)
+          }
+        } else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 
       issues.html.list(
           "issues",
-          searchIssue(condition, Map.empty, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           (getCollaborators(owner, repoName) :+ owner).sorted,
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"  ), Map.empty, false, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), Map.empty, false, owner -> repoName),
+          countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), false, owner -> repoName),
           condition,
           repository,
           hasWritePermission(owner, repoName, context.loginAccount))

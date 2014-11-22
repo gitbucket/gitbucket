@@ -54,7 +54,6 @@ trait RepositoryService { self: AccountService =>
         val labels        = Labels       .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueComments = IssueComments.filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueLabels   = IssueLabels  .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val activities    = Activities   .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val collaborators = Collaborators.filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
@@ -69,11 +68,18 @@ trait RepositoryService { self: AccountService =>
           t.requestRepositoryName === oldRepositoryName.bind
         }.map { t => t.requestUserName -> t.requestRepositoryName }.update(newUserName, newRepositoryName)
 
+        // Updates activity fk before deleting repository because activity is sorted by activityId
+        // and it can't be changed by deleting-and-inserting record.
+        Activities.filter(_.byRepository(oldUserName, oldRepositoryName)).list.foreach { activity =>
+          Activities.filter(_.activityId === activity.activityId.bind)
+            .map(x => (x.userName, x.repositoryName)).update(newUserName, newRepositoryName)
+        }
+
         deleteRepository(oldUserName, oldRepositoryName)
 
-        WebHooks      .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Milestones    .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        IssueId       .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
+        WebHooks  .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Milestones.insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        IssueId   .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
 
         val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
         Issues.insertAll(issues.map { x => x.copy(
@@ -88,7 +94,7 @@ trait RepositoryService { self: AccountService =>
         IssueComments .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueLabels   .insertAll(issueLabels   .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Activities    .insertAll(activities    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+
         if(account.isGroupAccount){
           Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
         } else {
@@ -96,12 +102,9 @@ trait RepositoryService { self: AccountService =>
         }
 
         // Update activity messages
-        val updateActivities = Activities.filter { t =>
-          (t.message like s"%:${oldUserName}/${oldRepositoryName}]%") ||
-          (t.message like s"%:${oldUserName}/${oldRepositoryName}#%")
-        }.map { t => t.activityId -> t.message }.list
-
-        updateActivities.foreach { case (activityId, message) =>
+        Activities.filter { t =>
+          (t.message like s"%:${oldUserName}/${oldRepositoryName}]%") || (t.message like s"%:${oldUserName}/${oldRepositoryName}#%")
+        }.map { t => t.activityId -> t.message }.list.foreach { case (activityId, message) =>
           Activities.filter(_.activityId === activityId.bind).map(_.message).update(
             message
               .replace(s"[repo:${oldUserName}/${oldRepositoryName}]"   ,s"[repo:${newUserName}/${newRepositoryName}]")

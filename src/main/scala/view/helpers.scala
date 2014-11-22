@@ -1,5 +1,5 @@
 package view
-import java.util.{Date, TimeZone}
+import java.util.{Locale, Date, TimeZone}
 import java.text.SimpleDateFormat
 import play.twirl.api.Html
 import util.StringUtil
@@ -14,6 +14,47 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Format java.util.Date to "yyyy-MM-dd HH:mm:ss".
    */
   def datetime(date: Date): String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date)
+
+  val timeUnits = List(
+    (1000L, "second"),
+    (1000L * 60, "minute"),
+    (1000L * 60 * 60, "hour"),
+    (1000L * 60 * 60 * 24, "day"),
+    (1000L * 60 * 60 * 24 * 30, "month"),
+    (1000L * 60 * 60 * 24 * 365, "year")
+  ).reverse
+
+  /**
+   * Format java.util.Date to "x {seconds/minutes/hours/days/months/years} ago"
+   */
+  def datetimeAgo(date: Date): String = {
+    val duration = new Date().getTime - date.getTime
+    timeUnits.find(tuple => duration / tuple._1 > 0) match {
+      case Some((unitValue, unitString)) =>
+        val value = duration / unitValue
+        s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
+      case None => "just now"
+    }
+  }
+
+  /**
+   *
+   * Format java.util.Date to "x {seconds/minutes/hours/days} ago"
+   * If duration over 1 month, format to "d MMM (yyyy)"
+   *
+   */
+  def datetimeAgoRecentOnly(date: Date): String = {
+    val duration = new Date().getTime - date.getTime
+    timeUnits.find(tuple => duration / tuple._1 > 0) match {
+      case Some((_, "month")) => s"on ${new SimpleDateFormat("d MMM", Locale.ENGLISH).format(date)}"
+      case Some((_, "year")) => s"on ${new SimpleDateFormat("d MMM yyyy", Locale.ENGLISH).format(date)}"
+      case Some((unitValue, unitString)) =>
+        val value = duration / unitValue
+        s"${value} ${unitString}${if (value > 1) "s" else ""} ago"
+      case None => "just now"
+    }
+  }
+
 
   /**
    * Format java.util.Date to "yyyy-MM-dd'T'hh:mm:ss'Z'".
@@ -48,8 +89,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String, repository: service.RepositoryService.RepositoryInfo,
-               enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
-    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink))
+               enableWikiLink: Boolean, enableRefsLink: Boolean, enableTaskList: Boolean = false, hasWritePermission: Boolean = false)(implicit context: app.Context): Html =
+    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission))
 
   def renderMarkup(filePath: List[String], fileContent: String, branch: String,
                    repository: service.RepositoryService.RepositoryInfo,

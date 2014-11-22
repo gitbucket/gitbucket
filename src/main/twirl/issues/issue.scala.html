@@ -28,7 +28,7 @@
           <span class="label label-success issue-status">Open</span>
         }
         <span class="muted">
-          @user(issue.openedUserName, styleClass="username strong") opened this issue on @datetime(issue.registeredDate) - @defining(
+          @user(issue.openedUserName, styleClass="username strong") opened this issue @helper.html.datetimeago(issue.registeredDate) - @defining(
             comments.filter( _.action.contains("comment") ).size
           ){ count =>
             @count @plural(count, "comment")

@@ -168,6 +168,11 @@ trait AccountService {
     Repositories.filter(_.userName === userName.bind).delete
   }
 
+  def getGroupNames(userName: String)(implicit s: Session): List[String] = {
+    List(userName) ++
+      Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list
+  }
+
 }
 
 object AccountService extends AccountService

@@ -6,8 +6,8 @@
 @import view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @html.menu("issues", repository){
-    @issues.html.tab("milestones", hasWritePermission, repository)
-    &nbsp;
+    @issues.html.navigation("milestones", hasWritePermission, repository)
+    <br>
     <table class="table table-bordered table-hover table-issues">
       <tr>
         <th style="background-color: #eee;">
@@ -34,7 +34,7 @@
                 <a href="@url(repository)/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a>
                 <div style="margin-top: 6px">
                   @if(milestone.closedDate.isDefined){
-                    <span class="muted">Closed @datetime(milestone.closedDate.get)</span>
+                    <span class="muted">Closed @helper.html.datetimeago(milestone.closedDate.get)</span>
                   } else {
                     @milestone.dueDate.map { dueDate =>
                       @if(isPast(dueDate)){

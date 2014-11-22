@@ -22,7 +22,7 @@
             }
           </td>
           <td>
-            @datetime(latestUpdateDate)
+            @helper.html.datetimeago(latestUpdateDate, false)
           </td>
           <td>
             @if(repository.repository.defaultBranch == branchName){

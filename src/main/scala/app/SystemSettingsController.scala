@@ -21,6 +21,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
   private val form = mapping(
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),
+    "information"              -> trim(label("Information", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),

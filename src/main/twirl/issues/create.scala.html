@@ -7,7 +7,7 @@
 @import view.helpers._
 @html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
-    @tab("issues", false, repository)
+    @navigation("issues", false, repository)
     <br/><br/><hr style="margin-bottom: 10px;">
     <form action="@url(repository)/issues/new" method="POST" validate="true">
     <div class="row-fluid">
@@ -57,7 +57,7 @@
               </div>
             </div>
             <hr>
-            @helper.html.preview(repository, "", false, true, "width: 565px; height: 200px; max-height: 250px;", elastic = true)
+            @helper.html.preview(repository, "", false, true, true, hasWritePermission, "width: 565px; height: 200px; max-height: 250px;", elastic = true)
           </div>
         </div>
         <div class="pull-right">
