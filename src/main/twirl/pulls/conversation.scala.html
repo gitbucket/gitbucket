@@ -48,8 +48,9 @@
             <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
           </div>
         </div>
+        }
+        @issues.html.commentform(issue, !merged, hasWritePermission, repository)
       }
-      @issues.html.commentform(issue, !merged, hasWritePermission, repository)
   </div>
   <div class="span2">
     @issues.html.issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
