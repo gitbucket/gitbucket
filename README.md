@@ -80,6 +80,11 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.6 - COMING SOON!
+- Search box at issues and pull requests
+- Information from administrator
+- Some bug fix and improvements
+
 ### 2.5 - 4 Nov 2014
 - New Dashboard
 - Change datetime format
