@@ -68,7 +68,7 @@
       @if(pullreq.get.requestUserName == repository.owner){
         <span class="label label-info monospace">@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span>
       } else {
-        <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> to <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
+        <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
       }
       @helper.html.datetimeago(comment.registeredDate)
     </div>
