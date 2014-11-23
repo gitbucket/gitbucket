@@ -83,6 +83,8 @@ Release Notes
 ### 2.6 - COMING SOON!
 - Search box at issues and pull requests
 - Information from administrator
+- Pull request UI has been updated
+- Move to TravisCI from Buildhive
 - Some bug fix and improvements
 
 ### 2.5 - 4 Nov 2014
