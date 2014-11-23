@@ -80,7 +80,7 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
-### 2.6 - COMING SOON!
+### 2.6 - 24 Nov 2014
 - Search box at issues and pull requests
 - Information from administrator
 - Pull request UI has been updated
