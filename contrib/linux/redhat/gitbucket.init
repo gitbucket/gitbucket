@@ -1,0 +1,108 @@
+#!/bin/bash
+#
+# RedHat: /etc/rc.d/init.d/gitbucket
+#
+# Starts the GitBucket server
+#
+# chkconfig: 345 60 40
+# description: Run GitBucket server
+# processname: java
+
+[ -f /etc/rc.d/init.d/functions ] && source /etc/rc.d/init.d/functions  # RedHat
+
+# Default values
+GITBUCKET_HOME=/var/lib/gitbucket
+GITBUCKET_WAR_FILE=/usr/share/gitbucket/lib/gitbucket.war
+
+# Pull in cq settings
+[ -f /etc/sysconfig/gitbucket ] && source /etc/sysconfig/gitbucket # RedHat
+[ -f gitbucket.conf ] && source gitbucket.conf  # For all systems
+
+# Location of the log and PID file
+LOG_FILE=$GITBUCKET_LOG_DIR/run.log
+
+RED='\033[1m\E[37;41m'
+GREEN='\033[1m\E[37;42m'
+OFF='\E[0m'
+
+RETVAL=0
+
+start() {
+	echo -n $"Starting GitBucket server: "
+
+  START_OPTS=
+	if [ $GITBUCKET_PORT ]; then
+		START_OPTS="${START_OPTS} --port=${GITBUCKET_PORT}"
+	fi
+	if [ $GITBUCKET_PREFIX ]; then
+		START_OPTS="${START_OPTS} --prefix=${GITBUCKET_PREFIX}"
+	fi
+	if [ $GITBUCKET_HOST ]; then
+		START_OPTS="${START_OPTS} --host=${GITBUCKET_HOST}"
+	fi
+
+	GITBUCKET_HOME="${GITBUCKET_HOME}" daemon --user=gitbucket java $GITBUCKET_JVM_OPTS -jar $GITBUCKET_WAR_FILE $START_OPTS >>$LOG_FILE 2>&1 &
+  sleep 3
+  pgrep -f $GITBUCKET_WAR_FILE >> $LOG_FILE 2>&1
+  RETVAL=$?
+
+	if [ $RETVAL -eq 0 ] ; then
+		success "Success"
+	else
+		failure "Exit code $RETVAL"
+	fi
+
+	echo
+	return $RETVAL
+}
+
+
+stop() {
+	echo -n $"Stopping GitBucket server: "
+
+	# Run the Java process
+	pkill -f $GITBUCKET_WAR_FILE >>$LOG_FILE 2>&1
+	RETVAL=$?
+
+	if [ $RETVAL -eq 0 ] ; then
+		success "GitBucket stopping"
+	else
+		failure "GitBucket stopping"
+	fi
+
+	echo
+	return $RETVAL
+}
+
+
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		restart
+		;;
+	status)
+    pgrep -f $GITBUCKET_WAR_FILE >> $LOG_FILE 2>&1
+		RETVAL=$?
+    if [ $RETVAL -eq 0 ]; then
+      echo $"GitBucket is running...."
+    else
+      echo $"GitBucket is stopped"
+    fi
+		;;
+	*)
+		echo $"Usage: $0 [start|stop|restart|status]"
+		RETVAL=2
+esac
+
+exit $RETVAL
+
