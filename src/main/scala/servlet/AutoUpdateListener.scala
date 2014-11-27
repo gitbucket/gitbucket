@@ -53,7 +53,21 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
-    new Version(2, 7),
+    new Version(2, 7) {
+      override def update(conn: Connection): Unit = {
+        super.update(conn)
+        using(conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")){ rs =>
+          while(rs.next){
+            defining(Directory.getAttachedDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))){ newDir =>
+              val oldDir = new File(newDir.getParentFile, "issues")
+              if(oldDir.exists && oldDir.isDirectory){
+                oldDir.renameTo(newDir)
+              }
+            }
+          }
+        }
+      }
+    },
     new Version(2, 6),
     new Version(2, 5),
     new Version(2, 4),

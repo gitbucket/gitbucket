@@ -48,7 +48,7 @@ object Directory {
    * Directory for files which are attached to issue.
    */
   def getAttachedDir(owner: String, repository: String): File =
-    new File(s"${RepositoryHome}/${owner}/${repository}/issues")
+    new File(s"${RepositoryHome}/${owner}/${repository}/comments")
 
   /**
    * Directory for uploaded files by the specified user.
