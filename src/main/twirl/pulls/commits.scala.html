@@ -1,4 +1,5 @@
 @(commits: Seq[Seq[util.JGitUtil.CommitInfo]],
+  comments: Option[List[model.Comment]] = None,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -15,6 +16,14 @@
             @user(commit.authorName, commit.authorEmailAddress, "username")
           </td>
           <td>@commit.shortMessage</td>
+          <td style="width: 10%; text-align: right">
+            <span class="badge" style="display: inline">@if(comments.isDefined){
+              @comments.get.flatMap @{
+                 case comment: model.CommitComment => Some(comment)
+                 case other => None
+              }.filter(_.commitId == commit.id).size
+            }</span>
+          </td>
           <td style="width: 10%; text-align: right;">
             <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
           </td>

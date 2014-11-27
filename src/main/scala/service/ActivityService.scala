@@ -95,6 +95,15 @@ trait ActivityService {
       Some(cut(comment, 200)),
       currentDate)
 
+  def recordCommentCommitActivity(userName: String, repositoryName: String, activityUserName: String, commitId: String, comment: String)
+                                 (implicit s: Session): Unit =
+    Activities insert Activity(userName, repositoryName, activityUserName,
+      "comment_commit",
+      s"[user:${activityUserName}] commented on commit [commit:${userName}/${repositoryName}@${commitId}]",
+      Some(cut(comment, 200)),
+      currentDate
+    )
+
   def recordCreateWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String)
                                   (implicit s: Session): Unit =
     Activities insert Activity(userName, repositoryName, activityUserName,

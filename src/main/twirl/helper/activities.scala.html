@@ -10,6 +10,7 @@
       @(activity.activityType match {
         case "open_issue"        => detailActivity(activity, "activity-issue.png")
         case "comment_issue"     => detailActivity(activity, "activity-comment.png")
+        case "comment_commit"    => detailActivity(activity, "activity-comment.png")
         case "close_issue"       => detailActivity(activity, "activity-issue-close.png")
         case "reopen_issue"      => detailActivity(activity, "activity-issue-reopen.png")
         case "open_pullreq"      => detailActivity(activity, "activity-merge.png")
