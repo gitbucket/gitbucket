@@ -47,7 +47,17 @@
         type: 'POST',
         data: param
       }).done(function(data) {
-        $form.closest('tr').removeClass('inline-comment-form').find('td').html('<td colspan="3"></td>').html(data);
+        var tmp;
+        if (window.viewType == 0) {
+          tmp = '@(oldLineNumber, newLineNumber) match {
+            case (Some(_), None) => {<td colspan="2" class="comment-box-container"></td><td colspan="2"></td>}
+            case (None, Some(_)) => {<td colspan="2"></td><td colspan="2" class="comment-box-container"></td>}
+            case _ => {<td colspan="3" class="comment-box-container"></td>}
+          }'
+        } else {
+          tmp = '<td colspan="3" class="comment-box-container"></td>'
+        }
+        $form.closest('tr').removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
         $('#comment-list').append(data);
         if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
           $('#comment-list').children('.inline-comment').hide();
