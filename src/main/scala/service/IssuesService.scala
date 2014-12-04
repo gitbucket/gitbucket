@@ -263,6 +263,7 @@ trait IssuesService {
 
     // Search Issue
     val issues = Issues
+      .filter(_.byRepository(owner, repository))
       .innerJoin(IssueOutline).on { case (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }
@@ -278,6 +279,7 @@ trait IssuesService {
 
     // Search IssueComment
     val comments = IssueComments
+      .filter(_.byRepository(owner, repository))
       .innerJoin(Issues).on { case (t1, t2) =>
         t1.byIssue(t2.userName, t2.repositoryName, t2.issueId)
       }

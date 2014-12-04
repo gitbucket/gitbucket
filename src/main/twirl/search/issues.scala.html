@@ -16,7 +16,7 @@
     @issues.drop((page - 1) * IssueLimit).take(IssueLimit).map { issue =>
       <div class="block">
         <div class="pull-right muted">#@issue.issueId</div>
-        <h4 style="margin-top: 0px;"><a href="@url(repository)/issues/@issue.issueId">@issue.title</a></h4>
+        <h4 style="margin-top: 0px;"><a href="@url(repository)/@if(issue.isPullRequest){pull} else {issues}/@issue.issueId">@issue.title</a></h4>
         @if(issue.highlightText.nonEmpty){
           <pre>@Html(issue.highlightText)</pre>
         }

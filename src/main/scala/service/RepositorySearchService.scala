@@ -20,6 +20,7 @@ trait RepositorySearchService { self: IssuesService =>
     searchIssuesByKeyword(owner, repository, query).map { case (issue, commentCount, content) =>
       IssueSearchResult(
         issue.issueId,
+        issue.isPullRequest,
         issue.title,
         issue.openedUserName,
         issue.registeredDate,
@@ -111,6 +112,7 @@ object RepositorySearchService {
 
   case class IssueSearchResult(
     issueId: Int,
+    isPullRequest: Boolean,
     title: String,
     openedUserName: String,
     registeredDate: java.util.Date,
