@@ -160,10 +160,10 @@ trait ActivityService {
       None,
       currentDate)
 
-  def recordForkActivity(userName: String, repositoryName: String, activityUserName: String)(implicit s: Session): Unit =
+  def recordForkActivity(userName: String, repositoryName: String, activityUserName: String, forkedUserName: String)(implicit s: Session): Unit = 
     Activities insert Activity(userName, repositoryName, activityUserName,
       "fork",
-      s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${activityUserName}/${repositoryName}]",
+      s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${forkedUserName}/${repositoryName}]",
       None,
       currentDate)
 
