@@ -78,6 +78,16 @@ diffview = {
 			e.appendChild(document.createTextNode(text));
 			return e;
 		}
+
+		function addButton (e) {
+		    var b = document.createElement("b");
+		    b.appendChild(document.createTextNode("+"));
+		    b.style.display = "none";
+		    b.className = "add-comment";
+		    e.appendChild(b);
+		    e.style.position = "relative";
+		    return e;
+		}
 	
 		var tdata = document.createElement("thead");
 		var node = document.createElement("tr");
@@ -119,8 +129,8 @@ diffview = {
 		}
 		
 		function addCellsInline (row, tidx, tidx2, textLines, change) {
-			row.appendChild(telt("th", tidx == null ? "" : (tidx + 1).toString()));
-			row.appendChild(telt("th", tidx2 == null ? "" : (tidx2 + 1).toString()));
+			row.appendChild(ctelt("th", "oldline", tidx == null ? "" : (tidx + 1).toString()));
+			row.appendChild(addButton(ctelt("th", "newline", tidx2 == null ? "" : (tidx2 + 1).toString())));
 			row.appendChild(ctelt("td", change, textLines[tidx != null ? tidx : tidx2].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0")));
 		}
 		
@@ -173,8 +183,13 @@ diffview = {
 						addCellsInline(node, b++, n++, baseTextLines, change);
 					}
 				} else {
-					b = addCells(node, b, be, baseTextLines, change);
-					n = addCells(node, n, ne, newTextLines, change);
+				    var changeBase = change, changeNew = change;
+					if (change === "replace") {
+						if (b < be) changeBase = "delete";
+						if (n < ne) changeNew = "insert";
+					}
+					b = addCells(node, b, be, baseTextLines, changeBase);
+					n = addCells(node, n, ne, newTextLines, changeNew);
 				}
 			}
 

@@ -9,7 +9,6 @@ import util.Implicits._
 import util.ControlUtil._
 import org.scalatra.Ok
 import model.Issue
-import plugin.PluginSystem
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
@@ -21,7 +20,6 @@ trait IssuesControllerBase extends ControllerBase {
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
-  case class IssueEditForm(title: String, content: Option[String])
   case class CommentForm(issueId: Int, content: String)
   case class IssueStateForm(issueId: Int, content: Option[String])
 
@@ -33,10 +31,12 @@ trait IssuesControllerBase extends ControllerBase {
       "labelNames"       -> trim(optional(text()))
     )(IssueCreateForm.apply)
 
+  val issueTitleEditForm = mapping(
+    "title" -> trim(label("Title", text(required)))
+    )(x => x)
   val issueEditForm = mapping(
-      "title"   -> trim(label("Title", text(required))),
-      "content" -> trim(optional(text()))
-    )(IssueEditForm.apply)
+    "content" -> trim(optional(text()))
+    )(x => x)
 
   val commentForm = mapping(
       "issueId" -> label("Issue Id", number()),
@@ -48,16 +48,13 @@ trait IssuesControllerBase extends ControllerBase {
       "content" -> trim(optional(text()))
     )(IssueStateForm.apply)
 
-  get("/:owner/:repository/issues")(referrersOnly {
-    searchIssues("all", _)
-  })
-
-  get("/:owner/:repository/issues/assigned/:userName")(referrersOnly {
-    searchIssues("assigned", _)
-  })
-
-  get("/:owner/:repository/issues/created_by/:userName")(referrersOnly {
-    searchIssues("created_by", _)
+  get("/:owner/:repository/issues")(referrersOnly { repository =>
+    val q = request.getParameter("q")
+    if(Option(q).exists(_.contains("is:pr"))){
+      redirect(s"/${repository.owner}/${repository.name}/pulls?q=" + StringUtil.urlEncode(q))
+    } else {
+      searchIssues(repository)
+    }
   })
 
   get("/:owner/:repository/issues/:id")(referrersOnly { repository =>
@@ -126,14 +123,29 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/issues/edit_title/:id", issueTitleEditForm)(readableUsersOnly { (title, repository) =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       getIssue(owner, name, params("id")).map { issue =>
         if(isEditable(owner, name, issue.openedUserName)){
           // update issue
-          updateIssue(owner, name, issue.issueId, form.title, form.content)
+          updateIssue(owner, name, issue.issueId, title, issue.content)
           // extract references and create refer comment
-          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+          createReferComment(owner, name, issue.copy(title = title), title)
+
+          redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
+        } else Unauthorized
+      } getOrElse NotFound
+    }
+  })
+
+  ajaxPost("/:owner/:repository/issues/edit/:id", issueEditForm)(readableUsersOnly { (content, repository) =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      getIssue(owner, name, params("id")).map { issue =>
+        if(isEditable(owner, name, issue.openedUserName)){
+          // update issue
+          updateIssue(owner, name, issue.issueId, issue.title, content)
+          // extract references and create refer comment
+          createReferComment(owner, name, issue, content.getOrElse(""))
 
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
         } else Unauthorized
@@ -181,13 +193,13 @@ trait IssuesControllerBase extends ControllerBase {
       if(isEditable(x.userName, x.repositoryName, x.openedUserName)){
         params.get("dataType") collect {
           case t if t == "html" => issues.html.editissue(
-              x.title, x.content, x.issueId, x.userName, x.repositoryName)
+              x.content, x.issueId, x.userName, x.repositoryName)
         } getOrElse {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
               Map("title"   -> x.title,
                   "content" -> view.Markdown.toHtml(x.content getOrElse "No description given.",
-                      repository, false, true)
+                      repository, false, true, true, isEditable(x.userName, x.repositoryName, x.openedUserName))
               ))
         }
       } else Unauthorized
@@ -204,7 +216,7 @@ trait IssuesControllerBase extends ControllerBase {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
               Map("content" -> view.Markdown.toHtml(x.content,
-                  repository, false, true)
+                  repository, false, true, true, isEditable(x.userName, x.repositoryName, x.commentedUserName))
               ))
         }
       } else Unauthorized
@@ -235,15 +247,17 @@ trait IssuesControllerBase extends ControllerBase {
     milestoneId("milestoneId").map { milestoneId =>
       getMilestonesWithIssueCount(repository.owner, repository.name)
           .find(_._1.milestoneId == milestoneId).map { case (_, openCount, closeCount) =>
-        issues.milestones.html.progress(openCount + closeCount, closeCount, false)
+        issues.milestones.html.progress(openCount + closeCount, closeCount)
       } getOrElse NotFound
     } getOrElse Ok()
   })
 
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
     defining(params.get("value")){ action =>
-      executeBatch(repository) {
-        handleComment(_, None, repository)( _ => action)
+      action match {
+        case Some("open")  => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("reopen")) }
+        case Some("close") => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("close"))  }
+        case _ => // TODO BadRequest
       }
     }
   })
@@ -293,7 +307,10 @@ trait IssuesControllerBase extends ControllerBase {
 
   private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
     params("checked").split(',') map(_.toInt) foreach execute
-    redirect(s"/${repository.owner}/${repository.name}/issues")
+    params("from") match {
+      case "issues" => redirect(s"/${repository.owner}/${repository.name}/issues")
+      case "pulls"  => redirect(s"/${repository.owner}/${repository.name}/pulls")
+    }
   }
 
   private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
@@ -319,15 +336,15 @@ trait IssuesControllerBase extends ControllerBase {
         val (action, recordActivity) =
           getAction(issue)
             .collect {
-            case "close"  => true  -> (Some("close")  ->
-              Some(if(issue.isPullRequest) recordClosePullRequestActivity _ else recordCloseIssueActivity _))
-            case "reopen" => false -> (Some("reopen") ->
-              Some(recordReopenIssueActivity _))
-          }
+              case "close" if(!issue.closed) => true  ->
+                (Some("close")  -> Some(if(issue.isPullRequest) recordClosePullRequestActivity _ else recordCloseIssueActivity _))
+              case "reopen" if(issue.closed) => false ->
+                (Some("reopen") -> Some(recordReopenIssueActivity _))
+            }
             .map { case (closed, t) =>
-            updateClosed(owner, name, issueId, closed)
-            t
-          }
+              updateClosed(owner, name, issueId, closed)
+              t
+            }
             .getOrElse(None -> None)
 
         val commentId = content
@@ -337,7 +354,7 @@ trait IssuesControllerBase extends ControllerBase {
           case (content, action) => createComment(owner, name, userName, issueId, content, action)
         }
 
-        // record activity
+        // record comment activity if comment is entered
         content foreach {
           (if(issue.isPullRequest) recordCommentPullRequestActivity _ else recordCommentIssueActivity _)
           (owner, name, userName, issueId, _)
@@ -370,32 +387,33 @@ trait IssuesControllerBase extends ControllerBase {
     }
   }
 
-  private def searchIssues(filter: String, repository: RepositoryService.RepositoryInfo) = {
+  private def searchIssues(repository: RepositoryService.RepositoryInfo) = {
     defining(repository.owner, repository.name){ case (owner, repoName) =>
-      val filterUser = Map(filter -> params.getOrElse("userName", ""))
       val page       = IssueSearchCondition.page(request)
       val sessionKey = Keys.Session.Issues(owner, repoName)
 
       // retrieve search condition
       val condition = session.putAndGet(sessionKey,
-        if(request.hasQueryString) IssueSearchCondition(request)
-        else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
+        if(request.hasQueryString){
+          val q = request.getParameter("q")
+          if(q == null){
+            IssueSearchCondition(request)
+          } else {
+            IssueSearchCondition(q, getMilestones(owner, repoName).map(x => (x.title, x.milestoneId)).toMap)
+          }
+        } else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 
       issues.html.list(
-          searchIssue(condition, filterUser, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
+          "issues",
+          searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
           (getCollaborators(owner, repoName) :+ owner).sorted,
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
-          countIssue(condition.copy(state = "open"), filterUser, false, owner -> repoName),
-          countIssue(condition.copy(state = "closed"), filterUser, false, owner -> repoName),
-          countIssue(condition, Map.empty, false, owner -> repoName),
-          context.loginAccount.map(x => countIssue(condition, Map("assigned" -> x.userName), false, owner -> repoName)),
-          context.loginAccount.map(x => countIssue(condition, Map("created_by" -> x.userName), false, owner -> repoName)),
-          countIssueGroupByLabels(owner, repoName, condition, filterUser),
+          countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
+          countIssue(condition.copy(state = "closed"), false, owner -> repoName),
           condition,
-          filter,
           repository,
           hasWritePermission(owner, repoName, context.loginAccount))
     }

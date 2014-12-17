@@ -4,13 +4,23 @@
 @import context._
 @import view.helpers._
 @main("GitBucket"){
+  @dashboard.html.tab()
   <div class="container">
-    @dashboard.html.tab()
     <div class="row-fluid">
       <div class="span8">
+        <div class="pull-right">
+          <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
+        </div>
         @helper.html.activities(activities)
       </div>
+
       <div class="span4">
+        @settings.information.map { information =>
+          <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @Html(information)
+          </div>
+        }
         @if(loginAccount.isEmpty){
           @signinform(settings)
         } else {

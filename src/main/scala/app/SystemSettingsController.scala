@@ -21,6 +21,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
   private val form = mapping(
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),
+    "information"              -> trim(label("Information", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
@@ -85,41 +86,55 @@ trait SystemSettingsControllerBase extends ControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    val installedPlugins = plugin.PluginSystem.plugins
-    val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
-    admin.plugins.html.installed(installedPlugins, updatablePlugins)
+    if(enablePluginSystem){
+      val installedPlugins = plugin.PluginSystem.plugins
+      val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
+      admin.plugins.html.installed(installedPlugins, updatablePlugins)
+    } else NotFound
   })
 
   post("/admin/plugins/_update", pluginForm)(adminOnly { form =>
-    deletePlugins(form.pluginIds)
-    installPlugins(form.pluginIds)
-    redirect("/admin/plugins")
+    if(enablePluginSystem){
+      deletePlugins(form.pluginIds)
+      installPlugins(form.pluginIds)
+      redirect("/admin/plugins")
+    } else NotFound
   })
 
   post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
-    deletePlugins(form.pluginIds)
-    redirect("/admin/plugins")
+    if(enablePluginSystem){
+      deletePlugins(form.pluginIds)
+      redirect("/admin/plugins")
+    } else NotFound
   })
 
   get("/admin/plugins/available")(adminOnly {
-    val installedPlugins = plugin.PluginSystem.plugins
-    val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
-    admin.plugins.html.available(availablePlugins)
+    if(enablePluginSystem){
+      val installedPlugins = plugin.PluginSystem.plugins
+      val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
+      admin.plugins.html.available(availablePlugins)
+    } else NotFound
   })
 
   post("/admin/plugins/_install", pluginForm)(adminOnly { form =>
-    installPlugins(form.pluginIds)
-    redirect("/admin/plugins")
+    if(enablePluginSystem){
+      installPlugins(form.pluginIds)
+      redirect("/admin/plugins")
+    } else NotFound
   })
 
   get("/admin/plugins/console")(adminOnly {
-    admin.plugins.html.console()
+    if(enablePluginSystem){
+      admin.plugins.html.console()
+    } else NotFound
   })
 
   post("/admin/plugins/console")(adminOnly {
-    val script = request.getParameter("script")
-    val result = plugin.ScalaPlugin.eval(script)
-    Ok()
+    if(enablePluginSystem){
+      val script = request.getParameter("script")
+      val result = plugin.ScalaPlugin.eval(script)
+      Ok()
+    } else NotFound
   })
 
   // TODO Move these methods to PluginSystem or Service?

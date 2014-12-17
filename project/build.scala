@@ -55,7 +55,7 @@ object MyBuild extends Build {
       "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.7"
     ),
     EclipseKeys.withSource := true,
-    javacOptions in compile ++= Seq("-target", "6", "-source", "6"),
+    javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),
     packageOptions += Package.MainClass("JettyLauncher")
   ).enablePlugins(SbtTwirl)

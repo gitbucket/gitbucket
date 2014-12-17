@@ -1,4 +1,4 @@
-@(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean, enableRefsLink: Boolean,
+@(repository: service.RepositoryService.RepositoryInfo, content: String, enableWikiLink: Boolean, enableRefsLink: Boolean, enableTaskList: Boolean, hasWritePermission: Boolean,
   style: String = "", placeholder: String = "Leave a comment", elastic: Boolean = false)(implicit context: app.Context)
 @import context._
 @import view.helpers._
@@ -34,11 +34,12 @@ $(function(){
   }
 
   $('#preview').click(function(){
-    $('#preview-area').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
+    $(this).closest('#preview-area').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
     $.post('@url(repository)/_preview', {
       content        : $('#content').val(),
       enableWikiLink : @enableWikiLink,
-      enableRefsLink : @enableRefsLink
+      enableRefsLink : @enableRefsLink,
+      enableTaskList : @enableTaskList
     }, function(data){
       $('#preview-area').html(data);
       prettyPrint();

@@ -226,6 +226,10 @@ div.box-header-small {
   text-shadow: 0 1px 0 #fff
 }
 
+.inline-comment div.box-header-small {
+  background: #f2f8fa;
+}
+
 div.box-content {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -617,11 +621,105 @@ span.simplified-path {
   color: #888;
 }
 
+#branch-control-title {
+  margin: 5px 10px;
+  font-weight: bold;
+}
+
+#branch-control-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-weight: bold;
+  line-height: 15px;
+}
+
+#branch-control-input {
+  border: solid 1px #ccc;
+  margin: 10px;
+}
+
+.new-branch-name {
+  font-weight: bold;
+  font-size: 1.2em;
+  padding-left: 16px;
+}
+
+/****************************************************************************/
+/* nav pulls group */
+/****************************************************************************/
+.nav-pills-group:after {
+    display: table;
+    line-height: 0;
+    content: "";
+}
+
+.nav-pills-group:after {
+    clear: both;
+}
+
+.nav-pills-group > li {
+    float: left;
+}
+
+.nav-pills-group > li > a {
+    padding-right: 12px;
+    padding-left: 12px;
+    line-height: 14px;
+    color: #666;
+    font-weight: bold;
+}
+
+.nav-pills-group > li > a {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-left   : 1px solid #e5e5e5;
+    border-top    : 1px solid #e5e5e5;
+    border-bottom : 1px solid #e5e5e5;
+}
+
+.nav-pills-group > .first > a {
+    -webkit-border-radius: 4px 0 0 4px;
+    -moz-border-radius: 4px 0 0 4px;
+    border-radius: 4px 0 0 4px;
+}
+
+.nav-pills-group > .last > a {
+    -webkit-border-radius: 0 4px 4px 0;
+    -moz-border-radius: 0 4px 4px 0;
+    border-radius: 0 4px 4px 0;
+    border-right  : 1px solid #e5e5e5;
+}
+
+.nav-pills-group > .active > a,
+.nav-pills-group > .active > a:hover,
+.nav-pills-group > .active > a:focus {
+    color: #ffffff;
+    background-color: #0088cc;
+    border-color: #0088cc;
+}
+
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
+.btn-group.open .dropdown-toggle.flat {
+    background-image: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+a.button-link {
+    font-weight: normal;
+    color: gray;
+}
+
+a.selected {
+    font-weight: bold;
+    color: black;
+}
+
 span.issue-status {
-  display: block;
   font-size: large;
   text-align: center;
   padding: 8px;
@@ -634,7 +732,7 @@ table.table-issues {
 a.issue-title {
   color: #333;
   font-weight: bold;
-  size: 110%;
+  font-size: 120%;
 }
 
 ul.label-list {
@@ -671,8 +769,7 @@ span.milestone-alert {
 }
 
 a.milestone-title {
-  font-size: 120%;
-  font-weight: bold;
+  font-size: 180%;
 }
 
 div.milestone-description {
@@ -680,13 +777,12 @@ div.milestone-description {
   color: #666;
 }
 
-div.milestone-menu {
-  font-size: 80%;
+a.milestone-title {
+  color: #333;
 }
 
-div.milestone-menu a {
-  margin-left: 8px;
-  font-weight: bold;
+div.milestone-menu {
+ margin-top: 8px;
 }
 
 div.milestone-menu a.delete {
@@ -698,13 +794,13 @@ div#milestone-progress-area {
 }
 
 div#milestone-progress-area div.milestone-progress {
-  width: 150px;
+  width: 130px;
   margin-bottom: -6px;
 }
 
 div.milestone-progress {
   position: relative;
-  height: 20px;
+  height: 10px;
   color: white;
   margin-bottom: 4px;
   font-weight: bold;
@@ -723,11 +819,6 @@ span.milestone-progress {
   border-radius: 4px;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
-}
-
-span.milestone-percentage {
-  position: absolute;
-  padding-left: 8px;
 }
 
 div.issue-header {
@@ -773,9 +864,10 @@ div.issue-participants {
   margin-left: 50px;
 }
 
-div.issue-comment-box {
+div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
   margin-left: 50px;
+  max-width: 820px;
 }
 
 div.issue-comment-action {
@@ -814,6 +906,20 @@ div.attachable div.clickable {
   background-color: white;
 }
 
+ul.task-list {
+  padding-left: 2em;
+  margin-left: 0;
+}
+
+li.task-list-item {
+  list-style-type: none;
+}
+
+li.task-list-item input.task-list-item-checkbox {
+  margin: 0 4px 0.25em -20px;
+  vertical-align: middle;
+}
+
 /****************************************************************************/
 /* Pull Request */
 /****************************************************************************/
@@ -847,18 +953,54 @@ div.author-info div.committer {
 /****************************************************************************/
 /* Diff */
 /****************************************************************************/
-table.inlinediff {
+table.diff {
     font-size: 12px;
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     width: 100%;
 }
 
-table.inlinediff thead {
+table.diff thead {
     display: none;
 }
 
-td.insert, td.equal, td.delete {
+table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delete {
     width: 100%;
+}
+
+td.insert, td.equal, td.delete, td.empty {
+    width: 50%;
+}
+
+table.diff .add-comment {
+    position: absolute;
+    background: blue;
+    top: 0;
+    color: white;
+    padding: 2px;
+    border: solid 1px blue;
+    border-radius: 3px;
+    z-index: 99;
+}
+
+table.diff .add-comment:hover {
+    padding: 4px;
+    top: -1px;
+}
+
+table.diff tbody tr.not-diff {
+    font-family: '"Helvetica Neue", Helvetica, Arial, sans-serif';
+}
+
+tr.not-diff .box {
+    margin-bottom: 0px;
+}
+
+table.diff tbody tr.not-diff:hover {
+    background-color: #fff;
+}
+
+table.diff tbody tr.not-diff:hover td{
+    background-color: #fff;
 }
 
 /****************************************************************************/

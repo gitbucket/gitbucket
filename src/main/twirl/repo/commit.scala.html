@@ -2,9 +2,11 @@
   commit: util.JGitUtil.CommitInfo,
   branches: List[String],
   tags: List[String],
+  comments: List[model.Comment],
   repository: service.RepositoryService.RepositoryInfo,
   diffs: Seq[util.JGitUtil.DiffInfo],
-  oldCommitId: Option[String])(implicit context: app.Context)
+  oldCommitId: Option[String],
+  hasWritePermission: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import util.Implicits._
@@ -68,20 +70,27 @@
             <div class="author">
               @avatar(commit, 20)
               <span>@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
-              <span class="muted">authored on @datetime(commit.authorTime)</span>
+              <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
             </div>
             @if(commit.isDifferentFromAuthor) {
             <div class="committer">
               <span class="icon-arrow-right"></span>
               <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
-              <span class="muted"> committed on @datetime(commit.commitTime)</span>
+              <span class="muted"> committed @helper.html.datetimeago(commit.commitTime)</span>
             </div>
             }
           </div>
         </td>
       </tr>
     </table>
-    @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true)
+    @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, hasWritePermission, true)
+    <label class="checkbox">
+      <input type="checkbox" id="show-notes"> Show line notes below
+    </label>
+    <div id="comment-list">
+      @issues.html.commentlist(None, comments, hasWritePermission, repository, None)
+    </div>
+    @commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
   }
 }
 <script>
@@ -122,6 +131,15 @@ $(function(){
       })
     );
   }
+
+  $('#show-notes').change(function() {
+    if (this.checked) {
+      $('.inline-comment').show();
+    } else {
+      $('.inline-comment').hide();
+      $('.diff .inline-comment').show();
+    }
+  });
 });
 </script>
 <style type="text/css">

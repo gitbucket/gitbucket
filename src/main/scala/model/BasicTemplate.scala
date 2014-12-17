@@ -44,4 +44,11 @@ protected[model] trait TemplateComponent { self: Profile =>
       byRepository(userName, repositoryName) && (this.milestoneId === milestoneId)
   }
 
+  trait CommitTemplate extends BasicTemplate { self: Table[_] =>
+    val commitId = column[String]("COMMIT_ID")
+
+    def byCommit(owner: String, repository: String, commitId: String) =
+      byRepository(owner, repository) && (this.commitId === commitId)
+  }
+
 }

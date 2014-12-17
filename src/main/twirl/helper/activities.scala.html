@@ -10,6 +10,7 @@
       @(activity.activityType match {
         case "open_issue"        => detailActivity(activity, "activity-issue.png")
         case "comment_issue"     => detailActivity(activity, "activity-comment.png")
+        case "comment_commit"    => detailActivity(activity, "activity-comment.png")
         case "close_issue"       => detailActivity(activity, "activity-issue-close.png")
         case "reopen_issue"      => detailActivity(activity, "activity-issue-reopen.png")
         case "open_pullreq"      => detailActivity(activity, "activity-merge.png")
@@ -62,7 +63,7 @@
 @detailActivity(activity: model.Activity, image: String) = {
   <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
   <div class="activity-content">
-    <div class="muted small">@datetime(activity.activityDate)</div>
+    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
@@ -76,7 +77,7 @@
 @customActivity(activity: model.Activity, image: String)(additionalInfo: Any) = {
   <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
   <div class="activity-content">
-    <div class="muted small">@datetime(activity.activityDate)</div>
+    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
@@ -91,7 +92,7 @@
     <div>
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
-      <span class="muted small">@datetime(activity.activityDate)</span>
+      <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
     </div>
   </div>
 }

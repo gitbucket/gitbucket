@@ -46,16 +46,16 @@ trait RepositoryService { self: AccountService =>
       (Repositories filter { t => t.byRepository(oldUserName, oldRepositoryName) } firstOption).map { repository =>
         Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
-        val webHooks      = WebHooks     .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val milestones    = Milestones   .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val issueId       = IssueId      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val issues        = Issues       .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val pullRequests  = PullRequests .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val labels        = Labels       .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val issueComments = IssueComments.filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val issueLabels   = IssueLabels  .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val activities    = Activities   .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val collaborators = Collaborators.filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val webHooks       = WebHooks      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val milestones     = Milestones    .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val issueId        = IssueId       .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val issues         = Issues        .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val pullRequests   = PullRequests  .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val labels         = Labels        .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val issueComments  = IssueComments .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val issueLabels    = IssueLabels   .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val commitComments = CommitComments.filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val collaborators  = Collaborators .filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
           (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
@@ -69,11 +69,18 @@ trait RepositoryService { self: AccountService =>
           t.requestRepositoryName === oldRepositoryName.bind
         }.map { t => t.requestUserName -> t.requestRepositoryName }.update(newUserName, newRepositoryName)
 
+        // Updates activity fk before deleting repository because activity is sorted by activityId
+        // and it can't be changed by deleting-and-inserting record.
+        Activities.filter(_.byRepository(oldUserName, oldRepositoryName)).list.foreach { activity =>
+          Activities.filter(_.activityId === activity.activityId.bind)
+            .map(x => (x.userName, x.repositoryName)).update(newUserName, newRepositoryName)
+        }
+
         deleteRepository(oldUserName, oldRepositoryName)
 
-        WebHooks      .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Milestones    .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        IssueId       .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
+        WebHooks  .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Milestones.insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        IssueId   .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
 
         val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
         Issues.insertAll(issues.map { x => x.copy(
@@ -88,7 +95,8 @@ trait RepositoryService { self: AccountService =>
         IssueComments .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueLabels   .insertAll(issueLabels   .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Activities    .insertAll(activities    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        CommitComments.insertAll(commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+
         if(account.isGroupAccount){
           Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
         } else {
@@ -96,12 +104,11 @@ trait RepositoryService { self: AccountService =>
         }
 
         // Update activity messages
-        val updateActivities = Activities.filter { t =>
+        Activities.filter { t =>
           (t.message like s"%:${oldUserName}/${oldRepositoryName}]%") ||
-          (t.message like s"%:${oldUserName}/${oldRepositoryName}#%")
-        }.map { t => t.activityId -> t.message }.list
-
-        updateActivities.foreach { case (activityId, message) =>
+          (t.message like s"%:${oldUserName}/${oldRepositoryName}#%") ||
+          (t.message like s"%:${oldUserName}/${oldRepositoryName}@%")
+        }.map { t => t.activityId -> t.message }.list.foreach { case (activityId, message) =>
           Activities.filter(_.activityId === activityId.bind).map(_.message).update(
             message
               .replace(s"[repo:${oldUserName}/${oldRepositoryName}]"   ,s"[repo:${newUserName}/${newRepositoryName}]")
@@ -109,6 +116,7 @@ trait RepositoryService { self: AccountService =>
               .replace(s"[tag:${oldUserName}/${oldRepositoryName}#"    ,s"[tag:${newUserName}/${newRepositoryName}#")
               .replace(s"[pullreq:${oldUserName}/${oldRepositoryName}#",s"[pullreq:${newUserName}/${newRepositoryName}#")
               .replace(s"[issue:${oldUserName}/${oldRepositoryName}#"  ,s"[issue:${newUserName}/${newRepositoryName}#")
+              .replace(s"[commit:${oldUserName}/${oldRepositoryName}@" ,s"[commit:${newUserName}/${newRepositoryName}@")
           )
         }
       }
@@ -118,6 +126,7 @@ trait RepositoryService { self: AccountService =>
   def deleteRepository(userName: String, repositoryName: String)(implicit s: Session): Unit = {
     Activities    .filter(_.byRepository(userName, repositoryName)).delete
     Collaborators .filter(_.byRepository(userName, repositoryName)).delete
+    CommitComments.filter(_.byRepository(userName, repositoryName)).delete
     IssueLabels   .filter(_.byRepository(userName, repositoryName)).delete
     Labels        .filter(_.byRepository(userName, repositoryName)).delete
     IssueComments .filter(_.byRepository(userName, repositoryName)).delete
@@ -166,8 +175,19 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
-  def getAllRepositories()(implicit s: Session): List[(String, String)] = {
-    Repositories.sortBy(_.lastActivityDate desc).map{ t =>
+  /**
+   * Returns the repositories without private repository that user does not have access right.
+   * Include public repository, private own repository and private but collaborator repository.
+   *
+   * @param userName the user name of collaborator
+   * @return the repository infomation list
+   */
+  def getAllRepositories(userName: String)(implicit s: Session): List[(String, String)] = {
+    Repositories.filter { t1 =>
+      (t1.isPrivate === false.bind) ||
+      (t1.userName  === userName.bind) ||
+      (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
+    }.sortBy(_.lastActivityDate desc).map{ t =>
       (t.userName, t.repositoryName)
     }.list
   }

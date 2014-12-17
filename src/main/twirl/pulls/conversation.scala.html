@@ -1,6 +1,6 @@
 @(issue: model.Issue,
   pullreq: model.PullRequest,
-  comments: List[model.IssueComment],
+  comments: List[model.Comment],
   issueLabels: List[model.Label],
   collaborators: List[String],
   milestones: List[(model.Milestone, Int, Int)],
@@ -8,12 +8,17 @@
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
+@import model.IssueComment
 @import view.helpers._
 <div class="row-fluid">
   <div class="span10">
-    @issues.html.issuedetail(issue, comments, collaborators, milestones, hasWritePermission, repository)
-    @issues.html.commentlist(issue, comments, hasWritePermission, repository, Some(pullreq))
-    @defining(comments.exists(_.action == "merge")){ merged =>
+    <div id="comment-list">
+      @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
+    </div>
+    @defining(comments.flatMap {
+      case comment: IssueComment => Some(comment)
+      case other => None
+    }.exists(_.action == "merge")){ merged =>
       @if(hasWritePermission && !issue.closed){
         <div class="box issue-comment-box" style="background-color: #d8f5cd;">
           <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
@@ -49,25 +54,12 @@
             <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
           </div>
         </div>
-      }
-      @issues.html.commentform(issue, !merged, hasWritePermission, repository)
-    </div>
-    <div class="span2">
-      @if(issue.closed) {
-        @if(merged){
-          <span class="label label-info issue-status">Merged</span>
-        } else {
-          <span class="label label-important issue-status">Closed</span>
         }
-      } else {
-        <span class="label label-success issue-status">Open</span>
+        @issues.html.commentform(issue, !merged, hasWritePermission, repository)
       }
-      <div class="small" style="text-align: center;">
-        <span class="strong">@comments.size</span> @plural(comments.size, "comment")
-      </div>
-    }
-    <hr/>
-    @issues.html.labels(issue, issueLabels, labels, hasWritePermission, repository)
+  </div>
+  <div class="span2">
+    @issues.html.issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
   </div>
 </div>
 <script>
