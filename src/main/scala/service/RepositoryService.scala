@@ -136,6 +136,30 @@ trait RepositoryService { self: AccountService =>
     Milestones    .filter(_.byRepository(userName, repositoryName)).delete
     WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
+
+    // Update ORIGINAL_USER_NAME and ORIGINAL_REPOSITORY_NAME
+    Repositories
+      .filter { x => (x.originUserName === userName.bind) && (x.originRepositoryName === repositoryName.bind) }
+      .map    { x => (x.userName, x.repositoryName) }
+      .list
+      .foreach { case (userName, repositoryName) =>
+        Repositories
+          .filter(_.byRepository(userName, repositoryName))
+          .map(x => (x.originUserName?, x.originRepositoryName?))
+          .update(None, None)
+      }
+
+    // Update PARENT_USER_NAME and PARENT_REPOSITORY_NAME
+    Repositories
+      .filter { x => (x.parentUserName === userName.bind) && (x.parentRepositoryName === repositoryName.bind) }
+      .map    { x => (x.userName, x.repositoryName) }
+      .list
+      .foreach { case (userName, repositoryName) =>
+        Repositories
+          .filter(_.byRepository(userName, repositoryName))
+          .map(x => (x.parentUserName?, x.parentRepositoryName?))
+          .update(None, None)
+      }
   }
 
   /**
