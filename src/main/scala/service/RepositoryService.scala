@@ -137,7 +137,7 @@ trait RepositoryService { self: AccountService =>
     WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
 
-    // Update ORIGINAL_USER_NAME and ORIGINAL_REPOSITORY_NAME
+    // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
     Repositories
       .filter { x => (x.originUserName === userName.bind) && (x.originRepositoryName === repositoryName.bind) }
       .map    { x => (x.userName, x.repositoryName) }
