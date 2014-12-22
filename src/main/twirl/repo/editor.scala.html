@@ -127,7 +127,8 @@ $(function(){
       $.post('@url(repository)/_preview', {
         content        : editor.getValue(),
         enableWikiLink : false,
-        enableRefsLink : false
+        enableRefsLink : false,
+        enableTaskList : false
       }, function(data){
         $('#preview').empty().append(
           $('<div class="markdown-body" style="padding-left: 16px; padding-right: 16px;">').html(data));
