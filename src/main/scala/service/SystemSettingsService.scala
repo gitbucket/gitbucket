@@ -40,7 +40,7 @@ trait SystemSettingsService {
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
           ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
-          ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x.toString))
+          ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x))
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }

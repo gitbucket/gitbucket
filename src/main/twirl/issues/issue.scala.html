@@ -38,7 +38,7 @@
     }
     <span class="muted">
       @user(issue.openedUserName, styleClass="username strong") opened this issue @helper.html.datetimeago(issue.registeredDate) - @defining(
-        comments.filter( _.action.contains("comment") ).size
+        comments.count( _.action.contains("comment") )
       ){ count =>
         @count @plural(count, "comment")
       }

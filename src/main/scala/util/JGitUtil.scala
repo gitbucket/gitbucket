@@ -217,7 +217,7 @@ object JGitUtil {
           list.append((treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getPathString, treeWalk.getNameString, linkUrl))
         }
 
-        list = list.map(tuple =>
+        list.transform(tuple =>
           if (tuple._2 != FileMode.TREE)
             tuple
           else

@@ -98,8 +98,8 @@ object PluginSystem extends PluginService {
         // Compile and eval Scala source code
         ScalaPlugin.eval(pluginDir.listFiles.filter(_.getName.endsWith(".scala.html")).map { file =>
           ScalaPlugin.compileTemplate(
-            id.replaceAll("-", ""),
-            file.getName.replaceAll("\\.scala\\.html$", ""),
+            id.replace("-", ""),
+            file.getName.stripSuffix(".scala.html"),
             IOUtils.toString(new FileInputStream(file)))
         }.mkString("\n") + source)
 
