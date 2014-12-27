@@ -49,6 +49,7 @@
           <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
               <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
             </div>
           }
@@ -61,6 +62,7 @@
           } @diff.newPath
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
               <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
             </div>
           }
@@ -69,6 +71,7 @@
           <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
           @if(oldCommitId.isDefined){
             <div class="pull-right align-right">
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
               <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-small">View file @@ @oldCommitId.get.substring(0, 10)</a>
             </div>
           }
@@ -162,6 +165,12 @@ $(function(){
           }).parent().nextAll(':not(.not-diff):first').before(tmp);
         }
       });
+      $('.toggle-notes').change(function() {
+        if (!$(this).prop('checked')) {
+          $(this).closest('table').find('.not-diff.inline-comment-form').remove();
+        }
+        $(this).closest('table').find('.not-diff').toggle();
+      });
       @if(hasWritePermission) {
         $('table.diff th').hover(
           function() {
@@ -181,7 +190,11 @@ $(function(){
         );
         $('.add-comment').click(function() {
           var $this = $(this),
-          $tr = $this.closest('tr');
+          $tr = $this.closest('tr'),
+          $check = $this.closest('table:not(.diff)').find('.toggle-notes');
+          if (!$check.prop('checked')) {
+            $check.prop('checked', true).trigger('change');
+          }
           if (!$tr.nextAll(':not(.not-diff):first').prev().hasClass('inline-comment-form')) {
             var commitId = $this.closest('.table-bordered').attr('commitId'),
             fileName = $this.closest('.table-bordered').attr('fileName'),
