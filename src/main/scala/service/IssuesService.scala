@@ -421,7 +421,7 @@ object IssuesService {
         conditions.get("author").flatMap(_.headOption),
         conditions.get("assignee").flatMap(_.headOption),
         conditions.get("mentions").flatMap(_.headOption),
-        conditions.get("is").getOrElse(Seq.empty).filter(x => x == "open" || x == "closed").headOption.getOrElse("open"),
+        conditions.get("is").getOrElse(Seq.empty).find(x => x == "open" || x == "closed").getOrElse("open"),
         sort,
         direction,
         conditions.get("visibility").flatMap(_.headOption),

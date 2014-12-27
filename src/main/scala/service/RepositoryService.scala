@@ -190,7 +190,7 @@ trait RepositoryService { self: AccountService =>
         JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
         repository,
         issues.size,
-        issues.filter(_ == true).size,
+        issues.count(_ == true),
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)

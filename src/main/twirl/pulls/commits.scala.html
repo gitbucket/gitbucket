@@ -21,7 +21,7 @@
               @comments.get.flatMap @{
                  case comment: model.CommitComment => Some(comment)
                  case other => None
-              }.filter(_.commitId == commit.id).size
+              }.count(_.commitId == commit.id)
             }</span>
           </td>
           <td style="width: 10%; text-align: right;">
