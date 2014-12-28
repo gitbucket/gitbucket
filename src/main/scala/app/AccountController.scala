@@ -376,11 +376,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
-    val loginAccount = context.loginAccount.get
-    val accountName  = form.accountName
+    val loginAccount  = context.loginAccount.get
+    val loginUserName = loginAccount.userName
+    val accountName   = form.accountName
 
     LockUtil.lock(s"${accountName}/${repository.name}"){
-      if(getRepository(accountName, repository.name, baseUrl).isDefined){
+      if(getRepository(accountName, repository.name, baseUrl).isDefined ||
+          (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
         // redirect to the repository if repository already exists
         redirect(s"/${accountName}/${repository.name}")
       } else {
@@ -413,7 +415,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           getWikiRepositoryDir(accountName, repository.name))
 
         // Record activity
-        recordForkActivity(repository.owner, repository.name, loginAccount.userName, accountName)
+        recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
         // redirect to the repository
         redirect(s"/${accountName}/${repository.name}")
       }
