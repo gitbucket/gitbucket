@@ -57,7 +57,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     oldLineNumber: Option[Int],
     newLineNumber: Option[Int],
     content: String,
-    isInPR: Boolean
+    pullRequest: Boolean
   )
 
   val editorForm = mapping(
@@ -79,11 +79,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   )(DeleteForm.apply)
 
   val commentForm = mapping(
-    "fileName" -> trim(label("Filename", optional(text()))),
+    "fileName"      -> trim(label("Filename", optional(text()))),
     "oldLineNumber" -> trim(label("Old line number", optional(number()))),
     "newLineNumber" -> trim(label("New line number", optional(number()))),
-    "content" -> trim(label("Content", text(required))),
-    "isInPR" -> trim(label("Is in PR", boolean()))
+    "content"       -> trim(label("Content", text(required))),
+    "pullRequest"   -> trim(label("In pull request", boolean()))
   )(CommentForm.apply)
 
   /**
@@ -247,20 +247,20 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   post("/:owner/:repository/commit/:id/comment/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName, form.content,
-      form.fileName, form.oldLineNumber, form.newLineNumber, form.isInPR)
+      form.fileName, form.oldLineNumber, form.newLineNumber, form.pullRequest)
     recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
     redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
   })
 
   ajaxGet("/:owner/:repository/commit/:id/comment/_form")(readableUsersOnly { repository =>
-    val id = params("id")
-    val fileName = params.get("fileName")
+    val id            = params("id")
+    val fileName      = params.get("fileName")
     val oldLineNumber = params.get("oldLineNumber") flatMap {b => Some(b.toInt)}
     val newLineNumber = params.get("newLineNumber") flatMap {b => Some(b.toInt)}
-    val isInPR = params.get("isInPR")
+    val pullRequest   = params.get("pullRequest")
     repo.html.commentform(
       commitId = id,
-      fileName, oldLineNumber, newLineNumber, isInPR.map(_.toBoolean).getOrElse(false),
+      fileName, oldLineNumber, newLineNumber, pullRequest.map(_.toBoolean).getOrElse(false),
       hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount),
       repository = repository
     )
@@ -269,7 +269,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ajaxPost("/:owner/:repository/commit/:id/comment/_data/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     val commentId = createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName,
-      form.content, form.fileName, form.oldLineNumber, form.newLineNumber, form.isInPR)
+      form.content, form.fileName, form.oldLineNumber, form.newLineNumber, form.pullRequest)
     recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
     helper.html.commitcomment(getCommitComment(repository.owner, repository.name, commentId.toString).get,
       hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)

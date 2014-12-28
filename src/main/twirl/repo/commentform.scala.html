@@ -2,7 +2,7 @@
   fileName: Option[String] = None,
   oldLineNumber: Option[Int] = None,
   newLineNumber: Option[Int] = None,
-  isInPR: Boolean,
+  pullRequest: Boolean,
   hasWritePermission: Boolean,
   repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context)
 @import context._
@@ -29,7 +29,7 @@
         <input type="submit" class="btn btn-success" formaction="@url(repository)/commit/@commitId/comment/new" value="Comment on this commit"/>
       </div>
     }
-    <input type="hidden" name="isInPR" value="@isInPR">
+    <input type="hidden" name="pullRequest" value="@pullRequest">
     @if(fileName.isDefined){<input type="hidden" name="fileName" value="@fileName.get">}
     @if(oldLineNumber.isDefined){<input type="hidden" name="oldLineNumber" value="@oldLineNumber.get">}
     @if(newLineNumber.isDefined){<input type="hidden" name="newLineNumber" value="@newLineNumber.get">}

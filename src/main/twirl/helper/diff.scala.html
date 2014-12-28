@@ -1,11 +1,11 @@
 @(diffs: Seq[util.JGitUtil.DiffInfo],
- repository: service.RepositoryService.RepositoryInfo,
- newCommitId: Option[String],
- oldCommitId: Option[String],
- showIndex: Boolean,
- isInPR: Boolean,
- hasWritePermission: Boolean,
- showLineNotes: Boolean)(implicit context: app.Context)
+  repository: service.RepositoryService.RepositoryInfo,
+  newCommitId: Option[String],
+  oldCommitId: Option[String],
+  showIndex: Boolean,
+  pullRequest: Boolean,
+  hasWritePermission: Boolean,
+  showLineNotes: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
@@ -157,7 +157,7 @@ $(function(){
           fileName = $(this).closest('.table-bordered').attr('fileName'),
           oldLineNumber = $(this).closest('.newline').prev('.oldline').text(),
           newLineNumber = $(this).closest('.newline').clone().children().remove().end().text(),
-          url = '@url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName + '&isInPR=@isInPR';
+          url = '@url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName + '&pullRequest=@pullRequest';
           if (!isNaN(oldLineNumber) && oldLineNumber != null && oldLineNumber !== '') {
             url += ('&oldLineNumber=' + oldLineNumber)
           }

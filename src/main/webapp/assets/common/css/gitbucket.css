@@ -964,7 +964,7 @@ table.diff thead {
 }
 
 table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delete {
-    width: 100%;
+    width: 900px;
 }
 
 td.insert, td.equal, td.delete, td.empty {

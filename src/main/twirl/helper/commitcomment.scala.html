@@ -1,7 +1,7 @@
 @(comment: model.CommitComment,
-hasWritePermission: Boolean,
-repository: service.RepositoryService.RepositoryInfo,
-latestCommitId: Option[String] = None)(implicit context: app.Context)
+  hasWritePermission: Boolean,
+  repository: service.RepositoryService.RepositoryInfo,
+  latestCommitId: Option[String] = None)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 <div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}" @if(comment.fileName.isDefined){filename=@comment.fileName.get} @if(comment.newLine.isDefined){newline=@comment.newLine.get} @if(comment.oldLine.isDefined){oldline=@comment.oldLine.get}>
@@ -11,7 +11,7 @@ latestCommitId: Option[String] = None)(implicit context: app.Context)
       @user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">
           commented
-          @if(comment.isInPR){
+          @if(comment.pullRequest){
             on this Pull Request
           }else{
             @if(comment.fileName.isDefined){
