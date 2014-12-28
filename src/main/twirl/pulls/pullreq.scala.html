@@ -77,7 +77,7 @@
           @pulls.html.commits(dayByDayCommits, Some(comments), repository)
         </div>
         <div class="tab-pane" id="files">
-          @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true, hasWritePermission, true)
+          @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true, true, hasWritePermission, true)
         </div>
       </div>
     }

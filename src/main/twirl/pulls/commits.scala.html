@@ -19,9 +19,9 @@
           <td style="width: 10%; text-align: right">
             <span class="badge" style="display: inline">@if(comments.isDefined){
               @comments.get.flatMap @{
-                 case comment: model.CommitComment => Some(comment)
-                 case other => None
-              }.count(_.commitId == commit.id)
+                case comment: model.CommitComment => Some(comment)
+                case other => None
+              }.count(t => t.commitId == commit.id && !t.isInPR)
             }</span>
           </td>
           <td style="width: 10%; text-align: right;">

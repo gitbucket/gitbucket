@@ -56,7 +56,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     fileName: Option[String],
     oldLineNumber: Option[Int],
     newLineNumber: Option[Int],
-    content: String
+    content: String,
+    isInPR: Boolean
   )
 
   val editorForm = mapping(
@@ -81,7 +82,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "fileName" -> trim(label("Filename", optional(text()))),
     "oldLineNumber" -> trim(label("Old line number", optional(number()))),
     "newLineNumber" -> trim(label("New line number", optional(number()))),
-    "content" -> trim(label("Content", text(required)))
+    "content" -> trim(label("Content", text(required))),
+    "isInPR" -> trim(label("Is in PR", boolean()))
   )(CommentForm.apply)
 
   /**
@@ -235,7 +237,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repo.html.commit(id, new JGitUtil.CommitInfo(revCommit),
             JGitUtil.getBranchesOfCommit(git, revCommit.getName),
             JGitUtil.getTagsOfCommit(git, revCommit.getName),
-            getCommitComments(repository.owner, repository.name, id),
+            getCommitComments(repository.owner, repository.name, id, false),
             repository, diffs, oldCommitId, hasWritePermission(repository.owner, repository.name, context.loginAccount))
         }
       }
@@ -245,7 +247,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   post("/:owner/:repository/commit/:id/comment/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName, form.content,
-      form.fileName, form.oldLineNumber, form.newLineNumber)
+      form.fileName, form.oldLineNumber, form.newLineNumber, form.isInPR)
     recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
     redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
   })
@@ -255,9 +257,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val fileName = params.get("fileName")
     val oldLineNumber = params.get("oldLineNumber") flatMap {b => Some(b.toInt)}
     val newLineNumber = params.get("newLineNumber") flatMap {b => Some(b.toInt)}
+    val isInPR = params.get("isInPR")
     repo.html.commentform(
       commitId = id,
-      fileName, oldLineNumber, newLineNumber,
+      fileName, oldLineNumber, newLineNumber, isInPR.map(_.toBoolean).getOrElse(false),
       hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount),
       repository = repository
     )
@@ -266,7 +269,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ajaxPost("/:owner/:repository/commit/:id/comment/_data/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     val commentId = createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName,
-      form.content, form.fileName, form.oldLineNumber, form.newLineNumber)
+      form.content, form.fileName, form.oldLineNumber, form.newLineNumber, form.isInPR)
     recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
     helper.html.commitcomment(getCommitComment(repository.owner, repository.name, commentId.toString).get,
       hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
