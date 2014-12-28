@@ -103,7 +103,7 @@
     }
   }
   case comment: model.CommitComment => {
-    @helper.html.commitcomment(comment, hasWritePermission, repository)
+    @helper.html.commitcomment(comment, hasWritePermission, repository, pullreq.map(_.commitIdTo))
   }
 }
 <script>
