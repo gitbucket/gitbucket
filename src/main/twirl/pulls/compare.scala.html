@@ -83,7 +83,7 @@
       </table>
     } else {
       @pulls.html.commits(commits, Some(comments), repository)
-      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, false, hasWritePermission, false)
+      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, hasWritePermission, false)
       <p>Showing you all comments on commits in this comparison.</p>
       @issues.html.commentlist(None, comments, hasWritePermission, repository, None)
     }

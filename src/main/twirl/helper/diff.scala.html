@@ -3,7 +3,7 @@
   newCommitId: Option[String],
   oldCommitId: Option[String],
   showIndex: Boolean,
-  pullRequest: Boolean,
+  issueId: Option[Int],
   hasWritePermission: Boolean,
   showLineNotes: Boolean)(implicit context: app.Context)
 @import context._
@@ -157,7 +157,7 @@ $(function(){
           fileName = $(this).closest('.table-bordered').attr('fileName'),
           oldLineNumber = $(this).closest('.newline').prev('.oldline').text(),
           newLineNumber = $(this).closest('.newline').clone().children().remove().end().text(),
-          url = '@url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName + '&pullRequest=@pullRequest';
+          url = '@url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName @if(issueId.isDefined){+ '&issueId=@issueId.get'}
           if (!isNaN(oldLineNumber) && oldLineNumber != null && oldLineNumber !== '') {
             url += ('&oldLineNumber=' + oldLineNumber)
           }
