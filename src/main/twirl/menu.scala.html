@@ -2,6 +2,7 @@
   repository: service.RepositoryService.RepositoryInfo,
   id: Option[String] = None,
   expand: Boolean = false,
+  isNoGroup: Boolean = true,
   info: Option[Any] = None,
   error: Option[Any] = None)(body: Html)(implicit context: app.Context)
 @import context._
@@ -38,7 +39,15 @@
   @if(repository.commitCount > 0){
     <div class="pull-right">
       <div class="input-prepend">
-        <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
+      @if(loginAccount.isEmpty){
+        <a title="You must be signed in to fork a repository" href="@path/signin" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
+      } else {
+        @if(isNoGroup) {
+          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" style="margin-bottom: 10px;" data-account="@loginAccount.get.userName">Fork</a>
+        } else {
+          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+        }
+      }
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
       </div>
     </div>
@@ -174,6 +183,33 @@ $(function(){
     $(target).children('img.menu-icon-active').css('display', 'none');
     $(target).children('img.menu-icon'       ).css('display', 'inline');
   });
+
+  $('a[rel*=facebox]').facebox();
+
+  $(document).on("click", ".js-fork-owner-select-target", function() {
+    if (!$(this).hasClass("disabled")) {
+      var account = $(this).text().replace("@@", "");
+      $("#account").val(account);
+      $("#fork").submit();
+    }
+  });
+
+  @if(loginAccount.isDefined){
+    $(document).on("click", "a[data-account]", function(e) {
+      e.preventDefault();
+      var form = $('<form/>', {
+        action: $(this).attr('href'),
+        method: "post"
+      });
+      var account = $('<input/>', {
+        type: "hidden",
+        name: "account",
+        value: $(this).data('account')
+      });
+      form.append(account);
+      form.submit();
+    });
+  }
 
   @if(settings.ssh && loginAccount.isDefined){
     $('#repository-url-http').click(function(){

@@ -1,6 +1,7 @@
 @(branch: String,
   repository: service.RepositoryService.RepositoryInfo,
   pathList: List[String],
+  groupNames: List[String],
   latestCommit: util.JGitUtil.CommitInfo,
   files: List[util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
@@ -10,7 +11,7 @@
 @import context._
 @import view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository, Some(branch), pathList.isEmpty, info, error){
+  @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
       @helper.html.branchcontrol(
         branch,
