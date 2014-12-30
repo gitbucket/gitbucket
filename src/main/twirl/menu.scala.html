@@ -2,6 +2,7 @@
   repository: service.RepositoryService.RepositoryInfo,
   id: Option[String] = None,
   expand: Boolean = false,
+  isNoGroup: Boolean = true,
   info: Option[Any] = None,
   error: Option[Any] = None)(body: Html)(implicit context: app.Context)
 @import context._
@@ -41,7 +42,11 @@
       @if(loginAccount.isEmpty){
         <a title="You must be signed in to fork a repository" href="@path/signin" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
       } else {
-        <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+        @if(isNoGroup) {
+          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" style="margin-bottom: 10px;" data-account="@loginAccount.get.userName">Fork</a>
+        } else {
+          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+        }
       }
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
       </div>
@@ -188,6 +193,23 @@ $(function(){
       $("#fork").submit();
     }
   });
+
+  @if(loginAccount.isDefined){
+    $(document).on("click", "a[data-account]", function(e) {
+      e.preventDefault();
+      var form = $('<form/>', {
+        action: $(this).attr('href'),
+        method: "post"
+      });
+      var account = $('<input/>', {
+        type: "hidden",
+        name: "account",
+        value: $(this).data('account')
+      });
+      form.append(account);
+      form.submit();
+    });
+  }
 
   @if(settings.ssh && loginAccount.isDefined){
     $('#repository-url-http').click(function(){
