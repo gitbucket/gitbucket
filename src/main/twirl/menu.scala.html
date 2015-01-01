@@ -65,11 +65,6 @@
       @sidemenu("/issues", "issues", "Issues", repository.issueCount)
       @sidemenu("/pulls" , "pulls" , "Pull Requests", repository.pullCount)
       @sidemenu("/wiki"  , "wiki"  , "Wiki")
-      @plugin.PluginSystem.repositoryMenus.map { menu =>
-        @if(menu.condition(context)){
-          @sidemenuPlugin(menu.url, menu.label, menu.label, menu.icon)
-        }
-      }
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         @sidemenu("/settings", "settings", "Settings")
       }

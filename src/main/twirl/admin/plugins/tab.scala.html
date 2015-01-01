@@ -1,9 +1,0 @@
-@(active: String)(implicit context: app.Context)
-@import context._
-<ul class="nav nav-tabs">
-  <li@if(active == "installed"){ class="active"}><a href="@path/admin/plugins">Installed plugins</a></li>
-  <li@if(active == "available"){ class="active"}><a href="@path/admin/plugins/available">Available plugins</a></li>
-  @*
-  <li@if(active == "console"  ){ class="active"}><a href="@path/admin/plugins/console">JavaScript console</a></li>
-  *@
-</ul>
