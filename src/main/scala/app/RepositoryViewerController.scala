@@ -442,6 +442,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             repo.html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
+              context.loginAccount match {
+                case None => List()
+                case account: Option[model.Account] => getGroupsByUserName(account.get.userName)
+              }, // groups of current user
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount),
               flash.get("info"), flash.get("error"))
