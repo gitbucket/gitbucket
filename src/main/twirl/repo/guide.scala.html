@@ -16,20 +16,19 @@
       }
       </div>
       <h3 style="margin-top: 30px;">Create a new repository on the command line</h3>
-      <pre>
-      touch README.md
-      git init
-      git add README.md
-      git commit -m "first commit"
-      git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
-      git push -u origin master
-      </pre>
-
+      @pre {
+        touch README.md
+        git init
+        git add README.md
+        git commit -m "first commit"
+        git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
+        git push -u origin master
+      }
       <h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
-      <pre>
-      git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
-      git push -u origin master
-      </pre>
+      @pre {
+        git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
+        git push -u origin master
+      }
       <script>
       $(function(){
         $('.git-protocol-selector').click(function(e){
