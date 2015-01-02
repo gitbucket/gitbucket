@@ -11,8 +11,6 @@ import util.ControlUtil._
 import util.JDBCUtil._
 import org.eclipse.jgit.api.Git
 import util.Directory
-import plugin.PluginUpdateJob
-import service.SystemSettingsService
 
 object AutoUpdate {
   
@@ -197,11 +195,10 @@ object AutoUpdate {
  * Update database schema automatically in the context initializing.
  */
 class AutoUpdateListener extends ServletContextListener {
-  import org.quartz.impl.StdSchedulerFactory
   import AutoUpdate._
 
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
-  private val scheduler = StdSchedulerFactory.getDefaultScheduler
+//  private val scheduler = StdSchedulerFactory.getDefaultScheduler
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
@@ -236,31 +233,9 @@ class AutoUpdateListener extends ServletContextListener {
       }
       logger.debug("End schema update")
     }
-
-    if(SystemSettingsService.enablePluginSystem){
-      getDatabase(context).withSession { implicit session =>
-        logger.debug("Starting plugin system...")
-        try {
-          plugin.PluginSystem.init()
-
-          scheduler.start()
-          PluginUpdateJob.schedule(scheduler)
-          logger.debug("PluginUpdateJob is started.")
-
-          logger.debug("Plugin system is initialized.")
-        } catch {
-          case ex: Throwable => {
-            logger.error("Failed to initialize plugin system", ex)
-            ex.printStackTrace()
-            throw ex
-          }
-        }
-      }
-    }
   }
 
   def contextDestroyed(sce: ServletContextEvent): Unit = {
-    scheduler.shutdown()
   }
 
   private def getConnection(servletContext: ServletContext): Connection =
