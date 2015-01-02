@@ -46,7 +46,7 @@
     <tr>
       <th style="font-weight: normal; line-height: 27px;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          @diff.oldPath -> @diff.newPath
+          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
               <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
@@ -54,7 +54,11 @@
           }
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
-          @diff.newPath
+          @if(diff.changeType == ChangeType.ADD){
+            <img src="@assets/common/images/diff_add.png"/>
+          }else{
+            <img src="@assets/common/images/diff_edit.png"/>
+          } @diff.newPath
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
               <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
@@ -62,7 +66,7 @@
           }
         }
         @if(diff.changeType == ChangeType.DELETE){
-          @diff.oldPath
+          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
           @if(oldCommitId.isDefined){
             <div class="pull-right align-right">
               <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-small">View file @@ @oldCommitId.get.substring(0, 10)</a>
