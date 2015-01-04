@@ -116,9 +116,9 @@ diffview = {
 		 * be returned.	 Otherwise, tidx is returned, and two empty cells are added
 		 * to the given row.
 		 */
-		function addCells (row, tidx, tend, textLines, change) {
+		function addCells (row, tidx, tend, textLines, change, thclass) {
 			if (tidx < tend) {
-				row.appendChild(telt("th", (tidx + 1).toString()));
+				row.appendChild(addButton(ctelt("th", thclass, (tidx + 1).toString())));
 				row.appendChild(ctelt("td", change, textLines[tidx].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0")));
 				return tidx + 1;
 			} else {
@@ -188,8 +188,8 @@ diffview = {
 						if (b < be) changeBase = "delete";
 						if (n < ne) changeNew = "insert";
 					}
-					b = addCells(node, b, be, baseTextLines, changeBase);
-					n = addCells(node, n, ne, newTextLines, changeNew);
+					b = addCells(node, b, be, baseTextLines, changeBase, "oldline");
+					n = addCells(node, n, ne, newTextLines, changeNew, "newline");
 				}
 			}
 

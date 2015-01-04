@@ -1003,6 +1003,12 @@ table.diff tbody tr.not-diff:hover td{
     background-color: #fff;
 }
 
+.not-diff > .comment-box-container {
+    white-space: initial;
+    line-height: initial;
+    padding: 10px;
+}
+
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/
