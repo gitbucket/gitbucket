@@ -10,7 +10,6 @@ class ScalatraBootstrap extends LifeCycle {
     // Register TransactionFilter and BasicAuthenticationFilter at first
     context.addFilter("transactionFilter", new TransactionFilter)
     context.getFilterRegistration("transactionFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
-    context.getFilterRegistration("pluginActionInvokeFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
     context.addFilter("basicAuthenticationFilter", new BasicAuthenticationFilter)
     context.getFilterRegistration("basicAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/git/*")
 
