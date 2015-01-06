@@ -27,7 +27,7 @@ trait WebHookService {
   def deleteWebHookURL(owner: String, repository: String, url :String)(implicit s: Session): Unit =
     WebHooks.filter(_.byPrimaryKey(owner, repository, url)).delete
 
-  def callWebHook(owner: String, repository: String, webHookURLs: List[WebHook], payload: WebHookPayload): Unit = {
+  def callWebHook(eventName: String, webHookURLs: List[WebHook], payload: WebHookPayload): Unit = {
     import org.json4s._
     import org.json4s.jackson.Serialization
     import org.json4s.jackson.Serialization.{read, write}
@@ -47,6 +47,7 @@ trait WebHookService {
         val f = Future {
           logger.debug(s"start web hook invocation for ${webHookUrl}")
           val httpPost = new HttpPost(webHookUrl.url)
+          httpPost.addHeader("X-Github-Event", eventName)
 
           val params: java.util.List[NameValuePair] = new java.util.ArrayList()
           params.add(new BasicNameValuePair("payload", json))

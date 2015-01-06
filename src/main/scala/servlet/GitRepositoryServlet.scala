@@ -185,7 +185,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               for(pusherAccount <- getAccountByUserName(pusher);
                   ownerAccount   <- getAccountByUserName(owner);
                   repositoryInfo <- getRepository(owner, repository, baseUrl)){
-                callWebHook(owner, repository, webHookURLs,
+                callWebHook("push", webHookURLs,
                   WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
               }
             case _ =>

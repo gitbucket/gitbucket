@@ -498,7 +498,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         getWebHookURLs(repository.owner, repository.name) match {
           case webHookURLs if(webHookURLs.nonEmpty) =>
             for(ownerAccount <- getAccountByUserName(repository.owner)){
-              callWebHook(repository.owner, repository.name, webHookURLs,
+              callWebHook("push", webHookURLs,
                 WebHookPayload(git, loginAccount, headName, repository, List(commit), ownerAccount))
             }
           case _ =>

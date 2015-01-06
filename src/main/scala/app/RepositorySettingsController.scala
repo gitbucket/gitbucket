@@ -166,7 +166,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         .call.iterator.asScala.map(new CommitInfo(_))
 
       getAccountByUserName(repository.owner).foreach { ownerAccount =>
-        callWebHook(repository.owner, repository.name,
+        callWebHook("push",
           List(model.WebHook(repository.owner, repository.name, form.url)),
           WebHookPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
         )
