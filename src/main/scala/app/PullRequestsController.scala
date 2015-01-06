@@ -192,10 +192,11 @@ trait PullRequestsControllerBase extends ControllerBase {
               closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
             }
             // call web hook
+            // TODO: set action https://developer.github.com/v3/activity/events/types/#pullrequestevent
             getWebHookURLs(owner, name) match {
               case webHookURLs if(webHookURLs.nonEmpty) =>
                 for(ownerAccount <- getAccountByUserName(owner)){
-                  callWebHook(owner, name, webHookURLs,
+                  callWebHook("pull_request", webHookURLs,
                     WebHookPayload(git, loginAccount, mergeBaseRefName, repository, commits.flatten.toList, ownerAccount))
                 }
               case _ =>
