@@ -48,6 +48,7 @@ object LDAPUtil {
       dn       = ldapSettings.bindDN.getOrElse(""),
       password = ldapSettings.bindPassword.getOrElse(""),
       tls      = ldapSettings.tls.getOrElse(false),
+      ssl      = ldapSettings.ssl.getOrElse(false),
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "System LDAP authentication failed."
     ){ conn =>
@@ -65,6 +66,7 @@ object LDAPUtil {
       dn       = userDN,
       password = password,
       tls      = ldapSettings.tls.getOrElse(false),
+      ssl      = ldapSettings.ssl.getOrElse(false),
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "User LDAP Authentication Failed."
     ){ conn =>
@@ -96,7 +98,7 @@ object LDAPUtil {
     }).replaceAll("[^a-zA-Z0-9\\-_.]", "").replaceAll("^[_\\-]", "")
   }
 
-  private def bind[A](host: String, port: Int, dn: String, password: String, tls: Boolean, keystore: String, error: String)
+  private def bind[A](host: String, port: Int, dn: String, password: String, tls: Boolean, ssl: Boolean, keystore: String, error: String)
                   (f: LDAPConnection => Either[String, A]): Either[String, A] = {
     if (tls) {
       // Dynamically set Sun as the security provider
@@ -109,7 +111,13 @@ object LDAPUtil {
       }
     }
 
-    val conn: LDAPConnection = new LDAPConnection(new LDAPJSSEStartTLSFactory())
+    val conn: LDAPConnection = 
+	if(ssl) {
+		new LDAPConnection(new LDAPJSSESecureSocketFactory()) 
+	}else {
+		new LDAPConnection(new LDAPJSSEStartTLSFactory())
+	}
+
     try {
       // Connect to the server
       conn.connect(host, port)

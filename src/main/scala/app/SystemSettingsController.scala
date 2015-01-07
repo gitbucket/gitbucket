@@ -41,6 +41,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "fullNameAttribute"        -> trim(label("Full name attribute", optional(text()))),
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
+        "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
   )(SystemSettings.apply).verifying { settings =>
