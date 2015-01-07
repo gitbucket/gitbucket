@@ -48,7 +48,7 @@ object LDAPUtil {
       dn       = ldapSettings.bindDN.getOrElse(""),
       password = ldapSettings.bindPassword.getOrElse(""),
       tls      = ldapSettings.tls.getOrElse(false),
-      ssl	   = ldapSettings.ssl.getOrElse(false),
+      ssl      = ldapSettings.ssl.getOrElse(false),
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "System LDAP authentication failed."
     ){ conn =>
@@ -66,7 +66,7 @@ object LDAPUtil {
       dn       = userDN,
       password = password,
       tls      = ldapSettings.tls.getOrElse(false),
-      ssl	   = ldapSettings.ssl.getOrElse(false),
+      ssl      = ldapSettings.ssl.getOrElse(false),
       keystore = ldapSettings.keystore.getOrElse(""),
       error    = "User LDAP Authentication Failed."
     ){ conn =>
