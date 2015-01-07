@@ -42,6 +42,7 @@ trait SystemSettingsService {
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
           ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x))
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
+          ldap.ssl.foreach(x => props.setProperty(LdapSsl, x.toString))
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
@@ -92,6 +93,7 @@ trait SystemSettingsService {
             getOptionValue(props, LdapFullNameAttribute, None),
             getOptionValue(props, LdapMailAddressAttribute, None),
             getOptionValue[Boolean](props, LdapTls, None),
+            getOptionValue[Boolean](props, LdapSsl, None),
             getOptionValue(props, LdapKeystore, None)))
         } else {
           None
@@ -134,6 +136,7 @@ object SystemSettingsService {
     fullNameAttribute: Option[String],
     mailAttribute: Option[String],
     tls: Option[Boolean],
+    ssl: Option[Boolean],
     keystore: Option[String])
 
   case class Smtp(
@@ -174,6 +177,7 @@ object SystemSettingsService {
   private val LdapFullNameAttribute = "ldap.fullname_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
   private val LdapTls = "ldap.tls"
+  private val LdapSsl = "ldap.ssl"
   private val LdapKeystore = "ldap.keystore"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A =
