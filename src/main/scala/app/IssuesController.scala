@@ -12,11 +12,11 @@ import model.Issue
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with WebHookIssueCommentService
 
 trait IssuesControllerBase extends ControllerBase {
   self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with WebHookIssueCommentService =>
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
@@ -109,9 +109,12 @@ trait IssuesControllerBase extends ControllerBase {
       // record activity
       recordCreateIssueActivity(owner, name, userName, issueId, form.title)
 
-      // extract references and create refer comment
       getIssue(owner, name, issueId.toString).foreach { issue =>
+        // extract references and create refer comment
         createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+
+        // call web hooks
+        callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
       }
 
       // notifications
@@ -366,6 +369,22 @@ trait IssuesControllerBase extends ControllerBase {
           createReferComment(owner, name, issue, content)
         }
 
+        // call web hooks
+        action match {
+          case None => callIssueCommentWebHook(repository, issue, commentId, context.loginAccount.get)
+          case Some(act) => val webHookAction = act match {
+            case "open"   => "opened"
+            case "reopen" => "reopened"
+            case "close"  => "closed"
+            case _ => act
+          }
+          if(issue.isPullRequest){
+            callPullRequestWebHook(webHookAction, repository, issue.issueId, context.baseUrl, context.loginAccount.get)
+          } else {
+            callIssuesWebHook(webHookAction, repository, issue, context.baseUrl, context.loginAccount.get)
+          }
+        }
+
         // notifications
         Notifier() match {
           case f =>
@@ -418,5 +437,4 @@ trait IssuesControllerBase extends ControllerBase {
           hasWritePermission(owner, repoName, context.loginAccount))
     }
   }
-
 }

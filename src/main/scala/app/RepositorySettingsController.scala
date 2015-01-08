@@ -7,7 +7,7 @@ import util.{LockUtil, UsersAuthenticator, OwnerAuthenticator}
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
-import service.WebHookService.WebHookPayload
+import service.WebHookService.WebHookPushPayload
 import util.JGitUtil.CommitInfo
 import util.ControlUtil._
 import org.eclipse.jgit.api.Git
@@ -168,7 +168,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       getAccountByUserName(repository.owner).foreach { ownerAccount =>
         callWebHook("push",
           List(model.WebHook(repository.owner, repository.name, form.url)),
-          WebHookPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
+          WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
         )
       }
       flash += "url"  -> form.url
