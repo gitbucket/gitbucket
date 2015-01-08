@@ -23,11 +23,11 @@ import model.{PullRequest, Issue}
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
-  with CommitsService with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
-    with CommitsService with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -193,9 +193,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
             }
             // call web hook
-            getPullRequest(repository.owner, repository.name, issueId).map{ case (issue, pr) =>
-              callPullRequestWebHook("closed", repository, issue, pr, context.baseUrl, context.loginAccount.get)
-            }
+            callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
             // notifications
             Notifier().toNotify(repository, issueId, "merge"){
@@ -354,9 +352,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
     // call web hook
-    getPullRequest(repository.owner, repository.name, issueId).map{ case (issue, pr) =>
-      callPullRequestWebHook("opend", repository, issue, pr, context.baseUrl, context.loginAccount.get)
-    }
+    callPullRequestWebHook("opend", repository, issueId, context.baseUrl, context.loginAccount.get)
 
     // notifications
     Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
@@ -480,31 +476,4 @@ trait PullRequestsControllerBase extends ControllerBase {
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))
     }
-
-  private def callPullRequestWebHook(action: String, repository: RepositoryService.RepositoryInfo, issue: Issue, pullRequest: PullRequest, baseUrl: String, sender: model.Account): Unit = {
-    import WebHookService._
-    getWebHookURLs(repository.owner, repository.name) match {
-      case webHookURLs if(webHookURLs.nonEmpty) =>
-        def findOwner(owner: String, knowns: Seq[model.Account]): Option[model.Account] = knowns.find(_.fullName == owner).orElse(getAccountByUserName(owner)) 
-        for{
-          baseOwner <- findOwner(repository.owner, Seq(sender))
-          headOwner <- findOwner(pullRequest.requestUserName, Seq(sender, baseOwner))
-          headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
-        } yield {
-          val payload = WebHookPullRequestPayload(
-            action         = action,
-            issue          = issue,
-            pullRequest    = pullRequest,
-            headRepository = headRepo,
-            headOwner      = headOwner,
-            baseRepository = repository,
-            baseOwner      = baseOwner,
-            sender         = sender)
-          for(ownerAccount <- getAccountByUserName(repository.owner)){
-            callWebHook("pull_request", webHookURLs, payload)
-          }
-        }
-      case _ =>
-    }
-  }
 }

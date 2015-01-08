@@ -17,7 +17,7 @@ import org.eclipse.jgit.treewalk._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.revwalk.RevCommit
-import service.WebHookService.WebHookPayload
+import service.WebHookService.WebHookPushPayload
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
@@ -504,13 +504,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
         // call web hook
         val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-        getWebHookURLs(repository.owner, repository.name) match {
-          case webHookURLs if(webHookURLs.nonEmpty) =>
-            for(ownerAccount <- getAccountByUserName(repository.owner)){
-              callWebHook("push", webHookURLs,
-                WebHookPayload(git, loginAccount, headName, repository, List(commit), ownerAccount))
-            }
-          case _ =>
+        callWebHookOf(repository.owner, repository.name, "push") {
+          getAccountByUserName(repository.owner).map{ ownerAccount =>
+            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount)
+          }
         }
       }
     }
