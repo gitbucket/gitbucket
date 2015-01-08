@@ -248,10 +248,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val id = params("id")
     createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName, form.content,
       form.fileName, form.oldLineNumber, form.newLineNumber, form.issueId.isDefined)
-    if (form.issueId.isDefined)
-      recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, form.issueId.get, form.content)
-    else
-      recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
+    form.issueId match {
+      case Some(issueId) => recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, issueId, form.content)
+      case None => recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
+    }
     redirect(s"/${repository.owner}/${repository.name}/commit/${id}")
   })
 
@@ -273,10 +273,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val id = params("id")
     val commentId = createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName,
       form.content, form.fileName, form.oldLineNumber, form.newLineNumber, form.issueId.isDefined)
-    if (form.issueId.isDefined)
-      recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, form.issueId.get, form.content)
-    else
-      recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
+    form.issueId match {
+      case Some(issueId) => recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, issueId, form.content)
+      case None => recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
+    }
     helper.html.commitcomment(getCommitComment(repository.owner, repository.name, commentId.toString).get,
       hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
   })
