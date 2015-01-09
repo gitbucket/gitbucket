@@ -235,6 +235,22 @@
               </div>
             </div>
           </div>
+          <!--====================================================================-->
+          <!-- Site script -->
+          <!--====================================================================-->
+          <hr>
+          <label><span class="strong">Site script url</span> (e.g. <code>http://localhost/root/site-scripts/blob/master/site-script.js?raw=true</code>)</label>
+          <fieldset>
+              <div class="controls">
+                <input type="text" name="siteScriptUrl" id="siteScriptUrl" style="width: 400px" value="@settings.siteScriptUrl"/>
+                <span id="error-siteScriptUrl" class="error"></span>
+              </div>
+          </fieldset>
+          <p class="muted">
+            The site script is a javascript file that embeded on footer of all pages.<br />
+            For example, <code>`&lt;script src="http://localhost/root/site-scripts/blob/master/site-script.js?raw=true" &gt;&lt;/script&gt;`</code><br />
+            You can extend GitBucket by it.<br />
+          </p>
         </div>
       </div>
       <fieldset>

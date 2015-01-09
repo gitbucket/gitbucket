@@ -49,7 +49,8 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
-    )(Ldap.apply))
+    )(Ldap.apply)),
+    "siteScriptUrl"            -> trim(label("siteScriptUrl", optional(text())))
   )(SystemSettings.apply).verifying { settings =>
     if(settings.ssh && settings.baseUrl.isEmpty){
       Seq("baseUrl" -> "Base URL is required if SSH access is enabled.")

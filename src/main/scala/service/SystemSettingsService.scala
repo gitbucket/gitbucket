@@ -45,6 +45,7 @@ trait SystemSettingsService {
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
+      settings.siteScriptUrl.foreach(x => props.setProperty(SiteScriptUrl, x))
       using(new java.io.FileOutputStream(GitBucketConf)){ out =>
         props.store(out, null)
       }
@@ -95,7 +96,8 @@ trait SystemSettingsService {
             getOptionValue(props, LdapKeystore, None)))
         } else {
           None
-        }
+        },
+        getOptionValue[String](props, SiteScriptUrl, None)
       )
     }
   }
@@ -115,7 +117,8 @@ object SystemSettingsService {
     sshPort: Option[Int],
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
-    ldap: Option[Ldap]){
+    ldap: Option[Ldap],
+    siteScriptUrl: Option[String]){
     def baseUrl(request: HttpServletRequest): String = baseUrl.getOrElse {
       defining(request.getRequestURL.toString){ url =>
         url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
@@ -175,6 +178,7 @@ object SystemSettingsService {
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
   private val LdapTls = "ldap.tls"
   private val LdapKeystore = "ldap.keystore"
+  private val SiteScriptUrl = "site_script_url"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A =
     defining(props.getProperty(key)){ value =>
