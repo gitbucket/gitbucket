@@ -975,15 +975,16 @@ table.diff .add-comment {
     position: absolute;
     background: blue;
     top: 0;
+    left: -7px;
     color: white;
-    padding: 2px;
+    padding: 2px 4px;
     border: solid 1px blue;
     border-radius: 3px;
     z-index: 99;
 }
 
 table.diff .add-comment:hover {
-    padding: 4px;
+    padding: 4px 6px;
     top: -1px;
 }
 
@@ -1007,6 +1008,10 @@ table.diff tbody tr.not-diff:hover td{
     white-space: initial;
     line-height: initial;
     padding: 10px;
+}
+
+.diff .oldline:before, .diff .newline:before {
+    content: attr(line-number);
 }
 
 /****************************************************************************/
