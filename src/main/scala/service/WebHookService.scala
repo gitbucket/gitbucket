@@ -36,19 +36,14 @@ trait WebHookService {
   }
 
   def callWebHook(eventName: String, webHookURLs: List[WebHook], payload: WebHookPayload): Unit = {
-    import org.json4s._
-    import org.json4s.jackson.Serialization
-    import org.json4s.jackson.Serialization.{read, write}
     import org.apache.http.client.methods.HttpPost
     import org.apache.http.impl.client.HttpClientBuilder
     import scala.concurrent._
     import ExecutionContext.Implicits.global
 
-    logger.debug("start callWebHook")
-    implicit val formats = Serialization.formats(NoTypeHints)
-
     if(webHookURLs.nonEmpty){
-      val json = write(payload)
+      implicit val formats = jsonFormats
+      val json = org.json4s.jackson.Serialization.write(payload)
       val httpClient = HttpClientBuilder.create.build
 
       webHookURLs.foreach { webHookUrl =>
@@ -151,6 +146,24 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
 
 object WebHookService {
 
+  val jsonFormats = {
+    import org.json4s._
+    import org.json4s.jackson.Serialization
+    import scala.util.Try
+    import org.joda.time.format._
+    import org.joda.time.DateTime
+    import org.joda.time.DateTimeZone
+    val parserISO = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    Serialization.formats(NoTypeHints) + new CustomSerializer[Date](format =>
+      (
+        { case JString(s) => Try(parserISO.parseDateTime(s)).toOption.map(_.toDate)
+          .getOrElse(throw new MappingException("Can't convert " + s + " to Date")) },
+        { case x: Date => JString(parserISO.print(new DateTime(x).withZone(DateTimeZone.UTC))) }
+      )
+    )
+  }
+
+
   trait WebHookPayload
 
   // https://developer.github.com/v3/activity/events/types/#pushevent
@@ -244,7 +257,7 @@ object WebHookService {
   case class WebHookCommit(
     id: String,
     message: String,
-    timestamp: String, // "2014-10-09T17:10:36-07:00",
+    timestamp: Date,
     url: String,
     added: List[String],
     removed: List[String],
@@ -259,7 +272,7 @@ object WebHookService {
       WebHookCommit(
         id        = commit.id,
         message   = commit.fullMessage,
-        timestamp = commit.commitTime.toString,
+        timestamp = commit.commitTime,
         url       = commitUrl,
         added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
         removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
@@ -297,6 +310,7 @@ object WebHookService {
   // https://developer.github.com/v3/repos/
   case class WebHookRepository(
     name: String,
+    full_name: String,
     url: String,
     description: String,
     watchers: Int,
@@ -308,6 +322,7 @@ object WebHookService {
     def apply(repositoryInfo: RepositoryInfo, owner: WebHookApiUser): WebHookRepository =
       WebHookRepository(
         name        = repositoryInfo.name,
+        full_name   = s"${repositoryInfo.owner}/${repositoryInfo.name}",
         url         = repositoryInfo.httpUrl,
         description = repositoryInfo.repository.description.getOrElse(""),
         watchers    = 0,
