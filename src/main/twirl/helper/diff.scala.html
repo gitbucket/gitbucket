@@ -180,10 +180,10 @@ $(function(){
         );
         $('table.diff th').hover(
           function() {
-            $(this).closest('tr').find('td').find('b').css('display', 'inline-block');
+            $(this).nextAll().find('b').first().css('display', 'inline-block');
           },
           function() {
-            $(this).closest('tr').find('td').find('b').css('display', 'none');
+            $(this).nextAll().find('b').first().css('display', 'none');
           }
         );
         $('.add-comment').click(function() {

@@ -1014,6 +1014,10 @@ table.diff tbody tr.not-diff:hover td{
     content: attr(line-number);
 }
 
+.diff .skipline:before {
+    content: "..."
+}
+
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/

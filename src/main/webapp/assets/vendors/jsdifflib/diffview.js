@@ -161,9 +161,9 @@ diffview = {
 						b += jump;
 						n += jump;
 						i += jump - 1;
-						node.appendChild(telt("th", "..."));
+						node.appendChild(ctelt("th", "skipline", ""));
 						if (!inline) node.appendChild(ctelt("td", "skip", ""));
-						node.appendChild(telt("th", "..."));
+						node.appendChild(ctelt("th", "skipline", ""));
 						node.appendChild(ctelt("td", "skip", ""));
 						
 						// skip last lines if they're all equal
