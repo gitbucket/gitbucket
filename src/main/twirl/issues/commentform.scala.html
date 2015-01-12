@@ -17,7 +17,7 @@
       <input type="hidden" name="issueId" value="@issue.issueId"/>
       <input type="submit" class="btn btn-success" formaction="@url(repository)/issue_comments/new" value="Comment"/>
       @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
-        <input type="submit" class="btn" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+        <input type="submit" class="btn btn-warning" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close issue"}" id="action"/>
       }
     </div>
   </form>
