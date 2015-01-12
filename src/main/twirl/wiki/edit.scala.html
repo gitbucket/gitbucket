@@ -27,6 +27,11 @@
       <input type="hidden" name="currentPageName" value="@pageName"/>
       <input type="hidden" name="id" value="@page.map(_.id)"/>
       <input type="submit" value="Save" class="btn btn-success">
+      @if(pageName.isEmpty){
+        <a href="@url(repository)/wiki" class="btn btn-danger">Cancel</a>
+      } else {
+        <a href="@url(repository)/wiki/@urlEncode(pageName)" class="btn btn-danger">Cancel</a>
+      }
     </form>
   }
 }
