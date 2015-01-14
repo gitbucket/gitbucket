@@ -120,6 +120,13 @@ $(function(){
     renderDiffs(0);
   });
 
+  $('.toggle-notes').change(function() {
+    if (!$(this).prop('checked')) {
+      $(this).closest('table').find('.not-diff.inline-comment-form').remove();
+    }
+    $(this).closest('table').find('.not-diff').toggle();
+  });
+
   function renderDiffs(viewType){
     window.viewType = viewType;
     @diffs.zipWithIndex.map { case (diff, i) =>
@@ -146,28 +153,28 @@ $(function(){
         if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
           $(this).hide();
         }
+        var tmp;
+        var diff;
         if (typeof oldline !== 'undefined') {
-          var tmp;
           if (typeof newline !== 'undefined') {
             tmp = getInlineContainer();
           } else {
             tmp = getInlineContainer('old');
           }
           tmp.children('td:first').html($(this).clone().show());
-          $('table[filename="' + filename + '"]').find('table.diff').find('.oldline[line-number=' + oldline  + ']')
+          diff = $('table[filename="' + filename + '"]');
+          diff.find('table.diff').find('.oldline[line-number=' + oldline  + ']')
           .parent().nextAll(':not(.not-diff):first').before(tmp);
         } else {
-          var tmp = getInlineContainer('new');
+          tmp = getInlineContainer('new');
           tmp.children('td:last').html($(this).clone().show());
-          $('table[filename="' + filename + '"]').find('table.diff').find('.newline[line-number=' + newline  + ']')
+          diff = $('table[filename="' + filename + '"]');
+          diff.find('table.diff').find('.newline[line-number=' + newline  + ']')
           .parent().nextAll(':not(.not-diff):first').before(tmp);
         }
-      });
-      $('.toggle-notes').change(function() {
-        if (!$(this).prop('checked')) {
-          $(this).closest('table').find('.not-diff.inline-comment-form').remove();
+        if (!diff.find('.toggle-notes').prop('checked')) {
+          tmp.hide();
         }
-        $(this).closest('table').find('.not-diff').toggle();
       });
       @if(hasWritePermission) {
         $('table.diff td').hover(
