@@ -29,7 +29,7 @@
       } else {
         <img src="@assets/common/images/issue-@(if(issue.closed) "closed" else "open").png"/>
       }
-      <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
+      <a href="@path/@issue.userName/@issue.repositoryName">@issue.userName/@issue.repositoryName</a>&nbsp;&#xFF65;
       @if(issue.isPullRequest){
         <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
       } else {
