@@ -532,7 +532,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   }
 
-  private def archiveRepository(name: String, suffix: String, repository: RepositoryService.RepositoryInfo): File = {
+  private def archiveRepository(name: String, suffix: String, repository: RepositoryService.RepositoryInfo): Unit = {
     val revision = name.stripSuffix(suffix)
     val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
     if(workDir.exists) {
@@ -540,21 +540,23 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
     workDir.mkdirs
 
-    val file = new File(workDir, repository.name + "-" +
-      (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + suffix)
+    val filename = repository.name + "-" +
+      (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + suffix
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
-      using(new java.io.FileOutputStream(file))  { out =>
-        git.archive
-           .setFormat(suffix.tail)
-           .setTree(revCommit.getTree)
-           .setOutputStream(out)
-           .call()
-      }
+
       contentType = "application/octet-stream"
-      response.setHeader("Content-Disposition", s"attachment; filename=${file.getName}")
-      file
+      response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
+      response.setBufferSize(1024 * 1024);
+
+      git.archive
+         .setFormat(suffix.tail)
+         .setTree(revCommit.getTree)
+         .setOutputStream(response.getOutputStream)
+         .call()
+
+      Unit
     }
   }
 
