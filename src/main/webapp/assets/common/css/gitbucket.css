@@ -1097,6 +1097,8 @@ div.markdown-body pre {
 div.markdown-body code {
   font-size: 12px;
   padding: 0 5px;
+  background-color: rgba(0,0,0,0.04);
+  rgb(51, 51, 51);
 }
 
 div.markdown-body table {
