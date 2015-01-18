@@ -352,7 +352,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
 
     // call web hook
-    callPullRequestWebHook("opend", repository, issueId, context.baseUrl, context.loginAccount.get)
+    callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
 
     // notifications
     Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
