@@ -14,16 +14,17 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
 import model.GroupMember
+import service.WebHookService._
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService
+  with AccessTokenService with WebHookService
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AccessTokenService =>
+    with AccessTokenService with WebHookService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
@@ -149,6 +150,25 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
     }
   }
+
+  /**
+   * https://developer.github.com/v3/users/#get-a-single-user
+   */
+  get("/api/v3/users/:userName") {
+    getAccountByUserName(params("userName")).map { account =>
+      apiJson(WebHookApiUser(account))
+    } getOrElse NotFound
+  }
+
+  /**
+   * https://developer.github.com/v3/users/#get-the-authenticated-user
+   */
+  get("/api/v3/user") {
+    context.loginAccount.map { account =>
+      apiJson(WebHookApiUser(account))
+    } getOrElse NotFound
+  }
+
 
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")

@@ -167,13 +167,14 @@ object WebHookService {
           .getOrElse(throw new MappingException("Can't convert " + s + " to Date")) },
         { case x: Date => JString(parserISO.print(new DateTime(x).withZone(DateTimeZone.UTC))) }
       )
-    ) + FieldSerializer[WebHookApiUser]() + FieldSerializer[WebHookPullRequest]() + FieldSerializer[WebHookRepository]()
+    ) + FieldSerializer[WebHookApiUser]() + FieldSerializer[WebHookPullRequest]() + FieldSerializer[WebHookRepository]() +
+      FieldSerializer[WebHookCommitListItemParent]() + FieldSerializer[WebHookCommitListItem]() + FieldSerializer[WebHookCommitListItemCommit]()
   }
   def apiPathSerializer(c:ApiContext) = new CustomSerializer[ApiPath](format =>
       (
         {
           case JString(s) if s.startsWith(c.baseUrl) => ApiPath(s.substring(c.baseUrl.length))
-          case JString(s) => throw new MappingException("Can't convert " + s + " to Date")
+          case JString(s) => throw new MappingException("Can't convert " + s + " to ApiPath")
         },
         { case ApiPath(path) => JString(c.baseUrl+path) }
       )
@@ -293,14 +294,8 @@ object WebHookService {
         removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
         modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
           x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
-        author    = WebHookCommitUser(
-          name  = commit.authorName,
-          email = commit.authorEmailAddress
-        ),
-        committer = WebHookCommitUser(
-          name  = commit.committerName,
-          email = commit.committerEmailAddress
-        )
+        author    = WebHookCommitUser.author(commit),
+        committer = WebHookCommitUser.committer(commit)
       )
     }
   }
@@ -336,7 +331,21 @@ object WebHookService {
 
   case class WebHookCommitUser(
     name: String,
-    email: String)
+    email: String,
+    date: Date)
+
+  object WebHookCommitUser {
+    def author(commit: CommitInfo): WebHookCommitUser =
+      WebHookCommitUser(
+        name  = commit.authorName,
+        email = commit.authorEmailAddress,
+        date  = commit.authorTime)
+    def committer(commit: CommitInfo): WebHookCommitUser =
+      WebHookCommitUser(
+        name  = commit.committerName,
+        email = commit.committerEmailAddress,
+        date  = commit.commitTime)
+  }
 
   // https://developer.github.com/v3/repos/
   case class WebHookRepository(
@@ -417,7 +426,7 @@ object WebHookService {
                        sha  = pullRequest.commitIdFrom,
                        ref  = pullRequest.branch,
                        repo = baseRepo),
-        mergeable  = None,
+        mergeable  = Some(true), // TODO: need check mergeable.
         title      = issue.title,
         body       = issue.content.getOrElse(""),
         user       = user
@@ -483,4 +492,42 @@ object WebHookService {
         created_at = comment.registeredDate,
         updated_at = comment.updatedDate)
   }
+
+  // https://developer.github.com/v3/issues/comments/#create-a-comment
+  case class CreateAComment(body: String)
+
+
+  // https://developer.github.com/v3/repos/commits/
+  case class WebHookCommitListItemParent(sha: String)(repoFullName:String){
+    val url = ApiPath(s"/api/v3/repos/${repoFullName}/commits/${sha}")
+  }
+  case class WebHookCommitListItemCommit(
+    message: String,
+    author: WebHookCommitUser,
+    committer: WebHookCommitUser)(sha:String, repoFullName: String) {
+    val url = ApiPath(s"/api/v3/repos/${repoFullName}/git/commits/${sha}")
+  }
+
+  case class WebHookCommitListItem(
+    sha: String,
+    commit: WebHookCommitListItemCommit,
+    author: Option[WebHookApiUser],
+    committer: Option[WebHookApiUser],
+    parents: Seq[WebHookCommitListItemParent])(repoFullName: String) {
+    val url = ApiPath(s"/api/v3/repos/${repoFullName}/commits/${sha}")
+  }
+
+  object WebHookCommitListItem {
+    def apply(commit: CommitInfo, repoFullName:String): WebHookCommitListItem = WebHookCommitListItem(
+      sha    = commit.id,
+      commit = WebHookCommitListItemCommit(
+        message   = commit.fullMessage,
+        author    = WebHookCommitUser.author(commit),
+        committer = WebHookCommitUser.committer(commit)
+        )(commit.id, repoFullName),
+      author    = None,
+      committer = None,
+      parents   = commit.parents.map(WebHookCommitListItemParent(_)(repoFullName)))(repoFullName)
+  }
+
 }
