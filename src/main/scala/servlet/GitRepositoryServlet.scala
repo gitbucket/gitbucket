@@ -180,6 +180,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           }
 
           // call web hook
+          implicit val apiContext = ApiContext(baseUrl)
           callWebHookOf(owner, repository, "push"){
             for(pusherAccount <- getAccountByUserName(pusher);
               ownerAccount   <- getAccountByUserName(owner);
