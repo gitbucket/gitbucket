@@ -15,7 +15,7 @@ import service.PullRequestService._
 import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
-import service.WebHookService.{ WebHookPayload, WebHookPullRequestPayload }
+import service.WebHookService._
 import util.JGitUtil.DiffInfo
 import util.JGitUtil.CommitInfo
 import model.{PullRequest, Issue}
@@ -69,6 +69,24 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
+  /**
+   * https://developer.github.com/v3/pulls/#list-pull-requests
+   */
+  get("/api/v3/repos/:owner/:repository/pulls")(referrersOnly { repository =>
+    val page       = IssueSearchCondition.page(request)
+    // TODO: more api spec condition
+    val condition = IssueSearchCondition(request)
+    val baseOwner = getAccountByUserName(repository.owner).get
+    val issues:List[(model.Issue, model.Account, Int, model.PullRequest, model.Repository, model.Account)] = searchPullRequestByApi(condition, (page - 1) * PullRequestLimit, PullRequestLimit, repository.owner -> repository.name)
+    apiJson(issues.map{case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
+      WebHookPullRequest(
+        issue,
+        pullRequest,
+        WebHookRepository(headRepo, WebHookApiUser(headOwner)),
+        WebHookRepository(repository, WebHookApiUser(baseOwner)),
+        WebHookApiUser(issueUser)) })
+  })
+
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
@@ -90,6 +108,47 @@ trait PullRequestsControllerBase extends ControllerBase {
             diffs,
             hasWritePermission(owner, name, context.loginAccount),
             repository)
+        }
+      }
+    } getOrElse NotFound
+  })
+
+  /**
+   * https://developer.github.com/v3/pulls/#get-a-single-pull-request
+   */
+  get("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
+    (for{
+      issueId <- params("id").toIntOpt
+      (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
+      users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.userName), Set())
+      baseOwner <- users.get(repository.owner)
+      headOwner <- users.get(pullRequest.requestUserName)
+      issueUser <- users.get(issue.userName)
+      headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
+    } yield {
+      apiJson(WebHookPullRequest(
+        issue,
+        pullRequest,
+        WebHookRepository(headRepo, WebHookApiUser(headOwner)),
+        WebHookRepository(repository, WebHookApiUser(baseOwner)),
+        WebHookApiUser(issueUser)))
+    }).getOrElse(NotFound)
+  })
+
+  /**
+   * https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
+   */
+  get("/api/v3/repos/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
+    val owner = repository.owner
+    val name = repository.name
+    params("id").toIntOpt.flatMap{ issueId =>
+      getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+        using(Git.open(getRepositoryDir(owner, name))){ git =>
+          val oldId = git.getRepository.resolve(pullreq.commitIdFrom)
+          val newId = git.getRepository.resolve(pullreq.commitIdTo)
+          val repoFullName = s"${owner}/${name}"
+          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => WebHookCommitListItem(new CommitInfo(c), repoFullName)).toList
+          apiJson(commits)
         }
       }
     } getOrElse NotFound
