@@ -97,7 +97,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
    * Displays user information.
    */
-  get("/:userName") {
+  get("/:userName/?") {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       params.getOrElse("tab", "repositories") match {
