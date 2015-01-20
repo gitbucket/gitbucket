@@ -14,7 +14,7 @@ import service.{SystemSettingsService, AccountService, AccessTokenService}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
 import org.scalatra.i18n._
-
+import scala.util.Try
 /**
  * Provides generic features for controller implementations.
  */
@@ -150,6 +150,15 @@ abstract class ControllerBase extends ScalatraFilter
     }
     response.addHeader("X-Content-Type-Options", "nosniff")
     rawData
+  }
+
+  // jenkins send message as 'application/x-www-form-urlencoded' but scalatra already parsed as multi-part-request.
+  def extractFromJsonBody[A](implicit request:HttpServletRequest, mf:Manifest[A]): Option[A] = {
+    (request.contentType.map(_.split(";").head.toLowerCase) match{
+      case Some("application/x-www-form-urlencoded") => multiParams.keys.headOption.map(parse(_))
+      case Some("application/json") => Some(parsedBody)
+      case _ => Some(parse(request.body))
+    }).filterNot(_ == JNothing).flatMap(j => Try(j.extract[A]).toOption)
   }
 }
 

@@ -181,10 +181,10 @@ trait IssuesControllerBase extends ControllerBase {
    * https://developer.github.com/v3/issues/comments/#create-a-comment
    */
   post("/api/v3/repos/:owner/:repository/issues/:id/comments")(readableUsersOnly { repository =>
-    val data = multiParams.keys.headOption.flatMap(b => Try(parse(b).extract[CreateAComment]).toOption)
     (for{
       issueId <- params("id").toIntOpt
-      (issue, id) <- handleComment(issueId, data.map(_.body), repository)()
+      body <- extractFromJsonBody[CreateAComment].map(_.body) if ! body.isEmpty
+      (issue, id) <- handleComment(issueId, Some(body), repository)()
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
       apiJson(WebHookComment(issueComment, WebHookApiUser(context.loginAccount.get)))
