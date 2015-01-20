@@ -1,4 +1,5 @@
-@(groupNames: List[String])(implicit context: app.Context)
+@(groupNames: List[String],
+isCreateRepoOptionPublic: Boolean)(implicit context: app.Context)
 @import context._
 @import view.helpers._
 @html.main("Create a New Repository"){
@@ -29,7 +30,7 @@
     </fieldset>
     <fieldset class="margin">
       <label class="radio">
-        <input type="radio" name="isPrivate" value="false" checked>
+        <input type="radio" name="isPrivate" value="false" @if(isCreateRepoOptionPublic){checked}>
         <span class="strong"><img src="@assets/common/images/repo_public.png"/>&nbsp;</i>&nbsp;Public</span><br>
         <div>
           <span>All users and guests can read this repository.</span>
@@ -38,7 +39,7 @@
     </fieldset>
     <fieldset>
       <label class="radio">
-        <input type="radio" name="isPrivate" value="true">
+        <input type="radio" name="isPrivate" value="true" @if(!isCreateRepoOptionPublic){checked}>
         <span class="strong"><img src="@assets/common/images/repo_private.png"/>&nbsp;</i>&nbsp;Private</span><br>
         <div>
           <span>Only collaborators can read this repository.</span>

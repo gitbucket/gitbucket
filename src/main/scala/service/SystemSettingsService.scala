@@ -14,6 +14,7 @@ trait SystemSettingsService {
       settings.baseUrl.foreach(x => props.setProperty(BaseURL, x.replaceFirst("/\\Z", "")))
       settings.information.foreach(x => props.setProperty(Information, x))
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
+      props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
       props.setProperty(Ssh, settings.ssh.toString)
@@ -64,6 +65,7 @@ trait SystemSettingsService {
         getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
         getOptionValue[String](props, Information, None),
         getValue(props, AllowAccountRegistration, false),
+        getValue(props, IsCreateRepoOptionPublic, true),
         getValue(props, Gravatar, true),
         getValue(props, Notification, false),
         getValue(props, Ssh, false),
@@ -111,6 +113,7 @@ object SystemSettingsService {
     baseUrl: Option[String],
     information: Option[String],
     allowAccountRegistration: Boolean,
+    isCreateRepoOptionPublic: Boolean,
     gravatar: Boolean,
     notification: Boolean,
     ssh: Boolean,
@@ -155,6 +158,7 @@ object SystemSettingsService {
   private val BaseURL = "base_url"
   private val Information = "information"
   private val AllowAccountRegistration = "allow_account_registration"
+  private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
   private val Ssh = "ssh"
