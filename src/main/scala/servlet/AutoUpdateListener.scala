@@ -10,7 +10,7 @@ import util.Directory._
 import util.ControlUtil._
 import util.JDBCUtil._
 import org.eclipse.jgit.api.Git
-import util.Directory
+import util.{DatabaseConfig, Directory}
 
 object AutoUpdate {
   
@@ -208,10 +208,7 @@ class AutoUpdateListener extends ServletContextListener {
     }
     org.h2.Driver.load()
 
-    val context = event.getServletContext
-    context.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome};MVCC=true")
-
-    defining(getConnection(event.getServletContext)){ conn =>
+    defining(getConnection()){ conn =>
       logger.debug("Start schema update")
       try {
         defining(getCurrentVersion()){ currentVersion =>
@@ -239,16 +236,10 @@ class AutoUpdateListener extends ServletContextListener {
   def contextDestroyed(sce: ServletContextEvent): Unit = {
   }
 
-  private def getConnection(servletContext: ServletContext): Connection =
+  private def getConnection(): Connection =
     DriverManager.getConnection(
-      servletContext.getInitParameter("db.url"),
-      servletContext.getInitParameter("db.user"),
-      servletContext.getInitParameter("db.password"))
-
-  private def getDatabase(servletContext: ServletContext): scala.slick.jdbc.JdbcBackend.Database =
-    slick.jdbc.JdbcBackend.Database.forURL(
-      servletContext.getInitParameter("db.url"),
-      servletContext.getInitParameter("db.user"),
-      servletContext.getInitParameter("db.password"))
+      DatabaseConfig.url,
+      DatabaseConfig.user,
+      DatabaseConfig.password)
 
 }

@@ -45,25 +45,7 @@
     <servlet-name>GitRepositoryServlet</servlet-name>
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
-
-  <!-- ===================================================================== -->
-  <!-- H2 database configuration -->
-  <!-- ===================================================================== -->
-  <context-param>
-    <param-name>db.user</param-name>
-    <param-value>sa</param-value>
-  </context-param>
-  
-  <context-param>
-    <param-name>db.password</param-name>
-    <param-value>sa</param-value>
-  </context-param>
-  
-  <context-param>
-    <param-name>db.tcpServer</param-name>
-    <param-value>-tcpAllowOthers</param-value>
-  </context-param>
-  
+ 
   <!-- ===================================================================== -->
   <!-- H2 console configuration -->
   <!-- ===================================================================== -->
