@@ -18,9 +18,14 @@ object Markdown {
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
-  def toHtml(markdown: String, repository: service.RepositoryService.RepositoryInfo,
-             enableWikiLink: Boolean, enableRefsLink: Boolean,
-             enableTaskList: Boolean = false, hasWritePermission: Boolean = false)(implicit context: app.Context): String = {
+  def toHtml(markdown: String,
+             repository: service.RepositoryService.RepositoryInfo,
+             enableWikiLink: Boolean,
+             enableRefsLink: Boolean,
+             enableTaskList: Boolean = false,
+             hasWritePermission: Boolean = false,
+             pages: List[String] = Nil)(implicit context: app.Context): String = {
+
     // escape issue id
     val s = if(enableRefsLink){
       markdown.replaceAll("(?<=(\\W|^))#(\\d+)(?=(\\W|$))", "issue:$2")
@@ -35,12 +40,16 @@ object Markdown {
       Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES | Extensions.HARDWRAPS | Extensions.SUPPRESS_ALL_HTML
     ).parseMarkdown(source.toCharArray)
 
-    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission).toHtml(rootNode)
+    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission, pages).toHtml(rootNode)
   }
 }
 
-class GitBucketLinkRender(context: app.Context, repository: service.RepositoryService.RepositoryInfo,
-                          enableWikiLink: Boolean) extends LinkRenderer with WikiService {
+class GitBucketLinkRender(
+    context: app.Context,
+    repository: service.RepositoryService.RepositoryInfo,
+    enableWikiLink: Boolean,
+    pages: List[String]) extends LinkRenderer with WikiService {
+
   override def render(node: WikiLinkNode): Rendering = {
     if(enableWikiLink){
       try {
@@ -54,7 +63,7 @@ class GitBucketLinkRender(context: app.Context, repository: service.RepositorySe
 
         val url = repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/" + StringUtil.urlEncode(page)
 
-        if(getWikiPage(repository.owner, repository.name, page).isDefined){
+        if(pages.contains(page)){
           new Rendering(url, label)
         } else {
           new Rendering(url, label).withAttribute("class", "absent")
@@ -91,9 +100,10 @@ class GitBucketHtmlSerializer(
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
     enableTaskList: Boolean,
-    hasWritePermission: Boolean
+    hasWritePermission: Boolean,
+    pages: List[String]
   )(implicit val context: app.Context) extends ToHtmlSerializer(
-    new GitBucketLinkRender(context, repository, enableWikiLink),
+    new GitBucketLinkRender(context, repository, enableWikiLink, pages),
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
   ) with LinkConverter with RequestCache {
 

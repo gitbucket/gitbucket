@@ -53,6 +53,18 @@
               <span class="strong">Deny</span> - Only administrators can create accounts.
             </label>
           </fieldset>
+          <hr>
+          <label class="strong">Default option to create a new repository</label>
+          <fieldset>
+            <label class="radio">
+              <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(settings.isCreateRepoOptionPublic){ checked}>
+              <span class="strong">Public</span> - All users and guests can read that repository.
+            </label>
+            <label class="radio">
+              <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!settings.isCreateRepoOptionPublic){ checked}>
+              <span class="strong">Private</span> - Only collaborators can read that repository.
+            </label>
+          </fieldset>
           <!--====================================================================-->
           <!-- Anonymous access -->
           <!--====================================================================-->
@@ -181,6 +193,13 @@
               <div class="controls">
                 <label class="checkbox">
                   <input type="checkbox" name="ldap.tls"@if(settings.ldap.flatMap(_.tls).getOrElse(false)){ checked}/> Enable TLS
+                </label>
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox">
+                  <input type="checkbox" name="ldap.ssl"@if(settings.ldap.flatMap(_.ssl).getOrElse(false)){ checked}/> Enable SSL
                 </label>
               </div>
             </div>

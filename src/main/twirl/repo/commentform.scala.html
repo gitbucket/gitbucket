@@ -29,10 +29,10 @@
         <input type="submit" class="btn btn-success" formaction="@url(repository)/commit/@commitId/comment/new" value="Comment on this commit"/>
       </div>
     }
-    @if(issueId.isDefined){<input type="hidden" name="issueId" value="@issueId.get">}
-    @if(fileName.isDefined){<input type="hidden" name="fileName" value="@fileName.get">}
-    @if(oldLineNumber.isDefined){<input type="hidden" name="oldLineNumber" value="@oldLineNumber.get">}
-    @if(newLineNumber.isDefined){<input type="hidden" name="newLineNumber" value="@newLineNumber.get">}
+    @issueId.map { issueId => <input type="hidden" name="issueId" value="@issueId"> }
+    @fileName.map { fileName => <input type="hidden" name="fileName" value="@fileName"> }
+    @oldLineNumber.map { oldLineNumber => <input type="hidden" name="oldLineNumber" value="@oldLineNumber"> }
+    @newLineNumber.map { newLineNumber => <input type="hidden" name="newLineNumber" value="@newLineNumber"> }
   </form>
   <script>
     $('.btn-inline-comment').click(function(e) {

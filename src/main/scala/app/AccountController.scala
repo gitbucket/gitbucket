@@ -291,7 +291,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Show the new repository form.
    */
   get("/new")(usersOnly {
-    account.html.newrepo(getGroupsByUserName(context.loginAccount.get.userName))
+    account.html.newrepo(getGroupsByUserName(context.loginAccount.get.userName), context.settings.isCreateRepoOptionPublic)
   })
 
   /**

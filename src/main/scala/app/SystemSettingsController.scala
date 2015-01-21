@@ -17,6 +17,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
     "information"              -> trim(label("Information", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "allowAnonymousAccess"     -> trim(label("Anonymous access", boolean())),
+    "isCreateRepoOptionPublic" -> trim(label("Default option to create a new repository", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
     "ssh"                      -> trim(label("SSH access", boolean())),
@@ -42,6 +43,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "fullNameAttribute"        -> trim(label("Full name attribute", optional(text()))),
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
+        "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
   )(SystemSettings.apply).verifying { settings =>
