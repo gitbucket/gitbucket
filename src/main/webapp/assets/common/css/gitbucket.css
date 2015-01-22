@@ -1272,3 +1272,8 @@ h5 a.markdown-anchor-link {
 h6 a.markdown-anchor-link {
   top: 6px;
 }
+
+.emoji {
+  width: 20px;
+  height: 20px;
+}

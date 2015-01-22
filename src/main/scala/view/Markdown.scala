@@ -105,7 +105,7 @@ class GitBucketHtmlSerializer(
   )(implicit val context: app.Context) extends ToHtmlSerializer(
     new GitBucketLinkRender(context, repository, enableWikiLink, pages),
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
-  ) with LinkConverter with RequestCache {
+  ) with LinkConverter with EmojiConverter with RequestCache {
 
   override protected def printImageTag(imageNode: SuperNode, url: String): Unit = {
     printer.print("<a target=\"_blank\" href=\"").print(fixUrl(url, true)).print("\">")
@@ -162,10 +162,13 @@ class GitBucketHtmlSerializer(
 
   override def visit(node: TextNode): Unit =  {
     // convert commit id and username to link.
-    val t = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
+    val links = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
+
+    // convert emoji to image
+    val emojis = convertEmojis(links)
 
     // convert task list to checkbox.
-    val text = if(enableTaskList) GitBucketHtmlSerializer.convertCheckBox(t, hasWritePermission) else t
+    val text = if(enableTaskList) GitBucketHtmlSerializer.convertCheckBox(emojis, hasWritePermission) else emojis
 
     if (abbreviations.isEmpty) {
       printer.print(text)
