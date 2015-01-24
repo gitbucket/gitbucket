@@ -15,7 +15,7 @@
       <li>
         <h1 class="wiki-title"><span class="muted">Compare Revisions</span></h1>
       </li>
-      <li class="pull-right">
+      <li class="fill-width pull-right">
         <div class="btn-group">
         @if(pageName.isDefined){
           <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)">View Page</a>
@@ -26,7 +26,9 @@
         </div>
       </li>
     </ul>
-    @helper.html.diff(diffs, repository, None, None, false, None, false, false)
+    <div class="pull-left">
+      @helper.html.diff(diffs, repository, None, None, false, None, false, false)
+    </div>
     @if(hasWritePermission){
       <div>
         @if(pageName.isDefined){
