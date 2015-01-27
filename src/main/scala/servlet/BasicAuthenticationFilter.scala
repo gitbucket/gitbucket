@@ -28,33 +28,45 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
       override def setCharacterEncoding(encoding: String) = {}
     }
 
+    val isUpdating = request.getRequestURI.endsWith("/git-receive-pack") || "service=git-receive-pack".equals(request.getQueryString)
+
+    val settings = loadSystemSettings()
+
     try {
-      defining(request.paths){ case Array(_, repositoryOwner, repositoryName, _*) =>
-        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", ""), "") match {
-          case Some(repository) => {
-            if(!request.getRequestURI.endsWith("/git-receive-pack") &&
-              !"service=git-receive-pack".equals(request.getQueryString) && !repository.repository.isPrivate){
-              chain.doFilter(req, wrappedResponse)
-            } else {
-              request.getHeader("Authorization") match {
-                case null => requireAuth(response)
-                case auth => decodeAuthHeader(auth).split(":") match {
-                  case Array(username, password) => getWritableUser(username, password, repository) match {
-                    case Some(account) => {
-                      request.setAttribute(Keys.Request.UserName, account.userName)
-                      chain.doFilter(req, wrappedResponse)
+      defining(request.paths){
+        case Array(_, repositoryOwner, repositoryName, _*) =>
+          getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", ""), "") match {
+            case Some(repository) => {
+              if(!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess){
+                chain.doFilter(req, wrappedResponse)
+              } else {
+                request.getHeader("Authorization") match {
+                  case null => requireAuth(response)
+                  case auth => decodeAuthHeader(auth).split(":") match {
+                    case Array(username, password) => {
+                      authenticate(settings, username, password) match {
+                        case Some(account) => {
+                          if(isUpdating && hasWritePermission(repository.owner, repository.name, Some(account))){
+                            request.setAttribute(Keys.Request.UserName, account.userName)
+                          }
+                          chain.doFilter(req, wrappedResponse)
+                        }
+                        case None => requireAuth(response)
+                      }
                     }
-                    case None => requireAuth(response)
+                    case _ => requireAuth(response)
                   }
-                  case _ => requireAuth(response)
                 }
               }
             }
+            case None => {
+              logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
+              response.sendError(HttpServletResponse.SC_NOT_FOUND)
+            }
           }
-          case None => {
-            logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
-            response.sendError(HttpServletResponse.SC_NOT_FOUND)
-          }
+        case _ => {
+          logger.debug(s"Not enough path arguments: ${request.paths}")
+          response.sendError(HttpServletResponse.SC_NOT_FOUND)
         }
       }
     } catch {
@@ -64,13 +76,6 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
       }
     }
   }
-
-  private def getWritableUser(username: String, password: String, repository: RepositoryService.RepositoryInfo)
-                             (implicit session: Session): Option[Account] =
-    authenticate(loadSystemSettings(), username, password) match {
-      case x @ Some(account) if(hasWritePermission(repository.owner, repository.name, x)) => x
-      case _ => None
-    }
 
   private def requireAuth(response: HttpServletResponse): Unit = {
     response.setHeader("WWW-Authenticate", "BASIC realm=\"GitBucket\"")
