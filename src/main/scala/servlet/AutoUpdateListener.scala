@@ -8,10 +8,9 @@ import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import util.Directory._
 import util.ControlUtil._
+import util.JDBCUtil._
 import org.eclipse.jgit.api.Git
 import util.Directory
-import plugin.PluginUpdateJob
-import service.SystemSettingsService
 
 object AutoUpdate {
   
@@ -53,16 +52,38 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    new Version(2, 8),
     new Version(2, 7) {
       override def update(conn: Connection): Unit = {
         super.update(conn)
-        using(conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")){ rs =>
-          while(rs.next){
-            defining(Directory.getAttachedDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))){ newDir =>
-              val oldDir = new File(newDir.getParentFile, "issues")
-              if(oldDir.exists && oldDir.isDirectory){
-                oldDir.renameTo(newDir)
-              }
+        conn.select("SELECT * FROM REPOSITORY"){ rs =>
+          // Rename attached files directory from /issues to /comments
+          val userName = rs.getString("USER_NAME")
+          val repoName = rs.getString("REPOSITORY_NAME")
+          defining(Directory.getAttachedDir(userName, repoName)){ newDir =>
+            val oldDir = new File(newDir.getParentFile, "issues")
+            if(oldDir.exists && oldDir.isDirectory){
+              oldDir.renameTo(newDir)
+            }
+          }
+          // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME if it does not exist
+          val originalUserName = rs.getString("ORIGIN_USER_NAME")
+          val originalRepoName = rs.getString("ORIGIN_REPOSITORY_NAME")
+          if(originalUserName != null && originalRepoName != null){
+            if(conn.selectInt("SELECT COUNT(*) FROM REPOSITORY WHERE USER_NAME = ? AND REPOSITORY_NAME = ?",
+                originalUserName, originalRepoName) == 0){
+              conn.update("UPDATE REPOSITORY SET ORIGIN_USER_NAME = NULL, ORIGIN_REPOSITORY_NAME = NULL " +
+                  "WHERE USER_NAME = ? AND REPOSITORY_NAME = ?", userName, repoName)
+            }
+          }
+          // Update PARENT_USER_NAME and PARENT_REPOSITORY_NAME if it does not exist
+          val parentUserName = rs.getString("PARENT_USER_NAME")
+          val parentRepoName = rs.getString("PARENT_REPOSITORY_NAME")
+          if(parentUserName != null && parentRepoName != null){
+            if(conn.selectInt("SELECT COUNT(*) FROM REPOSITORY WHERE USER_NAME = ? AND REPOSITORY_NAME = ?",
+                parentUserName, parentRepoName) == 0){
+              conn.update("UPDATE REPOSITORY SET PARENT_USER_NAME = NULL, PARENT_REPOSITORY_NAME = NULL " +
+                  "WHERE USER_NAME = ? AND REPOSITORY_NAME = ?", userName, repoName)
             }
           }
         }
@@ -74,18 +95,11 @@ object AutoUpdate {
     new Version(2, 3) {
       override def update(conn: Connection): Unit = {
         super.update(conn)
-        using(conn.createStatement.executeQuery("SELECT ACTIVITY_ID, ADDITIONAL_INFO FROM ACTIVITY WHERE ACTIVITY_TYPE='push'")){ rs =>
-          while(rs.next) {
-            val info = rs.getString("ADDITIONAL_INFO")
-            val newInfo = info.split("\n").filter(_ matches "^[0-9a-z]{40}:.*").mkString("\n")
-            if (info != newInfo) {
-              val id = rs.getString("ACTIVITY_ID")
-              using(conn.prepareStatement("UPDATE ACTIVITY SET ADDITIONAL_INFO=? WHERE ACTIVITY_ID=?")) { sql =>
-                sql.setString(1, newInfo)
-                sql.setLong(2, id.toLong)
-                sql.executeUpdate
-              }
-            }
+        conn.select("SELECT ACTIVITY_ID, ADDITIONAL_INFO FROM ACTIVITY WHERE ACTIVITY_TYPE='push'"){ rs =>
+          val curInfo = rs.getString("ADDITIONAL_INFO")
+          val newInfo = curInfo.split("\n").filter(_ matches "^[0-9a-z]{40}:.*").mkString("\n")
+          if (curInfo != newInfo) {
+            conn.update("UPDATE ACTIVITY SET ADDITIONAL_INFO = ? WHERE ACTIVITY_ID = ?", newInfo, rs.getInt("ACTIVITY_ID"))
           }
         }
         FileUtils.deleteDirectory(Directory.getPluginCacheDir())
@@ -102,16 +116,14 @@ object AutoUpdate {
         mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector")
 
         super.update(conn)
-        using(conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")){ rs =>
-          while(rs.next){
-            defining(Directory.getAttachedDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))){ dir =>
-              if(dir.exists && dir.isDirectory){
-                dir.listFiles.foreach { file =>
-                  if(file.getName.indexOf('.') < 0){
-                    val mimeType = MimeUtil2.getMostSpecificMimeType(mimeUtil.getMimeTypes(file, new MimeType("application/octet-stream"))).toString
-                    if(mimeType.startsWith("image/")){
-                      file.renameTo(new File(file.getParent, file.getName + "." + mimeType.split("/")(1)))
-                    }
+        conn.select("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY"){ rs =>
+          defining(Directory.getAttachedDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))){ dir =>
+            if(dir.exists && dir.isDirectory){
+              dir.listFiles.foreach { file =>
+                if(file.getName.indexOf('.') < 0){
+                  val mimeType = MimeUtil2.getMostSpecificMimeType(mimeUtil.getMimeTypes(file, new MimeType("application/octet-stream"))).toString
+                  if(mimeType.startsWith("image/")){
+                    file.renameTo(new File(file.getParent, file.getName + "." + mimeType.split("/")(1)))
                   }
                 }
               }
@@ -134,14 +146,12 @@ object AutoUpdate {
       override def update(conn: Connection): Unit = {
         super.update(conn)
         // Fix wiki repository configuration
-        using(conn.createStatement.executeQuery("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY")){ rs =>
-          while(rs.next){
-            using(Git.open(getWikiRepositoryDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME")))){ git =>
-              defining(git.getRepository.getConfig){ config =>
-                if(!config.getBoolean("http", "receivepack", false)){
-                  config.setBoolean("http", null, "receivepack", true)
-                  config.save
-                }
+        conn.select("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY"){ rs =>
+          using(Git.open(getWikiRepositoryDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME")))){ git =>
+            defining(git.getRepository.getConfig){ config =>
+              if(!config.getBoolean("http", "receivepack", false)){
+                config.setBoolean("http", null, "receivepack", true)
+                config.save
               }
             }
           }
@@ -186,11 +196,10 @@ object AutoUpdate {
  * Update database schema automatically in the context initializing.
  */
 class AutoUpdateListener extends ServletContextListener {
-  import org.quartz.impl.StdSchedulerFactory
   import AutoUpdate._
 
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
-  private val scheduler = StdSchedulerFactory.getDefaultScheduler
+//  private val scheduler = StdSchedulerFactory.getDefaultScheduler
   
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
@@ -225,31 +234,9 @@ class AutoUpdateListener extends ServletContextListener {
       }
       logger.debug("End schema update")
     }
-
-    if(SystemSettingsService.enablePluginSystem){
-      getDatabase(context).withSession { implicit session =>
-        logger.debug("Starting plugin system...")
-        try {
-          plugin.PluginSystem.init()
-
-          scheduler.start()
-          PluginUpdateJob.schedule(scheduler)
-          logger.debug("PluginUpdateJob is started.")
-
-          logger.debug("Plugin system is initialized.")
-        } catch {
-          case ex: Throwable => {
-            logger.error("Failed to initialize plugin system", ex)
-            ex.printStackTrace()
-            throw ex
-          }
-        }
-      }
-    }
   }
 
   def contextDestroyed(sce: ServletContextEvent): Unit = {
-    scheduler.shutdown()
   }
 
   private def getConnection(servletContext: ServletContext): Connection =

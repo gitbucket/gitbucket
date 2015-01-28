@@ -84,7 +84,7 @@ diffview = {
 		    b.appendChild(document.createTextNode("+"));
 		    b.style.display = "none";
 		    b.className = "add-comment";
-		    e.appendChild(b);
+		    e.insertBefore(b, e.firstChild);
 		    e.style.position = "relative";
 		    return e;
 		}
@@ -116,10 +116,13 @@ diffview = {
 		 * be returned.	 Otherwise, tidx is returned, and two empty cells are added
 		 * to the given row.
 		 */
-		function addCells (row, tidx, tend, textLines, change) {
+		function addCells (row, tidx, tend, textLines, change, thclass) {
+		    var tmp;
 			if (tidx < tend) {
-				row.appendChild(telt("th", (tidx + 1).toString()));
-				row.appendChild(ctelt("td", change, textLines[tidx].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0")));
+			    tmp = ctelt("th", thclass, "");
+			    tmp.setAttribute("line-number", (tidx + 1).toString());
+				row.appendChild(tmp);
+				row.appendChild(addButton(ctelt("td", change, textLines[tidx].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0"))));
 				return tidx + 1;
 			} else {
 				row.appendChild(document.createElement("th"));
@@ -129,9 +132,13 @@ diffview = {
 		}
 		
 		function addCellsInline (row, tidx, tidx2, textLines, change) {
-			row.appendChild(ctelt("th", "oldline", tidx == null ? "" : (tidx + 1).toString()));
-			row.appendChild(addButton(ctelt("th", "newline", tidx2 == null ? "" : (tidx2 + 1).toString())));
-			row.appendChild(ctelt("td", change, textLines[tidx != null ? tidx : tidx2].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0")));
+		    var tmp = ctelt("th", "oldline", "");
+		    tmp.setAttribute("line-number", tidx == null ? "" : (tidx + 1).toString());
+			row.appendChild(tmp);
+			tmp = ctelt("th", "newline", "");
+			tmp.setAttribute("line-number", tidx2 == null ? "" : (tidx2 + 1).toString());
+			row.appendChild(tmp);
+			row.appendChild(addButton(ctelt("td", change, textLines[tidx != null ? tidx : tidx2].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0"))));
 		}
 		
 		for (var idx = 0; idx < opcodes.length; idx++) {
@@ -154,9 +161,9 @@ diffview = {
 						b += jump;
 						n += jump;
 						i += jump - 1;
-						node.appendChild(telt("th", "..."));
+						node.appendChild(ctelt("th", "skipline", ""));
 						if (!inline) node.appendChild(ctelt("td", "skip", ""));
-						node.appendChild(telt("th", "..."));
+						node.appendChild(ctelt("th", "skipline", ""));
 						node.appendChild(ctelt("td", "skip", ""));
 						
 						// skip last lines if they're all equal
@@ -188,8 +195,8 @@ diffview = {
 						if (b < be) changeBase = "delete";
 						if (n < ne) changeNew = "insert";
 					}
-					b = addCells(node, b, be, baseTextLines, changeBase);
-					n = addCells(node, n, ne, newTextLines, changeNew);
+					b = addCells(node, b, be, baseTextLines, changeBase, "oldline");
+					n = addCells(node, n, ne, newTextLines, changeNew, "newline");
 				}
 			}
 

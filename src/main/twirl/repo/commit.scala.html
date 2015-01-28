@@ -83,7 +83,7 @@
         </td>
       </tr>
     </table>
-    @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, hasWritePermission, true)
+    @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, None, hasWritePermission, true)
     <label class="checkbox">
       <input type="checkbox" id="show-notes"> Show line notes below
     </label>

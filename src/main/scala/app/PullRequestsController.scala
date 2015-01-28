@@ -79,7 +79,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
           pulls.html.pullreq(
             issue, pullreq,
-            (commits.flatten.map(commit => getCommitComments(owner, name, commit.id)).flatten.toList ::: getComments(owner, name, issueId))
+            (commits.flatten.map(commit => getCommitComments(owner, name, commit.id, true)).flatten.toList ::: getComments(owner, name, issueId))
               .sortWith((a, b) => a.registeredDate before b.registeredDate),
             getIssueLabels(owner, name, issueId),
             (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
@@ -280,7 +280,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
             case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
           },
-          commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id)).flatten.toList,
+          commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
           originBranch,
           forkedBranch,
           oldId.getName,

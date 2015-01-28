@@ -2,7 +2,7 @@ package service
 
 import model.Profile._
 import profile.simple._
-import model.{Repository, Account, Collaborator}
+import model.{Repository, Account, Collaborator, Label}
 import util.JGitUtil
 
 trait RepositoryService { self: AccountService =>
@@ -94,8 +94,16 @@ trait RepositoryService { self: AccountService =>
         PullRequests  .insertAll(pullRequests  .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueComments .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        IssueLabels   .insertAll(issueLabels   .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         CommitComments.insertAll(commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+
+        // Convert labelId
+        val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
+        val newLabelMap = Labels.filter(_.byRepository(newUserName, newRepositoryName)).map(x => (x.labelName, x.labelId)).list.toMap
+        IssueLabels.insertAll(issueLabels.map(x => x.copy(
+          labelId        = newLabelMap(oldLabelMap(x.labelId)),
+          userName       = newUserName,
+          repositoryName = newRepositoryName
+        )) :_*)
 
         if(account.isGroupAccount){
           Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
@@ -136,6 +144,30 @@ trait RepositoryService { self: AccountService =>
     Milestones    .filter(_.byRepository(userName, repositoryName)).delete
     WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
+
+    // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
+    Repositories
+      .filter { x => (x.originUserName === userName.bind) && (x.originRepositoryName === repositoryName.bind) }
+      .map    { x => (x.userName, x.repositoryName) }
+      .list
+      .foreach { case (userName, repositoryName) =>
+        Repositories
+          .filter(_.byRepository(userName, repositoryName))
+          .map(x => (x.originUserName?, x.originRepositoryName?))
+          .update(None, None)
+      }
+
+    // Update PARENT_USER_NAME and PARENT_REPOSITORY_NAME
+    Repositories
+      .filter { x => (x.parentUserName === userName.bind) && (x.parentRepositoryName === repositoryName.bind) }
+      .map    { x => (x.userName, x.repositoryName) }
+      .list
+      .foreach { case (userName, repositoryName) =>
+        Repositories
+          .filter(_.byRepository(userName, repositoryName))
+          .map(x => (x.parentUserName?, x.parentRepositoryName?))
+          .update(None, None)
+      }
   }
 
   /**
@@ -165,8 +197,8 @@ trait RepositoryService { self: AccountService =>
       new RepositoryInfo(
         JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
         repository,
-        issues.size,
-        issues.filter(_ == true).size,
+        issues.count(_ == false),
+        issues.count(_ == true),
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)

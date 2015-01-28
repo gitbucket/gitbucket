@@ -12,7 +12,7 @@ trait LinkConverter { self: RequestCache =>
                                  issueIdPrefix: String =  "#")(implicit context: app.Context): String = {
     value
       // escape HTML tags
-      .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;")
+      .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
       // convert issue id to link
       .replaceBy(("(?<=(^|\\W))" + issueIdPrefix + "([0-9]+)(?=(\\W|$))").r){ m =>
         getIssue(repository.owner, repository.name, m.group(2)) match {

@@ -23,7 +23,6 @@ The current version of GitBucket provides a basic features below:
 
 Following features are not implemented, but we will make them in the future release!
 
-- Comment for the changeset
 - Network graph
 - Statistics
 - Watch / Star
@@ -80,6 +79,11 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.7 - 29 Dec 2014
+- Comment for commit and diff
+- Fix security issue in markdown rendering
+- Some bug fix and improvements
+
 ### 2.6 - 24 Nov 2014
 - Search box at issues and pull requests
 - Information from administrator

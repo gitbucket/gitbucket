@@ -3,15 +3,8 @@ package app
 import service.{AccountService, SystemSettingsService}
 import SystemSettingsService._
 import util.AdminAuthenticator
-import util.Directory._
-import util.ControlUtil._
 import jp.sf.amateras.scalatra.forms._
 import ssh.SshServer
-import org.apache.commons.io.FileUtils
-import java.io.FileInputStream
-import plugin.{Plugin, PluginSystem}
-import org.scalatra.Ok
-import util.Implicits._
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
@@ -23,6 +16,8 @@ trait SystemSettingsControllerBase extends ControllerBase {
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),
     "information"              -> trim(label("Information", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
+    "allowAnonymousAccess"     -> trim(label("Anonymous access", boolean())),
+    "isCreateRepoOptionPublic" -> trim(label("Default option to create a new repository", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
     "ssh"                      -> trim(label("SSH access", boolean())),
@@ -48,6 +43,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "fullNameAttribute"        -> trim(label("Full name attribute", optional(text()))),
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
+        "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
   )(SystemSettings.apply).verifying { settings =>
@@ -85,118 +81,4 @@ trait SystemSettingsControllerBase extends ControllerBase {
     redirect("/admin/system")
   })
 
-  get("/admin/plugins")(adminOnly {
-    if(enablePluginSystem){
-      val installedPlugins = plugin.PluginSystem.plugins
-      val updatablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "updatable")
-      admin.plugins.html.installed(installedPlugins, updatablePlugins)
-    } else NotFound
-  })
-
-  post("/admin/plugins/_update", pluginForm)(adminOnly { form =>
-    if(enablePluginSystem){
-      deletePlugins(form.pluginIds)
-      installPlugins(form.pluginIds)
-      redirect("/admin/plugins")
-    } else NotFound
-  })
-
-  post("/admin/plugins/_delete", pluginForm)(adminOnly { form =>
-    if(enablePluginSystem){
-      deletePlugins(form.pluginIds)
-      redirect("/admin/plugins")
-    } else NotFound
-  })
-
-  get("/admin/plugins/available")(adminOnly {
-    if(enablePluginSystem){
-      val installedPlugins = plugin.PluginSystem.plugins
-      val availablePlugins = getAvailablePlugins(installedPlugins).filter(_.status == "available")
-      admin.plugins.html.available(availablePlugins)
-    } else NotFound
-  })
-
-  post("/admin/plugins/_install", pluginForm)(adminOnly { form =>
-    if(enablePluginSystem){
-      installPlugins(form.pluginIds)
-      redirect("/admin/plugins")
-    } else NotFound
-  })
-
-  get("/admin/plugins/console")(adminOnly {
-    if(enablePluginSystem){
-      admin.plugins.html.console()
-    } else NotFound
-  })
-
-  post("/admin/plugins/console")(adminOnly {
-    if(enablePluginSystem){
-      val script = request.getParameter("script")
-      val result = plugin.ScalaPlugin.eval(script)
-      Ok()
-    } else NotFound
-  })
-
-  // TODO Move these methods to PluginSystem or Service?
-  private def deletePlugins(pluginIds: List[String]): Unit = {
-    pluginIds.foreach { pluginId =>
-      plugin.PluginSystem.uninstall(pluginId)
-      val dir = new java.io.File(PluginHome, pluginId)
-      if(dir.exists && dir.isDirectory){
-        FileUtils.deleteQuietly(dir)
-        PluginSystem.uninstall(pluginId)
-      }
-    }
-  }
-
-  private def installPlugins(pluginIds: List[String]): Unit = {
-    val dir = getPluginCacheDir()
-    val installedPlugins = plugin.PluginSystem.plugins
-    getAvailablePlugins(installedPlugins).filter(x => pluginIds.contains(x.id)).foreach { plugin =>
-      val pluginDir = new java.io.File(PluginHome, plugin.id)
-      if(pluginDir.exists){
-        FileUtils.deleteDirectory(pluginDir)
-      }
-      FileUtils.copyDirectory(new java.io.File(dir, plugin.repository + "/" + plugin.id), pluginDir)
-      PluginSystem.installPlugin(plugin.id)
-    }
-  }
-
-  private def getAvailablePlugins(installedPlugins: List[Plugin]): List[SystemSettingsControllerBase.AvailablePlugin] = {
-    val repositoryRoot = getPluginCacheDir()
-
-    if(repositoryRoot.exists && repositoryRoot.isDirectory){
-      PluginSystem.repositories.flatMap { repo =>
-        val repoDir = new java.io.File(repositoryRoot, repo.id)
-        if(repoDir.exists && repoDir.isDirectory){
-          repoDir.listFiles.filter(d => d.isDirectory && !d.getName.startsWith(".")).map { plugin =>
-            val propertyFile = new java.io.File(plugin, "plugin.properties")
-            val properties = new java.util.Properties()
-            if(propertyFile.exists && propertyFile.isFile){
-              using(new FileInputStream(propertyFile)){ in =>
-                properties.load(in)
-              }
-            }
-            SystemSettingsControllerBase.AvailablePlugin(
-              repository  = repo.id,
-              id          = properties.getProperty("id"),
-              version     = properties.getProperty("version"),
-              author      = properties.getProperty("author"),
-              url         = properties.getProperty("url"),
-              description = properties.getProperty("description"),
-              status      = installedPlugins.find(_.id == properties.getProperty("id")) match {
-                case Some(x) if(PluginSystem.isUpdatable(x.version, properties.getProperty("version")))=> "updatable"
-                case Some(x) => "installed"
-                case None    => "available"
-              })
-          }
-        } else Nil
-      }
-    } else Nil
-  }
-}
-
-object SystemSettingsControllerBase {
-  case class AvailablePlugin(repository: String, id: String, version: String,
-                             author: String, url: String, description: String, status: String)
 }

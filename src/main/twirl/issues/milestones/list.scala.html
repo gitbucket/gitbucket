@@ -14,11 +14,11 @@
           <span class="small">
             <a class="button-link@if(state == "open"){ selected}" href="?state=open">
               <img src="@assets/common/images/milestone@(if(state == "open"){"-active"}).png"/>
-              @milestones.filter(_._1.closedDate.isEmpty).size Open
+              @milestones.count(_._1.closedDate.isEmpty) Open
             </a>&nbsp;&nbsp;
             <a class="button-link@if(state == "closed"){ selected}" href="?state=closed">
               <img src="@assets/common/images/milestone@(if(state == "closed"){"-active"}).png"/>
-              @milestones.filter(_._1.closedDate.isDefined).size Closed
+              @milestones.count(_._1.closedDate.isDefined) Closed
             </a>
           </span>
         </th>

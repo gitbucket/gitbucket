@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8">
     <title>@title</title>
-    <link rel="icon" href="@assets/common/images/favicon.png" type="image/vnd.microsoft.icon" />
+    <link rel="icon" href="@assets/common/images/gitbucket.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Le styles -->
     <link href="@assets/vendors/bootstrap/css/bootstrap.css" rel="stylesheet">
@@ -18,6 +18,7 @@
     <link href="@assets/vendors/datepicker/css/datepicker.css" rel="stylesheet">
     <link href="@assets/vendors/colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
     <link href="@assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
+    <link href="@assets/vendors/facebox/facebox.css" rel="stylesheet"/>
     <link href="@assets/common/css/gitbucket.css" rel="stylesheet">
     <script src="@assets/vendors/jquery/jquery-1.9.1.js"></script>
     <script src="@assets/vendors/dropzone/dropzone.js"></script>
@@ -29,6 +30,7 @@
     <script src="@assets/vendors/google-code-prettify/prettify.js"></script>
     <script src="@assets/vendors/zclip/ZeroClipboard.min.js"></script>
     <script src="@assets/vendors/elastic/jquery.elastic.source.js"></script>
+    <script src="@assets/vendors/facebox/facebox.js"></script>
   </head>
   <body>
     <form id="search" action="@path/search" method="POST">
@@ -41,7 +43,7 @@
               <span class="icon-bar"></span>
             </button>
             <a class="brand" href="@path/">
-              <img src="@assets/common/images/gitbucket.png"/>GitBucket
+              <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
               @defining(servlet.AutoUpdate.getCurrentVersion){ version =>
                 <span class="header-version">@version.majorVersion.@version.minorVersion</span>
               }
@@ -60,21 +62,11 @@
                   <li><a href="@path/groups/new">New group</a></li>
                 </ul>
                 <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
-                @plugin.PluginSystem.globalMenus.map { menu =>
-                  @if(menu.condition(context)){
-                    <a href="@menu.url" class="menu" data-toggle="tooltip" data-placement="bottom" title="@menu.label">@if(menu.icon.nonEmpty){<img src="@menu.icon" class="plugin-global-menu"/>} else {@menu.label}</a>
-                  }
-                }
                 @if(loginAccount.get.isAdmin){
                   <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="icon-wrench"></i></a>
                 }
                 <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
               } else {
-                @plugin.PluginSystem.globalMenus.map { menu =>
-                  @if(menu.condition(context)){
-                    <a href="@menu.url" class="menu" data-toggle="tooltip" data-placement="bottom" title="@menu.label">@if(menu.icon.nonEmpty){<img src="@menu.icon" class="plugin-global-menu"/>} else {@menu.label}</a>
-                  }
-                }
                 <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-last" id="signin">Sign in</a>
               }
             </div><!--/.nav-collapse -->
@@ -88,9 +80,6 @@
         $('#search').submit(function(){
           return $.trim($(this).find('input[name=query]').val()) != '';
         });
-        @plugin.PluginSystem.javaScripts.filter(_.filter(context.currentPath)).map { js =>
-          @Html(js.script)
-        }
       });
     </script>
   </body>
