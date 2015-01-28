@@ -10,7 +10,7 @@ import org.json4s._
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import model._
-import service.{SystemSettingsService, AccountService}
+import service.{SystemSettingsService, AccountService, AccessTokenService}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
 import org.scalatra.i18n._
@@ -74,7 +74,12 @@ abstract class ControllerBase extends ScalatraFilter
     }
   }
 
-  private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
+  private def LoginAccount: Option[Account] = {
+    Option(request.getHeader("Authorization")) match {
+      case Some(auth) if auth.startsWith("token ") => AccessTokenService.getAccountByAccessToken(auth.substring(6).trim)
+      case _ => session.getAs[Account](Keys.Session.LoginAccount)
+    }
+  }
 
   def ajaxGet(path : String)(action : => Any) : Route =
     super.get(path){
