@@ -21,7 +21,7 @@ import service.WebHookService.WebHookPayload
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService
 
 
 /**
@@ -29,7 +29,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -325,6 +325,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/branches")(referrersOnly { repository =>
     val branches = JGitUtil.getBranches(repository.owner, repository.name, repository.repository.defaultBranch)
       .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+      .map(br => br -> getPullRequestByRequestCommit(repository.owner, repository.name, repository.repository.defaultBranch, br.name, br.commitId))
       .reverse
     repo.html.branches(branches, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
   })

@@ -135,7 +135,7 @@ object JGitUtil {
 
   case class BranchMergeInfo(ahead: Int, behind: Int, isMerged: Boolean)
 
-  case class BranchInfo(name: String, committerName: String, commitTime: Date, committerEmailAddress:String, mergeInfo: Option[BranchMergeInfo])
+  case class BranchInfo(name: String, committerName: String, commitTime: Date, committerEmailAddress:String, mergeInfo: Option[BranchMergeInfo], commitId: String)
 
   /**
    * Returns RevCommit from the commit or tag id.
@@ -721,7 +721,7 @@ object JGitUtil {
               behind   = RevWalkUtils.count(walk, defaultCommit, mergeBase),
               isMerged = walk.isMergedInto(branchCommit, defaultCommit)))
           }
-          BranchInfo(branchName, committer, when, committerEmail, mergeInfo)
+          BranchInfo(branchName, committer, when, committerEmail, mergeInfo, ref.getObjectId.name)
         } finally {
           walk.dispose();
         }

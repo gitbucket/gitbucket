@@ -81,6 +81,25 @@ trait PullRequestService { self: IssuesService =>
       .map { case (t1, t2) => t1 }
       .list
 
+  def getPullRequestByRequestCommit(userName: String, repositoryName: String, toBranch:String, fromBranch: String, commitId: String)
+                              (implicit s: Session): Option[(PullRequest, Issue)] = {
+    if(toBranch == fromBranch){
+      None
+    } else {
+      PullRequests
+        .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+        .filter { case (t1, t2) =>
+          (t1.userName              === userName.bind) &&
+          (t1.repositoryName        === repositoryName.bind) &&
+          (t1.branch                === toBranch.bind) &&
+          (t1.requestUserName       === userName.bind) &&
+          (t1.requestRepositoryName === repositoryName.bind) &&
+          (t1.requestBranch         === fromBranch.bind) &&
+          (t1.commitIdTo            === commitId.bind)
+        }
+        .firstOption
+    }
+  }
 }
 
 object PullRequestService {
