@@ -29,7 +29,11 @@
                     <a href="@url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-success">Open</a>
                   }
                 }.getOrElse{
-                  <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branch.name)}" class="btn btn-small">Compare</a>
+                  @if(context.loginAccount.isDefined){
+                    <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branch.name)}?expand=1" class="btn btn-small">New Pull Request</a>
+                  }else{
+                    <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branch.name)}" class="btn btn-small">Compare</a>
+                  }
                 }
                 @if(hasWritePermission){
                   @if(prs.map(!_._2.closed).getOrElse(false)){

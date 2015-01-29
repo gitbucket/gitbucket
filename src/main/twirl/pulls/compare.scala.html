@@ -126,6 +126,9 @@ $(function(){
     $(this).hide();
     $('#pull-request-form').show();
   });
+  if(location.search.substr(1).split("&").indexOf("expand=1")!=-1){
+    $('#show-form').click();
+  }
 
   @if(hasWritePermission){
     function checkConflict(from, to, noConflictHandler, hasConflictHandler){
