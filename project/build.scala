@@ -51,7 +51,7 @@ object MyBuild extends Build {
       "junit" % "junit" % "4.11" % "test",
       "com.typesafe.play" %% "twirl-compiler" % "1.0.2",
       "org.asciidoctor" % "asciidoctorj" % "1.5.2",
-      "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.7"
+      "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.10"
     ),
     EclipseKeys.withSource := true,
     javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
