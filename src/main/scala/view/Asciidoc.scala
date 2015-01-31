@@ -15,7 +15,7 @@ object Asciidoc {
   private[this] lazy val asciidoctor = Asciidoctor.Factory.create()
 
   /**
-   * Converts Markdown of Wiki pages to HTML.
+   * Converts Asciidoc to HTML.
    */
   def toHtml(filePath: List[String], asciidoc: String, branch: String, repository: service.RepositoryService.RepositoryInfo,
              enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): String = {

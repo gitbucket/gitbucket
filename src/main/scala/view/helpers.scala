@@ -75,16 +75,56 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def plural(count: Int, singular: String, plural: String = ""): String =
     if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
 
-  private[this] val renderersBySuffix: Seq[(String, (List[String], String, String, service.RepositoryService.RepositoryInfo, Boolean, Boolean, app.Context) => Html)] =
-    Seq(
-      ".md"       -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
-      ".markdown" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
-      ".adoc"     -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => asciidoc(filePath, fileContent,  branch, repository, enableWikiLink, enableRefsLink)(context)),
-      ".asciidoc" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => asciidoc(filePath, fileContent,  branch, repository, enableWikiLink, enableRefsLink)(context))
-    )
+  private case class RenderRequest(filePath: List[String],
+    fileContent: String,
+    branch: String,
+    repository: service.RepositoryService.RepositoryInfo,
+    enableWikiLink: Boolean,
+    enableRefsLink: Boolean,
+    context: app.Context)
+
+  trait Renderer {
+    def enabled: Boolean
+    def supportedSuffixes: Seq[String]
+    def render(request: RenderRequest): Html
+  }
+
+  object MarkdownRenderer extends Renderer {
+    override def enabled: Boolean = true
+    override def supportedSuffixes: Seq[String] = Seq(".md", ".markdown")
+    override def render(request: RenderRequest): Html = {
+      import request._
+      Html(Markdown.toHtml(fileContent, repository, enableWikiLink, enableRefsLink)(context))
+    }
+  }
+
+  object AsciidoctorRenderer extends Renderer {
+    override val enabled: Boolean = try {
+      val c1 = classOf[org.asciidoctor.Asciidoctor]
+      val c2 = classOf[org.htmlcleaner.SimpleHtmlSerializer]
+      val c3 = classOf[org.slf4j.LoggerFactory]
+      val c4 = classOf[org.jruby.RubyInstanceConfig]
+      true
+    } catch {
+      case c: NoClassDefFoundError =>
+        Console.err.println("Deactivating AsciidoctorRenderer support. Missing class: " + c.getMessage)
+        false
+    }
+
+    override def supportedSuffixes: Seq[String] = Seq(".adoc", ".asciidoc")
+    override def render(request: RenderRequest): Html = {
+      import request._
+      Html(Asciidoc.toHtml(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink)(context))
+    }
+  }
+
+  private[this] val renderers: Seq[Renderer] = Seq(MarkdownRenderer, AsciidoctorRenderer).filter(_.enabled)
+
+  private[this] val renderersBySuffix: Seq[(String, Renderer)] =
+    renderers.flatMap(r => r.supportedSuffixes.map(s => (s, r)))
 
   def renderableSuffixes: Seq[String] = renderersBySuffix.map(_._1)
-
+  
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
@@ -103,7 +143,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
 
     val fileNameLower = filePath.reverse.head.toLowerCase
     renderersBySuffix.find { case (suffix, _) => fileNameLower.endsWith(suffix) } match {
-      case Some((_, handler)) => handler(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context)
+      case Some((_, renderer)) => renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context))
       case None => Html(
         s"<tt>${
           fileContent.split("(\\r\\n)|\\n").map(xml.Utility.escape(_)).mkString("<br/>")
@@ -111,10 +151,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       )
     }
   }
-
-  def asciidoc(filePath: List[String], value: String, branch: String, repository: service.RepositoryService.RepositoryInfo,
-               enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html =
-    Html(Asciidoc.toHtml(filePath, value, branch, repository, enableWikiLink, enableRefsLink))
 
   /**
    * Returns &lt;img&gt; which displays the avatar icon for the given user name.
