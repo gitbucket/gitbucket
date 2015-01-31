@@ -16,7 +16,7 @@
     @files.drop((page - 1) * CodeLimit).take(CodeLimit).map { file =>
       <div>
         <h5><a href="@url(repository)/blob/@repository.repository.defaultBranch/@file.path">@file.path</a></h5>
-        <div class="small muted">Last commited @helper.html.datetimeago(file.lastModified)</div>
+        <div class="small muted">Last committed @helper.html.datetimeago(file.lastModified)</div>
         <pre class="prettyprint linenums:@file.highlightLineNumber" style="padding-left: 25px;">@Html(file.highlightText)</pre>
       </div>
     }
