@@ -3,6 +3,7 @@ package service
 import model.Profile._
 import profile.simple._
 import model.{PullRequest, Issue}
+import util.JGitUtil
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._
@@ -81,6 +82,18 @@ trait PullRequestService { self: IssuesService =>
       .map { case (t1, t2) => t1 }
       .list
 
+  /**
+   * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
+   */
+  def updatePullRequests(owner: String, repository: String, branch: String)(implicit s: Session): Unit =
+    getPullRequestsByRequest(owner, repository, branch, false).foreach { pullreq =>
+      if(Repositories.filter(_.byRepository(pullreq.userName, pullreq.repositoryName)).exists.run){
+        val (commitIdTo, commitIdFrom) = JGitUtil.updatePullRequest(
+          pullreq.userName, pullreq.repositoryName, pullreq.branch, pullreq.issueId,
+          pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+        updateCommitId(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo, commitIdFrom)
+      }
+    }
 }
 
 object PullRequestService {
