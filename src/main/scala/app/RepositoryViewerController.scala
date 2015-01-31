@@ -17,7 +17,7 @@ import org.eclipse.jgit.treewalk._
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.revwalk.RevCommit
-import service.WebHookService.WebHookPayload
+import service.WebHookService._
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
@@ -103,6 +103,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository")(referrersOnly {
     fileList(_)
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/#get
+   */
+  get("/api/v3/repos/:owner/:repository")(referrersOnly { repository =>
+    apiJson(WebHookRepository(repository, WebHookApiUser(getAccountByUserName(repository.owner).get)))
   })
 
   /**
@@ -508,13 +515,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
         // call web hook
         val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-        getWebHookURLs(repository.owner, repository.name) match {
-          case webHookURLs if(webHookURLs.nonEmpty) =>
-            for(ownerAccount <- getAccountByUserName(repository.owner)){
-              callWebHook(repository.owner, repository.name, webHookURLs,
-                WebHookPayload(git, loginAccount, headName, repository, List(commit), ownerAccount))
-            }
-          case _ =>
+        callWebHookOf(repository.owner, repository.name, "push") {
+          getAccountByUserName(repository.owner).map{ ownerAccount =>
+            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount)
+          }
         }
       }
     }

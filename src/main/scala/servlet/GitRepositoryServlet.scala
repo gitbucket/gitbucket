@@ -180,15 +180,13 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           }
 
           // call web hook
-          getWebHookURLs(owner, repository) match {
-            case webHookURLs if(webHookURLs.nonEmpty) =>
-              for(pusherAccount <- getAccountByUserName(pusher);
-                  ownerAccount   <- getAccountByUserName(owner);
-                  repositoryInfo <- getRepository(owner, repository, baseUrl)){
-                callWebHook(owner, repository, webHookURLs,
-                  WebHookPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount))
-              }
-            case _ =>
+          implicit val apiContext = ApiContext(baseUrl)
+          callWebHookOf(owner, repository, "push"){
+            for(pusherAccount <- getAccountByUserName(pusher);
+              ownerAccount   <- getAccountByUserName(owner);
+              repositoryInfo <- getRepository(owner, repository, baseUrl)) yield {
+              WebHookPushPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount)
+            }
           }
         }
       }
