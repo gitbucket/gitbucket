@@ -50,8 +50,8 @@ object MyBuild extends Build {
       "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
       "junit" % "junit" % "4.11" % "test",
       "com.typesafe.play" %% "twirl-compiler" % "1.0.2",
-      "org.asciidoctor" % "asciidoctorj" % "1.5.2",
-      "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.10"
+      "org.asciidoctor" % "asciidoctorj" % "1.5.2" % "provided",
+      "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.10" % "provided"
     ),
     EclipseKeys.withSource := true,
     javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
