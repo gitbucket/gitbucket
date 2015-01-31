@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import play.twirl.api.Html
 import util.StringUtil
 import service.RequestCache
+import service.RepositoryService
 
 /**
  * Provides helper methods for Twirl templates.
@@ -75,50 +76,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def plural(count: Int, singular: String, plural: String = ""): String =
     if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
 
-  private case class RenderRequest(filePath: List[String],
-    fileContent: String,
-    branch: String,
-    repository: service.RepositoryService.RepositoryInfo,
-    enableWikiLink: Boolean,
-    enableRefsLink: Boolean,
-    context: app.Context)
-
-  trait Renderer {
-    def enabled: Boolean
-    def supportedSuffixes: Seq[String]
-    def render(request: RenderRequest): Html
-  }
-
-  object MarkdownRenderer extends Renderer {
-    override def enabled: Boolean = true
-    override def supportedSuffixes: Seq[String] = Seq(".md", ".markdown")
-    override def render(request: RenderRequest): Html = {
-      import request._
-      Html(Markdown.toHtml(fileContent, repository, enableWikiLink, enableRefsLink)(context))
-    }
-  }
-
-  object AsciidoctorRenderer extends Renderer {
-    override val enabled: Boolean = try {
-      val c1 = classOf[org.asciidoctor.Asciidoctor]
-      val c2 = classOf[org.htmlcleaner.SimpleHtmlSerializer]
-      val c3 = classOf[org.slf4j.LoggerFactory]
-      val c4 = classOf[org.jruby.RubyInstanceConfig]
-      true
-    } catch {
-      case c: NoClassDefFoundError =>
-        Console.err.println("Deactivating AsciidoctorRenderer support. Missing class: " + c.getMessage)
-        false
-    }
-
-    override def supportedSuffixes: Seq[String] = Seq(".adoc", ".asciidoc")
-    override def render(request: RenderRequest): Html = {
-      import request._
-      Html(Asciidoc.toHtml(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink)(context))
-    }
-  }
-
-  private[this] val renderers: Seq[Renderer] = Seq(MarkdownRenderer, AsciidoctorRenderer).filter(_.enabled)
+  private[this] val renderers: Seq[Renderer] = Seq(MarkdownRenderer, AsciidocRenderer).filter(_.enabled)
 
   private[this] val renderersBySuffix: Seq[(String, Renderer)] =
     renderers.flatMap(r => r.supportedSuffixes.map(s => (s, r)))
@@ -129,7 +87,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String,
-               repository: service.RepositoryService.RepositoryInfo,
+               repository: RepositoryService.RepositoryInfo,
                enableWikiLink: Boolean,
                enableRefsLink: Boolean,
                enableTaskList: Boolean = false,
@@ -138,7 +96,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission, pages))
 
   def renderMarkup(filePath: List[String], fileContent: String, branch: String,
-                   repository: service.RepositoryService.RepositoryInfo,
+                   repository: RepositoryService.RepositoryInfo,
                    enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html = {
 
     val fileNameLower = filePath.reverse.head.toLowerCase
@@ -169,7 +127,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Converts commit id, issue id and username to the link.
    */
-  def link(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =
+  def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =
     Html(convertRefsLinks(value, repository))
 
   def cut(value: String, length: Int): String =
