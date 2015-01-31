@@ -13,6 +13,7 @@ import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.treewalk.filter._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
+import org.eclipse.jgit.transport.RefSpec
 import java.util.Date
 import org.eclipse.jgit.api.errors.{JGitInternalException, InvalidRefNameException, RefAlreadyExistsException, NoHeadException}
 import service.RepositoryService
@@ -672,6 +673,25 @@ object JGitUtil {
       getCommitLogs(newGit, requestBranch, true) { commit =>
         existIds.contains(commit.name) && getBranchesOfCommit(oldGit, commit.getName).contains(branch)
       }.head.id
+    }
+
+  /**
+   * Fetch pull request contents into refs/pull/${issueId}/head and return (commitIdTo, commitIdFrom)
+   */
+  def updatePullRequest(userName: String, repositoryName:String, branch: String, issueId: Int,
+                        requestUserName: String, requestRepositoryName: String, requestBranch: String):(String, String) =
+    using(Git.open(Directory.getRepositoryDir(userName, repositoryName)),
+          Git.open(Directory.getRepositoryDir(requestUserName, requestRepositoryName))){ (oldGit, newGit) =>
+      oldGit.fetch
+        .setRemote(Directory.getRepositoryDir(requestUserName, requestRepositoryName).toURI.toString)
+        .setRefSpecs(new RefSpec(s"refs/heads/${requestBranch}:refs/pull/${issueId}/head").setForceUpdate(true))
+        .call
+
+      val commitIdTo = oldGit.getRepository.resolve(s"refs/pull/${issueId}/head").getName
+      val commitIdFrom = getForkedCommitId(oldGit, newGit,
+        userName, repositoryName, branch,
+        requestUserName, requestRepositoryName, requestBranch)
+      (commitIdTo, commitIdFrom)
     }
 
   /**
