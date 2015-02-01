@@ -135,9 +135,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_avatar"){
     val userName = params("userName")
     getAccountByUserName(userName).flatMap(_.image).map { image =>
-      outputUploadedRawData(
-        FileUtil.getMimeType(image),
-        new java.io.File(getUserUploadDir(userName), image))
+      RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
     } getOrElse {
       contentType = "image/png"
       Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")

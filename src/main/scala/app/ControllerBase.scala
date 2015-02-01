@@ -134,8 +134,10 @@ abstract class ControllerBase extends ScalatraFilter
     if (path.startsWith("http")) path
     else baseUrl + super.url(path, params, false, false, false)
 
-  /** against XSS */
-  def outputUploadedRawData[DATATYPE](contentType: String, rawData: DATATYPE): DATATYPE = {
+  /**
+   * Use this method to response the raw data against XSS.
+   */
+  protected def RawData[T](contentType: String, rawData: T): T = {
     if(contentType.split(";").head.trim.toLowerCase.startsWith("text/html")){
       this.contentType = "text/plain"
     } else {

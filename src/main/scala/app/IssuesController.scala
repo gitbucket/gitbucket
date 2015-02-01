@@ -292,7 +292,7 @@ trait IssuesControllerBase extends ControllerBase {
     (Directory.getAttachedDir(repository.owner, repository.name) match {
       case dir if(dir.exists && dir.isDirectory) =>
         dir.listFiles.find(_.getName.startsWith(params("file") + ".")).map { file =>
-          outputUploadedRawData(FileUtil.getMimeType(file.getName), file)
+          RawData(FileUtil.getMimeType(file.getName), file)
         }
       case _ => None
     }) getOrElse NotFound
