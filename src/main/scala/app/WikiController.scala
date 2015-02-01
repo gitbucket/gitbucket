@@ -164,8 +164,7 @@ trait WikiControllerBase extends ControllerBase {
     val path = multiParams("splat").head
 
     getFileContent(repository.owner, repository.name, path).map { bytes =>
-      contentType = FileUtil.getContentType(path, bytes)
-      bytes
+      outputUploadedRawData(FileUtil.getContentType(path, bytes), bytes)
     } getOrElse NotFound
   })
 
