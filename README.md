@@ -102,6 +102,13 @@ java -cp gitbucket.war:asciidoctorj-1.5.2.jar::jruby-complete-1.7.16.1.jar:slf4j
 
 Release Notes
 --------
+### 2.8 - 1 Feb 2015
+- New logo and icons
+- New system setting options to control visibility
+- Comment on side-by-side diff
+- Information message on sign-in page
+- Fork repository by group account
+
 ### 2.7 - 29 Dec 2014
 - Comment for commit and diff
 - Fix security issue in markdown rendering
