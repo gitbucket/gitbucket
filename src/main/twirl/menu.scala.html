@@ -179,7 +179,10 @@ $(function(){
     $(target).children('img.menu-icon'       ).css('display', 'inline');
   });
 
-  $('a[rel*=facebox]').facebox();
+  $('a[rel*=facebox]').facebox({
+    'loadingImage': '@assets/vendors/facebox/loading.gif',
+    'closeImage': '@assets/vendors/facebox/closelabel.png',
+  });
 
   $(document).on("click", ".js-fork-owner-select-target", function() {
     if (!$(this).hasClass("disabled")) {
