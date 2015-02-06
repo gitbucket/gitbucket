@@ -82,5 +82,10 @@
         });
       });
     </script>
+    @plugin.PluginRegistry().getJavaScript(request.getRequestURI).map { script =>
+      <script>
+        @Html(script)
+      </script>
+    }
   </body>
 </html>

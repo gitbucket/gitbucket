@@ -11,6 +11,7 @@ import util.ControlUtil._
 import util.JDBCUtil._
 import org.eclipse.jgit.api.Git
 import util.Directory
+import plugin._
 
 object AutoUpdate {
   
@@ -211,6 +212,7 @@ class AutoUpdateListener extends ServletContextListener {
     val context = event.getServletContext
     context.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome};MVCC=true")
 
+    // Migration
     defining(getConnection(event.getServletContext)){ conn =>
       logger.debug("Start schema update")
       try {
@@ -234,9 +236,14 @@ class AutoUpdateListener extends ServletContextListener {
       }
       logger.debug("End schema update")
     }
+
+    // Load plugins
+    PluginRegistry.initialize()
   }
 
   def contextDestroyed(sce: ServletContextEvent): Unit = {
+    // Shutdown plugins
+    PluginRegistry.shutdown()
   }
 
   private def getConnection(servletContext: ServletContext): Connection =
