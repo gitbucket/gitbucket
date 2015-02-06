@@ -1,7 +1,7 @@
 GitBucket [![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket) [![Build Status](https://travis-ci.org/takezoe/gitbucket.svg?branch=master)](https://travis-ci.org/takezoe/gitbucket)
 =========
 
-GitBucket is the easily installable Github clone written with Scala.
+GitBucket is the easily installable GitHub clone powered by Scala.
 
 
 Features
@@ -79,6 +79,13 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 2.8 - 1 Feb 2015
+- New logo and icons
+- New system setting options to control visibility
+- Comment on side-by-side diff
+- Information message on sign-in page
+- Fork repository by group account
+
 ### 2.7 - 29 Dec 2014
 - Comment for commit and diff
 - Fix security issue in markdown rendering

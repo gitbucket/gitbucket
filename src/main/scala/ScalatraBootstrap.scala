@@ -14,6 +14,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.getFilterRegistration("basicAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/git/*")
 
     // Register controllers
+    context.mount(new AnonymousAccessController, "/*")
     context.mount(new IndexController, "/")
     context.mount(new SearchController, "/")
     context.mount(new FileUploadController, "/upload")

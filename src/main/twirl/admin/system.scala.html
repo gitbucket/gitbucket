@@ -66,6 +66,21 @@
             </label>
           </fieldset>
           <!--====================================================================-->
+          <!-- Anonymous access -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">Anonymous access</label>
+          <fieldset>
+            <label class="radio">
+              <input type="radio" name="allowAnonymousAccess" value="true"@if(settings.allowAnonymousAccess){ checked}>
+              <span class="strong">Allow</span> - Anyone can view public repositories, user/group profiles.
+            </label>
+            <label class="radio">
+              <input type="radio" name="allowAnonymousAccess" value="false"@if(!settings.allowAnonymousAccess){ checked}>
+              <span class="strong">Deny</span> - Users must authenticate before viewing any information
+            </label>
+          </fieldset>
+          <!--====================================================================-->
           <!-- Services -->
           <!--====================================================================-->
           <hr>

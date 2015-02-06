@@ -21,7 +21,7 @@ import service.WebHookService.WebHookPayload
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService
 
 
 /**
@@ -29,7 +29,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -214,8 +214,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         if(raw){
           // Download
           defining(JGitUtil.getContentFromId(git, objectId, false).get){ bytes =>
-            contentType = FileUtil.getContentType(path, bytes)
-            bytes
+            RawData(FileUtil.getContentType(path, bytes), bytes)
           }
         } else {
           repo.html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
@@ -495,6 +494,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         refUpdate.setRefLogIdent(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
         //refUpdate.setRefLogMessage("merged", true)
         refUpdate.update()
+
+        // update pull request
+        updatePullRequests(repository.owner, repository.name, branch)
 
         // record activity
         recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch,

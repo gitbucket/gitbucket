@@ -174,7 +174,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               case ReceiveCommand.Type.CREATE |
                    ReceiveCommand.Type.UPDATE |
                    ReceiveCommand.Type.UPDATE_NONFASTFORWARD =>
-                updatePullRequests(branchName)
+                updatePullRequests(owner, repository, branchName)
               case _ =>
             }
           }
@@ -211,26 +211,4 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
       }
     }
   }
-
-  /**
-   * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.
-   */
-  private def updatePullRequests(branch: String) =
-    getPullRequestsByRequest(owner, repository, branch, false).foreach { pullreq =>
-      if(getRepository(pullreq.userName, pullreq.repositoryName, baseUrl).isDefined){
-        using(Git.open(Directory.getRepositoryDir(pullreq.userName, pullreq.repositoryName)),
-              Git.open(Directory.getRepositoryDir(pullreq.requestUserName, pullreq.requestRepositoryName))){ (oldGit, newGit) =>
-          oldGit.fetch
-            .setRemote(Directory.getRepositoryDir(owner, repository).toURI.toString)
-            .setRefSpecs(new RefSpec(s"refs/heads/${branch}:refs/pull/${pullreq.issueId}/head").setForceUpdate(true))
-            .call
-
-          val commitIdTo = oldGit.getRepository.resolve(s"refs/pull/${pullreq.issueId}/head").getName
-          val commitIdFrom = JGitUtil.getForkedCommitId(oldGit, newGit,
-            pullreq.userName, pullreq.repositoryName, pullreq.branch,
-            pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
-          updateCommitId(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo, commitIdFrom)
-        }
-      }
-    }
 }

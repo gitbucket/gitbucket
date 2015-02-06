@@ -2,7 +2,7 @@ package service
 
 import model.Profile._
 import profile.simple._
-import model.{Repository, Account, Collaborator}
+import model.{Repository, Account, Collaborator, Label}
 import util.JGitUtil
 
 trait RepositoryService { self: AccountService =>
@@ -94,8 +94,16 @@ trait RepositoryService { self: AccountService =>
         PullRequests  .insertAll(pullRequests  .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueComments .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        IssueLabels   .insertAll(issueLabels   .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         CommitComments.insertAll(commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+
+        // Convert labelId
+        val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
+        val newLabelMap = Labels.filter(_.byRepository(newUserName, newRepositoryName)).map(x => (x.labelName, x.labelId)).list.toMap
+        IssueLabels.insertAll(issueLabels.map(x => x.copy(
+          labelId        = newLabelMap(oldLabelMap(x.labelId)),
+          userName       = newUserName,
+          repositoryName = newRepositoryName
+        )) :_*)
 
         if(account.isGroupAccount){
           Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
