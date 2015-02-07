@@ -10,6 +10,7 @@ $(function(){
   // activate tooltip
   $('img[data-toggle=tooltip]').tooltip();
   $('a[data-toggle=tooltip]').tooltip();
+  $('li[data-toggle=tooltip]').tooltip();
 
   // anchor icon for markdown
   $('.markdown-head').mouseenter(function(e){
