@@ -13,6 +13,8 @@ import org.eclipse.jgit.api.Git
 import util.Directory
 import plugin._
 
+import scala.slick.jdbc.meta.MBestRowIdentifierColumn.Scope.Session
+
 object AutoUpdate {
   
   /**
@@ -103,8 +105,10 @@ object AutoUpdate {
             conn.update("UPDATE ACTIVITY SET ADDITIONAL_INFO = ? WHERE ACTIVITY_ID = ?", newInfo, rs.getInt("ACTIVITY_ID"))
           }
         }
-        FileUtils.deleteDirectory(Directory.getPluginCacheDir())
-        FileUtils.deleteDirectory(new File(Directory.PluginHome))
+        ignore {
+          FileUtils.deleteDirectory(Directory.getPluginCacheDir())
+          //FileUtils.deleteDirectory(new File(Directory.PluginHome))
+        }
       }
     },
     new Version(2, 2),
@@ -235,10 +239,12 @@ class AutoUpdateListener extends ServletContextListener {
         }
       }
       logger.debug("End schema update")
+
+      // Load plugins
+
+      PluginRegistry.initialize(conn)
     }
 
-    // Load plugins
-    PluginRegistry.initialize()
   }
 
   def contextDestroyed(sce: ServletContextEvent): Unit = {
