@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import play.twirl.api.Html
 import util.StringUtil
 import service.RequestCache
+import service.RepositoryService
 
 /**
  * Provides helper methods for Twirl templates.
@@ -75,19 +76,18 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def plural(count: Int, singular: String, plural: String = ""): String =
     if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
 
-  private[this] val renderersBySuffix: Seq[(String, (List[String], String, String, service.RepositoryService.RepositoryInfo, Boolean, Boolean, app.Context) => Html)] =
-    Seq(
-      ".md"       -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
-      ".markdown" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context))
-    )
+  private[this] val renderers: Seq[Renderer] = Seq(MarkdownRenderer, AsciidocRenderer).filter(_.enabled)
+
+  private[this] val renderersBySuffix: Seq[(String, Renderer)] =
+    renderers.flatMap(r => r.supportedSuffixes.map(s => (s, r)))
 
   def renderableSuffixes: Seq[String] = renderersBySuffix.map(_._1)
-
+  
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
   def markdown(value: String,
-               repository: service.RepositoryService.RepositoryInfo,
+               repository: RepositoryService.RepositoryInfo,
                enableWikiLink: Boolean,
                enableRefsLink: Boolean,
                enableTaskList: Boolean = false,
@@ -96,12 +96,12 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission, pages))
 
   def renderMarkup(filePath: List[String], fileContent: String, branch: String,
-                   repository: service.RepositoryService.RepositoryInfo,
+                   repository: RepositoryService.RepositoryInfo,
                    enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: app.Context): Html = {
 
     val fileNameLower = filePath.reverse.head.toLowerCase
     renderersBySuffix.find { case (suffix, _) => fileNameLower.endsWith(suffix) } match {
-      case Some((_, handler)) => handler(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context)
+      case Some((_, renderer)) => renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context))
       case None => Html(
         s"<tt>${
           fileContent.split("(\\r\\n)|\\n").map(xml.Utility.escape(_)).mkString("<br/>")
@@ -127,7 +127,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Converts commit id, issue id and username to the link.
    */
-  def link(value: String, repository: service.RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =
+  def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: app.Context): Html =
     Html(convertRefsLinks(value, repository))
 
   def cut(value: String, length: Int): String =

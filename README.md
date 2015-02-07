@@ -20,6 +20,7 @@ The current version of GitBucket provides a basic features below:
 - Group (like Organization in Github)
 - LDAP integration
 - Gravatar support
+- optional support for AsciiDoc 
 
 Following features are not implemented, but we will make them in the future release!
 
@@ -76,6 +77,28 @@ Run the following commands in `Terminal` to
 
 - start gitbucket: `launchctl load ~/Library/LaunchAgents/gitbucket.plist`
 - stop gitbucket: `launchctl unload ~/Library/LaunchAgents/gitbucket.plist`
+
+Activation of optional features
+--------
+
+### Asciidoc support
+
+GitBucket also supports the AsciiDoc markup, but does not include the required libraries and this support is therefore disabled.
+To activate Asciidoc rendering, you need to provide the following extra dependencies:
+
+- org.asciidoctor:asciidoctorj:1.5.2
+- org.jruby:jruby-complete:1.7.16.1
+- org.slf4j:slf4j-api:1.7.7
+- net.sourceforge.htmlcleaner:htmlcleaner:2.10
+
+Other versions may work as well.
+
+If you use the builtin Jetty launcher, your cmdline might look like this:
+
+```
+java -cp gitbucket.war:asciidoctorj-1.5.2.jar::jruby-complete-1.7.16.1.jar:slf4j-api:1.7.7.jar:htmlcleaner-2.10.jar JettyLauncher 
+```
+
 
 Release Notes
 --------
