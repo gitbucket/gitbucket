@@ -40,7 +40,7 @@ object Versions {
 
   private val logger = LoggerFactory.getLogger(Versions.getClass)
 
-  def update(conn: Connection, headVersion: Version, currentVersion: Version, versions: List[Version], cl: ClassLoader)
+  def update(conn: Connection, headVersion: Version, currentVersion: Version, versions: Seq[Version], cl: ClassLoader)
             (save: Connection => Unit): Unit = {
     logger.debug("Start schema update")
     try {

@@ -7,7 +7,7 @@ trait Plugin {
   val pluginId: String
   val pluginName: String
   val description: String
-  val versions: List[Version]
+  val versions: Seq[Version]
 
   def initialize(registry: PluginRegistry): Unit
 
