@@ -3,10 +3,14 @@ package servlet
 import javax.servlet._
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
+import model.Account
 import play.twirl.api.Html
 import plugin.PluginRegistry
+import service.SystemSettingsService
+import util.Keys
+import app.Context
 
-class PluginActionFilter extends Filter {
+class PluginActionFilter extends Filter with SystemSettingsService {
 
   def init(config: FilterConfig) = {}
 
@@ -17,8 +21,14 @@ class PluginActionFilter extends Filter {
       val method = req.getMethod.toLowerCase
       val path = req.getRequestURI.substring(req.getContextPath.length)
       val registry = PluginRegistry()
+
       registry.getGlobalAction(method, path).map { action =>
-        action(req, res) match {
+        // Create Context
+        val loginAccount = req.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
+        val context = Context(loadSystemSettings(), Option(loginAccount), req)
+
+        // Invoke global action
+        action(req, res, context) match {
           // TODO to be type classes?
           case x: String =>
             res.setContentType("text/plain; charset=UTF-8")

@@ -11,6 +11,7 @@ import util.JDBCUtil._
 import util.{Version, Versions}
 
 import scala.collection.mutable.ListBuffer
+import app.Context
 
 class PluginRegistry {
 
@@ -25,25 +26,25 @@ class PluginRegistry {
 
   def getPlugins(): List[PluginInfo] = plugins.toList
 
-  def addGlobalAction(method: String, path: String)(f: (HttpServletRequest, HttpServletResponse) => Any): Unit = {
+  def addGlobalAction(method: String, path: String)(f: (HttpServletRequest, HttpServletResponse, Context) => Any): Unit = {
     globalActions += GlobalAction(method.toLowerCase, path, f)
   }
 
   //def getGlobalActions(): List[GlobalAction] = globalActions.toList
 
-  def getGlobalAction(method: String, path: String): Option[(HttpServletRequest, HttpServletResponse) => Any] = {
+  def getGlobalAction(method: String, path: String): Option[(HttpServletRequest, HttpServletResponse, Context) => Any] = {
     globalActions.find { globalAction =>
       globalAction.method == method.toLowerCase && path.matches(globalAction.path)
     }.map(_.function)
   }
 
-  def addRepositoryAction(method: String, path: String)(f: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any): Unit = {
+  def addRepositoryAction(method: String, path: String)(f: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any): Unit = {
     repositoryActions += RepositoryAction(method.toLowerCase, path, f)
   }
 
   //def getRepositoryActions(): List[RepositoryAction] = repositoryActions.toList
 
-  def getRepositoryAction(method: String, path: String): Option[(HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any] = {
+  def getRepositoryAction(method: String, path: String): Option[(HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any] = {
     // TODO
     null
   }
@@ -61,13 +62,13 @@ class PluginRegistry {
   private case class GlobalAction(
     method: String,
     path: String,
-    function: (HttpServletRequest, HttpServletResponse) => Any
+    function: (HttpServletRequest, HttpServletResponse, Context) => Any
   )
 
   private case class RepositoryAction(
     method: String,
     path: String,
-    function: (HttpServletRequest, HttpServletResponse, RepositoryInfo) => Any
+    function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any
   )
 
 }
