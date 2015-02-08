@@ -25,7 +25,7 @@ class PluginActionFilter extends Filter with SystemSettingsService {
       registry.getGlobalAction(method, path).map { action =>
         // Create Context
         val loginAccount = req.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
-        val context = Context(loadSystemSettings(), Option(loginAccount), req)
+        implicit val context = Context(loadSystemSettings(), Option(loginAccount), req)
 
         // Invoke global action
         action(req, res, context) match {
@@ -36,7 +36,8 @@ class PluginActionFilter extends Filter with SystemSettingsService {
             res.getWriter.flush()
           case x: Html =>
             res.setContentType("text/html; charset=UTF-8")
-            res.getWriter.write(x.body)
+            // TODO title of plugin action
+            res.getWriter.write(html.main("TODO")(x).body)
             res.getWriter.flush()
         }
       }.getOrElse {
