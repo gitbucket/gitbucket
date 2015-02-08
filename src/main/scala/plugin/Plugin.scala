@@ -1,11 +1,13 @@
 package plugin
 
+import util.Version
+
 trait Plugin {
 
   val pluginId: String
   val pluginName: String
   val description: String
-  val version: String
+  val versions: List[Version]
 
   def initialize(registry: PluginRegistry): Unit
 

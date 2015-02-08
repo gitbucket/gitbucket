@@ -13,8 +13,6 @@ import org.eclipse.jgit.api.Git
 import util.Directory
 import plugin._
 
-import scala.slick.jdbc.meta.MBestRowIdentifierColumn.Scope.Session
-
 object AutoUpdate {
   
   /**
