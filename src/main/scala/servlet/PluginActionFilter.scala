@@ -9,6 +9,7 @@ import plugin.PluginRegistry
 import service.SystemSettingsService
 import util.Keys
 import app.Context
+import plugin.Results._
 
 class PluginActionFilter extends Filter with SystemSettingsService {
 
@@ -38,6 +39,11 @@ class PluginActionFilter extends Filter with SystemSettingsService {
             res.setContentType("text/html; charset=UTF-8")
             // TODO title of plugin action
             res.getWriter.write(html.main("TODO")(x).body)
+            res.getWriter.flush()
+          case Redirect(x) =>
+            res.sendRedirect(x)
+          case Fragment(x) =>
+            res.getWriter.write(x.body)
             res.getWriter.flush()
         }
       }.getOrElse {
