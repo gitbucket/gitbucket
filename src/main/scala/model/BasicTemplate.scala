@@ -49,6 +49,9 @@ protected[model] trait TemplateComponent { self: Profile =>
 
     def byCommit(owner: String, repository: String, commitId: String) =
       byRepository(owner, repository) && (this.commitId === commitId)
+
+    def byCommit(owner: Column[String], repository: Column[String], commitId: Column[String]) =
+      byRepository(userName, repositoryName) && (this.commitId === commitId)
   }
 
 }

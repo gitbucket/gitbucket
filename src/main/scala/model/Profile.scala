@@ -24,6 +24,7 @@ object Profile extends {
   with ActivityComponent
   with CollaboratorComponent
   with CommitCommentComponent
+  with CommitStatusComponent
   with GroupMemberComponent
   with IssueComponent
   with IssueCommentComponent
