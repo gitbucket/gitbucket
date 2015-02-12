@@ -2,7 +2,7 @@ package service
 
 import model.Profile._
 import profile.simple._
-import model.{WebHook, Account, Issue, PullRequest, IssueComment, Repository}
+import model.{WebHook, Account, Issue, PullRequest, IssueComment, Repository, CommitStatus, CommitState}
 import org.slf4j.LoggerFactory
 import service.RepositoryService.RepositoryInfo
 import util.JGitUtil
@@ -168,7 +168,8 @@ object WebHookService {
         { case x: Date => JString(parserISO.print(new DateTime(x).withZone(DateTimeZone.UTC))) }
       )
     ) + FieldSerializer[WebHookApiUser]() + FieldSerializer[WebHookPullRequest]() + FieldSerializer[WebHookRepository]() +
-      FieldSerializer[WebHookCommitListItemParent]() + FieldSerializer[WebHookCommitListItem]() + FieldSerializer[WebHookCommitListItemCommit]()
+      FieldSerializer[WebHookCommitListItemParent]() + FieldSerializer[WebHookCommitListItem]() + FieldSerializer[WebHookCommitListItemCommit]() +
+      FieldSerializer[WebHookCommitStatus]() + FieldSerializer[WebHookCombinedCommitStatus]()
   }
   def apiPathSerializer(c:ApiContext) = new CustomSerializer[ApiPath](format =>
       (
@@ -410,7 +411,7 @@ object WebHookService {
     //val review_comments_url = ApiPath("${base.repo.url.path}/pulls/${number}/comments")
     //val review_comment_url  = ApiPath("${base.repo.url.path}/pulls/comments/{number}")
     //val comments_url        = ApiPath("${base.repo.url.path}/issues/${number}/comments")
-    //val statuses_url        = ApiPath("${base.repo.url.path}/statuses/${head.sha}")
+    val statuses_url        = ApiPath(s"${base.repo.url.path}/statuses/${head.sha}")
   }
 
   object WebHookPullRequest{
@@ -426,7 +427,7 @@ object WebHookService {
                        sha  = pullRequest.commitIdFrom,
                        ref  = pullRequest.branch,
                        repo = baseRepo),
-        mergeable  = Some(true), // TODO: need check mergeable.
+        mergeable  = None, // TODO: need check mergeable.
         title      = issue.title,
         body       = issue.content.getOrElse(""),
         user       = user
@@ -530,4 +531,75 @@ object WebHookService {
       parents   = commit.parents.map(WebHookCommitListItemParent(_)(repoFullName)))(repoFullName)
   }
 
+  /**
+   * https://developer.github.com/v3/repos/statuses/#create-a-status
+   */
+  case class CreateAStatus(
+    /* state is Required. The state of the status. Can be one of pending, success, error, or failure. */
+    state: String,
+    /* context is a string label to differentiate this status from the status of other systems. Default: "default" */
+    context: Option[String],
+    /* The target URL to associate with this status. This URL will be linked from the GitHub UI to allow users to easily see the ‘source’ of the Status. */
+    target_url: Option[String],
+    /* description is a short description of the status.*/
+    description: Option[String]
+  ) {
+    def isValid: Boolean = {
+      CommitState.valueOf(state).isDefined &&
+        target_url.filterNot(f => "\\Ahttps?://".r.findPrefixOf(f).isDefined && f.length<255).isEmpty &&
+        context.filterNot(f => f.length<255).isEmpty &&
+        description.filterNot(f => f.length<1000).isEmpty
+    }
+  }
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#create-a-status
+   * https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+   */
+  case class WebHookCommitStatus(
+    created_at: Date,
+    updated_at: Date,
+    state: String,
+    target_url: Option[String],
+    description: Option[String],
+    id: Int,
+    context: String,
+    creator: WebHookApiUser
+  )(sha: String, repoFullName: String) {
+    def url = ApiPath(s"/api/v3/repos/${repoFullName}/commits/${sha}/statuses")
+  }
+
+  object WebHookCommitStatus {
+    def apply(status: CommitStatus, creator:WebHookApiUser): WebHookCommitStatus = WebHookCommitStatus(
+      created_at = status.registeredDate,
+      updated_at = status.updatedDate,
+      state      = status.state.name,
+      target_url = status.targetUrl,
+      description= status.description,
+      id         = status.commitStatusId,
+      context    = status.context,
+      creator    = creator
+    )(status.commitId, s"${status.userName}/${status.repositoryName}")
+  }
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
+   */
+  case class WebHookCombinedCommitStatus(
+    state: String,
+    sha: String,
+    total_count: Int,
+    statuses: Iterable[WebHookCommitStatus],
+    repository: WebHookRepository){
+    // val commit_url = ApiPath(s"/api/v3/repos/${repository.full_name}/${sha}")
+    val url = ApiPath(s"/api/v3/repos/${repository.full_name}/commits/${sha}/status")
+  }
+  object WebHookCombinedCommitStatus {
+    def apply(sha:String, statuses: Iterable[(CommitStatus, Account)], repository:WebHookRepository): WebHookCombinedCommitStatus = WebHookCombinedCommitStatus(
+      state      = CommitState.combine(statuses.map(_._1.state).toSet).name,
+      sha        = sha,
+      total_count= statuses.size,
+      statuses   = statuses.map{ case (s, a)=> WebHookCommitStatus(s, WebHookApiUser(a)) },
+      repository = repository)
+  }
 }

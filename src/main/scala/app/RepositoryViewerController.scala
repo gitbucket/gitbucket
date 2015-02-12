@@ -18,10 +18,11 @@ import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.revwalk.RevCommit
 import service.WebHookService._
+import model.CommitState
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
 
 
 /**
@@ -29,7 +30,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -141,6 +142,56 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         case Left(_) => NotFound
       }
     }
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#create-a-status
+   */
+  post("/api/v3/repos/:owner/:repo/statuses/:sha")(collaboratorsOnly { repository =>
+    (for{
+      ref <- params.get("sha")
+      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+      data <- extractFromJsonBody[CreateAStatus] if data.isValid
+      creator <- context.loginAccount
+      state <- model.CommitState.valueOf(data.state)
+      statusId = createCommitStatus(repository.owner, repository.name, sha, data.context.getOrElse("default"),
+                                    state, data.target_url, data.description, new java.util.Date(), creator)
+      status <- getCommitStatus(repository.owner, repository.name, statusId)
+    } yield {
+      apiJson(WebHookCommitStatus(status, WebHookApiUser(creator)))
+    }) getOrElse NotFound
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+   *
+   * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
+   */
+  get("/api/v3/repos/:owner/:repo/commits/:ref/statuses")(referrersOnly { repository =>
+    (for{
+      ref <- params.get("ref")
+      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+    } yield {
+      apiJson(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
+        WebHookCommitStatus(status, WebHookApiUser(creator))
+      })
+    }) getOrElse NotFound
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
+   *
+   * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
+   */
+  get("/api/v3/repos/:owner/:repo/commits/:ref/status")(referrersOnly { repository =>
+    (for{
+      ref <- params.get("ref")
+      owner <- getAccountByUserName(repository.owner)
+      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+    } yield {
+      val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
+      apiJson(WebHookCombinedCommitStatus(sha, statuses, WebHookRepository(repository, owner)))
+    }) getOrElse NotFound
   })
 
   get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>

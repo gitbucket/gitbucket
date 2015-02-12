@@ -18,16 +18,18 @@ import org.eclipse.jgit.errors.NoMergeBaseException
 import service.WebHookService._
 import util.JGitUtil.DiffInfo
 import util.JGitUtil.CommitInfo
-import model.{PullRequest, Issue}
+import model.{PullRequest, Issue, CommitState}
 
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with CommitStatusService
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
-    with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
+    with CommitStatusService =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -95,7 +97,6 @@ trait PullRequestsControllerBase extends ControllerBase {
         using(Git.open(getRepositoryDir(owner, name))){ git =>
           val (commits, diffs) =
             getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
-
           pulls.html.pullreq(
             issue, pullreq,
             (commits.flatten.map(commit => getCommitComments(owner, name, commit.id, true)).flatten.toList ::: getComments(owner, name, issueId))
@@ -159,9 +160,16 @@ trait PullRequestsControllerBase extends ControllerBase {
       val owner = repository.owner
       val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+        val statuses = getCommitStatues(owner, name, pullreq.commitIdTo)
+        val hasConfrict = checkConflictInPullRequest(owner, name, pullreq.branch, pullreq.requestUserName, name, pullreq.requestBranch, issueId)
+        val hasProblem = hasConfrict || (!statuses.isEmpty && CommitState.combine(statuses.map(_.state).toSet) != CommitState.SUCCESS)
         pulls.html.mergeguide(
-          checkConflictInPullRequest(owner, name, pullreq.branch, pullreq.requestUserName, name, pullreq.requestBranch, issueId),
+          hasConfrict,
+          hasProblem,
+          issue,
           pullreq,
+          statuses,
+          repository,
           s"${context.baseUrl}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
       }
     } getOrElse NotFound
