@@ -9,9 +9,9 @@
 @import view.helpers._
 
 @sidemenu(path: String, name: String, label: String, count: Int = 0) = {
-  <li @if(active == name){class="active"}>
+  <li @if(active == name){class="active"} @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="@label"}>
     <div class="@if(active == name){margin} else {gradient} pull-left"></div>
-    <a href="@url(repository)@path"@* @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="Code"}*@>
+    <a href="@url(repository)@path">
       @if(active == name){
         <img src="@assets/common/images/menu-@{name}-active.png">
       } else {
@@ -179,7 +179,10 @@ $(function(){
     $(target).children('img.menu-icon'       ).css('display', 'inline');
   });
 
-  $('a[rel*=facebox]').facebox();
+  $('a[rel*=facebox]').facebox({
+    'loadingImage': '@assets/vendors/facebox/loading.gif',
+    'closeImage': '@assets/vendors/facebox/closelabel.png',
+  });
 
   $(document).on("click", ".js-fork-owner-select-target", function() {
     if (!$(this).hasClass("disabled")) {

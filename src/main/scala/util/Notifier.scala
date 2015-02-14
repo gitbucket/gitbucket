@@ -27,7 +27,7 @@ trait Notifier extends RepositoryService with AccountService with IssuesService 
         getComments(issue.userName, issue.repositoryName, issue.issueId).map(_.commentedUserName)
     )
     .distinct
-    .withFilter ( _ != context.loginAccount.get.userName )	// the operation in person is excluded
+    .withFilter ( _ != context.loginAccount.get.userName )  // the operation in person is excluded
     .foreach ( getAccountByUserName(_) filterNot (_.isGroupAccount) filterNot (LDAPUtil.isDummyMailAddress(_)) foreach (x => notify(x.mailAddress)) )
 
 }
@@ -67,7 +67,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
 
   def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
       (msg: String => String)(implicit context: Context) = {
-    val database = Database(context.request.getServletContext)
+    val database = Database()
 
     val f = Future {
       database withSession { implicit session =>

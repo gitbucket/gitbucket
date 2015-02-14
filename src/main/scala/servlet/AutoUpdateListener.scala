@@ -3,16 +3,15 @@ package servlet
 import java.io.File
 import java.sql.{DriverManager, Connection}
 import org.apache.commons.io.FileUtils
-import javax.servlet.{ServletContext, ServletContextListener, ServletContextEvent}
-import org.apache.commons.io.IOUtils
+import javax.servlet.{ServletContextListener, ServletContextEvent}
 import org.slf4j.LoggerFactory
 import util.Directory._
 import util.ControlUtil._
 import util.JDBCUtil._
 import org.eclipse.jgit.api.Git
-import util.Directory
 import util.{Version, Versions}
 import plugin._
+import util.{DatabaseConfig, Directory}
 
 object AutoUpdate {
 
@@ -169,8 +168,7 @@ class AutoUpdateListener extends ServletContextListener {
   import AutoUpdate._
 
   private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
-//  private val scheduler = StdSchedulerFactory.getDefaultScheduler
-  
+
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
     if(dataDir != null){
@@ -178,16 +176,14 @@ class AutoUpdateListener extends ServletContextListener {
     }
     org.h2.Driver.load()
 
-    val context = event.getServletContext
-    context.setInitParameter("db.url", s"jdbc:h2:${DatabaseHome};MVCC=true")
-
-    defining(getConnection(event.getServletContext)){ conn =>
+    defining(getConnection()){ conn =>
       // Migration
       logger.debug("Start schema update")
       Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
         FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
       }
       // Load plugins
+      logger.debug("Initialize plugins")
       PluginRegistry.initialize(conn)
     }
 
@@ -198,16 +194,10 @@ class AutoUpdateListener extends ServletContextListener {
     PluginRegistry.shutdown()
   }
 
-  private def getConnection(servletContext: ServletContext): Connection =
+  private def getConnection(): Connection =
     DriverManager.getConnection(
-      servletContext.getInitParameter("db.url"),
-      servletContext.getInitParameter("db.user"),
-      servletContext.getInitParameter("db.password"))
-
-  private def getDatabase(servletContext: ServletContext): scala.slick.jdbc.JdbcBackend.Database =
-    slick.jdbc.JdbcBackend.Database.forURL(
-      servletContext.getInitParameter("db.url"),
-      servletContext.getInitParameter("db.user"),
-      servletContext.getInitParameter("db.password"))
+      DatabaseConfig.url,
+      DatabaseConfig.user,
+      DatabaseConfig.password)
 
 }
