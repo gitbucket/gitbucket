@@ -49,6 +49,8 @@ object MyBuild extends Build {
       "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
       "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
       "junit" % "junit" % "4.11" % "test",
+      "com.mchange" % "c3p0" % "0.9.5",
+      "com.typesafe" % "config" % "1.2.1",
       "com.typesafe.play" %% "twirl-compiler" % "1.0.2"
     ),
     EclipseKeys.withSource := true,
