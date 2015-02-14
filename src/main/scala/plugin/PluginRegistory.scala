@@ -73,14 +73,23 @@ class PluginRegistry {
 
 }
 
+/**
+ * Provides entry point to PluginRegistry.
+ */
 object PluginRegistry {
 
   private val logger = LoggerFactory.getLogger(classOf[PluginRegistry])
 
   private val instance = new PluginRegistry()
 
+  /**
+   * Returns the PluginRegistry singleton instance.
+   */
   def apply(): PluginRegistry = instance
 
+  /**
+   * Initializes all installed plugins.
+   */
   def initialize(conn: java.sql.Connection): Unit = {
     val pluginDir = new File(PluginHome)
     if(pluginDir.exists && pluginDir.isDirectory){
