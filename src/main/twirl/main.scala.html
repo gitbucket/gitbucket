@@ -82,5 +82,8 @@
         });
       });
     </script>
+    @settings.siteScriptUrl.map { url =>
+      <script src="@url"></script>
+    }
   </body>
 </html>

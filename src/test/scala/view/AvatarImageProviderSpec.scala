@@ -103,7 +103,8 @@ class AvatarImageProviderSpec extends Specification with Mockito {
       sshPort                  = None,
       smtp                     = None,
       ldapAuthentication       = false,
-      ldap                     = None)
+      ldap                     = None,
+      siteScriptUrl            = None)
 
   /**
    * Adapter to test AvatarImageProviderImpl.
