@@ -5,9 +5,8 @@ import org.apache.sshd.server.session.ServerSession
 import java.security.PublicKey
 import service.SshKeyService
 import servlet.Database
-import javax.servlet.ServletContext
 
-class PublicKeyAuthenticator(context: ServletContext) extends PublickeyAuthenticator with SshKeyService {
+class PublicKeyAuthenticator extends PublickeyAuthenticator with SshKeyService {
 
   override def authenticate(username: String, key: PublicKey, session: ServerSession): Boolean = {
     Database() withSession { implicit session =>

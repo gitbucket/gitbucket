@@ -1,6 +1,6 @@
 package ssh
 
-import javax.servlet.{ServletContext, ServletContextEvent, ServletContextListener}
+import javax.servlet.{ServletContextEvent, ServletContextListener}
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
 import util.Directory
@@ -12,17 +12,17 @@ object SshServer {
   private val server = org.apache.sshd.SshServer.setUpDefaultServer()
   private val active = new AtomicBoolean(false)
 
-  private def configure(context: ServletContext, port: Int, baseUrl: String) = {
+  private def configure(port: Int, baseUrl: String) = {
     server.setPort(port)
     server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
-    server.setPublickeyAuthenticator(new PublicKeyAuthenticator(context))
-    server.setCommandFactory(new GitCommandFactory(context, baseUrl))
+    server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
+    server.setCommandFactory(new GitCommandFactory(baseUrl))
     server.setShellFactory(new NoShell)
   }
 
-  def start(context: ServletContext, port: Int, baseUrl: String) = {
+  def start(port: Int, baseUrl: String) = {
     if(active.compareAndSet(false, true)){
-      configure(context, port, baseUrl)
+      configure(port, baseUrl)
       server.start()
       logger.info(s"Start SSH Server Listen on ${server.getPort}")
     }
@@ -55,8 +55,7 @@ class SshServerListener extends ServletContextListener with SystemSettingsServic
         case None =>
           logger.error("Could not start SshServer because the baseUrl is not configured.")
         case Some(baseUrl) =>
-          SshServer.start(sce.getServletContext,
-            settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), baseUrl)
+          SshServer.start(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), baseUrl)
       }
     }
   }

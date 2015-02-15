@@ -3,7 +3,7 @@ package servlet
 import java.io.File
 import java.sql.{DriverManager, Connection}
 import org.apache.commons.io.FileUtils
-import javax.servlet.{ServletContext, ServletContextListener, ServletContextEvent}
+import javax.servlet.{ServletContextListener, ServletContextEvent}
 import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import util.Directory._

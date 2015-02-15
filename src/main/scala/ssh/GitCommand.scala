@@ -11,14 +11,13 @@ import org.apache.sshd.server.command.UnknownCommand
 import servlet.{Database, CommitLogHook}
 import service.{AccountService, RepositoryService, SystemSettingsService}
 import org.eclipse.jgit.errors.RepositoryNotFoundException
-import javax.servlet.ServletContext
 import model.Session
 
 object GitCommand {
   val CommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-_.]+).git'\Z""".r
 }
 
-abstract class GitCommand(val context: ServletContext, val owner: String, val repoName: String) extends Command {
+abstract class GitCommand(val owner: String, val repoName: String) extends Command {
   self: RepositoryService with AccountService =>
 
   private val logger = LoggerFactory.getLogger(classOf[GitCommand])
@@ -80,7 +79,7 @@ abstract class GitCommand(val context: ServletContext, val owner: String, val re
 
 }
 
-class GitUploadPack(context: ServletContext, owner: String, repoName: String, baseUrl: String) extends GitCommand(context, owner, repoName)
+class GitUploadPack(owner: String, repoName: String, baseUrl: String) extends GitCommand(owner, repoName)
     with RepositoryService with AccountService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -97,7 +96,7 @@ class GitUploadPack(context: ServletContext, owner: String, repoName: String, ba
 
 }
 
-class GitReceivePack(context: ServletContext, owner: String, repoName: String, baseUrl: String) extends GitCommand(context, owner, repoName)
+class GitReceivePack(owner: String, repoName: String, baseUrl: String) extends GitCommand(owner, repoName)
     with SystemSettingsService with RepositoryService with AccountService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -119,14 +118,14 @@ class GitReceivePack(context: ServletContext, owner: String, repoName: String, b
 
 }
 
-class GitCommandFactory(context: ServletContext, baseUrl: String) extends CommandFactory {
+class GitCommandFactory(baseUrl: String) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
 
   override def createCommand(command: String): Command = {
     logger.debug(s"command: $command")
     command match {
-      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(context, owner, repoName, baseUrl)
-      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(context, owner, repoName, baseUrl)
+      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(owner, repoName, baseUrl)
+      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(owner, repoName, baseUrl)
       case _ => new UnknownCommand(command)
     }
   }
