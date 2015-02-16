@@ -10,6 +10,7 @@ import service.SystemSettingsService
 import util.Keys
 import app.Context
 import plugin.Results._
+import plugin.Sessions._
 
 class PluginActionFilter extends Filter with SystemSettingsService {
 
@@ -27,24 +28,28 @@ class PluginActionFilter extends Filter with SystemSettingsService {
         // Create Context
         val loginAccount = req.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]
         implicit val context = Context(loadSystemSettings(), Option(loginAccount), req)
-
-        // Invoke global action
-        action(req, res, context) match {
-          // TODO to be type classes?
-          case x: String =>
-            res.setContentType("text/plain; charset=UTF-8")
-            res.getWriter.write(x)
-            res.getWriter.flush()
-          case x: Html =>
-            res.setContentType("text/html; charset=UTF-8")
-            // TODO title of plugin action
-            res.getWriter.write(html.main("TODO")(x).body)
-            res.getWriter.flush()
-          case Redirect(x) =>
-            res.sendRedirect(x)
-          case Fragment(x) =>
-            res.getWriter.write(x.body)
-            res.getWriter.flush()
+        sessions.set(Database.getSession(req))
+        try {
+          // Invoke global action
+          action(req, res, context) match {
+            // TODO to be type classes?
+            case x: String =>
+              res.setContentType("text/plain; charset=UTF-8")
+              res.getWriter.write(x)
+              res.getWriter.flush()
+            case x: Html =>
+              res.setContentType("text/html; charset=UTF-8")
+              // TODO title of plugin action
+              res.getWriter.write(html.main("TODO")(x).body)
+              res.getWriter.flush()
+            case Redirect(x) =>
+              res.sendRedirect(x)
+            case Fragment(x) =>
+              res.getWriter.write(x.body)
+              res.getWriter.flush()
+          }
+        } finally {
+          sessions.remove()
         }
       }.getOrElse {
         chain.doFilter(req, res)
