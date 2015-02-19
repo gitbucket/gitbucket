@@ -17,6 +17,7 @@
     <!--[if lt IE 9]>
       <script src="@assets/vendors/bootstrap/js/html5shiv.js"></script>
     <![endif]-->
+    <link href="@assets/vendors/octicons/octicons.css" rel="stylesheet">
     <link href="@assets/vendors/datepicker/css/datepicker.css" rel="stylesheet">
     <link href="@assets/vendors/colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
     <link href="@assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
@@ -58,16 +59,16 @@
               }
               @if(loginAccount.isDefined){
                 <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="icon-plus"></i><span class="caret" style="vertical-align: middle;"></span></a>
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus"></i><span class="caret" style="vertical-align: middle;"></span></a>
                 <ul class="dropdown-menu">
                   <li><a href="@path/new">New repository</a></li>
                   <li><a href="@path/groups/new">New group</a></li>
                 </ul>
-                <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="icon-user"></i></a>
+                <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="octicon octicon-gear"></i></a>
                 @if(loginAccount.get.isAdmin){
-                  <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="icon-wrench"></i></a>
+                  <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="octicon octicon-settings"></i></a>
                 }
-                <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="icon-share-alt"></i></a>
+                <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="octicon octicon-sign-out"></i></a>
               } else {
                 <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-last" id="signin">Sign in</a>
               }
