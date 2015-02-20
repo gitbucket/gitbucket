@@ -76,12 +76,12 @@
         <td width="16">
         @if(file.isDirectory){
           @if(file.linkUrl.isDefined){
-            <img src="@assets/common/images/folder_link.png"/>
+            <i class="octicon octicon-file-symlink-directory"></i>
           } else {
-            <img src="@assets/common/images/folder.png"/>
+            <i class="octicon octicon-file-directory"></i>
           }
         } else {
-          <img src="@assets/common/images/file.png"/>
+          <i class="octicon octicon-file-text"></i>
         }
         </td>
         <td>

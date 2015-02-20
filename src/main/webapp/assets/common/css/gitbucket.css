@@ -257,6 +257,7 @@ div.box-header-small {
   background: #f2f8fa;
 }
 
+
 div.box-content {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -275,6 +276,10 @@ th.box-header {
   border: 1px solid #d8d8d8;
   border-bottom: none;
   text-shadow: 0 1px 0 #fff
+}
+
+th.box-header .octicon {
+    display: inline;
 }
 
 th.metal {
