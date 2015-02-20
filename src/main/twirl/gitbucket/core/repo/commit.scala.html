@@ -25,7 +25,7 @@
           <div class="small" style="font-weight: normal;">
             @if(branches.nonEmpty){
               <span class="muted">
-                <img src="@assets/common/images/branch.png"/>
+                  <i class="octicon octicon-git-branch"></i>
                 @branches.zipWithIndex.map { case (branch, i) =>
                   <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
                 }
@@ -33,7 +33,7 @@
             }
             @if(tags.nonEmpty){
               <span class="muted">
-                <img src="@assets/common/images/tag.png"/>
+                  <i class="octicon octicon-tag"></i>
                 @tags.zipWithIndex.map { case (tag, i) =>
                   <a href="@url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
                 }

@@ -37,12 +37,12 @@
             }}
           </div>
         }
-        case "create_wiki" => customActivity(activity, "activity-wiki.png"){
+        case "create_wiki" => customActivity(activity, "book"){
           <div class="small activity-message">
             Created <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
           </div>
         }
-        case "edit_wiki" => customActivity(activity, "activity-wiki.png"){
+        case "edit_wiki" => customActivity(activity, "book"){
           activity.additionalInfo.get.split(":") match {
             case Array(pageName, commitId) =>
               <div class="small activity-message">
@@ -61,7 +61,7 @@
 }
 
 @detailActivity(activity: gitbucket.core.model.Activity, image: String) = {
-<div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
+  <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   <div class="activity-content">
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
@@ -73,7 +73,6 @@
     }
   </div>
 }
-
 
 @customActivity(activity: gitbucket.core.model.Activity, image: String)(additionalInfo: Any) = {
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>

@@ -38,7 +38,7 @@
                   } else {
                     @milestone.dueDate.map { dueDate =>
                       @if(isPast(dueDate)){
-                        <img src="@assets/common/images/alert.png"/><span class="muted milestone-alert">Due by @date(dueDate)</span>
+                        <i class="octicon octicon-alert" style="color:#BD2C00;"></i><span class="muted milestone-alert">Due by @date(dueDate)</span>
                       } else {
                         <span class="muted">Due by @date(dueDate)</span>
                       }
