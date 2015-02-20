@@ -39,26 +39,33 @@ object Notifier {
     case _ => new MockMailer
   }
 
-  def msgIssue(url: String) = (content: String) => s"""
+  def msgIssue(author: String, url: String) = (content: String) => s"""
+    |${author} just wrote: <br/>
     |${content}<br/>
     |--<br/>
     |<a href="${url}">View it on GitBucket</a>
     """.stripMargin
 
-  def msgPullRequest(url: String) = (content: String) => s"""
-    |${content}<hr/>
+  def msgPullRequest(author: String, url: String) = (content: String) => s"""
+    |${author} just sent a Pull Request:</br>
+    |${content}<br/>
+    |--<br/>
     |View, comment on, or merge it at:<br/>
     |<a href="${url}">${url}</a>
     """.stripMargin
 
-  def msgComment(url: String) = (content: String) => s"""
+  def msgComment(author: String, url: String) = (content: String) => s"""
+    |${author} just wrote:<br/>
     |${content}<br/>
     |--<br/>
     |<a href="${url}">View it on GitBucket</a>
     """.stripMargin
 
-  def msgStatus(url: String) = (content: String) => s"""
-    |${content} <a href="${url}">#${url split('/') last}</a>
+  def msgStatus(author: String, url: String) = (content: String) => s"""
+    |${author} just changed the status to:<br/>
+    |${content}<br/>
+    |--<br/>
+    |<a href="${url}">View it on GitBucket</a>
     """.stripMargin
 }
 
