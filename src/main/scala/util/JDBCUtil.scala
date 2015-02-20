@@ -18,6 +18,14 @@ object JDBCUtil {
       }
     }
 
+    def find[T](sql: String, params: Any*)(f: ResultSet => T): Option[T] = {
+      execute(sql, params: _*){ stmt =>
+        using(stmt.executeQuery()){ rs =>
+          if(rs.next) Some(f(rs)) else None
+        }
+      }
+    }
+
     def select[T](sql: String, params: Any*)(f: ResultSet => T): Seq[T] = {
       execute(sql, params: _*){ stmt =>
         using(stmt.executeQuery()){ rs =>

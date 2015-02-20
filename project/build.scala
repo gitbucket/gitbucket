@@ -4,6 +4,8 @@ import org.scalatra.sbt._
 import com.typesafe.sbteclipse.plugin.EclipsePlugin.EclipseKeys
 import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys._
+import sbtassembly._
+import sbtassembly.AssemblyKeys._
 
 object MyBuild extends Build {
   val Organization = "jp.sf.amateras"
@@ -17,6 +19,17 @@ object MyBuild extends Build {
     file(".")
   )
   .settings(ScalatraPlugin.scalatraWithJRebel: _*)
+  .settings(
+    test in assembly := {},
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", xs @ _*) =>
+        (xs map {_.toLowerCase}) match {
+          case ("manifest.mf" :: Nil) => MergeStrategy.discard
+          case _ => MergeStrategy.discard
+      }
+      case x => MergeStrategy.first
+    }
+  )
   .settings(
     sourcesInBase := false,
     organization := Organization,
@@ -45,7 +58,7 @@ object MyBuild extends Build {
       "com.typesafe.slick" %% "slick" % "2.1.0",
       "com.novell.ldap" % "jldap" % "2009-10-07",
       "com.h2database" % "h2" % "1.4.180",
-      "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",
+//      "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",
       "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
       "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
       "junit" % "junit" % "4.11" % "test",

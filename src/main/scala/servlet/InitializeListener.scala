@@ -4,49 +4,16 @@ import java.io.File
 import java.sql.{DriverManager, Connection}
 import org.apache.commons.io.FileUtils
 import javax.servlet.{ServletContextListener, ServletContextEvent}
-import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import util.Directory._
 import util.ControlUtil._
 import util.JDBCUtil._
 import org.eclipse.jgit.api.Git
+import util.{Version, Versions}
+import plugin._
 import util.{DatabaseConfig, Directory}
 
 object AutoUpdate {
-  
-  /**
-   * Version of GitBucket
-   * 
-   * @param majorVersion the major version
-   * @param minorVersion the minor version
-   */
-  case class Version(majorVersion: Int, minorVersion: Int){
-    
-    private val logger = LoggerFactory.getLogger(classOf[servlet.AutoUpdate.Version])
-    
-    /**
-     * Execute update/MAJOR_MINOR.sql to update schema to this version.
-     * If corresponding SQL file does not exist, this method do nothing.
-     */
-    def update(conn: Connection): Unit = {
-      val sqlPath = s"update/${majorVersion}_${minorVersion}.sql"
-
-      using(Thread.currentThread.getContextClassLoader.getResourceAsStream(sqlPath)){ in =>
-        if(in != null){
-          val sql = IOUtils.toString(in, "UTF-8")
-          using(conn.createStatement()){ stmt =>
-            logger.debug(sqlPath + "=" + sql)
-            stmt.executeUpdate(sql)
-          }
-        }
-      }
-    }
-    
-    /**
-     * MAJOR.MINOR
-     */
-    val versionString = s"${majorVersion}.${minorVersion}"
-  }
 
   /**
    * The history of versions. A head of this sequence is the current BitBucket version.
@@ -54,8 +21,8 @@ object AutoUpdate {
   val versions = Seq(
     new Version(2, 8),
     new Version(2, 7) {
-      override def update(conn: Connection): Unit = {
-        super.update(conn)
+      override def update(conn: Connection, cl: ClassLoader): Unit = {
+        super.update(conn, cl)
         conn.select("SELECT * FROM REPOSITORY"){ rs =>
           // Rename attached files directory from /issues to /comments
           val userName = rs.getString("USER_NAME")
@@ -93,8 +60,8 @@ object AutoUpdate {
     new Version(2, 5),
     new Version(2, 4),
     new Version(2, 3) {
-      override def update(conn: Connection): Unit = {
-        super.update(conn)
+      override def update(conn: Connection, cl: ClassLoader): Unit = {
+        super.update(conn, cl)
         conn.select("SELECT ACTIVITY_ID, ADDITIONAL_INFO FROM ACTIVITY WHERE ACTIVITY_TYPE='push'"){ rs =>
           val curInfo = rs.getString("ADDITIONAL_INFO")
           val newInfo = curInfo.split("\n").filter(_ matches "^[0-9a-z]{40}:.*").mkString("\n")
@@ -102,20 +69,22 @@ object AutoUpdate {
             conn.update("UPDATE ACTIVITY SET ADDITIONAL_INFO = ? WHERE ACTIVITY_ID = ?", newInfo, rs.getInt("ACTIVITY_ID"))
           }
         }
-        FileUtils.deleteDirectory(Directory.getPluginCacheDir())
-        FileUtils.deleteDirectory(new File(Directory.PluginHome))
+        ignore {
+          FileUtils.deleteDirectory(Directory.getPluginCacheDir())
+          //FileUtils.deleteDirectory(new File(Directory.PluginHome))
+        }
       }
     },
     new Version(2, 2),
     new Version(2, 1),
     new Version(2, 0){
-      override def update(conn: Connection): Unit = {
+      override def update(conn: Connection, cl: ClassLoader): Unit = {
         import eu.medsea.mimeutil.{MimeUtil2, MimeType}
 
         val mimeUtil = new MimeUtil2()
         mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector")
 
-        super.update(conn)
+        super.update(conn, cl)
         conn.select("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY"){ rs =>
           defining(Directory.getAttachedDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME"))){ dir =>
             if(dir.exists && dir.isDirectory){
@@ -143,8 +112,8 @@ object AutoUpdate {
     Version(1, 5),
     Version(1, 4),
     new Version(1, 3){
-      override def update(conn: Connection): Unit = {
-        super.update(conn)
+      override def update(conn: Connection, cl: ClassLoader): Unit = {
+        super.update(conn, cl)
         // Fix wiki repository configuration
         conn.select("SELECT USER_NAME, REPOSITORY_NAME FROM REPOSITORY"){ rs =>
           using(Git.open(getWikiRepositoryDir(rs.getString("USER_NAME"), rs.getString("REPOSITORY_NAME")))){ git =>
@@ -193,14 +162,14 @@ object AutoUpdate {
 }
 
 /**
- * Update database schema automatically in the context initializing.
+ * Initialize GitBucket system.
+ * Update database schema and load plug-ins automatically in the context initializing.
  */
-class AutoUpdateListener extends ServletContextListener {
+class InitializeListener extends ServletContextListener {
   import AutoUpdate._
 
-  private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
-//  private val scheduler = StdSchedulerFactory.getDefaultScheduler
-  
+  private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
+
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
     if(dataDir != null){
@@ -209,31 +178,21 @@ class AutoUpdateListener extends ServletContextListener {
     org.h2.Driver.load()
 
     defining(getConnection()){ conn =>
+      // Migration
       logger.debug("Start schema update")
-      try {
-        defining(getCurrentVersion()){ currentVersion =>
-          if(currentVersion == headVersion){
-            logger.debug("No update")
-          } else if(!versions.contains(currentVersion)){
-            logger.warn(s"Skip migration because ${currentVersion.versionString} is illegal version.")
-          } else {
-            versions.takeWhile(_ != currentVersion).reverse.foreach(_.update(conn))
-            FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
-            logger.debug(s"Updated from ${currentVersion.versionString} to ${headVersion.versionString}")
-          }
-        }
-      } catch {
-        case ex: Throwable => {
-          logger.error("Failed to schema update", ex)
-          ex.printStackTrace()
-          conn.rollback()
-        }
+      Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
+        FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
       }
-      logger.debug("End schema update")
+      // Load plugins
+      logger.debug("Initialize plugins")
+      PluginRegistry.initialize(event.getServletContext, conn)
     }
+
   }
 
-  def contextDestroyed(sce: ServletContextEvent): Unit = {
+  def contextDestroyed(event: ServletContextEvent): Unit = {
+    // Shutdown plugins
+    PluginRegistry.shutdown(event.getServletContext)
   }
 
   private def getConnection(): Connection =

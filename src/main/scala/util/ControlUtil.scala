@@ -37,4 +37,10 @@ object ControlUtil {
   def using[T](treeWalk: TreeWalk)(f: TreeWalk => T): T =
     try f(treeWalk) finally treeWalk.release()
 
+  def ignore[T](f: => Unit): Unit = try {
+    f
+  } catch {
+    case e: Exception => ()
+  }
+
 }

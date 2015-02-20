@@ -1,5 +1,7 @@
 import _root_.servlet.{BasicAuthenticationFilter, TransactionFilter}
 import app._
+import plugin.PluginRegistry
+
 //import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
 import org.scalatra._
 import javax.servlet._
@@ -15,6 +17,11 @@ class ScalatraBootstrap extends LifeCycle {
 
     // Register controllers
     context.mount(new AnonymousAccessController, "/*")
+
+    PluginRegistry().getControllers.foreach { case (controller, path) =>
+      context.mount(controller, path)
+    }
+
     context.mount(new IndexController, "/")
     context.mount(new SearchController, "/")
     context.mount(new FileUploadController, "/upload")
