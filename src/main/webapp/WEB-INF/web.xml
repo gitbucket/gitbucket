@@ -12,10 +12,10 @@
   </listener>
 
   <!-- ===================================================================== -->
-  <!-- Automatic migration -->
+  <!-- Automatic migration and plug-in initialization -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>servlet.AutoUpdateListener</listener-class>
+    <listener-class>servlet.InitializeListener</listener-class>
   </listener>
 
 

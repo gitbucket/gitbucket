@@ -162,12 +162,13 @@ object AutoUpdate {
 }
 
 /**
- * Update database schema automatically in the context initializing.
+ * Initialize GitBucket system.
+ * Update database schema and load plug-ins automatically in the context initializing.
  */
-class AutoUpdateListener extends ServletContextListener {
+class InitializeListener extends ServletContextListener {
   import AutoUpdate._
 
-  private val logger = LoggerFactory.getLogger(classOf[AutoUpdateListener])
+  private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
 
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
@@ -184,14 +185,14 @@ class AutoUpdateListener extends ServletContextListener {
       }
       // Load plugins
       logger.debug("Initialize plugins")
-      PluginRegistry.initialize(conn)
+      PluginRegistry.initialize(event.getServletContext, conn)
     }
 
   }
 
-  def contextDestroyed(sce: ServletContextEvent): Unit = {
+  def contextDestroyed(event: ServletContextEvent): Unit = {
     // Shutdown plugins
-    PluginRegistry.shutdown()
+    PluginRegistry.shutdown(event.getServletContext)
   }
 
   private def getConnection(): Connection =

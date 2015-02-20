@@ -1,5 +1,7 @@
 package plugin
 
+import javax.servlet.ServletContext
+
 import util.Version
 
 /**

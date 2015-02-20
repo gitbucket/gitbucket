@@ -2,6 +2,7 @@ package plugin
 
 import java.io.{FilenameFilter, File}
 import java.net.URLClassLoader
+import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import org.slf4j.LoggerFactory
@@ -11,14 +12,13 @@ import util.JDBCUtil._
 import util.{Version, Versions}
 
 import scala.collection.mutable.ListBuffer
-import app.Context
+import app.{ControllerBase, Context}
 
 class PluginRegistry {
 
   private val plugins = new ListBuffer[PluginInfo]
   private val javaScripts = new ListBuffer[(String, String)]
-  private val globalActions = new ListBuffer[GlobalAction]
-  private val repositoryActions = new ListBuffer[RepositoryAction]
+  private val controllers = new ListBuffer[(ControllerBase, String)]
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -26,28 +26,11 @@ class PluginRegistry {
 
   def getPlugins(): List[PluginInfo] = plugins.toList
 
-  def addGlobalAction(method: String, path: String)(f: (HttpServletRequest, HttpServletResponse, Context) => Any): Unit = {
-    globalActions += GlobalAction(method.toLowerCase, path, f)
+  def addController(controller: ControllerBase, path: String): Unit = {
+    controllers += ((controller, path))
   }
 
-  //def getGlobalActions(): List[GlobalAction] = globalActions.toList
-
-  def getGlobalAction(method: String, path: String): Option[(HttpServletRequest, HttpServletResponse, Context) => Any] = {
-    globalActions.find { globalAction =>
-      globalAction.method == method.toLowerCase && path.matches(globalAction.path)
-    }.map(_.function)
-  }
-
-  def addRepositoryAction(method: String, path: String)(f: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any): Unit = {
-    repositoryActions += RepositoryAction(method.toLowerCase, path, f)
-  }
-
-  //def getRepositoryActions(): List[RepositoryAction] = repositoryActions.toList
-
-  def getRepositoryAction(method: String, path: String): Option[(HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any] = {
-    // TODO
-    null
-  }
+  def getControllers(): List[(ControllerBase, String)] = controllers.toList
 
   def addJavaScript(path: String, script: String): Unit = {
     javaScripts += Tuple2(path, script)
@@ -90,7 +73,7 @@ object PluginRegistry {
   /**
    * Initializes all installed plugins.
    */
-  def initialize(conn: java.sql.Connection): Unit = {
+  def initialize(context: ServletContext, conn: java.sql.Connection): Unit = {
     val pluginDir = new File(PluginHome)
     if(pluginDir.exists && pluginDir.isDirectory){
       pluginDir.listFiles(new FilenameFilter {
@@ -138,7 +121,7 @@ object PluginRegistry {
     }
   }
 
-  def shutdown(): Unit = {
+  def shutdown(context: ServletContext): Unit = {
     instance.getPlugins().foreach { pluginInfo =>
       try {
         pluginInfo.pluginClass.shutdown(instance)

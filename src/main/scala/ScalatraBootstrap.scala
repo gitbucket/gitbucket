@@ -1,5 +1,7 @@
-import _root_.servlet.{BasicAuthenticationFilter, TransactionFilter, PluginActionFilter}
+import _root_.servlet.{BasicAuthenticationFilter, TransactionFilter}
 import app._
+import plugin.PluginRegistry
+
 //import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
 import org.scalatra._
 import javax.servlet._
@@ -12,8 +14,6 @@ class ScalatraBootstrap extends LifeCycle {
     context.getFilterRegistration("transactionFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
     context.addFilter("basicAuthenticationFilter", new BasicAuthenticationFilter)
     context.getFilterRegistration("basicAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/git/*")
-    context.addFilter("pluginActionFilter", new PluginActionFilter)
-    context.getFilterRegistration("pluginActionFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
 
     // Register controllers
     context.mount(new AnonymousAccessController, "/*")
@@ -24,6 +24,11 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new UserManagementController, "/*")
     context.mount(new SystemSettingsController, "/*")
     context.mount(new AccountController, "/*")
+
+    PluginRegistry().getControllers.foreach { case (controller, path) =>
+      context.mount(controller, path)
+    }
+
     context.mount(new RepositoryViewerController, "/*")
     context.mount(new WikiController, "/*")
     context.mount(new LabelsController, "/*")
