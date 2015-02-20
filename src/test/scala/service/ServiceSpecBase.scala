@@ -16,7 +16,7 @@ trait ServiceSpecBase {
       val (url, user, pass) = (DatabaseConfig.url(Some(dir.toString)), DatabaseConfig.user, DatabaseConfig.password)
       org.h2.Driver.load()
       using(DriverManager.getConnection(url, user, pass)){ conn =>
-        servlet.AutoUpdate.versions.reverse.foreach(_.update(conn))
+        servlet.AutoUpdate.versions.reverse.foreach(_.update(conn, Thread.currentThread.getContextClassLoader))
       }
       Database.forURL(url, user, pass).withSession { session =>
         action(session)
