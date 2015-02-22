@@ -331,7 +331,7 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name){ case (owner, name) =>
       val userName = context.loginAccount.get.userName
 
-      getIssue(owner, name, issueId.toString) map { issue =>
+      getIssue(owner, name, issueId.toString) flatMap { issue =>
         val (action, recordActivity) =
           getAction(issue)
             .collect {
@@ -346,11 +346,10 @@ trait IssuesControllerBase extends ControllerBase {
             }
             .getOrElse(None -> None)
 
-        val commentId = content
-          .map       ( _ -> action.map( _ + "_comment" ).getOrElse("comment") )
-          .getOrElse ( action.get.capitalize -> action.get )
-        match {
-          case (content, action) => createComment(owner, name, userName, issueId, content, action)
+        val commentId = (content, action) match {
+          case (None, None) => None
+          case (None, Some(action)) => Some(createComment(owner, name, userName, issueId, action.capitalize, action))
+          case (Some(content), _) => Some(createComment(owner, name, userName, issueId, content, action.map(_+ "_comment").getOrElse("comment")))
         }
 
         // record comment activity if comment is entered
@@ -371,7 +370,7 @@ trait IssuesControllerBase extends ControllerBase {
             content foreach {
               f.toNotify(repository, issueId, _){
                 Notifier.msgComment(s"${context.baseUrl}/${owner}/${name}/${
-                  if(issue.isPullRequest) "pull" else "issues"}/${issueId}#comment-${commentId}")
+                  if(issue.isPullRequest) "pull" else "issues"}/${issueId}#comment-${commentId.get}")
               }
             }
             action foreach {
@@ -381,7 +380,7 @@ trait IssuesControllerBase extends ControllerBase {
             }
         }
 
-        issue -> commentId
+        commentId.map( issue -> _ )
       }
     }
   }
