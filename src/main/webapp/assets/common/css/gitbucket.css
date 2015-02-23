@@ -166,7 +166,7 @@ span.count-right {
 }
 
 .monospace {
-  font-family: monospace;
+  font-family: Consolas, 'Courier New', Courier, Monaco, monospace;
 }
 
 table.table th {
