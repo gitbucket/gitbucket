@@ -397,7 +397,7 @@ trait IssuesControllerBase extends ControllerBase {
 
         // call web hooks
         action match {
-          case None => callIssueCommentWebHook(repository, issue, commentId, context.loginAccount.get)
+          case None => commentId.map{ commentIdSome => callIssueCommentWebHook(repository, issue, commentIdSome, context.loginAccount.get) }
           case Some(act) => val webHookAction = act match {
             case "open"   => "opened"
             case "reopen" => "reopened"
