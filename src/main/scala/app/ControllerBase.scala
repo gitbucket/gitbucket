@@ -74,12 +74,7 @@ abstract class ControllerBase extends ScalatraFilter
     }
   }
 
-  private def LoginAccount: Option[Account] = {
-    Option(request.getHeader("Authorization")) match {
-      case Some(auth) if auth.startsWith("token ") => AccessTokenService.getAccountByAccessToken(auth.substring(6).trim)
-      case _ => session.getAs[Account](Keys.Session.LoginAccount)
-    }
-  }
+  private def LoginAccount: Option[Account] = request.getAs[Account](Keys.Session.LoginAccount).orElse(session.getAs[Account](Keys.Session.LoginAccount))
 
   def ajaxGet(path : String)(action : => Any) : Route =
     super.get(path){
