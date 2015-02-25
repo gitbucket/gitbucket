@@ -394,7 +394,7 @@ trait IssuesControllerBase extends ControllerBase {
       val condition = session.putAndGet(sessionKey,
         if(request.hasQueryString){
           val q = request.getParameter("q")
-          if(q == null){
+          if(q == null || q.trim.isEmpty){
             IssueSearchCondition(request)
           } else {
             IssueSearchCondition(q, getMilestones(owner, repoName).map(x => (x.title, x.milestoneId)).toMap)
