@@ -48,7 +48,7 @@ trait IssuesControllerBase extends ControllerBase {
       "content" -> trim(optional(text()))
     )(IssueStateForm.apply)
 
-  get("/:owner/:repository/issues")(referrersOnly { repository =>
+  get("/:owner/:repository/issues/?")(referrersOnly { repository =>
     val q = request.getParameter("q")
     if(Option(q).exists(_.contains("is:pr"))){
       redirect(s"/${repository.owner}/${repository.name}/pulls?q=" + StringUtil.urlEncode(q))

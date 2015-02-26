@@ -55,7 +55,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Redirect to the Options page.
    */
-  get("/:owner/:repository/settings")(ownerOnly { repository =>
+  get("/:owner/:repository/settings/?")(ownerOnly { repository =>
     redirect(s"/${repository.owner}/${repository.name}/settings/options")
   })
   

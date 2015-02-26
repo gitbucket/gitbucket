@@ -34,14 +34,14 @@ trait WikiControllerBase extends ControllerBase {
     "id"              -> trim(label("Latest commit id"  , text(required)))
   )(WikiPageEditForm.apply)
   
-  get("/:owner/:repository/wiki")(referrersOnly { repository =>
+  get("/:owner/:repository/wiki/?")(referrersOnly { repository =>
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
       wiki.html.page("Home", page, getWikiPageList(repository.owner, repository.name),
         repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
-  get("/:owner/:repository/wiki/:page")(referrersOnly { repository =>
+  get("/:owner/:repository/wiki/:page/?")(referrersOnly { repository =>
     val pageName = StringUtil.urlDecode(params("page"))
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>

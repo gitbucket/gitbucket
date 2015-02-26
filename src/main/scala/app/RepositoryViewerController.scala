@@ -101,7 +101,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file list of the repository root and the default branch.
    */
-  get("/:owner/:repository")(referrersOnly {
+  get("/:owner/:repository/?")(referrersOnly {
     fileList(_)
   })
 
@@ -321,7 +321,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays branches.
    */
-  get("/:owner/:repository/branches")(referrersOnly { repository =>
+  get("/:owner/:repository/branches/?")(referrersOnly { repository =>
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       // retrieve latest update date of each branch
       val branchInfo = repository.branchList.map { branchName =>
@@ -368,7 +368,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays tags.
    */
-  get("/:owner/:repository/tags")(referrersOnly {
+  get("/:owner/:repository/tags/?")(referrersOnly {
     repo.html.tags(_)
   })
 
