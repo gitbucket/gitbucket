@@ -397,5 +397,4 @@ object RepositoryService {
   }
 
   case class RepositoryTreeNode(owner: String, name: String, children: List[RepositoryTreeNode])
-
 }

@@ -6,13 +6,13 @@ import model.{WebHook, Account, Issue, PullRequest, IssueComment, Repository, Co
 import org.slf4j.LoggerFactory
 import service.RepositoryService.RepositoryInfo
 import util.JGitUtil
-import org.eclipse.jgit.diff.DiffEntry
 import util.JGitUtil.CommitInfo
 import org.eclipse.jgit.api.Git
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.NameValuePair
 import java.util.Date
+import api._
 
 trait WebHookService {
   import WebHookService._
@@ -28,25 +28,21 @@ trait WebHookService {
   def deleteWebHookURL(owner: String, repository: String, url :String)(implicit s: Session): Unit =
     WebHooks.filter(_.byPrimaryKey(owner, repository, url)).delete
 
-  def callWebHookOf(owner: String, repository: String, eventName: String)(makePayload: => Option[WebHookPayload])(implicit s: Session, c: ApiContext): Unit = {
+  def callWebHookOf(owner: String, repository: String, eventName: String)(makePayload: => Option[WebHookPayload])(implicit s: Session, c: JsonFormat.Context): Unit = {
     val webHookURLs = getWebHookURLs(owner, repository)
     if(webHookURLs.nonEmpty){
       makePayload.map(callWebHook(eventName, webHookURLs, _))
     }
   }
 
-  def apiJson(obj: AnyRef)(implicit c: ApiContext): String = {
-    org.json4s.jackson.Serialization.write(obj)(jsonFormats + apiPathSerializer(c))
-  }
-
-  def callWebHook(eventName: String, webHookURLs: List[WebHook], payload: WebHookPayload)(implicit c: ApiContext): Unit = {
+  def callWebHook(eventName: String, webHookURLs: List[WebHook], payload: WebHookPayload)(implicit c: JsonFormat.Context): Unit = {
     import org.apache.http.client.methods.HttpPost
     import org.apache.http.impl.client.HttpClientBuilder
     import scala.concurrent._
     import ExecutionContext.Implicits.global
 
     if(webHookURLs.nonEmpty){
-      val json = apiJson(payload)
+      val json = JsonFormat(payload)
       val httpClient = HttpClientBuilder.create.build
 
       webHookURLs.foreach { webHookUrl =>
@@ -81,7 +77,7 @@ trait WebHookPullRequestService extends WebHookService {
 
   import WebHookService._
   // https://developer.github.com/v3/activity/events/types/#issuesevent
-  def callIssuesWebHook(action: String, repository: RepositoryService.RepositoryInfo, issue: Issue, baseUrl: String, sender: model.Account)(implicit s: Session, context:ApiContext): Unit = {
+  def callIssuesWebHook(action: String, repository: RepositoryService.RepositoryInfo, issue: Issue, baseUrl: String, sender: model.Account)(implicit s: Session, context:JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, "issues"){
       val users = getAccountsByUserNames(Set(repository.owner, issue.userName), Set(sender))
       for{
@@ -91,14 +87,14 @@ trait WebHookPullRequestService extends WebHookService {
         WebHookIssuesPayload(
           action       = action,
           number       = issue.issueId,
-          repository   = WebHookRepository(repository, WebHookApiUser(repoOwner)),
-          issue        = WebHookIssue(issue, WebHookApiUser(issueUser)),
-          sender       = WebHookApiUser(sender))
+          repository   = ApiRepository(repository, ApiUser(repoOwner)),
+          issue        = ApiIssue(issue, ApiUser(issueUser)),
+          sender       = ApiUser(sender))
       }
     }
   }
 
-  def callPullRequestWebHook(action: String, repository: RepositoryService.RepositoryInfo, issueId: Int, baseUrl: String, sender: model.Account)(implicit s: Session, context:ApiContext): Unit = {
+  def callPullRequestWebHook(action: String, repository: RepositoryService.RepositoryInfo, issueId: Int, baseUrl: String, sender: model.Account)(implicit s: Session, context:JsonFormat.Context): Unit = {
     import WebHookService._
     callWebHookOf(repository.owner, repository.name, "pull_request"){
       for{
@@ -126,7 +122,7 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
   self: AccountService with RepositoryService with PullRequestService with IssuesService =>
 
   import WebHookService._
-  def callIssueCommentWebHook(repository: RepositoryService.RepositoryInfo, issue: Issue, issueCommentId: Int, sender: model.Account)(implicit s: Session, context:ApiContext): Unit = {
+  def callIssueCommentWebHook(repository: RepositoryService.RepositoryInfo, issue: Issue, issueCommentId: Int, sender: model.Account)(implicit s: Session, context:JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, "issue_comment"){
       for{
         issueComment <- getComment(repository.owner, repository.name, issueCommentId.toString())
@@ -149,58 +145,26 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
 }
 
 object WebHookService {
-  case class ApiContext(baseUrl:String)
-
-  case class ApiPath(path:String)
-
-  import org.json4s._
-  import org.json4s.jackson.Serialization
-  val jsonFormats = {
-    import scala.util.Try
-    import org.joda.time.format._
-    import org.joda.time.DateTime
-    import org.joda.time.DateTimeZone
-    val parserISO = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
-    Serialization.formats(NoTypeHints) + new CustomSerializer[Date](format =>
-      (
-        { case JString(s) => Try(parserISO.parseDateTime(s)).toOption.map(_.toDate)
-          .getOrElse(throw new MappingException("Can't convert " + s + " to Date")) },
-        { case x: Date => JString(parserISO.print(new DateTime(x).withZone(DateTimeZone.UTC))) }
-      )
-    ) + FieldSerializer[WebHookApiUser]() + FieldSerializer[WebHookPullRequest]() + FieldSerializer[WebHookRepository]() +
-      FieldSerializer[WebHookCommitListItemParent]() + FieldSerializer[WebHookCommitListItem]() + FieldSerializer[WebHookCommitListItemCommit]() +
-      FieldSerializer[WebHookCommitStatus]() + FieldSerializer[WebHookCombinedCommitStatus]()
-  }
-  def apiPathSerializer(c:ApiContext) = new CustomSerializer[ApiPath](format =>
-      (
-        {
-          case JString(s) if s.startsWith(c.baseUrl) => ApiPath(s.substring(c.baseUrl.length))
-          case JString(s) => throw new MappingException("Can't convert " + s + " to ApiPath")
-        },
-        { case ApiPath(path) => JString(c.baseUrl+path) }
-      )
-    )
-
   trait WebHookPayload
 
   // https://developer.github.com/v3/activity/events/types/#pushevent
   case class WebHookPushPayload(
-    pusher: WebHookApiUser,
+    pusher: ApiUser,
     ref: String,
-    commits: List[WebHookCommit],
-    repository: WebHookRepository
+    commits: List[ApiCommit],
+    repository: ApiRepository
   ) extends WebHookPayload
 
   object WebHookPushPayload {
     def apply(git: Git, pusher: Account, refName: String, repositoryInfo: RepositoryInfo,
               commits: List[CommitInfo], repositoryOwner: Account): WebHookPushPayload =
       WebHookPushPayload(
-        WebHookApiUser(pusher),
+        ApiUser(pusher),
         refName,
-        commits.map{ commit => WebHookCommit(git, repositoryInfo, commit) },
-        WebHookRepository(
+        commits.map{ commit => ApiCommit(git, util.RepositoryName(repositoryInfo), commit) },
+        ApiRepository(
           repositoryInfo,
-          owner= WebHookApiUser(repositoryOwner)
+          owner= ApiUser(repositoryOwner)
         )
       )
   }
@@ -209,17 +173,17 @@ object WebHookService {
   case class WebHookIssuesPayload(
     action: String,
     number: Int,
-    repository: WebHookRepository,
-    issue: WebHookIssue,
-    sender: WebHookApiUser) extends WebHookPayload
+    repository: ApiRepository,
+    issue: ApiIssue,
+    sender: ApiUser) extends WebHookPayload
 
   // https://developer.github.com/v3/activity/events/types/#pullrequestevent
   case class WebHookPullRequestPayload(
     action: String,
     number: Int,
-    repository: WebHookRepository,
-    pull_request: WebHookPullRequest,
-    sender: WebHookApiUser
+    repository: ApiRepository,
+    pull_request: ApiPullRequest,
+    sender: ApiUser
   ) extends WebHookPayload
 
   object WebHookPullRequestPayload{
@@ -231,10 +195,10 @@ object WebHookService {
         baseRepository: RepositoryInfo,
         baseOwner: Account,
         sender: model.Account): WebHookPullRequestPayload = {
-      val headRepoPayload = WebHookRepository(headRepository, headOwner)
-      val baseRepoPayload = WebHookRepository(baseRepository, baseOwner)
-      val senderPayload = WebHookApiUser(sender)
-      val pr = WebHookPullRequest(issue, pullRequest, headRepoPayload, baseRepoPayload, senderPayload)
+      val headRepoPayload = ApiRepository(headRepository, headOwner)
+      val baseRepoPayload = ApiRepository(baseRepository, baseOwner)
+      val senderPayload = ApiUser(sender)
+      val pr = ApiPullRequest(issue, pullRequest, headRepoPayload, baseRepoPayload, senderPayload)
       WebHookPullRequestPayload(
         action       = action,
         number       = issue.issueId,
@@ -248,10 +212,10 @@ object WebHookService {
   // https://developer.github.com/v3/activity/events/types/#issuecommentevent
   case class WebHookIssueCommentPayload(
     action: String,
-    repository: WebHookRepository,
-    issue: WebHookIssue,
-    comment: WebHookComment,
-    sender: WebHookApiUser
+    repository: ApiRepository,
+    issue: ApiIssue,
+    comment: ApiComment,
+    sender: ApiUser
   ) extends WebHookPayload
 
   object WebHookIssueCommentPayload{
@@ -265,341 +229,9 @@ object WebHookService {
         sender: Account): WebHookIssueCommentPayload =
       WebHookIssueCommentPayload(
         action       = "created",
-        repository   = WebHookRepository(repository, repositoryUser),
-        issue        = WebHookIssue(issue, WebHookApiUser(issueUser)),
-        comment      = WebHookComment(comment, WebHookApiUser(commentUser)),
-        sender       = WebHookApiUser(sender))
-  }
-
-  case class WebHookCommit(
-    id: String,
-    message: String,
-    timestamp: Date,
-    url: String,
-    added: List[String],
-    removed: List[String],
-    modified: List[String],
-    author: WebHookCommitUser,
-    committer: WebHookCommitUser)
-
-  object WebHookCommit{
-    def apply(git: Git, repositoryInfo: RepositoryInfo, commit: CommitInfo): WebHookCommit = {
-      val diffs = JGitUtil.getDiffs(git, commit.id, false)
-      val commitUrl = repositoryInfo.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/commit/" + commit.id
-      WebHookCommit(
-        id        = commit.id,
-        message   = commit.fullMessage,
-        timestamp = commit.commitTime,
-        url       = commitUrl,
-        added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
-        removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
-        modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
-          x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
-        author    = WebHookCommitUser.author(commit),
-        committer = WebHookCommitUser.committer(commit)
-      )
-    }
-  }
-
-  case class WebHookApiUser(
-    login: String,
-    email: String,
-    `type`: String,
-    site_admin: Boolean,
-    created_at: Date) {
-    val url                 = ApiPath(s"/api/v3/users/${login}")
-    val html_url            = ApiPath(s"/${login}")
-    // val followers_url       = ApiPath(s"/api/v3/users/${login}/followers")
-    // val following_url       = ApiPath(s"/api/v3/users/${login}/following{/other_user}")
-    // val gists_url           = ApiPath(s"/api/v3/users/${login}/gists{/gist_id}")
-    // val starred_url         = ApiPath(s"/api/v3/users/${login}/starred{/owner}{/repo}")
-    // val subscriptions_url   = ApiPath(s"/api/v3/users/${login}/subscriptions")
-    // val organizations_url   = ApiPath(s"/api/v3/users/${login}/orgs")
-    // val repos_url           = ApiPath(s"/api/v3/users/${login}/repos")
-    // val events_url          = ApiPath(s"/api/v3/users/${login}/events{/privacy}")
-    // val received_events_url = ApiPath(s"/api/v3/users/${login}/received_events")
-  }
-
-  object WebHookApiUser{
-    def apply(user: Account): WebHookApiUser = WebHookApiUser(
-      login      = user.fullName,
-      email      = user.mailAddress,
-      `type`     = if(user.isGroupAccount){ "Organization" }else{ "User" },
-      site_admin = user.isAdmin,
-      created_at = user.registeredDate
-    )
-  }
-
-  case class WebHookCommitUser(
-    name: String,
-    email: String,
-    date: Date)
-
-  object WebHookCommitUser {
-    def author(commit: CommitInfo): WebHookCommitUser =
-      WebHookCommitUser(
-        name  = commit.authorName,
-        email = commit.authorEmailAddress,
-        date  = commit.authorTime)
-    def committer(commit: CommitInfo): WebHookCommitUser =
-      WebHookCommitUser(
-        name  = commit.committerName,
-        email = commit.committerEmailAddress,
-        date  = commit.commitTime)
-  }
-
-  // https://developer.github.com/v3/repos/
-  case class WebHookRepository(
-    name: String,
-    full_name: String,
-    description: String,
-    watchers: Int,
-    forks: Int,
-    `private`: Boolean,
-    default_branch: String,
-    owner: WebHookApiUser) {
-    val forks_count   = forks
-    val watchers_coun = watchers
-    val url       = ApiPath(s"/api/v3/repos/${full_name}")
-    val http_url  = ApiPath(s"/git/${full_name}.git")
-    val clone_url = ApiPath(s"/git/${full_name}.git")
-    val html_url  = ApiPath(s"/${full_name}")
-  }
-
-  object WebHookRepository{
-    def apply(
-        repository: Repository,
-        owner: WebHookApiUser,
-        forkedCount: Int =0,
-        watchers: Int = 0): WebHookRepository =
-      WebHookRepository(
-        name        = repository.repositoryName,
-        full_name   = s"${repository.userName}/${repository.repositoryName}",
-        description = repository.description.getOrElse(""),
-        watchers    = 0,
-        forks       = forkedCount,
-        `private`   = repository.isPrivate,
-        default_branch = repository.defaultBranch,
-        owner       = owner
-      )
-
-    def apply(repositoryInfo: RepositoryInfo, owner: WebHookApiUser): WebHookRepository =
-      WebHookRepository(repositoryInfo.repository, owner, forkedCount=repositoryInfo.forkedCount)
-
-    def apply(repositoryInfo: RepositoryInfo, owner: Account): WebHookRepository =
-      this(repositoryInfo.repository, WebHookApiUser(owner))
-
-  }
-
-  // https://developer.github.com/v3/pulls/
-  case class WebHookPullRequest(
-    number: Int,
-    updated_at: Date,
-    created_at: Date,
-    head: WebHookPullRequestCommit,
-    base: WebHookPullRequestCommit,
-    mergeable: Option[Boolean],
-    title: String,
-    body: String,
-    user: WebHookApiUser) {
-    val html_url            = ApiPath(s"${base.repo.html_url.path}/pull/${number}")
-    //val diff_url            = ApiPath("${base.repo.html_url.path}/pull/${number}.diff")
-    //val patch_url           = ApiPath("${base.repo.html_url.path}/pull/${number}.patch")
-    val url                 = ApiPath(s"${base.repo.url.path}/pulls/${number}")
-    //val issue_url           = ApiPath("${base.repo.url.path}/issues/${number}")
-    //val commits_url         = ApiPath("${base.repo.url.path}/pulls/${number}/commits")
-    //val review_comments_url = ApiPath("${base.repo.url.path}/pulls/${number}/comments")
-    //val review_comment_url  = ApiPath("${base.repo.url.path}/pulls/comments/{number}")
-    //val comments_url        = ApiPath("${base.repo.url.path}/issues/${number}/comments")
-    val statuses_url        = ApiPath(s"${base.repo.url.path}/statuses/${head.sha}")
-  }
-
-  object WebHookPullRequest{
-    def apply(issue: Issue, pullRequest: PullRequest, headRepo: WebHookRepository, baseRepo: WebHookRepository, user: WebHookApiUser): WebHookPullRequest = WebHookPullRequest(
-        number     = issue.issueId,
-        updated_at = issue.updatedDate,
-        created_at = issue.registeredDate,
-        head       = WebHookPullRequestCommit(
-                       sha  = pullRequest.commitIdTo,
-                       ref  = pullRequest.requestBranch,
-                       repo = headRepo),
-        base       = WebHookPullRequestCommit(
-                       sha  = pullRequest.commitIdFrom,
-                       ref  = pullRequest.branch,
-                       repo = baseRepo),
-        mergeable  = None, // TODO: need check mergeable.
-        title      = issue.title,
-        body       = issue.content.getOrElse(""),
-        user       = user
-      )
-  }
-
-  case class WebHookPullRequestCommit(
-    label: String,
-    sha: String,
-    ref: String,
-    repo: WebHookRepository,
-    user: WebHookApiUser)
-
-  object WebHookPullRequestCommit{
-    def apply(sha: String,
-        ref: String,
-        repo: WebHookRepository): WebHookPullRequestCommit =
-          WebHookPullRequestCommit(
-            label = s"${repo.owner.login}:${ref}",
-            sha   = sha,
-            ref   = ref,
-            repo  = repo,
-            user  = repo.owner)
-  }
-
-  // https://developer.github.com/v3/issues/
-  case class WebHookIssue(
-    number: Int,
-    title: String,
-    user: WebHookApiUser,
-    // labels,
-    state: String,
-    created_at: Date,
-    updated_at: Date,
-    body: String)
-
-  object WebHookIssue{
-    def apply(issue: Issue, user: WebHookApiUser): WebHookIssue =
-      WebHookIssue(
-        number = issue.issueId,
-        title  = issue.title,
-        user   = user,
-        state  = if(issue.closed){ "closed" }else{ "open" },
-        body   = issue.content.getOrElse(""),
-        created_at = issue.registeredDate,
-        updated_at = issue.updatedDate)
-  }
-
-  // https://developer.github.com/v3/issues/comments/
-  case class WebHookComment(
-    id: Int,
-    user: WebHookApiUser,
-    body: String,
-    created_at: Date,
-    updated_at: Date)
-
-  object WebHookComment{
-    def apply(comment: IssueComment, user: WebHookApiUser): WebHookComment =
-      WebHookComment(
-        id = comment.commentId,
-        user = user,
-        body = comment.content,
-        created_at = comment.registeredDate,
-        updated_at = comment.updatedDate)
-  }
-
-  // https://developer.github.com/v3/issues/comments/#create-a-comment
-  case class CreateAComment(body: String)
-
-
-  // https://developer.github.com/v3/repos/commits/
-  case class WebHookCommitListItemParent(sha: String)(repoFullName:String){
-    val url = ApiPath(s"/api/v3/repos/${repoFullName}/commits/${sha}")
-  }
-  case class WebHookCommitListItemCommit(
-    message: String,
-    author: WebHookCommitUser,
-    committer: WebHookCommitUser)(sha:String, repoFullName: String) {
-    val url = ApiPath(s"/api/v3/repos/${repoFullName}/git/commits/${sha}")
-  }
-
-  case class WebHookCommitListItem(
-    sha: String,
-    commit: WebHookCommitListItemCommit,
-    author: Option[WebHookApiUser],
-    committer: Option[WebHookApiUser],
-    parents: Seq[WebHookCommitListItemParent])(repoFullName: String) {
-    val url = ApiPath(s"/api/v3/repos/${repoFullName}/commits/${sha}")
-  }
-
-  object WebHookCommitListItem {
-    def apply(commit: CommitInfo, repoFullName:String): WebHookCommitListItem = WebHookCommitListItem(
-      sha    = commit.id,
-      commit = WebHookCommitListItemCommit(
-        message   = commit.fullMessage,
-        author    = WebHookCommitUser.author(commit),
-        committer = WebHookCommitUser.committer(commit)
-        )(commit.id, repoFullName),
-      author    = None,
-      committer = None,
-      parents   = commit.parents.map(WebHookCommitListItemParent(_)(repoFullName)))(repoFullName)
-  }
-
-  /**
-   * https://developer.github.com/v3/repos/statuses/#create-a-status
-   */
-  case class CreateAStatus(
-    /* state is Required. The state of the status. Can be one of pending, success, error, or failure. */
-    state: String,
-    /* context is a string label to differentiate this status from the status of other systems. Default: "default" */
-    context: Option[String],
-    /* The target URL to associate with this status. This URL will be linked from the GitHub UI to allow users to easily see the ‘source’ of the Status. */
-    target_url: Option[String],
-    /* description is a short description of the status.*/
-    description: Option[String]
-  ) {
-    def isValid: Boolean = {
-      CommitState.valueOf(state).isDefined &&
-        target_url.filterNot(f => "\\Ahttps?://".r.findPrefixOf(f).isDefined && f.length<255).isEmpty &&
-        context.filterNot(f => f.length<255).isEmpty &&
-        description.filterNot(f => f.length<1000).isEmpty
-    }
-  }
-
-  /**
-   * https://developer.github.com/v3/repos/statuses/#create-a-status
-   * https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
-   */
-  case class WebHookCommitStatus(
-    created_at: Date,
-    updated_at: Date,
-    state: String,
-    target_url: Option[String],
-    description: Option[String],
-    id: Int,
-    context: String,
-    creator: WebHookApiUser
-  )(sha: String, repoFullName: String) {
-    def url = ApiPath(s"/api/v3/repos/${repoFullName}/commits/${sha}/statuses")
-  }
-
-  object WebHookCommitStatus {
-    def apply(status: CommitStatus, creator:WebHookApiUser): WebHookCommitStatus = WebHookCommitStatus(
-      created_at = status.registeredDate,
-      updated_at = status.updatedDate,
-      state      = status.state.name,
-      target_url = status.targetUrl,
-      description= status.description,
-      id         = status.commitStatusId,
-      context    = status.context,
-      creator    = creator
-    )(status.commitId, s"${status.userName}/${status.repositoryName}")
-  }
-
-  /**
-   * https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
-   */
-  case class WebHookCombinedCommitStatus(
-    state: String,
-    sha: String,
-    total_count: Int,
-    statuses: Iterable[WebHookCommitStatus],
-    repository: WebHookRepository){
-    // val commit_url = ApiPath(s"/api/v3/repos/${repository.full_name}/${sha}")
-    val url = ApiPath(s"/api/v3/repos/${repository.full_name}/commits/${sha}/status")
-  }
-  object WebHookCombinedCommitStatus {
-    def apply(sha:String, statuses: Iterable[(CommitStatus, Account)], repository:WebHookRepository): WebHookCombinedCommitStatus = WebHookCombinedCommitStatus(
-      state      = CommitState.combine(statuses.map(_._1.state).toSet).name,
-      sha        = sha,
-      total_count= statuses.size,
-      statuses   = statuses.map{ case (s, a)=> WebHookCommitStatus(s, WebHookApiUser(a)) },
-      repository = repository)
+        repository   = ApiRepository(repository, repositoryUser),
+        issue        = ApiIssue(issue, ApiUser(issueUser)),
+        comment      = ApiComment(comment, ApiUser(commentUser)),
+        sender       = ApiUser(sender))
   }
 }

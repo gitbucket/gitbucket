@@ -19,6 +19,7 @@ import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.revwalk.RevCommit
 import service.WebHookService._
 import model.CommitState
+import api._
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
@@ -110,7 +111,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/#get
    */
   get("/api/v3/repos/:owner/:repository")(referrersOnly { repository =>
-    apiJson(WebHookRepository(repository, WebHookApiUser(getAccountByUserName(repository.owner).get)))
+    JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(repository.owner).get)))
   })
 
   /**
@@ -158,7 +159,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                                     state, data.target_url, data.description, new java.util.Date(), creator)
       status <- getCommitStatus(repository.owner, repository.name, statusId)
     } yield {
-      apiJson(WebHookCommitStatus(status, WebHookApiUser(creator)))
+      JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
     }) getOrElse NotFound
   })
 
@@ -172,8 +173,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       ref <- params.get("ref")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
     } yield {
-      apiJson(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
-        WebHookCommitStatus(status, WebHookApiUser(creator))
+      JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
+        ApiCommitStatus(status, ApiUser(creator))
       })
     }) getOrElse NotFound
   })
@@ -190,7 +191,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
     } yield {
       val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
-      apiJson(WebHookCombinedCommitStatus(sha, statuses, WebHookRepository(repository, owner)))
+      JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
     }) getOrElse NotFound
   })
 

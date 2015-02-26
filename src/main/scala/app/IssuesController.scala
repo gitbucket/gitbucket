@@ -11,6 +11,7 @@ import org.scalatra.Ok
 import model.Issue
 import service.WebHookService._
 import scala.util.Try
+import api._
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
@@ -83,7 +84,7 @@ trait IssuesControllerBase extends ControllerBase {
       issueId <- params("id").toIntOpt
       comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
     } yield {
-      apiJson(comments.map{ case (issueComment, user) => WebHookComment(issueComment, WebHookApiUser(user)) })
+      JsonFormat(comments.map{ case (issueComment, user) => ApiComment(issueComment, ApiUser(user)) })
     }).getOrElse(NotFound)
   })
 
@@ -187,7 +188,7 @@ trait IssuesControllerBase extends ControllerBase {
       (issue, id) <- handleComment(issueId, Some(body), repository)()
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
-      apiJson(WebHookComment(issueComment, WebHookApiUser(context.loginAccount.get)))
+      JsonFormat(ApiComment(issueComment, ApiUser(context.loginAccount.get)))
     }) getOrElse NotFound
   })
 

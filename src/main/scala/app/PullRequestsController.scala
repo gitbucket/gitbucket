@@ -19,7 +19,7 @@ import service.WebHookService._
 import util.JGitUtil.DiffInfo
 import util.JGitUtil.CommitInfo
 import model.{PullRequest, Issue, CommitState}
-
+import api._
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
@@ -80,13 +80,13 @@ trait PullRequestsControllerBase extends ControllerBase {
     val condition = IssueSearchCondition(request)
     val baseOwner = getAccountByUserName(repository.owner).get
     val issues:List[(model.Issue, model.Account, Int, model.PullRequest, model.Repository, model.Account)] = searchPullRequestByApi(condition, (page - 1) * PullRequestLimit, PullRequestLimit, repository.owner -> repository.name)
-    apiJson(issues.map{case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
-      WebHookPullRequest(
+    JsonFormat(issues.map{case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
+      ApiPullRequest(
         issue,
         pullRequest,
-        WebHookRepository(headRepo, WebHookApiUser(headOwner)),
-        WebHookRepository(repository, WebHookApiUser(baseOwner)),
-        WebHookApiUser(issueUser)) })
+        ApiRepository(headRepo, ApiUser(headOwner)),
+        ApiRepository(repository, ApiUser(baseOwner)),
+        ApiUser(issueUser)) })
   })
 
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
@@ -127,12 +127,12 @@ trait PullRequestsControllerBase extends ControllerBase {
       issueUser <- users.get(issue.userName)
       headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
     } yield {
-      apiJson(WebHookPullRequest(
+      JsonFormat(ApiPullRequest(
         issue,
         pullRequest,
-        WebHookRepository(headRepo, WebHookApiUser(headOwner)),
-        WebHookRepository(repository, WebHookApiUser(baseOwner)),
-        WebHookApiUser(issueUser)))
+        ApiRepository(headRepo, ApiUser(headOwner)),
+        ApiRepository(repository, ApiUser(baseOwner)),
+        ApiUser(issueUser)))
     }).getOrElse(NotFound)
   })
 
@@ -147,9 +147,9 @@ trait PullRequestsControllerBase extends ControllerBase {
         using(Git.open(getRepositoryDir(owner, name))){ git =>
           val oldId = git.getRepository.resolve(pullreq.commitIdFrom)
           val newId = git.getRepository.resolve(pullreq.commitIdTo)
-          val repoFullName = s"${owner}/${name}"
-          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => WebHookCommitListItem(new CommitInfo(c), repoFullName)).toList
-          apiJson(commits)
+          val repoFullName = util.RepositoryName(repository)
+          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => ApiCommitListItem(new CommitInfo(c), repoFullName)).toList
+          JsonFormat(commits)
         }
       }
     } getOrElse NotFound

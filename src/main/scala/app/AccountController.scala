@@ -15,6 +15,7 @@ import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
 import model.GroupMember
 import service.WebHookService._
+import api._
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
@@ -156,7 +157,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   get("/api/v3/users/:userName") {
     getAccountByUserName(params("userName")).map { account =>
-      apiJson(WebHookApiUser(account))
+      JsonFormat(ApiUser(account))
     } getOrElse NotFound
   }
 
@@ -165,7 +166,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   get("/api/v3/user") {
     context.loginAccount.map { account =>
-      apiJson(WebHookApiUser(account))
+      JsonFormat(ApiUser(account))
     } getOrElse NotFound
   }
 
