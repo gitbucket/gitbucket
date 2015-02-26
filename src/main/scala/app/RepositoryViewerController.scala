@@ -322,14 +322,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays branches.
    */
   get("/:owner/:repository/branches")(referrersOnly { repository =>
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      // retrieve latest update date of each branch
-      val branchInfo = repository.branchList.map { branchName =>
-        val revCommit = git.log.add(git.getRepository.resolve(branchName)).setMaxCount(1).call.iterator.next
-        (branchName, revCommit.getCommitterIdent.getWhen)
-      }
-      repo.html.branches(branchInfo, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
-    }
+    val branches = JGitUtil.getBranches(repository.owner, repository.name, repository.repository.defaultBranch)
+      .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+      .map(br => br -> getPullRequestByRequestCommit(repository.owner, repository.name, repository.repository.defaultBranch, br.name, br.commitId))
+      .reverse
+    repo.html.branches(branches, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
   })
 
   /**

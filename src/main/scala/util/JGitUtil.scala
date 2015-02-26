@@ -134,6 +134,10 @@ object JGitUtil {
    */
   case class SubmoduleInfo(name: String, path: String, url: String)
 
+  case class BranchMergeInfo(ahead: Int, behind: Int, isMerged: Boolean)
+
+  case class BranchInfo(name: String, committerName: String, commitTime: Date, committerEmailAddress:String, mergeInfo: Option[BranchMergeInfo], commitId: String)
+
   /**
    * Returns RevCommit from the commit or tag id.
    * 
@@ -705,4 +709,43 @@ object JGitUtil {
     return git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
   }
 
+  def getBranches(owner: String, name: String, defaultBranch: String): Seq[BranchInfo] = {
+    using(Git.open(getRepositoryDir(owner, name))){ git =>
+      val repo = git.getRepository
+      val defaultObject = repo.resolve(defaultBranch)
+      git.branchList.call.asScala.map { ref =>
+        val walk = new RevWalk(repo)
+        try{
+          val defaultCommit = walk.parseCommit(defaultObject)
+          val branchName = ref.getName.stripPrefix("refs/heads/")
+          val branchCommit = if(branchName == defaultBranch){
+            defaultCommit
+          }else{
+            walk.parseCommit(ref.getObjectId)
+          }
+          val when = branchCommit.getCommitterIdent.getWhen
+          val committer = branchCommit.getCommitterIdent.getName
+          val committerEmail = branchCommit.getCommitterIdent.getEmailAddress
+          val mergeInfo = if(branchName==defaultBranch){
+            None
+          }else{
+            walk.reset()
+            walk.setRevFilter( RevFilter.MERGE_BASE )
+            walk.markStart(branchCommit)
+            walk.markStart(defaultCommit)
+            val mergeBase = walk.next()
+            walk.reset()
+            walk.setRevFilter(RevFilter.ALL)
+            Some(BranchMergeInfo(
+              ahead    = RevWalkUtils.count(walk, branchCommit, mergeBase),
+              behind   = RevWalkUtils.count(walk, defaultCommit, mergeBase),
+              isMerged = walk.isMergedInto(branchCommit, defaultCommit)))
+          }
+          BranchInfo(branchName, committer, when, committerEmail, mergeInfo, ref.getObjectId.name)
+        } finally {
+          walk.dispose();
+        }
+      }
+    }
+  }
 }
