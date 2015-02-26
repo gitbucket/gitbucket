@@ -60,14 +60,14 @@
         }
         @helper.html.dropdown("Milestone", flat = true) {
           <li>
-            <a href="@condition.copy(milestoneId = Some(None)).toURL">
-              @helper.html.checkicon(condition.milestoneId == Some(None)) Issues with no milestone
+            <a href="@condition.copy(milestone = Some(None)).toURL">
+              @helper.html.checkicon(condition.milestone == Some(None)) Issues with no milestone
             </a>
           </li>
           @milestones.filter(_.closedDate.isEmpty).map { milestone =>
             <li>
-              <a href="@condition.copy(milestoneId = Some(Some(milestone.milestoneId))).toURL">
-                @helper.html.checkicon(condition.milestoneId == Some(Some(milestone.milestoneId))) @milestone.title
+              <a href="@condition.copy(milestone = Some(Some(milestone.title))).toURL">
+                @helper.html.checkicon(condition.milestone == Some(Some(milestone.title))) @milestone.title
               </a>
             </li>
           }
@@ -156,8 +156,8 @@
         } else {
           No pull requests to show.
         }
-        @if(condition.labels.nonEmpty || condition.milestoneId.isDefined){
-          <a href="@condition.copy(labels = Set.empty, milestoneId = None).toURL">Clear active filters.</a>
+        @if(condition.labels.nonEmpty || condition.milestone.isDefined){
+          <a href="@condition.copy(labels = Set.empty, milestone = None).toURL">Clear active filters.</a>
         } else {
           @if(repository.isDefined){
             @if(target == "issues"){
@@ -205,7 +205,7 @@
         <div class="small muted" style="margin-left: 40px; margin-top: 5px;">
           #@issue.issueId opened  @helper.html.datetimeago(issue.registeredDate) by @user(issue.openedUserName, styleClass="username")
           @milestone.map { milestone =>
-            <span style="margin: 20px;"><a href="@condition.copy(milestoneId = Some(Some(1))).toURL" class="username"><img src="@assets/common/images/milestone.png"> @milestone</a></span>
+            <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><img src="@assets/common/images/milestone.png"> @milestone</a></span>
           }
         </div>
       </td>
