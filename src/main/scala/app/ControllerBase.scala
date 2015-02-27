@@ -51,6 +51,9 @@ abstract class ControllerBase extends ScalatraFilter
       // Git repository
       chain.doFilter(request, response)
     } else {
+      if(path.startsWith("/api/v3/")){
+        httpRequest.setAttribute(Keys.Request.APIv3, true)
+      }
       // Scalatra actions
       super.doFilter(request, response, chain)
     }
@@ -103,6 +106,9 @@ abstract class ControllerBase extends ScalatraFilter
   protected def NotFound() =
     if(request.hasAttribute(Keys.Request.Ajax)){
       org.scalatra.NotFound()
+    } else if(request.hasAttribute(Keys.Request.APIv3)){
+      contentType = formats("json")
+      org.scalatra.NotFound(api.ApiError("Not Found"))
     } else {
       org.scalatra.NotFound(html.error("Not Found"))
     }
@@ -110,6 +116,9 @@ abstract class ControllerBase extends ScalatraFilter
   protected def Unauthorized()(implicit context: app.Context) =
     if(request.hasAttribute(Keys.Request.Ajax)){
       org.scalatra.Unauthorized()
+    } else if(request.hasAttribute(Keys.Request.APIv3)){
+      contentType = formats("json")
+      org.scalatra.Unauthorized(api.ApiError("Requires authentication"))
     } else {
       if(context.loginAccount.isDefined){
         org.scalatra.Unauthorized(redirect("/"))

@@ -167,7 +167,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/api/v3/user") {
     context.loginAccount.map { account =>
       JsonFormat(ApiUser(account))
-    } getOrElse NotFound
+    } getOrElse Unauthorized
   }
 
 
