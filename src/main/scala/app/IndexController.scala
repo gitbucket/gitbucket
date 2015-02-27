@@ -4,6 +4,7 @@ import util._
 import util.Implicits._
 import service._
 import jp.sf.amateras.scalatra.forms._
+import api._
 
 class IndexController extends IndexControllerBase 
   with RepositoryService with ActivityService with AccountService with UsersAuthenticator
@@ -103,4 +104,13 @@ trait IndexControllerBase extends ControllerBase {
     getAccountByUserName(params("userName")).isDefined
   })
 
+  /**
+   * @see https://developer.github.com/v3/rate_limit/#get-your-current-rate-limit-status
+   * but not enabled.
+   */
+  get("/api/v3/rate_limit"){
+    contentType = formats("json")
+    // this message is same as github enterprise...
+    org.scalatra.NotFound(api.ApiError("Rate limiting is not enabled."))
+  }
 }
