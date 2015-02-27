@@ -1,16 +1,19 @@
 package plugin
 
-import java.io.{FilenameFilter, File}
+import java.io.{InputStream, FilenameFilter, File}
 import java.net.URLClassLoader
 import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import org.slf4j.LoggerFactory
+import org.apache.commons.codec.binary.{StringUtils, Base64}
 import service.RepositoryService.RepositoryInfo
 import util.Directory._
 import util.JDBCUtil._
+import util.ControlUtil._
 import util.{Version, Versions}
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import app.{ControllerBase, Context}
 
@@ -19,12 +22,25 @@ class PluginRegistry {
   private val plugins = new ListBuffer[PluginInfo]
   private val javaScripts = new ListBuffer[(String, String)]
   private val controllers = new ListBuffer[(ControllerBase, String)]
+  private val images = mutable.Map[String, String]()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
   }
 
   def getPlugins(): List[PluginInfo] = plugins.toList
+
+  def addImage(id: String, in: InputStream): Unit = {
+    val bytes = using(in){ in =>
+      val bytes = new Array[Byte](in.available)
+      in.read(bytes)
+      bytes
+    }
+    val encoded = StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
+    images += ((id, encoded))
+  }
+
+  def getImage(id: String): String = images(id)
 
   def addController(controller: ControllerBase, path: String): Unit = {
     controllers += ((controller, path))
