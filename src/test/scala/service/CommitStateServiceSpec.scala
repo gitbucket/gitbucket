@@ -6,10 +6,6 @@ import model.Profile._
 import profile.simple._
 class CommitStatusServiceSpec extends Specification with ServiceSpecBase with CommitStatusService
   with RepositoryService with AccountService{
-  def generateNewAccount(name:String)(implicit s:Session):Account = {
-    createAccount(name, name, name, s"${name}@example.com", false, None)
-    getAccountByUserName(name).get
-  }
   val now = new java.util.Date()
   val fixture1 = CommitStatus(
         userName       = "root",

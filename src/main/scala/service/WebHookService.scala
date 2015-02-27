@@ -116,6 +116,40 @@ trait WebHookPullRequestService extends WebHookService {
       }
     }
   }
+
+  def getPullRequestsByRequestForWebhook(userName:String, repositoryName:String, branch:String)
+                                       (implicit s: Session): Map[(Issue, PullRequest, Account, Account), List[WebHook]] =
+    (for{
+      is <- Issues if is.closed    === false.bind
+      pr <- PullRequests if pr.byPrimaryKey(is.userName, is.repositoryName, is.issueId)
+      if pr.requestUserName        === userName.bind
+      if pr.requestRepositoryName  === repositoryName.bind
+      if pr.requestBranch          === branch.bind
+      bu <- Accounts if bu.userName === pr.userName
+      ru <- Accounts if ru.userName === pr.requestUserName
+      wh <- WebHooks if wh.byRepository(is.userName , is.repositoryName)
+    } yield {
+      ((is, pr, bu, ru), wh)
+    }).list.groupBy(_._1).mapValues(_.map(_._2))
+
+  def callPullRequestWebHookByRequestBranch(action: String, requestRepository: RepositoryService.RepositoryInfo, requestBranch: String, baseUrl: String, sender: model.Account)(implicit s: Session, context:JsonFormat.Context): Unit = {
+    import WebHookService._
+    for{
+      ((issue, pullRequest, baseOwner, headOwner), webHooks) <- getPullRequestsByRequestForWebhook(requestRepository.owner, requestRepository.name, requestBranch)
+      baseRepo <- getRepository(pullRequest.userName, pullRequest.repositoryName, baseUrl)
+    } yield {
+      val payload = WebHookPullRequestPayload(
+        action         = action,
+        issue          = issue,
+        pullRequest    = pullRequest,
+        headRepository = requestRepository,
+        headOwner      = headOwner,
+        baseRepository = baseRepo,
+        baseOwner      = baseOwner,
+        sender         = sender)
+      callWebHook("pull_request", webHooks, payload)
+    }
+  }
 }
 
 trait WebHookIssueCommentService extends WebHookPullRequestService {

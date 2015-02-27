@@ -5,10 +5,6 @@ import model._
 import model.Profile._
 import profile.simple._
 class RepositoryServiceSpec extends Specification with ServiceSpecBase with RepositoryService with AccountService{
-  def generateNewAccount(name:String)(implicit s:Session):Account = {
-    createAccount(name, name, name, s"${name}@example.com", false, None)
-    getAccountByUserName(name).get
-  }
   "RepositoryService" should {
     "renameRepository can rename CommitState" in { withTestDB { implicit session =>
       val tester = generateNewAccount("tester")

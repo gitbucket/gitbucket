@@ -8,6 +8,7 @@ import java.sql.DriverManager
 import org.apache.commons.io.FileUtils
 import scala.util.Random
 import java.io.File
+import model._
 
 trait ServiceSpecBase {
 
@@ -24,4 +25,41 @@ trait ServiceSpecBase {
     }
   }
 
+  def generateNewAccount(name:String)(implicit s:Session):Account = {
+    AccountService.createAccount(name, name, name, s"${name}@example.com", false, None)
+    AccountService.getAccountByUserName(name).get
+  }
+
+  lazy val dummyService = new RepositoryService with AccountService with IssuesService with PullRequestService (){}
+
+  def generateNewUserWithDBRepository(userName:String, repositoryName:String)(implicit s:Session):Account = {
+    val ac = generateNewAccount(userName)
+    dummyService.createRepository(repositoryName, userName, None, false)
+    ac
+  }
+  def generateNewPullRequest(base:String, request:String)(implicit s:Session):(Issue, PullRequest) = {
+    val Array(baseUserName, baseRepositoryName, baesBranch)=base.split("/")
+    val Array(requestUserName, requestRepositoryName, requestBranch)=request.split("/")
+      val issueId = dummyService.createIssue(
+      owner            = baseUserName,
+      repository       = baseRepositoryName,
+      loginUser        = requestUserName,
+      title            = "issue title",
+      content          = None,
+      assignedUserName = None,
+      milestoneId      = None,
+      isPullRequest    = true)
+
+    dummyService.createPullRequest(
+      originUserName        = baseUserName,
+      originRepositoryName  = baseRepositoryName,
+      issueId               = issueId,
+      originBranch          = baesBranch,
+      requestUserName       = requestUserName,
+      requestRepositoryName = requestRepositoryName,
+      requestBranch         = requestBranch,
+      commitIdFrom          = baesBranch,
+      commitIdTo            = requestBranch)
+    dummyService.getPullRequest(baseUserName, baseRepositoryName, issueId).get
+  }
 }

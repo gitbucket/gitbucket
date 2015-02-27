@@ -2,7 +2,7 @@ package service
 
 import model.Profile._
 import profile.simple._
-import model.{PullRequest, Issue}
+import model.{PullRequest, Issue, WebHook, Account}
 import util.JGitUtil
 
 trait PullRequestService { self: IssuesService =>

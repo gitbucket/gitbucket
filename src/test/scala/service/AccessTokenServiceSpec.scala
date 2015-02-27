@@ -6,11 +6,6 @@ import model._
 
 class AccessTokenServiceSpec extends Specification with ServiceSpecBase {
 
-  def generateNewAccount(name:String)(implicit s:Session):Account = {
-    AccountService.createAccount(name, name, name, s"${name}@example.com", false, None)
-    AccountService.getAccountByUserName(name).get
-  }
-
   "AccessTokenService" should {
     "generateAccessToken" in { withTestDB { implicit session =>
       AccessTokenService.generateAccessToken("root", "note") must be like{
