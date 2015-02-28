@@ -242,8 +242,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   get("/:owner/:repository/compare/*...*")(referrersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
-    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
+    val (originOwner, originId) = parseCompareIdentifie(origin, forkedRepository.owner)
+    val (forkedOwner, forkedId) = parseCompareIdentifie(forked, forkedRepository.owner)
 
     (for(
       originRepositoryName <- if(originOwner == forkedOwner){
@@ -259,15 +259,18 @@ trait PullRequestsControllerBase extends ControllerBase {
         Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
         Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
       ){ case (oldGit, newGit) =>
-        val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
-        val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
-
-        val forkedId = JGitUtil.getForkedCommitId(oldGit, newGit,
-          originRepository.owner, originRepository.name, originBranch,
-          forkedRepository.owner, forkedRepository.name, forkedBranch)
-
-        val oldId = oldGit.getRepository.resolve(forkedId)
-        val newId = newGit.getRepository.resolve(forkedBranch)
+        val (oldId, newId) =
+          if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
+            // Branch name
+            val forkedId = JGitUtil.getForkedCommitId(oldGit, newGit,
+              originRepository.owner, originRepository.name, originId,
+              forkedRepository.owner, forkedRepository.name, forkedId)
+            
+            (oldGit.getRepository.resolve(forkedId),  newGit.getRepository.resolve(forkedId))
+          } else {
+            // Commit id
+            (oldGit.getRepository.resolve(originId), newGit.getRepository.resolve(forkedId))
+          }
 
         val (commits, diffs) = getRequestCompareInfo(
           originRepository.owner, originRepository.name, oldId.getName,
@@ -281,8 +284,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
           },
           commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
-          originBranch,
-          forkedBranch,
+          originId,
+          forkedId,
           oldId.getName,
           newId.getName,
           forkedRepository,

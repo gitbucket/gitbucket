@@ -7,7 +7,7 @@
   <table class="table table-file-list" style="border: 1px solid silver;">
     @commits.map { day =>
       <tr>
-        <th colspan="3" class="box-header" style="font-weight: normal;">@date(day.head.commitTime)</th>
+        <th colspan="4" class="box-header" style="font-weight: normal;">@date(day.head.commitTime)</th>
       </tr>
       @day.map { commit =>
         <tr>
