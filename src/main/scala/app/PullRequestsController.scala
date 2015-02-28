@@ -262,11 +262,11 @@ trait PullRequestsControllerBase extends ControllerBase {
         val (oldId, newId) =
           if(originRepository.branchList.contains(originId) && forkedRepository.branchList.contains(forkedId)){
             // Branch name
-            val forkedId = JGitUtil.getForkedCommitId(oldGit, newGit,
+            val rootId = JGitUtil.getForkedCommitId(oldGit, newGit,
               originRepository.owner, originRepository.name, originId,
               forkedRepository.owner, forkedRepository.name, forkedId)
-            
-            (oldGit.getRepository.resolve(forkedId),  newGit.getRepository.resolve(forkedId))
+
+            (oldGit.getRepository.resolve(rootId),  newGit.getRepository.resolve(forkedId))
           } else {
             // Commit id
             (oldGit.getRepository.resolve(originId), newGit.getRepository.resolve(forkedId))
