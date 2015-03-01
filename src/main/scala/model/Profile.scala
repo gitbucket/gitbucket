@@ -1,6 +1,6 @@
 package model
 
-trait Profile {
+trait ProfileBase {
   val profile: slick.driver.JdbcProfile
   import profile.simple._
 
@@ -16,10 +16,8 @@ trait Profile {
 
 }
 
-object Profile extends {
-  val profile = slick.driver.H2Driver
-
-} with AccountComponent
+trait CoreProfile extends ProfileBase
+  with AccountComponent
   with ActivityComponent
   with CollaboratorComponent
   with CommitCommentComponent
@@ -33,7 +31,9 @@ object Profile extends {
   with RepositoryComponent
   with SshKeyComponent
   with WebHookComponent
-  with PluginComponent with Profile {
+  with PluginComponent {
+
+  val profile = slick.driver.H2Driver
 
   /**
    * Returns system date.
@@ -41,3 +41,5 @@ object Profile extends {
   def currentDate = new java.util.Date()
 
 }
+
+object Profile extends CoreProfile
