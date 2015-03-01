@@ -84,6 +84,47 @@ trait IssuesService {
       .toMap
   }
 
+  def getCommitStatues(issueList:Seq[(String, String, Int)])(implicit s: Session) :Map[(String, String, Int), CommitStatusInfo] ={
+    if(issueList.isEmpty){
+      Map.empty
+    }else{
+      import scala.slick.jdbc._
+      val issueIdQuery = issueList.map(i => "(PR.USER_NAME=? AND PR.REPOSITORY_NAME=? AND PR.ISSUE_ID=?)").mkString(" OR ")
+      implicit val qset = SetParameter[Seq[(String, String, Int)]] {
+        case (seq, pp) =>
+          for (a <- seq) {
+            pp.setString(a._1)
+            pp.setString(a._2)
+            pp.setInt(a._3)
+          }
+      }
+      import model.Profile.commitStateColumnType
+      val query = Q.query[Seq[(String, String, Int)], (String, String, Int, Int, Int, Option[String], Option[model.CommitState], Option[String], Option[String])](s"""
+        SELECT SUMM.USER_NAME, SUMM.REPOSITORY_NAME, SUMM.ISSUE_ID, CS_ALL, CS_SUCCESS
+             , CSD.CONTEXT, CSD.STATE, CSD.TARGET_URL, CSD.DESCRIPTION
+        FROM (SELECT
+           PR.USER_NAME
+         , PR.REPOSITORY_NAME
+         , PR.ISSUE_ID
+         , COUNT(CS.STATE) AS CS_ALL
+         , SUM(CS.STATE='success') AS CS_SUCCESS
+         , PR.COMMIT_ID_TO AS COMMIT_ID
+          FROM PULL_REQUEST PR
+          JOIN COMMIT_STATUS CS
+            ON PR.USER_NAME=CS.USER_NAME
+           AND PR.REPOSITORY_NAME=CS.REPOSITORY_NAME
+           AND PR.COMMIT_ID_TO=CS.COMMIT_ID
+         WHERE $issueIdQuery
+         GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID) as SUMM
+        LEFT OUTER JOIN COMMIT_STATUS CSD
+          ON SUMM.CS_ALL = 1 AND SUMM.COMMIT_ID = CSD.COMMIT_ID""");
+      query(issueList).list.map{
+        case(userName, repositoryName, issueId, count, successCount, context, state, targetUrl, description) =>
+          (userName, repositoryName, issueId) -> CommitStatusInfo(count, successCount, context, state, targetUrl, description)
+        }.toMap
+    }
+  }
+
   /**
    * Returns the search result against  issues.
    *
@@ -96,9 +137,8 @@ trait IssuesService {
    */
   def searchIssue(condition: IssueSearchCondition, pullRequest: Boolean, offset: Int, limit: Int, repos: (String, String)*)
                  (implicit s: Session): List[IssueInfo] = {
-
     // get issues and comment count and labels
-    searchIssueQueryBase(condition, pullRequest, offset, limit, repos)
+    val result = searchIssueQueryBase(condition, pullRequest, offset, limit, repos)
         .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
         .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
         .leftJoin (Milestones)  .on { case ((((t1, t2), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
@@ -111,14 +151,17 @@ trait IssuesService {
           c1._1.repositoryName == c2._1.repositoryName &&
           c1._1.issueId        == c2._1.issueId
         }
-        .map { issues => issues.head match {
+    val status = getCommitStatues(result.map(_.head._1).map(is => (is.userName, is.repositoryName, is.issueId)))
+
+    result.map { issues => issues.head match {
           case (issue, commentCount, _, _, _, milestone) =>
             IssueInfo(issue,
              issues.flatMap { t => t._3.map (
                  Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
              )} toList,
              milestone,
-             commentCount)
+             commentCount,
+             status.get(issue.userName, issue.repositoryName, issue.issueId))
         }} toList
   }
 
@@ -490,6 +533,8 @@ object IssuesService {
     }
   }
 
-  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], commentCount: Int)
+  case class CommitStatusInfo(count: Int, successCount: Int, context: Option[String], state: Option[model.CommitState], targetUrl: Option[String], description: Option[String])
+
+  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], commentCount: Int, status:Option[CommitStatusInfo])
 
 }

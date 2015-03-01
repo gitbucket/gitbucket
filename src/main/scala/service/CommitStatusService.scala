@@ -46,4 +46,5 @@ trait CommitStatusService {
 
   protected def byCommitStatues(userName: String, repositoryName: String, sha: String)(implicit s: Session) = 
     CommitStatuses.filter(t => t.byCommit(userName, repositoryName, sha) ).sortBy(_.updatedDate desc)
+
 }

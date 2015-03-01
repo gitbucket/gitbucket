@@ -170,7 +170,7 @@
       </td>
     </tr>
   }
-  @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
+  @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
     <tr>
       <td style="padding-top: 15px; padding-bottom: 15px;">
         @if(hasWritePermission){
@@ -185,6 +185,7 @@
         } else {
           <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
         }
+        @commitstatus(issue, commitStatus)
         @labels.map { label =>
           <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
         }

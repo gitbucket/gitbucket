@@ -30,26 +30,31 @@ trait ServiceSpecBase {
     AccountService.getAccountByUserName(name).get
   }
 
-  lazy val dummyService = new RepositoryService with AccountService with IssuesService with PullRequestService (){}
+  lazy val dummyService = new RepositoryService with AccountService with IssuesService with PullRequestService
+    with CommitStatusService (){}
 
   def generateNewUserWithDBRepository(userName:String, repositoryName:String)(implicit s:Session):Account = {
     val ac = generateNewAccount(userName)
     dummyService.createRepository(repositoryName, userName, None, false)
     ac
   }
-  def generateNewPullRequest(base:String, request:String)(implicit s:Session):(Issue, PullRequest) = {
-    val Array(baseUserName, baseRepositoryName, baesBranch)=base.split("/")
-    val Array(requestUserName, requestRepositoryName, requestBranch)=request.split("/")
-      val issueId = dummyService.createIssue(
-      owner            = baseUserName,
-      repository       = baseRepositoryName,
+
+  def generateNewIssue(userName:String, repositoryName:String, requestUserName:String="root")(implicit s:Session): Int = {
+    dummyService.createIssue(
+      owner            = userName,
+      repository       = repositoryName,
       loginUser        = requestUserName,
       title            = "issue title",
       content          = None,
       assignedUserName = None,
       milestoneId      = None,
       isPullRequest    = true)
+  }
 
+  def generateNewPullRequest(base:String, request:String)(implicit s:Session):(Issue, PullRequest) = {
+    val Array(baseUserName, baseRepositoryName, baesBranch)=base.split("/")
+    val Array(requestUserName, requestRepositoryName, requestBranch)=request.split("/")
+    val issueId = generateNewIssue(baseUserName, baseRepositoryName, requestUserName)
     dummyService.createPullRequest(
       originUserName        = baseUserName,
       originRepositoryName  = baseRepositoryName,
