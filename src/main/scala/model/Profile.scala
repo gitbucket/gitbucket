@@ -1,6 +1,6 @@
 package model
 
-trait ProfileBase {
+trait Profile {
   val profile: slick.driver.JdbcProfile
   import profile.simple._
 
@@ -16,7 +16,7 @@ trait ProfileBase {
 
 }
 
-trait CoreProfile extends ProfileBase
+trait ProfileBase extends Profile
   with AccountComponent
   with ActivityComponent
   with CollaboratorComponent
@@ -42,4 +42,4 @@ trait CoreProfile extends ProfileBase
 
 }
 
-object Profile extends CoreProfile
+object Profile extends ProfileBase
