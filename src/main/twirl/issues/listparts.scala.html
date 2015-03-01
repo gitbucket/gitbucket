@@ -25,7 +25,6 @@
 <table class="table table-bordered table-hover table-issues">
   <tr>
     <th style="background-color: #eee;">
-      <input type="checkbox" value="all"/>
       <span class="small">
         <a class="button-link@if(condition.state == "open"){ selected}" href="@condition.copy(state = "open").toURL">
           <img src="@assets/common/images/status-open@(if(condition.state == "open"){"-active"}).png"/>

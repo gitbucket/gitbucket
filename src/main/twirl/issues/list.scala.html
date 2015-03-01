@@ -48,17 +48,10 @@ $(function(){
   });
 
   $('.table-issues input[type=checkbox]').change(function(){
-    var count = $('.table-issues input[type=checkbox]').filter(':checked').length;
-    if(count == 0){
+    if($('.table-issues input[type=checkbox]').filter(':checked').length == 0){
       $('#table-issues-control').show();
       $('#table-issues-batchedit').hide();
     } else {
-      if($(this).val() == 'all'){
-        var flag = $(this).is(":checked");
-        $('.table-issues input[type=checkbox]').each(function(){
-          $(this).prop("checked", flag);
-        });
-      }
       $('#table-issues-control').hide();
       $('#table-issues-batchedit').show();
     }
