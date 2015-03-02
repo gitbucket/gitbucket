@@ -1,8 +1,8 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.Profile
 import gitbucket.core.servlet.AutoUpdate
 import gitbucket.core.util.{ControlUtil, DatabaseConfig, FileUtil}
+import gitbucket.core.model.Profile._
 import profile.simple._
 import ControlUtil._
 import java.sql.DriverManager

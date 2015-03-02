@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.GroupMember
+import gitbucket.core.model.{Account, GroupMember}
 import org.specs2.mutable.Specification
 import java.util.Date
 
@@ -11,7 +11,7 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
 
     "getAllUsers" in { withTestDB { implicit session =>
       AccountService.getAllUsers() must be like{
-        case List(model.Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false)) => ok
+        case List(Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false)) => ok
       }
     }}
 

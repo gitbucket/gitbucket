@@ -1,15 +1,15 @@
-package view
+package gitbucket.core.view
 
 import java.util.Date
 
 import gitbucket.core.model.Account
 import gitbucket.core.service.{SystemSettingsService, RequestCache}
-import gitbucket.core.view.AvatarImageProvider
+import gitbucket.core.controller.Context
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
 import SystemSettingsService.SystemSettings
-import play.twirl.api.Html
 import javax.servlet.http.HttpServletRequest
+import play.twirl.api.Html
 
 class AvatarImageProviderSpec extends Specification with Mockito {
 
@@ -20,7 +20,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
 
   "getAvatarImageHtml" should {
     "show Gravatar image for no image account if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, request)
+      implicit val context = Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(Some(createAccount(None)))
 
       provider.toHtml("user", 32).toString mustEqual
@@ -28,7 +28,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
     }
 
     "show uploaded image even if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, request)
+      implicit val context = Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(Some(createAccount(Some("icon.png"))))
 
       provider.toHtml("user", 32).toString mustEqual
@@ -36,7 +36,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
     }
 
     "show local image for no image account if gravatar integration is disabled" in {
-      implicit val context = app.Context(createSystemSettings(false), None, request)
+      implicit val context = Context(createSystemSettings(false), None, request)
       val provider = new AvatarImageProviderImpl(Some(createAccount(None)))
 
       provider.toHtml("user", 32).toString mustEqual
@@ -44,7 +44,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
     }
 
     "show Gravatar image for specified mail address if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, request)
+      implicit val context = Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20, "hoge@hoge.com").toString mustEqual
@@ -52,7 +52,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
     }
 
     "show unknown image for unknown user if gravatar integration is enabled" in {
-      implicit val context = app.Context(createSystemSettings(true), None, request)
+      implicit val context = Context(createSystemSettings(true), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20).toString mustEqual
@@ -60,7 +60,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
     }
 
     "show unknown image for specified mail address if gravatar integration is disabled" in {
-      implicit val context = app.Context(createSystemSettings(false), None, request)
+      implicit val context = Context(createSystemSettings(false), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20, "hoge@hoge.com").toString mustEqual
@@ -68,7 +68,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
     }
 
     "add tooltip if it's enabled" in {
-      implicit val context = app.Context(createSystemSettings(false), None, request)
+      implicit val context = Context(createSystemSettings(false), None, request)
       val provider = new AvatarImageProviderImpl(None)
 
       provider.toHtml("user", 20, "hoge@hoge.com", true).toString mustEqual
@@ -112,10 +112,10 @@ class AvatarImageProviderSpec extends Specification with Mockito {
   class AvatarImageProviderImpl(account: Option[Account]) extends AvatarImageProvider with RequestCache {
 
     def toHtml(userName: String, size: Int,  mailAddress: String = "", tooltip: Boolean = false)
-              (implicit context: app.Context): Html = getAvatarImageHtml(userName, size, mailAddress, tooltip)
+              (implicit context: Context): Html = getAvatarImageHtml(userName, size, mailAddress, tooltip)
 
-    override def getAccountByMailAddress(mailAddress: String)(implicit context: app.Context): Option[Account] = account
-    override def getAccountByUserName(userName: String)(implicit context: app.Context): Option[Account] = account
+    override def getAccountByMailAddress(mailAddress: String)(implicit context: Context): Option[Account] = account
+    override def getAccountByUserName(userName: String)(implicit context: Context): Option[Account] = account
   }
 
 }

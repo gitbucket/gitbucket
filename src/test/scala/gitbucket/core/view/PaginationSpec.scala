@@ -1,7 +1,6 @@
-package view
+package gitbucket.core.view
 
 import gitbucket.core.util.ControlUtil
-import gitbucket.core.view.Pagination
 import org.specs2.mutable._
 import ControlUtil._
 
