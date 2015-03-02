@@ -1,7 +1,8 @@
 package gitbucket.core.model
 
 trait Profile {
-  val profile: slick.driver.JdbcProfile
+  // TODO Is it possible to fix instance at the sub-trait?
+  val profile: slick.driver.JdbcProfile = slick.driver.H2Driver
   import profile.simple._
 
   // java.util.Date Mapped Column Types
@@ -36,9 +37,6 @@ trait CoreProfile extends Profile
   with RepositoryComponent
   with SshKeyComponent
   with WebHookComponent
-  with PluginComponent {
-
-  val profile = slick.driver.H2Driver
-}
+  with PluginComponent
 
 object Profile extends CoreProfile
