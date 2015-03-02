@@ -1,7 +1,9 @@
 package view
 
+import gitbucket.core.util.ControlUtil
+import gitbucket.core.view.Pagination
 import org.specs2.mutable._
-import util.ControlUtil._
+import ControlUtil._
 
 class PaginationSpec extends Specification {
 

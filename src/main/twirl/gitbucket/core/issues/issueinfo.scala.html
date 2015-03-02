@@ -1,0 +1,173 @@
+@(issue: gitbucket.core.model.Issue,
+  comments: List[gitbucket.core.model.Comment],
+  issueLabels: List[gitbucket.core.model.Label],
+  collaborators: List[String],
+  milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  labels: List[gitbucket.core.model.Label],
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers._
+<div style="margin-bottom: 8px;">
+  <span class="muted small strong">Labels</span>
+  @if(hasWritePermission){
+    <div class="pull-right">
+      @helper.html.dropdown(right = true) {
+        @labels.map { label =>
+          <li>
+            <a href="#" class="toggle-label" data-label-id="@label.labelId">
+              @helper.html.checkicon(issueLabels.exists(_.labelId == label.labelId))
+              <span class="label" style="background-color: #@label.color;">&nbsp;</span>
+              @label.labelName
+            </a>
+          </li>
+        }
+      }
+    </div>
+  }
+</div>
+<ul class="label-list nav nav-pills nav-stacked">
+  @labellist(issueLabels)
+</ul>
+<hr/>
+<div style="margin-bottom: 8px;">
+  <span class="muted small strong">Milestone</span>
+  @if(hasWritePermission){
+    <div class="pull-right">
+      @helper.html.dropdown(right = true) {
+        <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
+        @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
+          <li>
+            <a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId" data-title="@milestone.title">
+              @helper.html.checkicon(Some(milestone.milestoneId) == issue.milestoneId) @milestone.title
+              <div class="small" style="padding-left: 20px;">
+                @milestone.dueDate.map { dueDate =>
+                  @if(isPast(dueDate)){
+                    <img src="@assets/common/images/alert.png"/><span class="milestone-alert">Due by @date(dueDate)</span>
+                  } else {
+                    <span class="muted">Due by @date(dueDate)</span>
+                  }
+                }.getOrElse {
+                  <span class="muted">No due date</span>
+                }
+              </div>
+            </a>
+          </li>
+        }
+      }
+    </div>
+  }
+</div>
+<div id="milestone-progress-area">
+  @issue.milestoneId.map { milestoneId =>
+    @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
+      @issues.milestones.html.progress(openCount + closeCount, closeCount)
+    }
+  }
+</div>
+<span id="label-milestone">
+  @issue.milestoneId.map { milestoneId =>
+    @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
+      <span class="strong small">@milestone.title</span>
+    }
+  }.getOrElse {
+    <span class="muted small">No milestone</span>
+  }
+</span>
+<hr/>
+<div style="margin-bottom: 8px;">
+  <span class="muted small strong">Assignee</span>
+  @if(hasWritePermission){
+    <div class="pull-right">
+      @helper.html.dropdown(right = true) {
+        <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+        @collaborators.map { collaborator =>
+          <li>
+            <a href="javascript:void(0);" class="assign" data-name="@collaborator">
+              @helper.html.checkicon(Some(collaborator) == issue.assignedUserName)@avatar(collaborator, 20) @collaborator
+            </a>
+          </li>
+        }
+      }
+    </div>
+  }
+</div>
+<span id="label-assigned">
+  @issue.assignedUserName.map { userName =>
+    @avatar(userName, 20) @user(userName, styleClass="username strong small")
+  }.getOrElse{
+    <span class="muted small">No one</span>
+  }
+</span>
+<hr/>
+<div style="margin-bottom: 8px;">
+  @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
+    <div class="muted small strong">@participants.size @plural(participants.size, "participant")</div>
+    @participants.map { participant => @avatarLink(participant, 20, tooltip = true) }
+  }
+</div>
+<script>
+$(function(){
+  $('a.toggle-label').click(function(){
+    var path, icon;
+    var i = $(this).children('i');
+    if(i.hasClass('icon-ok')){
+      path = 'delete';
+      icon = 'icon-white';
+    } else {
+      path = 'new';
+      icon = 'icon-ok';
+    }
+    $.post('@url(repository)/issues/@issue.issueId/label/' + path,
+    {
+      labelId : $(this).data('label-id')
+    },
+    function(data){
+      i.removeClass().addClass(icon);
+      $('ul.label-list').empty().html(data);
+    });
+    return false;
+  });
+
+  $('a.milestone').click(function(){
+    var title = $(this).data('title');
+    var milestoneId = $(this).data('id');
+    $.post('@url(repository)/issues/@issue.issueId/milestone',
+    {
+      milestoneId: milestoneId
+    },
+    function(data){
+      console.log(data);
+      $('a.milestone i.icon-ok').attr('class', 'icon-white');
+      if(milestoneId == ''){
+        $('#label-milestone').html($('<span class="muted small">').text('No milestone'));
+        $('#milestone-progress-area').empty();
+      } else {
+        $('#label-milestone').html($('<span class="strong small">').text(title));
+        $('#milestone-progress-area').html(data);
+        $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
+      }
+    });
+  });
+
+  $('a.assign').click(function(){
+    var $this = $(this);
+    var userName = $this.data('name');
+    $.post('@url(repository)/issues/@issue.issueId/assign',
+    {
+      assignedUserName: userName
+    },
+    function(){
+      $('a.assign i.icon-ok').attr('class', 'icon-white');
+      if(userName == ''){
+        $('#label-assigned').html($('<span class="muted small">').text('No one'));
+      } else {
+        $('#label-assigned').empty()
+          .append($this.find('img.avatar-mini').clone(false)).append(' ')
+          .append($('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName));
+        $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').attr('class', 'icon-ok');
+      }
+    });
+  });
+
+});
+</script>

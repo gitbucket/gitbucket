@@ -1,0 +1,35 @@
+@(commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
+  comments: Option[List[gitbucket.core.model.Comment]] = None,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.model._
+<div class="box">
+  <table class="table table-file-list" style="border: 1px solid silver;">
+    @commits.map { day =>
+      <tr>
+        <th colspan="4" class="box-header" style="font-weight: normal;">@date(day.head.commitTime)</th>
+      </tr>
+      @day.map { commit =>
+        <tr>
+          <td style="width: 20%;">
+            @avatar(commit, 20)
+            @user(commit.authorName, commit.authorEmailAddress, "username")
+          </td>
+          <td>@commit.shortMessage</td>
+          <td style="width: 10%; text-align: right">
+            <span class="badge" style="display: inline">@if(comments.isDefined){
+              @comments.get.flatMap @{
+                case comment: CommitComment => Some(comment)
+                case other => None
+              }.count(t => t.commitId == commit.id && !t.pullRequest)
+            }</span>
+          </td>
+          <td style="width: 10%; text-align: right;">
+            <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+          </td>
+        </tr>
+      }
+    }
+  </table>
+</div>

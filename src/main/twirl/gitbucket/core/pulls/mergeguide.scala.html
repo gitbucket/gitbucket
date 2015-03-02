@@ -1,0 +1,84 @@
+@(hasConflict: Boolean,
+  pullreq: gitbucket.core.model.PullRequest,
+  requestRepositoryUrl: String)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+<div class="pull-right">
+  <input type="button" class="btn btn-success" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict){ disabled="true"}/>
+</div>
+<div>
+  @if(hasConflict){
+    <span class="strong">We can’t automatically merge this pull request.</span>
+  } else {
+    <span class="strong">This pull request can be automatically merged.</span>
+  }
+</div>
+<div class="small">
+  @if(hasConflict){
+    <a href="#" id="show-command-line">Use the command line</a> to resolve conflicts before continuing.
+  } else {
+    You can also merge branches on the <a href="#" id="show-command-line">command line</a>.
+  }
+</div>
+<div id="command-line" style="display: none;">
+  <hr>
+  @if(hasConflict){
+    <span class="strong">Checkout via command line</span>
+    <p>
+      If you cannot merge a pull request automatically here, you have the option of checking
+      it out via command line to resolve conflicts and perform a manual merge.
+    </p>
+  } else {
+    <span class="strong">Merging via command line</span>
+    <p>
+      If you do not want to use the merge button or an automatic merge cannot be performed,
+      you can perform a manual merge on the command line.
+    </p>
+  }
+  @helper.html.copy("repository-url-copy", requestRepositoryUrl){
+    <input type="text" style="width: 500px;" value="@requestRepositoryUrl" id="repository-url" readonly>
+  }
+  <div>
+    <p>
+      <span class="strong">Step 1:</span> Check out a new branch to test the changes — run this from your project directory
+    </p>
+    @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}"){ command =>
+      @helper.html.copy("merge-command-copy-1", command){
+        <pre style="width: 500px; float: left;">@command</pre>
+      }
+    }
+  </div>
+  <div>
+    <p>
+      <span class="strong">Step 2:</span> Bring in @{pullreq.requestUserName}'s changes and test
+    </p>
+    @defining(s"git pull ${requestRepositoryUrl} ${pullreq.requestBranch}"){ command =>
+      @helper.html.copy("merge-command-copy-2", command){
+        <pre style="width: 500px; float: left;">@command</pre>
+      }
+    }
+  </div>
+  <div>
+    <p>
+      <span class="strong">Step 3:</span> Merge the changes and update the server
+    </p>
+    @defining(s"git checkout ${pullreq.branch}\ngit merge ${pullreq.requestUserName}-${pullreq.requestBranch}\ngit push origin ${pullreq.branch}"){ command =>
+      @helper.html.copy("merge-command-copy-3", command){
+        <pre style="width: 500px; float: left;">@command</pre>
+      }
+    }
+  </div>
+</div>
+<script>
+$(function(){
+  $('#show-command-line').click(function(){
+    $('#command-line').show();
+    return false;
+  });
+
+  $('#merge-pull-request-button').click(function(){
+    $('#merge-pull-request').hide();
+    $('#confirm-merge-form').show();
+  });
+});
+</script>

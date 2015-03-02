@@ -1,0 +1,82 @@
+@(issue: gitbucket.core.model.Issue,
+  pullreq: gitbucket.core.model.PullRequest,
+  comments: List[gitbucket.core.model.Comment],
+  issueLabels: List[gitbucket.core.model.Label],
+  collaborators: List[String],
+  milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  labels: List[gitbucket.core.model.Label],
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.model._
+<div class="row-fluid">
+  <div class="span10">
+    <div id="comment-list">
+      @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
+    </div>
+    @defining(comments.flatMap {
+      case comment: IssueComment => Some(comment)
+      case other => None
+    }.exists(_.action == "merge")){ merged =>
+      @if(hasWritePermission && !issue.closed){
+        <div class="box issue-comment-box" style="background-color: #d8f5cd;">
+          <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
+            <div id="merge-pull-request">
+              <div class="check-conflict" style="display: none;">
+                <img src="@assets/common/images/indicator.gif"/> Checking...
+              </div>
+            </div>
+            <div id="confirm-merge-form" style="display: none;">
+              <form method="POST" action="@url(repository)/pull/@issue.issueId/merge">
+                <div class="strong">
+                  Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
+                </div>
+                <span id="error-message" class="error"></span>
+                <textarea name="message" style="width: 635px; height: 80px;">@issue.title</textarea>
+                <div>
+                  <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
+                  <input type="submit" class="btn btn-success" value="Confirm merge"/>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      }
+      @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
+        pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
+        <div class="box issue-comment-box" style="background-color: #d0eeff;">
+          <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
+            <a href="@url(repository)/pull/@issue.issueId/delete/@encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+            <div>
+              <span class="strong">Pull request successfully merged and closed</span>
+            </div>
+            <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
+          </div>
+        </div>
+        }
+        @issues.html.commentform(issue, !merged, hasWritePermission, repository)
+      }
+  </div>
+  <div class="span2">
+    @issues.html.issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+  </div>
+</div>
+<script>
+$(function(){
+  $('#cancel-merge-pull-request').click(function(){
+    $('#confirm-merge-form').hide();
+    $('#merge-pull-request').show();
+  });
+
+  @if(hasWritePermission){
+    $('.check-conflict').show();
+    $.get('@url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+
+    $('.delete-branch').click(function(e){
+      var branchName = $(e.target).data('name');
+      return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
+    });
+  }
+});
+</script>

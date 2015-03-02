@@ -1,0 +1,147 @@
+@(branch: String,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  pathList: List[String],
+  fileName: Option[String],
+  content: gitbucket.core.util.JGitUtil.ContentInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
+  @html.menu("code", repository){
+    <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
+      <span class="error" id="error-newFileName"></span>
+      <div class="head">
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
+        <input type="text" name="newFileName" id="newFileName" placeholder="Name your file..." value="@fileName"/>
+        <input type="hidden" name="oldFileName" id="oldFileName" value="@fileName"/>
+        <input type="hidden" name="branch" id="branch" value="@branch"/>
+        <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
+      </div>
+      <table class="table table-bordered">
+        <tr>
+          <th>
+            <div class="pull-right">
+              <select id="wrap" class="input-medium" style="margin-bottom: 0px; height: 26px; padding: 0px;">
+                <optgroup label="Line Wrap Mode">
+                  <option value="false">No wrap</option>
+                  <option value="true">Soft wrap</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="btn-group" data-toggle="buttons-radio">
+              <input type="button" id="btn-code" class="btn btn-default btn-small active" value="Code">
+              <input type="button" id="btn-preview" class="btn btn-default btn-small" value="Preview">
+            </div>
+          </th>
+        </tr>
+        <tr>
+          <td>
+            <div id="editor" style="width: 100%; height: 600px;"></div>
+            <div id="preview" style="width: 100%; display: none;"></div>
+          </td>
+        </tr>
+      </table>
+      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+        <div class="box issue-comment-box">
+        <div class="box-content">
+          <div>
+            <strong>Commit changes</strong>
+          </div>
+          <div>
+            <input type="text" name="message" style="width: 98%;"/>
+          </div>
+          <div style="text-align: right;">
+            @if(fileName.isEmpty){
+              <a href="@url(repository)/tree/@encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
+            } else {
+              <a href="@url(repository)/blob/@encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
+            }
+            <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
+            <input type="hidden" id="charset" name="charset" value="@content.charset"/>
+            <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.lineSeparator"/>
+            <input type="hidden" id="content" name="content" value=""/>
+            <input type="hidden" id="initial" value="@content.content"/>
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+}
+<script src="@assets/vendors/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
+<script type="text/javascript" src="@assets/vendors/jsdifflib/diffview.js"></script>
+<link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script>
+$(function(){
+  $('#editor').text($('#initial').val());
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+  //editor.getSession().setUseWrapMode(false);
+
+  @if(fileName.isDefined){
+    editor.getSession().setMode("ace/mode/@editorType(fileName.get)");
+  }
+
+  editor.on('change', function(){
+    updateCommitButtonStatus();
+  });
+
+  function updateCommitButtonStatus(){
+    if(editor.getValue() == $('#initial').val() && $('#newFileName').val() == $('#oldFileName').val()){
+      $('#commit').attr('disabled', true);
+    } else {
+      $('#commit').attr('disabled', false);
+    }
+  }
+
+  $('#wrap').change(function(){
+    if($('#wrap option:selected').val() == 'true'){
+      editor.getSession().setUseWrapMode(true);
+    } else {
+      editor.getSession().setUseWrapMode(false);
+    }
+  });
+
+  $('#newFileName').watch(function(){
+    updateCommitButtonStatus();
+  });
+
+  $('#commit').click(function(){
+    $('#content').val(editor.getValue());
+  });
+
+  $('#btn-code').click(function(){
+    $('#editor').show();
+    $('#preview').hide();
+  });
+
+  $('#btn-preview').click(function(){
+    $('#editor').hide();
+    $('#preview').show()
+
+    @if(renderableSuffixes.find(suffix => fileName.map(_.toLowerCase.endsWith(suffix)).getOrElse(false))) {
+      // update preview
+      $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
+      $.post('@url(repository)/_preview', {
+        content        : editor.getValue(),
+        enableWikiLink : false,
+        enableRefsLink : false,
+        enableTaskList : false
+      }, function(data){
+        $('#preview').empty().append(
+          $('<div class="markdown-body" style="padding-left: 16px; padding-right: 16px;">').html(data));
+        prettyPrint();
+      });
+    } else {
+      // Show diff
+      $('#preview').empty()
+        .append($('<div id="diffText">'))
+        .append($('<textarea id="newText" style="display: none;">').html(editor.getValue()))
+        .append($('<textarea id="oldText" style="display: none;">').html($('#initial').val()));
+      diffUsingJS('oldText', 'newText', 'diffText', 1);
+    }
+  });
+});
+</script>

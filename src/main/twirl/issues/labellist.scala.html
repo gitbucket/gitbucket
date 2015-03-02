@@ -1,7 +1,0 @@
-@(issueLabels: List[model.Label])
-@if(issueLabels.isEmpty){
-  <li><span class="muted small">None yet</span></li>
-}
-@issueLabels.map { label =>
-  <li><span class="issue-label" style="background-color: #@label.color; color: #@label.fontColor;">@label.labelName</span></li>
-}

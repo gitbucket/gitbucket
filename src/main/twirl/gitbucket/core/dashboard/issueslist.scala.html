@@ -1,0 +1,61 @@
+@(issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+  page: Int,
+  openCount: Int,
+  closedCount: Int,
+  condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
+  filter: String,
+  groups: List[String])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.service.IssuesService
+@import gitbucket.core.service.IssuesService.IssueInfo
+<table class="table table-bordered table-hover table-issues">
+  <tr>
+    <th style="background-color: #eee;">
+      @dashboard.html.header(openCount, closedCount, condition, groups)
+    </th>
+  </tr>
+  @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
+  <tr>
+    <td style="padding-top: 15px; padding-bottom: 15px;">
+      @if(issue.isPullRequest){
+        <img src="@assets/common/images/pullreq-@(if(issue.closed) "closed" else "open").png"/>
+      } else {
+        <img src="@assets/common/images/issue-@(if(issue.closed) "closed" else "open").png"/>
+      }
+      <a href="@path/@issue.userName/@issue.repositoryName">@issue.userName/@issue.repositoryName</a>&nbsp;&#xFF65;
+      @if(issue.isPullRequest){
+        <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
+      } else {
+        <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
+      }
+      @labels.map { label =>
+        <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
+      }
+      <span class="pull-right muted">
+        @issue.assignedUserName.map { userName =>
+          @avatar(userName, 20, tooltip = true)
+        }
+        @if(commentCount > 0){
+          <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count">
+            <img src="@assets/common/images/comment-active.png"> @commentCount
+          </a>
+        } else {
+          <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-comment-count" style="color: silver;">
+            <img src="@assets/common/images/comment.png"> @commentCount
+          </a>
+        }
+      </span>
+      <div class="small muted" style="margin-left: 20px; margin-top: 5px;">
+        #@issue.issueId opened by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)
+        @milestone.map { milestone =>
+          <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><img src="@assets/common/images/milestone.png"> @milestone</a></span>
+        }
+      </div>
+    </td>
+  </tr>
+  }
+</table>
+<div class="pull-right">
+  @helper.html.paginator(page, (if(condition.state == "open") openCount else closedCount), IssuesService.IssueLimit, 10, condition.toURL)
+</div>

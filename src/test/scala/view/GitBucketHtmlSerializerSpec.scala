@@ -1,5 +1,6 @@
 package view
 
+import gitbucket.core.view.GitBucketHtmlSerializer
 import org.specs2.mutable._
 
 class GitBucketHtmlSerializerSpec extends Specification {

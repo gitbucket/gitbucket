@@ -1,0 +1,14 @@
+@(active: String, ssh: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+<div class="box">
+  <ul class="nav nav-tabs nav-stacked side-menu">
+    <li@if(active=="profile"){ class="active"}>
+      <a href="@path/@loginAccount.get.userName/_edit">Profile</a>
+    </li>
+    @if(ssh){
+    <li@if(active=="ssh"){ class="active"}>
+      <a href="@path/@loginAccount.get.userName/_ssh">SSH Keys</a>
+    </li>
+    }
+  </ul>
+</div>

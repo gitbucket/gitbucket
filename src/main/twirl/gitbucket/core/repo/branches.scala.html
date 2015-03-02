@@ -1,0 +1,83 @@
+@(branchInfo: Seq[(gitbucket.core.util.JGitUtil.BranchInfo, Option[(gitbucket.core.model.PullRequest, gitbucket.core.model.Issue)])],
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+  @html.menu("code", repository){
+    <h1>Branches</h1>
+    <table class="table table-bordered table-hover table-issues branches">
+      <thead>
+        <tr>
+          <th style="background: #f5f5f5;color: #666;">All branches</th>
+        </tr>
+      </thead>
+      <tbody>
+      @branchInfo.map { case (branch, prs) =>
+        <tr><td style="padding: 12px;">
+          <div class="branch-action">
+              @branch.mergeInfo.map{ info =>
+                @prs.map{ case (pull, issue) =>
+                  <a href="@url(repository)/pull/@issue.issueId" title="@issue.title">#@issue.issueId</a>
+                  @if(issue.closed) {
+                    @if(info.isMerged){
+                      <a href="@url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-info">Merged</a>
+                    }else{
+                      <a href="@url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-important">Closed</a>
+                    }
+                  } else {
+                    <a href="@url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-success">Open</a>
+                  }
+                }.getOrElse{
+                  @if(context.loginAccount.isDefined){
+                    <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branch.name)}?expand=1" class="btn btn-small">New Pull Request</a>
+                  }else{
+                    <a href="@url(repository)/compare/@{encodeRefName(repository.repository.defaultBranch)}...@{encodeRefName(branch.name)}" class="btn btn-small">Compare</a>
+                  }
+                }
+                @if(hasWritePermission){
+                  @if(prs.map(!_._2.closed).getOrElse(false)){
+                    <a class="btn disabled btn-mini" data-toggle="tooltip" title="You can’t delete this branch because it has an open pull request"><i class="icon icon-trash icon-white"></i></a>
+                  }else{
+                    <a href="@url(repository)/delete/@encodeRefName(branch.name)" class="btn  @if(info.isMerged){ btn-warning }else{ btn-danger } delete-branch btn-mini" data-name="@branch.name" @if(info.isMerged){ data-toggle="tooltip" title="this branch is merged" }><i class="icon icon-trash icon-white"></i></a>
+                  }
+                }
+              }
+          </div>
+          <div class="branch-details">
+            <a href="@url(repository)/tree/@encodeRefName(branch.name)" class="branch-name">@branch.name</a>
+            <span class="branch-meta">
+              <span>Updated @helper.html.datetimeago(branch.commitTime, false)
+                by <span>@user(branch.committerName, branch.committerEmailAddress, "muted-link")</span>
+              </span>
+            </span>
+          </div>
+          <div class="branch-a-b-count">
+            @if(branch.mergeInfo.isEmpty){
+              <span class="label">Default</span>
+            }else{
+              @branch.mergeInfo.map{ info =>
+                <div data-toggle="tooltip" title="@info.ahead commits ahead, @info.behind commits behind @repository.repository.defaultBranch">
+                  <div class="a-b-count-widget">
+                    <div class="count-half"><div class="count-value">@info.ahead</div></div>
+                    <div class="count-half"><div class="count-value">@info.behind</div></div>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </tr>
+      }
+    </table>
+  }
+}
+<script>
+$(function(){
+  $('.delete-branch').click(function(e){
+    var branchName = $(e.target).data('name');
+    return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
+  });
+  $('*[data-toggle=tooltip]').tooltip().css("white-space","nowrap");
+});
+</script>

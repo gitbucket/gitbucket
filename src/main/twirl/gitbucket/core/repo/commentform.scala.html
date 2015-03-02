@@ -1,0 +1,71 @@
+@(commitId: String,
+  fileName: Option[String] = None,
+  oldLineNumber: Option[Int] = None,
+  newLineNumber: Option[Int] = None,
+  issueId: Option[Int] = None,
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@if(loginAccount.isDefined){
+  @if(!fileName.isDefined){<hr/><br/>}
+  <form method="POST" validate="true" style="max-width: 874px;">
+    @if(!fileName.isDefined){
+      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+    }
+    <div class="box issue-comment-box">
+      <div class="box-content">
+        @helper.html.preview(repository, "", false, true, true, hasWritePermission, "width: 635px; height: 100px; max-height: 150px;", elastic = true)
+      </div>
+      @if(fileName.isDefined){
+        <div class="pull-right" style="margin-top: 10px;">
+          <input type="button" class="btn btn-default" value="Cancel"/>
+          <input type="submit" class="btn btn-success btn-inline-comment" formaction="@url(repository)/commit/@commitId/comment/new" value="Comment"/>
+        </div>
+      }
+    </div>
+    @if(!fileName.isDefined){
+      <div class="pull-right">
+        <input type="submit" class="btn btn-success" formaction="@url(repository)/commit/@commitId/comment/new" value="Comment on this commit"/>
+      </div>
+    }
+    @issueId.map { issueId => <input type="hidden" name="issueId" value="@issueId"> }
+    @fileName.map { fileName => <input type="hidden" name="fileName" value="@fileName"> }
+    @oldLineNumber.map { oldLineNumber => <input type="hidden" name="oldLineNumber" value="@oldLineNumber"> }
+    @newLineNumber.map { newLineNumber => <input type="hidden" name="newLineNumber" value="@newLineNumber"> }
+  </form>
+  <script>
+    $('.btn-inline-comment').click(function(e) {
+      e.preventDefault();
+      $form = $(e.target).attr('disabled', 'disabled').closest('form');
+      var param = {};
+      $($form.serializeArray()).each(function(i, v) {
+        param[v.name] = v.value;
+      });
+      $.ajax({
+        url: '@url(repository)/commit/@commitId/comment/_data/new',
+        type: 'POST',
+        data: param
+      }).done(function(data) {
+        var tmp;
+        if (window.viewType == 0) {
+          tmp = '@(oldLineNumber, newLineNumber) match {
+            case (Some(_), None) => {<td colspan="2" class="comment-box-container"></td><td colspan="2"></td>}
+            case (None, Some(_)) => {<td colspan="2"></td><td colspan="2" class="comment-box-container"></td>}
+            case _ => {<td colspan="3" class="comment-box-container"></td>}
+          }'
+        } else {
+          tmp = '<td colspan="3" class="comment-box-container"></td>'
+        }
+        $form.closest('tr').removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
+        $('#comment-list').append(data);
+        if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
+          $('#comment-list').children('.inline-comment').hide();
+        }
+      }).fail(function(req) {
+        $('.btn-inline-comment').removeAttr('disabled');
+        $('#error-content', $form).html($.parseJSON(req.responseText).content);
+      });
+    })
+  </script>
+}

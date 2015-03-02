@@ -1,0 +1,27 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+  @html.menu("code", repository){
+    <h1>Tags</h1>
+    <table class="table table-bordered">
+      <tr>
+        <th width="40%">Tag</th>
+        <th width="20%">Date</th>
+        <th width="20%">Commit</th>
+        <th width="20%">Download</th>
+      </tr>
+      @repository.tags.reverse.map { tag =>
+        <tr>
+          <td><a href="@url(repository)/tree/@encodeRefName(tag.name)">@tag.name</a></td>
+          <td>@helper.html.datetimeago(tag.time, false)</td>
+          <td class="monospace"><a href="@url(repository)/commit/@tag.id">@tag.id.substring(0, 10)</a></td>
+          <td>
+              <a href="@url(repository)/archive/@{encodeRefName(tag.name)}.zip">ZIP</a>
+              <a href="@url(repository)/archive/@{encodeRefName(tag.name)}.tar.gz">TAR.GZ</a>
+          </td>
+        </tr>
+      }
+    </table>
+  }
+}

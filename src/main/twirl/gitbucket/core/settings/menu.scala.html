@@ -1,0 +1,26 @@
+@(active: String, repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+<div class="row-fluid">
+  <div class="span3">
+    <div class="box">
+      <ul class="nav nav-tabs nav-stacked side-menu">
+        <li@if(active=="options"){ class="active"}>
+          <a href="@url(repository)/settings/options">Options</a>
+        </li>
+        <li@if(active=="collaborators"){ class="active"}>
+          <a href="@url(repository)/settings/collaborators">Collaborators</a>
+        </li>
+        <li@if(active=="hooks"){ class="active"}>
+          <a href="@url(repository)/settings/hooks">Service Hooks</a>
+        </li>
+        <li@if(active=="danger"){ class="active"}>
+          <a href="@url(repository)/settings/danger">Danger Zone</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="span9">
+    @body
+  </div>
+</div>

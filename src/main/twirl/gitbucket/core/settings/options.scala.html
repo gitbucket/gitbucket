@@ -1,0 +1,100 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Settings", Some(repository)){
+  @html.menu("settings", repository){
+    @menu("options", repository){
+      @helper.html.information(info)
+      <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
+        <div class="box">
+          <div class="box-header">Settings</div>
+          <div class="box-content">
+            <fieldset>
+              <label for="repositoryName" class="strong">Repository Name:</label>
+              <input type="text" name="repositoryName" id="repositoryName" value="@repository.name"/>
+              <span id="error-repositoryName" class="error"></span>
+            </fieldset>
+            <fieldset class="margin">
+              <label for="description" class="strong">Description:</label>
+              <input type="text" name="description" id="description" style="width: 600px;" value="@repository.repository.description"/>
+            </fieldset>
+            <fieldset class="margin">
+              <label for="defaultBranch" class="strong">Default Branch:</label>
+              <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled}>
+                @if(repository.branchList.isEmpty){
+                  <option value="none" selected>No Branch</option>
+                } else {
+                  @repository.branchList.map { branch =>
+                    <option@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
+                  }
+                }
+              </select>
+              @if(repository.branchList.isEmpty){
+                <input type="hidden" name="defaultBranch" value="none"/>
+              }
+              <span class="error" id="error-defaultBranch"></span>
+            </fieldset>
+            <fieldset class="margin">
+              <label class="radio">
+                <input type="radio" name="isPrivate" value="false"
+                  @if(!repository.repository.isPrivate              ){ checked  }
+                  @if(repository.repository.parentUserName.isDefined){ disabled }
+                >
+                <span class="strong">Public</span><br>
+                <div>
+                  <span>All users and guests can read this repository.</span>
+                </div>
+              </label>
+            </fieldset>
+            <fieldset>
+              <label class="radio">
+                <input type="radio" name="isPrivate" value="true"
+                  @if(repository.repository.isPrivate               ){ checked  }
+                  @if(repository.repository.parentUserName.isDefined){ disabled }
+                >
+                <span class="strong">Private</span><br>
+                <div>
+                  <span>Only collaborators can read this repository.</span>
+                </div>
+              </label>
+            </fieldset>
+          </div>
+        </div>
+        @*
+        <div class="box">
+          <div class="box-header">Features:</div>
+          <div class="box-content">
+            <dl>
+              <dt>
+                <label class="checkbox strong">
+                  <input type="checkbox" name="wiki" id="wiki"/> Wiki
+                </label>
+              </dt>
+              <dd>
+                Adds lightweight Wiki system to this repository.
+                This is the simplest way to provide documentation or examples.
+                Only collaborators can edit Wiki pages.
+              </dd>
+            </dl>
+            <hr>
+            <dl>
+              <dt>
+                <label class="checkbox strong">
+                  <input type="checkbox" name="issue" id="issue"/> Issue
+                </label>
+              </dt>
+              <dd>
+                Adds lightweight issue tracking integrated with this repository.
+                All users who have signed in and can access this repository can register an issue.
+              </dd>
+            </dl>
+          </div>
+        </div>
+        *@
+        <fieldset>
+          <input type="submit" class="btn btn-success" value="Apply changes"/>
+        </fieldset>
+      </form>
+    }
+  }
+}

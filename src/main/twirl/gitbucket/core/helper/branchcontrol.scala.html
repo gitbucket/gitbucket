@@ -1,0 +1,64 @@
+@(branch: String  = "",
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.service.RepositoryService
+@import context._
+@import gitbucket.core._
+@import gitbucket.core.view.helpers._
+@helper.html.dropdown(
+  value  = if(branch.length == 40) branch.substring(0, 10) else branch,
+  prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
+  mini   = true
+) {
+  <li><div id="branch-control-title">Switch branches<button id="branch-control-close" class="pull-right">&times</button></div></li>
+  <li><input id="branch-control-input" type="text" placeholder="Find or create branch ..."/></li>
+  @body
+  @if(hasWritePermission) {
+    <li id="create-branch" style="display: none;">
+      <a><form action="@url(repository)/branches" method="post" style="margin: 0;">
+        <span class="new-branch-name">Create branch:&nbsp;<span class="new-branch"></span></span>
+        <br><span style="padding-left: 17px;">from&nbsp;'@branch'</span>
+        <input type="hidden" name="new">
+        <input type="hidden" name="from" value="@branch">
+      </form></a>
+    </li>
+  }
+}
+<script>
+  $(function(){
+    $('#branch-control-input').parent().click(function(e) {
+      e.stopPropagation();
+    });
+    $('#branch-control-close').click(function() {
+      $('[data-toggle="dropdown"]').parent().removeClass('open');
+    });
+    $('#branch-control-input').keyup(function() {
+      var inputVal = $('#branch-control-input').val();
+      $.each($('#branch-control-input').parent().parent().find('a'), function(index, elem) {
+        if (!inputVal || !elem.text.trim() || elem.text.trim().lastIndexOf(inputVal, 0) >= 0) {
+          $(elem).parent().show();
+        } else {
+          $(elem).parent().hide();
+        }
+      });
+      @if(hasWritePermission) {
+        if (inputVal) {
+          $('#create-branch').parent().find('li:last-child').show().find('.new-branch').text(inputVal);
+        } else {
+          $('#create-branch').parent().find('li:last-child').hide();
+        }
+      }
+    });
+    @if(hasWritePermission) {
+      $('#create-branch').click(function() {
+        $(this).find('input[name="new"]').val($('.dropdown-menu input').val())
+        $(this).find('form').submit()
+       });
+    }
+    $('.btn-group').click(function() {
+      $('#branch-control-input').val('');
+      $('.dropdown-menu li').show();
+      $('#create-branch').hide();
+    });
+  });
+</script>

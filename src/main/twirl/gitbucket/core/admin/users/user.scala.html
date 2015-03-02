@@ -1,0 +1,83 @@
+@(account: Option[gitbucket.core.model.Account])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@html.main(if(account.isEmpty) "New User" else "Update User"){
+  @admin.html.menu("users"){
+    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newuser} else {@path/admin/users/@account.get.userName/_edituser}" validate="true">
+      <div class="row-fluid">
+        <div class="span6">
+          <fieldset>
+            <label for="userName" class="strong">Username:</label>
+            <div>
+              <span id="error-userName" class="error"></span>
+            </div>
+            <input type="text" name="userName" id="userName" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+            @if(account.isDefined){
+              <label for="removed">
+                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
+                Disable
+              </label>
+              <div>
+                <span id="error-removed" class="error"></span>
+              </div>
+            }
+          </fieldset>
+          @if(account.map(_.password.nonEmpty).getOrElse(true)){
+            <fieldset>
+              <label for="password" class="strong">
+                Password
+                @if(account.isDefined){
+                  (Input to change password)
+                }
+                :
+              </label>
+              <div>
+                <span id="error-password" class="error"></span>
+              </div>
+              <input type="password" name="password" id="password" value="" autocomplete="off"/>
+            </fieldset>
+          }
+          <fieldset>
+            <label for="fullName" class="strong">Full Name:</label>
+            <div>
+              <span id="error-fullName" class="error"></span>
+            </div>
+            <input type="text" name="fullName" id="fullName" value="@account.map(_.fullName)"/>
+          </fieldset>
+          <fieldset>
+            <label for="mailAddress" class="strong">Mail Address:</label>
+            <div>
+              <span id="error-mailAddress" class="error"></span>
+            </div>
+            <input type="text" name="mailAddress" id="mailAddress" value="@account.map(_.mailAddress)"/>
+          </fieldset>
+          <fieldset>
+            <label class="strong">User Type:</label>
+            <label class="radio" for="userType_Normal">
+              <input type="radio" name="isAdmin" id="userType_Normal" value="false"@if(account.isEmpty || !account.get.isAdmin){ checked}/> Normal
+            </label>
+            <label class="radio" for="userType_Admin">
+              <input type="radio" name="isAdmin" id="userType_Admin" value="true"@if(account.isDefined && account.get.isAdmin){ checked}/> Administrator
+            </label>
+          </fieldset>
+          <fieldset>
+            <label class="strong">URL (Optional):</label>
+            <div>
+              <span id="error-url" class="error"></span>
+            </div>
+            <input type="text" name="url" id="url" style="width: 400px;" value="@account.map(_.url)"/>
+          </fieldset>
+        </div>
+        <div class="span6">
+          <fieldset>
+            <label for="avatar" class="strong">Image (Optional)</label>
+            @helper.html.uploadavatar(account)
+          </fieldset>
+        </div>
+      </div>
+      <fieldset class="margin">
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create User} else {Update User}"/>
+        <a href="@path/admin/users" class="btn">Cancel</a>
+      </fieldset>
+    </form>
+  }
+}

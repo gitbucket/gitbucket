@@ -1,0 +1,33 @@
+@(account: gitbucket.core.model.Account, groupNames: List[String],
+  repositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  isGroupManager: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@main(account, groupNames, "repositories", isGroupManager){
+  @if(repositories.isEmpty){
+    No repositories
+  } else {
+    @repositories.map { repository =>
+      <div class="block">
+        <div class="repository-icon">
+          @helper.html.repositoryicon(repository, true)
+        </div>
+        <div class="repository-content">
+          <div class="block-header">
+            <a href="@url(repository)">@repository.name</a>
+            @if(repository.repository.isPrivate){
+              <i class="icon-lock"></i>
+            }
+          </div>
+          @if(repository.repository.originUserName.isDefined){
+            <div class="small muted">forked from <a href="@path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
+          }
+          @if(repository.repository.description.isDefined){
+            <div>@repository.repository.description</div>
+          }
+          <div><span class="muted small">Updated @helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
+        </div>
+      </div>
+    }
+  }
+}

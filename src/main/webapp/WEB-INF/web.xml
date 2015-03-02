@@ -8,14 +8,14 @@
   <!-- Session configuration -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>servlet.SessionCleanupListener</listener-class>
+    <listener-class>gitbucket.core.servlet.SessionCleanupListener</listener-class>
   </listener>
 
   <!-- ===================================================================== -->
   <!-- Automatic migration and plug-in initialization -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>servlet.InitializeListener</listener-class>
+    <listener-class>gitbucket.core.servlet.InitializeListener</listener-class>
   </listener>
 
 
@@ -30,7 +30,7 @@
   <!-- SSH Daemon initialized -->
   <!-- ===================================================================== -->
   <listener>
-    <listener-class>ssh.SshServerListener</listener-class>
+    <listener-class>gitbucket.core.ssh.SshServerListener</listener-class>
   </listener>
 
   <!-- ===================================================================== -->
@@ -38,7 +38,7 @@
   <!-- ===================================================================== -->
   <servlet>
     <servlet-name>GitRepositoryServlet</servlet-name>
-    <servlet-class>servlet.GitRepositoryServlet</servlet-class>
+    <servlet-class>gitbucket.core.servlet.GitRepositoryServlet</servlet-class>
   </servlet>
   
   <servlet-mapping>

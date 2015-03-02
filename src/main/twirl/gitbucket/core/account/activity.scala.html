@@ -1,0 +1,11 @@
+@(account: gitbucket.core.model.Account,
+  groupNames: List[String],
+  activities: List[gitbucket.core.model.Activity])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@main(account, groupNames, "activity"){
+  <div class="pull-right">
+    <a href="@path/@{account.userName}.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
+  </div>
+  @helper.html.activities(activities)
+}

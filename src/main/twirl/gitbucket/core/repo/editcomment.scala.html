@@ -1,0 +1,45 @@
+@(content: String, commentId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
+@import context._
+<span class="error-edit-content-@commentId error"></span>
+@helper.html.attached(owner, repository){
+  <textarea style="width: 635px; height: 100px;" id="edit-content-@commentId">@content</textarea>
+}
+<div>
+  <input type="button" class="cancel-comment-@commentId btn btn-small btn-danger" value="Cancel"/>
+  <input type="button" class="update-comment-@commentId btn btn-small pull-right" value="Update comment"/>
+</div>
+<script>
+$(function(){
+  var curriedCallback = function($box) {
+    return function(data){
+      $('.update-comment-@commentId, .cancel-comment-@commentId', $box).removeAttr('disabled');
+      $('.commit-commentContent-@commentId').empty().html(data.content);
+      prettyPrint();
+    }
+  }
+
+  $(document).on('click', '.update-comment-@commentId', function(){
+    $box = $(this).closest('.box');
+    $('.update-comment-@commentId, .cancel-comment-@commentId', $box).attr('disabled', 'disabled');
+    $.ajax({
+      url: '@path/@owner/@repository/commit_comments/edit/@commentId',
+      type: 'POST',
+      data: {
+        content : $('#edit-content-@commentId', $box).val()
+      }
+    }).done(
+      curriedCallback($box)
+    ).fail(function(req) {
+      $('.update-comment-@commentId, .cancel-comment-@commentId', $box).removeAttr('disabled');
+      $('.error-edit-content-@commentId', $box).text($.parseJSON(req.responseText).content);
+    });
+  });
+
+  $(document).on('click', '.cancel-comment-@commentId', function(){
+    $box = $(this).closest('.box');
+    $('.update-comment-@commentId, .cancel-comment-@commentId', $box).attr('disabled', 'disabled');
+    $.get('@path/@owner/@repository/commit_comments/_data/@commentId', curriedCallback($box));
+    return false;
+  });
+});
+</script>

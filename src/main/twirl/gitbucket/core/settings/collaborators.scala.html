@@ -1,0 +1,35 @@
+@(collaborators: List[String],
+  isGroupRepository: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Settings", Some(repository)){
+  @html.menu("settings", repository){
+    @menu("collaborators", repository){
+      <h3>Manage Collaborators</h3>
+      <ul class="collaborator">
+        @collaborators.map { collaboratorName =>
+          <li>
+            <a href="@url(collaboratorName)">@collaboratorName</a>
+            @if(!isGroupRepository){
+              <a href="@url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
+            } else {
+              @if(repository.managers.contains(collaboratorName)){
+                (Manager)
+              }
+            }
+          </li>
+        }
+      </ul>
+      @if(!isGroupRepository){
+        <form method="POST" action="@url(repository)/settings/collaborators/add" validate="true" autocomplete="off">
+          <div>
+            <span class="error" id="error-userName"></span>
+          </div>
+          @helper.html.account("userName", 300)
+          <input type="submit" class="btn" value="Add"/>
+        </form>
+      }
+    }
+  }
+}

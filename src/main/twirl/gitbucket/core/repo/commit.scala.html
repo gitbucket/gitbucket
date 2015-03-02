@@ -1,0 +1,154 @@
+@(commitId: String,
+  commit: gitbucket.core.util.JGitUtil.CommitInfo,
+  branches: List[String],
+  tags: List[String],
+  comments: List[gitbucket.core.model.Comment],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
+  oldCommitId: Option[String],
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.util.Implicits._
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(commit.shortMessage, Some(repository)){
+  @html.menu("code", repository){
+    <table class="table table-bordered">
+      <tr>
+        <th>
+          <div class="pull-right align-right">
+            <a href="@url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
+          </div>
+          <div class="commit-log">@link(commit.summary, repository)</div>
+          @if(commit.description.isDefined){
+            <pre class="commit-description">@link(commit.description.get, repository)</pre>
+          }
+          <div class="small" style="font-weight: normal;">
+            @if(branches.nonEmpty){
+              <span class="muted">
+                <img src="@assets/common/images/branch.png"/>
+                @branches.zipWithIndex.map { case (branch, i) =>
+                  <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
+                }
+              </span>
+            }
+            @if(tags.nonEmpty){
+              <span class="muted">
+                <img src="@assets/common/images/tag.png"/>
+                @tags.zipWithIndex.map { case (tag, i) =>
+                  <a href="@url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
+                }
+              </span>
+            }
+          </div>
+        </th>
+      </tr>
+      <tr>
+        <td>
+          <div class="pull-right monospace small" style="text-align: right;">
+            <div>
+              @if(commit.parents.size == 0){
+                <span class="muted">0 parent</span>
+              }
+              @if(commit.parents.size == 1){
+                <span class="muted">1 parent</span>
+                <a href="@url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
+              }
+              <span class="muted">commit</span> @commit.id
+            </div>
+            @if(commit.parents.size > 1){
+              <div>
+                <span class="muted">@commit.parents.size parents
+                @commit.parents.map { parent =>
+                  <a href="@url(repository)/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
+                }.mkHtml(" + ")
+                </span>
+              </div>
+            }
+          </div>
+
+          <div class="author-info">
+            <div class="author">
+              @avatar(commit, 20)
+              <span>@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
+              <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+            </div>
+            @if(commit.isDifferentFromAuthor) {
+            <div class="committer">
+              <span class="icon-arrow-right"></span>
+              <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
+              <span class="muted"> committed @helper.html.datetimeago(commit.commitTime)</span>
+            </div>
+            }
+          </div>
+        </td>
+      </tr>
+    </table>
+    @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, None, hasWritePermission, true)
+    <label class="checkbox">
+      <input type="checkbox" id="show-notes"> Show line notes below
+    </label>
+    <div id="comment-list">
+      @issues.html.commentlist(None, comments, hasWritePermission, repository, None)
+    </div>
+    @commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
+  }
+}
+<script>
+$(function(){
+  $('a.branch:first, a.tag:first').css({
+    'font-weight': 'bold',
+    'color': '#555555'
+  });
+
+  @if(branches.size > 5){
+    // hide branches
+    @for(i <- 1 to branches.size - 2){
+      $('#branch-@i').hide();
+    }
+    // add omit link
+    $('#branch-@(branches.size - 1)').before(
+      $('<a href="javascript:void(0);" class="omit">...</a>').click(function(){
+        @for(i <- 1 to branches.size - 2){
+          $('#branch-@i').show();
+          this.remove();
+        }
+      })
+    );
+  }
+
+  @if(tags.size > 5){
+    // hide tags
+    @for(i <- 1 to tags.size - 2){
+      $('#tag-@i').hide();
+    }
+    // add omit link
+    $('#tag-@(tags.size - 1)').before(
+      $('<a href="javascript:void(0);" class="omit">...</a>').click(function(){
+        @for(i <- 1 to tags.size - 2){
+          $('#tag-@i').show();
+          this.remove();
+        }
+      })
+    );
+  }
+
+  $('#show-notes').change(function() {
+    if (this.checked) {
+      $('.inline-comment').show();
+    } else {
+      $('.inline-comment').hide();
+      $('.diff .inline-comment').show();
+    }
+  });
+});
+</script>
+<style type="text/css">
+a.branch, a.tag {
+  color: #888888;
+  margin-right: 4px;
+}
+
+a.omit {
+  margin-right: 4px;
+}
+</style>

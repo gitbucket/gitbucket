@@ -2,11 +2,12 @@ package view
 
 import java.util.Date
 
+import gitbucket.core.model.Account
+import gitbucket.core.service.{SystemSettingsService, RequestCache}
+import gitbucket.core.view.AvatarImageProvider
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
-import service.RequestCache
-import model.Account
-import service.SystemSettingsService.SystemSettings
+import SystemSettingsService.SystemSettings
 import play.twirl.api.Html
 import javax.servlet.http.HttpServletRequest
 

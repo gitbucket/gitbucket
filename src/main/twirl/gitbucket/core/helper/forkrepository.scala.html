@@ -1,0 +1,18 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  groupAndPerm: Map[String, Boolean])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+  <h2 class="facebox-header">Where should we fork this repository?</h2>
+  <form action="@url(repository)/fork" id="fork" method="post">
+    <div class="owner-select-grid">
+      <div class="owner-select-target js-fork-owner-select-target enabled">@avatar(loginAccount.get.userName, 100)<span class="owner css-truncate" title="@@@loginAccount.get.userName">@@@loginAccount.get.userName</span></div>
+    @for((groupName, isManager) <- groupAndPerm) {
+      @if(isManager) {
+      <div class="owner-select-target js-fork-owner-select-target enabled">@avatar(groupName, 100)<span class="owner css-truncate" title="@@@groupName">@@@groupName</span></div>
+      } else {
+      <div title="You don't have permission to fork here."  class="owner-select-target js-fork-owner-select-target disabled">@avatar(groupName, 100)<span class="owner css-truncate" title="@@@groupName">@@@groupName</span></div>
+      }
+    }
+    </div>
+    <input id="account" name="account" type="hidden" />
+</form>

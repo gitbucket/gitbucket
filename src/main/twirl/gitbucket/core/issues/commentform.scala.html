@@ -1,0 +1,31 @@
+@(issue: gitbucket.core.model.Issue,
+  reopenable: Boolean,
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@if(loginAccount.isDefined){
+  <hr/><br/>
+  <form method="POST" validate="true">
+    <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+      <div class="box issue-comment-box">
+      <div class="box-content">
+        @helper.html.preview(repository, "", false, true, true, hasWritePermission, "width: 635px; height: 100px; max-height: 150px;", elastic = true)
+      </div>
+    </div>
+    <div class="pull-right">
+      <input type="hidden" name="issueId" value="@issue.issueId"/>
+      <input type="submit" class="btn btn-success" formaction="@url(repository)/issue_comments/new" value="Comment"/>
+      @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
+        <input type="submit" class="btn" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+      }
+    </div>
+  </form>
+}
+<script>
+$(function(){
+  $('#action').click(function(){
+    $('<input type="hidden">').attr('name', 'action').val($(this).val().toLowerCase()).appendTo('form');
+  });
+});
+</script>

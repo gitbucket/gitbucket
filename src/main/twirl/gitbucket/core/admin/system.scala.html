@@ -1,0 +1,294 @@
+@(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.util.Directory._
+@html.main("System Settings"){
+  @menu("system"){
+    @helper.html.information(info)
+    <form action="@path/admin/system" method="POST" validate="true">
+      <div class="box">
+        <div class="box-header">System Settings</div>
+        <div class="box-content">
+          <!--====================================================================-->
+          <!-- GITBUCKET_HOME -->
+          <!--====================================================================-->
+          <label class="strong">GITBUCKET_HOME</label>
+          @GitBucketHome
+          <!--====================================================================-->
+          <!-- Base URL -->
+          <!--====================================================================-->
+          <hr>
+          <label><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
+          <fieldset>
+              <div class="controls">
+                <input type="text" name="baseUrl" id="baseUrl" style="width: 400px" value="@settings.baseUrl"/>
+                <span id="error-baseUrl" class="error"></span>
+              </div>
+          </fieldset>
+          <p class="muted">
+            The base URL is used for redirect, notification email, git repository URL box and more.
+            If the base URL is empty, GitBucket generates URL from request information.
+            You can use this property to adjust URL difference between the reverse proxy and GitBucket.
+          </p>
+          <!--====================================================================-->
+          <!-- Information -->
+          <!--====================================================================-->
+          <hr>
+          <label><span class="strong">Information</span> (HTML is available)</label>
+          <fieldset>
+            <textarea name="information" style="width: 600px; height: 100px;">@settings.information</textarea>
+          </fieldset>
+          <!--====================================================================-->
+          <!-- Account registration -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">Account registration</label>
+          <fieldset>
+            <label class="radio">
+              <input type="radio" name="allowAccountRegistration" value="true"@if(settings.allowAccountRegistration){ checked}>
+              <span class="strong">Allow</span> - Users can create accounts by themselves.
+            </label>
+            <label class="radio">
+              <input type="radio" name="allowAccountRegistration" value="false"@if(!settings.allowAccountRegistration){ checked}>
+              <span class="strong">Deny</span> - Only administrators can create accounts.
+            </label>
+          </fieldset>
+          <hr>
+          <label class="strong">Default option to create a new repository</label>
+          <fieldset>
+            <label class="radio">
+              <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(settings.isCreateRepoOptionPublic){ checked}>
+              <span class="strong">Public</span> - All users and guests can read that repository.
+            </label>
+            <label class="radio">
+              <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!settings.isCreateRepoOptionPublic){ checked}>
+              <span class="strong">Private</span> - Only collaborators can read that repository.
+            </label>
+          </fieldset>
+          <!--====================================================================-->
+          <!-- Anonymous access -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">Anonymous access</label>
+          <fieldset>
+            <label class="radio">
+              <input type="radio" name="allowAnonymousAccess" value="true"@if(settings.allowAnonymousAccess){ checked}>
+              <span class="strong">Allow</span> - Anyone can view public repositories, user/group profiles.
+            </label>
+            <label class="radio">
+              <input type="radio" name="allowAnonymousAccess" value="false"@if(!settings.allowAnonymousAccess){ checked}>
+              <span class="strong">Deny</span> - Users must authenticate before viewing any information
+            </label>
+          </fieldset>
+          <!--====================================================================-->
+          <!-- Services -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">Services</label>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" name="gravatar"@if(settings.gravatar){ checked}/>
+              Use Gravatar for Profile-Images
+            </label>
+          </fieldset>
+          <!--====================================================================-->
+          <!-- SSH access -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">SSH access</label>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" id="ssh" name="ssh"@if(settings.ssh){ checked}/>
+              Enable SSH access to git repository
+            </label>
+          </fieldset>
+          <div class="form-horizontal ssh">
+            <div class="control-group">
+              <label class="control-label" for="sshPort">SSH Port</label>
+              <div class="controls">
+                <input type="text" id="sshPort" name="sshPort" value="@settings.sshPort"/>
+                <span id="error-sshPort" class="error"></span>
+              </div>
+            </div>
+          </div>
+          <p class="muted">
+            Base URL is required if SSH access is enabled.
+          </p>
+          <!--====================================================================-->
+          <!-- Authentication -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">Authentication</label>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(settings.ldap){ checked}/>
+              LDAP
+            </label>
+          </fieldset>
+          <div class="form-horizontal ldap">
+            <div class="control-group">
+              <label class="control-label" for="ldapHost">LDAP Host</label>
+              <div class="controls">
+                <input type="text" id="ldapHost" name="ldap.host" value="@settings.ldap.map(_.host)"/>
+                <span id="error-ldap_host" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapPort">LDAP Port</label>
+              <div class="controls">
+                <input type="text" id="ldapPort" name="ldap.port" class="input-mini" value="@settings.ldap.map(_.port)"/>
+                <span id="error-ldap_port" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBindDN">Bind DN</label>
+              <div class="controls">
+                <input type="text" id="ldapBindDN" name="ldap.bindDN" value="@settings.ldap.map(_.bindDN)"/>
+                <span id="error-ldap_bindDN" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBindPassword">Bind Password</label>
+              <div class="controls">
+                <input type="password" id="ldapBindPassword" name="ldap.bindPassword" value="@settings.ldap.map(_.bindPassword)"/>
+                <span id="error-ldap_bindPassword" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBaseDN">Base DN</label>
+              <div class="controls">
+                <input type="text" id="ldapBaseDN" name="ldap.baseDN" value="@settings.ldap.map(_.baseDN)"/>
+                <span id="error-ldap_baseDN" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapUserNameAttribute">User name attribute</label>
+              <div class="controls">
+                <input type="text" id="ldapUserNameAttribute" name="ldap.userNameAttribute" value="@settings.ldap.map(_.userNameAttribute)"/>
+                <span id="error-ldap_userNameAttribute" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapAdditionalFilterCondition">Additional filter condition</label>
+              <div class="controls">
+                <input type="text" id="ldapAdditionalFilterCondition" name="ldap.additionalFilterCondition" value="@settings.ldap.map(_.additionalFilterCondition)"/>
+                <span id="error-ldap_additionalFilterCondition" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapFullNameAttribute">Full name attribute</label>
+              <div class="controls">
+                <input type="text" id="ldapFullNameAttribute" name="ldap.fullNameAttribute" value="@settings.ldap.map(_.fullNameAttribute)"/>
+                <span id="error-ldap_fullNameAttribute" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapMailAttribute">Mail address attribute</label>
+              <div class="controls">
+                <input type="text" id="ldapMailAttribute" name="ldap.mailAttribute" value="@settings.ldap.map(_.mailAttribute)"/>
+                <span id="error-ldap_mailAttribute" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox">
+                  <input type="checkbox" name="ldap.tls"@if(settings.ldap.flatMap(_.tls).getOrElse(false)){ checked}/> Enable TLS
+                </label>
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox">
+                  <input type="checkbox" name="ldap.ssl"@if(settings.ldap.flatMap(_.ssl).getOrElse(false)){ checked}/> Enable SSL
+                </label>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="ldapBindDN">Keystore</label>
+              <div class="controls">
+                <input type="text" id="ldapKeystore" name="ldap.keystore" value="@settings.ldap.map(_.keystore)"/>
+                <span id="error-ldap_keystore" class="error"></span>
+              </div>
+            </div>
+          </div>
+          <!--====================================================================-->
+          <!-- Notification email -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">Notification email</label>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" id="notification" name="notification"@if(settings.notification){ checked}/>
+              Send notifications
+            </label>
+          </fieldset>
+          <div class="form-horizontal notification">
+            <div class="control-group">
+              <label class="control-label" for="smtpHost">SMTP Host</label>
+              <div class="controls">
+                <input type="text" id="smtpHost" name="smtp.host" value="@settings.smtp.map(_.host)"/>
+                <span id="error-smtp_host" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="smtpPort">SMTP Port</label>
+              <div class="controls">
+                <input type="text" id="smtpPort" name="smtp.port" class="input-mini" value="@settings.smtp.map(_.port)"/>
+                <span id="error-smtp_port" class="error"></span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="smtpUser">SMTP User</label>
+              <div class="controls">
+                <input type="text" id="smtpUser" name="smtp.user" value="@settings.smtp.map(_.user)"/>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="smtpPassword">SMTP Password</label>
+              <div class="controls">
+                <input type="password" id="smtpPassword" name="smtp.password" value="@settings.smtp.map(_.password)"/>
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox">
+                  <input type="checkbox" name="smtp.ssl"@if(settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/> Enable SSL
+                </label>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="fromAddress">FROM Address</label>
+              <div class="controls">
+                <input type="text" id="fromAddress" name="smtp.fromAddress" value="@settings.smtp.map(_.fromAddress)"/>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="fromName">FROM Name</label>
+              <div class="controls">
+                <input type="text" id="fromName" name="smtp.fromName" value="@settings.smtp.map(_.fromName)"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <fieldset>
+        <input type="submit" class="btn btn-success" value="Apply changes"/>
+      </fieldset>
+    </form>
+  }
+}
+<script>
+$(function(){
+  $('#ssh').change(function(){
+    $('.ssh input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
+  $('#notification').change(function(){
+    $('.notification input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+
+  $('#ldapAuthentication').change(function(){
+    $('.ldap input').prop('disabled', !$(this).prop('checked'));
+  }).change();
+});
+</script>

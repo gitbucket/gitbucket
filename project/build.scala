@@ -8,7 +8,7 @@ import sbtassembly._
 import sbtassembly.AssemblyKeys._
 
 object MyBuild extends Build {
-  val Organization = "jp.sf.amateras"
+  val Organization = "gitbucket"
   val Name = "gitbucket"
   val Version = "0.0.1"
   val ScalaVersion = "2.11.2"
@@ -66,6 +66,7 @@ object MyBuild extends Build {
       "com.typesafe" % "config" % "1.2.1",
       "com.typesafe.play" %% "twirl-compiler" % "1.0.2"
     ),
+    play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._",
     EclipseKeys.withSource := true,
     javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),

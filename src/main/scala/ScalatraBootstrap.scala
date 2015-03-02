@@ -1,6 +1,8 @@
-import _root_.servlet.{BasicAuthenticationFilter, TransactionFilter}
-import app._
-import plugin.PluginRegistry
+
+import gitbucket.core.controller._
+import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.servlet.{TransactionFilter, BasicAuthenticationFilter}
+import gitbucket.core.util.Directory
 
 //import jp.sf.amateras.scalatra.forms.ValidationJavaScriptProvider
 import org.scalatra._
@@ -38,7 +40,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new RepositorySettingsController, "/*")
 
     // Create GITBUCKET_HOME directory if it does not exist
-    val dir = new java.io.File(_root_.util.Directory.GitBucketHome)
+    val dir = new java.io.File(Directory.GitBucketHome)
     if(!dir.exists){
       dir.mkdirs()
     }

@@ -1,0 +1,38 @@
+@(content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@helper.html.attached(owner, repository){
+  <textarea style="width: 635px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
+}
+<div>
+  <input type="button" id="cancel-issue" class="btn btn-small btn-danger" value="Cancel"/>
+  <input type="button" id="update-issue" class="btn btn-small pull-right" value="Update comment"/>
+</div>
+<script>
+$(function(){
+  var callback = function(data){
+    $('#update, #cancel').removeAttr('disabled');
+    $('#issueContent').empty().html(data.content);
+  };
+
+  $('#update-issue').click(function(){
+    $('#update, #cancel').attr('disabled', 'disabled');
+    $.ajax({
+      url: '@path/@owner/@repository/issues/edit/@issueId',
+      type: 'POST',
+      data: {
+        content : $('#edit-content').val()
+      }
+    }).done(
+      callback
+    ).fail(function(req) {
+      $('#update, #cancel').removeAttr('disabled');
+    });
+  });
+
+  $('#cancel-issue').click(function(){
+    $('#update, #cancel').attr('disabled', 'disabled');
+    $.get('@path/@owner/@repository/issues/_data/@issueId', callback);
+    return false;
+  });
+});
+</script>
