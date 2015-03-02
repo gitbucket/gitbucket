@@ -48,17 +48,32 @@ $(function(){
   });
 
   $('.table-issues input[type=checkbox]').change(function(){
-    if($('.table-issues input[type=checkbox]').filter(':checked').length == 0){
+    var all = $('.table-issues input[type=checkbox][value]');
+
+    // check all
+    if($(this).val() == 'on'){
+      var flag = $(this).is(":checked");
+      all.each(function(){
+        $(this).prop("checked", flag);
+      });
+    }
+
+    var count = all.filter(':checked').length;
+    // whether all check
+    $('.table-issues input[type=checkbox]').filter(':first').prop("checked", count > 0 && count == all.length);
+
+    if(count == 0){
       $('#table-issues-control').show();
       $('#table-issues-batchedit').hide();
     } else {
+      $('#batchedit-selected').text(count);
       $('#table-issues-control').hide();
       $('#table-issues-batchedit').show();
     }
   }).filter(':first').change();
 
   var submitBatchEdit = function(action, value) {
-    var checked = $('.table-issues input[type=checkbox]').filter(':checked').map(function(){ return this.value; }).get().join();
+    var checked = $('.table-issues input[type=checkbox][value]').filter(':checked').map(function(){ return this.value; }).get().join();
     var form = $('#batcheditForm');
     form.find('input[name=value]').val(value);
     form.find('input[name=checked]').val(checked);
