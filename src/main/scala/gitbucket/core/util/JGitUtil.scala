@@ -768,7 +768,8 @@ object JGitUtil {
             c.getAuthorIdent.getName,
             c.getAuthorIdent.getEmailAddress,
             c.getAuthorIdent.getWhen,
-            c.getParents().sortBy(_.getCommitTime()).lastOption.map(_.name),
+            Option(git.log.add(c).addPath(path).setSkip(1).setMaxCount(2).call.iterator.next)
+              .map(_.name),
             c.getCommitterIdent.getWhen,
             c.getShortMessage,
             Set.empty)
