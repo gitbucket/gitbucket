@@ -104,35 +104,41 @@ $(window).load(function(){
     updateHighlighting();
   }).hashchange();
 
+  var pre = $('pre.prettyprint');
   function updateSourceLineNum(){
     $('.source-line-num').remove();
-    var pre = $('pre.prettyprint');
-    $('pre.prettyprint ol.linenums li').each(function(i, e){
-      var p = $(e).position();
-      var left = pre.position().left
-      pre.append($('<div class="source-line-num">')
-        .data('line', (i + 1))
-        .css({
-          cursor  : 'pointer',
-          position: 'absolute',
-          top     : p.top + 'px',
-          width   : (p.left - left) + 'px',
-          left    : left,
-          height  : '16px'
-        }));
-    });
-    $('div.source-line-num').click(function(e){
-      var line = $(e.target).data('line');
+    var pos = pre.find('ol.linenums').position();
+    $('<div class="source-line-num">').css({
+      height:pre.height(),
+      width:'48px',
+      cursor:'pointer',
+      position: 'absolute',
+      top     : pos.top + 'px',
+      left    : pos.left + 'px'
+    }).click(function(e){
+      $(window).hashchange(function(){})
+      var pos = $(this).data("pos");
+      if(!pos){
+        pos = $('ol.linenums li').map(function(){ return {id:$(this).attr("id"),top:$(this).position().top} }).toArray();
+        $(this).data("pos",pos);
+      }
+      for(var i=0;i<pos.length-1;i++){
+        if(pos[i+1].top>e.pageY){
+          break;
+        }
+      }
+      var line = pos[i].id.replace(/^L/,'');
       var hash = location.hash;
       if(e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)){
         var lines = hash.split('-');
         location.hash = lines[0] + '-L' + line;
       } else {
+        var p = $("#L"+line).attr('id',"");
         location.hash = '#L' + line;
+        p.attr('id','L'+line);
       }
-    });
+    }).appendTo(pre);
   }
-  updateSourceLineNum();
   var repository = $('.blame-action').data('repository');
   $('.blame-action').click(function(e){
     if(history.pushState && $('pre.prettyprint.no-renderable').length){
@@ -146,13 +152,13 @@ $(window).load(function(){
     var m = /^\/(blame|blob)(\/.*)$/.exec(location.pathname.substring(repository.length));
     var mode = m[1];
     $('.blame-action').toggleClass("active", mode=='blame').attr('href', repository + (m[1]=='blame'?'/blob':'/blame')+m[2]);
-    var pre = $('pre.prettyprint');
     if(pre.parents("td").find(".blame").length){
       pre.parents("div.container").toggleClass("blame-container", mode=='blame');
       updateSourceLineNum();
       return;
     }
     if(mode=='blob'){
+      updateSourceLineNum();
       return;
     }
     $('.blame-action').addClass("active");
@@ -214,15 +220,20 @@ function updateHighlighting(){
     var lines = hash.substr(1).split('-');
     if(lines.length == 1){
       $('#' + lines[0]).addClass('highlight');
-      $(window).scrollTop($('#' + lines[0]).offset().top - 40);
+      if(!updateHighlighting.scrolling){
+        $(window).scrollTop($('#' + lines[0]).offset().top - 40);
+      }
     } else if(lines.length > 1){
       var start = parseInt(lines[0].substr(1));
       var end   = parseInt(lines[1].substr(1));
       for(var i = start; i <= end; i++){
         $('#L' + i).addClass('highlight');
       }
-      $(window).scrollTop($('#L' + start).offset().top - 40);
+      if(!updateHighlighting.scrolling){
+        $(window).scrollTop($('#L' + start).offset().top - 40);
+      }
     }
+    updateHighlighting.scrolling = true;
   }
 }
 </script>

@@ -1332,6 +1332,14 @@ h6 a.markdown-anchor-link {
 /****************************************************************************/
 /* blame */
 /****************************************************************************/
+.blobview pre.blob{
+  padding-left: 0;
+}
+.blobview ol.linenums{
+  margin-left: 0;
+  padding-left: 50px;
+}
+
 div.container.blame-container{
   width:1270px;
 }
