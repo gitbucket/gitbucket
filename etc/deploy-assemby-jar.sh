@@ -1,6 +1,6 @@
 #!/bin/sh
 mvn deploy:deploy-file \
-  -DgroupId=jp.sf.amateras\
+  -DgroupId=gitbucket\
   -DartifactId=gitbucket-assembly\
   -Dversion=3.0.0\
   -Dpackaging=jar\
