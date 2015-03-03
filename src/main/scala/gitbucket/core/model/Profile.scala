@@ -1,16 +1,20 @@
 package gitbucket.core.model
 
 trait Profile {
-  // TODO Is it possible to fix instance at the sub-trait?
-  val profile: slick.driver.JdbcProfile = slick.driver.H2Driver
+  val profile: slick.driver.JdbcProfile
   import profile.simple._
 
-  // java.util.Date Mapped Column Types
+  /**
+   * java.util.Date Mapped Column Types
+   */
   implicit val dateColumnType = MappedColumnType.base[java.util.Date, java.sql.Timestamp](
-      d => new java.sql.Timestamp(d.getTime),
-      t => new java.util.Date(t.getTime)
+    d => new java.sql.Timestamp(d.getTime),
+    t => new java.util.Date(t.getTime)
   )
 
+  /**
+   * Extends Column to add conditional condition
+   */
   implicit class RichColumn(c1: Column[Boolean]){
     def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
   }
@@ -22,7 +26,11 @@ trait Profile {
 
 }
 
-trait CoreProfile extends Profile
+trait ProfileProvider { self: Profile =>
+  val profile = slick.driver.H2Driver
+}
+
+trait CoreProfile extends ProfileProvider with Profile
   with AccountComponent
   with ActivityComponent
   with CollaboratorComponent
