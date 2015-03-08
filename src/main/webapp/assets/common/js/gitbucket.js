@@ -138,24 +138,24 @@ $.extend(JsDiffRender.prototype,{
           var o = oplines[i];
           switch(o.change){
           case 'skip':
-            $('<tr>').html('<th></th><td colspan="3" class="skip">...</td>').appendTo(tbody);
+            $('<tr>').html('<th class="skip"></th><td colspan="3" class="skip">...</td>').appendTo(tbody);
             break;
           case 'delete':
           case 'insert':
           case 'equal':
             $('<tr>').append(
-              lineNum('old',o.base),
+              lineNum('old',o.base, o.change),
               $('<td class="body">').html(o.base ? baseTextDom(o.base): "").addClass(o.change),
-              lineNum('old',o.head),
+              lineNum('old',o.head, o.change),
               $('<td class="body">').html(o.head ? headTextDom(o.head): "").addClass(o.change)
               ).appendTo(tbody);
             break;
           case 'replace':
             var ld = lineDiff(baseTextDom(o.base), headTextDom(o.head));
             $('<tr>').append(
-              lineNum('old',o.base),
+              lineNum('old',o.base, 'delete'),
               $('<td class="body">').append(ld.base).addClass('delete'),
-              lineNum('old',o.head),
+              lineNum('old',o.head, 'insert'),
               $('<td class="body">').append(ld.head).addClass('insert')
               ).appendTo(tbody);
             break;
@@ -170,14 +170,14 @@ $.extend(JsDiffRender.prototype,{
           var o = oplines[i];
           switch(o.change){
           case 'skip':
-            tbody.append($('<tr>').html('<th colspan="2"></th><td class="skip"></td>'));
+            tbody.append($('<tr>').html('<th colspan="2" class="skip"></th><td class="skip"></td>'));
             break;
           case 'delete':
           case 'insert':
           case 'equal':
             tbody.append($('<tr>').append(
-              lineNum('old',o.base),
-              lineNum('new',o.head),
+              lineNum('old',o.base, o.change),
+              lineNum('new',o.head, o.change),
               $('<td class="body">').addClass(o.change).html(o.head ? headTextDom(o.head) : baseTextDom(o.base))));
             break;
           case 'replace':
@@ -185,12 +185,12 @@ $.extend(JsDiffRender.prototype,{
             while(oplines[i] && oplines[i].change == 'replace'){
               if(oplines[i].base && oplines[i].head){
                 var ld = lineDiff(baseTextDom(oplines[i].base), headTextDom(oplines[i].head));
-                tbody.append($('<tr>').append(lineNum('old',oplines[i].base),'<th>',$('<td class="body delete">').append(ld.base)));
-                deletes.push($('<tr>').append('<th>',lineNum('new',oplines[i].head),$('<td class="body insert">').append(ld.head)));
+                tbody.append($('<tr>').append(lineNum('old', oplines[i].base, 'delete'),'<th class="delete">',$('<td class="body delete">').append(ld.base)));
+                deletes.push($('<tr>').append('<th class="insert">',lineNum('new',oplines[i].head, 'insert'),$('<td class="body insert">').append(ld.head)));
               }else if(oplines[i].base){
-                tbody.append($('<tr>').append(lineNum('old',oplines[i].base),'<th>',$('<td class="body delete">').html(baseTextDom(oplines[i].base))));
+                tbody.append($('<tr>').append(lineNum('old', oplines[i].base, 'delete'),'<th class="delete">',$('<td class="body delete">').html(baseTextDom(oplines[i].base))));
               }else if(oplines[i].head){
-                deletes.push($('<tr>').append('<th>',lineNum('new',oplines[i].head),$('<td class="body insert">').html(headTextDom(oplines[i].head))));
+                deletes.push($('<tr>').append('<th class="insert">',lineNum('new',oplines[i].head, 'insert'),$('<td class="body insert">').html(headTextDom(oplines[i].head))));
               }
               i++;
             }
@@ -202,8 +202,8 @@ $.extend(JsDiffRender.prototype,{
         return table;
       }
     };
-    function lineNum(type,num){
-      var cell = $('<th class="line-num">').addClass(type+'line');
+    function lineNum(type, num, klass){
+      var cell = $('<th class="line-num">').addClass(type+'line').addClass(klass);
       if(num){
         cell.attr('line-number',num);
       }
