@@ -1360,13 +1360,15 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 
 a.markdown-anchor-link {
   position: absolute;
-  left: -20px;
-  width: 32px;
-  height: 16px;
-  background-image: url(../images/link.png);
-  background-repeat: no-repeat;
+  left: -18px;
   display: none;
+  color: #999;
+  /* From octicon style */
+  font: normal normal normal 16px/1 octicons;
+  text-decoration: none;
+  text-rendering: auto;
 }
+a.markdown-anchor-link:before { content: '\f05c'} /*  */
 
 h1 a.markdown-anchor-link {
   top: 24px;
