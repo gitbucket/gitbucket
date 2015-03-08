@@ -79,9 +79,12 @@ function displayErrors(data, elem){
  * @param ignoreSpace {Number} 0: include, 1: ignore
  */
 function diffUsingJS(oldTextId, newTextId, outputId, viewType, ignoreSpace) {
+  var old = $('#'+oldTextId), head = $('#'+newTextId);
   var render = new JsDiffRender({
-    baseText: document.getElementById(oldTextId).value,
-    newText: document.getElementById(newTextId).value,
+    oldText: old.val(),
+    oldTextName: old.data('file-name'),
+    newText: head.val(),
+    newTextName: head.data('file-name'),
     ignoreSpace: ignoreSpace,
     contextSize: 4
   });
@@ -96,8 +99,8 @@ function jqSelectorEscape(val) {
 }
 
 function JsDiffRender(params){
-  var baseTextLines = (params.baseText==="")?[]:params.baseText.split(/\r\n|\r|\n/);
-  var headTextLines = (params.headText==="")?[]:params.newText.split(/\r\n|\r|\n/);
+  var baseTextLines = (params.oldText==="")?[]:params.oldText.split(/\r\n|\r|\n/);
+  var headTextLines = (params.newText==="")?[]:params.newText.split(/\r\n|\r|\n/);
   var sm, ctx;
   if(params.ignoreSpace){
     var ignoreSpace = function(a){ return a.replace(/\s+/,' ').replace(/^\s+|\s+$/,''); };
@@ -111,16 +114,19 @@ function JsDiffRender(params){
   }
   var oplines = this.fold(ctx, params.contextSize);
 
-  function prettyDom(text){
+  function prettyDom(text, fileName){
     var dom = null;
     return function(ln){
       if(dom===null){
-        dom = prettyPrintOne(text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;'), null, true);
+        dom = prettyPrintOne(
+          text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;'),
+          (/\.([^.]*)$/.exec(fileName)||[])[1],
+          true);
       }
       return (new RegExp('<li id="L'+ln+'"[^>]*>(.*?)</li>').exec(dom) || [])[1];
     };
   }
-  return this.renders(oplines, prettyDom(params.baseText), prettyDom(params.newText));
+  return this.renders(oplines, prettyDom(params.oldText, params.oldTextName), prettyDom(params.newText, params.newTextName));
 }
 $.extend(JsDiffRender.prototype,{
   renders: function(oplines, baseTextDom, headTextDom){

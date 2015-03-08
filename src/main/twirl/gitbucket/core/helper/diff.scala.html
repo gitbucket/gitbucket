@@ -84,8 +84,8 @@
       <td style="padding: 0;">
         @if(diff.newContent != None || diff.oldContent != None){
           <div id="diffText-@i" class="diffText"></div>
-          <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
-          <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
+          <textarea id="newText-@i" style="display: none;" data-file-name="@diff.oldPath">@diff.newContent.getOrElse("")</textarea>
+          <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.newPath">@diff.oldContent.getOrElse("")</textarea>
         } else {
           Not supported
         }

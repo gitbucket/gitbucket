@@ -28,8 +28,8 @@
         <tr>
           <td>
             <div id="diffText"></div>
-            <textarea id="newText" style="display: none;"></textarea>
-            <textarea id="oldText" style="display: none;">@content.content</textarea>
+            <textarea id="newText" style="display: none;" data-file-name="@fileName"></textarea>
+            <textarea id="oldText" style="display: none;" data-file-name="@fileName">@content.content</textarea>
           </td>
         </tr>
       </table>
@@ -52,7 +52,6 @@
   }
 }
 <script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
-<script type="text/javascript" src="@assets/vendors/jsdifflib/diffview.js"></script>
 <link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
