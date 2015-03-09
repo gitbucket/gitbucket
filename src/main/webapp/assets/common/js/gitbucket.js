@@ -133,6 +133,7 @@ $.extend(JsDiffRender.prototype,{
     return {
       split:function(){
         var table = $('<table class="diff">');
+        table.attr({add:oplines.add, del:oplines.del});
         var tbody = $('<tbody>').appendTo(table);
         for(var i=0;i<oplines.length;i++){
           var o = oplines[i];
@@ -165,6 +166,7 @@ $.extend(JsDiffRender.prototype,{
       },
       unified:function(){
         var table = $('<table class="diff inlinediff">');
+        table.attr({add:oplines.add, del:oplines.del});
         var tbody = $('<tbody>').appendTo(table);
         for(var i=0;i<oplines.length;i++){
           var o = oplines[i];
@@ -242,7 +244,7 @@ $.extend(JsDiffRender.prototype,{
     }
   },
   flatten: function(opcodes, headTextLines, baseTextLines, isIgnoreLine){
-    var ret = [];
+    var ret = [], add=0, del=0;
     for (var idx = 0; idx < opcodes.length; idx++) {
       var code = opcodes[idx];
       var change = code[0];
@@ -252,18 +254,22 @@ $.extend(JsDiffRender.prototype,{
       for (var i = 0; i < rowcnt; i++) {
         switch(change){
         case 'insert':
+          add++;
           ret.push({
             change:(isIgnoreLine(headTextLines[n]) ? 'equal' : change),
             head: ++n
           });
           break;
         case 'delete':
+          del++;
           ret.push({
             change: (isIgnoreLine(baseTextLines[b]) ? 'equal' : change),
             base: ++b
           });
           break;
         case 'replace':
+          add++;
+          del++;
           var r = {change: change};
           if(n<code[4]){
             r.head = ++n;
@@ -282,6 +288,8 @@ $.extend(JsDiffRender.prototype,{
         }
       }
     }
+    ret.add=add;
+    ret.del=del;
     return ret;
   },
   fold: function(oplines, contextSize){
@@ -316,6 +324,8 @@ $.extend(JsDiffRender.prototype,{
         end:skips[skips.length-contextSize]
       });
     }
+    ret.add = oplines.add;
+    ret.del = oplines.del;
     return ret;
   }
 });

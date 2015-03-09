@@ -1101,6 +1101,29 @@ table.diff tbody tr.not-diff:hover td{
     content: "..."
 }
 
+.diffstat-bar {
+    display: inline-block;
+    margin-left: 3px;
+    font-size: 16px;
+    color: #ddd;
+    letter-spacing: 1px;
+    text-align: left;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+}
+.text-diff-added {
+    color: #55a532;
+}
+.text-diff-deleted {
+    color: #bd2c00;
+}
+.diffstat {
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    white-space: nowrap;
+    letter-spacing: 0px;
+}
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/

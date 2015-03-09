@@ -10,7 +10,7 @@
 @import gitbucket.core.view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @if(showIndex){
-  <div>
+  <div style="overflow: hidden;">
     <div class="pull-right" style="margin-bottom: 10px;">
       <div class="btn-group" data-toggle="buttons-radio">
         <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
@@ -22,6 +22,7 @@
   <ul id="commit-file-list" style="display: none;">
   @diffs.zipWithIndex.map { case (diff, i) =>
     <li@if(i > 0){ class="border"}>
+      <span class="pull-right diffstat" data-diff-id="@i"></span>
       <a href="#diff-@i">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
@@ -46,7 +47,9 @@
     <tr>
       <th style="font-weight: normal; line-height: 27px;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+          <span class="diffstat">
+            <img src="@assets/common/images/diff_move.png"/>
+          </span> @diff.oldPath -> @diff.newPath
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
               <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="ignore-whitespace" value="1"/>Ignore Space</label>
@@ -56,11 +59,14 @@
           }
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
+          <span class="diffstat">
           @if(diff.changeType == ChangeType.ADD){
             <img src="@assets/common/images/diff_add.png"/>
           }else{
             <img src="@assets/common/images/diff_edit.png"/>
-          } @diff.newPath
+          }
+          </span>
+          @diff.newPath
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
               <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="ignore-whitespace" value="1"/>Ignore Space</label>
@@ -70,7 +76,9 @@
           }
         }
         @if(diff.changeType == ChangeType.DELETE){
-          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+          <span class="diffstat">
+            <img src="@assets/common/images/diff_delete.png"/>
+          </span> @diff.oldPath
           @if(oldCommitId.isDefined){
             <div class="pull-right align-right">
               <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
@@ -228,11 +236,41 @@ $(function(){
       tmp.hide();
     }
   }
+  function renderStatBar(add,del){
+    if(add+del>5){
+      if(add){
+        if(add<del){
+          add = Math.floor(1 + (add * 4 / (add+del)));
+        }else{
+          add = Math.ceil(1 + (add * 4 / (add+del)));
+        }
+      }
+      del = 5-add;
+    }
+    var ret = $('<div class="diffstat-bar">');
+    for(var i=0;i<5;i++){
+      if(add){
+        ret.append('<span class="text-diff-added">■</span>');
+        add --;
+      }else if(del){
+        ret.append('<span class="text-diff-deleted">■</span>');
+        del --;
+      }else{
+        ret.append('■');
+      }
+    }
+    return ret;
+  }
   function renderOneDiff(diffText, viewType){
     var table = diffText.closest("table[data-diff-id]");
     var i = table.data("diff-id");
     var ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
     diffUsingJS('oldText-'+i, 'newText-'+i, diffText.attr('id'), viewType, ignoreWhiteSpace);
+    var add = diffText.find("table").attr("add")*1;
+    var del = diffText.find("table").attr("del")*1;
+    table.find(".diffstat").text(add+del+" ").append(renderStatBar(add,del)).attr("title",add+" additions & "+del+" deletions").tooltip();
+    $('span.diffstat[data-diff-id="'+i+'"]').html('<span class="text-diff-added">+'+add+'</span><span class="text-diff-deleted">-'+del+'</span>').append(renderStatBar(add,del).attr('title',(add+del)+" lines changed").tooltip());
+
     @if(hasWritePermission) {
       diffText.find('.body').each(function(){ $('<b class="add-comment">+</b>').prependTo(this); });
     }
