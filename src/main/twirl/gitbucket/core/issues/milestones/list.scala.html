@@ -75,7 +75,7 @@
               </div>
             </div>
             @if(milestone.description.isDefined){
-              <div class="milestone-description">
+              <div class="milestone-description markdown-body">
                 @markdown(milestone.description.get, repository, false, false)
               </div>
             }
