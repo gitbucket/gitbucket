@@ -194,7 +194,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   protected def disableByNotYourself(paramName: String): Constraint = new Constraint() {
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
       params.get(paramName).flatMap { userName =>
-        if(userName == context.loginAccount.get.userName)
+        if(userName == context.loginAccount.get.userName && params.get("removed") == Some("true"))
           Some("You can't disable your account yourself")
         else
           None
