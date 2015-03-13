@@ -1045,7 +1045,7 @@ table.diff .add-comment:hover {
 }
 
 table.diff tbody tr.not-diff {
-    font-family: '"Helvetica Neue", Helvetica, Arial, sans-serif';
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 tr.not-diff .box {
