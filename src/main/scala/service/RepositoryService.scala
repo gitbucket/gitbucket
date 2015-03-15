@@ -55,6 +55,7 @@ trait RepositoryService { self: AccountService =>
         val issueComments  = IssueComments .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueLabels    = IssueLabels   .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val commitComments = CommitComments.filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val commitStatuses = CommitStatuses.filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val collaborators  = Collaborators .filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
@@ -95,6 +96,7 @@ trait RepositoryService { self: AccountService =>
         IssueComments .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         CommitComments.insertAll(commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        CommitStatuses.insertAll(commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Convert labelId
         val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
@@ -395,5 +397,4 @@ object RepositoryService {
   }
 
   case class RepositoryTreeNode(owner: String, name: String, children: List[RepositoryTreeNode])
-
 }

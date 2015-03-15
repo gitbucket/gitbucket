@@ -69,6 +69,9 @@ object MyBuild extends Build {
     EclipseKeys.withSource := true,
     javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),
+    javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test",
+    testOptions in Test += Tests.Setup( () => new java.io.File("target/gitbucket_home_for_test").mkdir() ),
+    fork in Test := true,
     packageOptions += Package.MainClass("JettyLauncher")
   ).enablePlugins(SbtTwirl)
 }

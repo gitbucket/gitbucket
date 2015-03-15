@@ -19,10 +19,12 @@ trait Profile {
 object Profile extends {
   val profile = slick.driver.H2Driver
 
-} with AccountComponent
+} with AccessTokenComponent
+  with AccountComponent
   with ActivityComponent
   with CollaboratorComponent
   with CommitCommentComponent
+  with CommitStatusComponent
   with GroupMemberComponent
   with IssueComponent
   with IssueCommentComponent

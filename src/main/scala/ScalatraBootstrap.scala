@@ -1,4 +1,4 @@
-import _root_.servlet.{BasicAuthenticationFilter, TransactionFilter}
+import _root_.servlet.{BasicAuthenticationFilter, TransactionFilter, AccessTokenAuthenticationFilter}
 import app._
 import plugin.PluginRegistry
 
@@ -14,7 +14,8 @@ class ScalatraBootstrap extends LifeCycle {
     context.getFilterRegistration("transactionFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
     context.addFilter("basicAuthenticationFilter", new BasicAuthenticationFilter)
     context.getFilterRegistration("basicAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/git/*")
-
+    context.addFilter("accessTokenAuthenticationFilter", new AccessTokenAuthenticationFilter)
+    context.getFilterRegistration("accessTokenAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/api/v3/*")
     // Register controllers
     context.mount(new AnonymousAccessController, "/*")
 

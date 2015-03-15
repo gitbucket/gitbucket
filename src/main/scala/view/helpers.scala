@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import play.twirl.api.Html
 import util.StringUtil
 import service.RequestCache
+import model.CommitState
 
 /**
  * Provides helper methods for Twirl templates.
@@ -260,4 +261,17 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     def mkHtml(separator: scala.xml.Elem) = Html(seq.mkString(separator.toString))
   }
 
+  def commitStateIcon(state: CommitState) = Html(state match {
+    case CommitState.PENDING => "●"
+    case CommitState.SUCCESS => "&#x2714;"
+    case CommitState.ERROR   => "×"
+    case CommitState.FAILURE => "×"
+  })
+
+  def commitStateText(state: CommitState, commitId:String) = state match {
+    case CommitState.PENDING => "Waiting to hear about "+commitId.substring(0,8)
+    case CommitState.SUCCESS => "All is well"
+    case CommitState.ERROR   => "Failed"
+    case CommitState.FAILURE => "Failed"
+  }
 }

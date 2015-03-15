@@ -14,14 +14,18 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
 import model.GroupMember
+import service.WebHookService._
+import api._
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
+  with AccessTokenService with WebHookService
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
-    with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator =>
+    with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
+    with AccessTokenService with WebHookService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
@@ -30,6 +34,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
                              url: Option[String], fileId: Option[String], clearImage: Boolean)
 
   case class SshKeyForm(title: String, publicKey: String)
+
+  case class PersonalTokenForm(note: String)
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
@@ -53,6 +59,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "title"     -> trim(label("Title", text(required, maxlength(100)))),
     "publicKey" -> trim(label("Key"  , text(required, validPublicKey)))
   )(SshKeyForm.apply)
+
+  val personalTokenForm = mapping(
+    "note"     -> trim(label("Token", text(required, maxlength(100))))
+  )(PersonalTokenForm.apply)
 
   case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String)
   case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
@@ -142,6 +152,25 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   }
 
+  /**
+   * https://developer.github.com/v3/users/#get-a-single-user
+   */
+  get("/api/v3/users/:userName") {
+    getAccountByUserName(params("userName")).map { account =>
+      JsonFormat(ApiUser(account))
+    } getOrElse NotFound
+  }
+
+  /**
+   * https://developer.github.com/v3/users/#get-the-authenticated-user
+   */
+  get("/api/v3/user") {
+    context.loginAccount.map { account =>
+      JsonFormat(ApiUser(account))
+    } getOrElse Unauthorized
+  }
+
+
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
@@ -204,6 +233,40 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val sshKeyId = params("id").toInt
     deletePublicKey(userName, sshKeyId)
     redirect(s"/${userName}/_ssh")
+  })
+
+  get("/:userName/_application")(oneselfOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName).map { x =>
+      var tokens = getAccessTokens(x.userName)
+      val generatedToken = flash.get("generatedToken") match {
+        case Some((tokenId:Int, token:String)) => {
+          val gt = tokens.find(_.accessTokenId == tokenId)
+          gt.map{ t =>
+            tokens = tokens.filterNot(_ == t)
+            (t, token)
+          }
+        }
+        case _ => None
+      }
+      account.html.application(x, tokens, generatedToken)
+    } getOrElse NotFound
+  })
+
+  post("/:userName/_personalToken", personalTokenForm)(oneselfOnly { form =>
+    val userName = params("userName")
+    getAccountByUserName(userName).map { x =>
+      val (tokenId, token) = generateAccessToken(userName, form.note)
+      flash += "generatedToken" -> (tokenId, token)
+    }
+    redirect(s"/${userName}/_application")
+  })
+
+  get("/:userName/_personalToken/delete/:id")(oneselfOnly {
+    val userName = params("userName")
+    val tokenId = params("id").toInt
+    deleteAccessToken(userName, tokenId)
+    redirect(s"/${userName}/_application")
   })
 
   get("/register"){

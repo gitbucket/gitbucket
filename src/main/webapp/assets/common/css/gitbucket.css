@@ -166,7 +166,7 @@ span.count-right {
 }
 
 .monospace {
-  font-family: monospace;
+  font-family: Consolas, 'Courier New', Courier, Monaco, monospace;
 }
 
 table.table th {
@@ -471,6 +471,62 @@ div.repository-icon {
 div.repository-content {
     margin-left: 40px;
 }
+
+.branches .muted-link{
+  color: #777;
+}
+.branches .muted-link:hover{
+  color: #4183c4;
+}
+.branches .branch-details{
+  display: inline-block;
+  width: 490px;
+  margin-right: 10px;
+}
+.branches .branch-name{
+  color: #4183c4;
+  display: inline-block;
+  padding: 2px 6px;
+  font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  background-color: rgba(209,227,237,0.5);
+  border-radius: 3px;
+}
+.branches .branch-meta{
+  color: #aaa;
+  font-size: 12px;
+  line-height: 20px;
+}
+.branches .branch-action{
+  display: inline-block;
+  float: right;
+  position: relative;
+  top: -3px;
+  height: 20px;
+}
+.branches .branch-a-b-count{
+  display: inline-block;
+  vertical-align: middle;
+  width: 181px;
+  text-align: center;
+  color: rgba(0,0,0,0.5);
+}
+.branches .a-b-count-widget{
+  font-size: 10px;
+}
+.branches .a-b-count-widget .count-half{
+  width:90px;
+  position: relative;
+  text-align: right;
+  float: left;
+}
+.branches .a-b-count-widget .count-half:last-child {
+  text-align: left;
+  border-left: 1px solid #bbb;
+}
+.branches .a-b-count-widget .count-half .count-value{
+  padding: 0 3px;
+}
+
 
 /****************************************************************************/
 /* Activity */
@@ -948,6 +1004,24 @@ div.author-info div.committer {
   display: block;
   margin-left: 25px;
   font-size: 12px;
+}
+
+.text-pending{
+  color: #cea61b;
+}
+.text-failure{
+  color: #bd2c00;
+}
+
+.box-content .build-statuses{
+  margin: -10px -10px 10px -10px;
+}
+.build-statuses .build-status-item{
+  padding: 10px 15px 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+.build-statuses-list .build-status-item{
+  background-color: #fafafa;
 }
 
 /****************************************************************************/

@@ -15,18 +15,21 @@ import service.PullRequestService._
 import org.slf4j.LoggerFactory
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.errors.NoMergeBaseException
-import service.WebHookService.WebHookPayload
+import service.WebHookService._
 import util.JGitUtil.DiffInfo
 import util.JGitUtil.CommitInfo
-
+import model.{PullRequest, Issue, CommitState}
+import api._
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
-  with CommitsService with ActivityService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with CommitStatusService with MergeService
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
-    with CommitsService with ActivityService with PullRequestService with WebHookService with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
+    with CommitStatusService with MergeService =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -68,6 +71,24 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
+  /**
+   * https://developer.github.com/v3/pulls/#list-pull-requests
+   */
+  get("/api/v3/repos/:owner/:repository/pulls")(referrersOnly { repository =>
+    val page       = IssueSearchCondition.page(request)
+    // TODO: more api spec condition
+    val condition = IssueSearchCondition(request)
+    val baseOwner = getAccountByUserName(repository.owner).get
+    val issues:List[(model.Issue, model.Account, Int, model.PullRequest, model.Repository, model.Account)] = searchPullRequestByApi(condition, (page - 1) * PullRequestLimit, PullRequestLimit, repository.owner -> repository.name)
+    JsonFormat(issues.map{case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
+      ApiPullRequest(
+        issue,
+        pullRequest,
+        ApiRepository(headRepo, ApiUser(headOwner)),
+        ApiRepository(repository, ApiUser(baseOwner)),
+        ApiUser(issueUser)) })
+  })
+
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
@@ -76,7 +97,6 @@ trait PullRequestsControllerBase extends ControllerBase {
         using(Git.open(getRepositoryDir(owner, name))){ git =>
           val (commits, diffs) =
             getRequestCompareInfo(owner, name, pullreq.commitIdFrom, owner, name, pullreq.commitIdTo)
-
           pulls.html.pullreq(
             issue, pullreq,
             (commits.flatten.map(commit => getCommitComments(owner, name, commit.id, true)).flatten.toList ::: getComments(owner, name, issueId))
@@ -94,14 +114,64 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
+  /**
+   * https://developer.github.com/v3/pulls/#get-a-single-pull-request
+   */
+  get("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
+    (for{
+      issueId <- params("id").toIntOpt
+      (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
+      users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.userName), Set())
+      baseOwner <- users.get(repository.owner)
+      headOwner <- users.get(pullRequest.requestUserName)
+      issueUser <- users.get(issue.userName)
+      headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
+    } yield {
+      JsonFormat(ApiPullRequest(
+        issue,
+        pullRequest,
+        ApiRepository(headRepo, ApiUser(headOwner)),
+        ApiRepository(repository, ApiUser(baseOwner)),
+        ApiUser(issueUser)))
+    }).getOrElse(NotFound)
+  })
+
+  /**
+   * https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
+   */
+  get("/api/v3/repos/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
+    val owner = repository.owner
+    val name = repository.name
+    params("id").toIntOpt.flatMap{ issueId =>
+      getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+        using(Git.open(getRepositoryDir(owner, name))){ git =>
+          val oldId = git.getRepository.resolve(pullreq.commitIdFrom)
+          val newId = git.getRepository.resolve(pullreq.commitIdTo)
+          val repoFullName = util.RepositoryName(repository)
+          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => ApiCommitListItem(new CommitInfo(c), repoFullName)).toList
+          JsonFormat(commits)
+        }
+      }
+    } getOrElse NotFound
+  })
+
   ajaxGet("/:owner/:repository/pull/:id/mergeguide")(collaboratorsOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
       val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
+        val statuses = getCommitStatues(owner, name, pullreq.commitIdTo)
+        val hasConfrict = LockUtil.lock(s"${owner}/${name}"){
+          checkConflict(owner, name, pullreq.branch, issueId)
+        }
+        val hasProblem = hasConfrict || (!statuses.isEmpty && CommitState.combine(statuses.map(_.state).toSet) != CommitState.SUCCESS)
         pulls.html.mergeguide(
-          checkConflictInPullRequest(owner, name, pullreq.branch, pullreq.requestUserName, name, pullreq.requestBranch, issueId),
+          hasConfrict,
+          hasProblem,
+          issue,
           pullreq,
+          statuses,
+          repository,
           s"${context.baseUrl}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
       }
     } getOrElse NotFound
@@ -138,43 +208,10 @@ trait PullRequestsControllerBase extends ControllerBase {
             // record activity
             recordMergeActivity(owner, name, loginAccount.userName, issueId, form.message)
 
-            // merge
-            val mergeBaseRefName = s"refs/heads/${pullreq.branch}"
-            val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
-            val mergeBaseTip = git.getRepository.resolve(mergeBaseRefName)
-            val mergeTip = git.getRepository.resolve(s"refs/pull/${issueId}/head")
-            val conflicted = try {
-              !merger.merge(mergeBaseTip, mergeTip)
-            } catch {
-              case e: NoMergeBaseException => true
-            }
-            if (conflicted) {
-              throw new RuntimeException("This pull request can't merge automatically.")
-            }
-
-            // creates merge commit
-            val mergeCommit = new CommitBuilder()
-            mergeCommit.setTreeId(merger.getResultTreeId)
-            mergeCommit.setParentIds(Array[ObjectId](mergeBaseTip, mergeTip): _*)
-            val personIdent = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
-            mergeCommit.setAuthor(personIdent)
-            mergeCommit.setCommitter(personIdent)
-            mergeCommit.setMessage(s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" +
-                                   form.message)
-
-            // insertObject and got mergeCommit Object Id
-            val inserter = git.getRepository.newObjectInserter
-            val mergeCommitId = inserter.insert(mergeCommit)
-            inserter.flush()
-            inserter.release()
-
-            // update refs
-            val refUpdate = git.getRepository.updateRef(mergeBaseRefName)
-            refUpdate.setNewObjectId(mergeCommitId)
-            refUpdate.setForceUpdate(false)
-            refUpdate.setRefLogIdent(personIdent)
-            refUpdate.setRefLogMessage("merged", true)
-            refUpdate.update()
+            // merge git repository
+            mergePullRequest(git, pullreq.branch, issueId,
+              s"Merge pull request #${issueId} from ${pullreq.requestUserName}/${pullreq.requestBranch}\n\n" + form.message,
+               new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
 
             val (commits, _) = getRequestCompareInfo(owner, name, pullreq.commitIdFrom,
               pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
@@ -192,14 +229,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
             }
             // call web hook
-            getWebHookURLs(owner, name) match {
-              case webHookURLs if(webHookURLs.nonEmpty) =>
-                for(ownerAccount <- getAccountByUserName(owner)){
-                  callWebHook(owner, name, webHookURLs,
-                    WebHookPayload(git, loginAccount, mergeBaseRefName, repository, commits.flatten.toList, ownerAccount))
-                }
-              case _ =>
-            }
+            callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
             // notifications
             Notifier().toNotify(repository, issueId, "merge"){
@@ -315,9 +345,11 @@ trait PullRequestsControllerBase extends ControllerBase {
         val originBranch = JGitUtil.getDefaultBranch(oldGit, originRepository, tmpOriginBranch).get._2
         val forkedBranch = JGitUtil.getDefaultBranch(newGit, forkedRepository, tmpForkedBranch).get._2
 
-        pulls.html.mergecheck(
+        val conflict = LockUtil.lock(s"${originRepository.owner}/${originRepository.name}"){
           checkConflict(originRepository.owner, originRepository.name, originBranch,
-                        forkedRepository.owner, forkedRepository.name, forkedBranch))
+                        forkedRepository.owner, forkedRepository.name, forkedBranch)
+        }
+        pulls.html.mergecheck(conflict)
       }
     }) getOrElse NotFound
   })
@@ -347,15 +379,13 @@ trait PullRequestsControllerBase extends ControllerBase {
       commitIdTo            = form.commitIdTo)
 
     // fetch requested branch
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      git.fetch
-        .setRemote(getRepositoryDir(form.requestUserName, form.requestRepositoryName).toURI.toString)
-        .setRefSpecs(new RefSpec(s"refs/heads/${form.requestBranch}:refs/pull/${issueId}/head"))
-        .call
-    }
+    fetchAsPullRequest(repository.owner, repository.name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
 
     // record activity
     recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
+
+    // call web hook
+    callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
 
     // notifications
     Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
@@ -364,62 +394,6 @@ trait PullRequestsControllerBase extends ControllerBase {
 
     redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
   })
-
-  /**
-   * Checks whether conflict will be caused in merging. Returns true if conflict will be caused.
-   */
-  private def checkConflict(userName: String, repositoryName: String, branch: String,
-                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-    LockUtil.lock(s"${userName}/${repositoryName}"){
-      using(Git.open(getRepositoryDir(requestUserName, requestRepositoryName))) { git =>
-        val remoteRefName = s"refs/heads/${branch}"
-        val tmpRefName = s"refs/merge-check/${userName}/${branch}"
-        val refSpec = new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true)
-        try {
-          // fetch objects from origin repository branch
-          git.fetch
-             .setRemote(getRepositoryDir(userName, repositoryName).toURI.toString)
-             .setRefSpecs(refSpec)
-             .call
-
-          // merge conflict check
-          val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
-          val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${requestBranch}")
-          val mergeTip = git.getRepository.resolve(tmpRefName)
-          try {
-            !merger.merge(mergeBaseTip, mergeTip)
-          } catch {
-            case e: NoMergeBaseException =>  true
-          }
-        } finally {
-          val refUpdate = git.getRepository.updateRef(refSpec.getDestination)
-          refUpdate.setForceUpdate(true)
-          refUpdate.delete()
-        }
-      }
-    }
-  }
-
-  /**
-   * Checks whether conflict will be caused in merging within pull request. Returns true if conflict will be caused.
-   */
-  private def checkConflictInPullRequest(userName: String, repositoryName: String, branch: String,
-                                         requestUserName: String, requestRepositoryName: String, requestBranch: String,
-                                         issueId: Int): Boolean = {
-    LockUtil.lock(s"${userName}/${repositoryName}") {
-      using(Git.open(getRepositoryDir(userName, repositoryName))) { git =>
-        // merge
-        val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
-        val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${branch}")
-        val mergeTip = git.getRepository.resolve(s"refs/pull/${issueId}/head")
-        try {
-          !merger.merge(mergeBaseTip, mergeTip)
-        } catch {
-          case e: NoMergeBaseException => true
-        }
-      }
-    }
-  }
 
   /**
    * Parses branch identifier and extracts owner and branch name as tuple.
@@ -479,5 +453,4 @@ trait PullRequestsControllerBase extends ControllerBase {
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))
     }
-
 }

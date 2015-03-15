@@ -14,6 +14,8 @@ object Implicits {
   // Convert to slick session.
   implicit def request2Session(implicit request: HttpServletRequest): JdbcBackend#Session = Database.getSession(request)
 
+  implicit def context2ApiJsonFormatContext(implicit context: app.Context): api.JsonFormat.Context = api.JsonFormat.Context(context.baseUrl)
+
   implicit class RichSeq[A](seq: Seq[A]) {
 
     def splitWith(condition: (A, A) => Boolean): Seq[Seq[A]] = split(seq)(condition)
@@ -55,7 +57,10 @@ object Implicits {
 
   implicit class RichRequest(request: HttpServletRequest){
 
-    def paths: Array[String] = request.getRequestURI.substring(request.getContextPath.length + 1).split("/")
+    def paths: Array[String] = (request.getRequestURI match{
+      case path if path.startsWith("/api/v3/repos/") => path.substring(13/* "/api/v3/repos".length */)
+      case path => path
+    }).substring(request.getContextPath.length + 1).split("/")
 
     def hasQueryString: Boolean = request.getQueryString != null
 
