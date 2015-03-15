@@ -22,7 +22,7 @@ trait IssuesService {
 
   def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session) =
     IssueComments.filter(_.byIssue(owner, repository, issueId))
-    .filter(_.action inSetBind Set("commant" , "close_comment", "reopen_comment"))
+    .filter(_.action inSetBind Set("comment" , "close_comment", "reopen_comment"))
     .innerJoin(Accounts).on( (t1, t2) => t1.userName === t2.userName )
     .list
 
