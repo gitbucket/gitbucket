@@ -176,7 +176,7 @@ object JGitUtil {
           git.tagList.call.asScala.map { ref =>
             val revCommit = getRevCommitFromId(git, ref.getObjectId)
             TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName)
-          }.toList
+          }.sortBy(_.time).toList
         )
       } catch {
         // not initialized
