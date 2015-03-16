@@ -2,10 +2,10 @@ package api
 
 import java.util.Date
 import org.eclipse.jgit.diff.DiffEntry
-import util.JGitUtil
-import util.JGitUtil.CommitInfo
+import gitbucket.core.util.JGitUtil
+import gitbucket.core.util.JGitUtil.CommitInfo
+import gitbucket.core.util.RepositoryName
 import org.eclipse.jgit.api.Git
-import util.RepositoryName
 
 /**
  * https://developer.github.com/v3/repos/commits/

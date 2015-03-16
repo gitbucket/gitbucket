@@ -1,0 +1,125 @@
+@(issue: gitbucket.core.model.Issue,
+  pullreq: gitbucket.core.model.PullRequest,
+  comments: List[gitbucket.core.model.Comment],
+  issueLabels: List[gitbucket.core.model.Label],
+  collaborators: List[String],
+  milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  labels: List[gitbucket.core.model.Label],
+  dayByDayCommits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
+  diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.model._
+@html.main(s"${issue.title} - Pull Request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
+  @html.menu("pulls", repository){
+    @defining(dayByDayCommits.flatten){ commits =>
+      <div>
+        <div class="show-title pull-right">
+          @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
+            <a class="btn btn-small" href="#" id="edit">Edit</a>
+          }
+          <a class="btn btn-small btn-success" href="@url(repository)/issues/new">New issue</a>
+        </div>
+        <div class="edit-title pull-right" style="display: none;">
+          <a class="btn" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
+        </div>
+        <h1>
+          <span class="show-title">
+            <span id="show-title">@issue.title</span>
+            <span class="muted">#@issue.issueId</span>
+          </span>
+          <span class="edit-title" style="display: none;">
+            <span id="error-edit-title" class="error"></span>
+            <input type="text" style="width: 700px;" id="edit-title" value="@issue.title"/>
+          </span>
+        </h1>
+      </div>
+      @if(issue.closed) {
+        @comments.flatMap @{
+          case comment: IssueComment => Some(comment)
+          case _ => None
+        }.find(_.action == "merge").map{ comment =>
+          <span class="label label-info issue-status">Merged</span>
+          <span class="muted">
+            @user(comment.commentedUserName, styleClass="username strong") merged @commits.size @plural(commits.size, "commit")
+            into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+            @helper.html.datetimeago(comment.registeredDate)
+          </span>
+        }.getOrElse {
+          <span class="label label-important issue-status">Closed</span>
+          <span class="muted">
+            @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
+            into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+          </span>
+        }
+      } else {
+        <span class="label label-success issue-status">Open</span>
+        <span class="muted">
+          @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
+          into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+        </span>
+      }
+      <br/><br/>
+      <ul class="nav nav-tabs fill-width pull-left" id="pullreq-tab">
+        <li class="active"><a href="#conversation">Conversation <span class="badge">@comments.flatMap @{
+          case comment: IssueComment => Some(comment)
+          case _: CommitComment => None
+        }.size</span></a></li>
+        <li><a href="#commits">Commits <span class="badge">@commits.size</span></a></li>
+        <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
+      </ul>
+      <div class="tab-content fill-width pull-left">
+        <div class="tab-pane active" id="conversation">
+          @pulls.html.conversation(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+        </div>
+        <div class="tab-pane" id="commits">
+          @pulls.html.commits(dayByDayCommits, Some(comments), repository)
+        </div>
+        <div class="tab-pane" id="files">
+          @helper.html.diff(diffs, repository, Some(commits.head.id), Some(commits.last.id), true, Some(pullreq.issueId), hasWritePermission, true)
+        </div>
+      </div>
+    }
+  }
+}
+<script>
+$(function(){
+  $('#pullreq-tab a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+  });
+
+  $('#edit').click(function(){
+    $('.edit-title').show();
+    $('.show-title').hide();
+    return false;
+  });
+
+  $('#update').click(function(){
+    $(this).attr('disabled', 'disabled');
+    $.ajax({
+      url: '@url(repository)/issues/edit_title/@issue.issueId',
+      type: 'POST',
+      data: {
+        title   : $('#edit-title').val()
+      }
+    }).done(function(data){
+      $('#show-title').empty().text(data.title);
+      $('#cancel').click();
+      $(this).removeAttr('disabled');
+    }).fail(function(req){
+      $(this).removeAttr('disabled');
+      $('#error-edit-title').text($.parseJSON(req.responseText).title);
+    });
+    return false;
+  });
+
+  $('#cancel').click(function(){
+    $('.edit-title').hide();
+    $('.show-title').show();
+    return false;
+  });
+});
+</script>

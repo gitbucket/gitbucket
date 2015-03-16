@@ -1,8 +1,8 @@
 package api
 
 import java.util.Date
-import model.CommitStatus
-import util.RepositoryName
+import gitbucket.core.model.CommitStatus
+import gitbucket.core.util.RepositoryName
 
 /**
  * https://developer.github.com/v3/repos/statuses/#create-a-status

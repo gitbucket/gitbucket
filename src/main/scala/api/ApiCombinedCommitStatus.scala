@@ -1,8 +1,7 @@
 package api
 
-import model.Account
-import model.CommitStatus
-import model.CommitState
+import gitbucket.core.model.{Account, CommitState, CommitStatus}
+
 
 /**
  * https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref

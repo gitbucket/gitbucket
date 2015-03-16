@@ -1,0 +1,77 @@
+@(pageName: Option[String],
+  commits: List[gitbucket.core.util.JGitUtil.CommitInfo],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
+  @html.menu("wiki", repository){
+    <ul class="nav nav-tabs fill-width pull-left">
+      <li>
+        <h1 class="wiki-title">
+          @if(pageName.isEmpty){
+            <span class="muted">History</span>
+          } else {
+            <span class="muted">History for</span> @pageName.get
+          }
+        </h1>
+      </li>
+      <li class="pull-right">
+        <div>
+          @if(pageName.isEmpty){
+            @if(loginAccount.isDefined){
+              <a class="btn btn-small" href="@url(repository)/wiki/_new">New Page</a>
+            }
+          } else {
+            @if(loginAccount.isDefined){
+              <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+              <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
+            }
+          }
+        </div>
+      </li>
+    </ul>
+    <table class="table table-bordered fill-width pull-left">
+      <tr>
+        <th colspan="3">
+          <div class="pull-left" style="padding-top: 4px;">Revisions</div>
+          <div class="pull-right">
+            <input type="button" id="compare" value="Compare Revisions" class="btn btn-mini"/>
+          </div>
+        </th>
+      </tr>
+      @commits.map { commit =>
+        <tr>
+          <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
+          <td>@avatar(commit, 20)&nbsp;@user(commit.authorName, commit.authorEmailAddress)</td>
+          <td width="80%">
+            <span class="muted">@helper.html.datetimeago(commit.authorTime):</span>&nbsp;@commit.shortMessage
+          </td>
+        </tr>
+      }
+    </table>
+    <script>
+    $(function(){
+      $('input[name=commitId]').click(function(){
+        return !($('input[name=commitId]:checked').length == 3);
+      });
+
+      $('#compare').click(function(){
+        var e = $('input[name=commitId]:checked');
+        if(e.length == 2){
+          @if(pageName.isEmpty){
+            location.href = '@url(repository)/wiki/_compare/' +
+              $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
+          } else {
+            location.href = '@url(repository)/wiki/@urlEncode(pageName.get)/_compare/' +
+              $(e.get(1)).attr('value') + '...' + $(e.get(0)).attr('value');
+          }
+        }
+      });
+
+      $('#top').click(function(){
+        $('html,body').animate({ scrollTop: 0 }, 'fast');
+      });
+    });
+    </script>
+  }
+}

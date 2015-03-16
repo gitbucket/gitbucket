@@ -1,0 +1,67 @@
+@(labels: List[gitbucket.core.model.Label],
+  counts: Map[String, Int],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(s"Labels - ${repository.owner}/${repository.name}"){
+  @html.menu("issues", repository){
+    @issues.html.navigation("labels", hasWritePermission, repository)
+    <br>
+    <table class="table table-bordered table-hover table-issues" id="new-label-table" style="display: none;">
+      <tr><td></td></tr>
+    </table>
+    <table class="table table-bordered table-hover table-issues">
+      <tr id="label-row-header">
+        <th style="background-color: #eee;">
+          <span class="small">@labels.size labels</span>
+        </th>
+      </tr>
+      @labels.map { label =>
+        @gitbucket.core.issues.labels.html.label(label, counts, repository, hasWritePermission)
+      }
+      @if(labels.isEmpty){
+        <tr>
+          <td style="padding: 20px; background-color: #eee; text-align: center;">
+            No labels to show.
+            @if(hasWritePermission){
+              <a href="@url(repository)/issues/labels/new">Create a new label.</a>
+            }
+          </td>
+        </tr>
+      }
+    </table>
+  }
+}
+<script>
+$(function(){
+  $('#new-label-button').click(function(e){
+    if($('#edit-label-area-new').size() != 0){
+      $('div#edit-label-area-new').remove();
+      $('#new-label-table').hide();
+    } else {
+      $.get('@url(repository)/issues/labels/new',
+        function(data){
+          $('#new-label-table').show().find('tr td').append(data);
+        }
+      );
+    }
+  });
+});
+
+function deleteLabel(labelId){
+  if(confirm('Once you delete this label, there is no going back.\nAre you sure?')){
+    $.post('@url(repository)/issues/labels/' + labelId + '/delete', function(){
+      $('tr#label-row-' + labelId).remove();
+    });
+  }
+}
+
+function editLabel(labelId){
+  $.get('@url(repository)/issues/labels/' + labelId + '/edit',
+    function(data){
+      $('#label-' + labelId).hide().parent().append(data);
+    }
+  );
+}
+</script>

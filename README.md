@@ -79,6 +79,12 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.0 - 3 Mar 2015
+- New plug-in system is available
+- Connection pooling by c3p0
+- New branch UI
+- Compare between specified commit ids
+
 ### 2.8 - 1 Feb 2015
 - New logo and icons
 - New system setting options to control visibility

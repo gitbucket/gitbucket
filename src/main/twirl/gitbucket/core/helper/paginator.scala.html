@@ -1,0 +1,34 @@
+@(page: Int, count: Int, limit: Int, width: Int, baseURL: String)
+@defining(gitbucket.core.view.Pagination(page, count, limit, width)){ p =>
+  @if(p.count > p.limit){
+    <div class="pagination">
+      <ul>
+        @if(page == 1){
+          <li class="disabled"><span>&#9664;</span></li>
+        } else {
+          <li><a href="@baseURL&page=@(page - 1)">&#9664;</a></li>
+        }
+        @for(i <- 1 to p.max){
+          @if(i == p.max && p.omitRight){
+            <li><span>&hellip;</span></li>
+          }
+          @if(i == page){
+            <li class="active"><span>@i</span></li>
+          } else {
+            @if(p.visibleFor(i)){
+              <li><a href="@baseURL&page=@i">@i</a></li>
+            }
+          }
+          @if(i == 1 && p.omitLeft){
+            <li><span>&hellip;</span></li>
+          }
+        }
+        @if(page == p.max){
+          <li class="disabled"><span>&#9654;</span></li>
+        } else {
+          <li><a href="@baseURL&page=@(page + 1)">&#9654;</a></li>
+        }
+      </ul>
+    </div>
+  }
+}

@@ -1,6 +1,6 @@
 package api
 
-import model.CommitState
+import gitbucket.core.model.CommitState
 
 /**
  * https://developer.github.com/v3/repos/statuses/#create-a-status

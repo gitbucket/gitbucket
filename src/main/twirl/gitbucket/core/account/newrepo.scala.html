@@ -1,0 +1,74 @@
+@(groupNames: List[String],
+isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Create a New Repository"){
+<div style="width: 600px; margin: 10px auto;">
+  <form id="form" method="post" action="@path/new" validate="true">
+    <fieldset>
+      <label for="name" class="strong">Repository name:</label>
+      <div class="btn-group" style="margin-bottom: 10px;" id="owner-dropdown">
+        <button class="btn dropdown-toggle" data-toggle="dropdown">
+          <span class="strong">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="javascript:void(0);" data-name="@loginAccount.get.userName"><i class="icon-ok"></i> <span>@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span></a></li>
+          @groupNames.map { groupName =>
+            <li><a href="javascript:void(0);" data-name="@groupName"><i class="icon-white"></i> <span>@avatar(groupName, 20) @groupName</span></a></li>
+          }
+        </ul>
+        <input type="hidden" name="owner" id="owner" value="@loginAccount.get.userName"/>
+      </div>
+      <span class="slash">/</span>
+      <input type="text" name="name" id="name" />
+      <span id="error-name" class="error"></span>
+    </fieldset>
+    <fieldset>
+      <label for="description" class="strong">Description (optional):</label>
+      <input type="text" name="description" id="description" style="width: 95%;"/>
+    </fieldset>
+    <fieldset class="margin">
+      <label class="radio">
+        <input type="radio" name="isPrivate" value="false" @if(isCreateRepoOptionPublic){checked}>
+        <span class="strong"><img src="@assets/common/images/repo_public.png"/>&nbsp;</i>&nbsp;Public</span><br>
+        <div>
+          <span>All users and guests can read this repository.</span>
+        </div>
+      </label>
+    </fieldset>
+    <fieldset>
+      <label class="radio">
+        <input type="radio" name="isPrivate" value="true" @if(!isCreateRepoOptionPublic){checked}>
+        <span class="strong"><img src="@assets/common/images/repo_private.png"/>&nbsp;</i>&nbsp;Private</span><br>
+        <div>
+          <span>Only collaborators can read this repository.</span>
+        </div>
+      </label>
+    </fieldset>
+    <fieldset class="margin">
+      <label for="createReadme" class="checkbox">
+        <input type="checkbox" name="createReadme" id="createReadme"/>
+        <span class="strong">Initialize this repository with a README</span>
+        <div>
+          <span>This will allow you to <code>git clone</code> the repository immediately.</span>
+        </div>
+      </label>
+    </fieldset>
+    <fieldset class="margin">
+      <input type="submit" class="btn btn-success" value="Create repository"/>
+    </fieldset>
+  </form>
+</div>
+}
+<script>
+$('#owner-dropdown a').click(function(){
+  var userName = $(this).data('name');
+  $('#owner').val(userName);
+
+  $('#owner-dropdown i').attr('class', 'icon-white');
+  $(this).find('i').attr('class', 'icon-ok');
+
+  $('#owner-dropdown span.strong').html($(this).find('span').html());
+});
+</script>

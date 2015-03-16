@@ -1,7 +1,7 @@
 package api
 
 import java.util.Date
-import util.JGitUtil.CommitInfo
+import gitbucket.core.util.JGitUtil.CommitInfo
 
 case class ApiPersonIdent(
   name: String,

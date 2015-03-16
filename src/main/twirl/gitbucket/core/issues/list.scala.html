@@ -1,0 +1,98 @@
+@(target: String,
+  issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+  page: Int,
+  collaborators: List[String],
+  milestones: List[gitbucket.core.model.Milestone],
+  labels: List[gitbucket.core.model.Label],
+  openCount: Int,
+  closedCount: Int,
+  condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
+  @html.menu(target, repository){
+    @navigation(target, true, repository, Some(condition))
+    @listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
+    @if(hasWritePermission){
+      <form id="batcheditForm" method="POST">
+        <input type="hidden" name="value"/>
+        <input type="hidden" name="checked"/>
+        <input type="hidden" name="from" value="@target"/>
+      </form>
+    }
+  }
+}
+@if(hasWritePermission){
+<script>
+$(function(){
+  $('a.header-link').mouseover(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', '#0088cc');
+    $(target).children('img.header-icon-hover').css('display', 'inline');
+    $(target).children('img.header-icon'      ).css('display', 'none');
+  });
+
+  $('a.header-link').mouseout(function(e){
+    var target = e.target;
+    if(e.target.tagName != 'A'){
+      target = e.target.parentElement;
+    }
+    $(target).children('strong'               ).css('color', 'black');
+    $(target).children('img.header-icon-hover').css('display', 'none');
+    $(target).children('img.header-icon'      ).css('display', 'inline');
+  });
+
+  $('.table-issues input[type=checkbox]').change(function(){
+    var all = $('.table-issues input[type=checkbox][value]');
+
+    // check all
+    if($(this).val() == 'on'){
+      var flag = $(this).is(":checked");
+      all.each(function(){
+        $(this).prop("checked", flag);
+      });
+    }
+
+    var count = all.filter(':checked').length;
+    // whether all check
+    $('.table-issues input[type=checkbox]').filter(':first').prop("checked", count > 0 && count == all.length);
+
+    if(count == 0){
+      $('#table-issues-control').show();
+      $('#table-issues-batchedit').hide();
+    } else {
+      $('#batchedit-selected').text(count);
+      $('#table-issues-control').hide();
+      $('#table-issues-batchedit').show();
+    }
+  }).filter(':first').change();
+
+  var submitBatchEdit = function(action, value) {
+    var checked = $('.table-issues input[type=checkbox][value]').filter(':checked').map(function(){ return this.value; }).get().join();
+    var form = $('#batcheditForm');
+    form.find('input[name=value]').val(value);
+    form.find('input[name=checked]').val(checked);
+    form.attr('action', action);
+    form.submit();
+  };
+
+  $('a.toggle-state').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/state', $(this).data('id'));
+  });
+  $('a.toggle-label').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/label', $(this).data('id'));
+  });
+  $('a.toggle-assign').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/assign', $(this).data('name'));
+  });
+  $('a.toggle-milestone').click(function(){
+    submitBatchEdit('@url(repository)/issues/batchedit/milestone', $(this).data('id'));
+  });
+});
+</script>
+}

@@ -1,0 +1,16 @@
+@(account: gitbucket.core.model.Account, members: List[String], isGroupManager: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@main(account, Nil, "members", isGroupManager){
+  @if(members.isEmpty){
+    No members
+  } else {
+    @members.map { userName =>
+      <div class="block">
+        <div class="block-header">
+          @avatar(userName, 20) <a href="@url(userName)">@userName</a>
+        </div>
+      </div>
+    }
+  }
+}

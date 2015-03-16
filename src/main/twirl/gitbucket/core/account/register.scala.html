@@ -1,0 +1,50 @@
+@()(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Create your account"){
+<div class="container">
+  <h3>Create your account</h3>
+  <form action="@path/register" method="POST" validate="true">
+    <div class="row-fluid">
+      <div class="span6">
+        <fieldset>
+          <label for="userName" class="strong">Username:</label>
+          <input type="text" name="userName" id="userName" value=""/>
+          <span id="error-userName" class="error"></span>
+        </fieldset>
+        <fieldset>
+          <label for="password" class="strong">
+            Password:
+          </label>
+          <input type="password" name="password" id="password" value=""/>
+          <span id="error-password" class="error"></span>
+        </fieldset>
+        <fieldset>
+          <label for="fullName" class="strong">Full Name:</label>
+          <input type="text" name="fullName" id="fullName" value=""/>
+          <span id="error-fullName" class="error"></span>
+        </fieldset>
+        <fieldset>
+          <label for="mailAddress" class="strong">Mail Address:</label>
+          <input type="text" name="mailAddress" id="mailAddress" value=""/>
+          <span id="error-mailAddress" class="error"></span>
+        </fieldset>
+        <fieldset>
+          <label for="url" class="strong">URL (optional):</label>
+          <input type="text" name="url" id="url" style="width: 400px;" value=""/>
+          <span id="error-url" class="error"></span>
+        </fieldset>
+      </div>
+      <div class="span6">
+        <fieldset>
+          <label for="avatar" class="strong">Image (optional):</label>
+          @helper.html.uploadavatar(None)
+        </fieldset>
+      </div>
+    </div>
+    <fieldset class="margin">
+      <input type="submit" class="btn btn-success" value="Create account"/>
+    </fieldset>
+  </form>
+</div>
+}

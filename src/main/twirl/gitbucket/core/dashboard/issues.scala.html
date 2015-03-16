@@ -1,0 +1,16 @@
+@(issues: List[gitbucket.core.service.IssuesService.IssueInfo],
+  page: Int,
+  openCount: Int,
+  closedCount: Int,
+  condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
+  filter: String,
+  groups: List[String])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Issues"){
+  @dashboard.html.tab("issues")
+  <div class="container">
+    @issuesnavi(filter, "issues", condition)
+    @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
+  </div>
+}

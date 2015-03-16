@@ -1,0 +1,81 @@
+@(pathList: List[String],
+  branch: String,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
+  page: Int,
+  hasNext: Boolean,
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+  @html.menu("code", repository){
+    <div class="head">
+      @helper.html.branchcontrol(
+        branch,
+        repository,
+        hasWritePermission
+      ){
+        @repository.branchList.map { x =>
+          <li><a href="@url(repository)/commits/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
+        }
+      }
+      @if(pathList.isEmpty){
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> / Commit History
+      }
+      @if(pathList.nonEmpty){
+        <span class="muted">History for</span>
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          @if(i == pathList.length - 1){
+            @section
+          } else {
+            <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+          }
+        }
+      }
+    </div>
+    @commits.map { day =>
+      <table class="table table-bordered">
+        <tr>
+          <th>@date(day.head.commitTime)</th>
+        </tr>
+        @day.map { commit =>
+        <tr>
+          <td>
+            <div class="pull-right align-right">
+              <a href="@url(repository)/commit/@commit.id" class="btn btn-small monospace">@commit.id.substring(0, 10)</a><br>
+              <a href="@url(repository)/tree/@commit.id" class="small">Browse code</a>
+            </div>
+            <div>
+              <div class="commit-avatar-image">@avatar(commit, 40)</div>
+              <div class="commit-message-box">
+                <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
+                @if(commit.description.isDefined){
+                  <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
+                }
+                <br>
+                @if(commit.description.isDefined){
+                  <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
+                }
+                <div class="small">
+                  @user(commit.authorName, commit.authorEmailAddress, "username")
+                  <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+                  @if(commit.isDifferentFromAuthor) {
+                    <span class="icon-arrow-right" style="margin-top : -2px ;"></span>
+                    @user(commit.committerName, commit.committerEmailAddress, "username")
+                    <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        }
+      </table>
+    }
+    <div class="btn-group">
+      <button class="btn" onclick="location.href='?page=@{page - 1}'"@if(page <= 1){ disabled="true"}>&lt; Newer</button>
+      <button class="btn" onclick="location.href='?page=@{page + 1}'"@if(!hasNext){ disabled="true"}>Older &gt;</button>
+    </div>
+  }
+}

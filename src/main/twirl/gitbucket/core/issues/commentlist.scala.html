@@ -1,0 +1,264 @@
+@(issue: Option[gitbucket.core.model.Issue],
+  comments: List[gitbucket.core.model.Comment],
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  pullreq: Option[gitbucket.core.model.PullRequest] = None)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.model.CommitComment
+@if(issue.isDefined){
+  <div class="issue-avatar-image">@avatar(issue.get.openedUserName, 48)</div>
+  <div class="box issue-comment-box">
+    <div class="box-header-small">
+      @user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.get.registeredDate)</span>
+      <span class="pull-right">
+        @if(hasWritePermission || loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
+          <a href="#" data-issue-id="@issue.get.issueId"><i class="icon-pencil"></i></a>
+        }
+      </span>
+    </div>
+    <div class="box-content issue-content markdown-body" id="issueContent">
+      @markdown(issue.get.content getOrElse "No description provided.", repository, false, true, true, hasWritePermission)
+    </div>
+  </div>
+}
+
+@comments.map {
+  case comment: gitbucket.core.model.IssueComment => {
+    @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"){
+      <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
+      <div class="box issue-comment-box" id="comment-@comment.commentId">
+        <div class="box-header-small">
+          @user(comment.commentedUserName, styleClass="username strong")
+          <span class="muted">
+            @if(comment.action == "comment"){
+              commented
+            } else {
+              @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
+            }
+            @helper.html.datetimeago(comment.registeredDate)
+          </span>
+          <span class="pull-right">
+            @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
+                  && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+              <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
+              <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
+            }
+          </span>
+        </div>
+        <div class="box-content"class="issue-content" id="commentContent-@comment.commentId">
+          @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
+            @defining(comment.content.substring(comment.content.length - 40)){ id =>
+              <div class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></div>
+              <div class="markdown-body">@markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true, true, hasWritePermission)</div>
+            }
+          } else {
+            @if(comment.action == "refer"){
+              @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
+                <strong><a href="@path/@repository.owner/@repository.name/issues/@issueId">Issue #@issueId</a>: @rest.mkString(":")</strong>
+              }
+            } else {
+                <div class="markdown-body">@markdown(comment.content, repository, false, true, true, hasWritePermission)</div>
+            }
+          }
+        </div>
+      </div>
+    }
+    @if(comment.action == "merge"){
+      <div class="small" style="margin-top: 10px; margin-bottom: 10px;">
+        <span class="label label-info">Merged</span>
+        @avatar(comment.commentedUserName, 20)
+        @user(comment.commentedUserName, styleClass="username strong") merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
+        @if(pullreq.get.requestUserName == repository.owner){
+          <span class="label label-info monospace">@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span>
+        } else {
+          <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
+        }
+        @helper.html.datetimeago(comment.registeredDate)
+      </div>
+    }
+    @if(comment.action == "close" || comment.action == "close_comment"){
+      <div class="small issue-comment-action">
+        <span class="label label-important">Closed</span>
+        @avatar(comment.commentedUserName, 20)
+        @if(issue.isDefined && issue.get.isPullRequest){
+          @user(comment.commentedUserName, styleClass="username strong") closed the pull request @helper.html.datetimeago(comment.registeredDate)
+        } else {
+          @user(comment.commentedUserName, styleClass="username strong") closed the issue @helper.html.datetimeago(comment.registeredDate)
+        }
+      </div>
+    }
+    @if(comment.action == "reopen" || comment.action == "reopen_comment"){
+      <div class="small issue-comment-action">
+        <span class="label label-success">Reopened</span>
+        @avatar(comment.commentedUserName, 20)
+        @user(comment.commentedUserName, styleClass="username strong") reopened the issue @helper.html.datetimeago(comment.registeredDate)
+      </div>
+    }
+    @if(comment.action == "delete_branch"){
+      <div class="small issue-comment-action">
+        <span class="label">Deleted</span>
+        @avatar(comment.commentedUserName, 20)
+        @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @helper.html.datetimeago(comment.registeredDate)
+      </div>
+    }
+  }
+  case comment: CommitComment => {
+    @helper.html.commitcomment(comment, hasWritePermission, repository, pullreq.map(_.commitIdTo))
+  }
+}
+<script>
+$(function(){
+@if(issue.isDefined){
+  $('.issue-comment-box i.icon-pencil').click(function(){
+    var id  = $(this).closest('a').data('comment-id');
+    var url = '@url(repository)/issue_comments/_data/' + id;
+    var $content = $('#commentContent-' + id);
+
+    if(!id){
+      id  = $(this).closest('a').data('issue-id');
+      url = '@url(repository)/issues/_data/' + id;
+      $content = $('#issueContent');
+    }
+
+    $.get(url,
+    {
+      dataType : 'html'
+    },
+    function(data){
+      $content.empty().html(data);
+    });
+    return false;
+  });
+  $('.issue-comment-box i.icon-remove-circle').click(function(){
+    if(confirm('Are you sure you want to delete this?')) {
+      var id = $(this).closest('a').data('comment-id');
+      $.post('@url(repository)/issue_comments/delete/' + id,
+      function(data){
+        if(data > 0) {
+          $('#comment-' + id).prev('div.issue-avatar-image').remove();
+          $('#comment-' + id).remove();
+        }
+      });
+    }
+    return false;
+  });
+}
+  $(document).on('click', '.commit-comment-box i.icon-pencil', function(){
+    var id  = $(this).closest('a').data('comment-id');
+    var url = '@url(repository)/commit_comments/_data/' + id;
+    var $content = $('.commit-commentContent-' + id, $(this).closest('.box'));
+
+    $.get(url,
+    {
+      dataType : 'html'
+    },
+    function(data){
+      $content.empty().html(data);
+    });
+    return false;
+  });
+  $(document).on('click', '.commit-comment-box i.icon-remove-circle', function(){
+    if(confirm('Are you sure you want to delete this?')) {
+      var id = $(this).closest('a').data('comment-id');
+      $.post('@url(repository)/commit_comments/delete/' + id,
+      function(data){
+        if(data > 0) {
+          $('.commit-comment-' + id).closest('.not-diff').remove();
+          $('.commit-comment-' + id).closest('.inline-comment').remove();
+        }
+      });
+    }
+    return false;
+  });
+
+  var extractMarkdown = function(data){
+    $('body').append('<div id="tmp"></div>');
+    $('#tmp').html(data);
+    var markdown = $('#tmp textarea').val();
+    $('#tmp').remove();
+    return markdown;
+  };
+
+  var replaceTaskList = function(issueContentHtml, checkboxes) {
+    var ss = [],
+        markdown = extractMarkdown(issueContentHtml),
+        xs = markdown.split(/- \[[x| ]\]/g);
+    for (var i=0; i<xs.length; i++) {
+      ss.push(xs[i]);
+      if (checkboxes.eq(i).prop('checked')) ss.push('- [x]');
+      else ss.push('- [ ]');
+    }
+    ss.pop();
+    return ss.join('');
+  };
+
+  $('div[class*=commit-commentContent-]').on('click', ':checkbox', function(ev){
+    var $commentContent = $(ev.target).parents('div[class*=commit-commentContent-]'),
+        commentId = $commentContent.attr('class').match(/commit-commentContent-.+/)[0].replace(/commit-commentContent-/, ''),
+        checkboxes = $commentContent.find(':checkbox');
+    $.get('@url(repository)/commit_comments/_data/' + commentId,
+      {
+        dataType : 'html'
+      },
+      function(responseContent){
+        $.ajax({
+          url: '@url(repository)/commit_comments/edit/' + commentId,
+          type: 'POST',
+          data: {
+            issueId : 0,
+            content : replaceTaskList(responseContent, checkboxes)
+          },
+          success: function(data) {
+            $('.commit-commentContent-' + commentId).html(data.content);
+          }
+        });
+      }
+    );
+  });
+
+  @if(issue.isDefined){
+  $('#issueContent').on('click', ':checkbox', function(ev){
+    var checkboxes = $('#issueContent :checkbox');
+    $.get('@url(repository)/issues/_data/@issue.get.issueId',
+      {
+        dataType : 'html'
+      },
+      function(responseContent){
+        $.ajax({
+          url: '@url(repository)/issues/edit/@issue.get.issueId',
+          type: 'POST',
+          data: {
+            title   : $('#issueTitle').text(),
+            content : replaceTaskList(responseContent, checkboxes)
+          }
+        });
+      }
+    );
+  });
+
+  $('div[id^=commentContent-]').on('click', ':checkbox', function(ev){
+    var $commentContent = $(ev.target).parents('div[id^=commentContent-]'),
+        commentId = $commentContent.attr('id').replace(/commentContent-/, ''),
+        checkboxes = $commentContent.find(':checkbox');
+    $.get('@url(repository)/issue_comments/_data/' + commentId,
+      {
+        dataType : 'html'
+      },
+      function(responseContent){
+        $.ajax({
+          url: '@url(repository)/issue_comments/edit/' + commentId,
+          type: 'POST',
+          data: {
+            issueId : 0,
+            content : replaceTaskList(responseContent, checkboxes)
+          }
+        });
+      }
+    );
+  });
+
+  }
+
+});
+</script>

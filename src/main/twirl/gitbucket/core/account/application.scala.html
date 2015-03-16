@@ -1,0 +1,57 @@
+@(account: gitbucket.core.model.Account,
+  personalTokens: List[gitbucket.core.model.AccessToken],
+  gneratedToken: Option[(gitbucket.core.model.AccessToken, String)])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Applications"){
+<div class="container">
+  <div class="row-fluid">
+    <div class="span3">
+      @menu("application", settings.ssh)
+    </div>
+    <div class="span9">
+      <div class="box">
+        <div class="box-header">Personal access tokens</div>
+        <div class="box-content">
+          @if(personalTokens.isEmpty && gneratedToken.isEmpty){
+            No tokens.
+          }else{
+            Tokens you have generated that can be used to access the GitBucket API.<hr>
+          }
+          @gneratedToken.map{ case (token, tokenString) =>
+            <div class="alert alert-info">
+              Make sure to copy your new personal access token now. You won't be able to see it again!
+            </div>
+            @helper.html.copy("generated-token-copy", tokenString){
+              <input type="text" value="@tokenString" style="width:21em" readonly>
+            }
+            <a href="@path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-mini btn-danger pull-right">Delete</a>
+            <hr>
+          }
+          @personalTokens.zipWithIndex.map { case (token, i) =>
+            @if(i != 0){
+              <hr>
+            }
+            <strong>@token.note</strong>
+            <a href="@path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-mini btn-danger pull-right">Delete</a>
+          }
+        </div>
+      </div>
+      <form method="POST" action="@path/@account.userName/_personalToken" validate="true">
+        <div class="box">
+          <div class="box-header">Generate new token</div>
+          <div class="box-content">
+            <fieldset>
+              <label for="note" class="strong">Token description</label>
+              <div><span id="error-note" class="error"></span></div>
+              <input type="text" name="note" id="note" style="width: 400px;"/>
+              <p class="muted">What's this token for?</p>
+            </fieldset>
+            <input type="submit" class="btn btn-success" value="Generate token"/>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+}

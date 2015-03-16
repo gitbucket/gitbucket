@@ -1,0 +1,74 @@
+@(pageName: String,
+  page: gitbucket.core.service.WikiService.WikiPageInfo,
+  pages: List[String],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.service.WikiService._
+@html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
+  @html.menu("wiki", repository){
+    <ul class="nav nav-tabs fill-width pull-left">
+      <li>
+        <h1 class="wiki-title">@pageName</h1>
+        <div class="small">
+          <span class="muted"><strong>@page.committer</strong> edited this page @helper.html.datetimeago(page.time)</span>
+        </div>
+      </li>
+      <li class="pull-right">
+        @if(hasWritePermission){
+          <div>
+            <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+            <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
+          </div>
+        }
+      </li>
+    </ul>
+    <div style="width: 200px;" class="pull-right">
+      <table class="table table-bordered">
+        <tr>
+          <th class="metal">Pages <span class="label">@pages.length</span></th>
+        </tr>
+        <tr>
+          <td>
+            <ul style="margin-left: 0px; margin-bottom: 0px; word-break: break-all; width: 182px;">
+            @pages.map { page =>
+              <li style="margin-left:0px; list-style-type: none;"><a href="@url(repository)/wiki/@urlEncode(page)">@page</a></li>
+            }
+            </ul>
+          </td>
+        </tr>
+      </table>
+      <div class="small">
+        <strong>Clone this wiki locally</strong>
+      </div>
+      @helper.html.copy("repository-url-copy", httpUrl(repository)){
+        <input type="text" value="@httpUrl(repository)" id="repository-url" style="width: 160px;" readonly>
+      }
+      @if(settings.ssh && loginAccount.isDefined){
+        <div class="small">
+          <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
+        </div>
+      }
+    </div>
+    <div style="width: 650px;" class="pull-left">
+      <div class="markdown-body">
+        @markdown(page.content, repository, true, false, false, false, pages)
+      </div>
+    </div>
+  }
+}
+@if(settings.ssh && loginAccount.isDefined){
+  <script>
+  $(function(){
+    $('#repository-url-http').click(function(){
+      $('#repository-url').val('@httpUrl(repository)');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+    $('#repository-url-ssh').click(function(){
+      $('#repository-url').val('@sshUrl(repository, settings, loginAccount.get.userName)');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+  });
+  </script>
+}

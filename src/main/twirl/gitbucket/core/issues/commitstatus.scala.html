@@ -1,0 +1,19 @@
+@(issue: gitbucket.core.model.Issue, statusInfo: Option[gitbucket.core.service.IssuesService.CommitStatusInfo])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers._
+@statusInfo.map{ status =>
+  @if(status.count==1 && status.state.isDefined){
+    @if(status.targetUrl.isDefined){
+      <a href="@status.targetUrl.get" class="text-@status.state.get.name" data-toggle="tooltip" title="@status.state.get.name : @status.description.getOrElse(status.context.get)">@commitStateIcon(status.state.get)</a>
+    }else{
+      <span class="text-@status.state.get.name">@commitStateIcon(status.state.get)
+    }
+  }else{
+    @defining(status.count==status.successCount){ isSuccess =>
+    <a href="@context.path/@issue.userName/@issue.repositoryName/@issue.issueId" class="@if(isSuccess){ text-success }else{ text-error }" data-toggle="tooltip" title="@status.successCount / @status.count checks OK">@if(isSuccess){
+    	&#x2714;
+    }else{
+    	×
+    }</a>
+    }
+  }
+}

@@ -1,8 +1,7 @@
 package api
 
 import java.util.Date
-import model.{Issue, PullRequest}
-import ApiPullRequest._
+import gitbucket.core.model.{Issue, PullRequest}
 
 /**
  * https://developer.github.com/v3/pulls/

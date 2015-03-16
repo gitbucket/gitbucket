@@ -1,0 +1,36 @@
+@(comment: gitbucket.core.model.CommitComment,
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  latestCommitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core._
+@import gitbucket.core.view.helpers._
+<div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}" @if(comment.fileName.isDefined){filename=@comment.fileName.get} @if(comment.newLine.isDefined){newline=@comment.newLine.get} @if(comment.oldLine.isDefined){oldline=@comment.oldLine.get}>
+  <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
+  <div class="box commit-comment-box commit-comment-@comment.commentId">
+    <div class="box-header-small">
+      @user(comment.commentedUserName, styleClass="username strong")
+        <span class="muted">
+          commented
+          @if(comment.pullRequest){
+            on this Pull Request
+          }else{
+            @if(comment.fileName.isDefined){
+              on @comment.fileName.get
+            }
+            in <a href="@path/@repository.owner/@repository.name/commit/@comment.commitId">@comment.commitId.substring(0, 7)</a>
+          }
+          @helper.html.datetimeago(comment.registeredDate)
+        </span>
+      <span class="pull-right">
+        @if(hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){
+          <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
+          <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
+        }
+      </span>
+    </div>
+    <div class="box-content commit-commentContent-@comment.commentId markdown-body">
+      @markdown(comment.content, repository, false, true, true, hasWritePermission)
+    </div>
+  </div>
+</div>

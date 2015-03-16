@@ -1,8 +1,8 @@
 package api
 
-import util.JGitUtil.CommitInfo
-import service.RepositoryService.RepositoryInfo
-import model.{Account, Repository}
+import gitbucket.core.util.JGitUtil.CommitInfo
+import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.model.{Account, Repository}
 
 // https://developer.github.com/v3/repos/
 case class ApiRepository(

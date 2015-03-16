@@ -1,4 +1,5 @@
 package api
+
 import org.json4s._
 import org.json4s.jackson.Serialization
 import scala.util.Try
@@ -6,6 +7,8 @@ import org.joda.time.format._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.util.Date
+
+
 object JsonFormat {
   case class Context(baseUrl:String)
   val parserISO = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")

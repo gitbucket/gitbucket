@@ -1,0 +1,99 @@
+@(activities: List[gitbucket.core.model.Activity])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+
+@if(activities.isEmpty){
+  No activity
+} else {
+  @activities.map { activity =>
+    <div class="block">
+      @(activity.activityType match {
+        case "open_issue"        => detailActivity(activity, "activity-issue.png")
+        case "comment_issue"     => detailActivity(activity, "activity-comment.png")
+        case "comment_commit"    => detailActivity(activity, "activity-comment.png")
+        case "close_issue"       => detailActivity(activity, "activity-issue-close.png")
+        case "reopen_issue"      => detailActivity(activity, "activity-issue-reopen.png")
+        case "open_pullreq"      => detailActivity(activity, "activity-merge.png")
+        case "merge_pullreq"     => detailActivity(activity, "activity-merge.png")
+        case "create_repository" => simpleActivity(activity, "activity-create-repository.png")
+        case "create_branch"     => simpleActivity(activity, "activity-branch.png")
+        case "delete_branch"     => simpleActivity(activity, "activity-delete.png")
+        case "create_tag"        => simpleActivity(activity, "activity-tag.png")
+        case "delete_tag"        => simpleActivity(activity, "activity-delete.png")
+        case "fork"              => simpleActivity(activity, "activity-fork.png")
+        case "push"  => customActivity(activity, "activity-commit.png"){
+          <div class="small activity-message">
+            {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
+              if(i == 3){
+                <div>...</div>
+              } else {
+                if(commit.nonEmpty){
+                  <div>
+                     <a href={s"${path}/${activity.userName}/${activity.repositoryName}/commit/${commit. substring(0, 40)}"} class="monospace">{commit.substring(0, 7)}</a>
+                     <span>{commit.substring(41)}</span>
+                  </div>
+                }
+              }
+            }}
+          </div>
+        }
+        case "create_wiki" => customActivity(activity, "activity-wiki.png"){
+          <div class="small activity-message">
+            Created <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
+          </div>
+        }
+        case "edit_wiki" => customActivity(activity, "activity-wiki.png"){
+          activity.additionalInfo.get.split(":") match {
+            case Array(pageName, commitId) =>
+              <div class="small activity-message">
+                Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
+                <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}/_compare/${commitId.substring(0, 7)}^...${commitId.substring(0, 7)}"}>View the diff »</a>
+              </div>
+            case Array(pageName) =>
+              <div class="small activity-message">
+                Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
+              </div>
+          }
+        }
+      })
+    </div>
+  }
+}
+
+@detailActivity(activity: gitbucket.core.model.Activity, image: String) = {
+  <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-content">
+    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
+    <div class="strong">
+      @avatar(activity.activityUserName, 16)
+      @activityMessage(activity.message)
+    </div>
+    @activity.additionalInfo.map { additionalInfo =>
+      <div class=" activity-message">@additionalInfo</div>
+    }
+  </div>
+}
+
+@customActivity(activity: gitbucket.core.model.Activity, image: String)(additionalInfo: Any) = {
+  <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-content">
+    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
+    <div class="strong">
+      @avatar(activity.activityUserName, 16)
+      @activityMessage(activity.message)
+    </div>
+    @additionalInfo
+  </div>
+}
+
+@simpleActivity(activity: gitbucket.core.model.Activity, image: String) = {
+  <div class="activity-icon-small"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-content">
+    <div>
+      @avatar(activity.activityUserName, 16)
+      @activityMessage(activity.message)
+      <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
+    </div>
+  </div>
+}
+

@@ -1,0 +1,35 @@
+@(issues: List[gitbucket.core.service.RepositorySearchService.IssueSearchResult],
+  fileCount: Int,
+  query: String,
+  page: Int,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.service.RepositorySearchService._
+@html.main("Search Results", Some(repository)){
+  @menu("issue", fileCount, issues.size, query, repository){
+    @if(issues.isEmpty){
+      <h4>We couldn't find any code matching '@query'</h4>
+    } else {
+      <h4>We've found @issues.size code @plural(issues.size, "result")</h4>
+    }
+    @issues.drop((page - 1) * IssueLimit).take(IssueLimit).map { issue =>
+      <div class="block">
+        <div class="pull-right muted">#@issue.issueId</div>
+        <h4 style="margin-top: 0px;"><a href="@url(repository)/@if(issue.isPullRequest){pull} else {issues}/@issue.issueId">@issue.title</a></h4>
+        @if(issue.highlightText.nonEmpty){
+          <pre>@Html(issue.highlightText)</pre>
+        }
+        <div class="small muted">
+          Opened by <a href="@url(issue.openedUserName)" class="username">@issue.openedUserName</a>
+          @helper.html.datetimeago(issue.registeredDate)
+          @if(issue.commentCount > 0){
+            &nbsp;&nbsp;<i class="icon-comment"></i><span class="strong">@issue.commentCount</span> @plural(issue.commentCount, "comment")
+          }
+        </div>
+      </div>
+    }
+    @helper.html.paginator(page, issues.size, IssueLimit, 10,
+      s"${url(repository)}/search?q=${urlEncode(query)}&type=issue")
+  }
+}

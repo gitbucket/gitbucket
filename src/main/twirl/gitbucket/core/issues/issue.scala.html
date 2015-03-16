@@ -1,0 +1,92 @@
+@(issue: gitbucket.core.model.Issue,
+  comments: List[gitbucket.core.model.IssueComment],
+  issueLabels: List[gitbucket.core.model.Label],
+  collaborators: List[String],
+  milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  labels: List[gitbucket.core.model.Label],
+  hasWritePermission: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main(s"${issue.title} - Issue #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
+  @html.menu("issues", repository){
+    <div>
+      <div class="show-title pull-right">
+        @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
+          <a class="btn btn-small" href="#" id="edit">Edit</a>
+        }
+        <a class="btn btn-small btn-success" href="@url(repository)/issues/new">New issue</a>
+      </div>
+      <div class="edit-title pull-right" style="display: none;">
+        <a class="btn" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
+      </div>
+      <h1>
+        <span class="show-title">
+          <span id="show-title">@issue.title</span>
+          <span class="muted">#@issue.issueId</span>
+        </span>
+        <span class="edit-title" style="display: none;">
+          <span id="error-edit-title" class="error"></span>
+          <input type="text" style="width: 700px;" id="edit-title" value="@issue.title"/>
+        </span>
+      </h1>
+    </div>
+    @if(issue.closed) {
+      <span class="label label-important issue-status">Closed</span>
+    } else {
+      <span class="label label-success issue-status">Open</span>
+    }
+    <span class="muted">
+      @user(issue.openedUserName, styleClass="username strong") opened this issue @helper.html.datetimeago(issue.registeredDate) - @defining(
+        comments.count( _.action.contains("comment") )
+      ){ count =>
+        @count @plural(count, "comment")
+      }
+    </span>
+    <br/><br/>
+    <hr>
+    <div class="row-fluid">
+      <div class="span10">
+        @commentlist(Some(issue), comments, hasWritePermission, repository)
+        @commentform(issue, true, hasWritePermission, repository)
+      </div>
+      <div class="span2">
+        @issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+      </div>
+    </div>
+  }
+}
+<script>
+$(function(){
+  $('#edit').click(function(){
+    $('.edit-title').show();
+    $('.show-title').hide();
+    return false;
+  });
+
+  $('#update').click(function(){
+    $(this).attr('disabled', 'disabled');
+    $.ajax({
+      url: '@url(repository)/issues/edit_title/@issue.issueId',
+      type: 'POST',
+      data: {
+        title   : $('#edit-title').val()
+      }
+    }).done(function(data){
+      $('#show-title').empty().text(data.title);
+      $('#cancel').click();
+      $(this).removeAttr('disabled');
+    }).fail(function(req){
+      $(this).removeAttr('disabled');
+      $('#error-edit-title').text($.parseJSON(req.responseText).title);
+    });
+    return false;
+  });
+
+  $('#cancel').click(function(){
+    $('.edit-title').hide();
+    $('.show-title').show();
+    return false;
+  });
+});
+</script>

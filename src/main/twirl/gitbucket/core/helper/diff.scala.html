@@ -1,0 +1,251 @@
+@(diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  newCommitId: Option[String],
+  oldCommitId: Option[String],
+  showIndex: Boolean,
+  issueId: Option[Int],
+  hasWritePermission: Boolean,
+  showLineNotes: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import org.eclipse.jgit.diff.DiffEntry.ChangeType
+@if(showIndex){
+  <div>
+    <div class="pull-right" style="margin-bottom: 10px;">
+      <div class="btn-group" data-toggle="buttons-radio">
+        <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
+        <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
+      </div>
+    </div>
+    Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @plural(diffs.size, "file")</a>
+  </div>
+  <ul id="commit-file-list" style="display: none;">
+  @diffs.zipWithIndex.map { case (diff, i) =>
+    <li@if(i > 0){ class="border"}>
+      <a href="#diff-@i">
+        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.ADD){
+          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.MODIFY){
+          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+        }
+      </a>
+    </li>
+    }
+  </ul>
+}
+@diffs.zipWithIndex.map { case (diff, i) =>
+  <a name="diff-@i"></a>
+  <table class="table table-bordered" commitId="@newCommitId" fileName="@diff.newPath">
+    <tr>
+      <th style="font-weight: normal; line-height: 27px;" class="box-header">
+        @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
+          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
+              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
+            </div>
+          }
+        }
+        @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
+          @if(diff.changeType == ChangeType.ADD){
+            <img src="@assets/common/images/diff_add.png"/>
+          }else{
+            <img src="@assets/common/images/diff_edit.png"/>
+          } @diff.newPath
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
+              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small">View file @@ @newCommitId.get.substring(0, 10)</a>
+            </div>
+          }
+        }
+        @if(diff.changeType == ChangeType.DELETE){
+          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+          @if(oldCommitId.isDefined){
+            <div class="pull-right align-right">
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
+              <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-small">View file @@ @oldCommitId.get.substring(0, 10)</a>
+            </div>
+          }
+        }
+      </th>
+    </tr>
+    <tr>
+      <td style="padding: 0;">
+        @if(diff.newContent != None || diff.oldContent != None){
+          <div id="diffText-@i"></div>
+          <textarea id="newText-@i" style="display: none;">@diff.newContent.getOrElse("")</textarea>
+          <textarea id="oldText-@i" style="display: none;">@diff.oldContent.getOrElse("")</textarea>
+        } else {
+          Not supported
+        }
+      </td>
+    </tr>
+  </table>
+}
+<script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
+<script type="text/javascript" src="@assets/vendors/jsdifflib/diffview.js"></script>
+<link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script>
+$(function(){
+  @if(showIndex){
+    $('#toggle-file-list').click(function(){
+      $('#commit-file-list').toggle();
+      if($(this).val() == 'Show file list'){
+        $(this).val('Hide file list');
+      } else {
+        $(this).val('Show file list');
+      }
+    });
+  }
+
+  // Render diffs as unified mode initially
+  renderDiffs(1);
+
+  $('#btn-unified').click(function(){
+    $('.container-wide').removeClass('container-wide').addClass('container');
+    renderDiffs(1);
+  });
+
+  $('#btn-split').click(function(){
+    $('.container').removeClass('container').addClass('container-wide');
+    renderDiffs(0);
+  });
+
+  $('.toggle-notes').change(function() {
+    if (!$(this).prop('checked')) {
+      $(this).closest('table').find('.not-diff.inline-comment-form').remove();
+    }
+    $(this).closest('table').find('.not-diff').toggle();
+  });
+
+  function renderDiffs(viewType){
+    window.viewType = viewType;
+    @diffs.zipWithIndex.map { case (diff, i) =>
+      @if(diff.newContent != None || diff.oldContent != None){
+        if($('#oldText-@i').length > 0){
+          diffUsingJS('oldText-@i', 'newText-@i', 'diffText-@i', viewType);
+        }
+      }
+    }
+    @if(showLineNotes){
+      function getInlineContainer(where) {
+        if (viewType == 0) {
+          if (where === 'new') {
+            return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
+          } else if (where === 'old') {
+            return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
+          }
+        }
+        return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
+      }
+      $('.inline-comment').each(function(i, v) {
+        var $v = $(v), filename = $v.attr('filename'),
+        oldline = $v.attr('oldline'), newline = $v.attr('newline');
+        if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
+          $(this).hide();
+        }
+        var tmp;
+        var diff;
+        if (typeof oldline !== 'undefined') {
+          if (typeof newline !== 'undefined') {
+            tmp = getInlineContainer();
+          } else {
+            tmp = getInlineContainer('old');
+          }
+          tmp.children('td:first').html($(this).clone().show());
+          diff = $('table[filename="' + filename + '"]');
+          diff.find('table.diff').find('.oldline[line-number=' + oldline  + ']')
+          .parent().nextAll(':not(.not-diff):first').before(tmp);
+        } else {
+          tmp = getInlineContainer('new');
+          tmp.children('td:last').html($(this).clone().show());
+          diff = $('table[filename="' + filename + '"]');
+          diff.find('table.diff').find('.newline[line-number=' + newline  + ']')
+          .parent().nextAll(':not(.not-diff):first').before(tmp);
+        }
+        if (!diff.find('.toggle-notes').prop('checked')) {
+          tmp.hide();
+        }
+      });
+      @if(hasWritePermission) {
+        $('table.diff td').hover(
+          function() {
+            $(this).find('b').css('display', 'inline-block');
+          },
+          function() {
+            $(this).find('b').css('display', 'none');
+          }
+        );
+        $('table.diff th').hover(
+          function() {
+            $(this).nextAll().find('b').first().css('display', 'inline-block');
+          },
+          function() {
+            $(this).nextAll().find('b').first().css('display', 'none');
+          }
+        );
+        $('.add-comment').click(function() {
+          var $this = $(this),
+          $tr = $this.closest('tr'),
+          $check = $this.closest('table:not(.diff)').find('.toggle-notes');
+          if (!$check.prop('checked')) {
+            $check.prop('checked', true).trigger('change');
+          }
+          if (!$tr.nextAll(':not(.not-diff):first').prev().hasClass('inline-comment-form')) {
+            var commitId = $this.closest('.table-bordered').attr('commitId'),
+            fileName = $this.closest('.table-bordered').attr('fileName'),
+            oldLineNumber, newLineNumber,
+            url = '@url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
+            if (viewType == 0) {
+              oldLineNumber = $this.parent().prev('.oldline').attr('line-number');
+              newLineNumber = $this.parent().prev('.newline').attr('line-number');
+            } else {
+              oldLineNumber = $this.parent().prevAll('.oldline').attr('line-number');
+              newLineNumber = $this.parent().prevAll('.newline').attr('line-number');
+            }
+            if (!isNaN(oldLineNumber) && oldLineNumber) {
+              url += ('&oldLineNumber=' + oldLineNumber)
+            }
+            if (!isNaN(newLineNumber) && newLineNumber) {
+              url += ('&newLineNumber=' + newLineNumber)
+            }
+            $.get(
+              url,
+              {
+                dataType : 'html'
+              },
+              function(responseContent) {
+                $this.hide();
+                var tmp;
+                if (!isNaN(oldLineNumber) && oldLineNumber) {
+                  if (!isNaN(newLineNumber) && newLineNumber) {
+                    tmp = getInlineContainer();
+                  } else {
+                    tmp = getInlineContainer('old');
+                  }
+                } else {
+                  tmp = getInlineContainer('new');
+                }
+                tmp.addClass('inline-comment-form').children('.comment-box-container').html(responseContent);
+                $tr.nextAll(':not(.not-diff):first').before(tmp);
+              }
+            );
+          }
+        });
+        $('table.diff').on('click', '.btn-default', function() {
+          $(this).closest('.inline-comment-form').remove();
+        });
+      }
+    }
+  }
+});
+</script>

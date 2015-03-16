@@ -1,0 +1,58 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  content: String,
+  enableWikiLink: Boolean,
+  enableRefsLink: Boolean,
+  enableTaskList: Boolean,
+  hasWritePermission: Boolean,
+  style: String = "",
+  placeholder: String = "Leave a comment",
+  elastic: Boolean = false,
+  uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core._
+@import gitbucket.core.view.helpers._
+<div class="tabbable">
+  <ul class="nav nav-tabs" style="height: 37px;">
+    <li class="active"><a href="#tab@uid" data-toggle="tab">Write</a></li>
+    <li><a href="#tab@(uid+1)" data-toggle="tab" id="preview@uid">Preview</a></li>
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane active" id="tab@uid">
+      <span id="error-content" class="error"></span>
+      @textarea = {
+        <textarea id="content@uid" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
+      }
+      @if(enableWikiLink){
+        @textarea
+      } else {
+        @helper.html.attached(repository.owner, repository.name)(textarea)
+      }
+    </div>
+    <div class="tab-pane" id="tab@(uid+1)">
+      <div class="markdown-body" id="preview-area@uid">
+      </div>
+    </div>
+  </div>
+</div>
+<link  href="@assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
+<script src="@assets/vendors/google-code-prettify/prettify.js"></script>
+<script>
+$(function(){
+  @if(elastic){
+    $('#content@uid').elastic();
+  }
+
+  $('#preview@uid').click(function(){
+    $('#preview-area@uid').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
+    $.post('@url(repository)/_preview', {
+      content        : $('#content@uid').val(),
+      enableWikiLink : @enableWikiLink,
+      enableRefsLink : @enableRefsLink,
+      enableTaskList : @enableTaskList
+    }, function(data){
+      $('#preview-area@uid').html(data);
+      prettyPrint();
+    });
+  });
+});
+</script>

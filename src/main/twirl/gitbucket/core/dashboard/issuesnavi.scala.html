@@ -1,0 +1,22 @@
+@(filter: String,
+  active: String,
+  condition: gitbucket.core.service.IssuesService.IssueSearchCondition)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+<ul class="nav nav-pills-group pull-left fill-width">
+  <li class="@if(filter == "created_by"){active} first">
+    <a href="@path/dashboard/@active/created_by@condition.copy(author = None, assigned = None).toURL">Created</a>
+  </li>
+  <li class="@if(filter == "assigned"){active}">
+    <a href="@path/dashboard/@active/assigned@condition.copy(author = None, assigned = None).toURL">Assigned</a>
+  </li>
+  <li class="@if(filter == "mentioned"){active} last">
+    <a href="@path/dashboard/@active/mentioned@condition.copy(author = None, assigned = None).toURL">Mentioned</a>
+  </li>
+  <li class="pull-right">
+    <form method="GET" id="search-filter-form" action="@path/dashboard/@active" style="margin-bottom: 0px;">
+      <input type="text" id="search-filter-box" class="input-xlarge" name="q" style="height: 24px; width: 400px;"
+             value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+    </form>
+  </li>
+</ul>

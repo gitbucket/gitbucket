@@ -1,7 +1,7 @@
 package api
 
 import java.util.Date
-import model.Issue
+import gitbucket.core.model.Issue
 
 /**
  * https://developer.github.com/v3/issues/

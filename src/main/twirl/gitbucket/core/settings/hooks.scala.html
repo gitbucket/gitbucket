@@ -1,0 +1,27 @@
+@(webHooks: List[gitbucket.core.model.WebHook],
+  enteredUrl: Option[Any],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Settings", Some(repository)){
+  @html.menu("settings", repository){
+    @menu("hooks", repository){
+      @helper.html.information(info)
+      <h3>WebHook URLs</h3>
+      <ul>
+        @webHooks.map { webHook =>
+          <li>@webHook.url <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="remove">(remove)</a></li>
+        }
+      </ul>
+      <form method="POST" validate="true">
+        <div>
+          <span class="error" id="error-url"></span>
+        </div>
+        <input type="text" name="url" id="url" value="@enteredUrl" style="width: 300px; margin-bottom: 0px;"/>
+        <input type="submit" class="btn" formaction="@url(repository)/settings/hooks/add"  value="Add"/>
+        <input type="submit" class="btn" formaction="@url(repository)/settings/hooks/test" value="Test Hook"/>
+      </form>
+    }
+  }
+}

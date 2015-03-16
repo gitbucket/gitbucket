@@ -1,7 +1,7 @@
 package api
 
 import java.util.Date
-import model.Account
+import gitbucket.core.model.Account
 
 case class ApiUser(
   login: String,
