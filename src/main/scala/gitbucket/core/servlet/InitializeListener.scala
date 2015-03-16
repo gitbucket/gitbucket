@@ -21,7 +21,7 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
-    // TODO(tanacasino): Add 3.1 migration
+    new Version(3, 1),
     new Version(3, 0),
     new Version(2, 8),
     new Version(2, 7) {

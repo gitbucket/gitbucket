@@ -1,9 +1,14 @@
-package service
-import org.specs2.mutable.Specification
-import java.util.Date
-import model._
-import model.Profile._
+package gitbucket.core.service
+
+import gitbucket.core.model._
+import gitbucket.core.model.Profile._
 import profile.simple._
+
+import org.specs2.mutable.Specification
+
+import java.util.Date
+
+
 class CommitStatusServiceSpec extends Specification with ServiceSpecBase with CommitStatusService
   with RepositoryService with AccountService{
   val now = new java.util.Date()

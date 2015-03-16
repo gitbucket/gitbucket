@@ -2,14 +2,18 @@ package gitbucket.core.service
 
 import gitbucket.core.servlet.AutoUpdate
 import gitbucket.core.util.{ControlUtil, DatabaseConfig, FileUtil}
+import gitbucket.core.util.ControlUtil._
+import gitbucket.core.model._
 import gitbucket.core.model.Profile._
 import profile.simple._
-import ControlUtil._
-import java.sql.DriverManager
+
 import org.apache.commons.io.FileUtils
-import scala.util.Random
+
+import java.sql.DriverManager
 import java.io.File
-import model._
+
+import scala.util.Random
+
 
 trait ServiceSpecBase {
 

@@ -1,8 +1,9 @@
-package model
+package gitbucket.core.model
+
+import gitbucket.core.model.CommitState._
 
 import org.specs2.mutable.Specification
 
-import CommitState._
 
 class CommitStateSpec extends Specification {
   "CommitState" should {

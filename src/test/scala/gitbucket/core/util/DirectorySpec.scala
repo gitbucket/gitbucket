@@ -1,6 +1,7 @@
-package util
+package gitbucket.core.util
 
 import org.specs2.mutable._
+
 
 class DirectorySpec extends Specification {
   "GitBucketHome" should {

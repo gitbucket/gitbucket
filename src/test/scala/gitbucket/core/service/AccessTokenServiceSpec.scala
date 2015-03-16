@@ -1,8 +1,11 @@
-package service
+package gitbucket.core.service
+
+import gitbucket.core.model._
 
 import org.specs2.mutable.Specification
+
 import java.util.Date
-import model._
+
 
 class AccessTokenServiceSpec extends Specification with ServiceSpecBase {
 
@@ -18,7 +21,7 @@ class AccessTokenServiceSpec extends Specification with ServiceSpecBase {
       val tokenHash = AccessTokenService.tokenToHash(token)
 
       AccessTokenService.getAccessTokens("root") must be like{
-        case List(model.AccessToken(`id`, "root", `tokenHash`, "note")) => ok
+        case List(AccessToken(`id`, "root", `tokenHash`, "note")) => ok
       }
     }}
 
@@ -29,7 +32,7 @@ class AccessTokenServiceSpec extends Specification with ServiceSpecBase {
       AccessTokenService.generateAccessToken("user2", "note2")
 
       AccessTokenService.getAccessTokens("root") must be like{
-        case List(model.AccessToken(`id`, "root", `tokenHash`, "note")) => ok
+        case List(AccessToken(`id`, "root", `tokenHash`, "note")) => ok
       }
     }}
 
@@ -75,7 +78,7 @@ class AccessTokenServiceSpec extends Specification with ServiceSpecBase {
     "when update Account.userName then AccessToken.userName changed" in { withTestDB { implicit session =>
       val user2 = generateNewAccount("user2")
       val (id, token) = AccessTokenService.generateAccessToken("user2", "note")
-      import model.Profile._
+      import gitbucket.core.model.Profile._
       import profile.simple._
       Accounts.filter(_.userName === "user2".bind).map(_.userName).update("user3")
 

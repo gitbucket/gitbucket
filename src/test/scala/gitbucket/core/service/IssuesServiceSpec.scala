@@ -1,9 +1,12 @@
-package service
+package gitbucket.core.service
+
+import gitbucket.core.model._
+import gitbucket.core.service.IssuesService._
 
 import org.specs2.mutable.Specification
+
 import java.util.Date
-import model._
-import service.IssuesService._
+
 
 class IssuesServiceSpec extends Specification with ServiceSpecBase {
   "IssuesService" should {

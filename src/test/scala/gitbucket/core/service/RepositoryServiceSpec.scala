@@ -1,9 +1,11 @@
-package service
+package gitbucket.core.service
+
+import gitbucket.core.model._
+import gitbucket.core.model.Profile._
+
 import org.specs2.mutable.Specification
-import java.util.Date
-import model._
-import model.Profile._
-import profile.simple._
+
+
 class RepositoryServiceSpec extends Specification with ServiceSpecBase with RepositoryService with AccountService{
   "RepositoryService" should {
     "renameRepository can rename CommitState" in { withTestDB { implicit session =>

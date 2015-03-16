@@ -1,18 +1,22 @@
-package service
-import org.specs2.mutable.Specification
-import java.util.Date
-import model._
-import util.JGitUtil
-import util.Directory._
-import java.nio.file._
-import util.Implicits._
-import util.ControlUtil._
+package gitbucket.core.service
+
+import gitbucket.core.model._
+import gitbucket.core.util.JGitUtil
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util.ControlUtil._
+
+import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.revwalk._
-import org.apache.commons.io.FileUtils
+import org.eclipse.jgit.treewalk._
+import org.specs2.mutable.Specification
+
+import java.nio.file._
+import java.util.Date
+
 
 class MergeServiceSpec extends Specification {
   sequential

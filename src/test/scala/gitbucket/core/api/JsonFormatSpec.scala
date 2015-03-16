@@ -1,10 +1,16 @@
-package api
+package gitbucket.core.api
+
+import gitbucket.core.util.RepositoryName
+
 import org.specs2.mutable.Specification
-import java.util.{Date, Calendar, TimeZone}
-import util.RepositoryName
 import org.json4s.jackson.JsonMethods.{pretty, parse}
 import org.json4s._
 import org.specs2.matcher._
+
+import java.util.{Calendar, TimeZone}
+
+
+
 class JsonFormatSpec extends Specification {
   val date1 = {
     val d = Calendar.getInstance(TimeZone.getTimeZone("UTC"))

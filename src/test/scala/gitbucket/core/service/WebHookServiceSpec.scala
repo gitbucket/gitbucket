@@ -1,8 +1,7 @@
-package service
+package gitbucket.core.service
 
 import org.specs2.mutable.Specification
-import java.util.Date
-import model._
+
 
 class WebHookServiceSpec extends Specification with ServiceSpecBase {
   lazy val service = new WebHookPullRequestService with AccountService with RepositoryService with PullRequestService with IssuesService
