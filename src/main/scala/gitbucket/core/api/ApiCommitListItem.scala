@@ -1,9 +1,9 @@
-package api
+package gitbucket.core.api
 
+import gitbucket.core.api.ApiCommitListItem._
 import gitbucket.core.util.JGitUtil.CommitInfo
-// TODO(tanacasino): Fix package name
 import gitbucket.core.util.RepositoryName
-import ApiCommitListItem._
+
 
 /**
  * https://developer.github.com/v3/repos/commits/

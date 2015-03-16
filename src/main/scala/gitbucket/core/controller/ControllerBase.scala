@@ -1,5 +1,6 @@
 package gitbucket.core.controller
 
+import gitbucket.core.api.ApiError
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, SystemSettingsService}
 import gitbucket.core.util.ControlUtil._
@@ -113,7 +114,7 @@ abstract class ControllerBase extends ScalatraFilter
       org.scalatra.NotFound()
     } else if(request.hasAttribute(Keys.Request.APIv3)){
       contentType = formats("json")
-      org.scalatra.NotFound(api.ApiError("Not Found"))
+      org.scalatra.NotFound(ApiError("Not Found"))
     } else {
       org.scalatra.NotFound(gitbucket.core.html.error("Not Found"))
     }
@@ -123,7 +124,7 @@ abstract class ControllerBase extends ScalatraFilter
       org.scalatra.Unauthorized()
     } else if(request.hasAttribute(Keys.Request.APIv3)){
       contentType = formats("json")
-      org.scalatra.Unauthorized(api.ApiError("Requires authentication"))
+      org.scalatra.Unauthorized(ApiError("Requires authentication"))
     } else {
       if(context.loginAccount.isDefined){
         org.scalatra.Unauthorized(redirect("/"))

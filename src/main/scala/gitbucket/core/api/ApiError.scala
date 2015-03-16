@@ -1,4 +1,4 @@
-package api
+package gitbucket.core.api
 
 case class ApiError(
   message: String,

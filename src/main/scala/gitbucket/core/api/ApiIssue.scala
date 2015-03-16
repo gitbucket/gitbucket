@@ -1,7 +1,9 @@
-package api
+package gitbucket.core.api
+
+import gitbucket.core.model.Issue
 
 import java.util.Date
-import gitbucket.core.model.Issue
+
 
 /**
  * https://developer.github.com/v3/issues/

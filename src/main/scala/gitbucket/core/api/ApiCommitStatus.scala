@@ -1,8 +1,10 @@
-package api
+package gitbucket.core.api
 
-import java.util.Date
 import gitbucket.core.model.CommitStatus
 import gitbucket.core.util.RepositoryName
+
+import java.util.Date
+
 
 /**
  * https://developer.github.com/v3/repos/statuses/#create-a-status
@@ -17,9 +19,10 @@ case class ApiCommitStatus(
   id: Int,
   context: String,
   creator: ApiUser
-)(sha: String,repositoryName: RepositoryName) {
+)(sha: String, repositoryName: RepositoryName) {
   val url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/commits/${sha}/statuses")
 }
+
 
 object ApiCommitStatus {
   def apply(status: CommitStatus, creator:ApiUser): ApiCommitStatus = ApiCommitStatus(

@@ -1,12 +1,14 @@
-package api
+package gitbucket.core.api
 
-import org.json4s._
-import org.json4s.jackson.Serialization
-import scala.util.Try
-import org.joda.time.format._
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
+import org.joda.time.format._
+import org.json4s._
+import org.json4s.jackson.Serialization
+
 import java.util.Date
+
+import scala.util.Try
 
 
 object JsonFormat {
@@ -22,6 +24,8 @@ object JsonFormat {
     FieldSerializer[ApiCommitListItem.Parent]() + FieldSerializer[ApiCommitListItem]() + FieldSerializer[ApiCommitListItem.Commit]() +
     FieldSerializer[ApiCommitStatus]() + FieldSerializer[ApiCommit]() + FieldSerializer[ApiCombinedCommitStatus]() +
     FieldSerializer[ApiPullRequest.Commit]()
+
+
   def apiPathSerializer(c: Context) = new CustomSerializer[ApiPath](format =>
       (
         {

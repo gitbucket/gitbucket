@@ -1,4 +1,4 @@
-package api
+package gitbucket.core.api
 
 import gitbucket.core.model.CommitState
 

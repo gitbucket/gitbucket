@@ -1,8 +1,16 @@
 package gitbucket.core.servlet
 
+import gitbucket.core.api
 import gitbucket.core.model.Session
+import gitbucket.core.service.IssuesService.IssueSearchCondition
+import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
+import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util._
+
+import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.http.server.GitServlet
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.transport._
@@ -12,13 +20,7 @@ import org.slf4j.LoggerFactory
 import javax.servlet.ServletConfig
 import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import gitbucket.core.util.StringUtil
-import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.Implicits._
-import WebHookService._
-import org.eclipse.jgit.api.Git
-import JGitUtil.CommitInfo
-import IssuesService.IssueSearchCondition
+
 
 /**
  * Provides Git repository via HTTP.

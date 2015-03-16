@@ -1,5 +1,6 @@
 package gitbucket.core.util
 
+import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.servlet.Database
 
@@ -19,7 +20,7 @@ object Implicits {
   // Convert to slick session.
   implicit def request2Session(implicit request: HttpServletRequest): JdbcBackend#Session = Database.getSession(request)
 
-  implicit def context2ApiJsonFormatContext(implicit context: Context): api.JsonFormat.Context = api.JsonFormat.Context(context.baseUrl)
+  implicit def context2ApiJsonFormatContext(implicit context: Context): JsonFormat.Context = JsonFormat.Context(context.baseUrl)
 
   implicit class RichSeq[A](seq: Seq[A]) {
 

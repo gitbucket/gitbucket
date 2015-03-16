@@ -1,32 +1,30 @@
 package gitbucket.core.controller
 
 import gitbucket.core.account.html
+import gitbucket.core.api._
 import gitbucket.core.helper
 import gitbucket.core.model.GroupMember
-import gitbucket.core.util._
-import gitbucket.core.util.Implicits._
-import gitbucket.core.util.Directory._
-import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.StringUtil._
-import gitbucket.core.ssh.SshUtil
 import gitbucket.core.service._
-import gitbucket.core.service.WebHookService._
+import gitbucket.core.ssh.SshUtil
+import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util.StringUtil._
+import gitbucket.core.util._
+
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
-import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.eclipse.jgit.dircache.DirCache
-
-
-// TODO(tanacasino): Fix package name
-import api._
+import org.eclipse.jgit.lib.{FileMode, Constants}
+import org.scalatra.i18n.Messages
 
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
   with AccessTokenService with WebHookService
+
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService

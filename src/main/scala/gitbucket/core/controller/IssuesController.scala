@@ -1,23 +1,18 @@
 package gitbucket.core.controller
 
+import gitbucket.core.api._
 import gitbucket.core.issues.html
 import gitbucket.core.model.Issue
+import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
-import gitbucket.core.service.WebHookService._
-import gitbucket.core.util._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
+
 import jp.sf.amateras.scalatra.forms._
-
-import IssuesService._
 import org.scalatra.Ok
-
-
-// TODO(tanacasino): Fix package name
-import api._
-
 
 
 class IssuesController extends IssuesControllerBase

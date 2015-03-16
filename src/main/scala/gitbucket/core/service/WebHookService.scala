@@ -1,33 +1,18 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{WebHook, Account, Issue, PullRequest, IssueComment, Repository}
+import gitbucket.core.api._
+import gitbucket.core.model.{WebHook, Account, Issue, PullRequest, IssueComment}
 import gitbucket.core.model.Profile._
 import profile.simple._
-
-import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.util.JGitUtil
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
-
-import org.slf4j.LoggerFactory
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 
-
-
-import org.slf4j.LoggerFactory
-import RepositoryService.RepositoryInfo
-import org.eclipse.jgit.diff.DiffEntry
-import JGitUtil.CommitInfo
-
-
-import org.eclipse.jgit.api.Git
-import org.apache.http.message.BasicNameValuePair
-import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.NameValuePair
-import java.util.Date
-
-// TODO(tanacasino): Fix package name
-import api._
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.message.BasicNameValuePair
+import org.eclipse.jgit.api.Git
+import org.slf4j.LoggerFactory
 
 
 trait WebHookService {

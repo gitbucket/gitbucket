@@ -1,11 +1,13 @@
-package api
+package gitbucket.core.api
 
-import java.util.Date
-import org.eclipse.jgit.diff.DiffEntry
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
+
+import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.api.Git
+
+import java.util.Date
 
 /**
  * https://developer.github.com/v3/repos/commits/
@@ -30,10 +32,15 @@ object ApiCommit{
       id        = commit.id,
       message   = commit.fullMessage,
       timestamp = commit.commitTime,
-      added     = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.ADD)    => x.newPath },
-      removed   = diffs._1.collect { case x if(x.changeType == DiffEntry.ChangeType.DELETE) => x.oldPath },
-      modified  = diffs._1.collect { case x if(x.changeType != DiffEntry.ChangeType.ADD &&
-        x.changeType != DiffEntry.ChangeType.DELETE) => x.newPath },
+      added     = diffs._1.collect {
+        case x if x.changeType == DiffEntry.ChangeType.ADD    => x.newPath
+      },
+      removed   = diffs._1.collect {
+        case x if x.changeType == DiffEntry.ChangeType.DELETE => x.oldPath
+      },
+      modified  = diffs._1.collect {
+        case x if x.changeType != DiffEntry.ChangeType.ADD && x.changeType != DiffEntry.ChangeType.DELETE => x.newPath
+      },
       author    = ApiPersonIdent.author(commit),
       committer = ApiPersonIdent.committer(commit)
     )(repositoryName)

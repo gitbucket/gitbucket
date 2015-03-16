@@ -1,12 +1,15 @@
-package api
+package gitbucket.core.api
+
+import gitbucket.core.util.JGitUtil.CommitInfo
 
 import java.util.Date
-import gitbucket.core.util.JGitUtil.CommitInfo
+
 
 case class ApiPersonIdent(
   name: String,
   email: String,
   date: Date)
+
 
 object ApiPersonIdent {
   def author(commit: CommitInfo): ApiPersonIdent =

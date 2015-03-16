@@ -1,12 +1,12 @@
 package gitbucket.core.controller
 
-import gitbucket.core.model.{Account, CommitStatus, CommitState, Repository, PullRequest, Issue}
+import gitbucket.core.api._
+import gitbucket.core.model.{Account, CommitState, Repository, PullRequest, Issue}
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service.PullRequestService._
-import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
@@ -18,22 +18,17 @@ import gitbucket.core.view.helpers
 
 import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.errors.NoMergeBaseException
-import org.eclipse.jgit.lib.{ObjectId, CommitBuilder, PersonIdent}
-import org.eclipse.jgit.merge.MergeStrategy
-import org.eclipse.jgit.transport.RefSpec
+import org.eclipse.jgit.lib.PersonIdent
 import org.slf4j.LoggerFactory
+
 import scala.collection.JavaConverters._
-
-
-// TODO(tanacasino): Fix package name
-import api._
 
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
   with CommitStatusService with MergeService
+
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService

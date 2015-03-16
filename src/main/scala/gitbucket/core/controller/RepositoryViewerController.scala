@@ -1,5 +1,6 @@
 package gitbucket.core.controller
 
+import gitbucket.core.api._
 import gitbucket.core.repo.html
 import gitbucket.core.helper
 import gitbucket.core.service._
@@ -23,9 +24,6 @@ import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
 import org.scalatra._
-
-// TODO(tanacasino) Fix package name
-import api._
 
 
 class RepositoryViewerController extends RepositoryViewerControllerBase

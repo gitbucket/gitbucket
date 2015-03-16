@@ -1,7 +1,9 @@
-package api
+package gitbucket.core.api
+
+import gitbucket.core.model.Account
 
 import java.util.Date
-import gitbucket.core.model.Account
+
 
 case class ApiUser(
   login: String,
@@ -21,6 +23,7 @@ case class ApiUser(
   // val events_url          = ApiPath(s"/api/v3/users/${login}/events{/privacy}")
   // val received_events_url = ApiPath(s"/api/v3/users/${login}/received_events")
 }
+
 
 object ApiUser{
   def apply(user: Account): ApiUser = ApiUser(

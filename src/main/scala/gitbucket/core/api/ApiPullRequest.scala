@@ -1,7 +1,9 @@
-package api
+package gitbucket.core.api
+
+import gitbucket.core.model.{Issue, PullRequest}
 
 import java.util.Date
-import gitbucket.core.model.{Issue, PullRequest}
+
 
 /**
  * https://developer.github.com/v3/pulls/

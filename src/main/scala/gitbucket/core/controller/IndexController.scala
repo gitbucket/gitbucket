@@ -1,16 +1,19 @@
 package gitbucket.core.controller
 
-import gitbucket.core.html
+import gitbucket.core.api._
 import gitbucket.core.helper.xml
+import gitbucket.core.html
 import gitbucket.core.model.Account
 import gitbucket.core.service.{RepositoryService, ActivityService, AccountService}
-import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator}
+
 import jp.sf.amateras.scalatra.forms._
-import api._
+
 
 class IndexController extends IndexControllerBase 
   with RepositoryService with ActivityService with AccountService with UsersAuthenticator
+
 
 trait IndexControllerBase extends ControllerBase {
   self: RepositoryService with ActivityService with AccountService with UsersAuthenticator =>
@@ -114,6 +117,6 @@ trait IndexControllerBase extends ControllerBase {
   get("/api/v3/rate_limit"){
     contentType = formats("json")
     // this message is same as github enterprise...
-    org.scalatra.NotFound(api.ApiError("Rate limiting is not enabled."))
+    org.scalatra.NotFound(ApiError("Rate limiting is not enabled."))
   }
 }
