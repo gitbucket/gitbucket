@@ -43,11 +43,7 @@
       @if(loginAccount.isEmpty){
         <a title="You must be signed in to fork a repository" href="@path/signin" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
       } else {
-        @if(isNoGroup) {
-          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" style="margin-bottom: 10px;" data-account="@loginAccount.get.userName">Fork</a>
-        } else {
-          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
-        }
+        <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
       }
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
       </div>
