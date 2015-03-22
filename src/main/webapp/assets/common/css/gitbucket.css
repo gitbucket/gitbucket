@@ -1027,22 +1027,49 @@ td.insert, td.equal, td.delete, td.empty {
     width: 50%;
 }
 
+table.diff td.body{
+  position: relative;
+}
+
+table.diff th.line-num{
+  min-width: 20px;
+}
+
 table.diff .add-comment {
     position: absolute;
-    background: blue;
+    background: #4183c4;
     top: 0;
     left: -7px;
     color: white;
     padding: 2px 4px;
-    border: solid 1px blue;
+    border: solid 1px #4183c4;
     border-radius: 3px;
     z-index: 99;
+    cursor: pointer;
 }
 
 table.diff .add-comment:hover {
     padding: 4px 6px;
     top: -1px;
 }
+
+table.diff tr td.body b.add-comment{
+  display: none;
+}
+
+table.diff tr:hover td.body b.add-comment{
+  display: inline-block;
+}
+
+.container-wide table.diff tr:hover td.body b.add-comment{
+  display: none;
+}
+
+.container-wide table.diff tr:hover td.body:hover b.add-comment,
+.container-wide table.diff tr:hover th.line-num:hover + td b.add-comment{
+  display: inline-block;
+}
+
 
 table.diff tbody tr.not-diff {
     font-family: '"Helvetica Neue", Helvetica, Arial, sans-serif';
@@ -1074,6 +1101,29 @@ table.diff tbody tr.not-diff:hover td{
     content: "..."
 }
 
+.diffstat-bar {
+    display: inline-block;
+    margin-left: 3px;
+    font-size: 16px;
+    color: #ddd;
+    letter-spacing: 1px;
+    text-align: left;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+}
+.text-diff-added {
+    color: #55a532;
+}
+.text-diff-deleted {
+    color: #bd2c00;
+}
+.diffstat {
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    white-space: nowrap;
+    letter-spacing: 0px;
+}
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/
