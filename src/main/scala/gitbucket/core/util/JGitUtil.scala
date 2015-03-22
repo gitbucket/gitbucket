@@ -442,6 +442,7 @@ object JGitUtil {
     newTreeIter.reset(reader, git.getRepository.resolve(to + "^{tree}"))
 
     import scala.collection.JavaConverters._
+    git.getRepository.getConfig.setString("diff", null, "renames", "copies")
     git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
       if(!fetchContent || FileUtil.isImage(diff.getOldPath) || FileUtil.isImage(diff.getNewPath)){
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
