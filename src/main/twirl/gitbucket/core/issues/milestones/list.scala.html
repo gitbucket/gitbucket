@@ -31,7 +31,7 @@
           <td style="padding-top: 15px; padding-bottom: 15px;">
             <div class="milestone row-fluid">
               <div class="span4">
-                <a href="@url(repository)/issues?milestone=@milestone.milestoneId&state=open" class="milestone-title">@milestone.title</a>
+                <a href="@url(repository)/issues?milestone=@milestone.title&state=open" class="milestone-title">@milestone.title</a>
                 <div style="margin-top: 6px">
                   @if(milestone.closedDate.isDefined){
                     <span class="muted">Closed @helper.html.datetimeago(milestone.closedDate.get)</span>
