@@ -1,3 +1,5 @@
+# Notification Email
+
 GitBucket sends email to target users by enabling the notification email by an administrator.
 
 The timing of the notification are as follows:
