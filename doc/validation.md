@@ -1,5 +1,5 @@
-# Mapping and Validation
-
+Mapping and Validation
+========
 GitBucket uses [scalatra-forms](https://github.com/takezoe/scalatra-forms) to validate request parameters and map them to the scala object. This is inspired by Play2 form mapping / validation.
 
 At first, define the mapping as following:

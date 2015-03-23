@@ -1,3 +1,5 @@
+Activity Timeline
+========
 GitBucket records several types of user activity to ```ACTIVITY``` table. Activity types are shown below:
 
 type              | message                                              | additional information

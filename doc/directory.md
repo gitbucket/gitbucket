@@ -1,5 +1,5 @@
-# Directory Structure
-
+Directory Structure
+========
 GitBucket persists all data into __HOME/.gitbucket__ in default (In 1.9 or before, HOME/gitbucket is default).
 
 This directory has following structure:

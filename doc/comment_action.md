@@ -1,5 +1,5 @@
-# About Action in Issue Comment
-
+About Action in Issue Comment
+========
 After the issue creation at GitBucket, users can add comments or close it.
 The details are saved at ```ISSUE_COMMENT``` table.
 
