@@ -1,3 +1,5 @@
+# How to run from the source tree
+
 for Testers
 --------
 
