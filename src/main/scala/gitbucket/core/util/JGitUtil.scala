@@ -749,4 +749,17 @@ object JGitUtil {
       }
     }
   }
+
+  /**
+   * Returns sha1
+   * @param owner repository owner
+   * @param name  repository name
+   * @param revstr  A git object references expression
+   * @return sha1
+   */
+  def getShaByRef(owner:String, name:String,revstr: String): Option[String] = {
+    using(Git.open(getRepositoryDir(owner, name))){ git =>
+      Option(git.getRepository.resolve(revstr)).map(ObjectId.toString(_))
+    }
+  }
 }

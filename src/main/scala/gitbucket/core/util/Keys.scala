@@ -72,6 +72,11 @@ object Keys {
     val Ajax = "AJAX"
 
     /**
+     * Request key for the /api/v3 request flag.
+     */
+    val APIv3 = "APIv3"
+
+    /**
      * Request key for the username which is used during Git repository access.
      */
     val UserName = "USER_NAME"

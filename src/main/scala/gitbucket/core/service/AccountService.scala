@@ -77,6 +77,16 @@ trait AccountService {
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
     Accounts filter(t => (t.userName === userName.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
 
+  def getAccountsByUserNames(userNames: Set[String], knowns:Set[Account], includeRemoved: Boolean = false)(implicit s: Session): Map[String, Account] = {
+    val map = knowns.map(a => a.userName -> a).toMap
+    val needs = userNames -- map.keySet
+    if(needs.isEmpty){
+      map
+    }else{
+      map ++ Accounts.filter(t => (t.userName inSetBind needs) && (t.removed === false.bind, !includeRemoved)).list.map(a => a.userName -> a).toMap
+    }
+  }
+
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
     Accounts filter(t => (t.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
 

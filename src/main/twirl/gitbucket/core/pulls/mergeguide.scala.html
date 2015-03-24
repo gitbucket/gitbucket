@@ -1,17 +1,60 @@
 @(hasConflict: Boolean,
+  hasProblem: Boolean,
+  issue: gitbucket.core.model.Issue,
   pullreq: gitbucket.core.model.PullRequest,
+  statuses: List[model.CommitStatus],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   requestRepositoryUrl: String)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
+@import model.CommitState
+<div class="box issue-comment-box" style="background-color: @if(hasProblem){ #fbeed5 }else{ #d8f5cd };">
+  <div class="box-content"class="issue-content" style="border: 1px solid @if(hasProblem){ #c09853 }else{ #95c97e }; padding: 10px;">
+    <div id="merge-pull-request">
+      @if(!statuses.isEmpty){
+        <div class="build-statuses">
+          @if(statuses.size==1){
+            @defining(statuses.head){ status =>
+            <div class="build-status-item">
+              @status.targetUrl.map{ url => <a class="pull-right" href="@url">Details</a> }
+              <span class="build-status-icon text-@{status.state.name}">@commitStateIcon(status.state)</span>
+              <strong class="text-@{status.state.name}">@commitStateText(status.state, pullreq.commitIdTo)</strong>
+              @status.description.map{ desc => <span class="muted">— @desc</span> }
+            </div>
+            }
+          }else{
+            @defining(statuses.groupBy(_.state)){ stateMap => @defining(CommitState.combine(stateMap.keySet)){ state =>
+              <div class="build-status-item">
+                <a class="pull-right" id="toggle-all-checks"></a>
+                <span class="build-status-icon text-@{state.name}">@commitStateIcon(state)</span>
+                <strong class="text-@{state.name}">@commitStateText(state, pullreq.commitIdTo)</strong>
+                <span class="text-@{state.name}">— @{stateMap.map{ case (keyState, states) => states.size+" "+keyState.name }.mkString(", ")} checks</span>
+              </div>
+              <div class="build-statuses-list" style="@if(state==CommitState.SUCCESS){ display:none; }else{ }">
+                @statuses.map{ status =>
+                <div class="build-status-item">
+                  @status.targetUrl.map{ url => <a class="pull-right" href="@url">Details</a> }
+                  <span class="build-status-icon text-@{status.state.name}">@commitStateIcon(status.state)</span>
+                  <span class="text-@{status.state.name}">@status.context</span>
+                  @status.description.map{ desc => <span class="muted">— @desc</span> }
+                </div>
+                }
+              </div>
+            } }
+          }
+        </div>
+      }
 <div class="pull-right">
-  <input type="button" class="btn btn-success" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict){ disabled="true"}/>
+  <input type="button" class="btn @if(!hasProblem){ btn-success }" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict){ disabled="true"}/>
 </div>
 <div>
   @if(hasConflict){
     <span class="strong">We can’t automatically merge this pull request.</span>
+  } else{ @if(hasProblem){
+    <span class="strong">Merge with caution!</span>
   } else {
     <span class="strong">This pull request can be automatically merged.</span>
-  }
+  } }
 </div>
 <div class="small">
   @if(hasConflict){
@@ -69,12 +112,38 @@
     }
   </div>
 </div>
+
+    </div>
+    <div id="confirm-merge-form" style="display: none;">
+      <form method="POST" action="@url(repository)/pull/@pullreq.issueId/merge">
+        <div class="strong">
+          Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
+        </div>
+        <span id="error-message" class="error"></span>
+        <textarea name="message" style="width: 635px; height: 80px;">@issue.title</textarea>
+        <div>
+          <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
+          <input type="submit" class="btn btn-success" value="Confirm merge"/>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
 $(function(){
   $('#show-command-line').click(function(){
     $('#command-line').show();
     return false;
   });
+  function setToggleAllChecksLabel(){
+    $("#toggle-all-checks").text($('.build-statuses-list').is(":visible") ? "Hide all checks" : "Show all checks");
+  }
+  setToggleAllChecksLabel();
+  $('#toggle-all-checks').click(function(){
+    $('.build-statuses-list').toggle();
+    setToggleAllChecksLabel();
+  })
 
   $('#merge-pull-request-button').click(function(){
     $('#merge-pull-request').hide();
