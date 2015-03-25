@@ -202,7 +202,7 @@ trait WikiService {
   }
 
   /**
-   * Save the wiki page.
+   * Save the wiki page and return the commit id.
    */
   def saveWikiPage(owner: String, repository: String, currentPageName: String, newPageName: String,
       content: String, committer: Account, message: String, currentId: Option[String]): Option[String] = {

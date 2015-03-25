@@ -6,6 +6,7 @@ import gitbucket.core.helper
 import gitbucket.core.service._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
+import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
@@ -236,9 +237,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/create", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), None,
-      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
-      form.message.getOrElse(s"Create ${form.newFileName}"))
+    commitFile(
+      repository  = repository,
+      branch      = form.branch,
+      path        = form.path,
+      newFileName = Some(form.newFileName),
+      oldFileName = None,
+      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+      charset     = form.charset,
+      message     = form.message.getOrElse(s"Create ${form.newFileName}")
+    )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
       if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
@@ -246,13 +254,20 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/update", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), form.oldFileName,
-      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
-      if(form.oldFileName.exists(_ == form.newFileName)){
+    commitFile(
+      repository  = repository,
+      branch      = form.branch,
+      path        = form.path,
+      newFileName = Some(form.newFileName),
+      oldFileName = form.oldFileName,
+      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+      charset     = form.charset,
+      message     = if(form.oldFileName.exists(_ == form.newFileName)){
         form.message.getOrElse(s"Update ${form.newFileName}")
       } else {
         form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
-      })
+      }
+    )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
       if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"

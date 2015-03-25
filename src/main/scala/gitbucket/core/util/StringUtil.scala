@@ -63,6 +63,21 @@ object StringUtil {
   }
 
   /**
+   * Appends LF if the given string does not end with LF.
+   *
+   * @param content the content
+   * @param lineSeparator "LF" or "CRLF"
+   * @return the converted content
+   */
+  def appendNewLine(content: String, lineSeparator: String): String = {
+    if(lineSeparator == "CRLF") {
+      if (content.endsWith("\r\n")) content else content + "\r\n"
+    } else {
+      if (content.endsWith("\n")) content else content + "\n"
+    }
+  }
+
+  /**
    * Extract issue id like ```#issueId``` from the given message.
    *
    *@param message the message which may contains issue id
