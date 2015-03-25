@@ -47,9 +47,6 @@
     <tr>
       <th style="font-weight: normal; line-height: 27px;" class="box-header">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <span class="diffstat">
-            <img src="@assets/common/images/diff_move.png"/>
-          </span> @diff.oldPath -> @diff.newPath
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
               <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="ignore-whitespace" value="1"/>Ignore Space</label>
@@ -57,8 +54,18 @@
               <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
             </div>
           }
+          <span class="diffstat">
+            <img src="@assets/common/images/diff_move.png"/>
+          </span> @diff.oldPath -> @diff.newPath
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
+          @if(newCommitId.isDefined){
+            <div class="pull-right align-right">
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="ignore-whitespace" value="1"/>Ignore Space</label>
+              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
+              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+            </div>
+          }
           <span class="diffstat">
           @if(diff.changeType == ChangeType.ADD){
             <img src="@assets/common/images/diff_add.png"/>
@@ -67,24 +74,17 @@
           }
           </span>
           @diff.newPath
-          @if(newCommitId.isDefined){
-            <div class="pull-right align-right">
-              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="ignore-whitespace" value="1"/>Ignore Space</label>
-              <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
-              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-small" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
-            </div>
-          }
         }
         @if(diff.changeType == ChangeType.DELETE){
-          <span class="diffstat">
-            <img src="@assets/common/images/diff_delete.png"/>
-          </span> @diff.oldPath
           @if(oldCommitId.isDefined){
             <div class="pull-right align-right">
               <label class="checkbox" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
               <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-small" title="View the whole file at version @oldCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
             </div>
           }
+          <span class="diffstat">
+            <img src="@assets/common/images/diff_delete.png"/>
+          </span> @diff.oldPath
         }
       </th>
     </tr>

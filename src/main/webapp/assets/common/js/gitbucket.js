@@ -118,12 +118,17 @@ function JsDiffRender(params){
     var dom = null;
     return function(ln){
       if(dom===null){
-        dom = prettyPrintOne(
+        var html = prettyPrintOne(
           text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;'),
           (/\.([^.]*)$/.exec(fileName)||[])[1],
           true);
+        var re = /<li[^>]*id="?L([0-9]+)"?[^>]*>(.*?)<\/li>/gi, h;
+        dom=[];
+        while(h=re.exec(html)){
+          dom[h[1]]=h[2];
+        }
       }
-      return (new RegExp('<li id="L'+ln+'"[^>]*>(.*?)</li>').exec(dom) || [])[1];
+      return dom[ln];
     };
   }
   return this.renders(oplines, prettyDom(params.oldText, params.oldTextName), prettyDom(params.newText, params.newTextName));
