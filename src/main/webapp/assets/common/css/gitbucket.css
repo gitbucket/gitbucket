@@ -1354,11 +1354,15 @@ div.container.blame-container{
 }
 .blame-container .line-age-legend ol {
   display: inline-block;
+  *display: inline;
+  *zoom: 1;
   list-style: none;
   margin: 0 5px;
 }
 .blame-container .line-age-legend ol li {
   display: inline-block;
+  *display: inline;
+  *zoom: 1;
   width: 8px;
   height: 10px;
 }
@@ -1396,6 +1400,11 @@ div.container.blame-container{
   width: 340px;
   padding: 2px;
   border-right: 2px solid;
+}
+.no-box-shadow .blame .blame-info{
+  border-top: 1px solid #888;
+  border-bottom: 1px solid #888;
+  border-left: 1px solid #888;
 }
 .blame-sha{
   font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;

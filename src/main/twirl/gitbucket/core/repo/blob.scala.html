@@ -161,6 +161,7 @@ $(window).load(function(){
       updateSourceLineNum();
       return;
     }
+    $(document.body).toggleClass('no-box-shadow',document.body.style.boxShadow===undefined);
     $('.blame-action').addClass("active");
     var base = $('<div class="blame">').css({height:pre.height()}).prependTo(pre.parents("td")[0]);
     base.parents("div.container").addClass("blame-container");
@@ -195,7 +196,7 @@ $(window).load(function(){
            .data('line', (i + 1))
            .css({
              "top" : p.top + 'px',
-             "min-height" : h+'px',
+             "min-height" : h+'px'
            })
            .append(sha)
            .append($(blame.avatar).addClass('avatar').css({"float":"left"}))
