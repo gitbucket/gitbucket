@@ -186,9 +186,9 @@ $(window).load(function(){
           blame = index[i];
           var sha = $('<div class="blame-sha">')
              .append($('<a>').attr("href",data.root+'/commit/'+blame.id).text(blame.id.substr(0,7)));
-          if(blame.parent){
+          if(blame.prev){
              sha.append($('<br />'))
-             .append($('<a class="muted-link">').text('prev').attr("href",data.root+'/blame/'+blame.parent+'/'+data.path));
+             .append($('<a class="muted-link">').text('prev').attr("href",data.root+'/blame/'+blame.prev+'/'+(blame.prevPath||data.path)));
           }
           lastDiv = $('<div class="blame-info">')
            .addClass('heat'+Math.min(10,Math.max(1,Math.ceil((now-blame.commited)/(24*3600*1000*70)))))

@@ -139,7 +139,7 @@ object JGitUtil {
   case class BranchInfo(name: String, committerName: String, commitTime: Date, committerEmailAddress:String, mergeInfo: Option[BranchMergeInfo], commitId: String)
 
   case class BlameInfo(id: String, authorName: String, authorEmailAddress: String, authorTime:java.util.Date,
-    parent: Option[String], commitTime:java.util.Date, message:String, lines:Set[Int])
+    prev: Option[String], prevPath: Option[String], commitTime:java.util.Date, message:String, lines:Set[Int])
 
   /**
    * Returns RevCommit from the commit or tag id.
@@ -768,8 +768,9 @@ object JGitUtil {
             c.getAuthorIdent.getName,
             c.getAuthorIdent.getEmailAddress,
             c.getAuthorIdent.getWhen,
-            Option(git.log.add(c).addPath(path).setSkip(1).setMaxCount(2).call.iterator.next)
+            Option(git.log.add(c).addPath(blame.getSourcePath(i)).setSkip(1).setMaxCount(2).call.iterator.next)
               .map(_.name),
+            if(blame.getSourcePath(i)==path){ None }else{ Some(blame.getSourcePath(i)) },
             c.getCommitterIdent.getWhen,
             c.getShortMessage,
             Set.empty)

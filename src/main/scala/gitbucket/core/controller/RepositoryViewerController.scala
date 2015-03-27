@@ -250,7 +250,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             "author"   -> view.helpers.user(blame.authorName, blame.authorEmailAddress).toString,
             "avatar"   -> view.helpers.avatarLink(blame.authorName, 32, blame.authorEmailAddress).toString,
             "authed"   -> helper.html.datetimeago(blame.authorTime).toString,
-            "parent"   -> blame.parent,
+            "prev"     -> blame.prev,
+            "prevPath" -> blame.prevPath,
             "commited" -> blame.commitTime.getTime,
             "message"  -> blame.message,
             "lines"    -> blame.lines)
