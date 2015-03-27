@@ -185,7 +185,7 @@ $(window).load(function(){
           $(e).addClass('blame-sep')
           blame = index[i];
           var sha = $('<div class="blame-sha">')
-             .append($('<a>').attr("href",data.root+'/commits/'+blame.id).text(blame.id.substr(0,7)));
+             .append($('<a>').attr("href",data.root+'/commit/'+blame.id).text(blame.id.substr(0,7)));
           if(blame.parent){
              sha.append($('<br />'))
              .append($('<a class="muted-link">').text('prev').attr("href",data.root+'/blame/'+blame.parent+'/'+data.path));
