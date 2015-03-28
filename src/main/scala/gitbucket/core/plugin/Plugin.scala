@@ -18,12 +18,12 @@ trait Plugin {
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
-  def initialize(registry: PluginRegistry, context: ServletContext, ): Unit
+  def initialize(registry: PluginRegistry, context: ServletContext): Unit
 
   /**
    * This method is invoked in shutdown of plugin system.
    * If the plugin has any resources, release them in this method.
    */
-  def shutdown(registry: PluginRegistry, context: ServletContext, ): Unit
+  def shutdown(registry: PluginRegistry, context: ServletContext): Unit
 
 }
