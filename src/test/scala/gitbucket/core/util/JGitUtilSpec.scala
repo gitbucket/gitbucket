@@ -7,11 +7,8 @@ class JGitUtilSpec extends Specification {
 
   "getFileList(git: Git, revision: String, path)" should {
     withTestRepository { git =>
-      def list(branch: String, path: String) = try {
+      def list(branch: String, path: String) =
         JGitUtil.getFileList(git, branch, path).map(finfo => (finfo.name, finfo.message, finfo.isDirectory))
-      } catch {
-        case e: NullPointerException => Nil
-      }
       list("master", ".") mustEqual Nil
       list("master", "dir/subdir") mustEqual Nil
       list("branch", ".") mustEqual Nil
