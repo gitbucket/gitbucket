@@ -40,18 +40,23 @@
   @if(repository.commitCount > 0){
     <div class="pull-right">
       <div class="input-prepend">
-      @if(loginAccount.isEmpty){
-        <a title="You must be signed in to fork a repository" href="@path/signin" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
-      } else {
-        @if(isNoGroup) {
-          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" style="margin-bottom: 10px;" data-account="@loginAccount.get.userName">Fork</a>
+        @if(loginAccount.isEmpty){
+          <a title="You must be signed in to fork a repository" href="@path/signin" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
         } else {
-          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+          @if(isNoGroup) {
+            <a id="fork-link" href="javascript:void(0);" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
+          } else {
+            <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+          }
         }
-      }
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
       </div>
     </div>
+    @if(loginAccount.isDefined && isNoGroup){
+      <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork">
+        <input type="hidden" name="account" value="@loginAccount.get.userName"/>
+      </form>
+    }
   }
   <div class="head">
     @helper.html.repositoryicon(repository, true)
@@ -194,19 +199,9 @@ $(function(){
   });
 
   @if(loginAccount.isDefined){
-    $(document).on("click", "a[data-account]", function(e) {
+    $(document).on("click", "a#fork-link", function(e) {
       e.preventDefault();
-      var form = $('<form/>', {
-        action: $(this).attr('href'),
-        method: "post"
-      });
-      var account = $('<input/>', {
-        type: "hidden",
-        name: "account",
-        value: $(this).data('account')
-      });
-      form.append(account);
-      form.submit();
+      $('#fork-form').submit();
     });
   }
 
