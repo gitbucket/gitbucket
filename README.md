@@ -79,6 +79,11 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.1 - 28 Mar 2015
+- Web APIs for Jenkins github pull-request builder
+- Improved diff view
+- Bump Scalatra to 2.3.1, sbt to 0.13.8
+
 ### 3.0 - 3 Mar 2015
 - New plug-in system is available
 - Connection pooling by c3p0
