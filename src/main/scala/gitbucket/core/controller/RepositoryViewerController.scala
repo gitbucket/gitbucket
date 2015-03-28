@@ -1,38 +1,44 @@
 package gitbucket.core.controller
 
+import gitbucket.core.api._
 import gitbucket.core.repo.html
 import gitbucket.core.helper
 import gitbucket.core.service._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
+import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.Account
-import gitbucket.core.service.WebHookService.WebHookPayload
+import gitbucket.core.model.{Account, CommitState}
+import gitbucket.core.service.CommitStatusService
+import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
-import org.scalatra._
 
+import jp.sf.amateras.scalatra.forms._
+import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
-import org.eclipse.jgit.lib._
-import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.treewalk._
-import jp.sf.amateras.scalatra.forms._
 import org.eclipse.jgit.dircache.DirCache
+import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.treewalk._
+import org.scalatra._
+
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
+  with WebHookPullRequestService
 
 /**
  * The repository viewer.
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
+    with WebHookPullRequestService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -109,6 +115,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   /**
+   * https://developer.github.com/v3/repos/#get
+   */
+  get("/api/v3/repos/:owner/:repository")(referrersOnly { repository =>
+    JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(repository.owner).get)))
+  })
+
+  /**
    * Displays the file list of the specified path and branch.
    */
   get("/:owner/:repository/tree/*")(referrersOnly { repository =>
@@ -137,6 +150,56 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         case Left(_) => NotFound
       }
     }
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#create-a-status
+   */
+  post("/api/v3/repos/:owner/:repo/statuses/:sha")(collaboratorsOnly { repository =>
+    (for{
+      ref <- params.get("sha")
+      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+      data <- extractFromJsonBody[CreateAStatus] if data.isValid
+      creator <- context.loginAccount
+      state <- CommitState.valueOf(data.state)
+      statusId = createCommitStatus(repository.owner, repository.name, sha, data.context.getOrElse("default"),
+                                    state, data.target_url, data.description, new java.util.Date(), creator)
+      status <- getCommitStatus(repository.owner, repository.name, statusId)
+    } yield {
+      JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
+    }) getOrElse NotFound
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+   *
+   * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
+   */
+  get("/api/v3/repos/:owner/:repo/commits/:ref/statuses")(referrersOnly { repository =>
+    (for{
+      ref <- params.get("ref")
+      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+    } yield {
+      JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
+        ApiCommitStatus(status, ApiUser(creator))
+      })
+    }) getOrElse NotFound
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
+   *
+   * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
+   */
+  get("/api/v3/repos/:owner/:repo/commits/:ref/status")(referrersOnly { repository =>
+    (for{
+      ref <- params.get("ref")
+      owner <- getAccountByUserName(repository.owner)
+      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+    } yield {
+      val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
+      JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
+    }) getOrElse NotFound
   })
 
   get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
@@ -173,9 +236,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/create", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), None,
-      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
-      form.message.getOrElse(s"Create ${form.newFileName}"))
+    commitFile(
+      repository  = repository,
+      branch      = form.branch,
+      path        = form.path,
+      newFileName = Some(form.newFileName),
+      oldFileName = None,
+      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+      charset     = form.charset,
+      message     = form.message.getOrElse(s"Create ${form.newFileName}")
+    )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
       if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
@@ -183,13 +253,20 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/update", editorForm)(collaboratorsOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, Some(form.newFileName), form.oldFileName,
-      StringUtil.convertLineSeparator(form.content, form.lineSeparator), form.charset,
-      if(form.oldFileName.exists(_ == form.newFileName)){
+    commitFile(
+      repository  = repository,
+      branch      = form.branch,
+      path        = form.path,
+      newFileName = Some(form.newFileName),
+      oldFileName = form.oldFileName,
+      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+      charset     = form.charset,
+      message     = if(form.oldFileName.exists(_ == form.newFileName)){
         form.message.getOrElse(s"Update ${form.newFileName}")
       } else {
         form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
-      })
+      }
+    )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
       if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
@@ -538,14 +615,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
 
         // call web hook
+        callPullRequestWebHookByRequestBranch("synchronize", repository, branch, context.baseUrl, loginAccount)
         val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-        getWebHookURLs(repository.owner, repository.name) match {
-          case webHookURLs if(webHookURLs.nonEmpty) =>
-            for(ownerAccount <- getAccountByUserName(repository.owner)){
-              callWebHook(repository.owner, repository.name, webHookURLs,
-                WebHookPayload(git, loginAccount, headName, repository, List(commit), ownerAccount))
-            }
-          case _ =>
+        callWebHookOf(repository.owner, repository.name, "push") {
+          getAccountByUserName(repository.owner).map{ ownerAccount =>
+            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount)
+          }
         }
       }
     }

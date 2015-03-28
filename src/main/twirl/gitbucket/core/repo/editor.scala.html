@@ -71,7 +71,6 @@
 }
 <script src="@assets/vendors/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
-<script type="text/javascript" src="@assets/vendors/jsdifflib/diffview.js"></script>
 <link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
@@ -138,8 +137,8 @@ $(function(){
       // Show diff
       $('#preview').empty()
         .append($('<div id="diffText">'))
-        .append($('<textarea id="newText" style="display: none;">').html(editor.getValue()))
-        .append($('<textarea id="oldText" style="display: none;">').html($('#initial').val()));
+        .append($('<textarea id="newText" style="display: none;">').data('file-name',$("#newFileName").val()).html(editor.getValue()))
+        .append($('<textarea id="oldText" style="display: none;">').data('file-name',$("#oldFileName").val()).html($('#initial').val()));
       diffUsingJS('oldText', 'newText', 'diffText', 1);
     }
   });

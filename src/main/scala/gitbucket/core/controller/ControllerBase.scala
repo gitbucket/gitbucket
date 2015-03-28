@@ -1,19 +1,25 @@
 package gitbucket.core.controller
 
+import gitbucket.core.api.ApiError
+import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, SystemSettingsService}
-import gitbucket.core.util._
-import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.Account
-import org.scalatra._
-import org.scalatra.json._
-import org.json4s._
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util._
+
 import jp.sf.amateras.scalatra.forms._
 import org.apache.commons.io.FileUtils
+import org.json4s._
+import org.scalatra._
+import org.scalatra.i18n._
+import org.scalatra.json._
+
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
-import org.scalatra.i18n._
+
+import scala.util.Try
+
 
 /**
  * Provides generic features for controller implementations.
@@ -51,6 +57,9 @@ abstract class ControllerBase extends ScalatraFilter
       // Git repository
       chain.doFilter(request, response)
     } else {
+      if(path.startsWith("/api/v3/")){
+        httpRequest.setAttribute(Keys.Request.APIv3, true)
+      }
       // Scalatra actions
       super.doFilter(request, response, chain)
     }
@@ -74,7 +83,7 @@ abstract class ControllerBase extends ScalatraFilter
     }
   }
 
-  private def LoginAccount: Option[Account] = session.getAs[Account](Keys.Session.LoginAccount)
+  private def LoginAccount: Option[Account] = request.getAs[Account](Keys.Session.LoginAccount).orElse(session.getAs[Account](Keys.Session.LoginAccount))
 
   def ajaxGet(path : String)(action : => Any) : Route =
     super.get(path){
@@ -103,6 +112,9 @@ abstract class ControllerBase extends ScalatraFilter
   protected def NotFound() =
     if(request.hasAttribute(Keys.Request.Ajax)){
       org.scalatra.NotFound()
+    } else if(request.hasAttribute(Keys.Request.APIv3)){
+      contentType = formats("json")
+      org.scalatra.NotFound(ApiError("Not Found"))
     } else {
       org.scalatra.NotFound(gitbucket.core.html.error("Not Found"))
     }
@@ -110,6 +122,9 @@ abstract class ControllerBase extends ScalatraFilter
   protected def Unauthorized()(implicit context: Context) =
     if(request.hasAttribute(Keys.Request.Ajax)){
       org.scalatra.Unauthorized()
+    } else if(request.hasAttribute(Keys.Request.APIv3)){
+      contentType = formats("json")
+      org.scalatra.Unauthorized(ApiError("Requires authentication"))
     } else {
       if(context.loginAccount.isDefined){
         org.scalatra.Unauthorized(redirect("/"))
@@ -145,6 +160,15 @@ abstract class ControllerBase extends ScalatraFilter
     }
     response.addHeader("X-Content-Type-Options", "nosniff")
     rawData
+  }
+
+  // jenkins send message as 'application/x-www-form-urlencoded' but scalatra already parsed as multi-part-request.
+  def extractFromJsonBody[A](implicit request:HttpServletRequest, mf:Manifest[A]): Option[A] = {
+    (request.contentType.map(_.split(";").head.toLowerCase) match{
+      case Some("application/x-www-form-urlencoded") => multiParams.keys.headOption.map(parse(_))
+      case Some("application/json") => Some(parsedBody)
+      case _ => Some(parse(request.body))
+    }).filterNot(_ == JNothing).flatMap(j => Try(j.extract[A]).toOption)
   }
 }
 

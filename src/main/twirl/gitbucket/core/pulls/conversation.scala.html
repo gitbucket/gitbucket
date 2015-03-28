@@ -10,35 +10,21 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.model._
+
 <div class="row-fluid">
   <div class="span10">
     <div id="comment-list">
       @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
     </div>
     @defining(comments.flatMap {
-      case comment: IssueComment => Some(comment)
+      case comment: gitbucket.core.model.IssueComment => Some(comment)
       case other => None
     }.exists(_.action == "merge")){ merged =>
       @if(hasWritePermission && !issue.closed){
-        <div class="box issue-comment-box" style="background-color: #d8f5cd;">
-          <div class="box-content"class="issue-content" style="border: 1px solid #95c97e; padding: 10px;">
-            <div id="merge-pull-request">
-              <div class="check-conflict" style="display: none;">
-                <img src="@assets/common/images/indicator.gif"/> Checking...
-              </div>
-            </div>
-            <div id="confirm-merge-form" style="display: none;">
-              <form method="POST" action="@url(repository)/pull/@issue.issueId/merge">
-                <div class="strong">
-                  Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
-                </div>
-                <span id="error-message" class="error"></span>
-                <textarea name="message" style="width: 635px; height: 80px;">@issue.title</textarea>
-                <div>
-                  <input type="button" class="btn" value="Cancel" id="cancel-merge-pull-request"/>
-                  <input type="submit" class="btn btn-success" value="Confirm merge"/>
-                </div>
-              </form>
+        <div class="check-conflict" style="display: none;">
+          <div class="box issue-comment-box" style="background-color: #fbeed5">
+            <div class="box-content"class="issue-content" style="border: 1px solid #c09853; padding: 10px;">
+              <img src="@assets/common/images/indicator.gif"/> Checking...
             </div>
           </div>
         </div>

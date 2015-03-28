@@ -54,8 +54,8 @@ class PluginRegistry {
 
   //def getJavaScripts(): List[(String, String)] = javaScripts.toList
 
-  def getJavaScript(currentPath: String): Option[String] = {
-    javaScripts.find(x => currentPath.matches(x._1)).map(_._2)
+  def getJavaScript(currentPath: String): List[String] = {
+    javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
   }
 
   private case class GlobalAction(

@@ -5,7 +5,7 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("network", repository){
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs fill-width pull-left">
       <li class="active"><a href="@url(repository)/network/members">Members</a></li>
     </ul>
     <h3>Members of the @repository.name Network</h3>

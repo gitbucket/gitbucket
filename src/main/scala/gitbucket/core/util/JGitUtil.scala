@@ -179,7 +179,7 @@ object JGitUtil {
           git.tagList.call.asScala.map { ref =>
             val revCommit = getRevCommitFromId(git, ref.getObjectId)
             TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName)
-          }.toList
+          }.sortBy(_.time).toList
         )
       } catch {
         // not initialized
@@ -445,6 +445,7 @@ object JGitUtil {
     newTreeIter.reset(reader, git.getRepository.resolve(to + "^{tree}"))
 
     import scala.collection.JavaConverters._
+    git.getRepository.getConfig.setString("diff", null, "renames", "copies")
     git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
       if(!fetchContent || FileUtil.isImage(diff.getOldPath) || FileUtil.isImage(diff.getNewPath)){
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
@@ -780,5 +781,18 @@ object JGitUtil {
       val limeMap = idLine.groupBy(_._1).mapValues(_.map(_._2).toSet)
       blameMap.values.map{b => b.copy(lines=limeMap(b.id))}
     }.getOrElse(Seq.empty)
+  }
+
+  /**
+   * Returns sha1
+   * @param owner repository owner
+   * @param name  repository name
+   * @param revstr  A git object references expression
+   * @return sha1
+   */
+  def getShaByRef(owner:String, name:String,revstr: String): Option[String] = {
+    using(Git.open(getRepositoryDir(owner, name))){ git =>
+      Option(git.getRepository.resolve(revstr)).map(ObjectId.toString(_))
+    }
   }
 }

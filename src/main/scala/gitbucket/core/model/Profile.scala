@@ -1,5 +1,6 @@
 package gitbucket.core.model
 
+
 trait Profile {
   val profile: slick.driver.JdbcProfile
   import profile.simple._
@@ -31,10 +32,12 @@ trait ProfileProvider { self: Profile =>
 }
 
 trait CoreProfile extends ProfileProvider with Profile
+  with AccessTokenComponent
   with AccountComponent
   with ActivityComponent
   with CollaboratorComponent
   with CommitCommentComponent
+  with CommitStatusComponent
   with GroupMemberComponent
   with IssueComponent
   with IssueCommentComponent
