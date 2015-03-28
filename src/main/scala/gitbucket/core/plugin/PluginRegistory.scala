@@ -119,7 +119,7 @@ object PluginRegistry {
           }
 
           // Initialize
-          plugin.initialize(instance)
+          plugin.initialize(instance,context)
           instance.addPlugin(PluginInfo(
             pluginId    = plugin.pluginId,
             pluginName  = plugin.pluginName,
@@ -140,7 +140,7 @@ object PluginRegistry {
   def shutdown(context: ServletContext): Unit = {
     instance.getPlugins().foreach { pluginInfo =>
       try {
-        pluginInfo.pluginClass.shutdown(instance)
+        pluginInfo.pluginClass.shutdown(instance, context)
       } catch {
         case e: Exception => {
           logger.error(s"Error during plugin shutdown", e)
