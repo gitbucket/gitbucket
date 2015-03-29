@@ -1,4 +1,5 @@
 @(files: List[gitbucket.core.service.RepositorySearchService.FileSearchResult],
+  fileCount: Int,
   issueCount: Int,
   query: String,
   page: Int,
@@ -7,20 +8,20 @@
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.service.RepositorySearchService._
 @html.main("Search Results", Some(repository)){
-  @menu("code", files.size, issueCount, query, repository){
+  @menu("code", fileCount, issueCount, query, repository){
     @if(files.isEmpty){
       <h4>We couldn't find any code matching '@query'</h4>
     } else {
-      <h4>We've found @files.size code @plural(files.size, "result")</h4>
+      <h4>We've found @fileCount code @plural(fileCount, "result")</h4>
     }
-    @files.drop((page - 1) * CodeLimit).take(CodeLimit).map { file =>
+    @files.map { file =>
       <div>
         <h5><a href="@url(repository)/blob/@repository.repository.defaultBranch/@file.path">@file.path</a></h5>
         <div class="small muted">Last committed @helper.html.datetimeago(file.lastModified)</div>
         <pre class="prettyprint linenums:@file.highlightLineNumber" style="padding-left: 25px;">@Html(file.highlightText)</pre>
       </div>
     }
-    @helper.html.paginator(page, files.size, CodeLimit, 10,
+    @helper.html.paginator(page, fileCount, CodeLimit, 10,
       s"${url(repository)}/search?q=${urlEncode(query)}&type=code")
   }
 }
