@@ -701,6 +701,12 @@ span.simplified-path {
   padding-left: 16px;
 }
 
+.btn-pullrequest-branch{
+  background: none;
+  border: 1px solid #0088cc;
+  color: #0088cc;
+}
+
 /****************************************************************************/
 /* nav pulls group */
 /****************************************************************************/

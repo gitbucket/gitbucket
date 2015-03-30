@@ -6,6 +6,7 @@
   files: List[gitbucket.core.util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
   hasWritePermission: Boolean,
+  branchPullRequest: Option[(gitbucket.core.model.PullRequest, gitbucket.core.model.Issue)],
   info: Option[Any] = None,
   error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @import context._
@@ -13,6 +14,11 @@
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
+      @branchPullRequest.map{ case (pullRequest, issue) =>
+        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-pullrequest-branch btn-mini" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
+      }.getOrElse{
+        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-success btn-mini"><i class="icon-white icon-retweet" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
+      }
       @helper.html.branchcontrol(
         branch,
         repository,

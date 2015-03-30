@@ -525,6 +525,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               }, // groups of current user
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount),
+              getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),
               flash.get("info"), flash.get("error"))
           }
         } getOrElse NotFound
