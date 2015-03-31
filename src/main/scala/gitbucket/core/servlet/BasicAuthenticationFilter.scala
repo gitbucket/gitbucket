@@ -40,7 +40,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
               } else {
                 request.getHeader("Authorization") match {
                   case null => requireAuth(response)
-                  case auth => decodeAuthHeader(auth).split(":") match {
+                  case auth => decodeAuthHeader(auth).split(":", 2) match {
                     case Array(username, password) => {
                       authenticate(settings, username, password) match {
                         case Some(account) if (isUpdating || repository.repository.isPrivate) => {
