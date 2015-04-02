@@ -12,4 +12,10 @@ class DirectorySpec extends Specification {
       new java.io.File(Directory.GitBucketHome).exists
     }
   }
+
+  "getIndexDir" should {
+    "be under the temporary directory" in {
+      Directory.getIndexDir mustEqual new java.io.File(s"${Directory.TemporaryHome}/_index")
+    }
+  }
 }
