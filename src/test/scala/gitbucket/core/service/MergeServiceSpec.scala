@@ -5,6 +5,7 @@ import gitbucket.core.util.JGitUtil
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.GitSpecUtil._
 
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
@@ -14,51 +15,22 @@ import org.eclipse.jgit.revwalk._
 import org.eclipse.jgit.treewalk._
 import org.specs2.mutable.Specification
 
+import java.io.File
 import java.nio.file._
 import java.util.Date
-
 
 class MergeServiceSpec extends Specification {
   sequential
   val service = new MergeService{}
   val branch = "master"
   val issueId = 10
-  def initRepository(owner:String, name:String) = {
-      val repo1Dir = getRepositoryDir(owner, name)
-      RepositoryCache.clear()
-      FileUtils.deleteQuietly(repo1Dir)
-      Files.createDirectories(repo1Dir.toPath())
-      JGitUtil.initRepository(repo1Dir)
-      using(Git.open(repo1Dir)){ git =>
-        createFile(git, s"refs/heads/master", "test.txt", "hoge" )
-        git.branchCreate().setStartPoint(s"refs/heads/master").setName(s"refs/pull/${issueId}/head").call()
-      }
-      repo1Dir
-  }
-  def createFile(git:Git, branch:String, name:String, content:String){
-    val builder  = DirCache.newInCore.builder()
-    val inserter = git.getRepository.newObjectInserter()
-    val headId   = git.getRepository.resolve(branch + "^{commit}")
-    builder.add(JGitUtil.createDirCacheEntry(name, FileMode.REGULAR_FILE,
-      inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
-    builder.finish()
-    JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-      branch, "dummy", "dummy@example.com", "Initial commit")
-  }
-  def getFile(git:Git, branch:String, path:String) = {
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
-        val objectId = using(new TreeWalk(git.getRepository)){ walk =>
-          walk.addTree(revCommit.getTree)
-          walk.setRecursive(true)
-          @scala.annotation.tailrec
-          def _getPathObjectId: ObjectId = walk.next match {
-            case true if(walk.getPathString == path) => walk.getObjectId(0)
-            case true  => _getPathObjectId
-            case false => throw new Exception(s"not found ${branch} / ${path}")
-          }
-          _getPathObjectId
-        }
-        JGitUtil.getContentInfo(git, path, objectId)
+  def initRepository(owner:String, name:String): File = {
+    val dir = createTestRepository(getRepositoryDir(owner, name))
+    using(Git.open(dir)){ git =>
+      createFile(git, s"refs/heads/master", "test.txt", "hoge" )
+      git.branchCreate().setStartPoint(s"refs/heads/master").setName(s"refs/pull/${issueId}/head").call()
+    }
+    dir
   }
   def createConfrict(git:Git) = {
     createFile(git, s"refs/heads/${branch}", "test.txt", "hoge2" )
