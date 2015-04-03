@@ -81,7 +81,7 @@ Release Notes
 --------
 ### 3.1.1 - 4 Apr 2015
 - Rolled back H2 version to avoid version compatibility issue
-- Plug-ins can access ServletContext
+- Plug-ins became possible to access ServletContext
 
 ### 3.1 - 28 Mar 2015
 - Web APIs for Jenkins github pull-request builder
