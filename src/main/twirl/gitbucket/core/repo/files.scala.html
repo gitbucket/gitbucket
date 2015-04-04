@@ -13,6 +13,11 @@
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
+      <div class="pull-right">
+        @if(pathList.nonEmpty){
+          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-mini" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="icon icon-time"></i></a>
+        }
+      </div>
       @helper.html.branchcontrol(
         branch,
         repository,
