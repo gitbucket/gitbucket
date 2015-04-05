@@ -357,12 +357,7 @@ object JGitUtil {
         } else {
           revWalk.markStart(revWalk.parseCommit(objectId))
           if(path.nonEmpty){
-            revWalk.setRevFilter(new RevFilter(){
-              def include(walk: RevWalk, commit: RevCommit): Boolean = {
-                getDiffs(git, commit.getName, false)._1.find(_.newPath == path).nonEmpty
-              }
-              override def clone(): RevFilter = this
-            })
+            revWalk.setTreeFilter(AndTreeFilter.create(PathFilter.create(path), TreeFilter.ANY_DIFF))
           }
           Right(getCommitLog(revWalk.iterator, 0, Nil))
         }
