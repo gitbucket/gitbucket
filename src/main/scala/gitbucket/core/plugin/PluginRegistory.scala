@@ -7,6 +7,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.JDBCUtil._
@@ -89,7 +90,7 @@ object PluginRegistry {
   /**
    * Initializes all installed plugins.
    */
-  def initialize(context: ServletContext, conn: java.sql.Connection): Unit = {
+  def initialize(context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = {
     val pluginDir = new File(PluginHome)
     if(pluginDir.exists && pluginDir.isDirectory){
       pluginDir.listFiles(new FilenameFilter {
@@ -119,7 +120,7 @@ object PluginRegistry {
           }
 
           // Initialize
-          plugin.initialize(instance,context)
+          plugin.initialize(instance, context, settings)
           instance.addPlugin(PluginInfo(
             pluginId    = plugin.pluginId,
             pluginName  = plugin.pluginName,
@@ -137,10 +138,10 @@ object PluginRegistry {
     }
   }
 
-  def shutdown(context: ServletContext): Unit = {
+  def shutdown(context: ServletContext, settings: SystemSettings): Unit = {
     instance.getPlugins().foreach { pluginInfo =>
       try {
-        pluginInfo.pluginClass.shutdown(instance, context)
+        pluginInfo.pluginClass.shutdown(instance, context, settings)
       } catch {
         case e: Exception => {
           logger.error(s"Error during plugin shutdown", e)

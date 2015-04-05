@@ -3,6 +3,7 @@ package gitbucket.core.servlet
 import java.io.File
 import java.sql.{DriverManager, Connection}
 import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.util._
 import org.apache.commons.io.FileUtils
 import javax.servlet.{ServletContextListener, ServletContextEvent}
@@ -169,7 +170,7 @@ object AutoUpdate {
  * Initialize GitBucket system.
  * Update database schema and load plug-ins automatically in the context initializing.
  */
-class InitializeListener extends ServletContextListener {
+class InitializeListener extends ServletContextListener with SystemSettingsService {
   import AutoUpdate._
 
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
@@ -189,14 +190,14 @@ class InitializeListener extends ServletContextListener {
       }
       // Load plugins
       logger.debug("Initialize plugins")
-      PluginRegistry.initialize(event.getServletContext, conn)
+      PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
     }
 
   }
 
   def contextDestroyed(event: ServletContextEvent): Unit = {
     // Shutdown plugins
-    PluginRegistry.shutdown(event.getServletContext)
+    PluginRegistry.shutdown(event.getServletContext, loadSystemSettings())
   }
 
   private def getConnection(): Connection =
