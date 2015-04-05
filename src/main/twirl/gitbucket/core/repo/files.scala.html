@@ -6,6 +6,7 @@
   files: List[gitbucket.core.util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
   hasWritePermission: Boolean,
+  branchPullRequest: Option[(gitbucket.core.model.PullRequest, gitbucket.core.model.Issue)],
   info: Option[Any] = None,
   error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @import context._
@@ -18,6 +19,11 @@
           <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-mini" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="icon icon-time"></i></a>
         }
       </div>
+      @branchPullRequest.map{ case (pullRequest, issue) =>
+        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-pullrequest-branch btn-mini" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
+      }.getOrElse{
+        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-success btn-mini"><i class="icon-white icon-retweet" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
+      }
       @helper.html.branchcontrol(
         branch,
         repository,

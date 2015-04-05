@@ -39,7 +39,7 @@ trait ServiceSpecBase {
     with CommitStatusService (){}
 
   def generateNewUserWithDBRepository(userName:String, repositoryName:String)(implicit s:Session):Account = {
-    val ac = generateNewAccount(userName)
+    val ac = AccountService.getAccountByUserName(userName).getOrElse(generateNewAccount(userName))
     dummyService.createRepository(repositoryName, userName, None, false)
     ac
   }
