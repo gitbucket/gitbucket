@@ -12,6 +12,12 @@ $(function(){
   $('a[data-toggle=tooltip]').tooltip();
   $('li[data-toggle=tooltip]').tooltip();
 
+  // activate hotkey
+  $('a[data-hotkey]').each(function(){
+    var target = this;
+    $(document).bind('keydown', $(target).data('hotkey'), function(){ target.click(); });
+  });
+
   // anchor icon for markdown
   $('.markdown-head').mouseenter(function(e){
     $(e.target).children('a.markdown-anchor-link').show();
@@ -334,3 +340,156 @@ $.extend(JsDiffRender.prototype,{
     return ret;
   }
 });
+
+/**
+ * scroll target into view ( on bottom edge, or on top edge)
+ */
+function scrollIntoView(target){
+  target = $(target);
+  var $window = $(window);
+  var docViewTop = $window.scrollTop();
+  var docViewBottom = docViewTop + $window.height();
+
+  var elemTop = target.offset().top;
+  var elemBottom = elemTop + target.height();
+
+  if(elemBottom > docViewBottom){
+    $('html, body').scrollTop(elemBottom - $window.height());
+  }else if(elemTop < docViewTop){
+    $('html, body').scrollTop(elemTop);
+  }
+}
+
+/**
+ * escape html
+ */
+function escapeHtml(text){
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;');
+}
+
+/**
+ * calculate string ranking for path.
+ * Original ported from:
+ * http://joshaven.com/string_score
+ * https://github.com/joshaven/string_score
+ *
+ * Copyright (C) 2009-2011 Joshaven Potter <yourtech@@gmail.com>
+ * Special thanks to all of the contributors listed here https://github.com/joshaven/string_score
+ * MIT license: http://www.opensource.org/licenses/mit-license.php
+ */
+function string_score(string, word) {
+  'use strict';
+  var zero = {score:0,matchingPositions:[]};
+
+  // If the string is equal to the word, perfect match.
+  if (string === word || word === "") { return {score:1, matchingPositions:[]}; }
+
+  var lString = string.toUpperCase(),
+      strLength = string.length,
+      lWord = word.toUpperCase(),
+      wordLength = word.length;
+      
+  return   calc(zero,        0,    0,            0, 0,                []);
+  function calc(score, startAt, skip, runningScore, i, matchingPositions){
+    if( i < wordLength) {
+      var charScore = 0;
+
+      // Find next first case-insensitive match of a character.
+      var idxOf = lString.indexOf(lWord[i], skip);
+
+      if (-1 === idxOf) { return score; }
+      score = calc(score, startAt, idxOf+1, runningScore, i, matchingPositions);
+      if (startAt === idxOf) {
+        // Consecutive letter & start-of-string Bonus
+        charScore = 0.8;
+      } else {
+        charScore = 0.1;
+
+        // Acronym Bonus
+        // Weighing Logic: Typing the first character of an acronym is as if you
+        // preceded it with two perfect character matches.
+        if (/^[^A-Za-z0-9]/.test(string[idxOf - 1])){
+          charScore += 0.7;
+        }else if(string[idxOf]==lWord[i]) {
+          // Upper case bonus
+          charScore += 0.2;
+          // Camel case bonus
+          if(/^[a-z]/.test(string[idxOf - 1])){
+            charScore += 0.5;
+          }
+        }
+      }
+
+      // Same case bonus.
+      if (string[idxOf] === word[i]) { charScore += 0.1; }
+
+      // next round
+      return calc(score, idxOf + 1, idxOf + 1, runningScore + charScore, i+1, matchingPositions.concat(idxOf));
+    }else{
+      // skip non match folder
+      var effectiveLength = strLength;
+      if(matchingPositions.length){
+        var lastSlash = string.lastIndexOf('/',matchingPositions[0]);
+        if(lastSlash!==-1){
+          effectiveLength = strLength-lastSlash;
+        }
+      }
+      // Reduce penalty for longer strings.
+      var finalScore = 0.5 * (runningScore / effectiveLength + runningScore / wordLength);
+
+      if ((lWord[0] === lString[0]) && (finalScore < 0.85)) {
+        finalScore += 0.15;
+      }
+      if(score.score >= finalScore){
+        return score;
+      }
+      return {score:finalScore, matchingPositions:matchingPositions};
+    }
+  }
+}
+/**
+ * sort by string_score.
+ * @param word    {String}        search word
+ * @param strings {Array[String]} search targets
+ * @param limit   {Integer}       result limit
+ * @return {Array[{score:"float matching score", string:"string target string", matchingPositions:"Array[Interger] matchng positions"}]}
+ */
+function string_score_sort(word, strings, limit){
+  var ret = [], i=0, l = (word==="")?Math.min(strings.length, limit):strings.length;
+  for(; i < l; i++){
+    var score = string_score(strings[i],word);
+    if(score.score){
+      score.string = strings[i];
+      ret.push(score);
+    }
+  }
+  ret.sort(function(a,b){
+    var s = b.score - a.score;
+    if(s === 0){
+      return a.string > b.string ? 1 : -1;
+    }
+    return s;
+  });
+  ret = ret.slice(0,limit);
+  return ret;
+}
+/**
+ * hilight by result.
+ * @param score {string:"string target string", matchingPositions:"Array[Interger] matchng positions"}
+ * @param hilight tag ex: '<b>'
+ * @return array of hilighted html elements.
+ */
+function string_score_hilight(result, tag){
+  var str = result.string, msp=0;
+  return hilight([], 0,  result.matchingPositions[msp]);
+  function hilight(html, c, mpos){
+    if(mpos === undefined){
+      return html.concat(document.createTextNode(str.substr(c)));
+    }else{
+      return hilight(html.concat([
+                     document.createTextNode(str.substring(c,mpos)),
+                     $(tag).text(str[mpos])]),
+                     mpos+1, result.matchingPositions[++msp]);
+    }
+  }
+}

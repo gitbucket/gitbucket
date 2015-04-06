@@ -1405,3 +1405,36 @@ h5 a.markdown-anchor-link {
 h6 a.markdown-anchor-link {
   top: 6px;
 }
+
+/****************************************************************************/
+/* File finder */
+/****************************************************************************/
+#tree-finder-field{
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: baseline;
+  font-size: 100%;
+  height: inherit;
+  width: 780px;
+}
+.find-input{
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+#tree-finder-results td{
+  padding:7px 6px;
+}
+#tree-finder-results td.icon{
+  width:16px; padding: 7px 2px 7px 6px;
+}
+#tree-finder-results .tree-browser-result .icon-chevron-right{
+  visibility: hidden;
+}
+#tree-finder-results .tree-browser-result.navigation-focus .icon-chevron-right{
+  visibility: visible;
+}
+#tree-finder-results .navigation-focus td{
+  background: #fff;
+}

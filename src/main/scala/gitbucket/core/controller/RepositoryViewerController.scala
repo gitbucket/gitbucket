@@ -475,6 +475,34 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repository)
   })
 
+  /**
+   * Displays the file find of branch.
+   */
+  get("/:owner/:repository/find/:ref")(referrersOnly { repository =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      JGitUtil.getTreeId(git, params("ref")).map{ treeId =>
+        html.find(params("ref"),
+                  treeId,
+                  repository,
+                  context.loginAccount match {
+                    case None => List()
+                    case account: Option[Account] => getGroupsByUserName(account.get.userName)
+                  })
+      } getOrElse NotFound
+    }
+  })
+
+  /**
+   * Get all file list of branch.
+   */
+  ajaxGet("/:owner/:repository/tree-list/:tree")(referrersOnly { repository =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val treeId = params("tree")
+      contentType = formats("json")
+      Map("paths" -> JGitUtil.getAllFileListByTreeId(git, treeId))
+    }
+  })
+
   private def splitPath(repository: RepositoryService.RepositoryInfo, path: String): (String, String) = {
     val id = repository.branchList.collectFirst {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch

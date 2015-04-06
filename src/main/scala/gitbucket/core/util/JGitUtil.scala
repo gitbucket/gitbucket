@@ -328,6 +328,39 @@ object JGitUtil {
   }
 
   /**
+   * get all file list by revision. only file.
+   */
+  def getTreeId(git: Git, revision: String): Option[String] = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      val objectId  = git.getRepository.resolve(revision)
+      if(objectId==null) return None
+      val revCommit = revWalk.parseCommit(objectId)
+      Some(revCommit.getTree.name)
+    }
+  }
+
+  /**
+   * get all file list by tree object id.
+   */
+  def getAllFileListByTreeId(git: Git, treeId: String): List[String] = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      val objectId  = git.getRepository.resolve(treeId+"^{tree}")
+      if(objectId==null) return Nil
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
+        treeWalk.addTree(objectId)
+        treeWalk.setRecursive(true)
+        var ret: List[String] = Nil
+        if(treeWalk != null){
+          while (treeWalk.next()) {
+            ret +:= treeWalk.getPathString
+          }
+        }
+        ret.reverse
+      }
+    }
+  }
+
+  /**
    * Returns the commit list of the specified branch.
    * 
    * @param git the Git object
