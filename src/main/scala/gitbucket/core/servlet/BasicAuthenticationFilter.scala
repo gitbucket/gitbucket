@@ -43,12 +43,16 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
                   case auth => decodeAuthHeader(auth).split(":", 2) match {
                     case Array(username, password) => {
                       authenticate(settings, username, password) match {
-                        case Some(account) if (isUpdating || repository.repository.isPrivate) => {
-                          if(hasWritePermission(repository.owner, repository.name, Some(account))){
-                            request.setAttribute(Keys.Request.UserName, account.userName)
-                            chain.doFilter(req, wrappedResponse)
+                        case Some(account) => {
+                          if (isUpdating || repository.repository.isPrivate) {
+                            if(hasWritePermission(repository.owner, repository.name, Some(account))){
+                              request.setAttribute(Keys.Request.UserName, account.userName)
+                              chain.doFilter(req, wrappedResponse)
+                            } else {
+                              requireAuth(response)
+                            }
                           } else {
-                            requireAuth(response)
+                            chain.doFilter(req, wrappedResponse)
                           }
                         }
                         case _ => requireAuth(response)
