@@ -50,6 +50,7 @@ trait WebHookService {
         val f = Future {
           logger.debug(s"start web hook invocation for ${webHookUrl}")
           val httpPost = new HttpPost(webHookUrl.url)
+          httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded")
           httpPost.addHeader("X-Github-Event", eventName)
 
           val params: java.util.List[NameValuePair] = new java.util.ArrayList()
@@ -80,10 +81,10 @@ trait WebHookPullRequestService extends WebHookService {
   // https://developer.github.com/v3/activity/events/types/#issuesevent
   def callIssuesWebHook(action: String, repository: RepositoryService.RepositoryInfo, issue: Issue, baseUrl: String, sender: Account)(implicit s: Session, context:JsonFormat.Context): Unit = {
     callWebHookOf(repository.owner, repository.name, "issues"){
-      val users = getAccountsByUserNames(Set(repository.owner, issue.userName), Set(sender))
+      val users = getAccountsByUserNames(Set(repository.owner, issue.openedUserName), Set(sender))
       for{
         repoOwner <- users.get(repository.owner)
-        issueUser <- users.get(issue.userName)
+        issueUser <- users.get(issue.openedUserName)
       } yield {
         WebHookIssuesPayload(
           action       = action,
@@ -100,14 +101,16 @@ trait WebHookPullRequestService extends WebHookService {
     callWebHookOf(repository.owner, repository.name, "pull_request"){
       for{
         (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
-        users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName), Set(sender))
+        users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set(sender))
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
+        issueUser <- users.get(issue.openedUserName)
         headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
       } yield {
         WebHookPullRequestPayload(
           action         = action,
           issue          = issue,
+          issueUser      = issueUser,
           pullRequest    = pullRequest,
           headRepository = headRepo,
           headOwner      = headOwner,
@@ -118,8 +121,9 @@ trait WebHookPullRequestService extends WebHookService {
     }
   }
 
+  /** @return Map[(issue, issueUser, pullRequest, baseOwner, headOwner), webHooks] */
   def getPullRequestsByRequestForWebhook(userName:String, repositoryName:String, branch:String)
-                                       (implicit s: Session): Map[(Issue, PullRequest, Account, Account), List[WebHook]] =
+                                       (implicit s: Session): Map[(Issue, Account, PullRequest, Account, Account), List[WebHook]] =
     (for{
       is <- Issues if is.closed    === false.bind
       pr <- PullRequests if pr.byPrimaryKey(is.userName, is.repositoryName, is.issueId)
@@ -128,20 +132,22 @@ trait WebHookPullRequestService extends WebHookService {
       if pr.requestBranch          === branch.bind
       bu <- Accounts if bu.userName === pr.userName
       ru <- Accounts if ru.userName === pr.requestUserName
+      iu <- Accounts if iu.userName === is.openedUserName
       wh <- WebHooks if wh.byRepository(is.userName , is.repositoryName)
     } yield {
-      ((is, pr, bu, ru), wh)
+      ((is, iu, pr, bu, ru), wh)
     }).list.groupBy(_._1).mapValues(_.map(_._2))
 
   def callPullRequestWebHookByRequestBranch(action: String, requestRepository: RepositoryService.RepositoryInfo, requestBranch: String, baseUrl: String, sender: Account)(implicit s: Session, context:JsonFormat.Context): Unit = {
     import WebHookService._
     for{
-      ((issue, pullRequest, baseOwner, headOwner), webHooks) <- getPullRequestsByRequestForWebhook(requestRepository.owner, requestRepository.name, requestBranch)
+      ((issue, issueUser, pullRequest, baseOwner, headOwner), webHooks) <- getPullRequestsByRequestForWebhook(requestRepository.owner, requestRepository.name, requestBranch)
       baseRepo <- getRepository(pullRequest.userName, pullRequest.repositoryName, baseUrl)
     } yield {
       val payload = WebHookPullRequestPayload(
         action         = action,
         issue          = issue,
+        issueUser      = issueUser,
         pullRequest    = pullRequest,
         headRepository = requestRepository,
         headOwner      = headOwner,
@@ -161,10 +167,10 @@ trait WebHookIssueCommentService extends WebHookPullRequestService {
     callWebHookOf(repository.owner, repository.name, "issue_comment"){
       for{
         issueComment <- getComment(repository.owner, repository.name, issueCommentId.toString())
-        users = getAccountsByUserNames(Set(issue.userName, repository.owner, issueComment.userName), Set(sender))
-        issueUser <- users.get(issue.userName)
+        users = getAccountsByUserNames(Set(issue.openedUserName, repository.owner, issueComment.commentedUserName), Set(sender))
+        issueUser <- users.get(issue.openedUserName)
         repoOwner <- users.get(repository.owner)
-        commenter <- users.get(issueComment.userName)
+        commenter <- users.get(issueComment.commentedUserName)
       } yield {
         WebHookIssueCommentPayload(
           issue          = issue,
@@ -224,6 +230,7 @@ object WebHookService {
   object WebHookPullRequestPayload{
     def apply(action: String,
         issue: Issue,
+        issueUser: Account,
         pullRequest: PullRequest,
         headRepository: RepositoryInfo,
         headOwner: Account,
@@ -233,7 +240,7 @@ object WebHookService {
       val headRepoPayload = ApiRepository(headRepository, headOwner)
       val baseRepoPayload = ApiRepository(baseRepository, baseOwner)
       val senderPayload = ApiUser(sender)
-      val pr = ApiPullRequest(issue, pullRequest, headRepoPayload, baseRepoPayload, senderPayload)
+      val pr = ApiPullRequest(issue, pullRequest, headRepoPayload, baseRepoPayload, ApiUser(issueUser))
       WebHookPullRequestPayload(
         action       = action,
         number       = issue.issueId,
