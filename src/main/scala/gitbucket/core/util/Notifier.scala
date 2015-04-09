@@ -15,7 +15,7 @@ import SystemSettingsService.Smtp
 import ControlUtil.defining
 
 trait Notifier extends RepositoryService with AccountService with IssuesService {
-  def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
+  def toNotify(r: RepositoryService.RepositoryInfo, issue: Issue, content: String)
       (msg: String => String)(implicit context: Context): Unit
 
   protected def recipients(issue: Issue)(notify: String => Unit)(implicit session: Session, context: Context) =
@@ -67,16 +67,15 @@ object Notifier {
 class Mailer(private val smtp: Smtp) extends Notifier {
   private val logger = LoggerFactory.getLogger(classOf[Mailer])
 
-  def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
+  def toNotify(r: RepositoryService.RepositoryInfo, issue: Issue, content: String)
       (msg: String => String)(implicit context: Context) = {
     val database = Database()
 
     val f = Future {
       database withSession { implicit session =>
-        getIssue(r.owner, r.name, issueId.toString) foreach { issue =>
-          defining(
-              s"[${r.name}] ${issue.title} (#${issueId})" ->
-              msg(Markdown.toHtml(content, r, false, true))) { case (subject, msg) =>
+        defining(
+          s"[${r.name}] ${issue.title} (#${issue.issueId})" ->
+            msg(Markdown.toHtml(content, r, false, true))) { case (subject, msg) =>
             recipients(issue) { to =>
               val email = new HtmlEmail
               email.setHostName(smtp.host)
@@ -92,14 +91,13 @@ class Mailer(private val smtp: Smtp) extends Notifier {
                 .orElse (Some("notifications@gitbucket.com" -> context.loginAccount.get.userName))
                 .foreach { case (address, name) =>
                   email.setFrom(address, name)
-                }
+              }
               email.setCharset("UTF-8")
               email.setSubject(subject)
               email.setHtmlMsg(msg)
 
               email.addTo(to).send
             }
-          }
         }
       }
       "Notifications Successful."
@@ -113,6 +111,6 @@ class Mailer(private val smtp: Smtp) extends Notifier {
   }
 }
 class MockMailer extends Notifier {
-  def toNotify(r: RepositoryService.RepositoryInfo, issueId: Int, content: String)
+  def toNotify(r: RepositoryService.RepositoryInfo, issue: Issue, content: String)
       (msg: String => String)(implicit context: Context): Unit = {}
 }

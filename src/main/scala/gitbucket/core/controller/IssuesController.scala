@@ -132,11 +132,11 @@ trait IssuesControllerBase extends ControllerBase {
 
         // call web hooks
         callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
-      }
 
-      // notifications
-      Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
-        Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
+        // notifications
+        Notifier().toNotify(repository, issue, form.content.getOrElse("")){
+          Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
+        }
       }
 
       redirect(s"/${owner}/${name}/issues/${issueId}")
@@ -418,13 +418,13 @@ trait IssuesControllerBase extends ControllerBase {
         Notifier() match {
           case f =>
             content foreach {
-              f.toNotify(repository, issueId, _){
+              f.toNotify(repository, issue, _){
                 Notifier.msgComment(s"${context.baseUrl}/${owner}/${name}/${
                   if(issue.isPullRequest) "pull" else "issues"}/${issueId}#comment-${commentId.get}")
               }
             }
             action foreach {
-              f.toNotify(repository, issueId, _){
+              f.toNotify(repository, issue, _){
                 Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
               }
             }
