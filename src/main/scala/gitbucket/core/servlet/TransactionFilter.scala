@@ -39,22 +39,25 @@ object Database {
 
   private val logger = LoggerFactory.getLogger(Database.getClass)
 
-  private val db: SlickDatabase = {
-    val datasource = new ComboPooledDataSource
-
-    datasource.setDriverClass(DatabaseConfig.driver)
-    datasource.setJdbcUrl(DatabaseConfig.url)
-    datasource.setUser(DatabaseConfig.user)
-    datasource.setPassword(DatabaseConfig.password)
-
+  private val dataSource: ComboPooledDataSource = {
+    val ds = new ComboPooledDataSource
+    ds.setDriverClass(DatabaseConfig.driver)
+    ds.setJdbcUrl(DatabaseConfig.url)
+    ds.setUser(DatabaseConfig.user)
+    ds.setPassword(DatabaseConfig.password)
     logger.debug("load database connection pool")
+    ds
+  }
 
-    SlickDatabase.forDataSource(datasource)
+  private val db: SlickDatabase = {
+    SlickDatabase.forDataSource(dataSource)
   }
 
   def apply(): SlickDatabase = db
 
   def getSession(req: ServletRequest): Session =
     req.getAttribute(Keys.Request.DBSession).asInstanceOf[Session]
+
+  def closeDataSource(): Unit = dataSource.close
 
 }

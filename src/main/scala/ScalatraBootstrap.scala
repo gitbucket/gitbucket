@@ -1,7 +1,7 @@
 
 import gitbucket.core.controller._
 import gitbucket.core.plugin.PluginRegistry
-import gitbucket.core.servlet.{AccessTokenAuthenticationFilter, BasicAuthenticationFilter, TransactionFilter}
+import gitbucket.core.servlet.{AccessTokenAuthenticationFilter, BasicAuthenticationFilter, Database, TransactionFilter}
 import gitbucket.core.util.Directory
 
 import java.util.EnumSet
@@ -46,5 +46,9 @@ class ScalatraBootstrap extends LifeCycle {
     if(!dir.exists){
       dir.mkdirs()
     }
+  }
+
+  override def destroy(context: ServletContext): Unit = {
+    Database.closeDataSource()
   }
 }
