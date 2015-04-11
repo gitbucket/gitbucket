@@ -14,7 +14,6 @@ import JDBCUtil._
 import org.eclipse.jgit.api.Git
 import gitbucket.core.util.Versions
 import gitbucket.core.util.Directory
-import gitbucket.core.plugin._
 
 object AutoUpdate {
 
@@ -182,7 +181,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     }
     org.h2.Driver.load()
 
-    defining(getConnection()){ conn =>
+    using(getConnection()){ conn =>
       // Migration
       logger.debug("Start schema update")
       Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
@@ -195,9 +194,11 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
   }
 
-  def contextDestroyed(event: ServletContextEvent): Unit = {
+  override def contextDestroyed(event: ServletContextEvent): Unit = {
     // Shutdown plugins
     PluginRegistry.shutdown(event.getServletContext, loadSystemSettings())
+    // Close datasource
+    Database.closeDataSource()
   }
 
   private def getConnection(): Connection =
@@ -205,5 +206,4 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       DatabaseConfig.url,
       DatabaseConfig.user,
       DatabaseConfig.password)
-
 }
