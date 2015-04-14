@@ -156,13 +156,11 @@ object AutoUpdate {
     if(versionFile.exists){
       FileUtils.readFileToString(versionFile, "UTF-8").trim.split("\\.") match {
         case Array(majorVersion, minorVersion, patchVersion) => {
-          System.out.println(patchVersion)
           versions.find { v => 
             v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt && v.patchVersion == patchVersion.toInt
           }.getOrElse(Version(0, 0))
         }
         case Array(majorVersion, minorVersion) => {
-          System.out.println(majorVersion+"."+minorVersion)
           versions.find { v => 
             v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt && v.patchVersion == 0.toInt
           }.getOrElse(Version(0, 0))
