@@ -6,8 +6,13 @@ import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import ControlUtil._
 
-case class Version(majorVersion: Int, minorVersion: Int) {
 
+case class Version(majorVersion: Int, minorVersion: Int, patchVersion: Int) {
+ 
+  def this(majorVersion: Int, minorVersion: Int) {
+    this(majorVersion, minorVersion, 0)
+  }
+  
   private val logger = LoggerFactory.getLogger(classOf[Version])
 
   /**
@@ -30,16 +35,20 @@ case class Version(majorVersion: Int, minorVersion: Int) {
 
 
   /**
-   * MAJOR.MINOR
+   * MAJOR.MINOR.PATCH
    */
-  val versionString = s"${majorVersion}.${minorVersion}"
+  val versionString = s"${majorVersion}.${minorVersion}.${patchVersion}"
 
+}
+object Version {
+  def apply(majorVersion: Int, minorVersion: Int)  = new Version(majorVersion, minorVersion, 0)
 }
 
 object Versions {
 
   private val logger = LoggerFactory.getLogger(Versions.getClass)
-
+  
+    
   def update(conn: Connection, headVersion: Version, currentVersion: Version, versions: Seq[Version], cl: ClassLoader)
             (save: Connection => Unit): Unit = {
     logger.debug("Start schema update")
