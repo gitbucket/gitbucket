@@ -162,7 +162,7 @@ object AutoUpdate {
         }
         case Array(majorVersion, minorVersion) => {
           versions.find { v => 
-            v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt && v.patchVersion == 0.toInt
+            v.majorVersion == majorVersion.toInt && v.minorVersion == minorVersion.toInt && v.patchVersion == 0
           }.getOrElse(Version(0, 0))
         }
         case _ => Version(0, 0)
