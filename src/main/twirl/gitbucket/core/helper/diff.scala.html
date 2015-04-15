@@ -160,7 +160,7 @@ $(function(){
     return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
   }
   if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
-    $('.inline-comment').hide();
+    $('#comment-list').children('.inline-comment').hide();
   }
   $('.diff-outside').on('click','table.diff .add-comment',function() {
     var $this = $(this),

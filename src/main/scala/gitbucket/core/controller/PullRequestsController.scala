@@ -125,10 +125,10 @@ trait PullRequestsControllerBase extends ControllerBase {
     (for{
       issueId <- params("id").toIntOpt
       (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
-      users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.userName), Set())
+      users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set())
       baseOwner <- users.get(repository.owner)
       headOwner <- users.get(pullRequest.requestUserName)
-      issueUser <- users.get(issue.userName)
+      issueUser <- users.get(issue.openedUserName)
       headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
     } yield {
       JsonFormat(ApiPullRequest(
@@ -236,7 +236,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
             // notifications
-            Notifier().toNotify(repository, issueId, "merge"){
+            Notifier().toNotify(repository, issue, "merge"){
               Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
             }
 
@@ -395,8 +395,10 @@ trait PullRequestsControllerBase extends ControllerBase {
     callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
 
     // notifications
-    Notifier().toNotify(repository, issueId, form.content.getOrElse("")){
-      Notifier.msgPullRequest(s"${context.baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
+    getIssue(repository.owner, repository.name, issueId.toString) foreach { issue =>
+      Notifier().toNotify(repository, issue, form.content.getOrElse("")){
+        Notifier.msgPullRequest(s"${context.baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
+      }
     }
 
     redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
