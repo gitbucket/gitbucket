@@ -19,3 +19,4 @@ project/plugins/project/
 # IntelliJ specific
 .idea/
 .idea_modules/
+/bin/
