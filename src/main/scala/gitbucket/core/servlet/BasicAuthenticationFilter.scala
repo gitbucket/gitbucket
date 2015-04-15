@@ -51,9 +51,6 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
                             requireAuth(response)
                           }
                         }
-                        case Some(account) if (!settings.allowAnonymousAccess) => {
-                          chain.doFilter(req, wrappedResponse)
-                        }
                         case _ => requireAuth(response)
                       }
                     }
