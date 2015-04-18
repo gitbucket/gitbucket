@@ -106,7 +106,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             (commits.flatten.map(commit => getCommitComments(owner, name, commit.id, true)).flatten.toList ::: getComments(owner, name, issueId))
               .sortWith((a, b) => a.registeredDate before b.registeredDate),
             getIssueLabels(owner, name, issueId),
-            (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
+            (getCollaboratorNames(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
             getMilestonesWithIssueCount(owner, name),
             getLabels(owner, name),
             commits,
@@ -453,7 +453,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         "pulls",
         searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         page,
-        (getCollaborators(owner, repoName) :+ owner).sorted,
+        (getCollaboratorNames(owner, repoName) :+ owner).sorted,
         getMilestones(owner, repoName),
         getLabels(owner, repoName),
         countIssue(condition.copy(state = "open"  ), true, owner -> repoName),

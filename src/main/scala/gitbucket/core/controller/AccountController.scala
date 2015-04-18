@@ -292,16 +292,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   get("/groups/new")(usersOnly {
-    html.group(None, List(GroupMember("", context.loginAccount.get.userName, true)))
+    html.group(None, List(GroupMember("", context.loginAccount.get.userName, true, true)))
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
     createGroup(form.groupName, form.url)
-    updateGroupMembers(form.groupName, form.members.split(",").map {
-      _.split(":") match {
-        case Array(userName, isManager) => (userName, isManager.toBoolean)
-      }
-    }.toList)
+    updateGroupMembers(form.groupName, parseMembers(form.members))
     updateImage(form.groupName, form.fileId, false)
     redirect(s"/${form.groupName}")
   })
@@ -328,28 +324,25 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/:groupName/_editgroup", editGroupForm)(managersOnly { form =>
-    defining(params("groupName"), form.members.split(",").map {
-      _.split(":") match {
-        case Array(userName, isManager) => (userName, isManager.toBoolean)
-      }
-    }.toList){ case (groupName, members) =>
-      getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, form.url, false)
+    defining(params("groupName"), parseMembers(form.members)) {
+      case (groupName, members) =>
+        getAccountByUserName(groupName, true).map { account =>
+          updateGroup(groupName, form.url, false)
 
-        // Update GROUP_MEMBER
-        updateGroupMembers(form.groupName, members)
-        // Update COLLABORATOR for group repositories
-        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-          removeCollaborators(form.groupName, repositoryName)
-          members.foreach { case (userName, isManager) =>
-            addCollaborator(form.groupName, repositoryName, userName)
+          // Update GROUP_MEMBER
+          updateGroupMembers(form.groupName, members)
+          // Update COLLABORATOR for group repositories
+          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+            removeCollaborators(form.groupName, repositoryName)
+            members.foreach { case (userName, isManager, canWrite) =>
+              addCollaborator(form.groupName, repositoryName, userName, canWrite)
+            }
           }
-        }
 
-        updateImage(form.groupName, form.fileId, form.clearImage)
-        redirect(s"/${form.groupName}")
+          updateImage(form.groupName, form.fileId, form.clearImage)
+          redirect(s"/${form.groupName}")
 
-      } getOrElse NotFound
+        } getOrElse NotFound
     }
   })
 
@@ -376,7 +369,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // Add collaborators for group repository
         if(ownerAccount.isGroupAccount){
           getGroupMembers(form.owner).foreach { member =>
-            addCollaborator(form.owner, form.name, member.userName)
+            addCollaborator(form.owner, form.name, member.userName, member.canWrite)
           }
         }
 
@@ -512,8 +505,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   private def members: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
       if(value.split(",").exists {
-        _.split(":") match { case Array(userName, isManager) => isManager.toBoolean }
-      }) None else Some("Must select one manager at least.")
+        _.split(":") match {
+          case Array(userName, isManager, readWrite) => isManager.toBoolean && readWrite.toBoolean
+        }
+      }) None else Some("Must select one manager at least and it must have read/write permissions")
     }
   }
 

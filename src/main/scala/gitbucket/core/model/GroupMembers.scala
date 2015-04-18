@@ -9,12 +9,14 @@ trait GroupMemberComponent { self: Profile =>
     val groupName = column[String]("GROUP_NAME", O PrimaryKey)
     val userName = column[String]("USER_NAME", O PrimaryKey)
     val isManager = column[Boolean]("MANAGER")
-    def * = (groupName, userName, isManager) <> (GroupMember.tupled, GroupMember.unapply)
+    val canWrite = column[Boolean]("CAN_WRITE")
+    def * = (groupName, userName, isManager, canWrite) <> (GroupMember.tupled, GroupMember.unapply)
   }
 }
 
 case class GroupMember(
   groupName: String,
   userName: String,
-  isManager: Boolean
+  isManager: Boolean,
+  canWrite: Boolean
 )

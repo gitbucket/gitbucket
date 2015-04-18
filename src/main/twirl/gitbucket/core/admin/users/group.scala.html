@@ -98,10 +98,10 @@ $(function(){
   });
 
   @members.map { member =>
-    addMemberHTML('@member.userName', @member.isManager);
+    addMemberHTML('@member.userName', @member.isManager, @member.canWrite);
   }
 
-  function addMemberHTML(userName, isManager){
+  function addMemberHTML(userName, isManager, canWrite){
     var memberButton = $('<button type="button" class="btn btn-default btn-mini" value="false">Member</button>').data('name', userName);
     if(!isManager){
       memberButton.addClass('active');

@@ -1,0 +1,3 @@
+-- Implementing read only collaborators. They can only fork the project and do pull requests
+ALTER TABLE COLLABORATOR ADD COLUMN CAN_WRITE BOOLEAN DEFAULT TRUE;
+ALTER TABLE GROUP_MEMBER ADD COLUMN CAN_WRITE BOOLEAN DEFAULT TRUE;

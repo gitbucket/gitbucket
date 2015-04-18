@@ -23,7 +23,7 @@ trait Notifier extends RepositoryService with AccountService with IssuesService 
         // individual repository's owner
         issue.userName ::
         // collaborators
-        getCollaborators(issue.userName, issue.repositoryName) :::
+        getCollaboratorNames(issue.userName, issue.repositoryName) :::
         // participants
         issue.openedUserName ::
         getComments(issue.userName, issue.repositoryName, issue.issueId).map(_.commentedUserName)
