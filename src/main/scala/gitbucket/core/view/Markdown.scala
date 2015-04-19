@@ -123,8 +123,10 @@ class GitBucketHtmlSerializer(
   }
 
   private def fixUrl(url: String, isImage: Boolean = false): String = {
-    if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("#") || url.startsWith("/")){
+    if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")){
       url
+    } else if(url.startsWith("#")){
+      ("#" + GitBucketHtmlSerializer.generateAnchorName(url.substring(1)))
     } else if(!enableWikiLink){
       if(context.currentPath.contains("/blob/")){
         url + (if(isImage) "?raw=true" else "")
