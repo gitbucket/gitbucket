@@ -90,7 +90,7 @@ trait WebHookPullRequestService extends WebHookService {
           action       = action,
           number       = issue.issueId,
           repository   = ApiRepository(repository, ApiUser(repoOwner)),
-          issue        = ApiIssue(issue, ApiUser(issueUser)),
+          issue        = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
           sender       = ApiUser(sender))
       }
     }
@@ -272,7 +272,7 @@ object WebHookService {
       WebHookIssueCommentPayload(
         action       = "created",
         repository   = ApiRepository(repository, repositoryUser),
-        issue        = ApiIssue(issue, ApiUser(issueUser)),
+        issue        = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
         comment      = ApiComment(comment, ApiUser(commentUser)),
         sender       = ApiUser(sender))
   }
