@@ -273,7 +273,7 @@ object WebHookService {
         action       = "created",
         repository   = ApiRepository(repository, repositoryUser),
         issue        = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
-        comment      = ApiComment(comment, ApiUser(commentUser)),
+        comment      = ApiComment(comment, RepositoryName(repository), issue.issueId, ApiUser(commentUser)),
         sender       = ApiUser(sender))
   }
 }

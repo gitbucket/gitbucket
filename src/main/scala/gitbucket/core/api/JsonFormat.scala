@@ -23,7 +23,7 @@ object JsonFormat {
   ) + FieldSerializer[ApiUser]() + FieldSerializer[ApiPullRequest]() + FieldSerializer[ApiRepository]() +
     FieldSerializer[ApiCommitListItem.Parent]() + FieldSerializer[ApiCommitListItem]() + FieldSerializer[ApiCommitListItem.Commit]() +
     FieldSerializer[ApiCommitStatus]() + FieldSerializer[ApiCommit]() + FieldSerializer[ApiCombinedCommitStatus]() +
-    FieldSerializer[ApiPullRequest.Commit]() + FieldSerializer[ApiIssue]()
+    FieldSerializer[ApiPullRequest.Commit]() + FieldSerializer[ApiIssue]() + FieldSerializer[ApiComment]()
 
 
   def apiPathSerializer(c: Context) = new CustomSerializer[ApiPath](format =>
