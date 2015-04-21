@@ -148,7 +148,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   import scala.util.matching.Regex._
   implicit class RegexReplaceString(s: String) {
     def replaceAll(pattern: String, replacer: (Match) => String): String = {
-      pattern.r.replaceAllIn(s, replacer)
+      pattern.r.replaceAllIn(s, (m: Match) => replacer(m).replace("$", "\\$"))
     }
   }
 
