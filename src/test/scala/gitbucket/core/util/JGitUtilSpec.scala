@@ -90,4 +90,14 @@ class JGitUtilSpec extends Specification {
       list("master", "dir/subdir") mustEqual List(("File3.md", "commit7", false), ("File4.md", "commit4", false))
     }
   }
+  "getFileList subfolder multi-origin (issue #721)" should {
+    withTestRepository { git =>
+      def list(branch: String, path: String) =
+        JGitUtil.getFileList(git, branch, path).map(finfo => (finfo.name, finfo.message, finfo.isDirectory))
+      createFile(git, "master", "README.md", "body1", message = "commit1")
+      createFile(git, "branch", "test/text2.txt", "body2", message = "commit2")
+      mergeAndCommit(git, "master", "branch", message = "merge3")
+      list("master", "test") mustEqual List(("text2.txt", "commit2", false))
+    }
+  }
 }
