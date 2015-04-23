@@ -287,9 +287,6 @@ object JGitUtil {
         }
       }
       revWalk.markStart(revCommit)
-      if(path != "."){
-        revWalk.setTreeFilter(PathFilter.create(path))
-      }
       val it = revWalk.iterator
       val lastCommit = it.next
       val nextParentsMap = Option(lastCommit).map(_.getParents.map(_ -> lastCommit).toMap).getOrElse(Map())
