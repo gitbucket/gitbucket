@@ -6,7 +6,7 @@ This directory has following structure:
 
 ```
 * /HOME/gitbucket
-  * /repositoties
+  * /repositories 
     * /USER_NAME
       * / REPO_NAME.git (substance of repository. GitServlet sees this directory)
       * / REPO_NAME
