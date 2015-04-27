@@ -163,7 +163,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/hooks/test", webHookForm)(ownerOnly { (form, repository) =>
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       import scala.collection.JavaConverters._
-      val commits = git.log
+      val commits = if(repository.commitCount == 0) List.empty else git.log
         .add(git.getRepository.resolve(repository.repository.defaultBranch))
         .setMaxCount(3)
         .call.iterator.asScala.map(new CommitInfo(_))
