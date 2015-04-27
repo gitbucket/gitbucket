@@ -99,7 +99,7 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
-            case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+            case Some(x) if(getCollaboratorNames(paths(0), paths(1)).contains(x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
@@ -125,7 +125,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
             context.loginAccount match {
               case Some(x) if(x.isAdmin) => action(repository)
               case Some(x) if(paths(0) == x.userName) => action(repository)
-              case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+              case Some(x) if(getCollaboratorNames(paths(0), paths(1)).contains(x.userName)) => action(repository)
               case _ => Unauthorized()
             }
           }
@@ -150,7 +150,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(!repository.repository.isPrivate) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
-            case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+            case Some(x) if(getCollaboratorNames(paths(0), paths(1)).contains(x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()

@@ -31,5 +31,14 @@ class RepositoryServiceSpec extends Specification with ServiceSpecBase with Repo
           repositoryName="repo2",
           userName="tester")
     }}
+
+    "allow collaborators" in { withTestDB { implicit session =>
+      val tester = generateNewAccount("tester")
+      val repo = createRepository("repo","root",None,false)
+      addCollaborator("root", "repo", "tester", true)
+      getCollaboratorNames("root", "repo") must_== (List("tester"))
+    }}
+
+
   }
 }

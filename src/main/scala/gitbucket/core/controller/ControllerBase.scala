@@ -234,4 +234,16 @@ trait AccountManagementControllerBase extends ControllerBase {
         .map    { _ => "Mail address is already registered." }
   }
 
+
+  protected def parseMembers(formMembers:String) = {
+    formMembers.split(",").map(parseMember).toList
+  }
+
+  protected def parseMember(formMember: String)= {
+    formMember.split(":") match {
+      case Array(userName, isManager, canWrite) => (userName, isManager.toBoolean, canWrite.toBoolean)
+    }
+  }
+
+
 }

@@ -108,7 +108,7 @@ trait RepositoryService { self: AccountService =>
         )) :_*)
 
         if(account.isGroupAccount){
-          Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
+          Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName, true)) :_*)
         } else {
           Collaborators.insertAll(collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         }
@@ -318,8 +318,8 @@ trait RepositoryService { self: AccountService =>
    * @param repositoryName the repository name
    * @param collaboratorName the collaborator name
    */
-  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
-    Collaborators insert Collaborator(userName, repositoryName, collaboratorName)
+  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String, canWrite: Boolean)(implicit s: Session): Unit =
+    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, canWrite)
 
   /**
    * Remove collaborator from the repository.
@@ -340,6 +340,18 @@ trait RepositoryService { self: AccountService =>
   def removeCollaborators(userName: String, repositoryName: String)(implicit s: Session): Unit =
     Collaborators.filter(_.byRepository(userName, repositoryName)).delete
 
+
+  /**
+   * Returns the list of collaborators name which is sorted with ascending order.
+   *
+   * @param userName the user name of the repository owner
+   * @param repositoryName the repository name
+   * @return the list of collaborators name
+   */
+  def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[Collaborator] =
+    Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).list
+
+
   /**
    * Returns the list of collaborators name which is sorted with ascending order.
    * 
@@ -347,14 +359,16 @@ trait RepositoryService { self: AccountService =>
    * @param repositoryName the repository name
    * @return the list of collaborators name
    */
-  def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[String] =
-    Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).map(_.collaboratorName).list
+  def getCollaboratorNames(userName: String, repositoryName: String)(implicit s: Session): List[String] =
+    getCollaborators(userName, repositoryName).map(_.collaboratorName)
+
+
 
   def hasWritePermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
-      case Some(a) if(getCollaborators(owner, repository).contains(a.userName)) => true
+      case Some(a) if (getCollaborators(owner, repository).find(collab => collab.collaboratorName == a.userName && collab.canWrite).isDefined) => true
       case _ => false
     }
   }

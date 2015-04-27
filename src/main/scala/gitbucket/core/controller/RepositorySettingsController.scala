@@ -35,10 +35,11 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )(OptionsForm.apply)
 
   // for collaborator addition
-  case class CollaboratorForm(userName: String)
+  case class CollaboratorForm(userName: String, canWrite: Boolean)
 
   val collaboratorForm = mapping(
-    "userName" -> trim(label("Username", text(required, collaborator)))
+    "userName" -> trim(label("Username", text(required, collaborator))),
+    "canWrite" -> trim(label("Read/Write permissions", boolean(required)))
   )(CollaboratorForm.apply)
 
   // for web hook url addition
@@ -119,13 +120,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { (form, repository) =>
     if(!getAccountByUserName(repository.owner).get.isGroupAccount){
-      addCollaborator(repository.owner, repository.name, form.userName)
+      addCollaborator(repository.owner, repository.name, form.userName, form.canWrite)
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 
   /**
-   * Add the collaborator.
+   * Remove the collaborator.
    */
   get("/:owner/:repository/settings/collaborators/remove")(ownerOnly { repository =>
     if(!getAccountByUserName(repository.owner).get.isGroupAccount){
@@ -240,7 +241,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         case None => Some("User does not exist.")
         case Some(x) if(x.isGroupAccount)
                   => Some("User does not exist.")
-        case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
+        case Some(x) if(x.userName == params("owner") || getCollaboratorNames(params("owner"), params("repository")).contains(x.userName))
                   => Some("User can access this repository already.")
         case _    => None
       }

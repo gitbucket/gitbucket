@@ -32,7 +32,7 @@
             </ul>
             @helper.html.account("memberName", 200)
             <input type="button" class="btn" value="Add" id="addMember"/>
-            <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
+            <input type="hidden" id="members" name="members" value="@members.map(member => s"${member.userName}:${member.isManager}:${member.canWrite}").mkString(",")"/>
             <div>
               <span class="error" id="error-members"></span>
             </div>
@@ -103,23 +103,17 @@ $(function(){
   });
 
   @members.map { member =>
-    addMemberHTML('@member.userName', @member.isManager);
+    addMemberHTML('@member.userName', @member.isManager, @member.canWrite);
   }
 
-  function addMemberHTML(userName, isManager){
-    var memberButton = $('<button type="button" class="btn btn-default btn-mini" value="false">Member</button>').data('name', userName);
-    if(!isManager){
-      memberButton.addClass('active');
-    }
-    var managerButton = $('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').data('name', userName);
-    if(isManager){
-      managerButton.addClass('active');
-    }
-
+  function addMemberHTML(userName, isManager, canWrite){
+    var managerButton = getButtonsForBoolean(isManager, "Manager", "Member", userName)
+    var canWriteButton = getButtonsForBoolean(canWrite, "Read/Write", "Read Only", userName)
     $('#member-list').append($('<li>')
       .data('name', userName)
+      .append($('<div class="btn-group read_write" data-toggle="buttons-radio">')
+        .append(canWriteButton))
       .append($('<div class="btn-group is_manager" data-toggle="buttons-radio">')
-        .append(memberButton)
         .append(managerButton))
       .append(' ')
       .append($('<a>').attr('href', '@path/' + userName).text(userName))
@@ -127,14 +121,32 @@ $(function(){
       .append($('<a href="#" class="remove pull-right">(remove)</a>')));
   }
 
+  function getButtonsForBoolean(isEnabled, labelForEnabled, labelForDisabled, userName) {
+      var disabledButton = $('<button type="button" class="btn btn-default btn-mini" value="false">' + labelForDisabled + '</button>').data('name', userName);
+      if(!isEnabled){
+        disabledButton.addClass('active');
+      }
+      var enabledButton = $('<button type="button" class="btn btn-default btn-mini" value="true">' + labelForEnabled + '</button>').data('name', userName);
+      if(isEnabled){
+        enabledButton.addClass('active');
+      }
+      return [disabledButton, enabledButton];
+  }
+
   function updateMembers(){
     var members = $('#member-list li').map(function(i, e){
       var userName = $(e).data('name');
-      return userName + ':' + $('button.active').filter(function(i, e){
-        return $(e).data('name') == userName;
-      }).attr('value');
+      return userName + ':'
+        + valueForElement('.is_manager button.active', userName) + ':'
+        + valueForElement('.read_write button.active', userName);
     }).get().join(',');
     $('#members').val(members);
+  }
+
+  function valueForElement(selector, userName) {
+      return $(selector).filter(function(i, e){
+          return $(e).data('name') == userName;
+      }).attr('value');
   }
 });
 </script>
