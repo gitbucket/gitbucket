@@ -21,7 +21,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
         <input type="hidden" name="owner" id="owner" value="@loginAccount.get.userName"/>
       </div>
       <span class="slash">/</span>
-      <input type="text" name="name" id="name" />
+      <input type="text" name="name" id="name" autofocus />
       <span id="error-name" class="error"></span>
     </fieldset>
     <fieldset>
