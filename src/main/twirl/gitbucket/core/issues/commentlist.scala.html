@@ -13,7 +13,7 @@
       @user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
         @if(hasWritePermission || loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
-          <a href="#" data-issue-id="@issue.get.issueId"><i class="icon-pencil"></i></a>
+          <a href="#" data-issue-id="@issue.get.issueId"><i class="icon-pencil" aria-label="Edit"></i></a>
         }
       </span>
     </div>
@@ -41,8 +41,8 @@
           <span class="pull-right">
             @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
                   && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
-              <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
-              <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
+              <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil" aria-label="Edit"></i></a>&nbsp;
+              <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle" aria-label="Remove"></i></a>
             }
           </span>
         </div>
