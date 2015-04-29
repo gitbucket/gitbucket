@@ -64,7 +64,9 @@ object MyBuild extends Build {
       "junit" % "junit" % "4.12" % "test",
       "com.mchange" % "c3p0" % "0.9.5",
       "com.typesafe" % "config" % "1.2.1",
-      "com.typesafe.play" %% "twirl-compiler" % "1.0.4"
+      "com.typesafe.play" %% "twirl-compiler" % "1.0.4",
+      "com.typesafe.akka" %% "akka-actor" % "2.3.10",
+      "com.enragedginger" %% "akka-quartz-scheduler" % "1.3.0-akka-2.3.x"
     ),
     play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._",
     EclipseKeys.withSource := true,

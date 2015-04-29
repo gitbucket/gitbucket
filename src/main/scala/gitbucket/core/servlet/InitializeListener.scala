@@ -1,21 +1,22 @@
 package gitbucket.core.servlet
 
-import java.sql.{DriverManager, Connection}
+import akka.event.Logging
+import com.typesafe.config.ConfigFactory
 import gitbucket.core.plugin.PluginRegistry
-import gitbucket.core.service.SystemSettingsService
-import gitbucket.core.util._
+import gitbucket.core.service.{ActivityService, SystemSettingsService}
 import org.apache.commons.io.FileUtils
 import javax.servlet.{ServletContextListener, ServletContextEvent}
 import org.slf4j.LoggerFactory
-import ControlUtil._
 import gitbucket.core.util.Versions
+import akka.actor.{Actor, Props, ActorSystem}
+import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+import AutoUpdate._
 
 /**
  * Initialize GitBucket system.
  * Update database schema and load plug-ins automatically in the context initializing.
  */
 class InitializeListener extends ServletContextListener with SystemSettingsService {
-  import AutoUpdate._
 
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
 
@@ -26,17 +27,37 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     }
     org.h2.Driver.load()
 
-    using(getConnection()){ conn =>
+    Database() withTransaction { session =>
+      val conn = session.conn
+
       // Migration
       logger.debug("Start schema update")
       Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
         FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
       }
+
       // Load plugins
       logger.debug("Initialize plugins")
       PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
     }
 
+    // Start Quartz scheduler
+    val system = ActorSystem("job", ConfigFactory.parseString(
+      """
+        |akka {
+        |  quartz {
+        |    schedules {
+        |      Daily {
+        |        expression = "0 0 0 * * ?"
+        |      }
+        |    }
+        |  }
+        |}
+      """.stripMargin))
+
+    val scheduler = QuartzSchedulerExtension(system)
+
+    scheduler.schedule("Daily", system.actorOf(Props[DeleteOldActivityActor]), "DeleteOldActivity")
   }
 
   override def contextDestroyed(event: ServletContextEvent): Unit = {
@@ -46,9 +67,22 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     Database.closeDataSource()
   }
 
-  private def getConnection(): Connection =
-    DriverManager.getConnection(
-      DatabaseConfig.url,
-      DatabaseConfig.user,
-      DatabaseConfig.password)
+}
+
+class DeleteOldActivityActor extends Actor with SystemSettingsService with ActivityService {
+
+  private val logger = Logging(context.system, this)
+
+  def receive = {
+    case s: String => {
+      loadSystemSettings().activityLogLimit.foreach { limit =>
+        if(limit > 0){
+          Database() withTransaction { implicit session =>
+            val rows = deleteOldActivities(limit)
+            logger.info(s"Deleted ${rows} activity logs")
+          }
+        }
+      }
+    }
+  }
 }
