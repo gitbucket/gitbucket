@@ -21,6 +21,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
     "isCreateRepoOptionPublic" -> trim(label("Default option to create a new repository", boolean())),
     "gravatar"                 -> trim(label("Gravatar", boolean())),
     "notification"             -> trim(label("Notification", boolean())),
+    "activityLogLimit"         -> trim(label("Limit of activity logs", optional(number()))),
     "ssh"                      -> trim(label("SSH access", boolean())),
     "sshPort"                  -> trim(label("SSH port", optional(number()))),
     "smtp"                     -> optionalIfNotChecked("notification", mapping(

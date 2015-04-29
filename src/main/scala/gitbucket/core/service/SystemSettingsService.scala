@@ -19,6 +19,7 @@ trait SystemSettingsService {
       props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
       props.setProperty(Gravatar, settings.gravatar.toString)
       props.setProperty(Notification, settings.notification.toString)
+      settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
       props.setProperty(Ssh, settings.ssh.toString)
       settings.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
       if(settings.notification) {
@@ -65,12 +66,13 @@ trait SystemSettingsService {
       }
       SystemSettings(
         getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
-        getOptionValue[String](props, Information, None),
+        getOptionValue(props, Information, None),
         getValue(props, AllowAccountRegistration, false),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
         getValue(props, Gravatar, true),
         getValue(props, Notification, false),
+        getOptionValue[Int](props, ActivityLogLimit, None),
         getValue(props, Ssh, false),
         getOptionValue(props, SshPort, Some(DefaultSshPort)),
         if(getValue(props, Notification, false)){
@@ -120,6 +122,7 @@ object SystemSettingsService {
     isCreateRepoOptionPublic: Boolean,
     gravatar: Boolean,
     notification: Boolean,
+    activityLogLimit: Option[Int],
     ssh: Boolean,
     sshPort: Option[Int],
     smtp: Option[Smtp],
@@ -166,6 +169,7 @@ object SystemSettingsService {
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"
   private val Gravatar = "gravatar"
   private val Notification = "notification"
+  private val ActivityLogLimit = "activity_log_limit"
   private val Ssh = "ssh"
   private val SshPort = "ssh.port"
   private val SmtpHost = "smtp.host"

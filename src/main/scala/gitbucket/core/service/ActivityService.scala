@@ -7,6 +7,12 @@ import profile.simple._
 
 trait ActivityService {
 
+  def deleteOldActivities(limit: Int)(implicit s: Session): Int = {
+    Activities.map(_.activityId).sortBy(_ desc).drop(limit).firstOption.map { id =>
+      Activities.filter(_.activityId <= id.bind).delete
+    } getOrElse 0
+  }
+
   def getActivitiesByUser(activityUserName: String, isPublic: Boolean)(implicit s: Session): List[Activity] =
     Activities
       .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))

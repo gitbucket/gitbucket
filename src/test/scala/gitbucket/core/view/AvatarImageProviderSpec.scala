@@ -100,6 +100,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
       isCreateRepoOptionPublic = true,
       gravatar                 = useGravatar,
       notification             = false,
+      activityLogLimit         = None,
       ssh                      = false,
       sshPort                  = None,
       smtp                     = None,
