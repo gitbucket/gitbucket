@@ -294,9 +294,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
-          defining(JGitUtil.getContentFromId(git, objectId, false).get){ bytes =>
+          JGitUtil.getContentFromId(git, objectId, true).map {bytes =>
             RawData(FileUtil.getContentType(path, bytes), bytes)
-          }
+          } getOrElse NotFound
         } else {
           html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
             new JGitUtil.CommitInfo(lastModifiedCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
