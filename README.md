@@ -79,6 +79,11 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.2 - 3 May 2015
+- Directory history button
+- Compare / pull request button
+- Limit of activity log
+
 ### 3.1.1 - 4 Apr 2015
 - Rolled back H2 version to avoid version compatibility issue
 - Plug-ins became possible to access ServletContext
