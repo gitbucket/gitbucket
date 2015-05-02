@@ -4,6 +4,7 @@ import javax.servlet._
 import javax.servlet.http.HttpServletRequest
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import gitbucket.core.util.DatabaseConfig
+import org.scalatra.ScalatraBase
 import org.slf4j.LoggerFactory
 import slick.jdbc.JdbcBackend.{Database => SlickDatabase, Session}
 import gitbucket.core.util.Keys
@@ -25,6 +26,12 @@ class TransactionFilter extends Filter {
       chain.doFilter(req, res)
     } else {
       Database() withTransaction { session =>
+        // Register Scalatra error callback to rollback transaction
+        ScalatraBase.onFailure { _ =>
+          logger.debug("Rolled back transaction")
+          session.rollback()
+        }(req.asInstanceOf[HttpServletRequest])
+
         logger.debug("begin transaction")
         req.setAttribute(Keys.Request.DBSession, session)
         chain.doFilter(req, res)
