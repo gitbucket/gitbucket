@@ -639,21 +639,24 @@ object JGitUtil {
 
   def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
     // Viewer
-    val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-    val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
-    val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
+    using(git.getRepository.getObjectDatabase){ db =>
+      val loader = db.open(objectId)
+      val large  = FileUtil.isLarge(loader.getSize)
+      val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
+      val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
 
-    if(viewer == "other"){
-      if(bytes.isDefined && FileUtil.isText(bytes.get)){
-        // text
-        ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+      if(viewer == "other"){
+        if(bytes.isDefined && FileUtil.isText(bytes.get)){
+          // text
+          ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+        } else {
+          // binary
+          ContentInfo("binary", None, None)
+        }
       } else {
-        // binary
-        ContentInfo("binary", None, None)
+        // image or large
+        ContentInfo(viewer, None, None)
       }
-    } else {
-      // image or large
-      ContentInfo(viewer, None, None)
     }
   }
 
@@ -666,12 +669,12 @@ object JGitUtil {
    * @return the byte array of content or None if object does not exist
    */
   def getContentFromId(git: Git, id: ObjectId, fetchLargeFile: Boolean): Option[Array[Byte]] = try {
-    val loader = git.getRepository.getObjectDatabase.open(id)
-    if(fetchLargeFile == false && FileUtil.isLarge(loader.getSize)){
-      None
-    } else {
-      using(git.getRepository.getObjectDatabase){ db =>
-        Some(db.open(id).getBytes)
+    using(git.getRepository.getObjectDatabase){ db =>
+      val loader = db.open(id)
+      if(fetchLargeFile == false && FileUtil.isLarge(loader.getSize)){
+        None
+      } else {
+        Some(loader.getBytes)
       }
     }
   } catch {

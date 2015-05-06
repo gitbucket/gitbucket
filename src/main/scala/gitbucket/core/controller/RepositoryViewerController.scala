@@ -290,16 +290,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      val lastModifiedCommit = JGitUtil.getLastModifiedCommit(git, revCommit, path)
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
-          JGitUtil.getContentFromId(git, objectId, true).map {bytes =>
+          JGitUtil.getContentFromId(git, objectId, true).map { bytes =>
             RawData(FileUtil.getContentType(path, bytes), bytes)
           } getOrElse NotFound
         } else {
-          html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
-            new JGitUtil.CommitInfo(lastModifiedCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
+          html.blob(id, repository, path.split("/").toList,
+            JGitUtil.getContentInfo(git, path, objectId),
+            new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
+            hasWritePermission(repository.owner, repository.name, context.loginAccount)
+          )
         }
       } getOrElse NotFound
     }
