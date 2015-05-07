@@ -31,16 +31,18 @@ object AutoUpdate {
     ...
 ```
 
-### etc/deploy-assembly.sh
+### deploy-assembly-jar.sh
 
 ```bash
 #!/bin/sh
+./sbt.sh assembly
+
 mvn deploy:deploy-file \
   -DgroupId=gitbucket\
   -DartifactId=gitbucket-assembly\
   -Dversion=3.2.0\ # <---- update here!!
   -Dpackaging=jar\
-  -Dfile=../target/scala-2.11/gitbucket-assembly-x.x.x.jar\ # <---- update here!!
+  -Dfile=target/scala-2.11/gitbucket-assembly-x.x.x.jar\ # <---- update here!!
   -DrepositoryId=sourceforge.jp\
   -Durl=scp://shell.sourceforge.jp/home/groups/a/am/amateras/htdocs/mvn/
 ```
@@ -59,8 +61,7 @@ Run ant with `build.xml` in the root directory. The release war file is generate
 For plug-in development, we have to publish the assembly jar file to the public Maven repository.
 
 ```
-./sbt.sh assembly
-
-cd etc
-./deploy-assembly.sh
+./deploy-assembly-jar.sh
 ```
+
+This script runs `sbt assembly` and `mvn deploy`.
