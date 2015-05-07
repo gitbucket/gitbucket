@@ -50,7 +50,7 @@ mvn deploy:deploy-file \
 Generate release files
 --------
 
-Note: Release operation requires And and Maven.
+Note: Release operation requires [Ant](http://ant.apache.org/) and [Maven](https://maven.apache.org/).
 
 ### Make release war file
 
