@@ -31,7 +31,7 @@ object AutoUpdate {
     ...
 ```
 
-### deploy-assembly.sh
+### deploy-assembly-jar.sh
 
 ```bash
 #!/bin/sh
@@ -61,7 +61,7 @@ Run ant with `build.xml` in the root directory. The release war file is generate
 For plug-in development, we have to publish the assembly jar file to the public Maven repository.
 
 ```
-./deploy-assembly.sh
+./deploy-assembly-jar.sh
 ```
 
 This script runs `sbt assembly` and `mvn deploy`.
