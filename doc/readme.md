@@ -8,3 +8,4 @@ Developer's Guide
  * [Activity Types](activity.md)
  * [Notification Email](notification.md)
  * [Automatic Schema Updating](auto_update.md)
+ * [Release Operation](release.md)
