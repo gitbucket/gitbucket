@@ -47,7 +47,7 @@ mvn deploy:deploy-file \
   -Durl=scp://shell.sourceforge.jp/home/groups/a/am/amateras/htdocs/mvn/
 ```
 
-Release
+Generate release files
 --------
 
 Note: Release operation requires And and Maven.
