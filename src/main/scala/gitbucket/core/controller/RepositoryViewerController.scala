@@ -294,7 +294,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         if(raw){
           // Download
           JGitUtil.getContentFromId(git, objectId, true).map { bytes =>
-            RawData(FileUtil.getContentType(path, bytes), bytes)
+            RawData("application/octet-stream", bytes)
           } getOrElse NotFound
         } else {
           html.blob(id, repository, path.split("/").toList,
