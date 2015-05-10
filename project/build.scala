@@ -47,7 +47,7 @@ object MyBuild extends Build {
       "org.scalatra" %% "scalatra" % ScalatraVersion,
       "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
       "org.scalatra" %% "scalatra-json" % ScalatraVersion,
-      //"org.json4s" %% "json4s-jackson" % "3.2.11",
+      "org.json4s" %% "json4s-jackson" % "3.2.11",
       "jp.sf.amateras" %% "scalatra-forms" % "0.1.0",
       "commons-io" % "commons-io" % "2.4",
       "org.pegdown" % "pegdown" % "1.4.1", // 1.4.2 has incompatible APi changes
@@ -66,12 +66,7 @@ object MyBuild extends Build {
       "com.typesafe" % "config" % "1.2.1",
       "com.typesafe.play" %% "twirl-compiler" % "1.0.4",
       "com.typesafe.akka" %% "akka-actor" % "2.3.10",
-      "com.enragedginger" %% "akka-quartz-scheduler" % "1.3.0-akka-2.3.x",
-      "org.elasticsearch" % "elasticsearch" % "1.5.2",
-      "com.sksamuel.elastic4s" %% "elastic4s" % "1.5.6",
-      "com.fasterxml.jackson.core" % "jackson-core" % "2.4.2",
-      "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.2",
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.4.2"
+      "com.enragedginger" %% "akka-quartz-scheduler" % "1.3.0-akka-2.3.x"
     ),
     play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._",
     EclipseKeys.withSource := true,
