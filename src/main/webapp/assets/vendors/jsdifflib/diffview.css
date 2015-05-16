@@ -66,7 +66,7 @@ table.diff thead th.texttitle {
 }
 table.diff tbody td {
 	padding:0px .4em;
-	padding-top:.4em;
+	padding-top:.2em;
 	vertical-align:top;
 	border-top: none;
 }
