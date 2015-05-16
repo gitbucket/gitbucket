@@ -27,7 +27,7 @@ case class ApiUser(
 
 object ApiUser{
   def apply(user: Account): ApiUser = ApiUser(
-    login      = user.fullName,
+    login      = user.userName,
     email      = user.mailAddress,
     `type`     = if(user.isGroupAccount){ "Organization" }else{ "User" },
     site_admin = user.isAdmin,
