@@ -3,7 +3,7 @@ package gitbucket.core.controller
 import gitbucket.core.settings.html
 import gitbucket.core.model.WebHook
 import gitbucket.core.service.{RepositoryService, AccountService, WebHookService}
-import gitbucket.core.service.WebHookService.WebHookPayload
+import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util.ControlUtil._
@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
+
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
   with RepositoryService with AccountService with WebHookService
@@ -162,15 +163,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/hooks/test", webHookForm)(ownerOnly { (form, repository) =>
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       import scala.collection.JavaConverters._
-      val commits = git.log
+      val commits = if(repository.commitCount == 0) List.empty else git.log
         .add(git.getRepository.resolve(repository.repository.defaultBranch))
         .setMaxCount(3)
         .call.iterator.asScala.map(new CommitInfo(_))
 
       getAccountByUserName(repository.owner).foreach { ownerAccount =>
-        callWebHook(repository.owner, repository.name,
+        callWebHook("push",
           List(WebHook(repository.owner, repository.name, form.url)),
-          WebHookPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
+          WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
         )
       }
       flash += "url"  -> form.url

@@ -1,5 +1,7 @@
 package gitbucket.core.plugin
 
+import javax.servlet.ServletContext
+import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.Version
 
 /**
@@ -17,12 +19,12 @@ trait Plugin {
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
-  def initialize(registry: PluginRegistry): Unit
+  def initialize(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Unit
 
   /**
    * This method is invoked in shutdown of plugin system.
    * If the plugin has any resources, release them in this method.
    */
-  def shutdown(registry: PluginRegistry): Unit
+  def shutdown(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Unit
 
 }

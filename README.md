@@ -79,6 +79,20 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.2 - 3 May 2015
+- Directory history button
+- Compare / pull request button
+- Limit of activity log
+
+### 3.1.1 - 4 Apr 2015
+- Rolled back H2 version to avoid version compatibility issue
+- Plug-ins became possible to access ServletContext
+
+### 3.1 - 28 Mar 2015
+- Web APIs for Jenkins github pull-request builder
+- Improved diff view
+- Bump Scalatra to 2.3.1, sbt to 0.13.8
+
 ### 3.0 - 3 Mar 2015
 - New plug-in system is available
 - Connection pooling by c3p0

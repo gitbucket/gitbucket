@@ -13,11 +13,11 @@
       @user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
         @if(hasWritePermission || loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
-          <a href="#" data-issue-id="@issue.get.issueId"><i class="icon-pencil"></i></a>
+          <a href="#" data-issue-id="@issue.get.issueId"><i class="icon-pencil" aria-label="Edit"></i></a>
         }
       </span>
     </div>
-    <div class="box-content issue-content" id="issueContent">
+    <div class="box-content issue-content markdown-body" id="issueContent">
       @markdown(issue.get.content getOrElse "No description provided.", repository, false, true, true, hasWritePermission)
     </div>
   </div>
@@ -41,8 +41,8 @@
           <span class="pull-right">
             @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
                   && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
-              <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
-              <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
+              <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil" aria-label="Edit"></i></a>&nbsp;
+              <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle" aria-label="Remove"></i></a>
             }
           </span>
         </div>
@@ -50,7 +50,7 @@
           @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
             @defining(comment.content.substring(comment.content.length - 40)){ id =>
               <div class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></div>
-              @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true, true, hasWritePermission)
+              <div class="markdown-body">@markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true, true, hasWritePermission)</div>
             }
           } else {
             @if(comment.action == "refer"){
@@ -58,7 +58,7 @@
                 <strong><a href="@path/@repository.owner/@repository.name/issues/@issueId">Issue #@issueId</a>: @rest.mkString(":")</strong>
               }
             } else {
-              @markdown(comment.content, repository, false, true, true, hasWritePermission)
+                <div class="markdown-body">@markdown(comment.content, repository, false, true, true, hasWritePermission)</div>
             }
           }
         </div>

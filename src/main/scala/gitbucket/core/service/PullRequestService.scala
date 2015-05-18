@@ -1,9 +1,10 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{Issue, PullRequest}
+import gitbucket.core.model.{Account, Issue, PullRequest, WebHook}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile.simple._
+
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._
@@ -81,6 +82,28 @@ trait PullRequestService { self: IssuesService =>
       }
       .map { case (t1, t2) => t1 }
       .list
+
+  /**
+   * for repository viewer.
+   * 1. find pull request from from `branch` to othre branch on same repository
+   *   1. return if exists pull request to `defaultBranch`
+   *   2. return if exists pull request to othre branch
+   * 2. return None
+   */
+  def getPullRequestFromBranch(userName: String, repositoryName: String, branch: String, defaultBranch: String)
+                              (implicit s: Session): Option[(PullRequest, Issue)] =
+    PullRequests
+      .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+      .filter { case (t1, t2) =>
+        (t1.requestUserName       === userName.bind) &&
+        (t1.requestRepositoryName === repositoryName.bind) &&
+        (t1.requestBranch         === branch.bind) &&
+        (t1.userName              === userName.bind) &&
+        (t1.repositoryName        === repositoryName.bind) &&
+        (t2.closed                === false.bind)
+      }
+      .sortBy{ case (t1, t2) => t1.branch =!= defaultBranch.bind }
+      .firstOption
 
   /**
    * Fetch pull request contents into refs/pull/${issueId}/head and update pull request table.

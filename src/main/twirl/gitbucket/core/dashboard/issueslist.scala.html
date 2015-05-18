@@ -15,7 +15,7 @@
       @dashboard.html.header(openCount, closedCount, condition, groups)
     </th>
   </tr>
-  @issues.map { case IssueInfo(issue, labels, milestone, commentCount) =>
+  @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
   <tr>
     <td style="padding-top: 15px; padding-bottom: 15px;">
       @if(issue.isPullRequest){
@@ -29,6 +29,7 @@
       } else {
         <a href="@path/@issue.userName/@issue.repositoryName/issues/@issue.issueId" class="issue-title">@issue.title</a>
       }
+      @gitbucket.core.issues.html.commitstatus(issue, commitStatus)
       @labels.map { label =>
         <span class="label-color small" style="background-color: #@label.color; color: #@label.fontColor; padding-left: 4px; padding-right: 4px">@label.labelName</span>
       }

@@ -1,13 +1,15 @@
 package gitbucket.core.service
 
-import gitbucket.core.model._
+import gitbucket.core.model.Profile._
+import profile.simple._
+
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.Implicits._
+import gitbucket.core.model._
+
 import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
-import gitbucket.core.model.Profile._
-import profile.simple._
 
 trait IssuesService {
   import IssuesService._
@@ -19,6 +21,13 @@ trait IssuesService {
 
   def getComments(owner: String, repository: String, issueId: Int)(implicit s: Session) =
     IssueComments filter (_.byIssue(owner, repository, issueId)) list
+
+  /** @return IssueComment and commentedUser */
+  def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session): List[(IssueComment, Account)] =
+    IssueComments.filter(_.byIssue(owner, repository, issueId))
+    .filter(_.action inSetBind Set("comment" , "close_comment", "reopen_comment"))
+    .innerJoin(Accounts).on( (t1, t2) => t1.commentedUserName === t2.userName )
+    .list
 
   def getComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
     if (commentId forall (_.isDigit))
@@ -78,6 +87,47 @@ trait IssuesService {
       .toMap
   }
 
+  def getCommitStatues(issueList:Seq[(String, String, Int)])(implicit s: Session) :Map[(String, String, Int), CommitStatusInfo] ={
+    if(issueList.isEmpty){
+      Map.empty
+    }else{
+      import scala.slick.jdbc._
+      val issueIdQuery = issueList.map(i => "(PR.USER_NAME=? AND PR.REPOSITORY_NAME=? AND PR.ISSUE_ID=?)").mkString(" OR ")
+      implicit val qset = SetParameter[Seq[(String, String, Int)]] {
+        case (seq, pp) =>
+          for (a <- seq) {
+            pp.setString(a._1)
+            pp.setString(a._2)
+            pp.setInt(a._3)
+          }
+      }
+      import gitbucket.core.model.Profile.commitStateColumnType
+      val query = Q.query[Seq[(String, String, Int)], (String, String, Int, Int, Int, Option[String], Option[CommitState], Option[String], Option[String])](s"""
+        SELECT SUMM.USER_NAME, SUMM.REPOSITORY_NAME, SUMM.ISSUE_ID, CS_ALL, CS_SUCCESS
+             , CSD.CONTEXT, CSD.STATE, CSD.TARGET_URL, CSD.DESCRIPTION
+        FROM (SELECT
+           PR.USER_NAME
+         , PR.REPOSITORY_NAME
+         , PR.ISSUE_ID
+         , COUNT(CS.STATE) AS CS_ALL
+         , SUM(CS.STATE='success') AS CS_SUCCESS
+         , PR.COMMIT_ID_TO AS COMMIT_ID
+          FROM PULL_REQUEST PR
+          JOIN COMMIT_STATUS CS
+            ON PR.USER_NAME=CS.USER_NAME
+           AND PR.REPOSITORY_NAME=CS.REPOSITORY_NAME
+           AND PR.COMMIT_ID_TO=CS.COMMIT_ID
+         WHERE $issueIdQuery
+         GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID) as SUMM
+        LEFT OUTER JOIN COMMIT_STATUS CSD
+          ON SUMM.CS_ALL = 1 AND SUMM.COMMIT_ID = CSD.COMMIT_ID""");
+      query(issueList).list.map{
+        case(userName, repositoryName, issueId, count, successCount, context, state, targetUrl, description) =>
+          (userName, repositoryName, issueId) -> CommitStatusInfo(count, successCount, context, state, targetUrl, description)
+        }.toMap
+    }
+  }
+
   /**
    * Returns the search result against  issues.
    *
@@ -90,8 +140,53 @@ trait IssuesService {
    */
   def searchIssue(condition: IssueSearchCondition, pullRequest: Boolean, offset: Int, limit: Int, repos: (String, String)*)
                  (implicit s: Session): List[IssueInfo] = {
-
     // get issues and comment count and labels
+    val result = searchIssueQueryBase(condition, pullRequest, offset, limit, repos)
+        .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
+        .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
+        .leftJoin (Milestones)  .on { case ((((t1, t2), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
+        .map { case ((((t1, t2), t3), t4), t5) =>
+          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?, t5.title.?)
+        }
+        .list
+        .splitWith { (c1, c2) =>
+          c1._1.userName       == c2._1.userName &&
+          c1._1.repositoryName == c2._1.repositoryName &&
+          c1._1.issueId        == c2._1.issueId
+        }
+    val status = getCommitStatues(result.map(_.head._1).map(is => (is.userName, is.repositoryName, is.issueId)))
+
+    result.map { issues => issues.head match {
+          case (issue, commentCount, _, _, _, milestone) =>
+            IssueInfo(issue,
+             issues.flatMap { t => t._3.map (
+                 Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
+             )} toList,
+             milestone,
+             commentCount,
+             status.get(issue.userName, issue.repositoryName, issue.issueId))
+        }} toList
+  }
+
+  /** for api
+   * @return (issue, issueUser, commentCount, pullRequest, headRepo, headOwner)
+   */
+  def searchPullRequestByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)
+                 (implicit s: Session): List[(Issue, Account, Int, PullRequest, Repository, Account)] = {
+    // get issues and comment count and labels
+    searchIssueQueryBase(condition, true, offset, limit, repos)
+      .innerJoin(PullRequests).on { case ((t1, t2), t3) => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
+      .innerJoin(Repositories).on { case (((t1, t2), t3), t4) => t4.byRepository(t1.userName, t1.repositoryName) }
+      .innerJoin(Accounts).on { case ((((t1, t2), t3), t4), t5) => t5.userName === t1.openedUserName }
+      .innerJoin(Accounts).on { case (((((t1, t2), t3), t4), t5), t6) => t6.userName === t4.userName }
+      .map { case (((((t1, t2), t3), t4), t5), t6) =>
+          (t1, t5, t2.commentCount, t3, t4, t6)
+      }
+      .list
+  }
+
+  private def searchIssueQueryBase(condition: IssueSearchCondition, pullRequest: Boolean, offset: Int, limit: Int, repos: Seq[(String, String)])
+                 (implicit s: Session) =
     searchIssueQuery(repos, condition, pullRequest)
         .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
         .sortBy { case (t1, t2) =>
@@ -107,28 +202,7 @@ trait IssuesService {
           }
         }
         .drop(offset).take(limit)
-        .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
-        .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
-        .leftJoin (Milestones)  .on { case ((((t1, t2), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
-        .map { case ((((t1, t2), t3), t4), t5) =>
-          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?, t5.title.?)
-        }
-        .list
-        .splitWith { (c1, c2) =>
-          c1._1.userName       == c2._1.userName &&
-          c1._1.repositoryName == c2._1.repositoryName &&
-          c1._1.issueId        == c2._1.issueId
-        }
-        .map { issues => issues.head match {
-          case (issue, commentCount, _, _, _, milestone) =>
-            IssueInfo(issue,
-             issues.flatMap { t => t._3.map (
-                 Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
-             )} toList,
-             milestone,
-             commentCount)
-        }} toList
-  }
+
 
   /**
    * Assembles query for conditional issue searching.
@@ -462,6 +536,8 @@ object IssuesService {
     }
   }
 
-  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], commentCount: Int)
+  case class CommitStatusInfo(count: Int, successCount: Int, context: Option[String], state: Option[CommitState], targetUrl: Option[String], description: Option[String])
+
+  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], commentCount: Int, status:Option[CommitStatusInfo])
 
 }

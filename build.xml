@@ -5,8 +5,8 @@
   <property name="embed.classes.dir" value="${target.dir}/embed-classes"/>
   <property name="jetty.dir" value="embed-jetty"/>
   <property name="scala.version" value="2.11"/>
-  <property name="gitbucket.version" value="3.0.0"/>
-  <property name="jetty.version" value="8.1.8.v20121106"/>
+  <property name="gitbucket.version" value="3.2.0"/>
+  <property name="jetty.version" value="8.1.16.v20140903"/>
   <property name="servlet.version" value="3.0.0.v201112011016"/>
 
   <condition property="sbt.exec" value="sbt.bat" else="sbt.sh">

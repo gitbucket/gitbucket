@@ -28,7 +28,6 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
 
     val isUpdating = request.getRequestURI.endsWith("/git-receive-pack") || "service=git-receive-pack".equals(request.getQueryString)
-
     val settings = loadSystemSettings()
 
     try {
@@ -41,16 +40,22 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
               } else {
                 request.getHeader("Authorization") match {
                   case null => requireAuth(response)
-                  case auth => decodeAuthHeader(auth).split(":") match {
+                  case auth => decodeAuthHeader(auth).split(":", 2) match {
                     case Array(username, password) => {
                       authenticate(settings, username, password) match {
                         case Some(account) => {
-                          if(isUpdating && hasWritePermission(repository.owner, repository.name, Some(account))){
-                            request.setAttribute(Keys.Request.UserName, account.userName)
+                          if (isUpdating || repository.repository.isPrivate) {
+                            if(hasWritePermission(repository.owner, repository.name, Some(account))){
+                              request.setAttribute(Keys.Request.UserName, account.userName)
+                              chain.doFilter(req, wrappedResponse)
+                            } else {
+                              requireAuth(response)
+                            }
+                          } else {
+                            chain.doFilter(req, wrappedResponse)
                           }
-                          chain.doFilter(req, wrappedResponse)
                         }
-                        case None => requireAuth(response)
+                        case _ => requireAuth(response)
                       }
                     }
                     case _ => requireAuth(response)

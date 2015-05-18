@@ -3,6 +3,7 @@ package gitbucket.core.controller
 import gitbucket.core.wiki.html
 import gitbucket.core.service.{RepositoryService, WikiService, ActivityService, AccountService}
 import gitbucket.core.util._
+import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
@@ -110,8 +111,16 @@ trait WikiControllerBase extends ControllerBase {
   
   post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { (form, repository) =>
     defining(context.loginAccount.get){ loginAccount =>
-      saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-          form.content, loginAccount, form.message.getOrElse(""), Some(form.id)).map { commitId =>
+      saveWikiPage(
+        repository.owner,
+        repository.name,
+        form.currentPageName,
+        form.pageName,
+        appendNewLine(convertLineSeparator(form.content, "LF"), "LF"),
+        loginAccount,
+        form.message.getOrElse(""),
+        Some(form.id)
+      ).map { commitId =>
         updateLastActivityDate(repository.owner, repository.name)
         recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
       }

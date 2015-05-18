@@ -51,7 +51,7 @@ table.diff tbody th {
 	font-size:11px;
 	font-weight:normal;
 	border-top:none; /* for overriding bootstrap */
-	color:#886;
+	color: rgba(0,0,0,0.3);;
 	padding:.3em .5em .1em 2em;
 	text-align:right;
 	vertical-align:top
@@ -66,7 +66,7 @@ table.diff thead th.texttitle {
 }
 table.diff tbody td {
 	padding:0px .4em;
-	padding-top:.4em;
+	padding-top:.2em;
 	vertical-align:top;
 	border-top: none;
 }
@@ -77,19 +77,40 @@ table.diff .replace {
 	background-color:#FD8
 }
 table.diff .delete {
-	background-color:#FFDDDD;
+	background-color:#ffecec;
 }
 table.diff .skip {
-	background-color: #F8F8FF;
+	background-color: #f8fafd;
+}
+table.diff th.skip {
+	background-color: #f0f5fa;
 }
 table.diff .skip:before {
-	content: "    ...";
+	content: " ";
 }
 table.diff .insert {
-	background-color:#DDFFDD
+	background-color:#eaffea
 }
+table.diff th.insert {
+	background-color: #c1e9c1;
+	background-color: #dbffdb;
+}
+table.diff th.delete {
+	background-color: #ffdddd;
+	border-color: #f1c0c0;
+}
+
 table.diff th.author {
 	text-align:right;
 	border-top:1px solid #BBC;
 	background:#EFEFEF
+}
+
+table.diff ins{
+  background-color: #a6f3a6;
+  text-decoration: none;
+}
+table.diff del{
+  background-color: #f8cbcb;
+  text-decoration: none;
 }

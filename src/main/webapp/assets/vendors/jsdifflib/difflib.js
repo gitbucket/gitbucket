@@ -29,6 +29,9 @@ DAMAGE.
 ***/
 /* Author: Chas Emerick <cemerick@snowtide.com> */
 __whitespace = {" ":true, "\t":true, "\n":true, "\f":true, "\r":true};
+function __hasOwnProperty(obj, target){
+	return Object.prototype.hasOwnProperty.call(obj, target);
+}
 
 difflib = {
 	defaultJunkFunction: function (c) {
@@ -93,7 +96,7 @@ difflib = {
 	
 	// replacement for python's dict.get function -- need easy default values
 	__dictget: function (dict, key, defaultValue) {
-		return dict.hasOwnProperty(key) ? dict[key] : defaultValue;
+		return __hasOwnProperty(dict, key) ? dict[key] : defaultValue;
 	},	
 	
 	SequenceMatcher: function (a, b, isjunk) {
@@ -122,7 +125,7 @@ difflib = {
 			var populardict = {};
 			for (var i = 0; i < b.length; i++) {
 				var elt = b[i];
-				if (b2j.hasOwnProperty(elt)) {
+				if (__hasOwnProperty(b2j, elt)) {
 					var indices = b2j[elt];
 					if (n >= 200 && indices.length * 100 > n) {
 						populardict[elt] = 1;
@@ -151,7 +154,7 @@ difflib = {
 					}
 				}
 				for (var elt in b2j) {
-					if (b2j.hasOwnProperty(elt) && isjunk(elt)) {
+					if (__hasOwnProperty(b2j, elt) && isjunk(elt)) {
 						junkdict[elt] = 1;
 						delete b2j[elt];
 					}

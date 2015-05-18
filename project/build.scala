@@ -10,9 +10,9 @@ import sbtassembly.AssemblyKeys._
 object MyBuild extends Build {
   val Organization = "gitbucket"
   val Name = "gitbucket"
-  val Version = "3.0.0"
-  val ScalaVersion = "2.11.2"
-  val ScalatraVersion = "2.3.0"
+  val Version = "3.2.0"
+  val ScalaVersion = "2.11.6"
+  val ScalatraVersion = "2.3.1"
 
   lazy val project = Project (
     "gitbucket",
@@ -42,34 +42,39 @@ object MyBuild extends Build {
     ),
     scalacOptions := Seq("-deprecation", "-language:postfixOps"),
     libraryDependencies ++= Seq(
-      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.4.1.201406201815-r",
-      "org.eclipse.jgit" % "org.eclipse.jgit.archive" % "3.4.1.201406201815-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.4.2.201412180340-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit.archive" % "3.4.2.201412180340-r",
       "org.scalatra" %% "scalatra" % ScalatraVersion,
       "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
       "org.scalatra" %% "scalatra-json" % ScalatraVersion,
-      "org.json4s" %% "json4s-jackson" % "3.2.10",
+      "org.json4s" %% "json4s-jackson" % "3.2.11",
       "jp.sf.amateras" %% "scalatra-forms" % "0.1.0",
       "commons-io" % "commons-io" % "2.4",
-      "org.pegdown" % "pegdown" % "1.4.1",
-      "org.apache.commons" % "commons-compress" % "1.5",
-      "org.apache.commons" % "commons-email" % "1.3.1",
-      "org.apache.httpcomponents" % "httpclient" % "4.3",
+      "org.pegdown" % "pegdown" % "1.4.1", // 1.4.2 has incompatible APi changes
+      "org.apache.commons" % "commons-compress" % "1.9",
+      "org.apache.commons" % "commons-email" % "1.3.3",
+      "org.apache.httpcomponents" % "httpclient" % "4.3.6",
       "org.apache.sshd" % "apache-sshd" % "0.11.0",
       "com.typesafe.slick" %% "slick" % "2.1.0",
       "com.novell.ldap" % "jldap" % "2009-10-07",
       "com.h2database" % "h2" % "1.4.180",
 //      "ch.qos.logback" % "logback-classic" % "1.0.13" % "runtime",
-      "org.eclipse.jetty" % "jetty-webapp" % "8.1.8.v20121106" % "container;provided",
+      "org.eclipse.jetty" % "jetty-webapp" % "8.1.16.v20140903" % "container;provided",
       "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
-      "junit" % "junit" % "4.11" % "test",
+      "junit" % "junit" % "4.12" % "test",
       "com.mchange" % "c3p0" % "0.9.5",
       "com.typesafe" % "config" % "1.2.1",
-      "com.typesafe.play" %% "twirl-compiler" % "1.0.2"
+      "com.typesafe.play" %% "twirl-compiler" % "1.0.4",
+      "com.typesafe.akka" %% "akka-actor" % "2.3.10",
+      "com.enragedginger" %% "akka-quartz-scheduler" % "1.3.0-akka-2.3.x"
     ),
     play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._",
     EclipseKeys.withSource := true,
     javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),
+    javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test",
+    testOptions in Test += Tests.Setup( () => new java.io.File("target/gitbucket_home_for_test").mkdir() ),
+    fork in Test := true,
     packageOptions += Package.MainClass("JettyLauncher")
   ).enablePlugins(SbtTwirl)
 }
