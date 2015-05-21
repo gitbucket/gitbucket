@@ -1225,6 +1225,8 @@ div.markdown-body pre {
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 12px;
   white-space: pre;
+  word-wrap: normal;
+  overflow: auto;
 }
 
 div.markdown-body code {
