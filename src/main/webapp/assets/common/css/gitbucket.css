@@ -1151,6 +1151,149 @@ table.diff tbody tr.not-diff:hover td{
     white-space: nowrap;
     letter-spacing: 0px;
 }
+.diff-same{
+  background: #DDD;
+  color: #BBB;
+  font-size: 16px;
+  padding: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+/* ------- for imageDiff */
+.diff-image-frame{
+  display: table-cell;
+  *float: left; /* for ie7 */
+  vertical-align: middle;
+  padding: 20px;
+  background-color: #eee;
+}
+.diff-image-frame.diff-old{
+  padding-right: 2px;
+}
+.diff-image-frame.diff-new{
+  padding-left: 2px;
+}
+.diff-image-frame .diff-meta{
+  margin-top: 12px;
+  color: #999;
+  font-family: Helvetica,arial,freesans,clean,sans-serif;
+  font-size: 12px;
+}
+.diff-image-frame.diff-old .diff-meta .diff{
+  color: #bd2c00;
+}
+.diff-image-frame.diff-new .diff-meta .diff{
+  color: #55a532;
+}
+.diff-image-frame img{
+  max-height: 410px;
+  max-width: 410px;
+  background: url(../images/checker.png);
+}
+.diff-image-render.diff2up{
+  width:100%;
+  text-align: center;
+  display: table;
+}
+.diff-image-frame.diff-new img{
+    border: 1px solid #55a532;
+}
+.diff-image-frame.diff-old img{
+  border: 1px solid #bd2c00;
+}
+.diff-image-stack{
+  position: relative;
+  background: #EEE;
+  padding-top: 20px;
+}
+.diff-image-stack .diff-old,
+.diff-image-stack .diff-new{
+  position:absolute;
+  overflow: hidden;
+  margin:0 20px;
+}
+.diff-image-stack img {
+  max-width: none;
+  background: url(../images/checker.png);
+}
+.diff-image-stack .diff-new{
+  border: 1px solid #55a532;
+  background: #EEE;
+}
+.diff-image-stack .diff-old{
+  border: 1px solid #bd2c00;
+}
+.diff-swipe-handle{
+  position:absolute;
+  margin-left: 325px;
+  left: 100px;
+}
+.diff-silde-bar{
+  width: 200px;
+  position: absolute;
+  left: 325px;
+  margin: 6px 0 0 7px;
+  box-sizing: border-box;
+  border: 1px solid gray;
+  height: 8px;
+}
+.image-diff-tools{
+  text-align: center;
+  padding: 4px;
+  background: #f7f7f7;
+}
+.image-diff-tools{
+  font-family: 'Helvetica Neue', Helvetica, arial, freesans, clean, sans-serif;
+  font-size: 12px;
+  background: #f7f7f7;
+  margin: 0;
+  text-align: center;
+}
+.image-diff-tools li{
+  background: none;
+  display: inline;
+  cursor: pointer;
+  border-right: 1px solid #ccc;
+  padding: 0 5px;
+  position: relative;
+  color: #666;
+}
+.image-diff-tools li:last-child{
+  border-right: none;
+}
+.image-diff-tools li.active {
+  font-weight: bold;
+}
+.no-canvas .need-canvas{
+  display: none;
+}
+.diff-image-stack.swipe .diff-new{
+  border-right: 1px solid #888;
+}
+.diff-image-stack.swipe .diff-swipe-handle{
+  margin-left: 15px;
+  left: 410px;
+}
+.diff-image-stack.swipe .diff-silde-bar{
+  display: none;
+}
+
+.diff-image-stack.onion .diff-silde-bar{
+  background: -ms-linear-gradient(left,  #bd2c00 0%,#55a532 100%); /* IE10+ */
+  background: linear-gradient(to right,  #bd2c00 0%,#55a532 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bd2c00', endColorstr='#55a532',GradientType=1 ); /* IE6-9 */
+}
+
+.diff-image-stack.blink .diff-silde-bar{
+  border-style: dotted;
+  background-image: linear-gradient(to right, #bd2c00, #bd2c00 50%, #55a532 50%, #55a532 100%);
+  background-size: 2px 2px;
+}
+
+.diff-image-stack.difference {
+  padding-bottom: 18px;
+  text-align: center;
+}
 /****************************************************************************/
 /* Repository Settings */
 /****************************************************************************/
