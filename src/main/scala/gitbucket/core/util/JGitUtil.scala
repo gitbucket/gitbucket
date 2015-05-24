@@ -138,6 +138,9 @@ object JGitUtil {
 
   case class BranchInfo(name: String, committerName: String, commitTime: Date, committerEmailAddress:String, mergeInfo: Option[BranchMergeInfo], commitId: String)
 
+  case class BlameInfo(id: String, authorName: String, authorEmailAddress: String, authorTime:java.util.Date,
+    prev: Option[String], prevPath: Option[String], commitTime:java.util.Date, message:String, lines:Set[Int])
+
   /**
    * Returns RevCommit from the commit or tag id.
    * 
@@ -820,6 +823,36 @@ object JGitUtil {
         }
       }
     }
+  }
+
+  def getBlame(git: Git, id: String, path: String): Iterable[BlameInfo] = {
+    Option(git.getRepository.resolve(id)).map{ commitId =>
+      val blamer = new org.eclipse.jgit.api.BlameCommand(git.getRepository);
+      blamer.setStartCommit(commitId)
+      blamer.setFilePath(path)
+      val blame = blamer.call()
+      var blameMap = Map[String, JGitUtil.BlameInfo]()
+      var idLine = List[(String, Int)]()
+      val commits = 0.to(blame.getResultContents().size()-1).map{ i =>
+        val c = blame.getSourceCommit(i)
+        if(!blameMap.contains(c.name)){
+          blameMap += c.name -> JGitUtil.BlameInfo(
+            c.name,
+            c.getAuthorIdent.getName,
+            c.getAuthorIdent.getEmailAddress,
+            c.getAuthorIdent.getWhen,
+            Option(git.log.add(c).addPath(blame.getSourcePath(i)).setSkip(1).setMaxCount(2).call.iterator.next)
+              .map(_.name),
+            if(blame.getSourcePath(i)==path){ None }else{ Some(blame.getSourcePath(i)) },
+            c.getCommitterIdent.getWhen,
+            c.getShortMessage,
+            Set.empty)
+        }
+        idLine :+= (c.name, i)
+      }
+      val limeMap = idLine.groupBy(_._1).mapValues(_.map(_._2).toSet)
+      blameMap.values.map{b => b.copy(lines=limeMap(b.id))}
+    }.getOrElse(Seq.empty)
   }
 
   /**
