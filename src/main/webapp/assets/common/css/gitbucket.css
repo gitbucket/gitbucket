@@ -1440,3 +1440,122 @@ h6 a.markdown-anchor-link {
 #tree-finder-results .navigation-focus td{
   background: #fff;
 }
+
+/****************************************************************************/
+/* blame */
+/****************************************************************************/
+.blobview pre.blob{
+  padding-left: 0;
+}
+.blobview ol.linenums{
+  margin-left: 0;
+  padding-left: 50px;
+}
+
+div.container.blame-container{
+  width:1270px;
+}
+.line-age-legend {
+  display: none;
+}
+.blame-container .line-age-legend {
+  display: block;
+  float: right;
+  font-size: 12px;
+  color: #777;
+}
+.blame-container .line-age-legend ol {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+  list-style: none;
+  margin: 0 5px;
+}
+.blame-container .line-age-legend ol li {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+  width: 8px;
+  height: 10px;
+}
+.blame-container pre.blob{
+  margin-left: 350px;
+}
+.blame-container pre.prettyprint ol.linenums li.blame-sep{
+  border-top: 1px solid rgb(219, 219, 219);
+  margin-top: -1px;
+}
+.blame{
+  font-size: 12px;
+  white-space: normal;
+  width: 340px;
+  float: left;
+  min-height: 100px;
+  display: none;
+}
+.blame-container .blame{
+  display: block;
+}
+.blame .blame-commit-title{
+  font-weight: bold;
+  color: #333;
+  line-height: 1.1;
+}
+.blame .avatar{
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+.blame .blame-info{
+  background: white;
+  box-shadow:rgba(113, 135, 164, 0.65098) 0px 0px 4px 0px;
+  position: absolute;
+  width: 340px;
+  padding: 2px;
+  border-right: 2px solid;
+}
+.no-box-shadow .blame .blame-info{
+  border-top: 1px solid #888;
+  border-bottom: 1px solid #888;
+  border-left: 1px solid #888;
+}
+.blame-sha{
+  font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  float: right;
+  text-align: right;
+}
+.blame-sha .muted-link{
+  color: #777;
+}
+.blame-sha .muted-link:hover{
+  color: #4183c4;
+}
+
+.blame .blame-info:hover{
+  z-index: 100;
+  box-shadow:rgba(113, 135, 164, 0.65098) 0px 0px 4px 3px;
+}
+.blame .blame-info.blame-last{
+  background: #FDFCED;
+}
+.blame-info.heat1{ border-right-color:#ffeca7}
+.blame-info.heat2{ border-right-color:#ffdd8c}
+.blame-info.heat3{ border-right-color:#ffdd7c}
+.blame-info.heat4{ border-right-color:#fba447}
+.blame-info.heat5{ border-right-color:#f68736}
+.blame-info.heat6{ border-right-color:#f37636}
+.blame-info.heat7{ border-right-color:#ca6632}
+.blame-info.heat8{ border-right-color:#c0513f}
+.blame-info.heat9{ border-right-color:#a2503a}
+.blame-info.heat10{border-right-color:#793738}
+
+.heat1{background-color:#ffeca7}
+.heat2{background-color:#ffdd8c}
+.heat3{background-color:#ffdd7c}
+.heat4{background-color:#fba447}
+.heat5{background-color:#f68736}
+.heat6{background-color:#f37636}
+.heat7{background-color:#ca6632}
+.heat8{background-color:#c0513f}
+.heat9{background-color:#a2503a}
+.heat10{background-color:#793738}
+

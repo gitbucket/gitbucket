@@ -122,8 +122,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Returns &lt;img&gt; which displays the avatar icon for the given user name.
    * This method looks up Gravatar if avatar icon has not been configured in user settings.
    */
-  def avatar(userName: String, size: Int, tooltip: Boolean = false)(implicit context: Context): Html =
-    getAvatarImageHtml(userName, size, "", tooltip)
+  def avatar(userName: String, size: Int, tooltip: Boolean = false, mailAddress: String = "")(implicit context: Context): Html =
+    getAvatarImageHtml(userName, size, mailAddress, tooltip)
 
   /**
    * Returns &lt;img&gt; which displays the avatar icon for the given mail address.
@@ -203,7 +203,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * If user does not exist or disabled, this method returns avatar image without link.
    */
   def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(implicit context: Context): Html =
-    userWithContent(userName, mailAddress)(avatar(userName, size, tooltip))
+    userWithContent(userName, mailAddress)(avatar(userName, size, tooltip, mailAddress))
 
   private def userWithContent(userName: String, mailAddress: String = "", styleClass: String = "")(content: Html)(implicit context: Context): Html =
     (if(mailAddress.isEmpty){
