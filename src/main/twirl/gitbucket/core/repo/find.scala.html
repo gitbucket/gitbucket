@@ -107,7 +107,7 @@ $(function(){
       $(".no-results").hide();
       for(var i=0;i < p.length;i++){
         var row = template.clone();
-        row.find("a").attr("href",pathBase+"/"+p[i].string).html(string_score_hilight(p[i], '<b>'));
+        row.find("a").attr("href",pathBase+"/"+p[i].string).html(string_score_highlight(p[i], '<b>'));
         if(cursor==i){
           row.addClass("navigation-focus");
         }

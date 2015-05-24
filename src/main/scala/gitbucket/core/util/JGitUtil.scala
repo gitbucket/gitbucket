@@ -100,7 +100,8 @@ object JGitUtil {
     def isDifferentFromAuthor: Boolean = authorName != committerName || authorEmailAddress != committerEmailAddress
   }
 
-  case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
+  case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String],
+                      oldIsImage: Boolean, newIsImage: Boolean, oldObjectId: Option[String], newObjectId: Option[String])
 
   /**
    * The file content data for the file content view of the repository viewer.
@@ -492,11 +493,13 @@ object JGitUtil {
           treeWalk.addTree(revCommit.getTree)
           val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
           while(treeWalk.next){
+            val newIsImage = FileUtil.isImage(treeWalk.getPathString)
             buffer.append((if(!fetchContent){
-              DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None)
+              DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None, false, newIsImage, None, Option(treeWalk.getObjectId(0)).map(_.name))
             } else {
               DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None,
-                JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
+                JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray),
+                false, newIsImage, None, Option(treeWalk.getObjectId(0)).map(_.name))
             }))
           }
           (buffer.toList, None)
@@ -516,12 +519,15 @@ object JGitUtil {
     import scala.collection.JavaConverters._
     git.getRepository.getConfig.setString("diff", null, "renames", "copies")
     git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-      if(!fetchContent || FileUtil.isImage(diff.getOldPath) || FileUtil.isImage(diff.getNewPath)){
-        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
+      val oldIsImage = FileUtil.isImage(diff.getOldPath)
+      val newIsImage = FileUtil.isImage(diff.getNewPath)
+      if(!fetchContent || oldIsImage || newIsImage){
+        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None, oldIsImage, newIsImage, Option(diff.getOldId).map(_.name), Option(diff.getNewId).map(_.name))
       } else {
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
           JGitUtil.getContentFromId(git, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray),
-          JGitUtil.getContentFromId(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray))
+          JGitUtil.getContentFromId(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray),
+          oldIsImage, newIsImage, Option(diff.getOldId).map(_.name), Option(diff.getNewId).map(_.name))
       }
     }.toList
   }
