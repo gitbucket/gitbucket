@@ -83,7 +83,7 @@ Release Notes
 - Rich graphical diff for images
 - File finder is available in the repository viewer
 - Blame is displayed at the source viewer
-- Remain user data and repositories when user is disabled
+- Remain user data and repositories even if user is disabled
 - Mobile view improvement
 
 ### 3.2 - 3 May 2015
