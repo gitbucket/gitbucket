@@ -79,6 +79,13 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.3 - 31 May 2015
+- Rich graphical diff for images
+- File finder is available in the repository viewer
+- Blame is displayed at the source viewer
+- Remain user data and repositories when user is disabled
+- Mobile view improvement
+
 ### 3.2 - 3 May 2015
 - Directory history button
 - Compare / pull request button
