@@ -1628,6 +1628,9 @@ div.container.blame-container{
   border-top: 1px solid rgb(219, 219, 219);
   margin-top: -1px;
 }
+.blame-container .hide-if-blame {
+  display: none;
+}
 .blame{
   font-size: 12px;
   white-space: normal;
