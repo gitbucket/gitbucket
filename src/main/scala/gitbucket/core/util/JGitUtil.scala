@@ -794,7 +794,12 @@ object JGitUtil {
   def getBranches(owner: String, name: String, defaultBranch: String): Seq[BranchInfo] = {
     using(Git.open(getRepositoryDir(owner, name))){ git =>
       val repo = git.getRepository
-      val defaultObject = repo.resolve(defaultBranch)
+      val defaultObject = if (repo.getAllRefs.keySet().contains(defaultBranch)) {
+        repo.resolve(defaultBranch)
+      } else {
+        git.branchList().call().iterator().next().getObjectId
+      }
+
       git.branchList.call.asScala.map { ref =>
         val walk = new RevWalk(repo)
         try{
