@@ -17,48 +17,11 @@ object MyBuild extends Build {
   val ScalatraVersion = "2.3.1"
 ```
 
-### src/main/scala/gitbucket/core/servlet/AutoUpdate.scala
-
-```scala
-object AutoUpdate {
-
-  /**
-   * The history of versions. A head of this sequence is the current BitBucket version.
-   */
-  val versions = Seq(
-    new Version(3, 2), // <---- add this!!
-    new Version(3, 1),
-    ...
-```
-
-### build.xml
-
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<project name="gitbucket" default="all" basedir=".">
-
-  <property name="target.dir" value="target"/>
-  <property name="embed.classes.dir" value="${target.dir}/embed-classes"/>
-  <property name="jetty.dir" value="embed-jetty"/>
-  <property name="scala.version" value="2.11"/>
-  <property name="gitbucket.version" value="3.2.0"/> <!---- update here!! ---->
-  <property name="jetty.version" value="8.1.16.v20140903"/>
-  <property name="servlet.version" value="3.0.0.v201112011016"/>
-  ...
-```
-
-### deploy-assembly/deploy-assembly-jar.sh
+### env.sh
 
 ```bash
 #!/bin/sh
-mvn deploy:deploy-file \
-  -DgroupId=gitbucket\
-  -DartifactId=gitbucket-assembly\
-  -Dversion=3.2.0\ # <---- update here!!
-  -Dpackaging=jar\
-  -Dfile=../target/scala-2.11/gitbucket-assembly-3.2.0.jar\ # <---- update here!!
-  -DrepositoryId=sourceforge.jp\
-  -Durl=scp://shell.sourceforge.jp/home/groups/a/am/amateras/htdocs/mvn/
+export GITBUCKET_VERSION=3.3.0 # <---- update here!!
 ```
 
 Generate release files
@@ -68,16 +31,18 @@ Note: Release operation requires [Ant](http://ant.apache.org/) and [Maven](https
 
 ### Make release war file
 
-Run ant with `build.xml` in the root directory. The release war file is generated into `target/scala-2.11/gitbucket.war`.
+Run `release/make-release-war.sh`. The release war file is generated into `target/scala-2.11/gitbucket.war`.
+
+```bash
+$ cd release
+$ ./make-release-war.sh
+```
 
 ### Deploy assemnbly jar file
 
-For plug-in development, we have to publish the assembly jar file to the public Maven repository.
+For plug-in development, we have to publish the assembly jar file to the public Maven repository by `release/deploy-assembly-jar.sh`.
 
+```bash
+$ cd release/
+$ ./deploy-assembly-jar.sh
 ```
-./sbt.sh clean assembly
-cd deploy-assembly/
-./deploy-assembly-jar.sh
-```
-
-This script runs `sbt assembly` and `mvn deploy`.
