@@ -1,6 +1,10 @@
 #!/bin/sh
 source ../env.sh
 
+cd ../
+./sbt.sh clean assembly
+
+cd release
 mvn deploy:deploy-file \
   -DgroupId=gitbucket\
   -DartifactId=gitbucket-assembly\
