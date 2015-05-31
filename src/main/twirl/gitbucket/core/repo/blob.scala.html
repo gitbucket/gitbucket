@@ -10,6 +10,9 @@
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
     <div class="head">
+      <div class="pull-right hide-if-blame"><div class="btn-group">
+        <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-mini" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="icon icon-th-list"></i></a>
+      </div></div>
       <div class="line-age-legend">
         <span>Newer</span>
         <ol>
