@@ -38,7 +38,7 @@ $ cd release
 $ ./make-release-war.sh
 ```
 
-### Deploy assemnbly jar file
+### Deploy assembly jar file
 
 For plug-in development, we have to publish the assembly jar file to the public Maven repository by `release/deploy-assembly-jar.sh`.
 
