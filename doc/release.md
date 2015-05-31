@@ -31,6 +31,22 @@ object AutoUpdate {
     ...
 ```
 
+### build.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="gitbucket" default="all" basedir=".">
+
+  <property name="target.dir" value="target"/>
+  <property name="embed.classes.dir" value="${target.dir}/embed-classes"/>
+  <property name="jetty.dir" value="embed-jetty"/>
+  <property name="scala.version" value="2.11"/>
+  <property name="gitbucket.version" value="3.2.0"/> <!---- update here!! ---->
+  <property name="jetty.version" value="8.1.16.v20140903"/>
+  <property name="servlet.version" value="3.0.0.v201112011016"/>
+  ...
+```
+
 ### deploy-assembly/deploy-assembly-jar.sh
 
 ```bash
