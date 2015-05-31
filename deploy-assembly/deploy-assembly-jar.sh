@@ -1,6 +1,4 @@
 #!/bin/sh
-./sbt.sh clean assembly
-
 mvn deploy:deploy-file \
   -DgroupId=gitbucket\
   -DartifactId=gitbucket-assembly\
