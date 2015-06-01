@@ -152,7 +152,7 @@ $(window).load(function(){
   });
 
   function updateBlame(){
-    var m = /^\/(blame|blob)(\/.*)$/.exec(location.pathname.substring(repository.length));
+    var m = /^\/(blame|blob)(\/.*)$/.exec(location.href.substring(repository.length));
     var mode = m[1];
     $('.blame-action').toggleClass("active", mode=='blame').attr('href', repository + (m[1]=='blame'?'/blob':'/blame')+m[2]);
     if(pre.parents("td").find(".blame").length){
