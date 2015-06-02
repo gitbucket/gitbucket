@@ -31,20 +31,30 @@ class PluginRegistry {
 
   def getPlugins(): List[PluginInfo] = plugins.toList
 
+  def addImage(id: String, bytes: Array[Byte]): Unit = {
+    val encoded = StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
+    images += ((id, encoded))
+  }
+
+  @deprecated
   def addImage(id: String, in: InputStream): Unit = {
     val bytes = using(in){ in =>
       val bytes = new Array[Byte](in.available)
       in.read(bytes)
       bytes
     }
-    val encoded = StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
-    images += ((id, encoded))
+    addImage(id, bytes)
   }
 
   def getImage(id: String): String = images(id)
 
-  def addController(controller: ControllerBase, path: String): Unit = {
+  def addController(path: String, controller: ControllerBase): Unit = {
     controllers += ((controller, path))
+  }
+
+  @deprecated
+  def addController(controller: ControllerBase, path: String): Unit = {
+    addController(path, controller)
   }
 
   def getControllers(): List[(ControllerBase, String)] = controllers.toList
