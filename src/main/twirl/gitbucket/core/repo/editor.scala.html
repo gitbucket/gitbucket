@@ -5,6 +5,7 @@
   content: gitbucket.core.util.JGitUtil.ContentInfo)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
+@import gitbucket.core.plugin.PluginRegistry
 @html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
     <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
@@ -120,7 +121,7 @@ $(function(){
     $('#editor').hide();
     $('#preview').show()
 
-    @if(renderableSuffixes.find(suffix => fileName.map(_.toLowerCase.endsWith(suffix)).getOrElse(false))) {
+    @if(fileName.map(PluginRegistry.isRenderable _).getOrElse(false)) {
       // update preview
       $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
       $.post('@url(repository)/_preview', {

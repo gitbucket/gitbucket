@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.api._
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
 import gitbucket.core.service._
@@ -546,7 +547,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
 
-  private val readmeFiles = view.helpers.renderableSuffixes.map(suffix => s"readme${suffix}") ++ Seq("readme.txt", "readme")
+  private val readmeFiles = PluginRegistry().renderableExtensions.map { extension =>
+    s"readme.${extension}"
+  } ++ Seq("readme.txt", "readme")
 
   /**
    * Provides HTML of the file list.

@@ -5,8 +5,9 @@ import java.util.{Date, Locale, TimeZone}
 
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
+import gitbucket.core.plugin.{RenderRequest, PluginRegistry, Renderer}
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.{JGitUtil, StringUtil}
+import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 
 import play.twirl.api.Html
 
@@ -83,14 +84,6 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def plural(count: Int, singular: String, plural: String = ""): String =
     if(count == 1) singular else if(plural.isEmpty) singular + "s" else plural
 
-  private[this] val renderersBySuffix: Seq[(String, (List[String], String, String, RepositoryService.RepositoryInfo, Boolean, Boolean, Context) => Html)] =
-    Seq(
-      ".md"       -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context)),
-      ".markdown" -> ((filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context) => markdown(fileContent, repository, enableWikiLink, enableRefsLink)(context))
-    )
-
-  def renderableSuffixes: Seq[String] = renderersBySuffix.map(_._1)
-
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
@@ -107,15 +100,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                    repository: RepositoryService.RepositoryInfo,
                    enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: Context): Html = {
 
-    val fileNameLower = filePath.reverse.head.toLowerCase
-    renderersBySuffix.find { case (suffix, _) => fileNameLower.endsWith(suffix) } match {
-      case Some((_, handler)) => handler(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context)
-      case None => Html(
-        s"<tt>${
-          fileContent.split("(\\r\\n)|\\n").map(xml.Utility.escape(_)).mkString("<br/>")
-        }</tt>"
-      )
-    }
+    val fileName  = filePath.reverse.head.toLowerCase
+    val extension = FileUtil.getExtension(fileName)
+    val renderer  = PluginRegistry().getRenderer(extension)
+    renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context))
   }
 
   /**

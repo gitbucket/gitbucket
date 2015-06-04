@@ -24,6 +24,10 @@ class PluginRegistry {
   private val javaScripts = new ListBuffer[(String, String)]
   private val controllers = new ListBuffer[(ControllerBase, String)]
   private val images = mutable.Map[String, String]()
+  private val renderers = mutable.Map[String, Renderer]()
+  renderers ++= Seq(
+    "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
+  )
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -60,14 +64,22 @@ class PluginRegistry {
   def getControllers(): List[(ControllerBase, String)] = controllers.toList
 
   def addJavaScript(path: String, script: String): Unit = {
-    javaScripts += Tuple2(path, script)
+    javaScripts += ((path, script))
   }
-
-  //def getJavaScripts(): List[(String, String)] = javaScripts.toList
 
   def getJavaScript(currentPath: String): List[String] = {
     javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
   }
+
+  def addRenderer(extension: String, renderer: Renderer): Unit = {
+    renderers += ((extension, renderer))
+  }
+
+  def getRenderer(extension: String): Renderer = {
+    renderers.get(extension).getOrElse(DefaultRenderer)
+  }
+
+  def renderableExtensions: Seq[String] = renderers.keys.toSeq
 
   private case class GlobalAction(
     method: String,
@@ -96,6 +108,10 @@ object PluginRegistry {
    * Returns the PluginRegistry singleton instance.
    */
   def apply(): PluginRegistry = instance
+
+  def isRenderable(fileName: String): Boolean = {
+    instance.renderableExtensions.exists(extension => fileName.toLowerCase.endsWith("." + extension))
+  }
 
   /**
    * Initializes all installed plugins.

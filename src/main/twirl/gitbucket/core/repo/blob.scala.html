@@ -7,6 +7,7 @@
   isBlame: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
+@import gitbucket.core.plugin.PluginRegistry
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
     <div class="head">
@@ -75,7 +76,7 @@
       <tr>
         <td>
           @if(content.viewType == "text"){
-            @defining(renderableSuffixes.find(suffix => pathList.reverse.head.toLowerCase.endsWith(suffix))) { isRrenderable =>
+            @defining(PluginRegistry.isRenderable(pathList.reverse.head)){ isRrenderable =>
               @if(!isBlame && isRrenderable) {
                 <div class="box-content markdown-body" style="border: none; padding-left: 16px; padding-right: 16px;">
                   @renderMarkup(pathList, content.content.get, branch, repository, false, false)

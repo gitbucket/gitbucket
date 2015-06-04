@@ -33,6 +33,11 @@ trait Plugin {
   val javaScripts: Seq[(String, String)] = Nil
 
   /**
+   * Override to declare this plug-in provides renderers.
+   */
+  val renderers: Seq[(String, Renderer)] = Nil
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -45,6 +50,9 @@ trait Plugin {
     }
     javaScripts.foreach { case (path, script) =>
       registry.addJavaScript(path, script)
+    }
+    renderers.foreach { case (extension, renderer) =>
+      registry.addRenderer(extension, renderer)
     }
   }
 
