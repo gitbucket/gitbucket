@@ -106,6 +106,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context))
   }
 
+  def isRenderable(fileName: String): Boolean = {
+    PluginRegistry().renderableExtensions.exists(extension => fileName.toLowerCase.endsWith("." + extension))
+  }
+
   /**
    * Returns &lt;img&gt; which displays the avatar icon for the given user name.
    * This method looks up Gravatar if avatar icon has not been configured in user settings.

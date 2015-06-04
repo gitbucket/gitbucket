@@ -109,10 +109,6 @@ object PluginRegistry {
    */
   def apply(): PluginRegistry = instance
 
-  def isRenderable(fileName: String): Boolean = {
-    instance.renderableExtensions.exists(extension => fileName.toLowerCase.endsWith("." + extension))
-  }
-
   /**
    * Initializes all installed plugins.
    */
