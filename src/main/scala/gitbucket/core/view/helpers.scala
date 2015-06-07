@@ -11,9 +11,6 @@ import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 
 import play.twirl.api.Html
 
-
-
-
 /**
  * Provides helper methods for Twirl templates.
  */
