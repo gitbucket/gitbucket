@@ -109,7 +109,7 @@ function JsDiffRender(params){
   var headTextLines = (params.newText==="")?[]:params.newText.split(/\r\n|\r|\n/);
   var sm, ctx;
   if(params.ignoreSpace){
-    var ignoreSpace = function(a){ return a.replace(/\s+/,' ').replace(/^\s+|\s+$/,''); };
+    var ignoreSpace = function(a){ return a.replace(/\s+/g,''); };
     sm = new difflib.SequenceMatcher(
       $.map(baseTextLines, ignoreSpace),
       $.map(headTextLines, ignoreSpace));
