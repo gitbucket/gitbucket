@@ -177,6 +177,18 @@ class GitBucketHtmlSerializer(
     }
   }
 
+  override def visit(node: VerbatimNode) {
+    val printer = new Printer()
+    val serializer = verbatimSerializers.get(VerbatimSerializer.DEFAULT)
+    serializer.serialize(node, printer)
+    val html = printer.getString
+
+    // convert commit id and username to link.
+    val t = if(enableRefsLink) convertRefsLinks(html, repository, "issue:", escapeHtml = false) else html
+
+    this.printer.print(t)
+  }
+
   override def visit(node: BulletListNode): Unit = {
     if (printChildrenToString(node).contains("""class="task-list-item-checkbox" """)) {
       printer.println().print("""<ul class="task-list">""").indent(+2)

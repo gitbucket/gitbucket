@@ -2,7 +2,6 @@ package gitbucket.core.view
 
 import gitbucket.core.controller.Context
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.Implicits
 import gitbucket.core.util.Implicits.RichString
 
 trait LinkConverter { self: RequestCache =>
@@ -11,10 +10,12 @@ trait LinkConverter { self: RequestCache =>
    * Converts issue id, username and commit id to link.
    */
   protected def convertRefsLinks(value: String, repository: RepositoryService.RepositoryInfo,
-                                 issueIdPrefix: String =  "#")(implicit context: Context): String = {
-    value
-      // escape HTML tags
-      .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
+      issueIdPrefix: String =  "#", escapeHtml: Boolean = true)(implicit context: Context): String = {
+
+    // escape HTML tags
+    val escaped = if(escapeHtml) value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;") else value
+
+    escaped
       // convert issue id to link
       .replaceBy(("(?<=(^|\\W))" + issueIdPrefix + "([0-9]+)(?=(\\W|$))").r){ m =>
         getIssue(repository.owner, repository.name, m.group(2)) match {
