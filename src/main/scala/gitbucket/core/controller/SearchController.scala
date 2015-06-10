@@ -41,7 +41,8 @@ trait SearchControllerBase extends ControllerBase { self: RepositoryService
           query, page, repository)
 
         case _ => html.code(
-          searchFiles(repository.owner, repository.name, query),
+          searchFiles(repository.owner, repository.name, query, page),
+          countFiles(repository.owner, repository.name, query),
           countIssues(repository.owner, repository.name, query),
           query, page, repository)
       }

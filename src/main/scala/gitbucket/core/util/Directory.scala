@@ -84,4 +84,9 @@ object Directory {
   def getWikiRepositoryDir(owner: String, repository: String): File =
     new File(s"${RepositoryHome}/${owner}/${repository}.wiki.git")
 
+  /**
+   * The index directory. Index of every repository will be stored this directory.
+   */
+  def getIndexDir(): File =
+    new File(s"${TemporaryHome}/_index")
 }
