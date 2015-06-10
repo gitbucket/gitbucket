@@ -30,6 +30,9 @@
     <script src="@assets/vendors/elastic/jquery.elastic.source.js"></script>
     <script src="@assets/vendors/facebox/facebox.js"></script>
     <script src="@assets/vendors/jquery-hotkeys/jquery.hotkeys.js"></script>
+    @repository.map { repository =>
+      <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
+    }
   </head>
   <body>
     <form id="search" action="@path/search" method="POST">
