@@ -291,4 +291,4 @@ Release Notes
 
 Sponsors
 --------
-![IntelliJ IDEA](https://www.jetbrains.com/idea/docs/logo_intellij_idea.png)
+[![IntelliJ IDEA](https://www.jetbrains.com/idea/docs/logo_intellij_idea.png)](https://www.jetbrains.com/idea/)
