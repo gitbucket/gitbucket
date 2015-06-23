@@ -288,3 +288,7 @@ Release Notes
 
 ### 1.0 - 04 Jul 2013
 - This is a first public release
+
+Sponsors
+--------
+![IntelliJ IDEA](https://www.jetbrains.com/idea/docs/logo_intellij_idea.png)
