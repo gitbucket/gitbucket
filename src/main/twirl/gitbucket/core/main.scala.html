@@ -8,6 +8,7 @@
   <head>
     <meta charset="utf-8">
     <title>@title</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="icon" href="@assets/common/images/gitbucket.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="@assets/vendors/bootstrap/css/bootstrap.css" rel="stylesheet">
@@ -28,6 +29,12 @@
     <script src="@assets/vendors/zclip/ZeroClipboard.min.js"></script>
     <script src="@assets/vendors/elastic/jquery.elastic.source.js"></script>
     <script src="@assets/vendors/facebox/facebox.js"></script>
+    <script src="@assets/vendors/jquery-hotkeys/jquery.hotkeys.js"></script>
+    @repository.map { repository =>
+      @if(!repository.repository.isPrivate){
+        <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
+      }
+    }
   </head>
   <body>
     <form id="search" action="@path/search" method="POST">

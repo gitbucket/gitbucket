@@ -86,7 +86,7 @@ trait IssuesControllerBase extends ControllerBase {
       issueId <- params("id").toIntOpt
       comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
     } yield {
-      JsonFormat(comments.map{ case (issueComment, user) => ApiComment(issueComment, ApiUser(user)) })
+      JsonFormat(comments.map{ case (issueComment, user) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user)) })
     }).getOrElse(NotFound)
   })
 
@@ -190,7 +190,7 @@ trait IssuesControllerBase extends ControllerBase {
       (issue, id) <- handleComment(issueId, Some(body), repository)()
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
-      JsonFormat(ApiComment(issueComment, ApiUser(context.loginAccount.get)))
+      JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get)))
     }) getOrElse NotFound
   })
 
@@ -348,9 +348,12 @@ trait IssuesControllerBase extends ControllerBase {
 
   private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
     StringUtil.extractIssueId(message).foreach { issueId =>
+      val content = fromIssue.issueId + ":" + fromIssue.title
       if(getIssue(owner, repository, issueId).isDefined){
-        createComment(owner, repository, context.loginAccount.get.userName, issueId.toInt,
-                      fromIssue.issueId + ":" + fromIssue.title, "refer")
+        // Not add if refer comment already exist.
+        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
+          createComment(owner, repository, context.loginAccount.get.userName, issueId.toInt, content, "refer")
+        }
       }
     }
   }

@@ -1,6 +1,7 @@
 package gitbucket.core.api
 
 import gitbucket.core.model.Issue
+import gitbucket.core.util.RepositoryName
 
 import java.util.Date
 
@@ -16,10 +17,13 @@ case class ApiIssue(
   state: String,
   created_at: Date,
   updated_at: Date,
-  body: String)
+  body: String)(repositoryName: RepositoryName){
+  val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${number}/comments")
+  val html_url = ApiPath(s"/${repositoryName.fullName}/issues/${number}")
+}
 
 object ApiIssue{
-  def apply(issue: Issue, user: ApiUser): ApiIssue =
+  def apply(issue: Issue, repositoryName: RepositoryName, user: ApiUser): ApiIssue =
     ApiIssue(
       number = issue.issueId,
       title  = issue.title,
@@ -27,5 +31,5 @@ object ApiIssue{
       state  = if(issue.closed){ "closed" }else{ "open" },
       body   = issue.content.getOrElse(""),
       created_at = issue.registeredDate,
-      updated_at = issue.updatedDate)
+      updated_at = issue.updatedDate)(repositoryName)
 }

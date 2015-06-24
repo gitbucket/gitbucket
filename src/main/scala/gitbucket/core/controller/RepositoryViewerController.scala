@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.api._
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
 import gitbucket.core.service._
@@ -31,7 +32,6 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
   with WebHookPullRequestService
-
 
 /**
  * The repository viewer.
@@ -284,24 +284,57 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file content of the specified branch or commit.
    */
-  get("/:owner/:repository/blob/*")(referrersOnly { repository =>
+  val blobRoute = get("/:owner/:repository/blob/*")(referrersOnly { repository =>
     val (id, path) = splitPath(repository, multiParams("splat").head)
     val raw = params.get("raw").getOrElse("false").toBoolean
-
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      val lastModifiedCommit = JGitUtil.getLastModifiedCommit(git, revCommit, path)
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
-          JGitUtil.getContentFromId(git, objectId, true).map {bytes =>
-            RawData(FileUtil.getContentType(path, bytes), bytes)
+          JGitUtil.getContentFromId(git, objectId, true).map { bytes =>
+            RawData("application/octet-stream", bytes)
           } getOrElse NotFound
         } else {
-          html.blob(id, repository, path.split("/").toList, JGitUtil.getContentInfo(git, path, objectId),
-            new JGitUtil.CommitInfo(lastModifiedCommit), hasWritePermission(repository.owner, repository.name, context.loginAccount))
+          html.blob(id, repository, path.split("/").toList,
+            JGitUtil.getContentInfo(git, path, objectId),
+            new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
+            hasWritePermission(repository.owner, repository.name, context.loginAccount),
+            request.paths(2) == "blame")
         }
       } getOrElse NotFound
+    }
+  })
+
+  get("/:owner/:repository/blame/*"){
+    blobRoute.action()
+  }
+
+  /**
+   * Blame data.
+   */
+  ajaxGet("/:owner/:repository/get-blame/*")(referrersOnly { repository =>
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+    contentType = formats("json")
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val last = git.log.add(git.getRepository.resolve(id)).addPath(path).setMaxCount(1).call.iterator.next.name
+      Map(
+        "root"  -> s"${context.baseUrl}/${repository.owner}/${repository.name}",
+        "id"    -> id,
+        "path"  -> path,
+        "last"  -> last,
+        "blame" -> JGitUtil.getBlame(git, id, path).map{ blame =>
+          Map(
+            "id"       -> blame.id,
+            "author"   -> view.helpers.user(blame.authorName, blame.authorEmailAddress).toString,
+            "avatar"   -> view.helpers.avatarLink(blame.authorName, 32, blame.authorEmailAddress).toString,
+            "authed"   -> helper.html.datetimeago(blame.authorTime).toString,
+            "prev"     -> blame.prev,
+            "prevPath" -> blame.prevPath,
+            "commited" -> blame.commitTime.getTime,
+            "message"  -> blame.message,
+            "lines"    -> blame.lines)
+        })
     }
   })
 
@@ -475,6 +508,34 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       repository)
   })
 
+  /**
+   * Displays the file find of branch.
+   */
+  get("/:owner/:repository/find/:ref")(referrersOnly { repository =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      JGitUtil.getTreeId(git, params("ref")).map{ treeId =>
+        html.find(params("ref"),
+                  treeId,
+                  repository,
+                  context.loginAccount match {
+                    case None => List()
+                    case account: Option[Account] => getGroupsByUserName(account.get.userName)
+                  })
+      } getOrElse NotFound
+    }
+  })
+
+  /**
+   * Get all file list of branch.
+   */
+  ajaxGet("/:owner/:repository/tree-list/:tree")(referrersOnly { repository =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val treeId = params("tree")
+      contentType = formats("json")
+      Map("paths" -> JGitUtil.getAllFileListByTreeId(git, treeId))
+    }
+  })
+
   private def splitPath(repository: RepositoryService.RepositoryInfo, path: String): (String, String) = {
     val id = repository.branchList.collectFirst {
       case branch if(path == branch || path.startsWith(branch + "/")) => branch
@@ -486,7 +547,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
 
-  private val readmeFiles = view.helpers.renderableSuffixes.map(suffix => s"readme${suffix}") ++ Seq("readme.txt", "readme")
+  private val readmeFiles = PluginRegistry().renderableExtensions.map { extension =>
+    s"readme.${extension}"
+  } ++ Seq("readme.txt", "readme")
 
   /**
    * Provides HTML of the file list.

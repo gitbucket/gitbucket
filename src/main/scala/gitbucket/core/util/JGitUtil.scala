@@ -100,7 +100,8 @@ object JGitUtil {
     def isDifferentFromAuthor: Boolean = authorName != committerName || authorEmailAddress != committerEmailAddress
   }
 
-  case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String])
+  case class DiffInfo(changeType: ChangeType, oldPath: String, newPath: String, oldContent: Option[String], newContent: Option[String],
+                      oldIsImage: Boolean, newIsImage: Boolean, oldObjectId: Option[String], newObjectId: Option[String])
 
   /**
    * The file content data for the file content view of the repository viewer.
@@ -137,6 +138,9 @@ object JGitUtil {
   case class BranchMergeInfo(ahead: Int, behind: Int, isMerged: Boolean)
 
   case class BranchInfo(name: String, committerName: String, commitTime: Date, committerEmailAddress:String, mergeInfo: Option[BranchMergeInfo], commitId: String)
+
+  case class BlameInfo(id: String, authorName: String, authorEmailAddress: String, authorTime:java.util.Date,
+    prev: Option[String], prevPath: Option[String], commitTime:java.util.Date, message:String, lines:Set[Int])
 
   /**
    * Returns RevCommit from the commit or tag id.
@@ -325,6 +329,39 @@ object JGitUtil {
   }
 
   /**
+   * get all file list by revision. only file.
+   */
+  def getTreeId(git: Git, revision: String): Option[String] = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      val objectId  = git.getRepository.resolve(revision)
+      if(objectId==null) return None
+      val revCommit = revWalk.parseCommit(objectId)
+      Some(revCommit.getTree.name)
+    }
+  }
+
+  /**
+   * get all file list by tree object id.
+   */
+  def getAllFileListByTreeId(git: Git, treeId: String): List[String] = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      val objectId  = git.getRepository.resolve(treeId+"^{tree}")
+      if(objectId==null) return Nil
+      using(new TreeWalk(git.getRepository)){ treeWalk =>
+        treeWalk.addTree(objectId)
+        treeWalk.setRecursive(true)
+        var ret: List[String] = Nil
+        if(treeWalk != null){
+          while (treeWalk.next()) {
+            ret +:= treeWalk.getPathString
+          }
+        }
+        ret.reverse
+      }
+    }
+  }
+
+  /**
    * Returns the commit list of the specified branch.
    * 
    * @param git the Git object
@@ -456,11 +493,13 @@ object JGitUtil {
           treeWalk.addTree(revCommit.getTree)
           val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
           while(treeWalk.next){
+            val newIsImage = FileUtil.isImage(treeWalk.getPathString)
             buffer.append((if(!fetchContent){
-              DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None)
+              DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None, None, false, newIsImage, None, Option(treeWalk.getObjectId(0)).map(_.name))
             } else {
               DiffInfo(ChangeType.ADD, null, treeWalk.getPathString, None,
-                JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray))
+                JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray),
+                false, newIsImage, None, Option(treeWalk.getObjectId(0)).map(_.name))
             }))
           }
           (buffer.toList, None)
@@ -480,12 +519,15 @@ object JGitUtil {
     import scala.collection.JavaConverters._
     git.getRepository.getConfig.setString("diff", null, "renames", "copies")
     git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala.map { diff =>
-      if(!fetchContent || FileUtil.isImage(diff.getOldPath) || FileUtil.isImage(diff.getNewPath)){
-        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None)
+      val oldIsImage = FileUtil.isImage(diff.getOldPath)
+      val newIsImage = FileUtil.isImage(diff.getNewPath)
+      if(!fetchContent || oldIsImage || newIsImage){
+        DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath, None, None, oldIsImage, newIsImage, Option(diff.getOldId).map(_.name), Option(diff.getNewId).map(_.name))
       } else {
         DiffInfo(diff.getChangeType, diff.getOldPath, diff.getNewPath,
           JGitUtil.getContentFromId(git, diff.getOldId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray),
-          JGitUtil.getContentFromId(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray))
+          JGitUtil.getContentFromId(git, diff.getNewId.toObjectId, false).filter(FileUtil.isText).map(convertFromByteArray),
+          oldIsImage, newIsImage, Option(diff.getOldId).map(_.name), Option(diff.getNewId).map(_.name))
       }
     }.toList
   }
@@ -639,21 +681,24 @@ object JGitUtil {
 
   def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
     // Viewer
-    val large  = FileUtil.isLarge(git.getRepository.getObjectDatabase.open(objectId).getSize)
-    val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
-    val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
+    using(git.getRepository.getObjectDatabase){ db =>
+      val loader = db.open(objectId)
+      val large  = FileUtil.isLarge(loader.getSize)
+      val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
+      val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
 
-    if(viewer == "other"){
-      if(bytes.isDefined && FileUtil.isText(bytes.get)){
-        // text
-        ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+      if(viewer == "other"){
+        if(bytes.isDefined && FileUtil.isText(bytes.get)){
+          // text
+          ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+        } else {
+          // binary
+          ContentInfo("binary", None, None)
+        }
       } else {
-        // binary
-        ContentInfo("binary", None, None)
+        // image or large
+        ContentInfo(viewer, None, None)
       }
-    } else {
-      // image or large
-      ContentInfo(viewer, None, None)
     }
   }
 
@@ -666,12 +711,12 @@ object JGitUtil {
    * @return the byte array of content or None if object does not exist
    */
   def getContentFromId(git: Git, id: ObjectId, fetchLargeFile: Boolean): Option[Array[Byte]] = try {
-    val loader = git.getRepository.getObjectDatabase.open(id)
-    if(fetchLargeFile == false && FileUtil.isLarge(loader.getSize)){
-      None
-    } else {
-      using(git.getRepository.getObjectDatabase){ db =>
-        Some(db.open(id).getBytes)
+    using(git.getRepository.getObjectDatabase){ db =>
+      val loader = db.open(id)
+      if(fetchLargeFile == false && FileUtil.isLarge(loader.getSize)){
+        None
+      } else {
+        Some(loader.getBytes)
       }
     }
   } catch {
@@ -749,7 +794,12 @@ object JGitUtil {
   def getBranches(owner: String, name: String, defaultBranch: String): Seq[BranchInfo] = {
     using(Git.open(getRepositoryDir(owner, name))){ git =>
       val repo = git.getRepository
-      val defaultObject = repo.resolve(defaultBranch)
+      val defaultObject = if (repo.getAllRefs.keySet().contains(defaultBranch)) {
+        repo.resolve(defaultBranch)
+      } else {
+        git.branchList().call().iterator().next().getObjectId
+      }
+
       git.branchList.call.asScala.map { ref =>
         val walk = new RevWalk(repo)
         try{
@@ -784,6 +834,36 @@ object JGitUtil {
         }
       }
     }
+  }
+
+  def getBlame(git: Git, id: String, path: String): Iterable[BlameInfo] = {
+    Option(git.getRepository.resolve(id)).map{ commitId =>
+      val blamer = new org.eclipse.jgit.api.BlameCommand(git.getRepository);
+      blamer.setStartCommit(commitId)
+      blamer.setFilePath(path)
+      val blame = blamer.call()
+      var blameMap = Map[String, JGitUtil.BlameInfo]()
+      var idLine = List[(String, Int)]()
+      val commits = 0.to(blame.getResultContents().size()-1).map{ i =>
+        val c = blame.getSourceCommit(i)
+        if(!blameMap.contains(c.name)){
+          blameMap += c.name -> JGitUtil.BlameInfo(
+            c.name,
+            c.getAuthorIdent.getName,
+            c.getAuthorIdent.getEmailAddress,
+            c.getAuthorIdent.getWhen,
+            Option(git.log.add(c).addPath(blame.getSourcePath(i)).setSkip(1).setMaxCount(2).call.iterator.next)
+              .map(_.name),
+            if(blame.getSourcePath(i)==path){ None }else{ Some(blame.getSourcePath(i)) },
+            c.getCommitterIdent.getWhen,
+            c.getShortMessage,
+            Set.empty)
+        }
+        idLine :+= (c.name, i)
+      }
+      val limeMap = idLine.groupBy(_._1).mapValues(_.map(_._2).toSet)
+      blameMap.values.map{b => b.copy(lines=limeMap(b.id))}
+    }.getOrElse(Seq.empty)
   }
 
   /**

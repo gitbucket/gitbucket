@@ -54,20 +54,22 @@ For Installation on Windows Server with IIS see [this wiki page](https://github.
 ### Mac OS X
 #### Installing Via Homebrew
 
-    $ brew install gitbucket
-    ==> Downloading https://github.com/takezoe/gitbucket/releases/download/1.10/gitbucket.war
-    ######################################################################## 100.0%
-    ==> Caveats
-    Note: When using launchctl the port will be 8080.
+```
+$ brew install gitbucket
+==> Downloading https://github.com/takezoe/gitbucket/releases/download/1.10/gitbucket.war
+######################################################################## 100.0%
+==> Caveats
+Note: When using launchctl the port will be 8080.
 
-    To have launchd start gitbucket at login:
-        ln -sfv /usr/local/opt/gitbucket/*.plist ~/Library/LaunchAgents
-    Then to load gitbucket now:
-        launchctl load ~/Library/LaunchAgents/homebrew.mxcl.gitbucket.plist
-    Or, if you don't want/need launchctl, you can just run:
-        java -jar /usr/local/opt/gitbucket/libexec/gitbucket.war
-    ==> Summary
-    /usr/local/Cellar/gitbucket/1.10: 3 files, 42M, built in 11 seconds
+To have launchd start gitbucket at login:
+    ln -sfv /usr/local/opt/gitbucket/*.plist ~/Library/LaunchAgents
+Then to load gitbucket now:
+    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.gitbucket.plist
+Or, if you don't want/need launchctl, you can just run:
+    java -jar /usr/local/opt/gitbucket/libexec/gitbucket.war
+==> Summary
+/usr/local/Cellar/gitbucket/1.10: 3 files, 42M, built in 11 seconds
+```
 
 #### Manual Installation
 On OS X, copy the [gitbucket.plist](https://raw.github.com/takezoe/gitbucket/master/contrib/macosx/gitbucket.plist) file to `~/Library/LaunchAgents/`
@@ -79,6 +81,13 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.3 - 31 May 2015
+- Rich graphical diff for images
+- File finder is available in the repository viewer
+- Blame is displayed at the source viewer
+- Remain user data and repositories even if user is disabled
+- Mobile view improvement
+
 ### 3.2 - 3 May 2015
 - Directory history button
 - Compare / pull request button
@@ -279,3 +288,7 @@ Release Notes
 
 ### 1.0 - 04 Jul 2013
 - This is a first public release
+
+Sponsors
+--------
+[![IntelliJ IDEA](https://www.jetbrains.com/idea/docs/logo_intellij_idea.png)](https://www.jetbrains.com/idea/)

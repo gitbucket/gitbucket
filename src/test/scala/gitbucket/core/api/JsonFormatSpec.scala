@@ -90,11 +90,12 @@ class JsonFormatSpec extends Specification {
     user = apiUser,
     body= "Me too",
     created_at= date1,
-    updated_at= date1)
+    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100)
   val apiCommentJson = s"""{
     "id": 1,
     "body": "Me too",
     "user": $apiUserJson,
+    "html_url" : "${context.baseUrl}/octocat/Hello-World/issues/100#comment-1",
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"
   }"""
@@ -157,13 +158,15 @@ class JsonFormatSpec extends Specification {
       state  = "open",
       body   = "I'm having a problem with this.",
       created_at = date1,
-      updated_at = date1)
+      updated_at = date1)(RepositoryName("octocat","Hello-World"))
   val apiIssueJson = s"""{
     "number": 1347,
     "state": "open",
     "title": "Found a bug",
     "body": "I'm having a problem with this.",
     "user": $apiUserJson,
+    "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
+    "html_url": "${context.baseUrl}/octocat/Hello-World/issues/1347",
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"
   }"""

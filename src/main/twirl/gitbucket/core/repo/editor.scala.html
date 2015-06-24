@@ -120,7 +120,7 @@ $(function(){
     $('#editor').hide();
     $('#preview').show()
 
-    @if(renderableSuffixes.find(suffix => fileName.map(_.toLowerCase.endsWith(suffix)).getOrElse(false))) {
+    @if(fileName.map(isRenderable _).getOrElse(false)) {
       // update preview
       $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
       $.post('@url(repository)/_preview', {

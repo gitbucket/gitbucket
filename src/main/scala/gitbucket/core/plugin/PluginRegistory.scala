@@ -24,6 +24,10 @@ class PluginRegistry {
   private val javaScripts = new ListBuffer[(String, String)]
   private val controllers = new ListBuffer[(ControllerBase, String)]
   private val images = mutable.Map[String, String]()
+  private val renderers = mutable.Map[String, Renderer]()
+  renderers ++= Seq(
+    "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
+  )
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -31,33 +35,51 @@ class PluginRegistry {
 
   def getPlugins(): List[PluginInfo] = plugins.toList
 
+  def addImage(id: String, bytes: Array[Byte]): Unit = {
+    val encoded = StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
+    images += ((id, encoded))
+  }
+
+  @deprecated
   def addImage(id: String, in: InputStream): Unit = {
     val bytes = using(in){ in =>
       val bytes = new Array[Byte](in.available)
       in.read(bytes)
       bytes
     }
-    val encoded = StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
-    images += ((id, encoded))
+    addImage(id, bytes)
   }
 
   def getImage(id: String): String = images(id)
 
-  def addController(controller: ControllerBase, path: String): Unit = {
+  def addController(path: String, controller: ControllerBase): Unit = {
     controllers += ((controller, path))
+  }
+
+  @deprecated
+  def addController(controller: ControllerBase, path: String): Unit = {
+    addController(path, controller)
   }
 
   def getControllers(): List[(ControllerBase, String)] = controllers.toList
 
   def addJavaScript(path: String, script: String): Unit = {
-    javaScripts += Tuple2(path, script)
+    javaScripts += ((path, script))
   }
-
-  //def getJavaScripts(): List[(String, String)] = javaScripts.toList
 
   def getJavaScript(currentPath: String): List[String] = {
     javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
   }
+
+  def addRenderer(extension: String, renderer: Renderer): Unit = {
+    renderers += ((extension, renderer))
+  }
+
+  def getRenderer(extension: String): Renderer = {
+    renderers.get(extension).getOrElse(DefaultRenderer)
+  }
+
+  def renderableExtensions: Seq[String] = renderers.keys.toSeq
 
   private case class GlobalAction(
     method: String,

@@ -202,15 +202,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
 
     getAccountByUserName(userName, true).foreach { account =>
-      // Remove repositories
-      getRepositoryNamesOfUser(userName).foreach { repositoryName =>
-        deleteRepository(userName, repositoryName)
-        FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
-        FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
-        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
-      }
-      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
-      removeUserRelatedData(userName)
+//      // Remove repositories
+//      getRepositoryNamesOfUser(userName).foreach { repositoryName =>
+//        deleteRepository(userName, repositoryName)
+//        FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
+//        FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
+//        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
+//      }
+//      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+//      removeUserRelatedData(userName)
 
       updateAccount(account.copy(isRemoved = true))
     }
