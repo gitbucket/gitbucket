@@ -281,12 +281,18 @@ trait PullRequestsControllerBase extends ControllerBase {
     val (forkedOwner, forkedId) = parseCompareIdentifie(forked, forkedRepository.owner)
 
     (for(
-      originRepositoryName <- if(originOwner == forkedOwner){
+      originRepositoryName <- if(originOwner == forkedOwner) {
+        // Self repository
         Some(forkedRepository.name)
+      } else if(Some(originOwner) == forkedRepository.repository.originUserName){
+        // Original repository
+        forkedRepository.repository.originRepositoryName
       } else {
-        forkedRepository.repository.originRepositoryName.orElse {
-          getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
-        }
+        // Sibling repository
+        getUserRepositories(originOwner, context.baseUrl).find { x =>
+          x.repository.originUserName == forkedRepository.repository.originUserName &&
+            x.repository.originRepositoryName == forkedRepository.repository.originRepositoryName
+        }.map(_.repository.repositoryName)
       };
       originRepository <- getRepository(originOwner, originRepositoryName, context.baseUrl)
     ) yield {
