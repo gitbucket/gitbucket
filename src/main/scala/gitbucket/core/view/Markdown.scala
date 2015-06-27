@@ -162,15 +162,13 @@ class GitBucketHtmlSerializer(
     val tag = s"h${node.getLevel}"
     val headerTextString = printChildrenToString(node)
     val anchorName = GitBucketHtmlSerializer.generateAnchorName(headerTextString)
+    printer.print(s"""<$tag class="markdown-head">""")
     if(enableAnchor){
-      printer.print(s"""<$tag class="markdown-head">""")
       printer.print(s"""<a class="markdown-anchor-link" href="#$anchorName"></a>""")
       printer.print(s"""<a class="markdown-anchor" name="$anchorName"></a>""")
     }
     visitChildren(node)
-    if(enableAnchor){
-      printer.print(s"</$tag>")
-    }
+    printer.print(s"</$tag>")
   }
 
   override def visit(node: HeaderNode): Unit = {
