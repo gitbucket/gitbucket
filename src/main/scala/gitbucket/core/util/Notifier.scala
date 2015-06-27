@@ -76,28 +76,29 @@ class Mailer(private val smtp: Smtp) extends Notifier {
         defining(
           s"[${r.name}] ${issue.title} (#${issue.issueId})" ->
             msg(Markdown.toHtml(content, r, false, true))) { case (subject, msg) =>
-            recipients(issue) { to =>
-              val email = new HtmlEmail
-              email.setHostName(smtp.host)
-              email.setSmtpPort(smtp.port.get)
-              smtp.user.foreach { user =>
-                email.setAuthenticator(new DefaultAuthenticator(user, smtp.password.getOrElse("")))
-              }
-              smtp.ssl.foreach { ssl =>
-                email.setSSLOnConnect(ssl)
-              }
-              smtp.fromAddress
-                .map (_ -> smtp.fromName.orNull)
-                .orElse (Some("notifications@gitbucket.com" -> context.loginAccount.get.userName))
-                .foreach { case (address, name) =>
-                  email.setFrom(address, name)
-              }
-              email.setCharset("UTF-8")
-              email.setSubject(subject)
-              email.setHtmlMsg(msg)
-
-              email.addTo(to).send
+            val email = new HtmlEmail
+            email.setHostName(smtp.host)
+            email.setSmtpPort(smtp.port.get)
+            smtp.user.foreach { user =>
+              email.setAuthenticator(new DefaultAuthenticator(user, smtp.password.getOrElse("")))
             }
+            smtp.ssl.foreach { ssl =>
+              email.setSSLOnConnect(ssl)
+            }
+            smtp.fromAddress
+              .map (_ -> smtp.fromName.orNull)
+              .orElse (Some("notifications@gitbucket.com" -> context.loginAccount.get.userName))
+              .foreach { case (address, name) =>
+                email.setFrom(address, name)
+            }
+            email.setCharset("UTF-8")
+            email.setSubject(subject)
+            email.setHtmlMsg(msg)
+
+            recipients(issue) { to =>
+              email.addTo(to)
+            }
+            email.send
         }
       }
       "Notifications Successful."
