@@ -1,3 +1,3 @@
 #!/bin/sh
-source ../env.sh
+. ../env.sh
 ant -f build.xml all
