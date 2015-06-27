@@ -40,7 +40,7 @@ class PluginRegistry {
     images += ((id, encoded))
   }
 
-  @deprecated
+  @deprecated("Use addImage(id: String, bytes: Array[Byte]) instead", "3.4.0")
   def addImage(id: String, in: InputStream): Unit = {
     val bytes = using(in){ in =>
       val bytes = new Array[Byte](in.available)
@@ -56,7 +56,7 @@ class PluginRegistry {
     controllers += ((controller, path))
   }
 
-  @deprecated
+  @deprecated("Use addController(path: String, controller: ControllerBase) instead", "3.4.0")
   def addController(controller: ControllerBase, path: String): Unit = {
     addController(path, controller)
   }
