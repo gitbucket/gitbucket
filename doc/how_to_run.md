@@ -35,4 +35,9 @@ C:\gitbucket> sbt package
 
 `gitbucket_2.11-x.x.x.war` is generated into `target/scala-2.11`.
 
-To build executable war file, run `ant -f release/build.xml` at the top of the source tree. It generates executable `gitbucket.war` into `target/scala-2.11`. We release this war file as release artifact.
+To build executable war file, run
+
+*  `. ./env.sh`
+*  `ant -f release/build.xml all`
+
+at the top of the source tree. It generates executable `gitbucket.war` into `target/scala-2.11`. We release this war file as release artifact.
