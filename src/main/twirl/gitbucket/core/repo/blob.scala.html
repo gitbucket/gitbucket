@@ -78,7 +78,7 @@
             @defining(isRenderable(pathList.reverse.head)){ isRrenderable =>
               @if(!isBlame && isRrenderable) {
                 <div class="box-content markdown-body" style="border: none; padding-left: 16px; padding-right: 16px;">
-                  @renderMarkup(pathList, content.content.get, branch, repository, false, false)
+                  @renderMarkup(pathList, content.content.get, branch, repository, false, false, true)
                 </div>
               } else {
                 <pre class="prettyprint linenums blob @if(!isRrenderable){ no-renderable } ">@content.content.get</pre>

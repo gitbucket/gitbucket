@@ -18,11 +18,20 @@ object Markdown {
 
   /**
    * Converts Markdown of Wiki pages to HTML.
+   *
+   * @param repository the repository which contains the markdown
+   * @param enableWikiLink if true then wiki style link is available in markdown
+   * @param enableRefsLink if true then issue reference (e.g. #123) is rendered as link
+   * @param enableAnchor if true then anchor for headline is generated
+   * @param enableTaskList if true then task list syntax is available
+   * @param hasWritePermission
+   * @param pages the list of existing Wiki pages
    */
   def toHtml(markdown: String,
              repository: RepositoryService.RepositoryInfo,
              enableWikiLink: Boolean,
              enableRefsLink: Boolean,
+             enableAnchor: Boolean,
              enableTaskList: Boolean = false,
              hasWritePermission: Boolean = false,
              pages: List[String] = Nil)(implicit context: Context): String = {
@@ -41,7 +50,7 @@ object Markdown {
       Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES | Extensions.HARDWRAPS | Extensions.SUPPRESS_ALL_HTML
     ).parseMarkdown(source.toCharArray)
 
-    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission, pages).toHtml(rootNode)
+    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages).toHtml(rootNode)
   }
 }
 
@@ -101,6 +110,7 @@ class GitBucketHtmlSerializer(
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
     enableTaskList: Boolean,
+    enableAnchor: Boolean,
     hasWritePermission: Boolean,
     pages: List[String]
   )(implicit val context: Context) extends ToHtmlSerializer(
@@ -152,11 +162,15 @@ class GitBucketHtmlSerializer(
     val tag = s"h${node.getLevel}"
     val headerTextString = printChildrenToString(node)
     val anchorName = GitBucketHtmlSerializer.generateAnchorName(headerTextString)
-    printer.print(s"""<$tag class="markdown-head">""")
-    printer.print(s"""<a class="markdown-anchor-link" href="#$anchorName"></a>""")
-    printer.print(s"""<a class="markdown-anchor" name="$anchorName"></a>""")
+    if(enableAnchor){
+      printer.print(s"""<$tag class="markdown-head">""")
+      printer.print(s"""<a class="markdown-anchor-link" href="#$anchorName"></a>""")
+      printer.print(s"""<a class="markdown-anchor" name="$anchorName"></a>""")
+    }
     visitChildren(node)
-    printer.print(s"</$tag>")
+    if(enableAnchor){
+      printer.print(s"</$tag>")
+    }
   }
 
   override def visit(node: HeaderNode): Unit = {

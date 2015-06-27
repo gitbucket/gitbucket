@@ -91,16 +91,16 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                enableTaskList: Boolean = false,
                hasWritePermission: Boolean = false,
                pages: List[String] = Nil)(implicit context: Context): Html =
-    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission, pages))
+    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, enableTaskList, true, hasWritePermission, pages))
 
   def renderMarkup(filePath: List[String], fileContent: String, branch: String,
                    repository: RepositoryService.RepositoryInfo,
-                   enableWikiLink: Boolean, enableRefsLink: Boolean)(implicit context: Context): Html = {
+                   enableWikiLink: Boolean, enableRefsLink: Boolean, enableAnchor: Boolean)(implicit context: Context): Html = {
 
     val fileName  = filePath.reverse.head.toLowerCase
     val extension = FileUtil.getExtension(fileName)
     val renderer  = PluginRegistry().getRenderer(extension)
-    renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, context))
+    renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, enableAnchor, context))
   }
 
   def isRenderable(fileName: String): Boolean = {
