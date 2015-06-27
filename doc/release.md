@@ -15,7 +15,7 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
-    new Version(3, 3), # <---- add this line!!
+    new Version(3, 3), // <---- add this line!!
     new Version(3, 2),
 ```
 
