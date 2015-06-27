@@ -5,6 +5,7 @@
   enableTaskList: Boolean,
   hasWritePermission: Boolean,
   style: String = "",
+  styleClass: String = "",
   placeholder: String = "Leave a comment",
   elastic: Boolean = false,
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
@@ -20,7 +21,9 @@
     <div class="tab-pane active" id="tab@uid">
       <span id="error-content" class="error"></span>
       @textarea = {
-        <textarea id="content@uid" name="content"@if(style.nonEmpty){ style="@style"} placeholder="@placeholder">@content</textarea>
+        <textarea id="content@uid" name="content" placeholder="@placeholder"
+          @if(style.nonEmpty){ style="@style"}
+          @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
       }
       @if(enableWikiLink){
         @textarea

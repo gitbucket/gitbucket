@@ -22,7 +22,17 @@
     <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
       <span id="error-pageName" class="error"></span>
       <input type="text" name="pageName" value="@pageName" style="width: 850px; font-weight: bold;" placeholder="Input a page name."/>
-      @helper.html.preview(repository, page.map(_.content).getOrElse(""), true, false, false, false, "width: 850px; height: 400px;", "")
+      @helper.html.preview(
+        repository         = repository,
+        content            = page.map(_.content).getOrElse(""),
+        enableWikiLink     = true,
+        enableRefsLink     = false,
+        enableTaskList     = false,
+        hasWritePermission = false,
+        style              = "width: 850px; height: 400px;",
+        styleClass         = "monospace",
+        placeholder        = ""
+      )
       <input type="text" name="message" value="" style="width: 850px;" placeholder="Write a small message here explaining this change. (Optional)"/>
       <input type="hidden" name="currentPageName" value="@pageName"/>
       <input type="hidden" name="id" value="@page.map(_.id)"/>

@@ -59,7 +59,15 @@
               <div style="width: 600px; border-right: 1px solid #d4d4d4;">
                 <span class="error" id="error-title"></span>
                 <input type="text" name="title" style="width: 580px" placeholder="Title"/>
-                @helper.html.preview(repository, "", false, true, true, hasWritePermission, "width: 580px; height: 200px;")
+                @helper.html.preview(
+                  repository         = repository,
+                  content            = "",
+                  enableWikiLink     = false,
+                  enableRefsLink     = true,
+                  enableTaskList     = true,
+                  hasWritePermission = hasWritePermission,
+                  style              = "width: 580px; height: 200px;"
+                )
                 <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
                 <input type="hidden" name="targetBranch" value="@originId"/>
                 <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>

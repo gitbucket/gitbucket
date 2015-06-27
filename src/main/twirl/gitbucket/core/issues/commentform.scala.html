@@ -10,7 +10,16 @@
     <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
       <div class="box issue-comment-box">
       <div class="box-content">
-        @helper.html.preview(repository, "", false, true, true, hasWritePermission, "width: 635px; height: 100px; max-height: 150px;", elastic = true)
+        @helper.html.preview(
+          repository         = repository,
+          content            = "",
+          enableWikiLink     = false,
+          enableRefsLink     = true,
+          enableTaskList     = true,
+          hasWritePermission = hasWritePermission,
+          style              = "width: 635px; height: 100px; max-height: 150px;",
+          elastic            = true
+        )
       </div>
     </div>
     <div class="pull-right">
