@@ -87,7 +87,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
                 email.setSSLOnConnect(ssl)
               }
               smtp.fromAddress
-                .map (_ -> smtp.fromName.orNull)
+                .map (_ -> smtp.fromName.getOrElse(context.loginAccount.get.userName))
                 .orElse (Some("notifications@gitbucket.com" -> context.loginAccount.get.userName))
                 .foreach { case (address, name) =>
                   email.setFrom(address, name)
