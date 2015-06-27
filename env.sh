@@ -1,2 +1,2 @@
 #!/bin/sh
-export GITBUCKET_VERSION=3.3.0
+export GITBUCKET_VERSION=3.4.0

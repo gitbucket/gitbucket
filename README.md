@@ -81,6 +81,11 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.4 - 27 Jun 2015
+- Declarative style plug-in definition
+- New extension point to add markup render
+- go-import support
+
 ### 3.3 - 31 May 2015
 - Rich graphical diff for images
 - File finder is available in the repository viewer
