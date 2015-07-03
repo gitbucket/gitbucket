@@ -75,7 +75,7 @@
 <script>
 $(function(){
   $('.delete-branch').click(function(e){
-    var branchName = $(e.target).data('name');
+    var branchName = $(e.target).closest('a').data('name');
     return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
   });
   $('*[data-toggle=tooltip]').tooltip().css("white-space","nowrap");
