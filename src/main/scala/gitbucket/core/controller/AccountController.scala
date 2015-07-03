@@ -467,6 +467,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           parentUserName       = Some(repository.owner)
         )
 
+        // Add collaborators for group repository
+        val ownerAccount = getAccountByUserName(accountName).get
+        if(ownerAccount.isGroupAccount){
+          getGroupMembers(accountName).foreach { member =>
+            addCollaborator(accountName, repository.name, member.userName)
+          }
+        }
+
         // Insert default labels
         insertDefaultLabels(accountName, repository.name)
 
