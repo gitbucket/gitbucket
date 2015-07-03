@@ -91,7 +91,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val newRepositoryForm = mapping(
     "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier, existsAccount))),
-    "name"         -> trim(label("Repository name", text(required, maxlength(40), identifier, uniqueRepository))),
+    "name"         -> trim(label("Repository name", text(required, maxlength(40), repository, uniqueRepository))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
     "createReadme" -> trim(label("Create README"  , boolean()))

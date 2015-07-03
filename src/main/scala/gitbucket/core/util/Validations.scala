@@ -6,7 +6,7 @@ import org.scalatra.i18n.Messages
 trait Validations {
 
   /**
-   * Constraint for the identifier such as user name, repository name or page name.
+   * Constraint for the identifier such as user name or page name.
    */
   def identifier: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =
@@ -19,6 +19,23 @@ trait Validations {
       }
   }
 
+  /**
+   * Constraint for the repository identifier.
+   */
+  def repository: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+      if(!value.matches("[a-zA-Z0-9\\-\\+_.]+")){
+        Some(s"${name} contains invalid character.")
+      } else if(value.startsWith("_") || value.startsWith("-")){
+        Some(s"${name} starts with invalid character.")
+      } else {
+        None
+      }
+  }
+
+  /**
+   * Constraint for the color pattern.
+   */
   def color = pattern("#[0-9a-fA-F]{6}")
 
   /**
