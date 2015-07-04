@@ -34,4 +34,18 @@ class HelpersSpec extends Specification {
       helpers.repositoryDefaultCompareOrigin(repo) mustEqual "parent-user:some-branch"
     }
   }
+
+  "encodeCompareBranch" should {
+    "not uri encode /" in {
+      helpers.encodeCompareBranch("foo/bar#baz") mustEqual "foo/bar%23baz"
+    }
+
+    "not uri encode :" in {
+      helpers.encodeCompareBranch("foo:bar#baz") mustEqual "foo:bar%23baz"
+    }
+
+    "uri encode special characters" in {
+      helpers.encodeCompareBranch("!#$&'()+,;=?@[]") mustEqual "%21%23%24%26%27%28%29%2B%2C%3B%3D%3F%40%5B%5D"
+    }
+  }
 }
