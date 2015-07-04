@@ -403,7 +403,8 @@ div.signin-form {
   font-weight: bold;
 }
 
-.account-username {
+.account-username,
+.group-description {
   margin-top: 10px;
   font-size: 140%;
   color: #888888;
@@ -1780,5 +1781,4 @@ div.container.blame-container{
 /****************************************************************************/
 a[href]:after {
   display: none;
-}  
-
+}

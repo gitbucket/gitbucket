@@ -10,7 +10,11 @@
           <div class="block">
             <div class="account-image">@avatar(account.userName, 270)</div>
             <div class="account-fullname">@account.fullName</div>
-            <div class="account-username">@account.userName</div>
+            @if(account.isGroupAccount) {
+              <div class="group-description">@account.groupDescription</div>
+            } else {
+              <div class="account-username">@account.userName</div>
+            }
           </div>
           <div class="block">
             @if(account.url.isDefined){
