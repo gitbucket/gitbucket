@@ -1,7 +1,10 @@
 package gitbucket.core.servlet
 
+import java.io.File
+
 import gitbucket.core.api
 import gitbucket.core.model.Session
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
@@ -18,7 +21,6 @@ import org.eclipse.jgit.transport.resolver._
 import org.slf4j.LoggerFactory
 
 import javax.servlet.ServletConfig
-import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 
@@ -35,20 +37,8 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
   override def init(config: ServletConfig): Unit = {
     setReceivePackFactory(new GitBucketReceivePackFactory())
 
-    // TODO are there any other ways...?
-    super.init(new ServletConfig(){
-      def getInitParameter(name: String): String = name match {
-        case "base-path"  => Directory.RepositoryHome
-        case "export-all" => "true"
-        case name => config.getInitParameter(name)
-      }
-      def getInitParameterNames(): java.util.Enumeration[String] = {
-         config.getInitParameterNames
-      }
-
-      def getServletContext(): ServletContext = config.getServletContext
-      def getServletName(): String = config.getServletName
-    })
+    val root: File = new File(Directory.RepositoryHome)
+    setRepositoryResolver(new GitBucketRepositoryResolver(new FileResolver[HttpServletRequest](root, true)))
 
     super.init(config)
   }
@@ -67,32 +57,57 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
   }
 }
 
+class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest]) extends RepositoryResolver[HttpServletRequest] {
+
+  private val resolver = new FileResolver[HttpServletRequest](new File(Directory.GitBucketHome), true)
+
+  override def open(req: HttpServletRequest, name: String): Repository = {
+    // Check routing which are provided by plug-in
+    val routing: Option[(String, String)] = PluginRegistry().getRepositoryRoutings().find {
+      case (urlPath, localPath) => name.matches(urlPath)
+    }
+
+    // Rewrite repository path if routing is marched
+    routing.map { case (urlPath, localPath) =>
+      val path = urlPath.r.replaceFirstIn(name, localPath)
+      resolver.open(req, path)
+    }.getOrElse {
+      parent.open(req, name)
+    }
+  }
+
+}
+
 class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest] with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[GitBucketReceivePackFactory])
 
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
-    val pusher = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
 
-    logger.debug("requestURI: " + request.getRequestURI)
-    logger.debug("pusher:" + pusher)
+    if(PluginRegistry().getRepositoryRouting(request.getRequestURI).isEmpty){
+      val pusher = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
 
-    defining(request.paths){ paths =>
-      val owner      = paths(1)
-      val repository = paths(2).stripSuffix(".git")
+      logger.debug("requestURI: " + request.getRequestURI)
+      logger.debug("pusher:" + pusher)
 
-      logger.debug("repository:" + owner + "/" + repository)
+      defining(request.paths){ paths =>
+        val owner      = paths(1)
+        val repository = paths(2).stripSuffix(".git")
 
-      if(!repository.endsWith(".wiki")){
-        defining(request) { implicit r =>
-          val hook = new CommitLogHook(owner, repository, pusher, baseUrl)
-          receivePack.setPreReceiveHook(hook)
-          receivePack.setPostReceiveHook(hook)
+        logger.debug("repository:" + owner + "/" + repository)
+
+        if(!repository.endsWith(".wiki")){
+          defining(request) { implicit r =>
+            val hook = new CommitLogHook(owner, repository, pusher, baseUrl)
+            receivePack.setPreReceiveHook(hook)
+            receivePack.setPostReceiveHook(hook)
+          }
         }
       }
-      receivePack
     }
+
+    receivePack
   }
 }
 
