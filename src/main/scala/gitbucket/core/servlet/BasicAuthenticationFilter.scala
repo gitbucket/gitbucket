@@ -2,12 +2,12 @@ package gitbucket.core.servlet
 
 import javax.servlet._
 import javax.servlet.http._
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
+import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
-import gitbucket.core.util.{ControlUtil, Keys, Implicits}
+import gitbucket.core.util.{Keys, Implicits}
 import org.slf4j.LoggerFactory
 import Implicits._
-import ControlUtil._
 
 /**
  * Provides BASIC Authentication for [[GitRepositoryServlet]].
@@ -21,7 +21,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
   def destroy(): Unit = {}
   
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
-    implicit val request  = req.asInstanceOf[HttpServletRequest]
+    val request  = req.asInstanceOf[HttpServletRequest]
     val response = res.asInstanceOf[HttpServletResponse]
 
     val wrappedResponse = new HttpServletResponseWrapper(response){
@@ -32,71 +32,16 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     val settings = loadSystemSettings()
 
     try {
-      PluginRegistry().getRepositoryRouting(request.getRequestURI).map { case (urlPath, localPath) =>
+      PluginRegistry().getRepositoryRouting(request.getRequestURI).map { case GitRepositoryRouting(_, _, f) =>
         // served by plug-ins
-        chain.doFilter(req, wrappedResponse)
+        if(f.filter(request, wrappedResponse, settings, isUpdating)){
+          pluginRepository(request, wrappedResponse, chain, settings, isUpdating)
+        } else {
+          requireAuth(response)
+        }
       }.getOrElse {
         // default repositories
-        defining(request.paths){
-          case Array(_, repositoryOwner, repositoryName, _*) =>
-            getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", ""), "") match {
-              case Some(repository) => {
-                if(!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess){
-                  chain.doFilter(req, wrappedResponse)
-                } else {
-                  // authentication is success then true, otherwise false
-                  val passed = for {
-                    auth <- Option(request.getHeader("Authorization"))
-                    Array(username, password) = decodeAuthHeader(auth).split(":", 2)
-                    account <- authenticate(settings, username, password)
-                  } yield if(isUpdating || repository.repository.isPrivate){
-                      if(hasWritePermission(repository.owner, repository.name, Some(account))){
-                        request.setAttribute(Keys.Request.UserName, account.userName)
-                        true
-                      } else false
-                    } else true
-
-                  if(passed.getOrElse(false)){
-                    chain.doFilter(req, wrappedResponse)
-                  } else {
-                    requireAuth(response)
-                  }
-
-//                request.getHeader("Authorization") match {
-//                  case null => requireAuth(response)
-//                  case auth => decodeAuthHeader(auth).split(":", 2) match {
-//                    case Array(username, password) => {
-//                      authenticate(settings, username, password) match {
-//                        case Some(account) => {
-//                          if (isUpdating || repository.repository.isPrivate) {
-//                            if(hasWritePermission(repository.owner, repository.name, Some(account))){
-//                              request.setAttribute(Keys.Request.UserName, account.userName)
-//                              chain.doFilter(req, wrappedResponse)
-//                            } else {
-//                              requireAuth(response)
-//                            }
-//                          } else {
-//                            chain.doFilter(req, wrappedResponse)
-//                          }
-//                        }
-//                        case _ => requireAuth(response)
-//                      }
-//                    }
-//                    case _ => requireAuth(response)
-//                  }
-//                }
-                }
-              }
-              case None => {
-                logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
-                response.sendError(HttpServletResponse.SC_NOT_FOUND)
-              }
-            }
-          case _ => {
-            logger.debug(s"Not enough path arguments: ${request.paths}")
-            response.sendError(HttpServletResponse.SC_NOT_FOUND)
-          }
-        }
+        defaultRepository(request, wrappedResponse, chain, settings, isUpdating)
       }
     } catch {
       case ex: Exception => {
@@ -106,8 +51,70 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     }
   }
 
+  private def pluginRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
+                               settings: SystemSettings, isUpdating: Boolean): Unit = {
+    implicit val r = request
 
+    if(!isUpdating && settings.allowAnonymousAccess){
+      chain.doFilter(request, response)
+    } else {
+      val passed = for {
+        auth <- Option(request.getHeader("Authorization"))
+        Array(username, password) = decodeAuthHeader(auth).split(":", 2)
+        account <- authenticate(settings, username, password)
+      } yield {
+        request.setAttribute(Keys.Request.UserName, account.userName)
+        true
+      }
 
+      if(passed.getOrElse(false)){
+        chain.doFilter(request, response)
+      } else {
+        requireAuth(response)
+      }
+    }
+  }
+
+  private def defaultRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
+                                settings: SystemSettings, isUpdating: Boolean): Unit = {
+    implicit val r = request
+
+    request.paths match {
+      case Array(_, repositoryOwner, repositoryName, _*) =>
+        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", ""), "") match {
+          case Some(repository) => {
+            if(!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess){
+              chain.doFilter(request, response)
+            } else {
+              val passed = for {
+                auth <- Option(request.getHeader("Authorization"))
+                Array(username, password) = decodeAuthHeader(auth).split(":", 2)
+                account <- authenticate(settings, username, password)
+              } yield if(isUpdating || repository.repository.isPrivate){
+                  if(hasWritePermission(repository.owner, repository.name, Some(account))){
+                    request.setAttribute(Keys.Request.UserName, account.userName)
+                    true
+                  } else false
+                } else true
+
+              if(passed.getOrElse(false)){
+                chain.doFilter(request, response)
+              } else {
+                requireAuth(response)
+              }
+            }
+          }
+          case None => {
+            logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
+            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+          }
+        }
+      case _ => {
+        logger.debug(s"Not enough path arguments: ${request.paths}")
+        response.sendError(HttpServletResponse.SC_NOT_FOUND)
+      }
+    }
+  }
 
   private def requireAuth(response: HttpServletResponse): Unit = {
     response.setHeader("WWW-Authenticate", "BASIC realm=\"GitBucket\"")

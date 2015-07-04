@@ -60,12 +60,12 @@ trait Plugin {
   /**
    * Override to add git repository routings.
    */
-  val repositoryRoutings: Seq[(String, String)] = Nil
+  val repositoryRoutings: Seq[GitRepositoryRouting] = Nil
 
   /**
    * Override to add git repository routings.
    */
-  def repositoryRoutings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, String)] = Nil
+  def repositoryRoutings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[GitRepositoryRouting] = Nil
 
   /**
    * This method is invoked in initialization of plugin system.
@@ -84,8 +84,8 @@ trait Plugin {
     (renderers ++ renderers(registry, context, settings)).foreach { case (extension, renderer) =>
       registry.addRenderer(extension, renderer)
     }
-    (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { case (urlPath, localPath) =>
-      registry.addRepositoryRouting(urlPath, localPath)
+    (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { routing =>
+      registry.addRepositoryRouting(routing)
     }
   }
 

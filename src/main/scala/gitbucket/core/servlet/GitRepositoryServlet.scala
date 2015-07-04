@@ -4,7 +4,7 @@ import java.io.File
 
 import gitbucket.core.api
 import gitbucket.core.model.Session
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
@@ -63,13 +63,13 @@ class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest]) exte
 
   override def open(req: HttpServletRequest, name: String): Repository = {
     // Check routing which are provided by plug-in
-    val routing: Option[(String, String)] = PluginRegistry().getRepositoryRoutings().find {
-      case (urlPath, localPath) => name.matches(urlPath)
+    val routing = PluginRegistry().getRepositoryRoutings().find {
+      case GitRepositoryRouting(urlPattern, _, _) => name.matches(urlPattern)
     }
 
     // Rewrite repository path if routing is marched
-    routing.map { case (urlPath, localPath) =>
-      val path = urlPath.r.replaceFirstIn(name, localPath)
+    routing.map { case GitRepositoryRouting(urlPattern, localPath, _) =>
+      val path = urlPattern.r.replaceFirstIn(name, localPath)
       resolver.open(req, path)
     }.getOrElse {
       parent.open(req, name)

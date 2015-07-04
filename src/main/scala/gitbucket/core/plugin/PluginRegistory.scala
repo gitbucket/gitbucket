@@ -28,7 +28,7 @@ class PluginRegistry {
   renderers ++= Seq(
     "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
   )
-  private val repositoryRoutings = new ListBuffer[(String, String)]
+  private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -62,7 +62,7 @@ class PluginRegistry {
     addController(path, controller)
   }
 
-  def getControllers(): List[(ControllerBase, String)] = controllers.toList
+  def getControllers(): Seq[(ControllerBase, String)] = controllers.toSeq
 
   def addJavaScript(path: String, script: String): Unit = {
     javaScripts += ((path, script))
@@ -82,20 +82,19 @@ class PluginRegistry {
 
   def renderableExtensions: Seq[String] = renderers.keys.toSeq
 
-  def addRepositoryRouting(urlPath: String, localPath: String): Unit = {
-    repositoryRoutings += ((urlPath, localPath))
+  def addRepositoryRouting(routing: GitRepositoryRouting): Unit = {
+    repositoryRoutings += routing
   }
 
-  def getRepositoryRoutings(): Seq[(String, String)] = {
+  def getRepositoryRoutings(): Seq[GitRepositoryRouting] = {
     repositoryRoutings.toSeq
   }
 
-  def getRepositoryRouting(requestURI: String): Option[(String, String)] = {
+  def getRepositoryRouting(requestURI: String): Option[GitRepositoryRouting] = {
     val path = requestURI.replaceFirst("^/git/", "")
 
     PluginRegistry().getRepositoryRoutings().find {
-      case (urlPath, localPath) => {
-        println(urlPath)
+      case GitRepositoryRouting(urlPath, _, _) => {
         path.matches(urlPath + "(/.*)?")
       }
     }
