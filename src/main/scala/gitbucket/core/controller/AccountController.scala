@@ -68,11 +68,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "note"     -> trim(label("Token", text(required, maxlength(100))))
   )(PersonalTokenForm.apply)
 
-  case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String)
-  case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
+  case class NewGroupForm(groupName: String, groupDescription: Option[String], url: Option[String], fileId: Option[String], members: String)
+  case class EditGroupForm(groupName: String, groupDescription: Option[String], url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
 
   val newGroupForm = mapping(
     "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "groupDescription" -> trim(label("Group description", optional(text()))),
     "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
     "fileId"    -> trim(label("File ID"    ,optional(text()))),
     "members"   -> trim(label("Members"    ,text(required, members)))
@@ -80,6 +81,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val editGroupForm = mapping(
     "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
+    "groupDescription" -> trim(label("Group description", optional(text()))),
     "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
     "fileId"     -> trim(label("File ID"     ,optional(text()))),
     "members"    -> trim(label("Members"     ,text(required, members))),
@@ -296,7 +298,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
-    createGroup(form.groupName, form.url, None)
+    createGroup(form.groupName, form.url, form.groupDescription)
     updateGroupMembers(form.groupName, form.members.split(",").map {
       _.split(":") match {
         case Array(userName, isManager) => (userName, isManager.toBoolean)
@@ -334,7 +336,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }.toList){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, form.url, None, false)
+        updateGroup(groupName, form.url, form.groupDescription, false)
 
         // Update GROUP_MEMBER
         updateGroupMembers(form.groupName, members)

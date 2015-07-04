@@ -27,6 +27,11 @@
             <input type="text" name="url" id="url" value="@account.map(_.url)"/>
           </fieldset>
           <fieldset>
+            <label class="strong">Description (Optional)</label>
+            <input type="text" name="groupDescription" id="groupDescription"
+              value="@account.map(_.groupDescription)" />
+          </fieldset>
+          <fieldset>
             <label for="avatar" class="strong">Image (Optional)</label>
             @helper.html.uploadavatar(account)
           </fieldset>
