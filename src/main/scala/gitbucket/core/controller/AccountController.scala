@@ -296,7 +296,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
-    createGroup(form.groupName, form.url)
+    createGroup(form.groupName, form.url, None)
     updateGroupMembers(form.groupName, form.members.split(",").map {
       _.split(":") match {
         case Array(userName, isManager) => (userName, isManager.toBoolean)

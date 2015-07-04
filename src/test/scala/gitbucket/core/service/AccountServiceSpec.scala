@@ -59,7 +59,7 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
     "group" in { withTestDB { implicit session =>
       val group1 = "group1"
       val user1 = "root"
-      AccountService.createGroup(group1, None)
+      AccountService.createGroup(group1, None, None)
 
       AccountService.getGroupMembers(group1) must_== Nil
       AccountService.getGroupsByUserName(user1) must_== Nil
@@ -74,6 +74,16 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
       AccountService.getGroupMembers(group1) must_== Nil
       AccountService.getGroupsByUserName(user1) must_== Nil
     }}
+
+    "createGroup" should { withTestDB { implicit session =>
+      "save description" in {
+        AccountService.createGroup("some-group", None, Some("some clever description"))
+        val maybeGroup = AccountService.getAccountByUserName("some-group")
+
+        maybeGroup must beSome.like {
+          case account => account.groupDescription must beSome("some clever description")
+        }
+      }
+    }}
   }
 }
-
