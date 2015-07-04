@@ -89,7 +89,8 @@ class AvatarImageProviderSpec extends Specification with Mockito {
       lastLoginDate  = None,
       image          = image,
       isGroupAccount = false,
-      isRemoved      = false)
+      isRemoved      = false,
+      groupDescription = None)
 
   private def createSystemSettings(useGravatar: Boolean) =
     SystemSettings(

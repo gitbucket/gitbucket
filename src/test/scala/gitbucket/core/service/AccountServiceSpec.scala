@@ -11,7 +11,7 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
 
     "getAllUsers" in { withTestDB { implicit session =>
       AccountService.getAllUsers() must be like{
-        case List(Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false)) => ok
+        case List(Account("root", "root", RootMailAddress, _, true, _, _, _, None, None, false, false, None)) => ok
       }
     }}
 
