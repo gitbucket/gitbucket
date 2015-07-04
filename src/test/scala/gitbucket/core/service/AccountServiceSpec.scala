@@ -85,5 +85,18 @@ class AccountServiceSpec extends Specification with ServiceSpecBase {
         }
       }
     }}
+
+    "updateGroup" should { withTestDB { implicit session =>
+      "save description" in {
+        AccountService.createGroup("a-group", None, None)
+
+        AccountService.updateGroup("a-group", None, Some("new description"), false)
+
+        val group = AccountService.getAccountByUserName("a-group")
+        group must beSome.like {
+          case account => account.groupDescription must beSome("new description")
+        }
+      }
+    }}
   }
 }

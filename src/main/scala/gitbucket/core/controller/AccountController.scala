@@ -334,7 +334,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }.toList){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, form.url, false)
+        updateGroup(groupName, form.url, None, false)
 
         // Update GROUP_MEMBER
         updateGroupMembers(form.groupName, members)

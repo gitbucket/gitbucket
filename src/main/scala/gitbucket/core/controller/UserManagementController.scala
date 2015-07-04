@@ -152,7 +152,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
       }
     }.toList){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, form.url, form.isRemoved)
+        updateGroup(groupName, form.url, None, form.isRemoved)
 
         if(form.isRemoved){
           // Remove from GROUP_MEMBER
