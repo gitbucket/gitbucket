@@ -104,7 +104,7 @@ class DefaultGitUploadPack(owner: String, repoName: String, baseUrl: String) ext
 }
 
 class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) extends DefaultGitCommand(owner, repoName)
-    with SystemSettingsService with RepositoryService with AccountService {
+    with RepositoryService with AccountService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
     getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""), baseUrl).foreach { repositoryInfo =>
@@ -124,28 +124,32 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) ex
   }
 }
 
-class PluginGitUploadPack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand {
+class PluginGitUploadPack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand
+    with SystemSettingsService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
-    // TODO filter??
-    val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
-    using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
-      val repository = git.getRepository
-      val upload = new UploadPack(repository)
-      upload.upload(in, out, err)
+    if(routing.filter.filter("/" + repoName, Some(user), loadSystemSettings(), false)){
+      val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
+      using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
+        val repository = git.getRepository
+        val upload = new UploadPack(repository)
+        upload.upload(in, out, err)
+      }
     }
   }
 }
 
-class PluginGitReceivePack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand {
+class PluginGitReceivePack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand
+    with SystemSettingsService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
-    // TODO filter??
-    val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
-    using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
-      val repository = git.getRepository
-      val receive = new ReceivePack(repository)
-      receive.receive(in, out, err)
+    if(routing.filter.filter("/" + repoName, Some(user), loadSystemSettings(), true)){
+      val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
+      using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
+        val repository = git.getRepository
+        val receive = new ReceivePack(repository)
+        receive.receive(in, out, err)
+      }
     }
   }
 }
