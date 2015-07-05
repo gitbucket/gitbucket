@@ -62,13 +62,8 @@ class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest]) exte
   private val resolver = new FileResolver[HttpServletRequest](new File(Directory.GitBucketHome), true)
 
   override def open(req: HttpServletRequest, name: String): Repository = {
-//    // Check routing which are provided by plug-in
-//    val routing = PluginRegistry().getRepositoryRoutings().find {
-//      case GitRepositoryRouting(urlPattern, _, _) => name.matches(urlPattern)
-//    }
-
     // Rewrite repository path if routing is marched
-    PluginRegistry().getRepositoryRouting(name).map { case GitRepositoryRouting(urlPattern, localPath, _) =>
+    PluginRegistry().getRepositoryRouting("/" + name).map { case GitRepositoryRouting(urlPattern, localPath, _) =>
       val path = urlPattern.r.replaceFirstIn(name, localPath)
       resolver.open(req, path)
     }.getOrElse {

@@ -167,7 +167,7 @@ class GitCommandFactory(baseUrl: String) extends CommandFactory {
     }
   }
 
-  private def pluginRepository(repoName: String): Boolean = PluginRegistry().getRepositoryRouting(repoName).isDefined
-  private def routing(repoName: String): GitRepositoryRouting = PluginRegistry().getRepositoryRouting(repoName).get
+  private def pluginRepository(repoName: String): Boolean = PluginRegistry().getRepositoryRouting("/" + repoName).isDefined
+  private def routing(repoName: String): GitRepositoryRouting = PluginRegistry().getRepositoryRouting("/" + repoName).get
 
 }
