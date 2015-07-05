@@ -62,13 +62,13 @@ class GitBucketRepositoryResolver(parent: FileResolver[HttpServletRequest]) exte
   private val resolver = new FileResolver[HttpServletRequest](new File(Directory.GitBucketHome), true)
 
   override def open(req: HttpServletRequest, name: String): Repository = {
-    // Check routing which are provided by plug-in
-    val routing = PluginRegistry().getRepositoryRoutings().find {
-      case GitRepositoryRouting(urlPattern, _, _) => name.matches(urlPattern)
-    }
+//    // Check routing which are provided by plug-in
+//    val routing = PluginRegistry().getRepositoryRoutings().find {
+//      case GitRepositoryRouting(urlPattern, _, _) => name.matches(urlPattern)
+//    }
 
     // Rewrite repository path if routing is marched
-    routing.map { case GitRepositoryRouting(urlPattern, localPath, _) =>
+    PluginRegistry().getRepositoryRouting(name).map { case GitRepositoryRouting(urlPattern, localPath, _) =>
       val path = urlPattern.r.replaceFirstIn(name, localPath)
       resolver.open(req, path)
     }.getOrElse {
@@ -85,7 +85,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
   override def create(request: HttpServletRequest, db: Repository): ReceivePack = {
     val receivePack = new ReceivePack(db)
 
-    if(PluginRegistry().getRepositoryRouting(request.getRequestURI).isEmpty){
+    if(PluginRegistry().getRepositoryRouting(request.gitRepositoryPath).isEmpty){
       val pusher = request.getAttribute(Keys.Request.UserName).asInstanceOf[String]
 
       logger.debug("requestURI: " + request.getRequestURI)

@@ -1,12 +1,13 @@
 package gitbucket.core.ssh
 
 import gitbucket.core.model.Session
+import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
 import gitbucket.core.servlet.{Database, CommitLogHook}
 import gitbucket.core.util.{Directory, ControlUtil}
 import org.apache.sshd.server.{CommandFactory, Environment, ExitCallback, Command}
 import org.slf4j.LoggerFactory
-import java.io.{InputStream, OutputStream}
+import java.io.{File, InputStream, OutputStream}
 import ControlUtil._
 import org.eclipse.jgit.api.Git
 import Directory._
@@ -15,11 +16,11 @@ import org.apache.sshd.server.command.UnknownCommand
 import org.eclipse.jgit.errors.RepositoryNotFoundException
 
 object GitCommand {
-  val CommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-_.]+).git'\Z""".r
+  val DefaultCommandRegex = """\Agit-(upload|receive)-pack '/([a-zA-Z0-9\-_.]+)/([a-zA-Z0-9\-_.]+).git'\Z""".r
+  val SimpleCommandRegex  = """\Agit-(upload|receive)-pack '/(.+\.git)'\Z""".r
 }
 
-abstract class GitCommand(val owner: String, val repoName: String) extends Command {
-  self: RepositoryService with AccountService =>
+abstract class GitCommand() extends Command {
 
   private val logger = LoggerFactory.getLogger(classOf[GitCommand])
   protected var err: OutputStream = null
@@ -71,6 +72,11 @@ abstract class GitCommand(val owner: String, val repoName: String) extends Comma
     this.in = in
   }
 
+}
+
+abstract class DefaultGitCommand(val owner: String, val repoName: String) extends GitCommand {
+  self: RepositoryService with AccountService =>
+
   protected def isWritableUser(username: String, repositoryInfo: RepositoryService.RepositoryInfo)
                               (implicit session: Session): Boolean =
     getAccountByUserName(username) match {
@@ -80,7 +86,8 @@ abstract class GitCommand(val owner: String, val repoName: String) extends Comma
 
 }
 
-class GitUploadPack(owner: String, repoName: String, baseUrl: String) extends GitCommand(owner, repoName)
+
+class DefaultGitUploadPack(owner: String, repoName: String, baseUrl: String) extends DefaultGitCommand(owner, repoName)
     with RepositoryService with AccountService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -94,10 +101,9 @@ class GitUploadPack(owner: String, repoName: String, baseUrl: String) extends Gi
       }
     }
   }
-
 }
 
-class GitReceivePack(owner: String, repoName: String, baseUrl: String) extends GitCommand(owner, repoName)
+class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) extends DefaultGitCommand(owner, repoName)
     with SystemSettingsService with RepositoryService with AccountService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -116,18 +122,52 @@ class GitReceivePack(owner: String, repoName: String, baseUrl: String) extends G
       }
     }
   }
-
 }
+
+class PluginGitUploadPack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand {
+
+  override protected def runTask(user: String)(implicit session: Session): Unit = {
+    // TODO filter??
+    val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
+    using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
+      val repository = git.getRepository
+      val upload = new UploadPack(repository)
+      upload.upload(in, out, err)
+    }
+  }
+}
+
+class PluginGitReceivePack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand {
+
+  override protected def runTask(user: String)(implicit session: Session): Unit = {
+    // TODO filter??
+    val path = routing.urlPattern.r.replaceFirstIn(repoName, routing.localPath)
+    using(Git.open(new File(Directory.GitBucketHome, path))){ git =>
+      val repository = git.getRepository
+      val receive = new ReceivePack(repository)
+      receive.receive(in, out, err)
+    }
+  }
+}
+
 
 class GitCommandFactory(baseUrl: String) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
 
   override def createCommand(command: String): Command = {
+    import GitCommand._
     logger.debug(s"command: $command")
+
     command match {
-      case GitCommand.CommandRegex("upload", owner, repoName) => new GitUploadPack(owner, repoName, baseUrl)
-      case GitCommand.CommandRegex("receive", owner, repoName) => new GitReceivePack(owner, repoName, baseUrl)
+      case SimpleCommandRegex ("upload" , repoName) if(pluginRepository(repoName)) => new PluginGitUploadPack (repoName, baseUrl, routing(repoName))
+      case SimpleCommandRegex ("receive", repoName) if(pluginRepository(repoName)) => new PluginGitReceivePack(repoName, baseUrl, routing(repoName))
+      case DefaultCommandRegex("upload" , owner, repoName) => new DefaultGitUploadPack (owner, repoName, baseUrl)
+      case DefaultCommandRegex("receive", owner, repoName) => new DefaultGitReceivePack(owner, repoName, baseUrl)
       case _ => new UnknownCommand(command)
     }
   }
+
+  private def pluginRepository(repoName: String): Boolean = PluginRegistry().getRepositoryRouting(repoName).isDefined
+  private def routing(repoName: String): GitRepositoryRouting = PluginRegistry().getRepositoryRouting(repoName).get
+
 }

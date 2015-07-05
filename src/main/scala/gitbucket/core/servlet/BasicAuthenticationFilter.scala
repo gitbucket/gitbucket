@@ -2,7 +2,7 @@ package gitbucket.core.servlet
 
 import javax.servlet._
 import javax.servlet.http._
-import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
+import gitbucket.core.plugin.{GitRepositoryFilter, GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
 import gitbucket.core.util.{Keys, Implicits}
@@ -32,13 +32,10 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     val settings = loadSystemSettings()
 
     try {
-      PluginRegistry().getRepositoryRouting(request.getRequestURI).map { case GitRepositoryRouting(_, _, f) =>
+      PluginRegistry().getRepositoryRouting(request.gitRepositoryPath).map { case GitRepositoryRouting(_, _, filter) =>
         // served by plug-ins
-        if(f.filter(request, wrappedResponse, settings, isUpdating)){
-          pluginRepository(request, wrappedResponse, chain, settings, isUpdating)
-        } else {
-          requireAuth(response)
-        }
+        pluginRepository(request, wrappedResponse, chain, settings, isUpdating, filter)
+
       }.getOrElse {
         // default repositories
         defaultRepository(request, wrappedResponse, chain, settings, isUpdating)
@@ -52,26 +49,22 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
   }
 
   private def pluginRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
-                               settings: SystemSettings, isUpdating: Boolean): Unit = {
+                               settings: SystemSettings, isUpdating: Boolean, filter: GitRepositoryFilter): Unit = {
     implicit val r = request
 
-    if(!isUpdating && settings.allowAnonymousAccess){
+    val account = for {
+      auth <- Option(request.getHeader("Authorization"))
+      Array(username, password) = decodeAuthHeader(auth).split(":", 2)
+      account <- authenticate(settings, username, password)
+    } yield {
+      request.setAttribute(Keys.Request.UserName, account.userName)
+      account
+    }
+
+    if(filter.filter(request.gitRepositoryPath, account.map(_.userName), settings, isUpdating)){
       chain.doFilter(request, response)
     } else {
-      val passed = for {
-        auth <- Option(request.getHeader("Authorization"))
-        Array(username, password) = decodeAuthHeader(auth).split(":", 2)
-        account <- authenticate(settings, username, password)
-      } yield {
-        request.setAttribute(Keys.Request.UserName, account.userName)
-        true
-      }
-
-      if(passed.getOrElse(false)){
-        chain.doFilter(request, response)
-      } else {
-        requireAuth(response)
-      }
+      requireAuth(response)
     }
   }
 

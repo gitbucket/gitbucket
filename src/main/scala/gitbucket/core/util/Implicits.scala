@@ -72,6 +72,8 @@ object Implicits {
 
     def hasAttribute(name: String): Boolean = request.getAttribute(name) != null
 
+    def gitRepositoryPath: String = request.getRequestURI.replaceFirst("^/git/", "/")
+
   }
 
   implicit class RichSession(session: HttpSession){

@@ -90,12 +90,10 @@ class PluginRegistry {
     repositoryRoutings.toSeq
   }
 
-  def getRepositoryRouting(requestURI: String): Option[GitRepositoryRouting] = {
-    val path = requestURI.replaceFirst("^/git/", "")
-
+  def getRepositoryRouting(repositoryPath: String): Option[GitRepositoryRouting] = {
     PluginRegistry().getRepositoryRoutings().find {
       case GitRepositoryRouting(urlPath, _, _) => {
-        path.matches(urlPath + "(/.*)?")
+        repositoryPath.matches("/" + urlPath + "(/.*)?")
       }
     }
   }
