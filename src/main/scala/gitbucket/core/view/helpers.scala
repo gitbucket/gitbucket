@@ -156,6 +156,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     )
 
   /**
+   * Remove html tags from the given Html instance.
+   */
+  def removeHtml(html: Html): Html = Html(html.body.replaceAll("<.+?>", ""))
+
+  /**
    * URL encode except '/'.
    */
   def encodeRefName(value: String): String = StringUtil.urlEncode(value).replace("%2F", "/")
