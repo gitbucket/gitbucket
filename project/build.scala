@@ -65,7 +65,7 @@ object MyBuild extends Build {
       "com.mchange" % "c3p0" % "0.9.5",
       "com.typesafe" % "config" % "1.2.1",
       "com.typesafe.akka" %% "akka-actor" % "2.3.10",
-      "com.enragedginger" %% "akka-quartz-scheduler" % "1.3.0-akka-2.3.x"
+      "com.enragedginger" %% "akka-quartz-scheduler" % "1.3.0-akka-2.3.x"  exclude("c3p0","c3p0")
     ),
     play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._",
     EclipseKeys.withSource := true,
