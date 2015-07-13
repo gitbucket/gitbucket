@@ -47,10 +47,14 @@ object Markdown {
     } else s
 
     val rootNode = new PegDownProcessor(
-      Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES | Extensions.HARDWRAPS | Extensions.SUPPRESS_ALL_HTML
+      Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS |
+        Extensions.TABLES | Extensions.HARDWRAPS | Extensions.SUPPRESS_ALL_HTML | Extensions.STRIKETHROUGH
     ).parseMarkdown(source.toCharArray)
 
-    new GitBucketHtmlSerializer(markdown, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages).toHtml(rootNode)
+    new GitBucketHtmlSerializer(
+      markdown, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList,
+      hasWritePermission, pages
+    ).toHtml(rootNode)
   }
 }
 
@@ -118,9 +122,9 @@ class GitBucketHtmlSerializer(
     Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
   ) with LinkConverter with RequestCache {
 
-  override protected def printImageTag(imageNode: SuperNode, url: String): Unit = {
-    printer.print("<a target=\"_blank\" href=\"").print(fixUrl(url, true)).print("\">")
-           .print("<img src=\"").print(fixUrl(url, true)).print("\"  alt=\"").printEncoded(printChildrenToString(imageNode)).print("\"/></a>")
+  override protected def printImageTag(rendering: LinkRenderer.Rendering): Unit = {
+    printer.print("<a target=\"_blank\" href=\"").print(fixUrl(rendering.href, true)).print("\">")
+      .print("<img src=\"").print(fixUrl(rendering.href, true)).print("\"  alt=\"").printEncoded(rendering.text).print("\"/></a>")
   }
 
   override protected def printLink(rendering: LinkRenderer.Rendering): Unit = {
