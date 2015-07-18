@@ -11,13 +11,13 @@ class GitCommandFactorySpec extends Specification with Mockito {
 
   "createCommand" should {
     "returns GitReceivePack when command is git-receive-pack" in {
-      factory.createCommand("git-receive-pack '/owner/repo.git'").isInstanceOf[GitReceivePack] must beTrue
-      factory.createCommand("git-receive-pack '/owner/repo.wiki.git'").isInstanceOf[GitReceivePack] must beTrue
+      factory.createCommand("git-receive-pack '/owner/repo.git'").isInstanceOf[DefaultGitReceivePack] must beTrue
+      factory.createCommand("git-receive-pack '/owner/repo.wiki.git'").isInstanceOf[DefaultGitReceivePack] must beTrue
 
     }
     "returns GitUploadPack when command is git-upload-pack" in {
-      factory.createCommand("git-upload-pack '/owner/repo.git'").isInstanceOf[GitUploadPack] must beTrue
-      factory.createCommand("git-upload-pack '/owner/repo.wiki.git'").isInstanceOf[GitUploadPack] must beTrue
+      factory.createCommand("git-upload-pack '/owner/repo.git'").isInstanceOf[DefaultGitUploadPack] must beTrue
+      factory.createCommand("git-upload-pack '/owner/repo.wiki.git'").isInstanceOf[DefaultGitUploadPack] must beTrue
 
     }
     "returns UnknownCommand when command is not git-(upload|receive)-pack" in {
