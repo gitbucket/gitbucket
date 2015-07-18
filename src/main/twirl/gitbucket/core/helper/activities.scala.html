@@ -8,20 +8,20 @@
   @activities.map { activity =>
     <div class="block">
       @(activity.activityType match {
-        case "open_issue"        => detailActivity(activity, "activity-issue.png")
-        case "comment_issue"     => detailActivity(activity, "activity-comment.png")
-        case "comment_commit"    => detailActivity(activity, "activity-comment.png")
-        case "close_issue"       => detailActivity(activity, "activity-issue-close.png")
-        case "reopen_issue"      => detailActivity(activity, "activity-issue-reopen.png")
-        case "open_pullreq"      => detailActivity(activity, "activity-merge.png")
-        case "merge_pullreq"     => detailActivity(activity, "activity-merge.png")
-        case "create_repository" => simpleActivity(activity, "activity-create-repository.png")
-        case "create_branch"     => simpleActivity(activity, "activity-branch.png")
-        case "delete_branch"     => simpleActivity(activity, "activity-delete.png")
-        case "create_tag"        => simpleActivity(activity, "activity-tag.png")
-        case "delete_tag"        => simpleActivity(activity, "activity-delete.png")
-        case "fork"              => simpleActivity(activity, "activity-fork.png")
-        case "push"  => customActivity(activity, "activity-commit.png"){
+        case "open_issue"        => detailActivity(activity, "issue-opened")
+        case "comment_issue"     => detailActivity(activity, "comment-discussion")
+        case "comment_commit"    => detailActivity(activity, "comment-discussion")
+        case "close_issue"       => detailActivity(activity, "issue-closed")
+        case "reopen_issue"      => detailActivity(activity, "issue-reopened")
+        case "open_pullreq"      => detailActivity(activity, "git-pull-request")
+        case "merge_pullreq"     => detailActivity(activity, "git-merge")
+        case "create_repository" => simpleActivity(activity, "repo")
+        case "create_branch"     => simpleActivity(activity, "git-branch")
+        case "delete_branch"     => simpleActivity(activity, "circle-slash")
+        case "create_tag"        => simpleActivity(activity, "tag")
+        case "delete_tag"        => simpleActivity(activity, "circle-slash")
+        case "fork"              => simpleActivity(activity, "repo-forked")
+        case "push"  => customActivity(activity, "commit"){
           <div class="small activity-message">
             {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
               if(i == 3){
@@ -37,12 +37,12 @@
             }}
           </div>
         }
-        case "create_wiki" => customActivity(activity, "activity-wiki.png"){
+        case "create_wiki" => customActivity(activity, "book"){
           <div class="small activity-message">
             Created <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
           </div>
         }
-        case "edit_wiki" => customActivity(activity, "activity-wiki.png"){
+        case "edit_wiki" => customActivity(activity, "book"){
           activity.additionalInfo.get.split(":") match {
             case Array(pageName, commitId) =>
               <div class="small activity-message">
@@ -61,7 +61,7 @@
 }
 
 @detailActivity(activity: gitbucket.core.model.Activity, image: String) = {
-  <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   <div class="activity-content">
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
@@ -75,7 +75,7 @@
 }
 
 @customActivity(activity: gitbucket.core.model.Activity, image: String)(additionalInfo: Any) = {
-  <div class="activity-icon-large"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   <div class="activity-content">
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
@@ -87,7 +87,7 @@
 }
 
 @simpleActivity(activity: gitbucket.core.model.Activity, image: String) = {
-  <div class="activity-icon-small"><img src="@assets/common/images/@image"/></div>
+  <div class="activity-icon-small"><i class="octicon octicon-@image"></i></div>
   <div class="activity-content">
     <div>
       @avatar(activity.activityUserName, 16)
