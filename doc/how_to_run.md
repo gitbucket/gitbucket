@@ -16,8 +16,20 @@ for Developers
 --------
 If you want to modify source code and confirm it, you can run GitBucket in auto reloading mode as following:
 
+Windows:
+
 ```
 C:\gitbucket> sbt
+...
+> container:start
+...
+> ~ ;copy-resources;aux-compile
+```
+
+Linux:
+
+```
+~/gitbucket$ ./sbt.sh
 ...
 > container:start
 ...
@@ -29,10 +41,23 @@ Build war file
 
 To build war file, run the following command:
 
+Windows:
+
 ```
 C:\gitbucket> sbt package
 ```
 
+Linux:
+
+```
+~/gitbucket$ ./sbt.sh package
+```
+
 `gitbucket_2.11-x.x.x.war` is generated into `target/scala-2.11`.
 
-To build executable war file, run Ant at the top of the source tree. It generates executable `gitbucket.war` into `target/scala-2.11`. We release this war file as release artifact. Please note the current build.xml works on Windows only. Replace `sbt.bat` with `sbt.sh` in build.xml if you want to run it on Linux.
+To build executable war file, run
+
+*  Windows: `???`
+*  Linux: `./release/make-release-war.sh`
+
+at the top of the source tree. It generates executable `gitbucket.war` into `target/scala-2.11`. We release this war file as release artifact.
