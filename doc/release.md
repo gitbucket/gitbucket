@@ -6,6 +6,17 @@ Update version number
 
 Note to update version number in files below:
 
+### project/build.scala
+
+```scala
+object MyBuild extends Build {
+  val Organization = "gitbucket"
+  val Name = "gitbucket"
+  val Version = "3.3.0" // <---- update version!!
+  val ScalaVersion = "2.11.6"
+  val ScalatraVersion = "2.3.1"
+```
+
 ### src/main/scala/gitbucket/core/servlet/AutoUpdate.scala
 
 ```scala
@@ -17,13 +28,6 @@ object AutoUpdate {
   val versions = Seq(
     new Version(3, 3), // <---- add this line!!
     new Version(3, 2),
-```
-
-### env.sh
-
-```bash
-#!/bin/sh
-export GITBUCKET_VERSION=3.3.0 # <---- update here!!
 ```
 
 Generate release files
