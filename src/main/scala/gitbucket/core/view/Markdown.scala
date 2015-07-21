@@ -113,8 +113,8 @@ class GitBucketHtmlSerializer(
     repository: RepositoryService.RepositoryInfo,
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
-    enableTaskList: Boolean,
     enableAnchor: Boolean,
+    enableTaskList: Boolean,
     hasWritePermission: Boolean,
     pages: List[String]
   )(implicit val context: Context) extends ToHtmlSerializer(
@@ -164,14 +164,22 @@ class GitBucketHtmlSerializer(
 
   private def printHeaderTag(node: HeaderNode): Unit = {
     val tag = s"h${node.getLevel}"
-    val headerTextString = printChildrenToString(node)
-    val anchorName = GitBucketHtmlSerializer.generateAnchorName(headerTextString)
+    val child = node.getChildren.asScala.headOption
+    val anchorName = child match {
+      case Some(x: AnchorLinkNode) => x.getName
+      case Some(x: TextNode)       => x.getText // TODO
+      case _ => GitBucketHtmlSerializer.generateAnchorName(printChildrenToString(node))
+    }
+
     printer.print(s"""<$tag class="markdown-head">""")
     if(enableAnchor){
       printer.print(s"""<a class="markdown-anchor-link" href="#$anchorName"></a>""")
       printer.print(s"""<a class="markdown-anchor" name="$anchorName"></a>""")
     }
-    visitChildren(node)
+    child match {
+      case Some(x: AnchorLinkNode) => printer.print(x.getText)
+      case _ => visitChildren(node)
+    }
     printer.print(s"</$tag>")
   }
 
