@@ -167,8 +167,8 @@ class GitBucketHtmlSerializer(
     val child = node.getChildren.asScala.headOption
     val anchorName = child match {
       case Some(x: AnchorLinkNode) => x.getName
-      case Some(x: TextNode)       => x.getText // TODO
-      case _ => GitBucketHtmlSerializer.generateAnchorName(printChildrenToString(node))
+      case Some(x: TextNode)       => x.getText
+      case _ => GitBucketHtmlSerializer.generateAnchorName(extractText(node)) // TODO
     }
 
     printer.print(s"""<$tag class="markdown-head">""")
@@ -181,6 +181,15 @@ class GitBucketHtmlSerializer(
       case _ => visitChildren(node)
     }
     printer.print(s"</$tag>")
+  }
+
+  private def extractText(node: Node): String = {
+    val sb = new StringBuilder()
+    node.getChildren.asScala.map {
+      case x: TextNode => sb.append(x.getText)
+      case x: Node => sb.append(extractText(x))
+    }
+    sb.toString()
   }
 
   override def visit(node: HeaderNode): Unit = {
