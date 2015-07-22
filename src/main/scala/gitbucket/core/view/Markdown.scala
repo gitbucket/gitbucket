@@ -113,8 +113,8 @@ class GitBucketHtmlSerializer(
     repository: RepositoryService.RepositoryInfo,
     enableWikiLink: Boolean,
     enableRefsLink: Boolean,
-    enableTaskList: Boolean,
     enableAnchor: Boolean,
+    enableTaskList: Boolean,
     hasWritePermission: Boolean,
     pages: List[String]
   )(implicit val context: Context) extends ToHtmlSerializer(
@@ -164,15 +164,32 @@ class GitBucketHtmlSerializer(
 
   private def printHeaderTag(node: HeaderNode): Unit = {
     val tag = s"h${node.getLevel}"
-    val headerTextString = printChildrenToString(node)
-    val anchorName = GitBucketHtmlSerializer.generateAnchorName(headerTextString)
+    val child = node.getChildren.asScala.headOption
+    val anchorName = child match {
+      case Some(x: AnchorLinkNode) => x.getName
+      case Some(x: TextNode)       => x.getText
+      case _ => GitBucketHtmlSerializer.generateAnchorName(extractText(node)) // TODO
+    }
+
     printer.print(s"""<$tag class="markdown-head">""")
     if(enableAnchor){
       printer.print(s"""<a class="markdown-anchor-link" href="#$anchorName"></a>""")
       printer.print(s"""<a class="markdown-anchor" name="$anchorName"></a>""")
     }
-    visitChildren(node)
+    child match {
+      case Some(x: AnchorLinkNode) => printer.print(x.getText)
+      case _ => visitChildren(node)
+    }
     printer.print(s"</$tag>")
+  }
+
+  private def extractText(node: Node): String = {
+    val sb = new StringBuilder()
+    node.getChildren.asScala.map {
+      case x: TextNode => sb.append(x.getText)
+      case x: Node => sb.append(extractText(x))
+    }
+    sb.toString()
   }
 
   override def visit(node: HeaderNode): Unit = {

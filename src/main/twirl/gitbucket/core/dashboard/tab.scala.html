@@ -4,16 +4,16 @@
 <div class="dashboard-nav">
   <div class="container">
     <a href="@path/" @if(active == ""){ class="active"}>
-      <img src="@assets/common/images/menu-feed.png">
+      <i class="octicon octicon-rss"></i>
       News Feed
     </a>
     @if(loginAccount.isDefined){
       <a href="@path/dashboard/pulls" @if(active == "pulls" ){ class="active"}>
-        <img src="@assets/common/images/menu-pulls.png">
+        <i class="octicon octicon-git-pull-request"></i>
         Pull Requests
       </a>
       <a href="@path/dashboard/issues" @if(active == "issues"){ class="active"}>
-        <img src="@assets/common/images/menu-issues.png">
+        <i class="octicon octicon-issue-opened"></i>
         Issues
       </a>
     }
@@ -27,6 +27,8 @@ div.dashboard-nav {
   margin-bottom: 20px;
 }
 
+
+
 div.dashboard-nav a  {
   line-height: 10px;
   margin-left: 20px;
@@ -36,8 +38,17 @@ div.dashboard-nav a  {
   color: #888;
 }
 
-div.dashboard-nav a:hover  {
+
+div.dashboard-nav .octicon{
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: #888;
+}
+
+div.dashboard-nav a:hover,div.dashboard-nav a:hover .octicon  {
   text-decoration: none;
+  color: #333;
 }
 
 div.dashboard-nav a.active {

@@ -13,11 +13,11 @@
         <th style="background-color: #eee;">
           <span class="small">
             <a class="button-link@if(state == "open"){ selected}" href="?state=open">
-              <img src="@assets/common/images/milestone@(if(state == "open"){"-active"}).png"/>
+              <i class="octicon octicon-milestone @(if(state == "open"){"active"})"></i>
               @milestones.count(_._1.closedDate.isEmpty) Open
             </a>&nbsp;&nbsp;
             <a class="button-link@if(state == "closed"){ selected}" href="?state=closed">
-              <img src="@assets/common/images/milestone@(if(state == "closed"){"-active"}).png"/>
+              <i class="octicon octicon-milestone @(if(state == "closed"){"active"})"></i>
               @milestones.count(_._1.closedDate.isDefined) Closed
             </a>
           </span>
@@ -38,7 +38,7 @@
                   } else {
                     @milestone.dueDate.map { dueDate =>
                       @if(isPast(dueDate)){
-                        <img src="@assets/common/images/alert.png"/><span class="muted milestone-alert">Due by @date(dueDate)</span>
+                        <i class="octicon octicon-alert" style="color:#BD2C00;"></i><span class="muted milestone-alert">Due by @date(dueDate)</span>
                       } else {
                         <span class="muted">Due by @date(dueDate)</span>
                       }

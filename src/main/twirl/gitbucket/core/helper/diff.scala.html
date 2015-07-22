@@ -25,16 +25,16 @@
       <span class="pull-right diffstat" data-diff-id="@i"></span>
       <a href="#diff-@i">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <img src="@assets/common/images/diff_move.png"/> @diff.oldPath -> @diff.newPath
+          <i class="octicon octicon-diff-renamed"></i> @diff.oldPath -> @diff.newPath
         }
         @if(diff.changeType == ChangeType.ADD){
-          <img src="@assets/common/images/diff_add.png"/> @diff.newPath
+          <i class="octicon octicon-diff-added"></i> @diff.newPath
         }
         @if(diff.changeType == ChangeType.MODIFY){
-          <img src="@assets/common/images/diff_edit.png"/> @diff.newPath
+          <i class="octicon octicon-diff-modified"></i> @diff.newPath
         }
         @if(diff.changeType == ChangeType.DELETE){
-          <img src="@assets/common/images/diff_delete.png"/> @diff.oldPath
+          <i class="octicon octicon-diff-removed"></i> @diff.oldPath
         }
       </a>
     </li>
@@ -55,7 +55,7 @@
             </div>
           }
           <span class="diffstat">
-            <img src="@assets/common/images/diff_move.png"/>
+            <i class="octicon octicon-diff-renamed"></i>
           </span> @diff.oldPath -> @diff.newPath
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
@@ -68,9 +68,9 @@
           }
           <span class="diffstat">
           @if(diff.changeType == ChangeType.ADD){
-            <img src="@assets/common/images/diff_add.png"/>
+            <i class="octicon octicon-diff-added"></i>
           }else{
-            <img src="@assets/common/images/diff_edit.png"/>
+            <i class="octicon octicon-diff-modified"></i>
           }
           </span>
           @diff.newPath
@@ -83,7 +83,7 @@
             </div>
           }
           <span class="diffstat">
-            <img src="@assets/common/images/diff_delete.png"/>
+            <i class="octicon octicon-diff-removed"></i>
           </span> @diff.oldPath
         }
       </th>

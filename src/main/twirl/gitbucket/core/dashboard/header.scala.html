@@ -6,11 +6,11 @@
 @import gitbucket.core.view.helpers._
 <span class="small">
   <a class="button-link@if(condition.state == "open"){ selected}" href="@condition.copy(state = "open").toURL">
-    <img src="@assets/common/images/status-open@(if(condition.state == "open"){"-active"}).png"/>
+    <i class="octicon octicon-issue-opened @(if(condition.state == "open"){"active"})"></i>
     @openCount Open
   </a>&nbsp;&nbsp;
   <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">
-    <img src="@assets/common/images/status-closed@(if(condition.state == "closed"){"-active"}).png"/>
+    <i class="octicon octicon-check @(if(condition.state == "closed"){"active"})"></i>
     @closedCount Closed
   </a>
 </span>
