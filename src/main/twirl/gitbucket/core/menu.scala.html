@@ -29,7 +29,7 @@
     <div class="pull-right">
       <div class="input-prepend">
         @if(loginAccount.isEmpty){
-          <a title="You must be signed in to fork a repository" href="@path/signin" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
+          <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
         } else {
           @if(isNoGroup) {
             <a id="fork-link" href="javascript:void(0);" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
