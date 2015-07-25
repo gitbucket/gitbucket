@@ -21,7 +21,7 @@
         case "create_tag"        => simpleActivity(activity, "tag")
         case "delete_tag"        => simpleActivity(activity, "circle-slash")
         case "fork"              => simpleActivity(activity, "repo-forked")
-        case "push"  => customActivity(activity, "repo-push"){
+        case "push"  => customActivity(activity, "git-commit"){
           <div class="small activity-message">
             {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
               if(i == 3){

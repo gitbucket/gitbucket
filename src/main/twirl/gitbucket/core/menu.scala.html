@@ -22,13 +22,6 @@
   </li>
 }
 
-@sidemenuPlugin(path: String, name: String, label: String, icon: String) = {
-  <li @if(active == name){class="active"}>
-    <div class="@if(active == name){margin} else {gradient} pull-left"></div>
-    <a href="@url(repository)@path"><img src="@icon"/>@if(expand){ @label}</a>
-  </li>
-}
-
 <div class="container">
   @helper.html.information(info)
   @helper.html.error(error)
