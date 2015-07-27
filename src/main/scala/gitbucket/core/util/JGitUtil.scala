@@ -791,7 +791,7 @@ object JGitUtil {
     return git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
   }
 
-  def getBranches(owner: String, name: String, defaultBranch: String): Seq[BranchInfo] = {
+  def getBranches(owner: String, name: String, defaultBranch: String, origin: Boolean): Seq[BranchInfo] = {
     using(Git.open(getRepositoryDir(owner, name))){ git =>
       val repo = git.getRepository
       val defaultObject = if (repo.getAllRefs.keySet().contains(defaultBranch)) {
@@ -802,20 +802,20 @@ object JGitUtil {
 
       git.branchList.call.asScala.map { ref =>
         val walk = new RevWalk(repo)
-        try{
+        try {
           val defaultCommit = walk.parseCommit(defaultObject)
           val branchName = ref.getName.stripPrefix("refs/heads/")
           val branchCommit = if(branchName == defaultBranch){
             defaultCommit
-          }else{
+          } else {
             walk.parseCommit(ref.getObjectId)
           }
           val when = branchCommit.getCommitterIdent.getWhen
           val committer = branchCommit.getCommitterIdent.getName
           val committerEmail = branchCommit.getCommitterIdent.getEmailAddress
-          val mergeInfo = if(branchName==defaultBranch){
+          val mergeInfo = if(origin && branchName == defaultBranch){
             None
-          }else{
+          } else {
             walk.reset()
             walk.setRevFilter( RevFilter.MERGE_BASE )
             walk.markStart(branchCommit)
