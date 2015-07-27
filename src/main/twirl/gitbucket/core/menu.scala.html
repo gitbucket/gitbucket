@@ -39,12 +39,12 @@
         }
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
       </div>
+      @if(loginAccount.isDefined && isNoGroup){
+        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork">
+          <input type="hidden" name="account" value="@loginAccount.get.userName"/>
+        </form>
+      }
     </div>
-    @if(loginAccount.isDefined && isNoGroup){
-      <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork">
-        <input type="hidden" name="account" value="@loginAccount.get.userName"/>
-      </form>
-    }
   }
   <div class="head">
     @helper.html.repositoryicon(repository, true)
