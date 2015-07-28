@@ -5,7 +5,7 @@ import java.util.{Date, Locale, TimeZone}
 
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
-import gitbucket.core.plugin.{RenderRequest, PluginRegistry, Renderer}
+import gitbucket.core.plugin.{RenderRequest, PluginRegistry}
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 
