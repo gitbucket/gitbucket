@@ -139,7 +139,7 @@ $(function(){
   }
 
   @if(hasWritePermission){
-    function checkConflict(from, to, noConflictHandler, hasConflictHandler){
+    function checkConflict(from, to){
       $('.check-conflict').show();
       $.get('@url(repository)/compare/' + from + '...' + to + '/mergecheck',
         function(data){ $('.check-conflict').html(data); });

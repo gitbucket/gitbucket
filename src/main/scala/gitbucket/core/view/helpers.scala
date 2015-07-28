@@ -4,8 +4,8 @@ import java.text.SimpleDateFormat
 import java.util.{Date, Locale, TimeZone}
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.{CommitState, Repository}
-import gitbucket.core.plugin.{RenderRequest, PluginRegistry, Renderer}
+import gitbucket.core.model.CommitState
+import gitbucket.core.plugin.{RenderRequest, PluginRegistry}
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 
@@ -165,27 +165,9 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    */
   def encodeRefName(value: String): String = StringUtil.urlEncode(value).replace("%2F", "/")
 
-  /**
-   * Url encode except '/' and ':'
-   */
-  def encodeCompareBranch(value: String) =
-    StringUtil.urlEncode(value).replace("%2F", "/").replace("%3A", ":")
-
   def urlEncode(value: String): String = StringUtil.urlEncode(value)
 
   def urlEncode(value: Option[String]): String = value.map(urlEncode).getOrElse("")
-
-  /**
-   * The default origin (branch or remote:branch pair) branches are compared to.
-   *
-   * There are two cases: when the repo is a fork and when the repo is not a
-   * fork.
-   *
-   * For a fork, the default ref is parentUserName:defaultBranch.
-   * For a non fork, the default ref is defaultBranch.
-   */
-  def repositoryDefaultCompareOrigin(repo: Repository): String =
-    repo.parentUserName.map(n => s"$n:${repo.defaultBranch}").getOrElse(repo.defaultBranch)
 
   /**
    * Generates the url to the repository.

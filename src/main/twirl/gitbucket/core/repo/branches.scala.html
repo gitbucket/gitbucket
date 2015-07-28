@@ -30,9 +30,17 @@
                   }
                 }.getOrElse{
                   @if(context.loginAccount.isDefined){
-                    <a href="@url(repository)/compare/@{encodeCompareBranch(repositoryDefaultCompareOrigin(repository.repository))}...@{encodeCompareBranch(branch.name)}?expand=1" class="btn btn-small">New Pull Request</a>
+                    <a href="@url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
+                      urlEncode(parent) + ":" + encodeRefName(repository.repository.defaultBranch)
+                    }.getOrElse {
+                      encodeRefName(repository.repository.defaultBranch)
+                    }}...@{encodeRefName(branch.name)}?expand=1" class="btn btn-small">New Pull Request</a>
                   }else{
-                    <a href="@url(repository)/compare/@{encodeCompareBranch(repositoryDefaultCompareOrigin(repository.repository))}...@{encodeCompareBranch(branch.name)}" class="btn btn-small">Compare</a>
+                    <a href="@url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
+                      urlEncode(parent) + ":" + encodeRefName(repository.repository.defaultBranch)
+                    }.getOrElse {
+                      encodeRefName(repository.repository.defaultBranch)
+                    }}...@{encodeRefName(branch.name)}" class="btn btn-small">Compare</a>
                   }
                 }
                 @if(hasWritePermission){
