@@ -100,6 +100,7 @@ div.nav-collapse a.menu-last {
 .navbar .brand {
   padding-top: 6px;
   padding-bottom: 6px;
+  padding-left: 0px;
 }
 
 .navbar .brand img {
@@ -121,12 +122,23 @@ div.input-prepend span.count {
   padding-bottom: 6px;
 }
 
+a.global-header-menu {
+  color: black;
+  font-weight: bold;
+  font-size: 80%;
+  margin-left: 10px;
+  margin-right: 10px;
+  line-height: 3.5;
+}
+
+/*
 img.plugin-global-menu {
   width: 16px;
   height: 16px;
   position: relative;
   top: -2px;
 }
+*/
 
 /* ======================================================================== */
 /* General Styles */

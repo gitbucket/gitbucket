@@ -41,7 +41,7 @@
     <form id="search" action="@path/search" method="POST">
       <div class="navbar">
         <div class="navbar-inner">
-          <div class="container">
+          <div class="container" style="width: 920px;">
             <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
@@ -52,27 +52,38 @@
               @defining(AutoUpdate.getCurrentVersion){ version =>
                 <span class="header-version">@version.majorVersion.@version.minorVersion</span>
               }
+
             </a>
+            @repository.map { repository =>
+              <input type="text" name="query" style="width: 200px; margin-top: 5px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="hidden" name="owner" value="@repository.owner"/>
+              <input type="hidden" name="repository" value="@repository.name"/>
+            }
+            @if(loginAccount.isDefined){
+              <a href="@path/dashboard/pulls" class="global-header-menu">Pull requests</a>
+              <a href="@path/dashboard/issues" class="global-header-menu">Issues</a>
+            }
             <div class="nav-collapse collapse pull-right header-menu">
-              @repository.map { repository =>
-                <input type="text" name="query" style="width: 300px; margin-bottom: 0px;" placeholder="Search this repository"/>
-                <input type="hidden" name="owner" value="@repository.owner"/>
-                <input type="hidden" name="repository" value="@repository.name"/>
-              }
               @if(loginAccount.isDefined){
-                <a href="@url(loginAccount.get.userName)" class="username menu">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</a>
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus"></i><span class="caret" style="vertical-align: middle;"></span></a>
-                <ul class="dropdown-menu">
-                  <li><a href="@path/new">New repository</a></li>
-                  <li><a href="@path/groups/new">New group</a></li>
-                </ul>
-                <a href="@url(loginAccount.get.userName)/_edit" class="menu" data-toggle="tooltip" data-placement="bottom" title="Account settings"><i class="octicon octicon-gear" aria-label="Account settings"></i></a>
-                @if(loginAccount.get.isAdmin){
-                  <a href="@path/admin/users" class="menu" data-toggle="tooltip" data-placement="bottom" title="Administration"><i class="octicon octicon-settings" aria-label="Administration"></i></a>
-                }
-                <a href="@path/signout" class="menu-last" data-toggle="tooltip" data-placement="bottom" title="Sign out"><i class="octicon octicon-sign-out" aria-label="Sign out"></i></a>
+                <div class="btn-group" style="margin-top: 0px;">
+                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus" style="font-size: 20px; vertical-align: top; margin-top: 10px;"></i><span class="caret" style="vertical-align: middle;"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="@path/new">New repository</a></li>
+                    <li><a href="@path/groups/new">New group</a></li>
+                  </ul>
+                </div>
+                <div class="btn-group" style="margin-top: 0px;">
+                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)<span class="caret" style="vertical-align: middle;"></span></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
+                    @if(loginAccount.get.isAdmin){
+                      <li><a href="@path/admin/users">System administration</a></li>
+                    }
+                    <li><a href="@path/signout">Sign out</a></li>
+                  </ul>
+                </div>
               } else {
-                <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-last" id="signin">Sign in</a>
+                <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn" id="signin">Sign in</a>
               }
             </div><!--/.nav-collapse -->
           </div>
