@@ -118,7 +118,7 @@
         }
         </td>
         <td class="mute">
-          <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a>
+          <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.shortMessage, repository)</a>
           [@user(file.author, file.mailAddress)]
         </td>
         <td style="text-align: right;">@helper.html.datetimeago(file.time, false)</td>
