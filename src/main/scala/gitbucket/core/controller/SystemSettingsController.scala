@@ -71,24 +71,23 @@ trait SystemSettingsControllerBase extends ControllerBase {
   def exportDatabase: Unit = {
     val session = Database.getSession(request)
     val conn = session.conn
-    val exportFile = new File(GitBucketHome, "export.zip")
+    val exportFile = new File(GitBucketHome, "gitbucket-database-backup.zip")
 
     logger.info("exporting database to {}", exportFile)
 
     conn.prepareStatement("BACKUP TO '" + exportFile + "'").execute();
   }
 
-
-  get("/export") {
+  get("/database/backup") {
     exportDatabase
     Ok("done")
   }
-  post("/export") {
+
+  post("/database/backup") {
     exportDatabase
     flash += "info" -> "Database has been exported."
     redirect("/admin/system")
   }
-
 
   get("/admin/system")(adminOnly {
     html.system(flash.get("info"))
