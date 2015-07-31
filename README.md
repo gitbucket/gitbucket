@@ -81,6 +81,12 @@ Run the following commands in `Terminal` to
 
 Release Notes
 --------
+### 3.5 - 1 Aug 2015
+- Octicons has been applied
+- Global header has been enhanced. Now it's further similar to GitHub.
+- Default compare / pull request target has been changed to the parent repository
+- A lot of updates for [gitbucket-gist-plugin](https://github.com/takezoe/gitbucket-gist-plugin)
+
 ### 3.4 - 27 Jun 2015
 - Declarative style plug-in definition
 - New extension point to add markup render
