@@ -1,5 +1,5 @@
 #!/bin/sh
-. ../env.sh
+. ./env.sh
 
 cd ../
 ./sbt.sh clean assembly
