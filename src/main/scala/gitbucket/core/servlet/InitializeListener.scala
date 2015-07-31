@@ -11,6 +11,11 @@ import gitbucket.core.util.Versions
 import akka.actor.{Actor, Props, ActorSystem}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 import AutoUpdate._
+import gitbucket.core.util.Directory._
+import slick.jdbc.JdbcBackend.{Database => SlickDatabase, Session}
+import gitbucket.core.util.DatabaseConfig
+import java.sql._
+import java.io.IOException
 
 /**
  * Initialize GitBucket system.
@@ -26,6 +31,41 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       System.setProperty("gitbucket.home", dataDir)
     }
     org.h2.Driver.load()
+
+    val oldH2DataFile = new java.io.File(GitBucketHome, "data.mv.db")
+    if(oldH2DataFile.exists){
+      val db = SlickDatabase.forURL(
+        url      = DatabaseConfig.url.replace(";MV_STORE=FALSE", ""),
+        driver   = DatabaseConfig.driver,
+        user     = DatabaseConfig.user, 
+        password = DatabaseConfig.password
+      )
+
+      val conn = DriverManager.getConnection(
+        DatabaseConfig.url.replace(";MV_STORE=FALSE", ""),
+        DatabaseConfig.user,
+        DatabaseConfig.password
+      )
+
+      val exportFile = new java.io.File(GitBucketHome, "export.sql")
+
+      try {
+        conn.prepareStatement(s"SCRIPT TO '${exportFile.getAbsolutePath}'").execute()
+      } finally {
+        conn.close()
+      }
+      logger.info(s"[Migration]Exported to ${exportFile.getAbsolutePath}")
+
+      Database() withSession { session =>
+        val conn = session.conn
+        conn.prepareStatement(s"RUNSCRIPT FROM '${exportFile.getAbsolutePath}'").execute()
+        logger.info(s"[Migration]Imported from ${exportFile.getAbsolutePath}")
+      }
+
+      if(!oldH2DataFile.delete()){
+        throw new IOException(s"[Migration]Failed to delete ${oldH2DataFile.getAbsolutePath}")
+      }
+    }
 
     Database() withTransaction { session =>
       val conn = session.conn
