@@ -22,6 +22,7 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.DirCache
+import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
@@ -343,17 +344,21 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/commit/:id")(referrersOnly { repository =>
     val id = params("id")
-
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))){ revCommit =>
-        JGitUtil.getDiffs(git, id) match { case (diffs, oldCommitId) =>
-          html.commit(id, new JGitUtil.CommitInfo(revCommit),
-            JGitUtil.getBranchesOfCommit(git, revCommit.getName),
-            JGitUtil.getTagsOfCommit(git, revCommit.getName),
-            getCommitComments(repository.owner, repository.name, id, false),
-            repository, diffs, oldCommitId, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+    try {
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))) { revCommit =>
+          JGitUtil.getDiffs(git, id) match {
+            case (diffs, oldCommitId) =>
+              html.commit(id, new JGitUtil.CommitInfo(revCommit),
+                JGitUtil.getBranchesOfCommit(git, revCommit.getName),
+                JGitUtil.getTagsOfCommit(git, revCommit.getName),
+                getCommitComments(repository.owner, repository.name, id, false),
+                repository, diffs, oldCommitId, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+          }
         }
       }
+    }catch {
+      case e:MissingObjectException => NotFound
     }
   })
 
