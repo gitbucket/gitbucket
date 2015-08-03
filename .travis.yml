@@ -1,5 +1,4 @@
 language: scala
 sudo: false
 script:
-  - . env.sh
   - sbt test
