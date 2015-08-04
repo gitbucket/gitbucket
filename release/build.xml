@@ -27,6 +27,11 @@
 
   <target name="embed" depends="war">
     <mkdir dir="${embed.classes.dir}"/>
+    <mkdir dir="${embed.classes.dir}/WEB-INF/classes" />
+
+    <propertyfile file="${embed.classes.dir}/WEB-INF/classes/application.properties">
+      <entry key="application.version" value="${gitbucket.version}"/>
+    </propertyfile>
 
     <unzip dest="${embed.classes.dir}" src="${jetty.dir}/javax.servlet-${servlet.version}.jar" />
     <unzip dest="${embed.classes.dir}" src="${jetty.dir}/jetty-continuation-${jetty.version}.jar" />
@@ -42,7 +47,7 @@
     <zip destfile="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
          basedir="${embed.classes.dir}"
          update = "true"
-         includes="javax/**,org/**"/>
+         includes="javax/**,org/**,WEB-INF/**"/>
 
     <zip destfile="${target.dir}/scala-${scala.version}/gitbucket_${scala.version}-${gitbucket.version}.war"
          basedir="${target.dir}/scala-${scala.version}/classes"
