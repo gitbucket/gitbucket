@@ -1,0 +1,30 @@
+@(plugins: List[gitbucket.core.plugin.PluginInfo])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Plugins"){
+    @admin.html.menu("plugins") {
+        <h1>Installed plugins</h1>
+
+        @if(plugins.size > 0) {
+            <ul>
+            @plugins.map {plugin =>
+                <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.version</a></li>
+            }
+            </ul>
+
+            @plugins.map {plugin =>
+                <div class="box">
+                    <div class="box-header">@plugin.pluginName</div>
+                    <div class="box-content">
+                        <p><span class="strong">Id:&nbsp;</span>@plugin.pluginId</p>
+                        <p><span class="strong">Version:&nbsp;</span>@plugin.version</p>
+                        <p><span class="strong">Name:&nbsp;</span>@plugin.pluginName</p>
+                        <p class="muted">@plugin.description</p>
+                    </div>
+                </div>
+            }
+        } else {
+            <p>No plugin detected on your gitbucket installation.</p>
+        }
+    }
+}
