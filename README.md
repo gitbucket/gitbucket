@@ -14,12 +14,13 @@ The current version of GitBucket provides a basic features below:
 - Wiki
 - Issues
 - Fork / Pull request
-- Mail notification
+- Email notification
 - Activity timeline
 - User management (for Administrators)
-- Group (like Organization in Github)
+- Group (like Organization in GitHub)
 - LDAP integration
 - Gravatar support
+- Plug-in system
 
 Following features are not implemented, but we will make them in the future release!
 
@@ -78,6 +79,13 @@ Run the following commands in `Terminal` to
 
 - start gitbucket: `launchctl load ~/Library/LaunchAgents/gitbucket.plist`
 - stop gitbucket: `launchctl unload ~/Library/LaunchAgents/gitbucket.plist`
+
+Plug-ins
+--------
+GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. Some plug-ins are available now:
+
+- [gitbucket-gist-plugin](https://github.com/takezoe/gitbucket-gist-plugin)
+- [gitbucket-announce-plugin](https://github.com/McFoggy/gitbucket-announce-plugin)
 
 Release Notes
 --------
