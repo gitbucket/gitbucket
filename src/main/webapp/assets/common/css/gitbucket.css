@@ -232,6 +232,36 @@ div.box-header {
   background: #f2f8fa;
 }
 
+.commit-list {
+  position: relative;
+}
+
+.commit-list::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  z-index: -1;
+  display: block;
+  width: 2px;
+  content: "";
+  background-color: #f3f3f3;
+}
+
+ul.nav-pills-group .link {
+  color: #4078c0;
+}
+
+div.box-commits {
+  background-color: white;
+  border: 1px solid #d8d8d8;
+  padding-left: 0px;
+  padding-right: 0px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+}
+
 div.box-content {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -239,7 +269,7 @@ div.box-content {
   border-radius: 3px;
 }
 
-div.box-content-bottom > div.box-content-row:nth-of-type(1) {
+div > div.box-content-row:nth-of-type(1) {
   border: none;
 }
 
@@ -1361,6 +1391,7 @@ div.markdown-body {
   font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   word-wrap: break-word;
 }
+
 div.markdown-body h1 {
   border-bottom: 1px solid #ddd;
   font-size: 2.5em;

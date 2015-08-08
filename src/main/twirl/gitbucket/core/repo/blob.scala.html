@@ -65,11 +65,11 @@
           <a class="btn btn-mini btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
         }
       </div>
-      </div>
+    </div>
       @if(content.viewType == "text"){
         @defining(isRenderable(pathList.reverse.head)){ isRrenderable =>
           @if(!isBlame && isRrenderable) {
-            <div class="box-content-bottom markdown-body" style="border: none; padding-left: 16px; padding-right: 16px;">
+            <div class="box-content-bottom markdown-body" style="padding-left: 16px; padding-right: 16px;">
               @renderMarkup(pathList, content.content.get, branch, repository, false, false, true)
             </div>
           } else {
