@@ -72,10 +72,18 @@
         </div>
       }
     </div>
-    <div style="text-align: center; margin-top: 30px">
-      <ul class="nav nav-pills-group">
-        <li class="first"><a class="link" href="?page=@{page - 1}" @if(page <= 1){ disabled="true"}>Newer</a></li>
-        <li class="last"><a class="link" href="?page=@{page + 1}" @if(!hasNext){ disabled="true"}>Older</a></li>
+    <div class="pagination" style="text-align: center; margin-top: 30px">
+      <ul>
+        @if(page <= 1){
+          <li class="disabled"><span>Newer</span></li>
+        } else {
+          <li><a href="?page=@{page - 1}">Newer</a></li>
+        }
+        @if(!hasNext){
+          <li class="disabled"><span>Older</span></li>
+        } else {
+          <li><a href="?page=@{page + 1}">Older</a></li>
+        }
       </ul>
     </div>
   }
