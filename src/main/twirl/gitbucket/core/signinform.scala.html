@@ -1,29 +1,23 @@
 @(systemSettings: gitbucket.core.service.SystemSettingsService.SystemSettings)(implicit context: gitbucket.core.controller.Context)
 @import context._
-<table class="table table-bordered">
-  <tr>
-    <th class="metal">
-      @if(systemSettings.allowAccountRegistration){
-        <div class="pull-right">
-          <a href="@path/register" class="btn btn-mini">Create new account</a>
-        </div>
-      }
-      Sign in
-    </th>
-  </tr>
-  <tr>
-    <td>
-      <form action="@path/signin" method="POST" validate="true">
-        <label for="userName">Username:</label>
-        <span id="error-userName" class="error"></span>
-        <input type="text" name="userName" id="userName" style="width: 95%" autofocus/>
-        <label for="password">Password:</label>
-        <span id="error-password" class="error"></span>
-        <input type="password" name="password" id="password" style="width: 95%"/>
-        <div>
-          <input type="submit" class="btn btn-success" value="Sign in"/>
-        </div>
-      </form>
-    </td>
-  </tr>
-</table>
+<div class="box-header">
+  @if(systemSettings.allowAccountRegistration){
+    <div class="pull-right">
+      <a href="@path/register" class="btn btn-mini">Create new account</a>
+    </div>
+  }
+  Sign in
+</div>
+<div class="box-content-bottom">
+  <form action="@path/signin" method="POST" validate="true">
+    <label for="userName">Username:</label>
+    <span id="error-userName" class="error"></span>
+    <input type="text" name="userName" id="userName" style="width: 95%" autofocus/>
+    <label for="password">Password:</label>
+    <span id="error-password" class="error"></span>
+    <input type="password" name="password" id="password" style="width: 95%"/>
+    <div>
+      <input type="submit" class="btn btn-success" value="Sign in"/>
+    </div>
+  </form>
+</div>

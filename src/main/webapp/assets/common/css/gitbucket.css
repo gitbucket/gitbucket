@@ -131,15 +131,6 @@ a.global-header-menu {
   line-height: 3.5;
 }
 
-/*
-img.plugin-global-menu {
-  width: 16px;
-  height: 16px;
-  position: relative;
-  top: -2px;
-}
-*/
-
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
@@ -227,82 +218,57 @@ h3 {
   margin-top: 0px;
 }
 
-div.box {
-  background-color: #efefef;
-  padding: 2px;
-  margin-bottom: 10px;
-}
-
 div.box-header {
-  font-size: 120%;
-  font-weight: bold;
-  background-color: #e0e0e0;
-  background-image: -moz-linear-gradient(#fafafa, #e0e0e0);
-  background-image: -webkit-linear-gradient(#fafafa, #e0e0e0);
-  background-image: linear-gradient(#fafafa, #e0e0e0);
-  background-repeat: repeat-x;
+  background-color: #f5f5f5;
   margin: 0;
-  border-top-left-radius: 1px;
-  border-top-right-radius: 1px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
   border: 1px solid #d8d8d8;
   border-bottom: none;
-  padding: 8px 10px 8px 10px;
-  text-shadow: 0 1px 0 #fff
-}
-
-div.box-header-small {
-  background-color: #e0e0e0;
-  background-image: -moz-linear-gradient(#fafafa, #e0e0e0);
-  background-image: -webkit-linear-gradient(#fafafa, #e0e0e0);
-  background-image: linear-gradient(#fafafa, #e0e0e0);
-  background-repeat: repeat-x;
-  margin: 0;
-  border-top-left-radius: 1px;
-  border-top-right-radius: 1px;
-  border: 1px solid #d8d8d8;
-  border-bottom: none;
-  padding: 6px 4px 6px 4px;
-  text-shadow: 0 1px 0 #fff
+  padding: 8px 8px 8px 8px;
 }
 
 .inline-comment div.box-header-small {
   background: #f2f8fa;
 }
 
-
 div.box-content {
   background-color: white;
   border: 1px solid #d8d8d8;
   padding: 4px;
+  border-radius: 3px;
+}
+
+div.box-content-bottom > div.box-content-row:nth-of-type(1) {
+  border: none;
+}
+
+div.box-content-row {
+  border-top: 1px solid #d8d8d8;
+  padding: 4px;
+}
+
+div.box-content-bottom {
+  background-color: white;
+  border: 1px solid #d8d8d8;
+  padding: 4px;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  margin-bottom: 20px;
 }
 
 th.box-header {
   background-color: #e0e0e0;
-  background-image: -moz-linear-gradient(#fafafa, #e0e0e0);
-  background-image: -webkit-linear-gradient(#fafafa, #e0e0e0);
-  background-image: linear-gradient(#fafafa, #e0e0e0);
-  background-repeat: repeat-x;
   margin: 0;
-  border-top-left-radius: 1px;
-  border-top-right-radius: 1px;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
   border: 1px solid #d8d8d8;
   border-bottom: none;
   text-shadow: 0 1px 0 #fff
 }
 
 th.box-header .octicon {
-    display: inline;
-}
-
-th.metal {
-  background-color: #e0e0e0;
-  background-image: -moz-linear-gradient(#fafafa, #e8e8e8);
-  background-image: -webkit-linear-gradient(#fafafa, #e8e8e8);
-  background-image: linear-gradient(#fafafa, #e8e8e8);
-  background-repeat: repeat-x;
-  margin: 0;
-  border-top-left-radius: 1px;
-  border-top-right-radius: 1px;
+  display: inline;
 }
 
 dl {
@@ -485,36 +451,24 @@ ul.nav-stacked.side-menu li.active a:hover {
 }
 
 .nav-tabs.nav-stacked.side-menu > li:first-child > a {
-  -webkit-border-top-right-radius: 0px;
-
-  border-top-right-radius: 0px;
-  -webkit-border-top-left-radius: 0px;
-
-  border-top-left-radius: 0px;
-  -moz-border-radius-topright: 0px;
-  -moz-border-radius-topleft: 0px;
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
 }
 
 .nav-tabs.nav-stacked.side-menu > li:last-child > a {
-  -webkit-border-bottom-right-radius: 0px;
-
-  border-bottom-right-radius: 0px;
-  -webkit-border-bottom-left-radius: 0px;
-
-  border-bottom-left-radius: 0px;
-  -moz-border-radius-bottomright: 0px;
-  -moz-border-radius-bottomleft: 0px;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
 }
 
 /****************************************************************************/
 /* Repositories */
 /****************************************************************************/
 div.repository-icon {
-    position: absolute;
+  position: absolute;
 }
 
 div.repository-content {
-    margin-left: 40px;
+  margin-left: 40px;
 }
 
 .branches .muted-link{
@@ -639,10 +593,11 @@ a.header-link:hover i.octicon-x{
     color: #FFF;
 }
 
-
+/*
 table.blobview {
   table-layout: fixed;
 }
+*/
 
 table.table-file-list {
   margin-bottom: 0px;

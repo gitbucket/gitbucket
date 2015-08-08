@@ -8,7 +8,7 @@
   <hr/><br/>
   <form method="POST" validate="true">
     <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
-      <div class="box issue-comment-box">
+      <div class="issue-comment-box">
       <div class="box-content">
         @helper.html.preview(
           repository         = repository,
@@ -20,14 +20,14 @@
           style              = "width: 635px; height: 100px; max-height: 150px;",
           elastic            = true
         )
+        <div style="text-align: right;">
+          <input type="hidden" name="issueId" value="@issue.issueId"/>
+          <input type="submit" class="btn btn-success" formaction="@url(repository)/issue_comments/new" value="Comment"/>
+          @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
+            <input type="submit" class="btn" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+          }
+        </div>
       </div>
-    </div>
-    <div class="pull-right">
-      <input type="hidden" name="issueId" value="@issue.issueId"/>
-      <input type="submit" class="btn btn-success" formaction="@url(repository)/issue_comments/new" value="Comment"/>
-      @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
-        <input type="submit" class="btn" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
-      }
     </div>
   </form>
 }

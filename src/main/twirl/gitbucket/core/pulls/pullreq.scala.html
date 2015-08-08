@@ -18,9 +18,9 @@
       <div>
         <div class="show-title pull-right">
           @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
-            <a class="btn btn-small" href="#" id="edit">Edit</a>
+            <a class="btn" href="#" id="edit">Edit</a>
           }
-          <a class="btn btn-small btn-success" href="@url(repository)/issues/new">New issue</a>
+          <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
         </div>
         <div class="edit-title pull-right" style="display: none;">
           <a class="btn" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
