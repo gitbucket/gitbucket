@@ -47,57 +47,50 @@
         }
       }
     </div>
-
-    <table class="table table-bordered blobview">
-      <tr>
-        <th style="font-weight: normal;">
-          <div class="pull-left">
-            @avatar(latestCommit, 20)
-            @user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
-            <span class="muted">@helper.html.datetimeago(latestCommit.commitTime)</span>
-            <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
-          </div>
-          <div class="btn-group pull-right">
-            @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-              <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
-            }
-            <a class="btn btn-mini" href="?raw=true">Raw</a>
-            @if(content.viewType == "text"){
-              <a class="btn btn-mini blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
-            }
-            <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
-            @if(hasWritePermission){
-              <a class="btn btn-mini btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
-            }
-          </div>
-        </th>
-      </tr>
-      <tr>
-        <td>
-          @if(content.viewType == "text"){
-            @defining(isRenderable(pathList.reverse.head)){ isRrenderable =>
-              @if(!isBlame && isRrenderable) {
-                <div class="box-content markdown-body" style="border: none; padding-left: 16px; padding-right: 16px;">
-                  @renderMarkup(pathList, content.content.get, branch, repository, false, false, true)
-                </div>
-              } else {
-                <pre class="prettyprint linenums blob @if(!isRrenderable){ no-renderable } ">@content.content.get</pre>
-              }
-            }
-          }
-          @if(content.viewType == "image"){
-            <img src="?raw=true"/>
-          }
-          @if(content.viewType == "large" || content.viewType == "binary"){
-            <div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-              <a href="?raw=true">View Raw</a><br>
-              <br>
-              (Sorry about that, but we can't show files that are this big right now)
+    <div class="box-header">
+      @avatar(latestCommit, 20)
+      @user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
+      <span class="muted">@helper.html.datetimeago(latestCommit.commitTime)</span>
+      <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
+      <div class="btn-group pull-right">
+        @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
+          <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+        }
+        <a class="btn btn-mini" href="?raw=true">Raw</a>
+        @if(content.viewType == "text"){
+          <a class="btn btn-mini blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
+        }
+        <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
+        @if(hasWritePermission){
+          <a class="btn btn-mini btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
+        }
+      </div>
+      </div>
+      @if(content.viewType == "text"){
+        @defining(isRenderable(pathList.reverse.head)){ isRrenderable =>
+          @if(!isBlame && isRrenderable) {
+            <div class="box-content-bottom markdown-body" style="border: none; padding-left: 16px; padding-right: 16px;">
+              @renderMarkup(pathList, content.content.get, branch, repository, false, false, true)
+            </div>
+          } else {
+            <div class="box-content-bottom">
+              <pre class="prettyprint linenums blob @if(!isRrenderable){ no-renderable } ">@content.content.get</pre>
             </div>
           }
-        </td>
-      </tr>
-    </table>
+        }
+      }
+      @if(content.viewType == "image"){
+        <div class="box-content-bottom">
+          <img src="?raw=true"/>
+        </div>
+      }
+      @if(content.viewType == "large" || content.viewType == "binary"){
+        <div class="box-content-bottom" style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
+          <a href="?raw=true">View Raw</a><br>
+          <br>
+          (Sorry about that, but we can't show files that are this big right now)
+        </div>
+      }
   }
 }
 <script src="@assets/vendors/jquery/jquery.ba-hashchange.js"></script>
