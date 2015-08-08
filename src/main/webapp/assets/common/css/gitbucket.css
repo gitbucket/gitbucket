@@ -632,6 +632,8 @@ table.blobview {
 table.table-file-list {
   margin-bottom: 0px;
   border: 1px solid #ddd;
+  border-radius: 3px;
+  border-collapse: separate;
 }
 
 table.table-file-list th, table.table-file-list td {

@@ -44,7 +44,7 @@
     </div>
     <table class="table table-file-list">
       <tr>
-        <th colspan="4" style="font-weight: normal;">
+        <th colspan="4" style="font-weight: normal; border: none;">
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
           @if(latestCommit.description.isDefined){
             <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
