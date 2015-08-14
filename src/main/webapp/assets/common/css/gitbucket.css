@@ -863,6 +863,10 @@ a.issue-title {
   font-size: 120%;
 }
 
+.label-success {
+  background-color: #6cc644;
+}
+
 ul.label-list {
   list-style-type: none;
   padding-left: 0px;
@@ -966,8 +970,16 @@ div.issue-info {
 }
 
 div.issue-content {
-  padding: 8px;
-  background-color: #fbfbfb;
+  padding: 13px;
+  background-color: #fff;
+}
+
+div.issue-content p:first-child {
+  margin-top: 0;
+}
+
+div.issue-content p:last-child {
+  margin-bottom: 0;
 }
 
 h4#issueTitle {
@@ -994,15 +1006,45 @@ div.issue-participants {
 
 div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
-  margin-left: 50px;
+  margin-left: 70px;
   max-width: 820px;
+}
+
+div.issue-comment-box textarea {
+  width: 670px;
+  height: 100px;
+  max-height: 300px;
 }
 
 div.issue-comment-action {
   padding-bottom: 10px;
   padding-top: 0px;
+  margin-left: 70px;
   margin-bottom: 10px;
   border-bottom: 4px solid #ddd;
+}
+
+div.issue-comment-action .octicon {
+  border-radius: 50%;
+  background-color: #f3f3f3;
+  color: #767676;
+  font-size: 18px;
+  margin-right: 7px;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border: 2px solid #fff;
+}
+
+div.issue-reopened .octicon {
+  background-color: #6cc644;
+  color: #fff;
+}
+
+div.issue-comment-action .octicon.danger {
+  background-color: #bd2c00;
+  color: #fff;
 }
 
 .nav-pills > li > span.issue-label {

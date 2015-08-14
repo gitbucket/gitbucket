@@ -1,7 +1,7 @@
 @(content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @helper.html.attached(owner, repository){
-  <textarea style="width: 635px; height: 100px; max-height: 300px;" id="edit-content">@content.getOrElse("")</textarea>
+  <textarea id="edit-content">@content.getOrElse("")</textarea>
 }
 <div>
   <input type="button" id="cancel-issue" class="btn btn-small btn-danger" value="Cancel"/>
