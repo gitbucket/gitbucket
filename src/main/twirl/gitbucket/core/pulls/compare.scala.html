@@ -43,41 +43,49 @@
           }
         }
       </div>
+      <div class="check-conflict" style="display: none;">
+        <img src="@assets/common/images/indicator.gif"/> Checking...
+      </div>
     </div>
     @if(commits.nonEmpty && hasWritePermission){
       <div style="margin-bottom: 10px;" id="create-pull-request">
         <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
       </div>
-      <div id="pull-request-form" class="box" style="display: none;">
-        <div class="box-content">
-          <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
-            <div style="width: 240px; position: absolute; margin-left: 610px;">
-              <div class="check-conflict" style="display: none;">
-                <img src="@assets/common/images/indicator.gif"/> Checking...
+      <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
+        <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+          <div class="row-fluid">
+            <div class="span9">
+              <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+              <div class="box issue-box">
+                <div class="box-content">
+                  <span class="error" id="error-title"></span>
+                  <input type="text" name="title" style="width: 580px" placeholder="Title"/>
+                  @helper.html.preview(
+                    repository         = repository,
+                    content            = "",
+                    enableWikiLink     = false,
+                    enableRefsLink     = true,
+                    enableTaskList     = true,
+                    hasWritePermission = hasWritePermission,
+                    style              = "width: 580px; height: 200px;"
+                  )
+                  <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
+                  <input type="hidden" name="targetBranch" value="@originId"/>
+                  <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+                  <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
+                  <input type="hidden" name="requestBranch" value="@forkedId"/>
+                  <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+                  <input type="hidden" name="commitIdTo" value="@commitId"/>
+                </div>
+              </div>
+              <div class="pull-right">
+                <input type="submit" class="btn btn-success" value="Create pull request"/>
               </div>
             </div>
-            <div style="width: 600px; border-right: 1px solid #d4d4d4;">
-              <span class="error" id="error-title"></span>
-              <input type="text" name="title" style="width: 580px" placeholder="Title"/>
-              @helper.html.preview(
-                repository         = repository,
-                content            = "",
-                enableWikiLink     = false,
-                enableRefsLink     = true,
-                enableTaskList     = true,
-                hasWritePermission = hasWritePermission,
-                style              = "width: 580px; height: 200px;"
-              )
-              <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
-              <input type="hidden" name="targetBranch" value="@originId"/>
-              <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
-              <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
-              <input type="hidden" name="requestBranch" value="@forkedId"/>
-              <input type="hidden" name="commitIdFrom" value="@sourceId"/>
-              <input type="hidden" name="commitIdTo" value="@commitId"/>
-            </div>
-          </form>
-        </div>
+          </div>
+          <div class="span3">
+          </div>
+        </form>
       </div>
     }
     @if(commits.isEmpty){
