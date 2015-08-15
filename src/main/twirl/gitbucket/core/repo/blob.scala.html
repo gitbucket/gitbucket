@@ -61,7 +61,7 @@
           <a class="btn btn-mini blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
         }
         <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
-        @if(hasWritePermission){
+        @if(hasWritePermission && repository.branchList.contains(branch)){
           <a class="btn btn-mini btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
         }
       </div>
