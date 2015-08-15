@@ -2,7 +2,7 @@
 @import context._
 <span id="error-edit-content-@commentId" class="error"></span>
 @helper.html.attached(owner, repository){
-  <textarea style="width: 635px; height: 100px;" id="edit-content-@commentId">@content</textarea>
+  <textarea id="edit-content-@commentId">@content</textarea>
 }
 <div>
   <input type="button" id="cancel-comment-@commentId" class="btn btn-small btn-danger" value="Cancel"/>
