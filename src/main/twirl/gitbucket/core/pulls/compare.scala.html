@@ -49,35 +49,35 @@
         <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
       </div>
       <div id="pull-request-form" class="box" style="display: none;">
-          <div class="box-content">
-            <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
-              <div style="width: 240px; position: absolute; margin-left: 610px;">
-                <div class="check-conflict" style="display: none;">
-                  <img src="@assets/common/images/indicator.gif"/> Checking...
-                </div>
+        <div class="box-content">
+          <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+            <div style="width: 240px; position: absolute; margin-left: 610px;">
+              <div class="check-conflict" style="display: none;">
+                <img src="@assets/common/images/indicator.gif"/> Checking...
               </div>
-              <div style="width: 600px; border-right: 1px solid #d4d4d4;">
-                <span class="error" id="error-title"></span>
-                <input type="text" name="title" style="width: 580px" placeholder="Title"/>
-                @helper.html.preview(
-                  repository         = repository,
-                  content            = "",
-                  enableWikiLink     = false,
-                  enableRefsLink     = true,
-                  enableTaskList     = true,
-                  hasWritePermission = hasWritePermission,
-                  style              = "width: 580px; height: 200px;"
-                )
-                <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
-                <input type="hidden" name="targetBranch" value="@originId"/>
-                <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
-                <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
-                <input type="hidden" name="requestBranch" value="@forkedId"/>
-                <input type="hidden" name="commitIdFrom" value="@sourceId"/>
-                <input type="hidden" name="commitIdTo" value="@commitId"/>
-              </div>
-            </form>
-          </div>
+            </div>
+            <div style="width: 600px; border-right: 1px solid #d4d4d4;">
+              <span class="error" id="error-title"></span>
+              <input type="text" name="title" style="width: 580px" placeholder="Title"/>
+              @helper.html.preview(
+                repository         = repository,
+                content            = "",
+                enableWikiLink     = false,
+                enableRefsLink     = true,
+                enableTaskList     = true,
+                hasWritePermission = hasWritePermission,
+                style              = "width: 580px; height: 200px;"
+              )
+              <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
+              <input type="hidden" name="targetBranch" value="@originId"/>
+              <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+              <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
+              <input type="hidden" name="requestBranch" value="@forkedId"/>
+              <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+              <input type="hidden" name="commitIdTo" value="@commitId"/>
+            </div>
+          </form>
+        </div>
       </div>
     }
     @if(commits.isEmpty){
@@ -90,6 +90,34 @@
         </tr>
       </table>
     } else {
+      <div style="margin-bottom: 10px;" class="box-content">
+        <table class="fill-width">
+          <tr>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-commit"></i>
+              @defining(commits.flatten){ commits =>
+                <strong>@commits.size</strong> @plural(commits.size, "commit")
+              }
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-diff"></i>
+              <strong>@diffs.size</strong> @plural(diffs.size, "file") changed
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-comment"></i>
+              @defining(comments.collect { case c: gitbucket.core.model.CommitComment => c }){ comments =>
+                <strong>@comments.size</strong> commit @plural(comments.size, "comment")
+              }
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-organization"></i>
+              @defining(commits.flatMap(_.map(_.authorEmailAddress)).distinct){ contributors =>
+                <strong>@contributors.size</strong> @plural(contributors.size, "contributor")
+              }
+            </td>
+          </tr>
+        </table>
+      </div>
       @pulls.html.commits(commits, Some(comments), repository)
       @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, hasWritePermission, false)
       <p>Showing you all comments on commits in this comparison.</p>
