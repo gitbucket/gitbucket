@@ -26,7 +26,7 @@ trait LinkConverter { self: RequestCache =>
         }
       }
       // convert @username to link
-      .replaceBy("(?<=(^|\\W))@([a-zA-Z0-9\\-_]+)(?=(\\W|$))".r){ m =>
+      .replaceBy("(?<=(^|\\W))@([a-zA-Z0-9\\-_\\.]+)(?=(\\W|$))".r){ m =>
         getAccountByUserName(m.group(2)).map { _ =>
           s"""<a href="${context.path}/${m.group(2)}">@${m.group(2)}</a>"""
         }
