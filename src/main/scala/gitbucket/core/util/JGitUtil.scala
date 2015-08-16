@@ -57,7 +57,16 @@ object JGitUtil {
    * @param linkUrl the url of submodule
    */
   case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, message: String, commitId: String,
-                      time: Date, author: String, mailAddress: String, linkUrl: Option[String])
+                      time: Date, author: String, mailAddress: String, linkUrl: Option[String]) {
+    def shortMessage: String = {
+      val maxLength = 70
+      if (message.length() > maxLength) {
+        message.substring(0, maxLength) + "..."
+      } else {
+        message
+      }
+    }
+  }
 
   /**
    * The commit data.
