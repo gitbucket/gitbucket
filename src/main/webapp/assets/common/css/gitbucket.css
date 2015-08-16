@@ -371,6 +371,10 @@ ul.sidemenu {
   margin-left: 0px;
 }
 
+ul.sidemenu a {
+  display: block;
+}
+
 ul.sidemenu a:hover{
   text-decoration: none;
 }
@@ -582,6 +586,7 @@ p.description {
 a.header-link {
   color: #888;
   font-size: 90%;
+  display: block;
 }
 
 a.header-link i.octicon {
