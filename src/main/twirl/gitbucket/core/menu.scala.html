@@ -11,7 +11,6 @@
 
 @sidemenu(path: String, name: String, icon: String, label: String, count: Int = 0) = {
   <li @if(active == name){class="active"} @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="@label"}>
-    <div class="@if(active == name){margin} else {gradient} pull-left"></div>
     <a href="@url(repository)@path">
       <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i>
       @if(expand){ @label}
@@ -40,7 +39,7 @@
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
       </div>
       @if(loginAccount.isDefined && isNoGroup){
-        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork">
+        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
           <input type="hidden" name="account" value="@loginAccount.get.userName"/>
         </form>
       }
