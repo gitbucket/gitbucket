@@ -175,6 +175,12 @@ span.error {
   font-weight: bold;
 }
 
+.shorten-text {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 a.commit-message, a.commit-id, a.username, a.issue-comment-count {
   color: #333333;
 }
@@ -373,25 +379,28 @@ ul.sidemenu {
 
 ul.sidemenu a {
   display: block;
+  padding: 8px 10px;
 }
 
-ul.sidemenu a:hover{
+ul.sidemenu a:hover {
   text-decoration: none;
 }
 
 ul.sidemenu li.active {
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
-  border-right: 2px solid #bb4444;
+  border-right: 3px solid #bb4444;
   border-left: 1px solid white;
 }
 
-ul.sidemenu div.gradient {
-  width: 5px;
-  height: 30px;
-  background: linear-gradient(to right, #eee, #fff);
-  margin-right: 4px;
-  border-left: 1px solid #eee;
+ul.sidemenu li.active a {
+  background-color: #fff;
+}
+
+ul.sidemenu {
+  background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
+  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px); 
+  box-shadow: inset 1px 0 0 #eee; 
 }
 
 ul.sidemenu div.margin {
@@ -402,8 +411,6 @@ ul.sidemenu div.margin {
 }
 
 ul.sidemenu li {
-  line-height: 30px;
-  height: 30px;
   border-left: 1px solid #eee;
   margin-left:0px;
   border-right: 2px solid white;
@@ -589,13 +596,8 @@ a.header-link {
   display: block;
 }
 
-a.header-link i.octicon {
-  opacity: 0.5;
-}
-
 a.header-link strong {
   color: black;
-  font-size: 90%;
 }
 
 a.header-link:hover {
@@ -649,6 +651,25 @@ table.table-file-list td.latest-commit {
 table.table-file-list td {
   background-color: #F8F8F8;
   font-size: small;
+}
+
+table.table-file-list .file-icon {
+  padding-right: 1px;
+}
+
+table.table-file-list .content-name {
+  max-width: 180px;
+}
+
+table.table-file-list .commit-message {
+  max-width: 415px;
+  display: inline-block;
+}
+
+table.table-file-list .commit-author {
+  color: #999;
+  font-size: 12px;
+  float: right;
 }
 
 th, td, .table th, .table td {
