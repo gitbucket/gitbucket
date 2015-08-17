@@ -2,7 +2,7 @@ Automatic Schema Updating
 ========
 GitBucket uses H2 database to manage project and account data. GitBucket updates database schema automatically in the first run after the upgrading.
 
-To release a new version of GitBucket, add the version definition to the [servlet.AutoUpdate](https://github.com/takezoe/gitbucket/blob/master/src/main/scala/servlet/AutoUpdateListener.scala) at first.
+To release a new version of GitBucket, add the version definition to the [gitbucket.core.servlet.AutoUpdate](https://github.com/takezoe/gitbucket/blob/master/src/main/scala/gitbucket/core/servlet/AutoUpdate.scala) at first.
 
 ```scala
 object AutoUpdate {
