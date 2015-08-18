@@ -15,7 +15,7 @@ case class ApiRepository(
   default_branch: String,
   owner: ApiUser) {
   val forks_count   = forks
-  val watchers_coun = watchers
+  val watchers_count = watchers
   val url       = ApiPath(s"/api/v3/repos/${full_name}")
   val http_url  = ApiPath(s"/git/${full_name}.git")
   val clone_url = ApiPath(s"/git/${full_name}.git")

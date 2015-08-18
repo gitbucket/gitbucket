@@ -56,7 +56,7 @@ class JsonFormatSpec extends Specification {
     "default_branch" : "master",
     "owner" : $apiUserJson,
     "forks_count" : 0,
-    "watchers_coun" : 0,
+    "watchers_count" : 0,
     "url" : "${context.baseUrl}/api/v3/repos/octocat/Hello-World",
     "http_url" : "${context.baseUrl}/git/octocat/Hello-World.git",
     "clone_url" : "${context.baseUrl}/git/octocat/Hello-World.git",
