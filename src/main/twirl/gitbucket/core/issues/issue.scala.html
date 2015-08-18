@@ -52,7 +52,7 @@
         @commentform(issue, true, hasWritePermission, repository)
       </div>
       <div class="span2">
-        @issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+        @issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
       </div>
     </div>
   }

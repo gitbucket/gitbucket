@@ -257,6 +257,12 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
+  ajaxPost("/:owner/:repository/issues/new/label")(collaboratorsOnly { repository =>
+    val labelNames = params("labelNames").split(",")
+    val labels = getLabels(repository.owner, repository.name).filter(x => labelNames.contains(x.labelName))
+    html.labellist(labels)
+  })
+
   ajaxPost("/:owner/:repository/issues/:id/label/new")(collaboratorsOnly { repository =>
     defining(params("id").toInt){ issueId =>
       registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt)
