@@ -9,7 +9,11 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasOriginWritePermission: Boolean,
+  hasForkedWritePermission: Boolean,
+  collaborators: List[String],
+  milestones: List[gitbucket.core.model.Milestone],
+  labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
@@ -47,27 +51,27 @@
         <img src="@assets/common/images/indicator.gif"/> Checking...
       </div>
     </div>
-    @if(commits.nonEmpty && hasWritePermission){
+    @if(commits.nonEmpty && hasForkedWritePermission){
       <div style="margin-bottom: 10px;" id="create-pull-request">
         <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
       </div>
       <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
         <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
           <div class="row-fluid">
-            <div class="span9">
+            <div class="span10">
               <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
               <div class="box issue-box">
                 <div class="box-content">
                   <span class="error" id="error-title"></span>
-                  <input type="text" name="title" style="width: 580px" placeholder="Title"/>
+                  <input type="text" name="title" style="width: 690px" placeholder="Title"/>
                   @helper.html.preview(
                     repository         = repository,
                     content            = "",
                     enableWikiLink     = false,
                     enableRefsLink     = true,
                     enableTaskList     = true,
-                    hasWritePermission = hasWritePermission,
-                    style              = "width: 580px; height: 200px;"
+                    hasWritePermission = hasForkedWritePermission,
+                    style              = "width: 690px; height: 200px;"
                   )
                   <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
                   <input type="hidden" name="targetBranch" value="@originId"/>
@@ -76,14 +80,15 @@
                   <input type="hidden" name="requestBranch" value="@forkedId"/>
                   <input type="hidden" name="commitIdFrom" value="@sourceId"/>
                   <input type="hidden" name="commitIdTo" value="@commitId"/>
+                  <div class="align-right">
+                    <input type="submit" class="btn btn-success" value="Create pull request"/>
+                  </div>
                 </div>
               </div>
-              <div class="pull-right">
-                <input type="submit" class="btn btn-success" value="Create pull request"/>
-              </div>
             </div>
-          </div>
-          <div class="span3">
+            <div class="span2">
+              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
+            </div>
           </div>
         </form>
       </div>
@@ -127,9 +132,9 @@
         </table>
       </div>
       @pulls.html.commits(commits, Some(comments), repository)
-      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, hasWritePermission, false)
+      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, hasForkedWritePermission, false)
       <p>Showing you all comments on commits in this comparison.</p>
-      @issues.html.commentlist(None, comments, hasWritePermission, repository, None)
+      @issues.html.commentlist(None, comments, hasForkedWritePermission, repository, None)
     }
   }
 }
@@ -174,7 +179,7 @@ $(function(){
     $('#show-form').click();
   }
 
-  @if(hasWritePermission){
+  @if(hasForkedWritePermission){
     function checkConflict(from, to){
       $('.check-conflict').show();
       $.get('@url(repository)/compare/' + from + '...' + to + '/mergecheck',
