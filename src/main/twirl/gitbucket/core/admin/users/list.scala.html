@@ -43,10 +43,10 @@
             <div>
               <hr>
               @if(!account.isGroupAccount){
-                <i class="icon-envelope"></i> @account.mailAddress
+                <i class="octicon octicon-mail"></i> @account.mailAddress
               }
               @account.url.map { url =>
-                <i class="icon-home"></i> @url
+                <i class="octicon octicon-home"></i> @url
               }
             </div>
             <div>

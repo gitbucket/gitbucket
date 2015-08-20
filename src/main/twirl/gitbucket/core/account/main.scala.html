@@ -14,9 +14,9 @@
           </div>
           <div class="block">
             @if(account.url.isDefined){
-              <div><i class="icon-home"></i> <a href="@account.url">@account.url</a></div>
+              <div><i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a></div>
             }
-            <div><i class="icon-time"></i> <span class="muted">Joined on</span> @date(account.registeredDate)</div>
+            <div><i class="octicon octicon-clock"></i> <span class="muted">Joined on</span> @date(account.registeredDate)</div>
           </div>
           @if(groupNames.nonEmpty){
             <div>

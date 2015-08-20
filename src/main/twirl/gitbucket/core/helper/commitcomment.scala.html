@@ -24,8 +24,8 @@
         </span>
       <span class="pull-right">
         @if(hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){
-          <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
-          <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
+          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil"></i></a>&nbsp;
+          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x"></i></a>
         }
       </span>
     </div>

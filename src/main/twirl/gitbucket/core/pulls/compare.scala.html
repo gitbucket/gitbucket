@@ -24,7 +24,7 @@
         <span class="label label-info monospace">@originRepository.owner:@originId</span> ... <span class="label label-info monospace">@forkedRepository.owner:@forkedId</span>
       </div>
       <div id="compare-edit" style="display: none;">
-        <a href="#" id="cancel-condition-editing" class="pull-right"><i class="icon-remove-circle"></i></a>
+        <a href="#" id="cancel-condition-editing" class="pull-right"><i class="octicon octicon-x"></i></a>
         @helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
           @members.map { case (owner, name) =>
             <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
