@@ -374,6 +374,22 @@ span.highlight {
   cursor: pointer;
 }
 
+.btn .octicon {
+  color: #333;
+}
+
+.btn-success .octicon {
+  color: #fff;
+}
+
+.btn-warning .octicon {
+  color: #fff;
+}
+
+.btn-danger .octicon {
+  color: #fff;
+}
+
 /****************************************************************************/
 /* Side Menu */
 /****************************************************************************/

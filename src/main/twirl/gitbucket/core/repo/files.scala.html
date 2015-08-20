@@ -17,13 +17,13 @@
       <div class="pull-right"><div class="btn-group">
         <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-small" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="octicon octicon-list-unordered"></i></a>
         @if(pathList.nonEmpty){
-          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-small" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="icon icon-time"></i></a>
+          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-small" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="octicon octicon-clock"></i></a>
         }
       </div></div>
       @branchPullRequest.map{ case (pullRequest, issue) =>
         <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-small btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
       }.getOrElse{
-        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-small btn-success"><i class="icon-white icon-retweet" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
+        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-small btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
       }
       @helper.html.branchcontrol(
         branch,
@@ -66,7 +66,7 @@
               </div>
               @if(latestCommit.isDifferentFromAuthor) {
               <div class="committer">
-                <span class="icon-arrow-right"></span>
+                <span class="octicon octicon-arrow-right"></span>
                 <span>@user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
                 <span class="muted"> committed @helper.html.datetimeago(latestCommit.commitTime)</span>
               </div>

@@ -60,7 +60,7 @@
                     @user(commit.authorName, commit.authorEmailAddress, "username")
                     <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
                     @if(commit.isDifferentFromAuthor) {
-                      <span class="icon-arrow-right" style="margin-top : -2px;"></span>
+                      <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
                       @user(commit.committerName, commit.committerEmailAddress, "username")
                       <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
                     }
