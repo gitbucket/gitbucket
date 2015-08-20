@@ -183,7 +183,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           pullreq,
           statuses,
           repository,
-          s"${context.baseUrl}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
+          getRepository(pullreq.requestUserName, pullreq.requestRepositoryName, context.baseUrl).get)
       }
     } getOrElse NotFound
   })
