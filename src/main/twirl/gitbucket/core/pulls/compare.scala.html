@@ -131,7 +131,39 @@
           </tr>
         </table>
       </div>
+      <div class="box" style="margin-bottom: 20px;">
+        @commits.map { day =>
+          <div style="margin-top: 8px; margin-bottom: 8px;" class="muted">
+            Commits on @date(day.head.commitTime)
+          </div>
+          <table style="width: 100%;">
+          @day.map { commit =>
+            <tr>
+              <td style="width: 20%;">
+                <i class="octicon octicon-git-commit"></i>
+                @avatar(commit, 20)
+                @user(commit.authorName, commit.authorEmailAddress, "username strong")
+                </td>
+              <td><span class="monospace">@commit.shortMessage</span></td>
+              @*
+              <span class="badge" style="display: inline">@if(comments.isDefined){
+              @comments.get.flatMap @{
+              case comment: CommitComment => Some(comment)
+              case other => None
+              }.count(t => t.commitId == commit.id && !t.pullRequest)
+              }</span>
+              *@
+              <td style="width: 10%; text-align: right;">
+                <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+              </td>
+            </tr>
+          }
+          </table>
+        }
+      </div>
+      @*
       @pulls.html.commits(commits, Some(comments), repository)
+      *@
       @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, hasForkedWritePermission, false)
       <p>Showing you all comments on commits in this comparison.</p>
       @issues.html.commentlist(None, comments, hasForkedWritePermission, repository, None)

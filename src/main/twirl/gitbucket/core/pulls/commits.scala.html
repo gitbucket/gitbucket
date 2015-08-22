@@ -4,33 +4,42 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.model._
-<div class="box" style="margin-bottom: 20px;">
+<div class="commit-list">
   @commits.map { day =>
-    <div style="margin-top: 8px; margin-bottom: 8px;" class="muted">
-      Commits on @date(day.head.commitTime)
+    <div class="muted" style="background-color: white;">
+      <i class="octicon octicon-git-commit"></i> Commits on @date(day.head.commitTime)
     </div>
-    <table style="width: 100%;">
-      @day.map { commit =>
-        <tr>
-          <td style="width: 20%;">
-            <i class="octicon octicon-git-commit"></i>
-            @avatar(commit, 20)
-            @user(commit.authorName, commit.authorEmailAddress, "username strong")
-          </td>
-          <td><span class="monospace">@commit.shortMessage</span></td>
-          @*
-          <span class="badge" style="display: inline">@if(comments.isDefined){
-            @comments.get.flatMap @{
-              case comment: CommitComment => Some(comment)
-              case other => None
-            }.count(t => t.commitId == commit.id && !t.pullRequest)
-          }</span>
-          *@
-          <td style="width: 10%; text-align: right;">
-            <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
-          </td>
-        </tr>
-      }
-    </table>
+    <div class="box-commits">
+    @day.map { commit =>
+      <div class="box-content-row" style="padding: 8px;">
+        <ul class="nav nav-pills-group pull-right" style="margin-top: 2px; margin-bottom: 0px; margin-right: 4px;">
+          <li class="first"><a href="@url(repository)/commit/@commit.id" class="link monospace">@commit.id.substring(0, 7)</a></li>
+          <li class="last"><a href="@url(repository)/tree/@commit.id" style="padding-top: 9px; padding-bottom: 10px;"><i class="octicon octicon-code link"></i></a></li>
+        </ul>
+        <div>
+          <div class="commit-avatar-image">@avatar(commit, 40)</div>
+          <div class="commit-message-box">
+            <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
+            @if(commit.description.isDefined){
+              <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
+            }
+            <br>
+            @if(commit.description.isDefined){
+              <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
+            }
+            <div class="small">
+              @user(commit.authorName, commit.authorEmailAddress, "username")
+              <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+              @if(commit.isDifferentFromAuthor) {
+                <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
+                @user(commit.committerName, commit.committerEmailAddress, "username")
+                <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+    </div>
   }
 </div>
