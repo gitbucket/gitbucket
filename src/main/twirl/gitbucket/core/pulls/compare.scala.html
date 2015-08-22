@@ -190,16 +190,16 @@ $(function(){
 
     @if(members.isEmpty){
       location.href = '@url(repository)/compare/' +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'));
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
     } else {
       location.href = '@path/' +
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + '/' +
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) +'/compare/' +
-        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('owner')) + ':' +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + ':' +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'));
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
     }
   });
 
@@ -214,21 +214,21 @@ $(function(){
   @if(hasForkedWritePermission){
     function checkConflict(from, to){
       $('.check-conflict').show();
-      $.get('@url(repository)/compare/' + from + '...' + to + '/mergecheck',
+      $.get('@url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',
         function(data){ $('.check-conflict').html(data); });
     }
 
     @if(members.isEmpty){
       checkConflict(
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')),
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'))
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
       );
     } else {
       checkConflict(
-        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('owner')) + ":" +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')),
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + ":" +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'))
+        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
       );
     }
   }
