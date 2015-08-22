@@ -25,20 +25,23 @@
       </li>
     </ul>
     <div style="width: 200px;" class="pull-right">
-      <table class="table table-bordered">
-        <tr>
-          <th class="metal">Pages <span class="label">@pages.length</span></th>
-        </tr>
-        <tr>
-          <td>
-            <ul style="margin-left: 0px; margin-bottom: 0px; word-break: break-all; width: 182px;">
-            @pages.map { page =>
-              <li style="margin-left:0px; list-style-type: none;"><a href="@url(repository)/wiki/@urlEncode(page)">@page</a></li>
-            }
-            </ul>
-          </td>
-        </tr>
-      </table>
+      @defining(15){ max =>
+        <div class="box-header">
+          <span class="strong">Pages</span> <span class="label">@pages.length</span>
+        </div>
+        <div class="box-content-bottom" style="padding: 0px;">
+          @pages.zipWithIndex.map { case (page, i) =>
+            <div class="box-content-row page-link" style="border: none; @if(i > max - 1){display:none;}">
+              <a href="@url(repository)/wiki/@urlEncode(page)" class="strong">@page</a>
+            </div>
+          }
+          @if(pages.size > max){
+            <div class="box-content-row show-more">
+              <a href="javascript:void(0);" id="show-more-pages">Show more @{pages.size - max} pages...</a>
+            </div>
+          }
+        </div>
+      }
       <div class="small">
         <strong>Clone this wiki locally</strong>
       </div>
@@ -58,9 +61,14 @@
     </div>
   }
 }
-@if(settings.ssh && loginAccount.isDefined){
-  <script>
-  $(function(){
+<script>
+$(function(){
+  $('#show-more-pages').click(function(e){
+    $('div.page-link').show();
+    $(e.target).parents('div.show-more').remove();
+  });
+
+  @if(settings.ssh && loginAccount.isDefined){
     $('#repository-url-http').click(function(){
       $('#repository-url').val('@httpUrl(repository)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
@@ -69,6 +77,6 @@
       $('#repository-url').val('@sshUrl(repository, settings, loginAccount.get.userName)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
-  });
-  </script>
-}
+  }
+});
+</script>

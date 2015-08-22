@@ -200,6 +200,15 @@ a.omit:hover {
   background-color: #aaa;
 }
 
+div.show-more {
+  text-align: center;
+  border-top: 1px solid silver;
+}
+
+div.show-more a {
+  color: #7aa1d3;
+}
+
 span.count-right {
   float: right;
   font-weight: bold;

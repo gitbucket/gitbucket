@@ -28,7 +28,7 @@
             <div class="pull-right">
               <a href="@path/new" class="btn btn-success btn-mini">New repository</a>
             </div>
-            Your repositories (@userRepositories.size)
+            <span class="strong">Your repositories</span> <span class="label">@userRepositories.size</span>
           </div>
             @if(userRepositories.isEmpty){
               <div class="box-content-bottom">
@@ -36,21 +36,28 @@
               </div>
             } else {
               <div class="box-content-bottom" style="padding: 0px;">
-                @userRepositories.map { repository =>
-                  <div class="box-content-row">
-                    @helper.html.repositoryicon(repository, false)
-                    @if(repository.owner == loginAccount.get.userName){
-                      <a href="@url(repository)"><span class="strong">@repository.name</span></a>
-                    } else {
-                      <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
-                    }
-                  </div>
+                @defining(5){ max =>
+                  @userRepositories.zipWithIndex.map { case (repository, i) =>
+                    <div class="box-content-row repo-link" style="@if(i > max - 1){display:none;}">
+                      @helper.html.repositoryicon(repository, false)
+                      @if(repository.owner == loginAccount.get.userName){
+                        <a href="@url(repository)"><span class="strong">@repository.name</span></a>
+                      } else {
+                        <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
+                      }
+                    </div>
+                  }
+                  @if(userRepositories.size > max){
+                    <div class="box-content-row show-more">
+                      <a href="javascript:void(0);" id="show-more-repos">Show more @{userRepositories.size - max} pages...</a>
+                    </div>
+                  }
                 }
               </div>
             }
         }
         <div class="box-header">
-          Recent updated repositories
+          <span class="strong">Recent updated repositories</span>
         </div>
         @if(recentRepositories.isEmpty){
           <div class="box-content-bottom">
@@ -70,3 +77,11 @@
     </div>
   </div>
 }
+<script>
+$(function(){
+  $('#show-more-repos').click(function(e){
+    $('div.repo-link').show();
+    $(e.target).parents('div.show-more').remove();
+  });
+});
+</script>
