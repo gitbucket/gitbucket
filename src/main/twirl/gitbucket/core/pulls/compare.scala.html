@@ -10,7 +10,6 @@
   originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasOriginWritePermission: Boolean,
-  hasForkedWritePermission: Boolean,
   collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
   labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
@@ -19,12 +18,7 @@
 @html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("pulls", repository){
     <div class="pullreq-info">
-      <div id="compare-info">
-        <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>
-        <span class="label label-info monospace">@originRepository.owner:@originId</span> ... <span class="label label-info monospace">@forkedRepository.owner:@forkedId</span>
-      </div>
-      <div id="compare-edit" style="display: none;">
-        <a href="#" id="cancel-condition-editing" class="pull-right"><i class="octicon octicon-x"></i></a>
+      <div id="compare-edit">
         @helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
           @members.map { case (owner, name) =>
             <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
@@ -51,9 +45,11 @@
         <img src="@assets/common/images/indicator.gif"/> Checking...
       </div>
     </div>
-    @if(commits.nonEmpty && hasForkedWritePermission){
-      <div style="margin-bottom: 10px;" id="create-pull-request">
+    @if(commits.nonEmpty && loginAccount.isDefined){
+      <div style="margin-bottom: 10px; padding: 8px; background-color: #fff9ea" id="create-pull-request" class="box-content">
         <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
+        &nbsp;&nbsp;
+        <span class="muted">Discuss and review the changes in this comparison with others.</span>
       </div>
       <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
         <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
@@ -70,7 +66,7 @@
                     enableWikiLink     = false,
                     enableRefsLink     = true,
                     enableTaskList     = true,
-                    hasWritePermission = hasForkedWritePermission,
+                    hasWritePermission = true,
                     style              = "width: 690px; height: 200px;"
                   )
                   <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
@@ -87,7 +83,7 @@
               </div>
             </div>
             <div class="span2">
-              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
+              @issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
             </div>
           </div>
         </form>
@@ -161,31 +157,18 @@
           </table>
         }
       </div>
-      @*
-      @pulls.html.commits(commits, Some(comments), repository)
-      *@
-      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, hasForkedWritePermission, false)
+      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
       <p>Showing you all comments on commits in this comparison.</p>
-      @issues.html.commentlist(None, comments, hasForkedWritePermission, repository, None)
+      @issues.html.commentlist(None, comments, false, repository, None)
     }
   }
 }
 <script>
 $(function(){
-  $('#edit-compare-condition').click(function(){
-    $('#compare-info').hide();
-    $('#compare-edit').show();
-  });
-
-  $('#cancel-condition-editing').click(function(){
-    $('#compare-info').show();
-    $('#compare-edit').hide();
-  });
-
   $('a.origin-owner, a.forked-owner, a.origin-branch, a.forked-branch').click(function(){
     var e = $(this);
     e.parents('ul').find('i').attr('class', 'icon-white');
-    e.find('i').attr('class', 'icon-ok');
+    e.find('i').attr('class', 'octicon-check');
     e.parents('div.btn-group').find('button span.strong').text(e.text());
 
     @if(members.isEmpty){
@@ -204,14 +187,14 @@ $(function(){
   });
 
   $('#show-form').click(function(){
-    $(this).hide();
+    $('#create-pull-request').hide();
     $('#pull-request-form').show();
   });
   if(location.search.substr(1).split("&").indexOf("expand=1")!=-1){
     $('#show-form').click();
   }
 
-  @if(hasForkedWritePermission){
+  @if(loginAccount.isDefined){
     function checkConflict(from, to){
       $('.check-conflict').show();
       $.get('@url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',

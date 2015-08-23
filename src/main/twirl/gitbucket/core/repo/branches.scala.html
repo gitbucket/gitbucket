@@ -35,7 +35,7 @@
                     }.getOrElse {
                       encodeRefName(repository.repository.defaultBranch)
                     }}...@{encodeRefName(branch.name)}?expand=1" class="btn btn-small">New Pull Request</a>
-                  }else{
+                  } else {
                     <a href="@url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
                       urlEncode(parent) + ":" + encodeRefName(repository.repository.defaultBranch)
                     }.getOrElse {

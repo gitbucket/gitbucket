@@ -340,7 +340,6 @@ trait PullRequestsControllerBase extends ControllerBase {
           originRepository,
           forkedRepository,
           hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
-          hasWritePermission(forkedRepository.owner, forkedRepository.name, context.loginAccount),
           (getCollaborators(originRepository.owner, originRepository.name) ::: (if(getAccountByUserName(originRepository.owner).get.isGroupAccount) Nil else List(originRepository.owner))).sorted,
           getMilestones(originRepository.owner, originRepository.name),
           getLabels(originRepository.owner, originRepository.name)
