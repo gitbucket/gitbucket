@@ -10,7 +10,7 @@ import sbtassembly.AssemblyKeys._
 object MyBuild extends Build {
   val Organization = "gitbucket"
   val Name = "gitbucket"
-  val Version = "3.5.0"
+  val Version = "3.6.0"
   val ScalaVersion = "2.11.6"
   val ScalatraVersion = "2.3.1"
 
