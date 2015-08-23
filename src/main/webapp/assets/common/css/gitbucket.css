@@ -1755,9 +1755,12 @@ h6 a.markdown-anchor-link {
   padding-left: 50px;
 }
 
+/*
 div.container.blame-container{
   width:1270px;
 }
+*/
+
 .line-age-legend {
   display: none;
 }
