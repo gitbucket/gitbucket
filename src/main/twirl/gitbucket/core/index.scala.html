@@ -36,7 +36,7 @@
               </div>
             } else {
               <div class="box-content-bottom" style="padding: 0px;">
-                @defining(5){ max =>
+                @defining(20){ max =>
                   @userRepositories.zipWithIndex.map { case (repository, i) =>
                     <div class="box-content-row repo-link" style="@if(i > max - 1){display:none;}">
                       @helper.html.repositoryicon(repository, false)
