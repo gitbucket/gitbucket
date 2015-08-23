@@ -147,7 +147,7 @@ $(window).load(function(){
   });
 
   function updateBlame(){
-    var m = /^\/(blame|blob)(\/.*)$/.exec(location.href.substring(repository.length));
+    var m = /\/(blame|blob)(\/.*)$/.exec(location.href);
     var mode = m[1];
     $('.blame-action').toggleClass("active", mode=='blame').attr('href', repository + (m[1] == 'blame' ? '/blob' : '/blame') + m[2]);
     if(pre.parents("div.box-content-bottom").find(".blame").length){
@@ -159,7 +159,7 @@ $(window).load(function(){
       updateSourceLineNum();
       return;
     }
-    $(document.body).toggleClass('no-box-shadow',document.body.style.boxShadow===undefined);
+    $(document.body).toggleClass('no-box-shadow', document.body.style.boxShadow===undefined);
     $('.blame-action').addClass("active");
     var base = $('<div class="blame">').css({height: pre.height()}).prependTo(pre.parents("div.box-content-bottom"));
     base.parents("div.container").addClass("blame-container");
