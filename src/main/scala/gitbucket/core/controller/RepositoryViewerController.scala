@@ -249,7 +249,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
-      if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
+      if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
     }")
   })
 
@@ -270,7 +270,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
-      if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
+      if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
     }")
   })
 
