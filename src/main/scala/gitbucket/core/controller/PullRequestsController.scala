@@ -314,36 +314,44 @@ trait PullRequestsControllerBase extends ControllerBase {
               originRepository.owner, originRepository.name, originId,
               forkedRepository.owner, forkedRepository.name, forkedId)
 
-            (oldGit.getRepository.resolve(rootId),  newGit.getRepository.resolve(forkedId))
+            (Option(oldGit.getRepository.resolve(rootId)),  Option(newGit.getRepository.resolve(forkedId)))
           } else {
             // Commit id
-            (oldGit.getRepository.resolve(originId), newGit.getRepository.resolve(forkedId))
+            (Option(oldGit.getRepository.resolve(originId)), Option(newGit.getRepository.resolve(forkedId)))
           }
 
-        val (commits, diffs) = getRequestCompareInfo(
-          originRepository.owner, originRepository.name, oldId.getName,
-          forkedRepository.owner, forkedRepository.name, newId.getName)
+        (oldId, newId) match {
+          case (Some(oldId), Some(newId)) => {
+            val (commits, diffs) = getRequestCompareInfo(
+              originRepository.owner, originRepository.name, oldId.getName,
+              forkedRepository.owner, forkedRepository.name, newId.getName)
 
-        html.compare(
-          commits,
-          diffs,
-          (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
-            case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
-            case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-          },
-          commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
-          originId,
-          forkedId,
-          oldId.getName,
-          newId.getName,
-          forkedRepository,
-          originRepository,
-          forkedRepository,
-          hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
-          (getCollaborators(originRepository.owner, originRepository.name) ::: (if(getAccountByUserName(originRepository.owner).get.isGroupAccount) Nil else List(originRepository.owner))).sorted,
-          getMilestones(originRepository.owner, originRepository.name),
-          getLabels(originRepository.owner, originRepository.name)
-        )
+            html.compare(
+              commits,
+              diffs,
+              (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
+                case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
+                case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+              },
+              commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
+              originId,
+              forkedId,
+              oldId.getName,
+              newId.getName,
+              forkedRepository,
+              originRepository,
+              forkedRepository,
+              hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
+              (getCollaborators(originRepository.owner, originRepository.name) ::: (if(getAccountByUserName(originRepository.owner).get.isGroupAccount) Nil else List(originRepository.owner))).sorted,
+              getMilestones(originRepository.owner, originRepository.name),
+              getLabels(originRepository.owner, originRepository.name)
+            )
+          }
+          case (oldId, newId) =>
+            redirect(s"/${forkedRepository.owner}/${forkedRepository.name}/compare/" +
+                     s"${originOwner}:${oldId.map(_ => originId).getOrElse(originRepository.repository.defaultBranch)}..." +
+                     s"${forkedOwner}:${newId.map(_ => forkedId).getOrElse(forkedRepository.repository.defaultBranch)}")
+        }
       }
     }) getOrElse NotFound
   })
