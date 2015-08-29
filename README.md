@@ -89,6 +89,12 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 
 Release Notes
 --------
+### 3.6 - 30 Aug 2015
+- User interface Improvements: Especially, commit list, issues and pull request have been updated largely.
+- Installed plugins list has been available at the system administration console.
+- Pages and repository list in the sidebar have been limited and more pages and repositories link is available.
+- More reference link notation in Markdown has been supported.
+
 ### 3.5 - 1 Aug 2015
 - Octicons has been applied
 - Global header has been enhanced. Now it's further similar to GitHub.
