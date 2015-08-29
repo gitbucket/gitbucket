@@ -465,7 +465,11 @@ trait IssuesControllerBase extends ControllerBase {
           "issues",
           searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
-          (getCollaborators(owner, repoName) :+ owner).sorted,
+          if(!getAccountByUserName(owner).exists(_.isGroupAccount)){
+            (getCollaborators(owner, repoName) :+ owner).sorted
+          } else {
+            getCollaborators(owner, repoName)
+          },
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
           countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
