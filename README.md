@@ -86,6 +86,7 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 
 - [gitbucket-gist-plugin](https://github.com/takezoe/gitbucket-gist-plugin)
 - [gitbucket-announce-plugin](https://github.com/McFoggy/gitbucket-announce-plugin)
+- [gitbucket-h2-backup-plugin](https://github.com/McFoggy/gitbucket-h2-backup-plugin)
 
 Release Notes
 --------
