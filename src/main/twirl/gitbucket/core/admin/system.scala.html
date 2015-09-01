@@ -5,6 +5,21 @@
 @html.main("System Settings"){
   @menu("system"){
     @helper.html.information(info)
+    <form action="@path/database/backup" method="POST">
+        <div class="box">
+          <div class="box-header">Database export</div>
+          <div class="box-content">
+            <label><span class="strong">Database export file:</span>@GitBucketHome/gitbucket-database-backup.zip</label>
+            <p class="muted">
+              Allows to export the database content. The same action can be achieved via an HTTP GET call to @path/database/backup
+            </p>
+
+            <fieldset>
+                <input type="submit" class="btn btn-primary" value="Export database"/>
+              </fieldset>
+          </div>
+        </div>
+    </form>
     <form action="@path/admin/system" method="POST" validate="true">
       <div class="box">
         <div class="box-header">System Settings</div>

@@ -1,17 +1,25 @@
 package gitbucket.core.controller
 
+import java.io.File
+
 import gitbucket.core.admin.html
 import gitbucket.core.service.{AccountService, SystemSettingsService}
+import gitbucket.core.servlet.Database
 import gitbucket.core.util.AdminAuthenticator
 import gitbucket.core.ssh.SshServer
+import gitbucket.core.util.Directory._
 import SystemSettingsService._
 import jp.sf.amateras.scalatra.forms._
+import org.scalatra.Ok
+import org.slf4j.LoggerFactory
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator
 
 trait SystemSettingsControllerBase extends ControllerBase {
   self: AccountService with AdminAuthenticator =>
+
+  private val logger = LoggerFactory.getLogger(classOf[SystemSettingsControllerBase])
 
   private val form = mapping(
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),
@@ -59,6 +67,27 @@ trait SystemSettingsControllerBase extends ControllerBase {
   )(PluginForm.apply)
 
   case class PluginForm(pluginIds: List[String])
+
+  def exportDatabase: Unit = {
+    val session = Database.getSession(request)
+    val conn = session.conn
+    val exportFile = new File(GitBucketHome, "gitbucket-database-backup.zip")
+
+    logger.info("exporting database to {}", exportFile)
+
+    conn.prepareStatement("BACKUP TO '" + exportFile + "'").execute();
+  }
+
+  get("/database/backup") {
+    exportDatabase
+    Ok("done")
+  }
+
+  post("/database/backup") {
+    exportDatabase
+    flash += "info" -> "Database has been exported."
+    redirect("/admin/system")
+  }
 
   get("/admin/system")(adminOnly {
     html.system(flash.get("info"))
