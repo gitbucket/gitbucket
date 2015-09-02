@@ -22,7 +22,8 @@ trait SystemSettingsService {
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
       props.setProperty(Ssh, settings.ssh.toString)
       settings.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
-      if(settings.notification) {
+      props.setProperty(UseSMTP, settings.useSMTP.toString)
+      if(settings.useSMTP) {
         settings.smtp.foreach { smtp =>
           props.setProperty(SmtpHost, smtp.host)
           smtp.port.foreach(x => props.setProperty(SmtpPort, x.toString))
@@ -75,7 +76,8 @@ trait SystemSettingsService {
         getOptionValue[Int](props, ActivityLogLimit, None),
         getValue(props, Ssh, false),
         getOptionValue(props, SshPort, Some(DefaultSshPort)),
-        if(getValue(props, Notification, false)){
+        getValue(props, UseSMTP, getValue(props, Notification, false)),   // handle migration scenario from only notification to useSMTP
+        if(getValue(props, UseSMTP, getValue(props, Notification, false))){
           Some(Smtp(
             getValue(props, SmtpHost, ""),
             getOptionValue(props, SmtpPort, Some(DefaultSmtpPort)),
@@ -125,6 +127,7 @@ object SystemSettingsService {
     activityLogLimit: Option[Int],
     ssh: Boolean,
     sshPort: Option[Int],
+    useSMTP: Boolean,
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
     ldap: Option[Ldap]){
@@ -172,6 +175,7 @@ object SystemSettingsService {
   private val ActivityLogLimit = "activity_log_limit"
   private val Ssh = "ssh"
   private val SshPort = "ssh.port"
+  private val UseSMTP = "useSMTP"
   private val SmtpHost = "smtp.host"
   private val SmtpPort = "smtp.port"
   private val SmtpUser = "smtp.user"
