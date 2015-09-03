@@ -91,7 +91,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                enableTaskList: Boolean = false,
                hasWritePermission: Boolean = false,
                pages: List[String] = Nil)(implicit context: Context): Html =
-    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, enableTaskList, true, hasWritePermission, pages))
+    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, true, enableTaskList, hasWritePermission, pages))
 
   def renderMarkup(filePath: List[String], fileContent: String, branch: String,
                    repository: RepositoryService.RepositoryInfo,
