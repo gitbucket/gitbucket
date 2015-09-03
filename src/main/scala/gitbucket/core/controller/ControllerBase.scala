@@ -181,6 +181,13 @@ case class Context(settings: SystemSettingsService.SystemSettings, loginAccount:
   val currentPath = request.getRequestURI.substring(request.getContextPath.length)
   val baseUrl = settings.baseUrl(request)
   val host = new java.net.URL(baseUrl).getHost
+  val platform = request.getHeader("User-Agent") match {
+    case null => null
+    case agent if agent.contains("Mac") => "mac"
+    case agent if agent.contains("Linux") => "linux"
+    case agent if agent.contains("Win") => "windows"
+    case _ => null
+  }
 
   /**
    * Get object from cache.
