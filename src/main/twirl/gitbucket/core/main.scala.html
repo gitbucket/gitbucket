@@ -1,6 +1,7 @@
 @(title: String, repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.plugin.PluginRegistry
 @import gitbucket.core.servlet.AutoUpdate
+@import gitbucket.core.service.ApplicationService
 @import context._
 @import gitbucket.core.view.helpers._
 <!DOCTYPE html>
@@ -50,7 +51,12 @@
             <a class="brand" href="@path/">
               <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
               @defining(AutoUpdate.getCurrentVersion){ version =>
-                <span class="header-version">@version.majorVersion.@version.minorVersion</span>
+                <span class="header-version">db: @version.majorVersion.@version.minorVersion</span>
+              }
+              @defining(ApplicationService.getApplicationVersion) {applicationVersion =>
+                @if(applicationVersion) {
+                  <span class="header-version">app: @applicationVersion</span>
+                }
               }
 
             </a>
