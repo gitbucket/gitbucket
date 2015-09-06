@@ -1528,13 +1528,17 @@ div.markdown-body pre {
   white-space: pre;
   word-wrap: normal;
   overflow: auto;
+  border: none;
+  padding: 4px;
 }
 
 div.markdown-body code {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 12px;
-  padding: 0 5px;
+  padding: 4px;
   background-color: rgba(0,0,0,0.04);
-  rgb(51, 51, 51);
+  border: none;
+  color: black;
 }
 
 div.markdown-body table {
