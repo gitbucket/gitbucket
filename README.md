@@ -16,9 +16,7 @@ The current version of GitBucket provides a basic features below:
 - Fork / Pull request
 - Email notification
 - Activity timeline
-- User management (for Administrators)
-- Group (like Organization in GitHub)
-- LDAP integration
+- Simple user and group management with LDAP integration
 - Gravatar support
 - Plug-in system
 
@@ -87,6 +85,9 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 - [gitbucket-gist-plugin](https://github.com/takezoe/gitbucket-gist-plugin)
 - [gitbucket-announce-plugin](https://github.com/McFoggy/gitbucket-announce-plugin)
 - [gitbucket-h2-backup-plugin](https://github.com/McFoggy/gitbucket-h2-backup-plugin)
+- [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
+
+You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
 
 Release Notes
 --------
