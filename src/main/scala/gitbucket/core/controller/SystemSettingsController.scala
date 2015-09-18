@@ -44,6 +44,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "additionalFilterCondition"-> trim(label("Additional filter condition", optional(text()))),
         "fullNameAttribute"        -> trim(label("Full name attribute", optional(text()))),
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
+        "pubKeyAttribute"          -> trim(label("SSH Public key attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))

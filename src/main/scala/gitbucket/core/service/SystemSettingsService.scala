@@ -45,6 +45,7 @@ trait SystemSettingsService {
           ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
           ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x))
+          ldap.pubKeyAttribute.foreach(x => props.setProperty(LdapPubKeyAttribute, x))
           ldap.tls.foreach(x => props.setProperty(LdapTls, x.toString))
           ldap.ssl.foreach(x => props.setProperty(LdapSsl, x.toString))
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
@@ -99,6 +100,7 @@ trait SystemSettingsService {
             getOptionValue(props, LdapAdditionalFilterCondition, None),
             getOptionValue(props, LdapFullNameAttribute, None),
             getOptionValue(props, LdapMailAddressAttribute, None),
+            getOptionValue(props, LdapPubKeyAttribute, None),
             getOptionValue[Boolean](props, LdapTls, None),
             getOptionValue[Boolean](props, LdapSsl, None),
             getOptionValue(props, LdapKeystore, None)))
@@ -145,6 +147,7 @@ object SystemSettingsService {
     additionalFilterCondition: Option[String],
     fullNameAttribute: Option[String],
     mailAttribute: Option[String],
+    pubKeyAttribute: Option[String],
     tls: Option[Boolean],
     ssl: Option[Boolean],
     keystore: Option[String])
@@ -189,6 +192,7 @@ object SystemSettingsService {
   private val LdapAdditionalFilterCondition = "ldap.additional_filter_condition"
   private val LdapFullNameAttribute = "ldap.fullname_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"
+  private val LdapPubKeyAttribute = "ldap.pubkey_attribute"
   private val LdapTls = "ldap.tls"
   private val LdapSsl = "ldap.ssl"
   private val LdapKeystore = "ldap.keystore"

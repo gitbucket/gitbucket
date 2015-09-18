@@ -198,6 +198,15 @@
                 <span id="error-ldap_mailAttribute" class="error"></span>
               </div>
             </div>
+
+            <div class="control-group">
+              <label class="control-label" for="ldapPubKeyAttribute">SSH Public key attribute</label>
+              <div class="controls">
+                <input type="text" id="ldapPubKeyAttribute" name="ldap.pubKeyAttribute" value="@settings.ldap.map(_.pubKeyAttribute)"/>
+                <span id="error-ldap_pubKeyAttribute" class="error"></span>
+              </div>
+            </div>
+
             <div class="control-group">
               <div class="controls">
                 <label class="checkbox">
