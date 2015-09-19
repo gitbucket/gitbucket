@@ -1,19 +1,14 @@
 package gitbucket.core.view
 
 import java.text.Normalizer
-import java.util.Locale
+import java.util.{Optional, Locale}
 import java.util.regex.Pattern
 
 import gitbucket.core.controller.Context
 import gitbucket.core.service.{RepositoryService, RequestCache, WikiService}
 import gitbucket.core.util.StringUtil
 import io.github.gitbucket.markedj._
-//import org.parboiled.common.StringUtils
-//import org.pegdown.LinkRenderer.Rendering
-//import org.pegdown._
-//import org.pegdown.ast._
-
-import scala.collection.JavaConverters._
+import io.github.gitbucket.markedj.Utils._
 
 object Markdown {
 
@@ -36,16 +31,19 @@ object Markdown {
              enableTaskList: Boolean = false,
              hasWritePermission: Boolean = false,
              pages: List[String] = Nil)(implicit context: Context): String = {
-    Marked.marked(markdown, new Options())
-//    // escape issue id
-//    val s = if(enableRefsLink){
-//      markdown.replaceAll("(?<=(\\W|^))#(\\d+)(?=(\\W|$))", "issue:$2")
-//    } else markdown
-//
-//    // escape task list
-//    val source = if(enableTaskList){
-//      GitBucketHtmlSerializer.escapeTaskList(s)
-//    } else s
+    // escape issue id
+    val s = if(enableRefsLink){
+      markdown.replaceAll("(?<=(\\W|^))#(\\d+)(?=(\\W|$))", "issue:$2")
+    } else markdown
+
+    // escape task list
+    val source = if(enableTaskList){
+      GitBucketHtmlSerializer.escapeTaskList(s)
+    } else s
+
+    val options = new Options()
+    Marked.marked(source, options, new GitBucketMarkedRenderer(options))
+
 //
 //    val rootNode = new PegDownProcessor(
 //      Extensions.AUTOLINKS | Extensions.WIKILINKS | Extensions.FENCED_CODE_BLOCKS |
@@ -57,6 +55,19 @@ object Markdown {
 //      hasWritePermission, pages
 //    ).toHtml(rootNode)
   }
+}
+
+class GitBucketMarkedRenderer(options: Options) extends Renderer(options) {
+
+  override def code(code: String, lang: Optional[String], escaped: Boolean): String = {
+    "<pre class=\"prettyprint" + (if(lang.isPresent) s" ${options.getLangPrefix}${lang.get}" else "" )+ "\">" +
+      (if(escaped) code else escape(code, true)) + "</pre>"
+  }
+
+  override def text(text: String): String = {
+    text
+  }
+
 }
 
 //class GitBucketLinkRender(
