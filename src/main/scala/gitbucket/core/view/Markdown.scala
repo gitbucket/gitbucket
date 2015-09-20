@@ -117,12 +117,6 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 
 }
 
-//class GitBucketLinkRender(
-//    context: Context,
-//    repository: RepositoryService.RepositoryInfo,
-//    enableWikiLink: Boolean,
-//    pages: List[String]) extends LinkRenderer with WikiService {
-//
 //class GitBucketHtmlSerializer(
 //    markdown: String,
 //    repository: RepositoryService.RepositoryInfo,
@@ -146,10 +140,6 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 //    printer.print('>').print(rendering.text).print("</a>")
 //  }
 //
-//  private def printAttribute(name: String, value: String): Unit = {
-//    printer.print(' ').print(name).print('=').print('"').print(value).print('"')
-//  }
-//
 //  private def printHeaderTag(node: HeaderNode): Unit = {
 //    val tag = s"h${node.getLevel}"
 //    val child = node.getChildren.asScala.headOption
@@ -169,19 +159,6 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 //      case _ => visitChildren(node)
 //    }
 //    printer.print(s"</$tag>")
-//  }
-//
-//  private def extractText(node: Node): String = {
-//    val sb = new StringBuilder()
-//    node.getChildren.asScala.map {
-//      case x: TextNode => sb.append(x.getText)
-//      case x: Node => sb.append(extractText(x))
-//    }
-//    sb.toString()
-//  }
-//
-//  override def visit(node: HeaderNode): Unit = {
-//    printHeaderTag(node)
 //  }
 //
 //  override def visit(node: TextNode): Unit =  {
@@ -230,32 +207,6 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 //      printer.println()
 //      printTag(node, "li")
 //    }
-//  }
-//
-//  override def visit(node: ExpLinkNode) {
-//    printLink(linkRenderer.render(node, printLinkChildrenToString(node)))
-//  }
-//
-//  def printLinkChildrenToString(node: SuperNode) = {
-//    val priorPrinter = printer
-//    printer = new Printer()
-//    visitLinkChildren(node)
-//    val result = printer.getString()
-//    printer = priorPrinter
-//    result
-//  }
-//
-//  def visitLinkChildren(node: SuperNode) {
-//    import scala.collection.JavaConversions._
-//    node.getChildren.foreach(child => child match {
-//      case node: ExpImageNode => visitLinkChild(node)
-//      case node: SuperNode => visitLinkChildren(node)
-//      case _ => child.accept(this)
-//    })
-//  }
-//
-//  def visitLinkChild(node: ExpImageNode) {
-//    printer.print("<img src=\"").print(fixUrl(node.url, true)).print("\"  alt=\"").printEncoded(printChildrenToString(node)).print("\"/>")
 //  }
 //}
 
