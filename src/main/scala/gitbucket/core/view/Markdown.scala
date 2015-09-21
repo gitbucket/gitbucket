@@ -57,6 +57,29 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
       (if(escaped) code else escape(code, true)) + "</pre>"
   }
 
+  override def list(body: String, ordered: Boolean): String = {
+    var listType: String = null
+    if (ordered) {
+      listType = "ol"
+    }
+    else {
+      listType = "ul"
+    }
+    if(body.contains("""class="task-list-item-checkbox"""")){
+      return "<" + listType + " class=\"task-list\">\n" + body + "</" + listType + ">\n"
+    } else {
+      return "<" + listType + ">\n" + body + "</" + listType + ">\n"
+    }
+  }
+
+  override def listitem(text: String): String = {
+    if(text.contains("""class="task-list-item-checkbox" """)){
+      return "<li class=\"task-list-item\">" + text + "</li>"
+    } else {
+      return "<li>" + text + "</li>"
+    }
+  }
+
   override def text(text: String): String = {
     // convert commit id and username to link.
     val t1 = if(enableRefsLink) convertRefsLinks(text, repository, "issue:") else text
@@ -72,7 +95,7 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
   }
 
   override def nolink(text: String): String = {
-    if(enableWikiLink && text.startsWith("[") && text.endsWith("]")){
+    if(enableWikiLink && text.startsWith("[[") && text.endsWith("]]")){
       val link = text.replaceAll("(^\\[\\[|\\]\\]$)", "")
 
       val (label, page) = if(link.contains('|')){
@@ -84,9 +107,9 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 
       val url = repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/" + StringUtil.urlEncode(page)
       if(pages.contains(page)){
-        "<a href=\"" + url + "\">" + escape(page) + "</a>"
+        "<a href=\"" + url + "\">" + escape(label) + "</a>"
       } else {
-        "<a href=\"" + url + "\" class=\"absent\">" + escape(page) + "</a>"
+        "<a href=\"" + url + "\" class=\"absent\">" + escape(label) + "</a>"
       }
     } else {
       escape(text)
@@ -161,20 +184,6 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 //    printer.print(s"</$tag>")
 //  }
 //
-//  override def visit(node: TextNode): Unit =  {
-//    // convert commit id and username to link.
-//    val t = if(enableRefsLink) convertRefsLinks(node.getText, repository, "issue:") else node.getText
-//
-//    // convert task list to checkbox.
-//    val text = if(enableTaskList) GitBucketHtmlSerializer.convertCheckBox(t, hasWritePermission) else t
-//
-//    if (abbreviations.isEmpty) {
-//      printer.print(text)
-//    } else {
-//      printWithAbbreviations(text)
-//    }
-//  }
-//
 //  override def visit(node: VerbatimNode) {
 //    val printer = new Printer()
 //    val serializer = verbatimSerializers.get(VerbatimSerializer.DEFAULT)
@@ -185,28 +194,6 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 //    val t = if(enableRefsLink) convertRefsLinks(html, repository, "issue:", escapeHtml = false) else html
 //
 //    this.printer.print(t)
-//  }
-//
-//  override def visit(node: BulletListNode): Unit = {
-//    if (printChildrenToString(node).contains("""class="task-list-item-checkbox" """)) {
-//      printer.println().print("""<ul class="task-list">""").indent(+2)
-//      visitChildren(node)
-//      printer.indent(-2).println().print("</ul>")
-//    } else {
-//      printIndentedTag(node, "ul")
-//    }
-//  }
-//
-//  override def visit(node: ListItemNode): Unit = {
-//    if (printChildrenToString(node).contains("""class="task-list-item-checkbox" """)) {
-//      printer.println()
-//      printer.print("""<li class="task-list-item">""")
-//      visitChildren(node)
-//      printer.print("</li>")
-//    } else {
-//      printer.println()
-//      printTag(node, "li")
-//    }
 //  }
 //}
 
