@@ -233,7 +233,7 @@ trait IssuesControllerBase extends ControllerBase {
           org.json4s.jackson.Serialization.write(
               Map("title"   -> x.title,
                   "content" -> Markdown.toHtml(x.content getOrElse "No description given.",
-                      repository, false, true, true, isEditable(x.userName, x.repositoryName, x.openedUserName))
+                      repository, false, true, true, true, isEditable(x.userName, x.repositoryName, x.openedUserName))
               ))
         }
       } else Unauthorized
