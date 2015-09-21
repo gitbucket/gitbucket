@@ -2,10 +2,9 @@ package gitbucket.core.view
 
 import java.text.Normalizer
 import java.util.{Optional, Locale}
-import java.util.regex.Pattern
 
 import gitbucket.core.controller.Context
-import gitbucket.core.service.{RepositoryService, RequestCache, WikiService}
+import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.StringUtil
 import io.github.gitbucket.markedj._
 import io.github.gitbucket.markedj.Utils._
@@ -38,13 +37,19 @@ object Markdown {
 
     // escape task list
     val source = if(enableTaskList){
-      GitBucketHtmlSerializer.escapeTaskList(s)
+      s.replaceAll("""(?m)^( *)- \[([x| ])\] """, "$1* task:$2: ")
+//      escapeTaskList(s)
     } else s
 
     val options = new Options()
     val renderer = new GitBucketMarkedRenderer(options, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
     Marked.marked(source, options, renderer)
   }
+
+//  private def escapeTaskList(text: String): String = {
+//    Pattern.compile("""^( *)- \[([x| ])\] """, Pattern.MULTILINE).matcher(text).replaceAll("$1* task:$2: ")
+//  }
+
 }
 
 class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.RepositoryInfo,
@@ -53,14 +58,17 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
                              (implicit val context: Context) extends Renderer(options) with LinkConverter with RequestCache {
 
   override  def heading(text: String, level: Int, raw: String): String = {
+    val id = generateAnchorName(text)
     val out = new StringBuilder()
-    out.append("<h" + level + " id=\"" + options.getHeaderPrefix + raw.toLowerCase.replaceAll("[^\\w]+", "-") + "\" class=\"markdown-head\">")
-    out.append(text)
+
+    out.append("<h" + level + " id=\"" + options.getHeaderPrefix + id + "\" class=\"markdown-head\">")
+
     if(enableAnchor){
-      val anchorName = GitBucketHtmlSerializer.generateAnchorName(text.replaceAll("<.*>", ""))
-      out.append("<a class=\"markdown-anchor-link\" href=\"#" + anchorName + "\"></a>")
-      out.append("<a class=\"markdown-anchor\" name=\"" + anchorName + "\"></a>")
+      out.append("<a class=\"markdown-anchor-link\" href=\"#" + id + "\"></a>")
+      out.append("<a class=\"markdown-anchor\" name=\"" + id + "\"></a>")
     }
+
+    out.append(text)
     out.append("</h" + level + ">\n")
     out.toString()
   }
@@ -98,13 +106,17 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
     val t1 = if(enableRefsLink) convertRefsLinks(text, repository, "issue:") else text
 
     // convert task list to checkbox.
-    val t2 = if(enableTaskList) GitBucketHtmlSerializer.convertCheckBox(t1, hasWritePermission) else t1
+    val t2 = if(enableTaskList) convertCheckBox(t1, hasWritePermission) else t1
 
     t2
   }
 
+  override def link(href: String, title: Optional[String], text: String): String = {
+    super.link(fixUrl(href, true), title, text)
+  }
+
   override def image(href: String, title: Optional[String], text: String): String = {
-    super.image(fixUrl(href, true), title, text);
+    super.image(fixUrl(href, true), title, text)
   }
 
   override def nolink(text: String): String = {
@@ -133,7 +145,7 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
     if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")){
       url
     } else if(url.startsWith("#")){
-      ("#" + GitBucketHtmlSerializer.generateAnchorName(url.substring(1)))
+      ("#" + generateAnchorName(url.substring(1)))
     } else if(!enableWikiLink){
       if(context.currentPath.contains("/blob/")){
         url + (if(isImage) "?raw=true" else "")
@@ -151,62 +163,16 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
     }
   }
 
-}
-
-//class GitBucketHtmlSerializer(
-//    markdown: String,
-//    repository: RepositoryService.RepositoryInfo,
-//    enableWikiLink: Boolean,
-//    enableRefsLink: Boolean,
-//    enableAnchor: Boolean,
-//    enableTaskList: Boolean,
-//    hasWritePermission: Boolean,
-//    pages: List[String]
-//  )(implicit val context: Context) extends ToHtmlSerializer(
-//    new GitBucketLinkRender(context, repository, enableWikiLink, pages),
-//    Map[String, VerbatimSerializer](VerbatimSerializer.DEFAULT -> new GitBucketVerbatimSerializer).asJava
-//  ) with LinkConverter with RequestCache {
-//
-//  override protected def printLink(rendering: LinkRenderer.Rendering): Unit = {
-//    printer.print('<').print('a')
-//    printAttribute("href", fixUrl(rendering.href))
-//    for (attr <- rendering.attributes.asScala) {
-//      printAttribute(attr.name, attr.value)
-//    }
-//    printer.print('>').print(rendering.text).print("</a>")
-//  }
-//
-//  override def visit(node: VerbatimNode) {
-//    val printer = new Printer()
-//    val serializer = verbatimSerializers.get(VerbatimSerializer.DEFAULT)
-//    serializer.serialize(node, printer)
-//    val html = printer.getString
-//
-//    // convert commit id and username to link.
-//    val t = if(enableRefsLink) convertRefsLinks(html, repository, "issue:", escapeHtml = false) else html
-//
-//    this.printer.print(t)
-//  }
-//}
-
-object GitBucketHtmlSerializer {
-
-  private val Whitespace = "[\\s]".r
-
-  def generateAnchorName(text: String): String = {
-    val noWhitespace = Whitespace.replaceAllIn(text, "-")
-    val normalized = Normalizer.normalize(noWhitespace, Normalizer.Form.NFD)
-    val noSpecialChars = StringUtil.urlEncode(normalized)
-    noSpecialChars.toLowerCase(Locale.ENGLISH)
+  private def generateAnchorName(text: String): String = {
+    val normalized = Normalizer.normalize(text.replaceAll("<.*>", "").replaceAll("[\\s]", "-"), Normalizer.Form.NFD)
+    val encoded    = StringUtil.urlEncode(normalized)
+    encoded.toLowerCase(Locale.ENGLISH)
   }
 
-  def escapeTaskList(text: String): String = {
-    Pattern.compile("""^( *)- \[([x| ])\] """, Pattern.MULTILINE).matcher(text).replaceAll("$1* task:$2: ")
-  }
-
-  def convertCheckBox(text: String, hasWritePermission: Boolean): String = {
+  private def convertCheckBox(text: String, hasWritePermission: Boolean): String = {
     val disabled = if (hasWritePermission) "" else "disabled"
     text.replaceAll("task:x:", """<input type="checkbox" class="task-list-item-checkbox" checked="checked" """ + disabled + "/>")
-        .replaceAll("task: :", """<input type="checkbox" class="task-list-item-checkbox" """ + disabled + "/>")
+      .replaceAll("task: :", """<input type="checkbox" class="task-list-item-checkbox" """ + disabled + "/>")
   }
+
 }
