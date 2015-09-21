@@ -42,15 +42,28 @@ object Markdown {
     } else s
 
     val options = new Options()
-    val renderer = new GitBucketMarkedRenderer(options, repository, enableWikiLink, enableRefsLink, enableTaskList, hasWritePermission, pages)
+    val renderer = new GitBucketMarkedRenderer(options, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
     Marked.marked(source, options, renderer)
   }
 }
 
 class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.RepositoryInfo,
-                              enableWikiLink: Boolean, enableRefsLink: Boolean, enableTaskList: Boolean, hasWritePermission: Boolean,
+                              enableWikiLink: Boolean, enableRefsLink: Boolean, enableAnchor: Boolean, enableTaskList: Boolean, hasWritePermission: Boolean,
                               pages: List[String])
                              (implicit val context: Context) extends Renderer(options) with LinkConverter with RequestCache {
+
+  override  def heading(text: String, level: Int, raw: String): String = {
+    val out = new StringBuilder()
+    out.append("<h" + level + " id=\"" + options.getHeaderPrefix + raw.toLowerCase.replaceAll("[^\\w]+", "-") + "\" class=\"markdown-head\">")
+    out.append(text)
+    if(enableAnchor){
+      val anchorName = GitBucketHtmlSerializer.generateAnchorName(text.replaceAll("<.*>", ""))
+      out.append("<a class=\"markdown-anchor-link\" href=\"#" + anchorName + "\"></a>")
+      out.append("<a class=\"markdown-anchor\" name=\"" + anchorName + "\"></a>")
+    }
+    out.append("</h" + level + ">\n")
+    out.toString()
+  }
 
   override def code(code: String, lang: Optional[String], escaped: Boolean): String = {
     "<pre class=\"prettyprint" + (if(lang.isPresent) s" ${options.getLangPrefix}${lang.get}" else "" )+ "\">" +
@@ -74,9 +87,9 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 
   override def listitem(text: String): String = {
     if(text.contains("""class="task-list-item-checkbox" """)){
-      return "<li class=\"task-list-item\">" + text + "</li>"
+      return "<li class=\"task-list-item\">" + text + "</li>\n"
     } else {
-      return "<li>" + text + "</li>"
+      return "<li>" + text + "</li>\n"
     }
   }
 
@@ -161,27 +174,6 @@ class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.Re
 //      printAttribute(attr.name, attr.value)
 //    }
 //    printer.print('>').print(rendering.text).print("</a>")
-//  }
-//
-//  private def printHeaderTag(node: HeaderNode): Unit = {
-//    val tag = s"h${node.getLevel}"
-//    val child = node.getChildren.asScala.headOption
-//    val anchorName = child match {
-//      case Some(x: AnchorLinkNode) => x.getName
-//      case Some(x: TextNode)       => x.getText
-//      case _ => GitBucketHtmlSerializer.generateAnchorName(extractText(node)) // TODO
-//    }
-//
-//    printer.print(s"""<$tag class="markdown-head">""")
-//    if(enableAnchor){
-//      printer.print(s"""<a class="markdown-anchor-link" href="#$anchorName"></a>""")
-//      printer.print(s"""<a class="markdown-anchor" name="$anchorName"></a>""")
-//    }
-//    child match {
-//      case Some(x: AnchorLinkNode) => printer.print(x.getText)
-//      case _ => visitChildren(node)
-//    }
-//    printer.print(s"</$tag>")
 //  }
 //
 //  override def visit(node: VerbatimNode) {
