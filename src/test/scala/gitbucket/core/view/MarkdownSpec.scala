@@ -2,9 +2,9 @@ package gitbucket.core.view
 
 import org.specs2.mutable._
 
-class GitBucketHtmlSerializerSpec extends Specification {
+class MarkdownSpec extends Specification {
 
-  import GitBucketHtmlSerializer._
+  import Markdown._
 
   "generateAnchorName" should {
     "convert whitespace characters to hyphens" in {

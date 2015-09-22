@@ -38,7 +38,8 @@ object MyBuild extends Build {
     scalaVersion := ScalaVersion,
     resolvers ++= Seq(
       Classpaths.typesafeReleases,
-      "amateras-repo" at "http://amateras.sourceforge.jp/mvn/"
+      "amateras-repo" at "http://amateras.sourceforge.jp/mvn/",
+      "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/"
     ),
     scalacOptions := Seq("-deprecation", "-language:postfixOps"),
     libraryDependencies ++= Seq(
@@ -50,7 +51,7 @@ object MyBuild extends Build {
       "org.json4s" %% "json4s-jackson" % "3.2.11",
       "jp.sf.amateras" %% "scalatra-forms" % "0.1.0",
       "commons-io" % "commons-io" % "2.4",
-      "org.pegdown" % "pegdown" % "1.5.0",
+      "io.github.gitbucket" % "markedj" % "1.0.1",
       "org.apache.commons" % "commons-compress" % "1.9",
       "org.apache.commons" % "commons-email" % "1.3.3",
       "org.apache.httpcomponents" % "httpclient" % "4.3.6",
