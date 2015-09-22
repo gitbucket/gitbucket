@@ -82,9 +82,9 @@ Plug-ins
 --------
 GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. Some plug-ins are available now:
 
-- [gitbucket-gist-plugin](https://github.com/takezoe/gitbucket-gist-plugin)
-- [gitbucket-announce-plugin](https://github.com/McFoggy/gitbucket-announce-plugin)
-- [gitbucket-h2-backup-plugin](https://github.com/McFoggy/gitbucket-h2-backup-plugin)
+- [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
+- [gitbucket-announce-plugin](https://github.com/gitbucket-plugins/gitbucket-announce-plugin)
+- [gitbucket-h2-backup-plugin](https://github.com/gitbucket-plugins/gitbucket-h2-backup-plugin)
 - [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
 
 You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
