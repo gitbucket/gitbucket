@@ -295,6 +295,9 @@ div > div.box-content-row:nth-of-type(1) {
 div.box-content-row {
   border-top: 1px solid #d8d8d8;
   padding: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 div.box-content-bottom {
