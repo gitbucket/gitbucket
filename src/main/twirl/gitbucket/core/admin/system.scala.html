@@ -239,7 +239,7 @@
           <fieldset>
             <label class="checkbox">
               <input type="checkbox" id="useSMTP" name="useSMTP" @if(settings.useSMTP){ checked}/>
-              use SMTP
+              SMTP
             </label>
           </fieldset>
           <div class="form-horizontal useSMTP">
@@ -288,6 +288,9 @@
                 <input type="text" id="fromName" name="smtp.fromName" value="@settings.smtp.map(_.fromName)"/>
               </div>
             </div>
+            <p class="muted">
+              Enable notification not only SMTP configuration if you want to send nitification email.
+            </p>
           </div>
         </div>
       </div>

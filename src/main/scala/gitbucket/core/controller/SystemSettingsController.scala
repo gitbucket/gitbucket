@@ -24,7 +24,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
     "activityLogLimit"         -> trim(label("Limit of activity logs", optional(number()))),
     "ssh"                      -> trim(label("SSH access", boolean())),
     "sshPort"                  -> trim(label("SSH port", optional(number()))),
-    "useSMTP"                 -> trim(label("SMTP", boolean())),
+    "useSMTP"                  -> trim(label("SMTP", boolean())),
     "smtp"                     -> optionalIfNotChecked("useSMTP", mapping(
         "host"                     -> trim(label("SMTP Host", text(required))),
         "port"                     -> trim(label("SMTP Port", optional(number()))),

@@ -21,6 +21,15 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current BitBucket version.
    */
   val versions = Seq(
+    new Version(3, 7) with SystemSettingsService {
+      override def update(conn: Connection, cl: ClassLoader): Unit = {
+        super.update(conn, cl)
+        val settings = loadSystemSettings()
+        if(settings.notification){
+          saveSystemSettings(settings.copy(useSMTP = true))
+        }
+      }
+    },
     new Version(3, 6),
     new Version(3, 5),
     new Version(3, 4),
