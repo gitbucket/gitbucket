@@ -2,7 +2,7 @@ package gitbucket.core.view
 
 import java.text.Normalizer
 import java.util.regex.Pattern
-import java.util.{Optional, Locale}
+import java.util.Locale
 
 import gitbucket.core.controller.Context
 import gitbucket.core.service.{RepositoryService, RequestCache}
@@ -70,8 +70,8 @@ object Markdown {
       out.toString()
     }
 
-    override def code(code: String, lang: Optional[String], escaped: Boolean): String = {
-      "<pre class=\"prettyprint" + (if(lang.isPresent) s" ${options.getLangPrefix}${lang.get}" else "" )+ "\">" +
+    override def code(code: String, lang: String, escaped: Boolean): String = {
+      "<pre class=\"prettyprint" + (if(lang != null) s" ${options.getLangPrefix}${lang}" else "" )+ "\">" +
         (if(escaped) code else escape(code, true)) + "</pre>"
     }
 
@@ -108,11 +108,11 @@ object Markdown {
       t2
     }
 
-    override def link(href: String, title: Optional[String], text: String): String = {
+    override def link(href: String, title: String, text: String): String = {
       super.link(fixUrl(href, true), title, text)
     }
 
-    override def image(href: String, title: Optional[String], text: String): String = {
+    override def image(href: String, title: String, text: String): String = {
       super.image(fixUrl(href, true), title, text)
     }
 
