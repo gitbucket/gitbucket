@@ -224,14 +224,25 @@
           <!-- Notification email -->
           <!--====================================================================-->
           <hr>
-          <label class="strong">Notification email</label>
+          <label class="strong">Notifications</label>
           <fieldset>
             <label class="checkbox">
               <input type="checkbox" id="notification" name="notification"@if(settings.notification){ checked}/>
               Send notifications
             </label>
           </fieldset>
-          <div class="form-horizontal notification">
+          <!--====================================================================-->
+          <!-- Communication email -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">Communication</label>
+          <fieldset>
+            <label class="checkbox">
+              <input type="checkbox" id="useSMTP" name="useSMTP" @if(settings.useSMTP){ checked}/>
+              SMTP
+            </label>
+          </fieldset>
+          <div class="form-horizontal useSMTP">
             <div class="control-group">
               <label class="control-label" for="smtpHost">SMTP Host</label>
               <div class="controls">
@@ -277,6 +288,9 @@
                 <input type="text" id="fromName" name="smtp.fromName" value="@settings.smtp.map(_.fromName)"/>
               </div>
             </div>
+            <p class="muted">
+              Enable notification not only SMTP configuration if you want to send nitification email.
+            </p>
           </div>
         </div>
       </div>
@@ -292,8 +306,16 @@ $(function(){
     $('.ssh input').prop('disabled', !$(this).prop('checked'));
   }).change();
 
-  $('#notification').change(function(){
-    $('.notification input').prop('disabled', !$(this).prop('checked'));
+  $('#useSMTP').change(function(){
+    $('.useSMTP input').prop('disabled', !$(this).prop('checked'));
+
+    // With only SMTP in current version, notification cannot be enabled if no communication channel exists
+    $('#notification').prop('disabled', !$(this).prop('checked'));
+
+    if (!$(this).prop('checked')) {
+      // With only SMTP in current version, if SMTP is unchecked then we disable notification
+      $('#notification').prop('checked', false);
+    }
   }).change();
 
   $('#ldapAuthentication').change(function(){

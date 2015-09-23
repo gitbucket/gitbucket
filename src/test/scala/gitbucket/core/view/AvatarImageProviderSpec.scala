@@ -103,6 +103,7 @@ class AvatarImageProviderSpec extends Specification with Mockito {
       activityLogLimit         = None,
       ssh                      = false,
       sshPort                  = None,
+      useSMTP                  = false,
       smtp                     = None,
       ldapAuthentication       = false,
       ldap                     = None)
