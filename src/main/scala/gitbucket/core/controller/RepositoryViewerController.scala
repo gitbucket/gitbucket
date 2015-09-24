@@ -523,10 +523,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file find of branch.
    */
-  get("/:owner/:repository/find/:ref")(referrersOnly { repository =>
+  get("/:owner/:repository/find/*")(referrersOnly { repository =>
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      JGitUtil.getTreeId(git, params("ref")).map{ treeId =>
-        html.find(params("ref"),
+      val ref = multiParams("splat").head
+      JGitUtil.getTreeId(git, ref).map{ treeId =>
+        html.find(ref,
                   treeId,
                   repository,
                   context.loginAccount match {
