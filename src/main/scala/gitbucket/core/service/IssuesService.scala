@@ -476,8 +476,11 @@ object IssuesService {
     def apply(filter: String, milestones: Map[String, Int]): IssueSearchCondition = {
       val conditions = filter.split("[ 　\t]+").map { x =>
         val dim = x.split(":")
-        dim(0) -> dim(1)
-      }.groupBy(_._1).map { case (key, values) =>
+        dim match {
+           case Array(_,_) => dim(0) -> dim(1)
+           case _ => "x" -> "x"
+        }
+      }.filter(_._1 != "x").groupBy(_._1).map { case (key, values) =>
         key -> values.map(_._2).toSeq
       }
 
