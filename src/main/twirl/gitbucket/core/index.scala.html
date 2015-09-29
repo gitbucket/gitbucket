@@ -36,7 +36,7 @@
               </div>
             } else {
               <div class="box-content-bottom" style="padding: 0px;">
-                @defining(20){ max =>
+                @defining(3){ max =>
                   @userRepositories.zipWithIndex.map { case (repository, i) =>
                     <div class="box-content-row repo-link" style="@if(i > max - 1){display:none;}">
                       @helper.html.repositoryicon(repository, false)
@@ -66,7 +66,7 @@
         } else {
           <div class="box-content-bottom" style="padding: 0px;">
             @recentRepositories.map { repository =>
-              <div class="box-content-row">
+              <div class="box-content-row repo-link">
                 @helper.html.repositoryicon(repository, false)
                 <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
               </div>
@@ -80,7 +80,7 @@
 <script>
 $(function(){
   $('#show-more-repos').click(function(e){
-    $('div.repo-link').show();
+    $(e.target).parents('div.box-content-bottom').find('div.repo-link').show();
     $(e.target).parents('div.show-more').remove();
   });
 });

@@ -297,6 +297,12 @@ div.box-content-row {
   padding: 4px;
 }
 
+div.repo-link {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 div.box-content-bottom {
   background-color: white;
   border: 1px solid #d8d8d8;
