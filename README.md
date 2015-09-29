@@ -20,12 +20,6 @@ The current version of GitBucket provides a basic features below:
 - Gravatar support
 - Plug-in system
 
-Following features are not implemented, but we will make them in the future release!
-
-- Network graph
-- Statistics
-- Watch / Star
-
 If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
 
 Installation
@@ -88,6 +82,13 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 - [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
 
 You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
+
+Support
+--------
+
+- If you have any question about GitBucket, send it to [gitter room](https://gitter.im/takezoe/gitbucket) before raise an issue.
+- When raise a new issue, write subject in **English** at least.
+- We can also support in Japaneses other than English at [gitter room for Japanese](https://gitter.im/takezoe/gitbucket_ja).
 
 Release Notes
 --------
