@@ -200,7 +200,7 @@ class JsonFormatSpec extends Specification {
     "title": "Found a bug",
     "body": "I'm having a problem with this.",
     "user": $apiUserJson,
-    "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347/comments",
+    "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
     "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"

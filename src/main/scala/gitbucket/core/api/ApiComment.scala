@@ -15,7 +15,7 @@ case class ApiComment(
   body: String,
   created_at: Date,
   updated_at: Date)(repositoryName: RepositoryName, issueId: Int, issueOrPullRequest: IssueOrPullRequest){
-  val html_url = ApiPath(s"/${repositoryName.fullName}/${issueOrPullRequest.html}/${issueId}#comment-${id}")
+  val html_url = ApiPath(s"/${repositoryName.fullName}/${issueOrPullRequest.path}/${issueId}#comment-${id}")
 }
 
 object ApiComment{

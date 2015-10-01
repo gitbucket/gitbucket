@@ -18,8 +18,8 @@ case class ApiIssue(
   created_at: Date,
   updated_at: Date,
   body: String)(repositoryName: RepositoryName, issueOrPullRequest: IssueOrPullRequest){
-  val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/${issueOrPullRequest.api}/${number}/comments")
-  val html_url = ApiPath(s"/${repositoryName.fullName}/${issueOrPullRequest.html}/${number}")
+  val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${number}/comments")
+  val html_url = ApiPath(s"/${repositoryName.fullName}/${issueOrPullRequest.path}/${number}")
 }
 
 object ApiIssue{
