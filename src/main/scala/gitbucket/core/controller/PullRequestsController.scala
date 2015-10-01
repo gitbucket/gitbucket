@@ -239,6 +239,9 @@ trait PullRequestsControllerBase extends ControllerBase {
               }
               closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
             }
+
+            updatePullRequests(owner, name, pullreq.branch)
+
             // call web hook
             callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
