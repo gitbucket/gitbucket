@@ -85,6 +85,44 @@ class JsonFormatSpec extends Specification {
     "url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e/statuses"
   }"""
 
+  val apiPushCommit = ApiPushCommit(
+    id = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    message = "Update README.md",
+    timestamp = date1,
+    added = Nil,
+    removed = Nil,
+    modified = List("README.md"),
+    author = ApiPersonIdent("baxterthehacker","baxterthehacker@users.noreply.github.com",date1),
+    committer = ApiPersonIdent("baxterthehacker","baxterthehacker@users.noreply.github.com",date1))(RepositoryName("baxterthehacker", "public-repo"))
+  val apiPushCommitJson = s"""{
+      "id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+      // "distinct": true,
+      "message": "Update README.md",
+      "timestamp": "2011-04-14T16:00:49Z",
+      "url": "http://gitbucket.exmple.com/baxterthehacker/public-repo/commit/0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+      "author": {
+        "name": "baxterthehacker",
+        "email": "baxterthehacker@users.noreply.github.com",
+        // "username": "baxterthehacker",
+        "date" : "2011-04-14T16:00:49Z"
+      },
+      "committer": {
+        "name": "baxterthehacker",
+        "email": "baxterthehacker@users.noreply.github.com",
+        // "username": "baxterthehacker",
+        "date" : "2011-04-14T16:00:49Z"
+      },
+      "added": [
+
+      ],
+      "removed": [
+
+      ],
+      "modified": [
+        "README.md"
+      ]
+    }"""
+
   val apiComment = ApiComment(
     id =1,
     user = apiUser,
@@ -261,6 +299,9 @@ class JsonFormatSpec extends Specification {
     }
     "repository" in {
         JsonFormat(repository) must beFormatted(repositoryJson)
+    }
+    "apiPushCommit" in {
+        JsonFormat(apiPushCommit) must beFormatted(apiPushCommitJson)
     }
     "apiComment" in {
         JsonFormat(apiComment) must beFormatted(apiCommentJson)
