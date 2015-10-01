@@ -474,13 +474,12 @@ object IssuesService {
      * Restores IssueSearchCondition instance from filter query.
      */
     def apply(filter: String, milestones: Map[String, Int]): IssueSearchCondition = {
-      val conditions = filter.split("[ 　\t]+").map { x =>
-        val dim = x.split(":")
-        dim match {
-           case Array(_,_) => dim(0) -> dim(1)
-           case _ => "x" -> "x"
+      val conditions = filter.split("[ 　\t]+").flatMap { x =>
+        x.split(":") match {
+           case Array(key, value) => Some((key, value))
+           case _ => None
         }
-      }.filter(_._1 != "x").groupBy(_._1).map { case (key, values) =>
+      }.groupBy(_._1).map { case (key, values) =>
         key -> values.map(_._2).toSeq
       }
 
