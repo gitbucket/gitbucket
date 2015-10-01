@@ -101,7 +101,7 @@ object Markdown {
 
     override def text(text: String): String = {
       // convert commit id and username to link.
-      val t1 = if(enableRefsLink) convertRefsLinks(text, repository, "issue:") else text
+      val t1 = if(enableRefsLink) convertRefsLinks(text, repository, "issue:", false) else text
 
       // convert task list to checkbox.
       val t2 = if(enableTaskList) convertCheckBox(t1, hasWritePermission) else t1
