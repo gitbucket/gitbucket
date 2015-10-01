@@ -22,11 +22,13 @@ trait IssuesService {
   def getComments(owner: String, repository: String, issueId: Int)(implicit s: Session) =
     IssueComments filter (_.byIssue(owner, repository, issueId)) list
 
-  /** @return IssueComment and commentedUser */
-  def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session): List[(IssueComment, Account)] =
+  /** @return IssueComment and commentedUser and Issue */
+  def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session): List[(IssueComment, Account, Issue)] =
     IssueComments.filter(_.byIssue(owner, repository, issueId))
     .filter(_.action inSetBind Set("comment" , "close_comment", "reopen_comment"))
     .innerJoin(Accounts).on( (t1, t2) => t1.commentedUserName === t2.userName )
+    .innerJoin(Issues).on{ case ((t1, t2), t3) => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
+    .map{ case ((t1, t2), t3) => (t1, t2, t3) }
     .list
 
   def getComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
