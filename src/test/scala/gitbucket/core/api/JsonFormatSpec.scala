@@ -90,12 +90,27 @@ class JsonFormatSpec extends Specification {
     user = apiUser,
     body= "Me too",
     created_at= date1,
-    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100)
+    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, false)
   val apiCommentJson = s"""{
     "id": 1,
     "body": "Me too",
     "user": $apiUserJson,
     "html_url" : "${context.baseUrl}/octocat/Hello-World/issues/100#comment-1",
+    "created_at": "2011-04-14T16:00:49Z",
+    "updated_at": "2011-04-14T16:00:49Z"
+  }"""
+
+  val apiCommentPR = ApiComment(
+    id =1,
+    user = apiUser,
+    body= "Me too",
+    created_at= date1,
+    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, true)
+  val apiCommentPRJson = s"""{
+    "id": 1,
+    "body": "Me too",
+    "user": $apiUserJson,
+    "html_url" : "${context.baseUrl}/octocat/Hello-World/pull/100#comment-1",
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"
   }"""
@@ -158,7 +173,7 @@ class JsonFormatSpec extends Specification {
       state  = "open",
       body   = "I'm having a problem with this.",
       created_at = date1,
-      updated_at = date1)(RepositoryName("octocat","Hello-World"))
+      updated_at = date1)(RepositoryName("octocat","Hello-World"), false)
   val apiIssueJson = s"""{
     "number": 1347,
     "state": "open",
@@ -167,6 +182,26 @@ class JsonFormatSpec extends Specification {
     "user": $apiUserJson,
     "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
     "html_url": "${context.baseUrl}/octocat/Hello-World/issues/1347",
+    "created_at": "2011-04-14T16:00:49Z",
+    "updated_at": "2011-04-14T16:00:49Z"
+  }"""
+
+  val apiIssuePR = ApiIssue(
+      number = 1347,
+      title  = "Found a bug",
+      user   = apiUser,
+      state  = "open",
+      body   = "I'm having a problem with this.",
+      created_at = date1,
+      updated_at = date1)(RepositoryName("octocat","Hello-World"), true)
+  val apiIssuePRJson = s"""{
+    "number": 1347,
+    "state": "open",
+    "title": "Found a bug",
+    "body": "I'm having a problem with this.",
+    "user": $apiUserJson,
+    "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
+    "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"
   }"""
@@ -264,6 +299,7 @@ class JsonFormatSpec extends Specification {
     }
     "apiComment" in {
         JsonFormat(apiComment) must beFormatted(apiCommentJson)
+        JsonFormat(apiCommentPR) must beFormatted(apiCommentPRJson)
     }
     "apiCommitListItem" in {
         JsonFormat(apiCommitListItem) must beFormatted(apiCommitListItemJson)
@@ -276,6 +312,7 @@ class JsonFormatSpec extends Specification {
     }
     "apiIssue" in {
       JsonFormat(apiIssue) must beFormatted(apiIssueJson)
+      JsonFormat(apiIssuePR) must beFormatted(apiIssuePRJson)
     }
     "apiPullRequest" in {
       JsonFormat(apiPullRequest) must beFormatted(apiPullRequestJson)
