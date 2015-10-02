@@ -20,7 +20,7 @@ case class ApiCommit(
   removed: List[String],
   modified: List[String],
   author: ApiPersonIdent,
-  committer: ApiPersonIdent)(repositoryName:RepositoryName){
+  committer: ApiPersonIdent)(repositoryName:RepositoryName) extends FieldSerializable{
   val url = ApiPath(s"/api/v3/${repositoryName.fullName}/commits/${id}")
   val html_url = ApiPath(s"/${repositoryName.fullName}/commit/${id}")
 }
