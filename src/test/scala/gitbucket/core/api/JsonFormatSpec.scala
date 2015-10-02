@@ -90,7 +90,7 @@ class JsonFormatSpec extends Specification {
     user = apiUser,
     body= "Me too",
     created_at= date1,
-    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, IssueOrPullRequest(false))
+    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, false)
   val apiCommentJson = s"""{
     "id": 1,
     "body": "Me too",
@@ -105,7 +105,7 @@ class JsonFormatSpec extends Specification {
     user = apiUser,
     body= "Me too",
     created_at= date1,
-    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, IssueOrPullRequest(true))
+    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, true)
   val apiCommentPRJson = s"""{
     "id": 1,
     "body": "Me too",
@@ -173,7 +173,7 @@ class JsonFormatSpec extends Specification {
       state  = "open",
       body   = "I'm having a problem with this.",
       created_at = date1,
-      updated_at = date1)(RepositoryName("octocat","Hello-World"), IssueOrPullRequest(false))
+      updated_at = date1)(RepositoryName("octocat","Hello-World"), false)
   val apiIssueJson = s"""{
     "number": 1347,
     "state": "open",
@@ -193,7 +193,7 @@ class JsonFormatSpec extends Specification {
       state  = "open",
       body   = "I'm having a problem with this.",
       created_at = date1,
-      updated_at = date1)(RepositoryName("octocat","Hello-World"), IssueOrPullRequest(true))
+      updated_at = date1)(RepositoryName("octocat","Hello-World"), true)
   val apiIssuePRJson = s"""{
     "number": 1347,
     "state": "open",
