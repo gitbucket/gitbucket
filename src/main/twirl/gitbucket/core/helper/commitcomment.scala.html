@@ -5,7 +5,10 @@
 @import context._
 @import gitbucket.core._
 @import gitbucket.core.view.helpers._
-<div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}" @if(comment.fileName.isDefined){filename=@comment.fileName.get} @if(comment.newLine.isDefined){newline=@comment.newLine.get} @if(comment.oldLine.isDefined){oldline=@comment.oldLine.get}>
+<div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}"
+    @if(comment.fileName.isDefined){filename="@comment.fileName.get"}
+    @if(comment.newLine.isDefined){newline="@comment.newLine.get"}
+    @if(comment.oldLine.isDefined){oldline="@comment.oldLine.get"}>
   <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
   <div class="box commit-comment-box commit-comment-@comment.commentId">
     <div class="box-header-small">
