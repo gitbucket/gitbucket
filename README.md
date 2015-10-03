@@ -95,6 +95,7 @@ Release Notes
 ### 3.7 - 3 Oct 2015
 - Markdown processor has been switched to [markedj](https://github.com/gitbucket/markedj) from pegdown
 - Clone in desktop button
+- Providing MD5 and SHA-1 checksum for `gitbucket.war` has started
 
 ### 3.6 - 30 Aug 2015
 - User interface Improvements: Especially, commit list, issues and pull request have been updated largely.
