@@ -92,6 +92,10 @@ Support
 
 Release Notes
 --------
+### 3.7 - 3 Oct 2015
+- Markdown processor has been switched to [markedj](https://github.com/gitbucket/markedj) from pegdown
+- Clone in desktop button
+
 ### 3.6 - 30 Aug 2015
 - User interface Improvements: Especially, commit list, issues and pull request have been updated largely.
 - Installed plugins list has been available at the system administration console.
