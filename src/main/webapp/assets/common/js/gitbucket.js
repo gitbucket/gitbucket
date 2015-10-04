@@ -23,18 +23,9 @@ $(function(){
     $(e.target).children('a.markdown-anchor-link').show();
   });
   $('.markdown-head').mouseleave(function(e){
-    var anchorLink = $(e.target).children('a.markdown-anchor-link');
-    if(anchorLink.data('active') !== true){
-      anchorLink.hide();
-    }
+    $(e.target).children('a.markdown-anchor-link').hide();
   });
-
-  $('a.markdown-anchor-link').mouseenter(function(e){
-    $(e.target).data('active', true);
-  });
-
   $('a.markdown-anchor-link').mouseleave(function(e){
-    $(e.target).data('active', false);
     $(e.target).hide();
   });
 
@@ -360,12 +351,12 @@ function scrollIntoView(target){
   }
 }
 
-/**
- * escape html
- */
-function escapeHtml(text){
-  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;');
-}
+///**
+// * escape html
+// */
+//function escapeHtml(text){
+//  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/>/g,'&gt;');
+//}
 
 /**
  * calculate string ranking for path.

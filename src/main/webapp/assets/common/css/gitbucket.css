@@ -1681,13 +1681,15 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 }
 
 .markdown-head {
+  left: -18px;
+  padding-left: 18px;
   position: relative;
   line-height: 1.7;
 }
 
 a.markdown-anchor-link {
   position: absolute;
-  left: -18px;
+  left: 0px;
   display: none;
   color: #999;
   /* From octicon style */
