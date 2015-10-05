@@ -217,10 +217,9 @@ object WebHookService {
         before     = ObjectId.toString(oldId),
         after      = ObjectId.toString(newId),
         commits    = commits.map{ commit => ApiPushCommit(git, RepositoryName(repositoryInfo), commit) },
-        repository = ApiRepository(
+        repository = ApiRepository.forPushPayload(
           repositoryInfo,
-          owner= ApiUser(repositoryOwner)
-        )
+          owner= ApiUser(repositoryOwner))
       )
   }
 

@@ -45,7 +45,7 @@ class JsonFormatSpec extends Specification {
     forks = 0,
     `private` = false,
     default_branch = "master",
-    owner = apiUser)
+    owner = apiUser)(urlIsHtmlUrl = false)
   val repositoryJson = s"""{
     "name" : "Hello-World",
     "full_name" : "octocat/Hello-World",
