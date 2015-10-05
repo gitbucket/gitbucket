@@ -195,7 +195,7 @@ object WebHookService {
     ref: String,
     before: String,
     after: String,
-    commits: List[ApiPushCommit],
+    commits: List[ApiCommit],
     repository: ApiRepository
   ) extends FieldSerializable with WebHookPayload {
     val compare = commits.size match {
@@ -216,7 +216,7 @@ object WebHookService {
         ref        = refName,
         before     = ObjectId.toString(oldId),
         after      = ObjectId.toString(newId),
-        commits    = commits.map{ commit => ApiPushCommit(git, RepositoryName(repositoryInfo), commit) },
+        commits    = commits.map{ commit => ApiCommit.forPushPayload(git, RepositoryName(repositoryInfo), commit) },
         repository = ApiRepository.forPushPayload(
           repositoryInfo,
           owner= ApiUser(repositoryOwner))
