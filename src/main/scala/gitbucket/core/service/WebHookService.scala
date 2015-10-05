@@ -12,6 +12,7 @@ import org.apache.http.NameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.message.BasicNameValuePair
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.ObjectId
 import org.slf4j.LoggerFactory
 
 
@@ -192,18 +193,30 @@ object WebHookService {
   case class WebHookPushPayload(
     pusher: ApiUser,
     ref: String,
+    before: String,
+    after: String,
     commits: List[ApiPushCommit],
     repository: ApiRepository
-  ) extends WebHookPayload
+  ) extends FieldSerializable with WebHookPayload {
+    val compare = commits.size match {
+      case 0 => ApiPath(s"/${repository.full_name}") // maybe test hook on un-initalied repository
+      case 1 => ApiPath(s"/${repository.full_name}/commit/${after}")
+      case _ if before.filterNot(_=='0').isEmpty => ApiPath(s"/${repository.full_name}/compare/${commits.head.id}^...${after}")
+      case _ => ApiPath(s"/${repository.full_name}/compare/${before}...${after}")
+    }
+  }
 
   object WebHookPushPayload {
     def apply(git: Git, pusher: Account, refName: String, repositoryInfo: RepositoryInfo,
-              commits: List[CommitInfo], repositoryOwner: Account): WebHookPushPayload =
+              commits: List[CommitInfo], repositoryOwner: Account,
+              newId: ObjectId, oldId: ObjectId): WebHookPushPayload =
       WebHookPushPayload(
-        ApiUser(pusher),
-        refName,
-        commits.map{ commit => ApiPushCommit(git, RepositoryName(repositoryInfo), commit) },
-        ApiRepository(
+        pusher     = ApiUser(pusher),
+        ref        = refName,
+        before     = ObjectId.toString(oldId),
+        after      = ObjectId.toString(newId),
+        commits    = commits.map{ commit => ApiPushCommit(git, RepositoryName(repositoryInfo), commit) },
+        repository = ApiRepository(
           repositoryInfo,
           owner= ApiUser(repositoryOwner)
         )
