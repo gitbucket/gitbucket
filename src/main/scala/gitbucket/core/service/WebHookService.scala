@@ -204,6 +204,7 @@ object WebHookService {
       case _ if before.filterNot(_=='0').isEmpty => ApiPath(s"/${repository.full_name}/compare/${commits.head.id}^...${after}")
       case _ => ApiPath(s"/${repository.full_name}/compare/${before}...${after}")
     }
+    val head_commit = commits.lastOption
   }
 
   object WebHookPushPayload {
