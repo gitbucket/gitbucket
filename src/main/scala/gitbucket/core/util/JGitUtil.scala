@@ -731,7 +731,7 @@ object JGitUtil {
    * @param f the function process ObjectLoader
    * @return None if object does not exist
    */
-  def loaderFromId[A](git: Git, id: ObjectId)(f: ObjectLoader => A):Option[A] = try {
+  def getObjectLoaderFromId[A](git: Git, id: ObjectId)(f: ObjectLoader => A):Option[A] = try {
     using(git.getRepository.getObjectDatabase){ db =>
       Some(f(db.open(id)))
     }
