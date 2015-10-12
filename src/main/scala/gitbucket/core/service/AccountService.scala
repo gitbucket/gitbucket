@@ -90,6 +90,18 @@ trait AccountService {
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] =
     Accounts filter(t => (t.mailAddress.toLowerCase === mailAddress.toLowerCase.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
 
+  def getAccountByGroupName(groupName: String, includeRemoved: Boolean = false)(implicit s: Session): List[Account] = {
+    val needs = GroupMembers
+      .filter(_.groupName === groupName.bind)
+      .sortBy(_.userName)
+      .map(_.userName)
+      .list
+
+    Accounts
+      .filter(t => (t.userName inSetBind needs) && (t.removed === false.bind, !includeRemoved))
+      .list
+  }    
+
   def getAllUsers(includeRemoved: Boolean = true)(implicit s: Session): List[Account] =
     if(includeRemoved){
       Accounts sortBy(_.userName) list
