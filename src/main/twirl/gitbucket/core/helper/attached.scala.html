@@ -2,7 +2,7 @@
 @import context._
 <div class="muted attachable">
   @textarea
-  <div class="clickable">Attach images by dragging &amp; dropping, or selecting them.</div>
+  <div class="clickable">Attach images or PDF files by dragging &amp; dropping, or selecting them.</div>
 </div>
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
@@ -13,10 +13,11 @@ $(function(){
       maxFilesize: 10,
       acceptedFiles: 'image/*,application/pdf',
       dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, or JPG.',
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images or PDF files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
-        var images = '\n![' + file.name.split('.')[0] + '](@baseUrl/@owner/@repository/_attached/' + id + ')';
-        $('#@textareaId').val($('#@textareaId').val() + images);
+        var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
+          '](@baseUrl/@owner/@repository/_attached/' + id + ')';
+        $('#@textareaId').val($('#@textareaId').val() + attachFile);
         $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
       }
     });
