@@ -28,6 +28,12 @@ object FileUtil {
 
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
 
+  def isUploadableType(name: String): Boolean = getMimeType(name) match {
+    case t if t.startsWith("image/") => true
+    case "application/pdf" => true
+    case _ => false
+  }
+
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 
   def isText(content: Array[Byte]): Boolean = !content.contains(0)

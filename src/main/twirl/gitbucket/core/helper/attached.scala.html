@@ -11,7 +11,7 @@ $(function(){
     $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
       url: '@path/upload/image/@owner/@repository',
       maxFilesize: 10,
-      acceptedFiles: 'image/*',
+      acceptedFiles: 'image/*,application/pdf',
       dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, or JPG.',
       previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
