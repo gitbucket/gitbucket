@@ -23,7 +23,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport {
     }, FileUtil.isImage)
   }
 
-  post("/image/:owner/:repository"){
+  post("/file/:owner/:repository"){
     execute({ (file, fileId) =>
       FileUtils.writeByteArrayToFile(new java.io.File(
         getAttachedDir(params("owner"), params("repository")),

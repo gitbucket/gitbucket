@@ -9,7 +9,7 @@
 $(function(){
   try {
     $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
-      url: '@path/upload/image/@owner/@repository',
+      url: '@path/upload/file/@owner/@repository',
       maxFilesize: 10,
       acceptedFiles: 'image/*,application/pdf',
       dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, or JPG.',
