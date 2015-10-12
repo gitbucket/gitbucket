@@ -18,14 +18,15 @@
           enableTaskList     = true,
           hasWritePermission = hasWritePermission,
           style              = "",
-          elastic            = true
+          elastic            = true,
+          tabIndex           = 1
         )
         <div style="text-align: right;">
           <input type="hidden" name="issueId" value="@issue.issueId"/>
-          <input type="submit" class="btn btn-success" formaction="@url(repository)/issue_comments/new" value="Comment"/>
           @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
-            <input type="submit" class="btn" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+            <input type="submit" class="btn" tabindex="3" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
           }
+          <input type="submit" class="btn btn-success" tabindex="2" formaction="@url(repository)/issue_comments/new" value="Comment"/>
         </div>
       </div>
     </div>
