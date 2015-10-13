@@ -713,11 +713,27 @@ object JGitUtil {
   def getContentFromId(git: Git, id: ObjectId, fetchLargeFile: Boolean): Option[Array[Byte]] = try {
     using(git.getRepository.getObjectDatabase){ db =>
       val loader = db.open(id)
-      if(fetchLargeFile == false && FileUtil.isLarge(loader.getSize)){
+      if(loader.isLarge || (fetchLargeFile == false && FileUtil.isLarge(loader.getSize))){
         None
       } else {
         Some(loader.getBytes)
       }
+    }
+  } catch {
+    case e: MissingObjectException => None
+  }
+
+  /**
+   * Get objectLoader of the given object id from the Git repository.
+   *
+   * @param git the Git object
+   * @param id the object id
+   * @param f the function process ObjectLoader
+   * @return None if object does not exist
+   */
+  def getObjectLoaderFromId[A](git: Git, id: ObjectId)(f: ObjectLoader => A):Option[A] = try {
+    using(git.getRepository.getObjectDatabase){ db =>
+      Some(f(db.open(id)))
     }
   } catch {
     case e: MissingObjectException => None
