@@ -92,30 +92,38 @@
       <td style="padding: 0;">
         @if(diff.oldObjectId == diff.newObjectId){
           <div class="diff-same">File renamed without changes</div>
-        } else { @if(diff.newContent != None || diff.oldContent != None){
-          <div id="diffText-@i" class="diffText"></div>
-          <textarea id="newText-@i" style="display: none;" data-file-name="@diff.oldPath">@diff.newContent.getOrElse("")</textarea>
-          <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.newPath">@diff.oldContent.getOrElse("")</textarea>
-        } else { @if(diff.newIsImage || diff.oldIsImage){
-            <div class="diff-image-render diff2up">
-            @if(oldCommitId.isDefined && diff.oldIsImage){
-              <div class="diff-image-frame diff-old"><img src="@url(repository)/blob/@oldCommitId.get/@diff.oldPath?raw=true" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
-            } else {
-              @if(diff.changeType != ChangeType.ADD){
-                Not supported
-              }
-            }
-            @if(newCommitId.isDefined && diff.newIsImage){
-              <div class="diff-image-frame diff-new"><img src="@url(repository)/blob/@newCommitId.get/@diff.newPath?raw=true" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
-            } else {
-              @if(diff.changeType != ChangeType.DELETE){
-                Not supported
-              }
-            }
-            </div>
         } else {
-          Not supported
-        } } }
+          @if(diff.newContent != None || diff.oldContent != None){
+            <div id="diffText-@i" class="diffText"></div>
+            <textarea id="newText-@i" style="display: none;" data-file-name="@diff.oldPath">@diff.newContent.getOrElse("")</textarea>
+            <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.newPath">@diff.oldContent.getOrElse("")</textarea>
+          } else {
+            @if(diff.newIsImage || diff.oldIsImage){
+              <div class="diff-image-render diff2up">@diff.oldIsImage @diff.newIsImage
+              @if(oldCommitId.isDefined && diff.oldIsImage){
+                <div class="diff-image-frame diff-old"><img src="@url(repository)/blob/@oldCommitId.get/@diff.oldPath?raw=true" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+              } else {
+                @if(diff.changeType != ChangeType.ADD){
+                  <div style="padding: 12px;">Not supported</div>
+                }
+              }
+              @if(newCommitId.isDefined && diff.newIsImage){
+                <div class="diff-image-frame diff-new"><img src="@url(repository)/blob/@newCommitId.get/@diff.newPath?raw=true" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+              } else {
+                @if(diff.changeType != ChangeType.DELETE){
+                  <div style="padding: 12px;">Not supported</div>
+                }
+              }
+              </div>
+            } else {
+              @if(diff.tooLarge){
+                <div style="padding: 12px;">Too large</div>
+              } else {
+                <div style="padding: 12px;">Not supported</div>
+              }
+            }
+          }
+        }
       </td>
     </tr>
   </table>
