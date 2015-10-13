@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
+import scala.util.{Success, Failure}
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -42,10 +43,11 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )(CollaboratorForm.apply)
 
   // for web hook url addition
-  case class WebHookForm(url: String)
+  case class WebHookForm(url: String, events: Set[WebHook.Event])
 
-  val webHookForm = mapping(
-    "url" -> trim(label("url", text(required, webHook)))
+  def webHookForm(update:Boolean) = mapping(
+    "url" -> trim(label("url", text(required, webHook(update)))),
+    "events" -> webhookEvents
   )(WebHookForm.apply)
 
   // for transfer ownership
@@ -138,14 +140,23 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook page.
    */
   get("/:owner/:repository/settings/hooks")(ownerOnly { repository =>
-    html.hooks(getWebHookURLs(repository.owner, repository.name), flash.get("url"), repository, flash.get("info"))
+    html.hooks(getWebHooks(repository.owner, repository.name), repository, flash.get("info"))
+  })
+
+  /**
+   * Display the web hook edit page.
+   */
+  get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
+    val webhook = WebHook(repository.owner, repository.name, "")
+    html.editHooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
   })
 
   /**
    * Add the web hook URL.
    */
-  post("/:owner/:repository/settings/hooks/add", webHookForm)(ownerOnly { (form, repository) =>
-    addWebHookURL(repository.owner, repository.name, form.url)
+  post("/:owner/:repository/settings/hooks/new", webHookForm(false))(ownerOnly { (form, repository) =>
+    addWebHook(repository.owner, repository.name, form.url, form.events)
+    flash += "info" -> s"Webhook ${form.url} created"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
@@ -153,30 +164,71 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Delete the web hook URL.
    */
   get("/:owner/:repository/settings/hooks/delete")(ownerOnly { repository =>
-    deleteWebHookURL(repository.owner, repository.name, params("url"))
+    deleteWebHook(repository.owner, repository.name, params("url"))
+    flash += "info" -> s"Webhook ${params("url")} deleted"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
   /**
    * Send the test request to registered web hook URLs.
    */
-  post("/:owner/:repository/settings/hooks/test", webHookForm)(ownerOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       import scala.collection.JavaConverters._
+      import scala.concurrent.duration._
+      import scala.concurrent._
+      import scala.util.control.NonFatal
+      import org.apache.http.util.EntityUtils
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      val url = params("url")
       val commits = if(repository.commitCount == 0) List.empty else git.log
         .add(git.getRepository.resolve(repository.repository.defaultBranch))
         .setMaxCount(3)
         .call.iterator.asScala.map(new CommitInfo(_))
-
-      getAccountByUserName(repository.owner).foreach { ownerAccount =>
-        callWebHook("push",
-          List(WebHook(repository.owner, repository.name, form.url)),
-          WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
-        )
+      val ownerAccount = getAccountByUserName(repository.owner).get
+      def headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map{ h => Array(h.getName, h.getValue) }
+      val toErrorMap:PartialFunction[Throwable, Map[String,String]] = {
+        case e:java.net.UnknownHostException => Map("error"-> ("Unknown host "+ e.getMessage))
+        case e:java.lang.IllegalArgumentException => Map("error"-> ("invalid url"))
+        case e:org.apache.http.client.ClientProtocolException => Map("error"-> ("invalid url"))
+        case NonFatal(e) => Map("error"-> (e.getClass + " "+ e.getMessage))
       }
-      flash += "url"  -> form.url
-      flash += "info" -> "Test payload deployed!"
+      val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push,
+        List(WebHook(repository.owner, repository.name, url)),
+        WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
+      ).head
+      contentType = formats("json")
+      var result = Map(
+        "url" -> url,
+        "request"  -> Await.result(reqFuture.map(req => Map(
+          "headers"   -> headers(req.getAllHeaders),
+          "payload"   -> json
+        )).recover(toErrorMap), 20 seconds),
+        "responce" -> Await.result(resFuture.map(res => Map(
+            "status"  -> res.getStatusLine(),
+            "body"    -> EntityUtils.toString(res.getEntity()),
+            "headers" -> headers(res.getAllHeaders())
+        )).recover(toErrorMap), 20 seconds))
+      org.json4s.jackson.Serialization.write(result)
     }
+  })
+
+  /**
+   * Display the web hook edit page.
+   */
+  get("/:owner/:repository/settings/hooks/edit/:url")(ownerOnly { repository =>
+    getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
+      html.editHooks(webhook, events, repository, flash.get("info"), false)
+    } getOrElse NotFound
+  })
+
+  /**
+   * Update web hook settings.
+   */
+  post("/:owner/:repository/settings/hooks/edit/:url", webHookForm(true))(ownerOnly { (form, repository) =>
+    updateWebHook(repository.owner, repository.name, form.url, form.events)
+    flash += "info" -> s"webhook ${form.url} updated"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
 
@@ -226,9 +278,28 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Provides duplication check for web hook url.
    */
-  private def webHook: Constraint = new Constraint(){
+  private def webHook(needExists: Boolean): Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =
-      getWebHookURLs(params("owner"), params("repository")).map(_.url).find(_ == value).map(_ => "URL had been registered already.")
+      if(getWebHook(params("owner"), params("repository"), value).isDefined != needExists){
+        Some(if(needExists){
+          "URL had not been registered yet."
+        }else{
+          "URL had been registered already."
+        })
+      } else {
+        None
+      }
+  }
+
+  private def webhookEvents = new ValueType[Set[WebHook.Event]]{
+    def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = WebHook.Event.values.flatMap{ t =>
+      params.get(name+"."+t.name).map(_ => t)
+    }.toSet
+    def validate(name: String, params: Map[String, String], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
+      Seq(name -> messages("error.required").format(name))
+    }else{
+      Nil
+    }
   }
 
   /**

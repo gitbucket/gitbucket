@@ -11,7 +11,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.{Account, CommitState}
+import gitbucket.core.model.{Account, CommitState, WebHook}
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
@@ -663,7 +663,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         // call web hook
         callPullRequestWebHookByRequestBranch("synchronize", repository, branch, context.baseUrl, loginAccount)
         val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-        callWebHookOf(repository.owner, repository.name, "push") {
+        callWebHookOf(repository.owner, repository.name, WebHook.Push) {
           getAccountByUserName(repository.owner).map{ ownerAccount =>
             WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount)
           }

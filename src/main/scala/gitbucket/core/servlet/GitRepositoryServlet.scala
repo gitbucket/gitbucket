@@ -3,7 +3,7 @@ package gitbucket.core.servlet
 import java.io.File
 
 import gitbucket.core.api
-import gitbucket.core.model.Session
+import gitbucket.core.model.{Session, WebHook}
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._
@@ -200,7 +200,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           }
 
           // call web hook
-          callWebHookOf(owner, repository, "push"){
+          callWebHookOf(owner, repository, WebHook.Push){
             for(pusherAccount <- getAccountByUserName(pusher);
               ownerAccount   <- getAccountByUserName(owner)) yield {
               WebHookPushPayload(git, pusherAccount, command.getRefName, repositoryInfo, newCommits, ownerAccount)
