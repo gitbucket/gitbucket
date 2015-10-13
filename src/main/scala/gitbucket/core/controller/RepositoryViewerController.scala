@@ -298,7 +298,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             contentType = "application/octet-stream"
             response.setContentLength(loader.getSize.toInt)
             loader.copyTo(response.getOutputStream)
-            Unit
+            ()
           } getOrElse NotFound
         } else {
           html.blob(id, repository, path.split("/").toList,
