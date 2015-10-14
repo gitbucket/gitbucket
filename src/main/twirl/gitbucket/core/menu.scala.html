@@ -104,7 +104,7 @@
   <div style="margin-right: @if(expand){180px} else {50px};">
     @if(expand){
       @repository.repository.description.map { description =>
-        <p class="description">@description</p>
+        <p class="description">@detectAndRenderLinks(description)</p>
       }
       <div style="margin-bottom: 10px;" class="box-content">
         <table class="fill-width">
