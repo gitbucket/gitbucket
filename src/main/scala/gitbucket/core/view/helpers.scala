@@ -275,4 +275,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     case CommitState.ERROR   => "Failed"
     case CommitState.FAILURE => "Failed"
   }
+
+  // This pattern comes from: http://stackoverflow.com/a/4390768/1771641 (extract-url-from-string)
+  private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
+
+  def detectAndRenderLinks(text: String): Html = {
+    Html(detectAndRenderLinksRegex.replaceAllIn(text, m => s"""<a href="${m.group(0)}">${m.group(0)}</a>"""))
+  }
 }
