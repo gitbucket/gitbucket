@@ -3,7 +3,7 @@ Summary:	GitHub clone written with Scala.
 Version:	2.6
 Release:	1%{?dist}
 License:	Apache
-URL:		https://github.com/takezoe/gitbucket
+URL:		https://github.com/gitbucket/gitbucket
 Group:		System/Servers
 Source0:	%{name}.war
 Source1:	%{name}.init
