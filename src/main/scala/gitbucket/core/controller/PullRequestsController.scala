@@ -440,9 +440,6 @@ trait PullRequestsControllerBase extends ControllerBase {
         // extract references and create refer comment
         createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
 
-        // TODO call web hooks
-        //callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
-
         // notifications
         Notifier().toNotify(repository, issue, form.content.getOrElse("")){
           Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
