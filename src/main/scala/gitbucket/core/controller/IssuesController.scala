@@ -352,6 +352,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   }
 
+  // TODO Same method exists in PullRequestController. Should it moved to IssueService?
   private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
     StringUtil.extractIssueId(message).foreach { issueId =>
       val content = fromIssue.issueId + ":" + fromIssue.title

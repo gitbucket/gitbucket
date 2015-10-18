@@ -436,8 +436,14 @@ trait PullRequestsControllerBase extends ControllerBase {
       // call web hook
       callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
 
-      // notifications
       getIssue(owner, name, issueId.toString) foreach { issue =>
+        // extract references and create refer comment
+        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+
+        // TODO call web hooks
+        //callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
+
+        // notifications
         Notifier().toNotify(repository, issue, form.content.getOrElse("")){
           Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
         }
@@ -446,6 +452,19 @@ trait PullRequestsControllerBase extends ControllerBase {
       redirect(s"/${owner}/${name}/pull/${issueId}")
     }
   })
+
+  // TODO Same method exists in IssueController. Should it moved to IssueService?
+  private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
+    StringUtil.extractIssueId(message).foreach { issueId =>
+      val content = fromIssue.issueId + ":" + fromIssue.title
+      if(getIssue(owner, repository, issueId).isDefined){
+        // Not add if refer comment already exist.
+        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
+          createComment(owner, repository, context.loginAccount.get.userName, issueId.toInt, content, "refer")
+        }
+      }
+    }
+  }
 
   /**
    * Parses branch identifier and extracts owner and branch name as tuple.
