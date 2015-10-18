@@ -93,6 +93,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                pages: List[String] = Nil)(implicit context: Context): Html =
     Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, true, enableTaskList, hasWritePermission, pages))
 
+  /**
+   * Render the given source (only markdown is supported in default) as HTML.
+   * You can test if a file is renderable in this method by [[isRenderable()]].
+   */
   def renderMarkup(filePath: List[String], fileContent: String, branch: String,
                    repository: RepositoryService.RepositoryInfo,
                    enableWikiLink: Boolean, enableRefsLink: Boolean, enableAnchor: Boolean)(implicit context: Context): Html = {
@@ -103,8 +107,18 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, enableAnchor, context))
   }
 
+  /**
+   * Tests whether the given file is renderable. It's tested by the file extension.
+   */
   def isRenderable(fileName: String): Boolean = {
     PluginRegistry().renderableExtensions.exists(extension => fileName.toLowerCase.endsWith("." + extension))
+  }
+
+  /**
+   * Creates a link to the issue or the pull request from the issue id.
+   */
+  def issueLink(repository: RepositoryService.RepositoryInfo, issueId: Int)(implicit context: Context): Html = {
+    Html(createIssueLink(repository, issueId))
   }
 
   /**
