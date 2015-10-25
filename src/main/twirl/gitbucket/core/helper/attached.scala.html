@@ -3,7 +3,7 @@
 @import gitbucket.core.util.FileUtil
 <div class="muted attachable">
   @textarea
-  <div class="clickable">Attach images or PDF files by dragging &amp; dropping, or selecting them.</div>
+  <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
 </div>
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
@@ -13,8 +13,8 @@ $(function(){
       url: '@path/upload/file/@owner/@repository',
       maxFilesize: 10,
       acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
-      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, or JPG.',
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images or PDF files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
+      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
         var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
           '](@baseUrl/@owner/@repository/_attached/' + id + ')';
