@@ -1,5 +1,6 @@
 @(owner: String, repository: String)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
+@import gitbucket.core.util.FileUtil
 <div class="muted attachable">
   @textarea
   <div class="clickable">Attach images or PDF files by dragging &amp; dropping, or selecting them.</div>
@@ -11,7 +12,7 @@ $(function(){
     $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
       url: '@path/upload/file/@owner/@repository',
       maxFilesize: 10,
-      acceptedFiles: 'image/*,application/pdf',
+      acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
       dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, or JPG.',
       previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images or PDF files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
