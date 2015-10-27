@@ -284,6 +284,9 @@ trait PullRequestsControllerBase extends ControllerBase {
       originRepositoryName <- if(originOwner == forkedOwner) {
         // Self repository
         Some(forkedRepository.name)
+      }else if(forkedRepository.repository.originUserName == None){
+        // when ForkedRepository is the original repository
+        getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
       } else if(Some(originOwner) == forkedRepository.repository.originUserName){
         // Original repository
         forkedRepository.repository.originRepositoryName
