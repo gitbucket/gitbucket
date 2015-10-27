@@ -65,7 +65,7 @@ object Implicits {
 
     def paths: Array[String] = (request.getRequestURI.substring(request.getContextPath.length + 1) match{
       case path if path.startsWith("api/v3/repos/") => path.substring(13/* "/api/v3/repos".length */)
-      case path if path.startsWith("api/v3/groups/") => path.substring(14/* "/api/v3/groups".length */)
+      case path if path.startsWith("api/v3/orgs/") => path.substring(12/* "/api/v3/orgs".length */)
       case path => path
     }).split("/")
 

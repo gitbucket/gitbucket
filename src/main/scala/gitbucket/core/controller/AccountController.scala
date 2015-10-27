@@ -402,8 +402,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Create group repository
    * https://developer.github.com/v3/repos/#create
    */
-  post("/api/v3/groups/:groupName/repos")(managersOnly {
-    val groupName = params("groupName")
+  post("/api/v3/orgs/:org/repos")(managersOnly {
+    val groupName = params("org")
     (for {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
