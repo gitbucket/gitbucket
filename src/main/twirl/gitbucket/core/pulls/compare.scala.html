@@ -9,18 +9,16 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasOriginWritePermission: Boolean,
+  collaborators: List[String],
+  milestones: List[gitbucket.core.model.Milestone],
+  labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("pulls", repository){
     <div class="pullreq-info">
-      <div id="compare-info">
-        <a href="#" id="edit-compare-condition" class="btn btn-mini pull-right">Edit</a>
-        <span class="label label-info monospace">@originRepository.owner:@originId</span> ... <span class="label label-info monospace">@forkedRepository.owner:@forkedId</span>
-      </div>
-      <div id="compare-edit" style="display: none;">
-        <a href="#" id="cancel-condition-editing" class="pull-right"><i class="icon-remove-circle"></i></a>
+      <div id="compare-edit">
         @helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
           @members.map { case (owner, name) =>
             <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
@@ -43,41 +41,52 @@
           }
         }
       </div>
-    </div>
-    @if(commits.nonEmpty && hasWritePermission){
-      <div style="margin-bottom: 10px;" id="create-pull-request">
-        <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
+      <div class="check-conflict" style="display: none;">
+        <img src="@assets/common/images/indicator.gif"/> Checking...
       </div>
-      <div id="pull-request-form" class="box" style="display: none;">
-          <div class="box-content">
-            <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
-              <div style="width: 240px; position: absolute; margin-left: 610px;">
-                <div class="check-conflict" style="display: none;">
-                  <img src="@assets/common/images/indicator.gif"/> Checking...
+    </div>
+    @if(commits.nonEmpty && loginAccount.isDefined){
+      <div style="margin-bottom: 10px; padding: 8px; background-color: #fff9ea" id="create-pull-request" class="box-content">
+        <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
+        &nbsp;&nbsp;
+        <span class="muted">Discuss and review the changes in this comparison with others.</span>
+      </div>
+      <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
+        <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+          <div class="row-fluid">
+            <div class="span10">
+              <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+              <div class="box issue-box">
+                <div class="box-content">
+                  <span class="error" id="error-title"></span>
+                  <input type="text" name="title" style="width: 690px" placeholder="Title"/>
+                  @helper.html.preview(
+                    repository         = repository,
+                    content            = "",
+                    enableWikiLink     = false,
+                    enableRefsLink     = true,
+                    enableTaskList     = true,
+                    hasWritePermission = true,
+                    style              = "width: 690px; height: 200px;"
+                  )
+                  <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
+                  <input type="hidden" name="targetBranch" value="@originId"/>
+                  <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+                  <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
+                  <input type="hidden" name="requestBranch" value="@forkedId"/>
+                  <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+                  <input type="hidden" name="commitIdTo" value="@commitId"/>
+                  <div class="align-right">
+                    <input type="submit" class="btn btn-success" value="Create pull request"/>
+                  </div>
                 </div>
               </div>
-              <div style="width: 600px; border-right: 1px solid #d4d4d4;">
-                <span class="error" id="error-title"></span>
-                <input type="text" name="title" style="width: 580px" placeholder="Title"/>
-                @helper.html.preview(
-                  repository         = repository,
-                  content            = "",
-                  enableWikiLink     = false,
-                  enableRefsLink     = true,
-                  enableTaskList     = true,
-                  hasWritePermission = hasWritePermission,
-                  style              = "width: 580px; height: 200px;"
-                )
-                <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
-                <input type="hidden" name="targetBranch" value="@originId"/>
-                <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
-                <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
-                <input type="hidden" name="requestBranch" value="@forkedId"/>
-                <input type="hidden" name="commitIdFrom" value="@sourceId"/>
-                <input type="hidden" name="commitIdTo" value="@commitId"/>
-              </div>
-            </form>
+            </div>
+            <div class="span2">
+              @issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
+            </div>
           </div>
+        </form>
       </div>
     }
     @if(commits.isEmpty){
@@ -90,72 +99,119 @@
         </tr>
       </table>
     } else {
-      @pulls.html.commits(commits, Some(comments), repository)
-      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, hasWritePermission, false)
+      <div style="margin-bottom: 10px;" class="box-content">
+        <table class="fill-width">
+          <tr>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-commit"></i>
+              @defining(commits.flatten){ commits =>
+                <strong>@commits.size</strong> @plural(commits.size, "commit")
+              }
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-diff"></i>
+              <strong>@diffs.size</strong> @plural(diffs.size, "file") changed
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-comment"></i>
+              @defining(comments.collect { case c: gitbucket.core.model.CommitComment => c }){ comments =>
+                <strong>@comments.size</strong> commit @plural(comments.size, "comment")
+              }
+            </td>
+            <td style="width: 25%; text-align: center;">
+              <i class="octicon octicon-organization"></i>
+              @defining(commits.flatMap(_.map(_.authorEmailAddress)).distinct){ contributors =>
+                <strong>@contributors.size</strong> @plural(contributors.size, "contributor")
+              }
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="box" style="margin-bottom: 20px;">
+        @commits.map { day =>
+          <div style="margin-top: 8px; margin-bottom: 8px;" class="muted">
+            Commits on @date(day.head.commitTime)
+          </div>
+          <table style="width: 100%;">
+          @day.map { commit =>
+            <tr>
+              <td style="width: 20%;">
+                <i class="octicon octicon-git-commit"></i>
+                @avatar(commit, 20)
+                @user(commit.authorName, commit.authorEmailAddress, "username strong")
+                </td>
+              <td><span class="monospace">@commit.shortMessage</span></td>
+              @*
+              <span class="badge" style="display: inline">@if(comments.isDefined){
+              @comments.get.flatMap @{
+              case comment: CommitComment => Some(comment)
+              case other => None
+              }.count(t => t.commitId == commit.id && !t.pullRequest)
+              }</span>
+              *@
+              <td style="width: 10%; text-align: right;">
+                <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+              </td>
+            </tr>
+          }
+          </table>
+        }
+      </div>
+      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
       <p>Showing you all comments on commits in this comparison.</p>
-      @issues.html.commentlist(None, comments, hasWritePermission, repository, None)
+      @issues.html.commentlist(None, comments, false, repository, None)
     }
   }
 }
 <script>
 $(function(){
-  $('#edit-compare-condition').click(function(){
-    $('#compare-info').hide();
-    $('#compare-edit').show();
-  });
-
-  $('#cancel-condition-editing').click(function(){
-    $('#compare-info').show();
-    $('#compare-edit').hide();
-  });
-
   $('a.origin-owner, a.forked-owner, a.origin-branch, a.forked-branch').click(function(){
     var e = $(this);
     e.parents('ul').find('i').attr('class', 'icon-white');
-    e.find('i').attr('class', 'icon-ok');
+    e.find('i').attr('class', 'octicon-check');
     e.parents('div.btn-group').find('button span.strong').text(e.text());
 
     @if(members.isEmpty){
       location.href = '@url(repository)/compare/' +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'));
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
     } else {
       location.href = '@path/' +
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + '/' +
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('name')) +'/compare/' +
-        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('owner')) + ':' +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')) + '...' +
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + ':' +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'));
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
+        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ':' +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
     }
   });
 
   $('#show-form').click(function(){
-    $(this).hide();
+    $('#create-pull-request').hide();
     $('#pull-request-form').show();
   });
   if(location.search.substr(1).split("&").indexOf("expand=1")!=-1){
     $('#show-form').click();
   }
 
-  @if(hasWritePermission){
+  @if(loginAccount.isDefined){
     function checkConflict(from, to){
       $('.check-conflict').show();
-      $.get('@url(repository)/compare/' + from + '...' + to + '/mergecheck',
+      $.get('@url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',
         function(data){ $('.check-conflict').html(data); });
     }
 
     @if(members.isEmpty){
       checkConflict(
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')),
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'))
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
       );
     } else {
       checkConflict(
-        $.trim($('i.icon-ok').parents('a.origin-owner' ).data('owner')) + ":" +
-        $.trim($('i.icon-ok').parents('a.origin-branch').data('branch')),
-        $.trim($('i.icon-ok').parents('a.forked-owner' ).data('owner')) + ":" +
-        $.trim($('i.icon-ok').parents('a.forked-branch').data('branch'))
+        $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ":" +
+        $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')),
+        $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + ":" +
+        $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'))
       );
     }
   }

@@ -14,7 +14,7 @@
   @html.menu("code", repository){
     <table class="table table-bordered">
       <tr>
-        <th>
+        <th class="box-header">
           <div class="pull-right align-right">
             <a href="@url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
           </div>
@@ -74,7 +74,7 @@
             </div>
             @if(commit.isDifferentFromAuthor) {
             <div class="committer">
-              <span class="icon-arrow-right"></span>
+              <span class="octicon octicon-arrow-right"></span>
               <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
               <span class="muted"> committed @helper.html.datetimeago(commit.commitTime)</span>
             </div>

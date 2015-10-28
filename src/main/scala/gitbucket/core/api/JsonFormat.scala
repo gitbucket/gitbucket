@@ -22,7 +22,7 @@ object JsonFormat {
     )
   ) + FieldSerializer[ApiUser]() + FieldSerializer[ApiPullRequest]() + FieldSerializer[ApiRepository]() +
     FieldSerializer[ApiCommitListItem.Parent]() + FieldSerializer[ApiCommitListItem]() + FieldSerializer[ApiCommitListItem.Commit]() +
-    FieldSerializer[ApiCommitStatus]() + FieldSerializer[ApiCommit]() + FieldSerializer[ApiCombinedCommitStatus]() +
+    FieldSerializer[ApiCommitStatus]() + FieldSerializer[FieldSerializable]() + FieldSerializer[ApiCombinedCommitStatus]() +
     FieldSerializer[ApiPullRequest.Commit]() + FieldSerializer[ApiIssue]() + FieldSerializer[ApiComment]()
 
 

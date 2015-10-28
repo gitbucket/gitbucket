@@ -11,7 +11,6 @@
 
 @sidemenu(path: String, name: String, icon: String, label: String, count: Int = 0) = {
   <li @if(active == name){class="active"} @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="@label"}>
-    <div class="@if(active == name){margin} else {gradient} pull-left"></div>
     <a href="@url(repository)@path">
       <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i>
       @if(expand){ @label}
@@ -40,7 +39,7 @@
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
       </div>
       @if(loginAccount.isDefined && isNoGroup){
-        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork">
+        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
           <input type="hidden" name="account" value="@loginAccount.get.userName"/>
         </form>
       }
@@ -86,19 +85,26 @@
         </div>
       }
       @id.map { id =>
+        @if(context.platform != "linux" && context.platform != null){
+        <div style="margin-top: 10px;">
+          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
+        </div>
+        }
         <div style="margin-top: 10px;">
           <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
         </div>
+        @*
         <div style="margin-top: 10px;">
           <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
         </div>
+        *@
       }
     }
   </div>
   <div style="margin-right: @if(expand){180px} else {50px};">
     @if(expand){
       @repository.repository.description.map { description =>
-        <p class="description">@description</p>
+        <p class="description">@detectAndRenderLinks(description)</p>
       }
       <div style="margin-bottom: 10px;" class="box-content">
         <table class="fill-width">
@@ -171,12 +177,14 @@ $(function(){
     $('#repository-url-http').click(function(){
       $('#repository-url-proto').text('HTTP');
       $('#repository-url').val('@repository.httpUrl');
+      $('#repository-clone-url').attr('href', '@repository.httpOpenRepoUrl(context.platform)')
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
 
     $('#repository-url-ssh').click(function(){
       $('#repository-url-proto').text('SSH');
       $('#repository-url').val('@repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
+      $('#repository-clone-url').attr('href', '@repository.sshOpenRepoUrl(context.platform, settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
   }

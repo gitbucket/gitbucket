@@ -5,10 +5,13 @@
 @import context._
 @import gitbucket.core._
 @import gitbucket.core.view.helpers._
-<div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}" @if(comment.fileName.isDefined){filename=@comment.fileName.get} @if(comment.newLine.isDefined){newline=@comment.newLine.get} @if(comment.oldLine.isDefined){oldline=@comment.oldLine.get}>
+<div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}"
+    @if(comment.fileName.isDefined){filename="@comment.fileName.get"}
+    @if(comment.newLine.isDefined){newline="@comment.newLine.get"}
+    @if(comment.oldLine.isDefined){oldline="@comment.oldLine.get"}>
   <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
   <div class="box commit-comment-box commit-comment-@comment.commentId">
-    <div class="box-header-small">
+    <div class="box-header">
       @user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">
           commented
@@ -24,12 +27,12 @@
         </span>
       <span class="pull-right">
         @if(hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){
-          <a href="#" data-comment-id="@comment.commentId"><i class="icon-pencil"></i></a>&nbsp;
-          <a href="#" data-comment-id="@comment.commentId"><i class="icon-remove-circle"></i></a>
+          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil"></i></a>&nbsp;
+          <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x"></i></a>
         }
       </span>
     </div>
-    <div class="box-content commit-commentContent-@comment.commentId markdown-body">
+    <div class="box-content-bottom commit-commentContent-@comment.commentId markdown-body">
       @markdown(comment.content, repository, false, true, true, hasWritePermission)
     </div>
   </div>

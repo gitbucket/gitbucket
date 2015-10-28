@@ -8,7 +8,7 @@
 @helper.html.dropdown(
   value  = if(branch.length == 40) branch.substring(0, 10) else branch,
   prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
-  mini   = true
+  mini   = false
 ) {
   <li><div id="branch-control-title">Switch branches<button id="branch-control-close" class="pull-right">&times</button></div></li>
   <li><input id="branch-control-input" type="text" placeholder="Find or create branch ..."/></li>

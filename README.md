@@ -1,4 +1,4 @@
-GitBucket [![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket) [![Build Status](https://travis-ci.org/takezoe/gitbucket.svg?branch=master)](https://travis-ci.org/takezoe/gitbucket)
+GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
 GitBucket is the easily installable GitHub clone powered by Scala.
@@ -16,28 +16,20 @@ The current version of GitBucket provides a basic features below:
 - Fork / Pull request
 - Email notification
 - Activity timeline
-- User management (for Administrators)
-- Group (like Organization in GitHub)
-- LDAP integration
+- Simple user and group management with LDAP integration
 - Gravatar support
 - Plug-in system
 
-Following features are not implemented, but we will make them in the future release!
-
-- Network graph
-- Statistics
-- Watch / Star
-
-If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
+If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
 Installation
 --------
 
-1. Download latest **gitbucket.war** from [the release page](https://github.com/takezoe/gitbucket/releases).
+1. Download latest **gitbucket.war** from [the release page](https://github.com/gitbucket/gitbucket/releases).
 2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
 3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
 
-If you are using Gitbucket behind a webserver please make sure you have increased the **client_max_body_size** (on nignx)
+If you are using Gitbucket behind a webserver please make sure you have increased the **client_max_body_size** (on nginx)
 
 The default administrator account is **root** and password is **root**.
 
@@ -50,7 +42,7 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 
 To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
-For Installation on Windows Server with IIS see [this wiki page](https://github.com/takezoe/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
+For Installation on Windows Server with IIS see [this wiki page](https://github.com/gitbucket/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
 
 ### Mac OS X
 #### Installing Via Homebrew
@@ -73,7 +65,7 @@ Or, if you don't want/need launchctl, you can just run:
 ```
 
 #### Manual Installation
-On OS X, copy the [gitbucket.plist](https://raw.github.com/takezoe/gitbucket/master/contrib/macosx/gitbucket.plist) file to `~/Library/LaunchAgents/`
+On OS X, copy the [gitbucket.plist](https://raw.github.com/gitbucket/gitbucket/master/contrib/macosx/gitbucket.plist) file to `~/Library/LaunchAgents/`
 
 Run the following commands in `Terminal` to
 
@@ -84,16 +76,41 @@ Plug-ins
 --------
 GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. Some plug-ins are available now:
 
-- [gitbucket-gist-plugin](https://github.com/takezoe/gitbucket-gist-plugin)
-- [gitbucket-announce-plugin](https://github.com/McFoggy/gitbucket-announce-plugin)
+- [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
+- [gitbucket-announce-plugin](https://github.com/gitbucket-plugins/gitbucket-announce-plugin)
+- [gitbucket-h2-backup-plugin](https://github.com/gitbucket-plugins/gitbucket-h2-backup-plugin)
+- [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
+- [gitbucket-commitgraphs-plugin](https://github.com/yoshiyoshifujii/gitbucket-commitgraphs-plugin)
+
+You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
+
+Support
+--------
+
+- If you have any question about GitBucket, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raise an issue.
+- Make sure check whether there is a same question or request in the past.
+- When raise a new issue, write subject in **English** at least.
+- We can also support in Japaneses other than English at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- First priority of GitBucket is easy installation and reproduce GitHub behavior, so we might reject if your request is against it.
 
 Release Notes
 --------
+### 3.7 - 3 Oct 2015
+- Markdown processor has been switched to [markedj](https://github.com/gitbucket/markedj) from pegdown
+- Clone in desktop button
+- Providing MD5 and SHA-1 checksum for `gitbucket.war` has started
+
+### 3.6 - 30 Aug 2015
+- User interface Improvements: Especially, commit list, issues and pull request have been updated largely.
+- Installed plugins list has been available at the system administration console.
+- Pages and repository list in the sidebar have been limited and more pages and repositories link is available.
+- More reference link notation in Markdown has been supported.
+
 ### 3.5 - 1 Aug 2015
 - Octicons has been applied
 - Global header has been enhanced. Now it's further similar to GitHub.
 - Default compare / pull request target has been changed to the parent repository
-- A lot of updates for [gitbucket-gist-plugin](https://github.com/takezoe/gitbucket-gist-plugin)
+- A lot of updates for [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
 
 ### 3.4 - 27 Jun 2015
 - Declarative style plug-in definition

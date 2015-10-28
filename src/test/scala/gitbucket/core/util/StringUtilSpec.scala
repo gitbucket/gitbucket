@@ -4,10 +4,20 @@ import org.specs2.mutable._
 
 class StringUtilSpec extends Specification {
 
+  "urlEncode" should {
+    "encode whitespace to %20" in {
+      val encoded = StringUtil.urlEncode("aa bb")
+      encoded mustEqual "aa%20bb"
+    }
+  }
+
   "urlDecode" should {
     "decode encoded string to original string" in {
       val encoded = StringUtil.urlEncode("あいうえお")
       StringUtil.urlDecode(encoded) mustEqual "あいうえお"
+    }
+    "decode en%20 to whitespace" in {
+      StringUtil.urlDecode("aa%20bb") mustEqual "aa bb"
     }
   }
 

@@ -1,4 +1,4 @@
-@(issue: gitbucket.core.model.Issue,
+@(issue: Option[gitbucket.core.model.Issue],
   comments: List[gitbucket.core.model.Comment],
   issueLabels: List[gitbucket.core.model.Label],
   collaborators: List[String],
@@ -6,6 +6,7 @@
   labels: List[gitbucket.core.model.Label],
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import context._
 @import gitbucket.core.view.helpers._
 <div style="margin-bottom: 8px;">
   <span class="muted small strong">Labels</span>
@@ -22,6 +23,9 @@
           </li>
         }
       }
+      @if(issue.isEmpty){
+        <input type="hidden" name="labelNames" value=""/>
+      }
     </div>
   }
 </div>
@@ -34,11 +38,14 @@
   @if(hasWritePermission){
     <div class="pull-right">
       @helper.html.dropdown(right = true) {
-        <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
+        <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="octicon octicon-x"></i> Clear this milestone</a></li>
         @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
           <li>
             <a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId" data-title="@milestone.title">
-              @helper.html.checkicon(Some(milestone.milestoneId) == issue.milestoneId) @milestone.title
+              @issue.map { issue =>
+                @helper.html.checkicon(Some(milestone.milestoneId) == issue.milestoneId)
+              }
+              @milestone.title
               <div class="small" style="padding-left: 20px;">
                 @milestone.dueDate.map { dueDate =>
                   @if(isPast(dueDate)){
@@ -58,14 +65,14 @@
   }
 </div>
 <div id="milestone-progress-area">
-  @issue.milestoneId.map { milestoneId =>
+  @issue.flatMap(_.milestoneId).map { milestoneId =>
     @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
       @issues.milestones.html.progress(openCount + closeCount, closeCount)
     }
   }
 </div>
 <span id="label-milestone">
-  @issue.milestoneId.map { milestoneId =>
+  @issue.flatMap(_.milestoneId).map { milestoneId =>
     @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
       <span class="strong small">@milestone.title</span>
     }
@@ -73,17 +80,20 @@
     <span class="muted small">No milestone</span>
   }
 </span>
+@if(issue.isEmpty){
+  <input type="hidden" name="milestoneId" value=""/>
+}
 <hr/>
 <div style="margin-bottom: 8px;">
   <span class="muted small strong">Assignee</span>
   @if(hasWritePermission){
     <div class="pull-right">
       @helper.html.dropdown(right = true) {
-        <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+        <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
         @collaborators.map { collaborator =>
           <li>
             <a href="javascript:void(0);" class="assign" data-name="@collaborator">
-              @helper.html.checkicon(Some(collaborator) == issue.assignedUserName)@avatar(collaborator, 20) @collaborator
+              @helper.html.checkicon(issue.exists(_.assignedUserName == collaborator))@avatar(collaborator, 20) @collaborator
             </a>
           </li>
         }
@@ -92,39 +102,37 @@
   }
 </div>
 <span id="label-assigned">
-  @issue.assignedUserName.map { userName =>
+  @issue.flatMap(_.assignedUserName).map { userName =>
     @avatar(userName, 20) @user(userName, styleClass="username strong small")
   }.getOrElse{
     <span class="muted small">No one</span>
   }
 </span>
-<hr/>
-<div style="margin-bottom: 8px;">
-  @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
-    <div class="muted small strong">@participants.size @plural(participants.size, "participant")</div>
-    @participants.map { participant => @avatarLink(participant, 20, tooltip = true) }
-  }
-</div>
+@if(issue.isEmpty){
+  <input type="hidden" name="assignedUserName" value=""/>
+}
+@issue.map { issue =>
+  <hr/>
+  <div style="margin-bottom: 8px;">
+    @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
+      <div class="muted small strong">@participants.size @plural(participants.size, "participant")</div>
+      @participants.map { participant =>
+        @avatarLink(participant, 20, tooltip = true)
+      }
+    }
+  </div>
+}
 <script>
 $(function(){
+@issue.map { issue =>
   $('a.toggle-label').click(function(){
-    var path, icon;
-    var i = $(this).children('i');
-    if(i.hasClass('icon-ok')){
-      path = 'delete';
-      icon = 'icon-white';
-    } else {
-      path = 'new';
-      icon = 'icon-ok';
-    }
+    var path = switchLabel($(this));
     $.post('@url(repository)/issues/@issue.issueId/label/' + path,
-    {
-      labelId : $(this).data('label-id')
-    },
-    function(data){
-      i.removeClass().addClass(icon);
-      $('ul.label-list').empty().html(data);
-    });
+      { labelId : $(this).data('label-id') },
+      function(data){
+        $('ul.label-list').empty().html(data);
+      }
+    );
     return false;
   });
 
@@ -132,42 +140,92 @@ $(function(){
     var title = $(this).data('title');
     var milestoneId = $(this).data('id');
     $.post('@url(repository)/issues/@issue.issueId/milestone',
-    {
-      milestoneId: milestoneId
-    },
-    function(data){
-      console.log(data);
-      $('a.milestone i.icon-ok').attr('class', 'icon-white');
-      if(milestoneId == ''){
-        $('#label-milestone').html($('<span class="muted small">').text('No milestone'));
-        $('#milestone-progress-area').empty();
-      } else {
-        $('#label-milestone').html($('<span class="strong small">').text(title));
-        $('#milestone-progress-area').html(data);
-        $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
+      { milestoneId: milestoneId },
+      function(data){
+        displayMilestone(title, milestoneId, data);
       }
-    });
+    );
   });
 
   $('a.assign').click(function(){
     var $this = $(this);
     var userName = $this.data('name');
     $.post('@url(repository)/issues/@issue.issueId/assign',
-    {
-      assignedUserName: userName
-    },
-    function(){
-      $('a.assign i.icon-ok').attr('class', 'icon-white');
-      if(userName == ''){
-        $('#label-assigned').html($('<span class="muted small">').text('No one'));
-      } else {
-        $('#label-assigned').empty()
-          .append($this.find('img.avatar-mini').clone(false)).append(' ')
-          .append($('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName));
-        $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').attr('class', 'icon-ok');
+      { assignedUserName: userName },
+      function(){
+        displayAssignee($this, userName);
+      }
+    );
+  });
+}.getOrElse {
+  $('a.toggle-label').click(function(){
+    switchLabel($(this));
+    var labelNames = Array();
+    $('a.toggle-label').each(function(i, e){
+      if($(e).children('i').hasClass('icon-ok') == true){
+        labelNames.push($(e).text().trim());
       }
     });
+    $('input[name=labelNames]').val(labelNames.join(','));
+
+    $.post('@url(repository)/issues/new/label',
+      { labelNames : labelNames.join(',') },
+      function(data){
+        $('ul.label-list').empty().html(data);
+      }
+    );
   });
 
+  $('a.milestone').click(function(){
+    var title = $(this).data('title');
+    var milestoneId = $(this).data('id');
+    displayMilestone(title, milestoneId);
+    $('input[name=milestoneId]').val(milestoneId);
+  });
+
+  $('a.assign').click(function(){
+    var $this = $(this);
+    var userName = $this.data('name');
+    displayAssignee($this, userName);
+    $('input[name=assignedUserName]').val(userName);
+  });
+}
+
+  function switchLabel($this){
+    var i = $this.children('i');
+    if(i.hasClass('icon-ok')){
+      i.removeClass().addClass('icon-white');
+      return 'delete';
+    } else {
+      i.removeClass().addClass('icon-ok');
+      return 'new';
+    }
+  }
+
+  function displayMilestone(title, milestoneId, progress){
+    $('a.milestone i.icon-ok').attr('class', 'icon-white');
+    if(milestoneId == ''){
+      $('#label-milestone').html($('<span class="muted small">').text('No milestone'));
+      $('#milestone-progress-area').empty();
+    } else {
+      $('#label-milestone').html($('<span class="strong small">').text(title));
+      if(progress){
+        $('#milestone-progress-area').html(progress);
+      }
+      $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
+    }
+  }
+
+  function displayAssignee($this, userName){
+    $('a.assign i.icon-ok').attr('class', 'icon-white');
+    if(userName == ''){
+      $('#label-assigned').html($('<span class="muted small">').text('No one'));
+    } else {
+      $('#label-assigned').empty()
+        .append($this.find('img.avatar-mini').clone(false)).append(' ')
+        .append($('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName));
+      $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').attr('class', 'icon-ok');
+    }
+  }
 });
 </script>

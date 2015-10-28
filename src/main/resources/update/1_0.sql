@@ -128,7 +128,7 @@ INSERT INTO ACCOUNT (
   'root@localhost',
   'dc76e9f0c0006e8f919e0c515c66dbba3982f785',
   true,
-  'https://github.com/takezoe/gitbucket',
+  'https://github.com/gitbucket/gitbucket',
   SYSDATE,
   SYSDATE,
   NULL

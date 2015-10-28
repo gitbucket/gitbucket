@@ -60,6 +60,10 @@ h6 {
 .head .octicon,.head .mega-octicon{
     color : #BBB;
 }
+
+.align-right {
+  text-align: right;
+}
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
@@ -175,6 +179,12 @@ span.error {
   font-weight: bold;
 }
 
+.shorten-text {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 a.commit-message, a.commit-id, a.username, a.issue-comment-count {
   color: #333333;
 }
@@ -188,6 +198,15 @@ a.omit {
 
 a.omit:hover {
   background-color: #aaa;
+}
+
+div.show-more {
+  text-align: center;
+  border-top: 1px solid silver;
+}
+
+div.show-more a {
+  color: #7aa1d3;
 }
 
 span.count-right {
@@ -278,6 +297,12 @@ div.box-content-row {
   padding: 4px;
 }
 
+div.repo-link {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 div.box-content-bottom {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -287,14 +312,8 @@ div.box-content-bottom {
   margin-bottom: 20px;
 }
 
-th.box-header {
-  background-color: #e0e0e0;
-  margin: 0;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  border: 1px solid #d8d8d8;
-  border-bottom: none;
-  text-shadow: 0 1px 0 #fff
+table.table th.box-header {
+  background-color: #f5f5f5;
 }
 
 th.box-header .octicon {
@@ -370,6 +389,22 @@ span.highlight {
   cursor: pointer;
 }
 
+.btn .octicon {
+  color: #333;
+}
+
+.btn-success .octicon {
+  color: #fff;
+}
+
+.btn-warning .octicon {
+  color: #fff;
+}
+
+.btn-danger .octicon {
+  color: #fff;
+}
+
 /****************************************************************************/
 /* Side Menu */
 /****************************************************************************/
@@ -377,23 +412,30 @@ ul.sidemenu {
   margin-left: 0px;
 }
 
-ul.sidemenu a:hover{
+ul.sidemenu a {
+  display: block;
+  padding: 8px 10px;
+}
+
+ul.sidemenu a:hover {
   text-decoration: none;
 }
 
 ul.sidemenu li.active {
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
-  border-right: 2px solid #bb4444;
+  border-right: 3px solid #bb4444;
   border-left: 1px solid white;
 }
 
-ul.sidemenu div.gradient {
-  width: 5px;
-  height: 30px;
-  background: linear-gradient(to right, #eee, #fff);
-  margin-right: 4px;
-  border-left: 1px solid #eee;
+ul.sidemenu li.active a {
+  background-color: #fff;
+}
+
+ul.sidemenu {
+  background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
+  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px); 
+  box-shadow: inset 1px 0 0 #eee; 
 }
 
 ul.sidemenu div.margin {
@@ -404,8 +446,6 @@ ul.sidemenu div.margin {
 }
 
 ul.sidemenu li {
-  line-height: 30px;
-  height: 30px;
   border-left: 1px solid #eee;
   margin-left:0px;
   border-right: 2px solid white;
@@ -588,15 +628,11 @@ p.description {
 a.header-link {
   color: #888;
   font-size: 90%;
-}
-
-a.header-link i.octicon {
-  opacity: 0.5;
+  display: block;
 }
 
 a.header-link strong {
   color: black;
-  font-size: 90%;
 }
 
 a.header-link:hover {
@@ -650,6 +686,25 @@ table.table-file-list td.latest-commit {
 table.table-file-list td {
   background-color: #F8F8F8;
   font-size: small;
+}
+
+table.table-file-list .file-icon {
+  padding-right: 1px;
+}
+
+table.table-file-list .content-name {
+  max-width: 180px;
+}
+
+table.table-file-list .commit-message {
+  max-width: 415px;
+  display: inline-block;
+}
+
+table.table-file-list .commit-author {
+  color: #999;
+  font-size: 12px;
+  float: right;
 }
 
 th, td, .table th, .table td {
@@ -863,6 +918,10 @@ a.issue-title {
   font-size: 120%;
 }
 
+.label-success {
+  background-color: #6cc644;
+}
+
 ul.label-list {
   list-style-type: none;
   padding-left: 0px;
@@ -966,8 +1025,16 @@ div.issue-info {
 }
 
 div.issue-content {
-  padding: 8px;
-  background-color: #fbfbfb;
+  padding: 13px;
+  background-color: #fff;
+}
+
+div.issue-content p:first-child {
+  margin-top: 0;
+}
+
+div.issue-content p:last-child {
+  margin-bottom: 0;
 }
 
 h4#issueTitle {
@@ -994,15 +1061,45 @@ div.issue-participants {
 
 div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
-  margin-left: 50px;
+  margin-left: 70px;
   max-width: 820px;
+}
+
+div.issue-comment-box textarea {
+  width: 670px;
+  height: 100px;
+  max-height: 300px;
 }
 
 div.issue-comment-action {
   padding-bottom: 10px;
   padding-top: 0px;
+  margin-left: 70px;
   margin-bottom: 10px;
   border-bottom: 4px solid #ddd;
+}
+
+div.issue-comment-action .octicon {
+  border-radius: 50%;
+  background-color: #f3f3f3;
+  color: #767676;
+  font-size: 18px;
+  margin-right: 7px;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border: 2px solid #fff;
+}
+
+div.issue-reopened .octicon {
+  background-color: #6cc644;
+  color: #fff;
+}
+
+div.issue-comment-action .octicon.danger {
+  background-color: #bd2c00;
+  color: #fff;
 }
 
 .nav-pills > li > span.issue-label {
@@ -1437,13 +1534,17 @@ div.markdown-body pre {
   white-space: pre;
   word-wrap: normal;
   overflow: auto;
+  border: none;
+  padding: 4px;
 }
 
 div.markdown-body code {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 12px;
-  padding: 0 5px;
+  padding: 4px;
   background-color: rgba(0,0,0,0.04);
-  rgb(51, 51, 51);
+  border: none;
+  color: black;
 }
 
 div.markdown-body table {
@@ -1580,13 +1681,15 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 }
 
 .markdown-head {
+  left: -18px;
+  padding-left: 18px;
   position: relative;
   line-height: 1.7;
 }
 
 a.markdown-anchor-link {
   position: absolute;
-  left: -18px;
+  left: 0px;
   display: none;
   color: #999;
   /* From octicon style */
@@ -1664,9 +1767,12 @@ h6 a.markdown-anchor-link {
   padding-left: 50px;
 }
 
+/*
 div.container.blame-container{
   width:1270px;
 }
+*/
+
 .line-age-legend {
   display: none;
 }

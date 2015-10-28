@@ -192,7 +192,7 @@ object WebHookService {
   case class WebHookPushPayload(
     pusher: ApiUser,
     ref: String,
-    commits: List[ApiCommit],
+    commits: List[ApiPushCommit],
     repository: ApiRepository
   ) extends WebHookPayload
 
@@ -202,7 +202,7 @@ object WebHookService {
       WebHookPushPayload(
         ApiUser(pusher),
         refName,
-        commits.map{ commit => ApiCommit(git, RepositoryName(repositoryInfo), commit) },
+        commits.map{ commit => ApiPushCommit(git, RepositoryName(repositoryInfo), commit) },
         ApiRepository(
           repositoryInfo,
           owner= ApiUser(repositoryOwner)
@@ -273,7 +273,7 @@ object WebHookService {
         action       = "created",
         repository   = ApiRepository(repository, repositoryUser),
         issue        = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
-        comment      = ApiComment(comment, RepositoryName(repository), issue.issueId, ApiUser(commentUser)),
+        comment      = ApiComment(comment, RepositoryName(repository), issue.issueId, ApiUser(commentUser), issue.isPullRequest),
         sender       = ApiUser(sender))
   }
 }

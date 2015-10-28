@@ -86,7 +86,7 @@ trait IssuesControllerBase extends ControllerBase {
       issueId <- params("id").toIntOpt
       comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
     } yield {
-      JsonFormat(comments.map{ case (issueComment, user) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user)) })
+      JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
     }).getOrElse(NotFound)
   })
 
@@ -190,7 +190,7 @@ trait IssuesControllerBase extends ControllerBase {
       (issue, id) <- handleComment(issueId, Some(body), repository)()
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
-      JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get)))
+      JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get), issue.isPullRequest))
     }) getOrElse NotFound
   })
 
@@ -233,7 +233,7 @@ trait IssuesControllerBase extends ControllerBase {
           org.json4s.jackson.Serialization.write(
               Map("title"   -> x.title,
                   "content" -> Markdown.toHtml(x.content getOrElse "No description given.",
-                      repository, false, true, true, isEditable(x.userName, x.repositoryName, x.openedUserName))
+                      repository, false, true, true, true, isEditable(x.userName, x.repositoryName, x.openedUserName))
               ))
         }
       } else Unauthorized
@@ -255,6 +255,12 @@ trait IssuesControllerBase extends ControllerBase {
         }
       } else Unauthorized
     } getOrElse NotFound
+  })
+
+  ajaxPost("/:owner/:repository/issues/new/label")(collaboratorsOnly { repository =>
+    val labelNames = params("labelNames").split(",")
+    val labels = getLabels(repository.owner, repository.name).filter(x => labelNames.contains(x.labelName))
+    html.labellist(labels)
   })
 
   ajaxPost("/:owner/:repository/issues/:id/label/new")(collaboratorsOnly { repository =>
@@ -346,6 +352,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   }
 
+  // TODO Same method exists in PullRequestController. Should it moved to IssueService?
   private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
     StringUtil.extractIssueId(message).foreach { issueId =>
       val content = fromIssue.issueId + ":" + fromIssue.title
@@ -459,7 +466,11 @@ trait IssuesControllerBase extends ControllerBase {
           "issues",
           searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
-          (getCollaborators(owner, repoName) :+ owner).sorted,
+          if(!getAccountByUserName(owner).exists(_.isGroupAccount)){
+            (getCollaborators(owner, repoName) :+ owner).sorted
+          } else {
+            getCollaborators(owner, repoName)
+          },
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
           countIssue(condition.copy(state = "open"  ), false, owner -> repoName),

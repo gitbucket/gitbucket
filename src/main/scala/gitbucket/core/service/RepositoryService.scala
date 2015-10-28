@@ -66,10 +66,6 @@ trait RepositoryService { self: AccountService =>
           (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
         }.map { t => t.originUserName -> t.originRepositoryName }.update(newUserName, newRepositoryName)
 
-        PullRequests.filter { t =>
-          t.requestRepositoryName === oldRepositoryName.bind
-        }.map { t => t.requestUserName -> t.requestRepositoryName }.update(newUserName, newRepositoryName)
-
         // Updates activity fk before deleting repository because activity is sorted by activityId
         // and it can't be changed by deleting-and-inserting record.
         Activities.filter(_.byRepository(oldUserName, oldRepositoryName)).list.foreach { activity =>
@@ -97,6 +93,11 @@ trait RepositoryService { self: AccountService =>
         Labels        .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         CommitComments.insertAll(commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         CommitStatuses.insertAll(commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+
+        // Update source repository of pull requests
+        PullRequests.filter { t =>
+          (t.requestUserName === oldUserName.bind) && (t.requestRepositoryName === oldRepositoryName.bind)
+        }.map { t => t.requestUserName -> t.requestRepositoryName }.update(newUserName, newRepositoryName)
 
         // Convert labelId
         val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
@@ -382,6 +383,12 @@ object RepositoryService {
     lazy val host = """^https?://(.+?)(:\d+)?/""".r.findFirstMatchIn(httpUrl).get.group(1)
 
     def sshUrl(port: Int, userName: String) = s"ssh://${userName}@${host}:${port}/${owner}/${name}.git"
+
+    def sshOpenRepoUrl(platform: String, port: Int, userName: String) = openRepoUrl(platform, sshUrl(port, userName))
+
+    def httpOpenRepoUrl(platform: String) = openRepoUrl(platform, httpUrl)
+
+    def openRepoUrl(platform: String, openUrl: String) = s"github-${platform}://openRepo/${openUrl}"
 
     /**
      * Creates instance with issue count and pull request count.

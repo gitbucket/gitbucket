@@ -46,7 +46,10 @@ trait PullRequestsControllerBase extends ControllerBase {
     "requestRepositoryName" -> trim(text(required, maxlength(100))),
     "requestBranch"         -> trim(text(required, maxlength(100))),
     "commitIdFrom"          -> trim(text(required, maxlength(40))),
-    "commitIdTo"            -> trim(text(required, maxlength(40)))
+    "commitIdTo"            -> trim(text(required, maxlength(40))),
+    "assignedUserName"      -> trim(optional(text())),
+    "milestoneId"           -> trim(optional(number())),
+    "labelNames"            -> trim(optional(text()))
   )(PullRequestForm.apply)
 
   val mergeForm = mapping(
@@ -62,7 +65,11 @@ trait PullRequestsControllerBase extends ControllerBase {
     requestRepositoryName: String,
     requestBranch: String,
     commitIdFrom: String,
-    commitIdTo: String)
+    commitIdTo: String,
+    assignedUserName: Option[String],
+    milestoneId: Option[Int],
+    labelNames: Option[String]
+  )
 
   case class MergeForm(message: String)
 
@@ -176,7 +183,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           pullreq,
           statuses,
           repository,
-          s"${context.baseUrl}/git/${pullreq.requestUserName}/${pullreq.requestRepositoryName}.git")
+          getRepository(pullreq.requestUserName, pullreq.requestRepositoryName, context.baseUrl).get)
       }
     } getOrElse NotFound
   })
@@ -232,6 +239,9 @@ trait PullRequestsControllerBase extends ControllerBase {
               }
               closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
             }
+
+            updatePullRequests(owner, name, pullreq.branch)
+
             // call web hook
             callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
@@ -310,32 +320,44 @@ trait PullRequestsControllerBase extends ControllerBase {
               originRepository.owner, originRepository.name, originId,
               forkedRepository.owner, forkedRepository.name, forkedId)
 
-            (oldGit.getRepository.resolve(rootId),  newGit.getRepository.resolve(forkedId))
+            (Option(oldGit.getRepository.resolve(rootId)),  Option(newGit.getRepository.resolve(forkedId)))
           } else {
             // Commit id
-            (oldGit.getRepository.resolve(originId), newGit.getRepository.resolve(forkedId))
+            (Option(oldGit.getRepository.resolve(originId)), Option(newGit.getRepository.resolve(forkedId)))
           }
 
-        val (commits, diffs) = getRequestCompareInfo(
-          originRepository.owner, originRepository.name, oldId.getName,
-          forkedRepository.owner, forkedRepository.name, newId.getName)
+        (oldId, newId) match {
+          case (Some(oldId), Some(newId)) => {
+            val (commits, diffs) = getRequestCompareInfo(
+              originRepository.owner, originRepository.name, oldId.getName,
+              forkedRepository.owner, forkedRepository.name, newId.getName)
 
-        html.compare(
-          commits,
-          diffs,
-          (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
-            case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
-            case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-          },
-          commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
-          originId,
-          forkedId,
-          oldId.getName,
-          newId.getName,
-          forkedRepository,
-          originRepository,
-          forkedRepository,
-          hasWritePermission(forkedRepository.owner, forkedRepository.name, context.loginAccount))
+            html.compare(
+              commits,
+              diffs,
+              (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
+                case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
+                case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+              },
+              commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
+              originId,
+              forkedId,
+              oldId.getName,
+              newId.getName,
+              forkedRepository,
+              originRepository,
+              forkedRepository,
+              hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
+              (getCollaborators(originRepository.owner, originRepository.name) ::: (if(getAccountByUserName(originRepository.owner).get.isGroupAccount) Nil else List(originRepository.owner))).sorted,
+              getMilestones(originRepository.owner, originRepository.name),
+              getLabels(originRepository.owner, originRepository.name)
+            )
+          }
+          case (oldId, newId) =>
+            redirect(s"/${forkedRepository.owner}/${forkedRepository.name}/compare/" +
+                     s"${originOwner}:${oldId.map(_ => originId).getOrElse(originRepository.repository.defaultBranch)}..." +
+                     s"${forkedOwner}:${newId.map(_ => forkedId).getOrElse(forkedRepository.repository.defaultBranch)}")
+        }
       }
     }) getOrElse NotFound
   })
@@ -371,47 +393,78 @@ trait PullRequestsControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/pulls/new", pullRequestForm)(referrersOnly { (form, repository) =>
-    val loginUserName = context.loginAccount.get.userName
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      val writable = hasWritePermission(owner, name, context.loginAccount)
+      val loginUserName = context.loginAccount.get.userName
 
-    val issueId = createIssue(
-      owner            = repository.owner,
-      repository       = repository.name,
-      loginUser        = loginUserName,
-      title            = form.title,
-      content          = form.content,
-      assignedUserName = None,
-      milestoneId      = None,
-      isPullRequest    = true)
+      val issueId = createIssue(
+        owner            = repository.owner,
+        repository       = repository.name,
+        loginUser        = loginUserName,
+        title            = form.title,
+        content          = form.content,
+        assignedUserName = if(writable) form.assignedUserName else None,
+        milestoneId      = if(writable) form.milestoneId else None,
+        isPullRequest    = true)
 
-    createPullRequest(
-      originUserName        = repository.owner,
-      originRepositoryName  = repository.name,
-      issueId               = issueId,
-      originBranch          = form.targetBranch,
-      requestUserName       = form.requestUserName,
-      requestRepositoryName = form.requestRepositoryName,
-      requestBranch         = form.requestBranch,
-      commitIdFrom          = form.commitIdFrom,
-      commitIdTo            = form.commitIdTo)
+      createPullRequest(
+        originUserName        = repository.owner,
+        originRepositoryName  = repository.name,
+        issueId               = issueId,
+        originBranch          = form.targetBranch,
+        requestUserName       = form.requestUserName,
+        requestRepositoryName = form.requestRepositoryName,
+        requestBranch         = form.requestBranch,
+        commitIdFrom          = form.commitIdFrom,
+        commitIdTo            = form.commitIdTo)
 
-    // fetch requested branch
-    fetchAsPullRequest(repository.owner, repository.name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
+      // insert labels
+      if(writable){
+        form.labelNames.map { value =>
+          val labels = getLabels(owner, name)
+          value.split(",").foreach { labelName =>
+            labels.find(_.labelName == labelName).map { label =>
+              registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
+            }
+          }
+        }
+      }
 
-    // record activity
-    recordPullRequestActivity(repository.owner, repository.name, loginUserName, issueId, form.title)
+      // fetch requested branch
+      fetchAsPullRequest(owner, name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
 
-    // call web hook
-    callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
+      // record activity
+      recordPullRequestActivity(owner, name, loginUserName, issueId, form.title)
 
-    // notifications
-    getIssue(repository.owner, repository.name, issueId.toString) foreach { issue =>
-      Notifier().toNotify(repository, issue, form.content.getOrElse("")){
-        Notifier.msgPullRequest(s"${context.baseUrl}/${repository.owner}/${repository.name}/pull/${issueId}")
+      // call web hook
+      callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
+
+      getIssue(owner, name, issueId.toString) foreach { issue =>
+        // extract references and create refer comment
+        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+
+        // notifications
+        Notifier().toNotify(repository, issue, form.content.getOrElse("")){
+          Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
+        }
+      }
+
+      redirect(s"/${owner}/${name}/pull/${issueId}")
+    }
+  })
+
+  // TODO Same method exists in IssueController. Should it moved to IssueService?
+  private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
+    StringUtil.extractIssueId(message).foreach { issueId =>
+      val content = fromIssue.issueId + ":" + fromIssue.title
+      if(getIssue(owner, repository, issueId).isDefined){
+        // Not add if refer comment already exist.
+        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
+          createComment(owner, repository, context.loginAccount.get.userName, issueId.toInt, content, "refer")
+        }
       }
     }
-
-    redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-  })
+  }
 
   /**
    * Parses branch identifier and extracts owner and branch name as tuple.
@@ -462,7 +515,11 @@ trait PullRequestsControllerBase extends ControllerBase {
         "pulls",
         searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         page,
-        (getCollaborators(owner, repoName) :+ owner).sorted,
+        if(!getAccountByUserName(owner).exists(_.isGroupAccount)){
+          (getCollaborators(owner, repoName) :+ owner).sorted
+        } else {
+          getCollaborators(owner, repoName)
+        },
         getMilestones(owner, repoName),
         getLabels(owner, repoName),
         countIssue(condition.copy(state = "open"  ), true, owner -> repoName),

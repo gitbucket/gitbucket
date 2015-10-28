@@ -138,7 +138,7 @@
             }
           }
           @helper.html.dropdown("Assignee", flat = true) {
-            <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
+            <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
             @collaborators.map { collaborator =>
               <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
             }

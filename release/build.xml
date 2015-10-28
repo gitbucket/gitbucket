@@ -55,7 +55,12 @@
             tofile="${target.dir}/scala-${scala.version}/gitbucket.war"/>
   </target>
 
-  <target name="all" depends="rename">
+  <target name="checksum" depends="rename">
+    <checksum file="${target.dir}/scala-${scala.version}/gitbucket.war" algorithm="MD5" format="MD5SUM" forceOverwrite="yes" fileext=".md5"/>
+    <checksum file="${target.dir}/scala-${scala.version}/gitbucket.war" algorithm="SHA" format="MD5SUM" forceOverwrite="yes" fileext=".sha1"/>
+  </target>
+
+  <target name="all" depends="checksum">
   </target>
 
 

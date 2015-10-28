@@ -35,7 +35,7 @@
                     }.getOrElse {
                       encodeRefName(repository.repository.defaultBranch)
                     }}...@{encodeRefName(branch.name)}?expand=1" class="btn btn-small">New Pull Request</a>
-                  }else{
+                  } else {
                     <a href="@url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
                       urlEncode(parent) + ":" + encodeRefName(repository.repository.defaultBranch)
                     }.getOrElse {
@@ -45,9 +45,9 @@
                 }
                 @if(hasWritePermission){
                   @if(prs.map(!_._2.closed).getOrElse(false)){
-                    <a class="btn disabled btn-mini" data-toggle="tooltip" title="You can’t delete this branch because it has an open pull request"><i class="icon icon-trash icon-white"></i></a>
+                    <a class="btn disabled btn-mini" data-toggle="tooltip" title="You can’t delete this branch because it has an open pull request"><i class="octicon octicon-trashcan"></i></a>
                   }else{
-                    <a href="@url(repository)/delete/@encodeRefName(branch.name)" class="btn  @if(info.isMerged){ btn-warning }else{ btn-danger } delete-branch btn-mini" data-name="@branch.name" @if(info.isMerged){ data-toggle="tooltip" title="this branch is merged" }><i class="icon icon-trash icon-white"></i></a>
+                    <a href="@url(repository)/delete/@encodeRefName(branch.name)" class="btn  @if(info.isMerged){ btn-warning }else{ btn-danger } delete-branch btn-mini" data-name="@branch.name" @if(info.isMerged){ data-toggle="tooltip" title="this branch is merged" }><i class="octicon octicon-trashcan"></i></a>
                   }
                 }
               }

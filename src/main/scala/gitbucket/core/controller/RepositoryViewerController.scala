@@ -22,6 +22,7 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.DirCache
+import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
@@ -249,7 +250,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
-      if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
+      if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
     }")
   })
 
@@ -270,7 +271,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
-      if(form.path.length == 0) form.newFileName else s"${form.path}/${form.newFileName}"
+      if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
     }")
   })
 
@@ -292,8 +293,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
-          JGitUtil.getContentFromId(git, objectId, true).map { bytes =>
-            RawData("application/octet-stream", bytes)
+          JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
+            //RawData("application/octet-stream", bytes)
+            contentType = "application/octet-stream"
+            response.setContentLength(loader.getSize.toInt)
+            loader.copyTo(response.getOutputStream)
+            ()
           } getOrElse NotFound
         } else {
           html.blob(id, repository, path.split("/").toList,
@@ -344,16 +349,21 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/commit/:id")(referrersOnly { repository =>
     val id = params("id")
 
-    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))){ revCommit =>
-        JGitUtil.getDiffs(git, id) match { case (diffs, oldCommitId) =>
-          html.commit(id, new JGitUtil.CommitInfo(revCommit),
-            JGitUtil.getBranchesOfCommit(git, revCommit.getName),
-            JGitUtil.getTagsOfCommit(git, revCommit.getName),
-            getCommitComments(repository.owner, repository.name, id, false),
-            repository, diffs, oldCommitId, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+    try {
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))) { revCommit =>
+          JGitUtil.getDiffs(git, id) match {
+            case (diffs, oldCommitId) =>
+              html.commit(id, new JGitUtil.CommitInfo(revCommit),
+                JGitUtil.getBranchesOfCommit(git, revCommit.getName),
+                JGitUtil.getTagsOfCommit(git, revCommit.getName),
+                getCommitComments(repository.owner, repository.name, id, false),
+                repository, diffs, oldCommitId, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+          }
         }
       }
+    } catch {
+      case e:MissingObjectException => NotFound
     }
   })
 
@@ -517,10 +527,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file find of branch.
    */
-  get("/:owner/:repository/find/:ref")(referrersOnly { repository =>
+  get("/:owner/:repository/find/*")(referrersOnly { repository =>
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      JGitUtil.getTreeId(git, params("ref")).map{ treeId =>
-        html.find(params("ref"),
+      val ref = multiParams("splat").head
+      JGitUtil.getTreeId(git, ref).map{ treeId =>
+        html.find(ref,
                   treeId,
                   repository,
                   context.loginAccount match {

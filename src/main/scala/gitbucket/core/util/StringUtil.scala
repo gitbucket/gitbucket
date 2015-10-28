@@ -20,7 +20,7 @@ object StringUtil {
     md.digest.map(b => "%02x".format(b)).mkString
   }
 
-  def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8")
+  def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8").replace("+", "%20")
 
   def urlDecode(value: String): String = URLDecoder.decode(value, "UTF-8")
 

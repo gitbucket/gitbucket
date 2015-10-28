@@ -10,148 +10,33 @@
     @navigation("issues", false, repository)
     <br/><br/><hr style="margin-bottom: 10px;">
     <form action="@url(repository)/issues/new" method="POST" validate="true">
-    <div class="row-fluid">
-      <div class="span9">
-        <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
-        <div class="box issue-box">
-          <div class="box-content">
-            <span id="error-title" class="error"></span>
-            <input type="text" name="title" value="" placeholder="Title" style="width: 565px;" autofocus/>
-            <div>
-              <span id="label-assigned">No one is assigned</span>
-              @if(hasWritePermission){
-                <input type="hidden" name="assignedUserName" value=""/>
-                @helper.html.dropdown() {
-                  <li><a href="javascript:void(0);" class="assign" data-name=""><i class="icon-remove-circle"></i> Clear assignee</a></li>
-                  @collaborators.map { collaborator =>
-                    <li><a href="javascript:void(0);" class="assign" data-name="@collaborator"><i class="icon-while"></i>@avatar(collaborator, 20) @collaborator</a></li>
-                  }
-                }
-              }
-              <div class="pull-right">
-                <span id="label-milestone">No milestone</span>
-                @if(hasWritePermission){
-                  <input type="hidden" name="milestoneId" value=""/>
-                  @helper.html.dropdown() {
-                    <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="icon-remove-circle"></i> Clear this milestone</a></li>
-                    @milestones.filter(_.closedDate.isEmpty).map { milestone =>
-                      <li>
-                        <a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId" data-title="@milestone.title">
-                          <i class="icon-while"></i> @milestone.title
-                          <div class="small" style="padding-left: 20px;">
-                            @milestone.dueDate.map { dueDate =>
-                              @if(isPast(dueDate)){
-                                <i class="octicon octicon-alert" style="color:#BD2C00;"></i><span class="milestone-alert">Due by @date(dueDate)</span>
-                              } else {
-                                <span class="muted">Due by @date(dueDate)</span>
-                              }
-                            }.getOrElse {
-                              <span class="muted">No due date</span>
-                            }
-                          </div>
-                        </a>
-                      </li>
-                    }
-                  }
-                }
+      <div class="row-fluid">
+        <div class="span10">
+          <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+          <div class="box issue-box">
+            <div class="box-content">
+              <span id="error-title" class="error"></span>
+              <input type="text" name="title" value="" placeholder="Title" style="width: 690px;" autofocus/>
+              @helper.html.preview(
+                repository         = repository,
+                content            = "",
+                enableWikiLink     = false,
+                enableRefsLink     = true,
+                enableTaskList     = true,
+                hasWritePermission = hasWritePermission,
+                style              = "width: 690px; height: 200px; max-height: 250px;",
+                elastic            = true
+              )
+              <div class="align-right">
+                <input type="submit" class="btn btn-success" value="Submit new issue"/>
               </div>
             </div>
-            <hr>
-            @helper.html.preview(
-              repository         = repository,
-              content            = "",
-              enableWikiLink     = false,
-              enableRefsLink     = true,
-              enableTaskList     = true,
-              hasWritePermission = hasWritePermission,
-              style              = "width: 565px; height: 200px; max-height: 250px;",
-              elastic            = true
-            )
           </div>
         </div>
-        <div class="pull-right">
-          <input type="submit" class="btn btn-success" value="Submit new issue"/>
+        <div class="span2">
+          @issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, hasWritePermission, repository)
         </div>
       </div>
-      <div class="span3">
-        @if(hasWritePermission){
-          <span class="strong">Labels</span>
-          <div>
-            <div id="label-list">
-              <ul class="label-list nav nav-pills nav-stacked">
-                @labels.map { label =>
-                  <li>
-                    <a href="javascript:void(0);" class="toggle-label" data-label="@label.labelName" data-bgcolor="@label.color" data-fgcolor="@label.fontColor">
-                      <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
-                      @label.labelName
-                    </a>
-                  </li>
-                }
-              </ul>
-              <input type="hidden" name="labelNames" value=""/>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
     </form>
   }
 }
-<script>
-$(function(){
-  $('a.assign').click(function(){
-    var userName = $(this).data('name');
-    $('a.assign i.icon-ok').attr('class', 'icon-white');
-
-    if(userName == ''){
-      $('#label-assigned').text('No one will be assigned');
-    } else {
-      $('#label-assigned').html($('<span>')
-        .append($('<a class="username strong">').attr('href', '@path/' + userName).text(userName))
-        .append(' will be assigned'));
-      $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').attr('class', 'icon-ok');
-    }
-    $('input[name=assignedUserName]').val(userName);
-  });
-
-  $('a.milestone').click(function(){
-    var title = $(this).data('title');
-    var milestoneId = $(this).data('id');
-    $('a.milestone i.icon-ok').attr('class', 'icon-white');
-
-    if(milestoneId == ''){
-      $('#label-milestone').text('No milestone');
-    } else {
-      $('#label-milestone').html($('<span class="strong">').text(title));
-      $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
-    }
-    $('input[name=milestoneId]').val(milestoneId);
-  });
-
-  $('a.toggle-label').click(function(){
-    if($(this).data('selected') == true){
-      $(this).css({
-        'background-color': 'white',
-        'color'           : 'black',
-        'font-weight'     : 'normal'
-      });
-      $(this).data('selected', false);
-    } else {
-      $(this).css({
-        'background-color': '#' + $(this).data('bgcolor'),
-        'color'           : '#' + $(this).data('fgcolor'),
-        'font-weight'     : 'bold'
-      });
-      $(this).data('selected', true);
-    }
-
-    var labelNames = Array();
-    $('a.toggle-label').each(function(i, e){
-      if($(e).data('selected') == true){
-        labelNames.push($(e).data('label'));
-      }
-    });
-    $('input[name=labelNames]').val(labelNames.join(','));
-  });
-});
-</script>

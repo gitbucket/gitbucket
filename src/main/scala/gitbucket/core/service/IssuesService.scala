@@ -22,11 +22,13 @@ trait IssuesService {
   def getComments(owner: String, repository: String, issueId: Int)(implicit s: Session) =
     IssueComments filter (_.byIssue(owner, repository, issueId)) list
 
-  /** @return IssueComment and commentedUser */
-  def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session): List[(IssueComment, Account)] =
+  /** @return IssueComment and commentedUser and Issue */
+  def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session): List[(IssueComment, Account, Issue)] =
     IssueComments.filter(_.byIssue(owner, repository, issueId))
     .filter(_.action inSetBind Set("comment" , "close_comment", "reopen_comment"))
     .innerJoin(Accounts).on( (t1, t2) => t1.commentedUserName === t2.userName )
+    .innerJoin(Issues).on{ case ((t1, t2), t3) => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
+    .map{ case ((t1, t2), t3) => (t1, t2, t3) }
     .list
 
   def getComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
@@ -90,7 +92,7 @@ trait IssuesService {
   def getCommitStatues(issueList:Seq[(String, String, Int)])(implicit s: Session) :Map[(String, String, Int), CommitStatusInfo] ={
     if(issueList.isEmpty){
       Map.empty
-    }else{
+    } else {
       import scala.slick.jdbc._
       val issueIdQuery = issueList.map(i => "(PR.USER_NAME=? AND PR.REPOSITORY_NAME=? AND PR.ISSUE_ID=?)").mkString(" OR ")
       implicit val qset = SetParameter[Seq[(String, String, Int)]] {
@@ -474,9 +476,11 @@ object IssuesService {
      * Restores IssueSearchCondition instance from filter query.
      */
     def apply(filter: String, milestones: Map[String, Int]): IssueSearchCondition = {
-      val conditions = filter.split("[ 　\t]+").map { x =>
-        val dim = x.split(":")
-        dim(0) -> dim(1)
+      val conditions = filter.split("[ 　\t]+").flatMap { x =>
+        x.split(":") match {
+           case Array(key, value) => Some((key, value))
+           case _ => None
+        }
       }.groupBy(_._1).map { case (key, values) =>
         key -> values.map(_._2).toSeq
       }

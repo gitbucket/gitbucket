@@ -56,7 +56,7 @@ class JsonFormatSpec extends Specification {
     "default_branch" : "master",
     "owner" : $apiUserJson,
     "forks_count" : 0,
-    "watchers_coun" : 0,
+    "watchers_count" : 0,
     "url" : "${context.baseUrl}/api/v3/repos/octocat/Hello-World",
     "http_url" : "${context.baseUrl}/git/octocat/Hello-World.git",
     "clone_url" : "${context.baseUrl}/git/octocat/Hello-World.git",
@@ -85,17 +85,70 @@ class JsonFormatSpec extends Specification {
     "url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e/statuses"
   }"""
 
+  val apiPushCommit = ApiPushCommit(
+    id = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    message = "Update README.md",
+    timestamp = date1,
+    added = Nil,
+    removed = Nil,
+    modified = List("README.md"),
+    author = ApiPersonIdent("baxterthehacker","baxterthehacker@users.noreply.github.com",date1),
+    committer = ApiPersonIdent("baxterthehacker","baxterthehacker@users.noreply.github.com",date1))(RepositoryName("baxterthehacker", "public-repo"))
+  val apiPushCommitJson = s"""{
+      "id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+      // "distinct": true,
+      "message": "Update README.md",
+      "timestamp": "2011-04-14T16:00:49Z",
+      "url": "http://gitbucket.exmple.com/baxterthehacker/public-repo/commit/0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+      "author": {
+        "name": "baxterthehacker",
+        "email": "baxterthehacker@users.noreply.github.com",
+        // "username": "baxterthehacker",
+        "date" : "2011-04-14T16:00:49Z"
+      },
+      "committer": {
+        "name": "baxterthehacker",
+        "email": "baxterthehacker@users.noreply.github.com",
+        // "username": "baxterthehacker",
+        "date" : "2011-04-14T16:00:49Z"
+      },
+      "added": [
+
+      ],
+      "removed": [
+
+      ],
+      "modified": [
+        "README.md"
+      ]
+    }"""
+
   val apiComment = ApiComment(
     id =1,
     user = apiUser,
     body= "Me too",
     created_at= date1,
-    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100)
+    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, false)
   val apiCommentJson = s"""{
     "id": 1,
     "body": "Me too",
     "user": $apiUserJson,
     "html_url" : "${context.baseUrl}/octocat/Hello-World/issues/100#comment-1",
+    "created_at": "2011-04-14T16:00:49Z",
+    "updated_at": "2011-04-14T16:00:49Z"
+  }"""
+
+  val apiCommentPR = ApiComment(
+    id =1,
+    user = apiUser,
+    body= "Me too",
+    created_at= date1,
+    updated_at= date1)(RepositoryName("octocat","Hello-World"), 100, true)
+  val apiCommentPRJson = s"""{
+    "id": 1,
+    "body": "Me too",
+    "user": $apiUserJson,
+    "html_url" : "${context.baseUrl}/octocat/Hello-World/pull/100#comment-1",
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"
   }"""
@@ -158,7 +211,7 @@ class JsonFormatSpec extends Specification {
       state  = "open",
       body   = "I'm having a problem with this.",
       created_at = date1,
-      updated_at = date1)(RepositoryName("octocat","Hello-World"))
+      updated_at = date1)(RepositoryName("octocat","Hello-World"), false)
   val apiIssueJson = s"""{
     "number": 1347,
     "state": "open",
@@ -167,6 +220,26 @@ class JsonFormatSpec extends Specification {
     "user": $apiUserJson,
     "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
     "html_url": "${context.baseUrl}/octocat/Hello-World/issues/1347",
+    "created_at": "2011-04-14T16:00:49Z",
+    "updated_at": "2011-04-14T16:00:49Z"
+  }"""
+
+  val apiIssuePR = ApiIssue(
+      number = 1347,
+      title  = "Found a bug",
+      user   = apiUser,
+      state  = "open",
+      body   = "I'm having a problem with this.",
+      created_at = date1,
+      updated_at = date1)(RepositoryName("octocat","Hello-World"), true)
+  val apiIssuePRJson = s"""{
+    "number": 1347,
+    "state": "open",
+    "title": "Found a bug",
+    "body": "I'm having a problem with this.",
+    "user": $apiUserJson,
+    "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
+    "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"
   }"""
@@ -262,8 +335,12 @@ class JsonFormatSpec extends Specification {
     "repository" in {
         JsonFormat(repository) must beFormatted(repositoryJson)
     }
+    "apiPushCommit" in {
+        JsonFormat(apiPushCommit) must beFormatted(apiPushCommitJson)
+    }
     "apiComment" in {
         JsonFormat(apiComment) must beFormatted(apiCommentJson)
+        JsonFormat(apiCommentPR) must beFormatted(apiCommentPRJson)
     }
     "apiCommitListItem" in {
         JsonFormat(apiCommitListItem) must beFormatted(apiCommitListItemJson)
@@ -276,6 +353,7 @@ class JsonFormatSpec extends Specification {
     }
     "apiIssue" in {
       JsonFormat(apiIssue) must beFormatted(apiIssueJson)
+      JsonFormat(apiIssuePR) must beFormatted(apiIssuePRJson)
     }
     "apiPullRequest" in {
       JsonFormat(apiPullRequest) must beFormatted(apiPullRequestJson)

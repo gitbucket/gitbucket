@@ -13,7 +13,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu">
-          <li><a href="javascript:void(0);" data-name="@loginAccount.get.userName"><i class="icon-ok"></i> <span>@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span></a></li>
+          <li><a href="javascript:void(0);" data-name="@loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span></a></li>
           @groupNames.map { groupName =>
             <li><a href="javascript:void(0);" data-name="@groupName"><i class="icon-white"></i> <span>@avatar(groupName, 20) @groupName</span></a></li>
           }
@@ -40,7 +40,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
     <fieldset>
       <label class="radio">
         <input type="radio" name="isPrivate" value="true" @if(!isCreateRepoOptionPublic){checked}>
-        <span class="strong"><i class="icon-lock"></i>&nbsp;</i>&nbsp;Private</span><br>
+        <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span><br>
         <div>
           <span>Only collaborators can read this repository.</span>
         </div>

@@ -37,7 +37,7 @@ trait Notifier extends RepositoryService with AccountService with IssuesService 
 object Notifier {
   // TODO We want to be able to switch to mock.
   def apply(): Notifier = new SystemSettingsService {}.loadSystemSettings match {
-    case settings if settings.notification => new Mailer(settings.smtp.get)
+    case settings if (settings.notification && settings.useSMTP) => new Mailer(settings.smtp.get)
     case _ => new MockMailer
   }
 
