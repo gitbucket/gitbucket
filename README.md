@@ -65,7 +65,7 @@ Or, if you don't want/need launchctl, you can just run:
 ```
 
 #### Manual Installation
-On OS X, copy the [gitbucket.plist](https://raw.github.com/gitbucket/gitbucket/master/contrib/macosx/gitbucket.plist) file to `~/Library/LaunchAgents/`
+On OS X, generate gitbucket.plist by [this script](https://raw.githubusercontent.com/gitbucket/gitbucket/master/contrib/macosx/makePlist) and copy to `~/Library/LaunchAgents/`
 
 Run the following commands in `Terminal` to
 
