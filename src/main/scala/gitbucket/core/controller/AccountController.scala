@@ -366,61 +366,60 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name, context.baseUrl).isEmpty){
-        val ownerAccount  = getAccountByUserName(form.owner).get
-        val loginAccount  = context.loginAccount.get
-        val loginUserName = loginAccount.userName
-
-        // Insert to the database at first
-        createRepository(form.name, form.owner, form.description, form.isPrivate)
-
-        // Add collaborators for group repository
-        if(ownerAccount.isGroupAccount){
-          getGroupMembers(form.owner).foreach { member =>
-            addCollaborator(form.owner, form.name, member.userName)
-          }
-        }
-
-        // Insert default labels
-        insertDefaultLabels(form.owner, form.name)
-
-        // Create the actual repository
-        val gitdir = getRepositoryDir(form.owner, form.name)
-        JGitUtil.initRepository(gitdir)
-
-        if(form.createReadme){
-          using(Git.open(gitdir)){ git =>
-            val builder  = DirCache.newInCore.builder()
-            val inserter = git.getRepository.newObjectInserter()
-            val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-            val content  = if(form.description.nonEmpty){
-              form.name + "\n" +
-              "===============\n" +
-              "\n" +
-              form.description.get
-            } else {
-              form.name + "\n" +
-              "===============\n"
-            }
-
-            builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
-              inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
-            builder.finish()
-
-            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-              Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
-          }
-        }
-
-        // Create Wiki repository
-        createWikiRepository(loginAccount, form.owner, form.name)
-
-        // Record activity
-        recordCreateRepositoryActivity(form.owner, form.name, loginUserName)
+        createRepository(form.owner, form.name, form.description, form.isPrivate, form.createReadme)
       }
 
       // redirect to the repository
       redirect(s"/${form.owner}/${form.name}")
     }
+  })
+
+  /**
+   * Create user repository
+   * https://developer.github.com/v3/repos/#create
+   */
+  post("/api/v3/user/repos")(usersOnly {
+    val owner = context.loginAccount.get.userName
+    (for {
+      data <- extractFromJsonBody[CreateARepository] if data.isValid
+    } yield {
+      LockUtil.lock(s"${owner}/${data.name}") {
+        if(getRepository(owner, data.name, context.baseUrl).isEmpty){
+          createRepository(owner, data.name, data.description, data.`private`, data.auto_init)
+          val repository = getRepository(owner, data.name, context.baseUrl).get
+          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
+        } else {
+          ApiError(
+            "A repository with this name already exists on this account", 
+            Some("https://developer.github.com/v3/repos/#create")
+          )
+        }
+      }
+    }) getOrElse NotFound
+  })
+
+  /**
+   * Create group repository
+   * https://developer.github.com/v3/repos/#create
+   */
+  post("/api/v3/orgs/:org/repos")(managersOnly {
+    val groupName = params("org")
+    (for {
+      data <- extractFromJsonBody[CreateARepository] if data.isValid
+    } yield {
+      LockUtil.lock(s"${groupName}/${data.name}") {
+        if(getRepository(groupName, data.name, context.baseUrl).isEmpty){
+          createRepository(groupName, data.name, data.description, data.`private`, data.auto_init)
+          val repository = getRepository(groupName, data.name, context.baseUrl).get
+          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
+        } else {
+          ApiError(
+            "A repository with this name already exists for this group", 
+            Some("https://developer.github.com/v3/repos/#create")
+          )
+        }
+      }
+    }) getOrElse NotFound
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
@@ -495,6 +494,59 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }
   })
+
+  private def createRepository(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean) {
+    val ownerAccount  = getAccountByUserName(owner).get
+    val loginAccount  = context.loginAccount.get
+    val loginUserName = loginAccount.userName
+
+    // Insert to the database at first
+    createRepository(name, owner, description, isPrivate)
+
+    // Add collaborators for group repository
+    if(ownerAccount.isGroupAccount){
+      getGroupMembers(owner).foreach { member =>
+        addCollaborator(owner, name, member.userName)
+      }
+    }
+
+    // Insert default labels
+    insertDefaultLabels(owner, name)
+
+    // Create the actual repository
+    val gitdir = getRepositoryDir(owner, name)
+    JGitUtil.initRepository(gitdir)
+
+    if(createReadme){
+      using(Git.open(gitdir)){ git =>
+        val builder  = DirCache.newInCore.builder()
+        val inserter = git.getRepository.newObjectInserter()
+        val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
+        val content  = if(description.nonEmpty){
+          name + "\n" +
+          "===============\n" +
+          "\n" +
+          description.get
+        } else {
+          name + "\n" +
+          "===============\n"
+        }
+
+        builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
+          inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
+        builder.finish()
+
+        JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+          Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
+      }
+    }
+
+    // Create Wiki repository
+    createWikiRepository(loginAccount, owner, name)
+
+    // Record activity
+    recordCreateRepositoryActivity(owner, name, loginUserName)
+  }
 
   private def insertDefaultLabels(userName: String, repositoryName: String): Unit = {
     createLabel(userName, repositoryName, "bug", "fc2929")
