@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.ObjectId
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -165,13 +166,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       import scala.collection.JavaConverters._
       val commits = if(repository.commitCount == 0) List.empty else git.log
         .add(git.getRepository.resolve(repository.repository.defaultBranch))
-        .setMaxCount(3)
-        .call.iterator.asScala.map(new CommitInfo(_))
+        .setMaxCount(4)
+        .call.iterator.asScala.map(new CommitInfo(_)).toList
 
       getAccountByUserName(repository.owner).foreach { ownerAccount =>
         callWebHook("push",
           List(WebHook(repository.owner, repository.name, form.url)),
-          WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
+          WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, (if(commits.isEmpty){Nil}else{commits.tail}), ownerAccount,
+                             oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
+                             newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()))
         )
       }
       flash += "url"  -> form.url

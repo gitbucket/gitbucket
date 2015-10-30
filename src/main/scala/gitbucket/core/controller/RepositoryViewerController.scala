@@ -669,7 +669,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
         callWebHookOf(repository.owner, repository.name, "push") {
           getAccountByUserName(repository.owner).map{ ownerAccount =>
-            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount)
+            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount,
+                               oldId = headTip, newId = commitId)
           }
         }
       }
