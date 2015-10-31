@@ -1,22 +1,24 @@
 @(owner: String, repository: String)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
+@import gitbucket.core.util.FileUtil
 <div class="muted attachable">
   @textarea
-  <div class="clickable">Attach images by dragging &amp; dropping, or selecting them.</div>
+  <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
 </div>
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
   try {
     $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
-      url: '@path/upload/image/@owner/@repository',
+      url: '@path/upload/file/@owner/@repository',
       maxFilesize: 10,
-      acceptedFiles: 'image/*',
-      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, or JPG.',
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+      acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
+      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
+      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
-        var images = '\n![' + file.name.split('.')[0] + '](@baseUrl/@owner/@repository/_attached/' + id + ')';
-        $('#@textareaId').val($('#@textareaId').val() + images);
+        var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
+          '](@baseUrl/@owner/@repository/_attached/' + id + ')';
+        $('#@textareaId').val($('#@textareaId').val() + attachFile);
         $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
       }
     });

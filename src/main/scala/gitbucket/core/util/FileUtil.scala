@@ -1,7 +1,7 @@
 package gitbucket.core.util
 
 import org.apache.commons.io.FileUtils
-import java.net.URLConnection
+import org.apache.tika.Tika
 import java.io.File
 import ControlUtil._
 import scala.util.Random
@@ -9,8 +9,8 @@ import scala.util.Random
 object FileUtil {
 
   def getMimeType(name: String): String =
-    defining(URLConnection.getFileNameMap()){ fileNameMap =>
-      fileNameMap.getContentTypeFor(name) match {
+    defining(new Tika()){ tika =>
+      tika.detect(name) match {
         case null     => "application/octet-stream"
         case mimeType => mimeType
       }
@@ -27,6 +27,8 @@ object FileUtil {
   }
 
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
+
+  def isUploadableType(name: String): Boolean = mimeTypeWhiteList contains getMimeType(name)
 
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 
@@ -50,4 +52,14 @@ object FileUtil {
       FileUtils.deleteDirectory(dir)
     }
   }
+
+  val mimeTypeWhiteList: Array[String] = Array(
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "image/gif",
+      "image/jpeg",
+      "image/png",
+      "text/plain")
 }
