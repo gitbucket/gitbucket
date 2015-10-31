@@ -95,6 +95,13 @@ Support
 
 Release Notes
 --------
+### 3.8 - 31 Oct 2015
+- Moved to organization
+- Omit diff view for large differences
+- Repository creation API
+- Render url as link in repository description
+- Expand attachable file types
+
 ### 3.7 - 3 Oct 2015
 - Markdown processor has been switched to [markedj](https://github.com/gitbucket/markedj) from pegdown
 - Clone in desktop button
