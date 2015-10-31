@@ -96,7 +96,7 @@ Support
 Release Notes
 --------
 ### 3.8 - 31 Oct 2015
-- Moved to organization
+- Moved to GitHub organization
 - Omit diff view for large differences
 - Repository creation API
 - Render url as link in repository description
