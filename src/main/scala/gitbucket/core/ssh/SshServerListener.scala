@@ -14,7 +14,7 @@ object SshServer {
 
   private def configure(port: Int, baseUrl: String) = {
     server.setPort(port)
-    server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser"))
+    server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser", "RSA"))
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
     server.setCommandFactory(new GitCommandFactory(baseUrl))
     server.setShellFactory(new NoShell)

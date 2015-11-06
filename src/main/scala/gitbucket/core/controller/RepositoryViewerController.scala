@@ -293,8 +293,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download
-          JGitUtil.getContentFromId(git, objectId, true).map { bytes =>
-            RawData("application/octet-stream", bytes)
+          JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
+            //RawData("application/octet-stream", bytes)
+            contentType = "application/octet-stream"
+            response.setContentLength(loader.getSize.toInt)
+            loader.copyTo(response.getOutputStream)
+            ()
           } getOrElse NotFound
         } else {
           html.blob(id, repository, path.split("/").toList,
@@ -665,7 +669,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
         callWebHookOf(repository.owner, repository.name, WebHook.Push) {
           getAccountByUserName(repository.owner).map{ ownerAccount =>
-            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount)
+            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount,
+                               oldId = headTip, newId = commitId)
           }
         }
       }

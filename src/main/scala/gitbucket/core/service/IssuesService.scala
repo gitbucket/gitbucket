@@ -92,7 +92,7 @@ trait IssuesService {
   def getCommitStatues(issueList:Seq[(String, String, Int)])(implicit s: Session) :Map[(String, String, Int), CommitStatusInfo] ={
     if(issueList.isEmpty){
       Map.empty
-    }else{
+    } else {
       import scala.slick.jdbc._
       val issueIdQuery = issueList.map(i => "(PR.USER_NAME=? AND PR.REPOSITORY_NAME=? AND PR.ISSUE_ID=?)").mkString(" OR ")
       implicit val qset = SetParameter[Seq[(String, String, Int)]] {

@@ -45,7 +45,7 @@ class JsonFormatSpec extends Specification {
     forks = 0,
     `private` = false,
     default_branch = "master",
-    owner = apiUser)
+    owner = apiUser)(urlIsHtmlUrl = false)
   val repositoryJson = s"""{
     "name" : "Hello-World",
     "full_name" : "octocat/Hello-World",
@@ -85,7 +85,7 @@ class JsonFormatSpec extends Specification {
     "url": "http://gitbucket.exmple.com/api/v3/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e/statuses"
   }"""
 
-  val apiPushCommit = ApiPushCommit(
+  val apiPushCommit = ApiCommit(
     id = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
     message = "Update README.md",
     timestamp = date1,
@@ -93,7 +93,7 @@ class JsonFormatSpec extends Specification {
     removed = Nil,
     modified = List("README.md"),
     author = ApiPersonIdent("baxterthehacker","baxterthehacker@users.noreply.github.com",date1),
-    committer = ApiPersonIdent("baxterthehacker","baxterthehacker@users.noreply.github.com",date1))(RepositoryName("baxterthehacker", "public-repo"))
+    committer = ApiPersonIdent("baxterthehacker","baxterthehacker@users.noreply.github.com",date1))(RepositoryName("baxterthehacker", "public-repo"), true)
   val apiPushCommitJson = s"""{
       "id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
       // "distinct": true,

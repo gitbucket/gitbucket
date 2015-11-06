@@ -15,6 +15,7 @@ import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import scala.util.{Success, Failure}
+import org.eclipse.jgit.lib.ObjectId
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -182,11 +183,21 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       import scala.concurrent.ExecutionContext.Implicits.global
 
       val url = params("url")
-      val commits = if(repository.commitCount == 0) List.empty else git.log
-        .add(git.getRepository.resolve(repository.repository.defaultBranch))
-        .setMaxCount(3)
-        .call.iterator.asScala.map(new CommitInfo(_))
-      val ownerAccount = getAccountByUserName(repository.owner).get
+      val dummyPayload = {
+        val ownerAccount = getAccountByUserName(repository.owner).get
+        val commits = if(repository.commitCount == 0) List.empty else git.log
+          .add(git.getRepository.resolve(repository.repository.defaultBranch))
+          .setMaxCount(4)
+          .call.iterator.asScala.map(new CommitInfo(_)).toList
+        val pushedCommit = commits.drop(1)
+        WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, pushedCommit, ownerAccount,
+                           oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
+                           newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()))
+      }
+      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url)
+
+      val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload).head
+
       def headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map{ h => Array(h.getName, h.getValue) }
       val toErrorMap:PartialFunction[Throwable, Map[String,String]] = {
         case e:java.net.UnknownHostException => Map("error"-> ("Unknown host "+ e.getMessage))
@@ -194,10 +205,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         case e:org.apache.http.client.ClientProtocolException => Map("error"-> ("invalid url"))
         case NonFatal(e) => Map("error"-> (e.getClass + " "+ e.getMessage))
       }
-      val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push,
-        List(WebHook(repository.owner, repository.name, url)),
-        WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, commits.toList, ownerAccount)
-      ).head
       contentType = formats("json")
       var result = Map(
         "url" -> url,

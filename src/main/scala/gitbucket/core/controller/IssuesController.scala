@@ -332,6 +332,7 @@ trait IssuesControllerBase extends ControllerBase {
     (Directory.getAttachedDir(repository.owner, repository.name) match {
       case dir if(dir.exists && dir.isDirectory) =>
         dir.listFiles.find(_.getName.startsWith(params("file") + ".")).map { file =>
+          response.setHeader("Content-Disposition", f"""inline; filename=${file.getName}""")
           RawData(FileUtil.getMimeType(file.getName), file)
         }
       case _ => None
@@ -352,6 +353,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   }
 
+  // TODO Same method exists in PullRequestController. Should it moved to IssueService?
   private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
     StringUtil.extractIssueId(message).foreach { issueId =>
       val content = fromIssue.issueId + ":" + fromIssue.title

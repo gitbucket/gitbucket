@@ -55,7 +55,7 @@
           } else {
             @if(comment.action == "refer"){
               @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
-                <strong><a href="@path/@repository.owner/@repository.name/issues/@issueId">Issue #@issueId</a>: @rest.mkString(":")</strong>
+                <strong>@issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
               }
             } else {
                 <div class="markdown-body">@markdown(comment.content, repository, false, true, true, hasWritePermission)</div>

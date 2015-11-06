@@ -1,4 +1,4 @@
-GitBucket [![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket) [![Build Status](https://travis-ci.org/takezoe/gitbucket.svg?branch=master)](https://travis-ci.org/takezoe/gitbucket)
+GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
 GitBucket is the easily installable GitHub clone powered by Scala.
@@ -20,12 +20,12 @@ The current version of GitBucket provides a basic features below:
 - Gravatar support
 - Plug-in system
 
-If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
+If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
 Installation
 --------
 
-1. Download latest **gitbucket.war** from [the release page](https://github.com/takezoe/gitbucket/releases).
+1. Download latest **gitbucket.war** from [the release page](https://github.com/gitbucket/gitbucket/releases).
 2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
 3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
 
@@ -42,7 +42,7 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 
 To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
-For Installation on Windows Server with IIS see [this wiki page](https://github.com/takezoe/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
+For Installation on Windows Server with IIS see [this wiki page](https://github.com/gitbucket/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
 
 ### Mac OS X
 #### Installing Via Homebrew
@@ -65,7 +65,7 @@ Or, if you don't want/need launchctl, you can just run:
 ```
 
 #### Manual Installation
-On OS X, copy the [gitbucket.plist](https://raw.github.com/takezoe/gitbucket/master/contrib/macosx/gitbucket.plist) file to `~/Library/LaunchAgents/`
+On OS X, generate `gitbucket.plist` by [this script](https://raw.githubusercontent.com/gitbucket/gitbucket/master/contrib/macosx/makePlist) and copy it to `~/Library/LaunchAgents/`
 
 Run the following commands in `Terminal` to
 
@@ -81,18 +81,28 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 - [gitbucket-h2-backup-plugin](https://github.com/gitbucket-plugins/gitbucket-h2-backup-plugin)
 - [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
 - [gitbucket-commitgraphs-plugin](https://github.com/yoshiyoshifujii/gitbucket-commitgraphs-plugin)
+- [gitbucket-asciidoctor-plugin](https://github.com/lefou/gitbucket-asciidoctor-plugin)
 
 You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
 
 Support
 --------
 
-- If you have any question about GitBucket, send it to [gitter room](https://gitter.im/takezoe/gitbucket) before raise an issue.
+- If you have any question about GitBucket, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raise an issue.
+- Make sure check whether there is a same question or request in the past.
 - When raise a new issue, write subject in **English** at least.
-- We can also support in Japaneses other than English at [gitter room for Japanese](https://gitter.im/takezoe/gitbucket_ja).
+- We can also support in Japaneses other than English at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- First priority of GitBucket is easy installation and reproduce GitHub behavior, so we might reject if your request is against it.
 
 Release Notes
 --------
+### 3.8 - 31 Oct 2015
+- Moved to GitHub organization
+- Omit diff view for large differences
+- Repository creation API
+- Render url as link in repository description
+- Expand attachable file types
+
 ### 3.7 - 3 Oct 2015
 - Markdown processor has been switched to [markedj](https://github.com/gitbucket/markedj) from pegdown
 - Clone in desktop button

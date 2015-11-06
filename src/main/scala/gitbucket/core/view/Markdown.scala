@@ -110,7 +110,7 @@ object Markdown {
     }
 
     override def link(href: String, title: String, text: String): String = {
-      super.link(fixUrl(href, true), title, text)
+      super.link(fixUrl(href, false), title, text)
     }
 
     override def image(href: String, title: String, text: String): String = {

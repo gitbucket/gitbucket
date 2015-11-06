@@ -10,7 +10,7 @@ import sbtassembly.AssemblyKeys._
 object MyBuild extends Build {
   val Organization = "gitbucket"
   val Name = "gitbucket"
-  val Version = "3.7.0"
+  val Version = "3.8.0"
   val ScalaVersion = "2.11.6"
   val ScalatraVersion = "2.3.1"
 
@@ -51,11 +51,12 @@ object MyBuild extends Build {
       "org.json4s" %% "json4s-jackson" % "3.2.11",
       "jp.sf.amateras" %% "scalatra-forms" % "0.1.0",
       "commons-io" % "commons-io" % "2.4",
-      "io.github.gitbucket" % "markedj" % "1.0.4-SNAPSHOT",
+      "io.github.gitbucket" % "markedj" % "1.0.4",
       "org.apache.commons" % "commons-compress" % "1.9",
       "org.apache.commons" % "commons-email" % "1.3.3",
       "org.apache.httpcomponents" % "httpclient" % "4.3.6",
       "org.apache.sshd" % "apache-sshd" % "0.11.0",
+      "org.apache.tika" % "tika-core" % "1.10",
       "com.typesafe.slick" %% "slick" % "2.1.0",
       "com.novell.ldap" % "jldap" % "2009-10-07",
       "com.h2database" % "h2" % "1.4.180",
