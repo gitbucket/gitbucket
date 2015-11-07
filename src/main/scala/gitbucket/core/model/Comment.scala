@@ -56,7 +56,8 @@ trait CommitCommentComponent extends TemplateComponent { self: Profile =>
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
     val pullRequest = column[Boolean]("PULL_REQUEST")
-    def * = (userName, repositoryName, commitId, commentId, commentedUserName, content, fileName, oldLine, newLine, registeredDate, updatedDate, pullRequest) <> (CommitComment.tupled, CommitComment.unapply)
+    val issueId = column[Option[Int]]("ISSUE_ID")
+    def * = (userName, repositoryName, commitId, commentId, commentedUserName, content, fileName, oldLine, newLine, registeredDate, updatedDate, pullRequest, issueId) <> (CommitComment.tupled, CommitComment.unapply)
 
     def byPrimaryKey(commentId: Int) = this.commentId === commentId.bind
   }
@@ -74,5 +75,6 @@ case class CommitComment(
   newLine: Option[Int],
   registeredDate: java.util.Date,
   updatedDate: java.util.Date,
-  pullRequest: Boolean
+  pullRequest: Boolean,
+  issueId: Option[Int]
  ) extends Comment

@@ -27,7 +27,8 @@ trait CommitsService {
       None
 
   def createCommitComment(owner: String, repository: String, commitId: String, loginUser: String,
-    content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int], pullRequest: Boolean)(implicit s: Session): Int =
+                          content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int],
+                          issueId: Option[Int])(implicit s: Session): Int =
     CommitComments.autoInc insert CommitComment(
       userName          = owner,
       repositoryName    = repository,
@@ -39,7 +40,8 @@ trait CommitsService {
       newLine           = newLine,
       registeredDate    = currentDate,
       updatedDate       = currentDate,
-      pullRequest       = pullRequest)
+      pullRequest       = issueId.isDefined,
+      issueId           = issueId)
 
   def updateCommitComment(commentId: Int, content: String)(implicit s: Session) =
     CommitComments
