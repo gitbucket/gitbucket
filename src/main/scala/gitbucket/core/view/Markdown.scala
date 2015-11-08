@@ -43,6 +43,7 @@ object Markdown {
 
     val options = new Options()
     options.setSanitize(true)
+    options.setBreaks(true)
     val renderer = new GitBucketMarkedRenderer(options, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
     Marked.marked(source, options, renderer)
   }
