@@ -256,6 +256,10 @@ div.box-header {
   background: #f2f8fa;
 }
 
+.inline-comment div.box-content-bottom {
+  margin-bottom: 0px;
+}
+
 .commit-list {
   position: relative;
 }
