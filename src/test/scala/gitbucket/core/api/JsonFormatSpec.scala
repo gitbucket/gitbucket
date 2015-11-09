@@ -7,7 +7,7 @@ import org.json4s.jackson.JsonMethods.{pretty, parse}
 import org.json4s._
 import org.specs2.matcher._
 
-import java.util.{Calendar, TimeZone}
+import java.util.{Calendar, TimeZone, Date}
 
 
 
@@ -16,6 +16,11 @@ class JsonFormatSpec extends Specification {
     val d = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     d.set(2011,3,14,16,0,49)
     d.getTime
+  }
+  def date(date:String):Date = {
+    val f = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    f.setTimeZone(TimeZone.getTimeZone("UTC"))
+    f.parse(date)
   }
   val sha1 = "6dcb09b5b57875f334f61aebed695e2e4193db5e"
   val repo1Name = RepositoryName("octocat/Hello-World")
@@ -305,6 +310,50 @@ class JsonFormatSpec extends Specification {
   //  "deletions": 3,
   //  "changed_files": 5
     }"""
+
+  val apiPullRequestReviewComment = ApiPullRequestReviewComment(
+    id = 29724692,
+  // "diff_hunk": "@@ -1 +1 @@\n-# public-repo",
+    path = "README.md",
+  // "position": 1,
+  // "original_position": 1,
+    commit_id = "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+  // "original_commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    user = apiUser,
+    body = "Maybe you should use more emojji on this line.",
+    created_at = date("2015-05-05T23:40:27Z"),
+    updated_at = date("2015-05-05T23:40:27Z")
+  )(RepositoryName("baxterthehacker/public-repo"), 1)
+  val apiPullRequestReviewCommentJson = s"""{
+    "url": "http://gitbucket.exmple.com/api/v3/repos/baxterthehacker/public-repo/pulls/comments/29724692",
+    "id": 29724692,
+    // "diff_hunk": "@@ -1 +1 @@\\n-# public-repo",
+    "path": "README.md",
+    // "position": 1,
+    // "original_position": 1,
+    "commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    // "original_commit_id": "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c",
+    "user": $apiUserJson,
+    "body": "Maybe you should use more emojji on this line.",
+    "created_at": "2015-05-05T23:40:27Z",
+    "updated_at": "2015-05-05T23:40:27Z",
+    "html_url": "http://gitbucket.exmple.com/baxterthehacker/public-repo/pull/1#discussion_r29724692",
+    "pull_request_url": "http://gitbucket.exmple.com/api/v3/repos/baxterthehacker/public-repo/pulls/1",
+    "_links": {
+      "self": {
+        "href": "http://gitbucket.exmple.com/api/v3/repos/baxterthehacker/public-repo/pulls/comments/29724692"
+      },
+      "html": {
+        "href": "http://gitbucket.exmple.com/baxterthehacker/public-repo/pull/1#discussion_r29724692"
+      },
+      "pull_request": {
+        "href": "http://gitbucket.exmple.com/api/v3/repos/baxterthehacker/public-repo/pulls/1"
+      }
+    }
+  }"""
+
+
+
   def beFormatted(json2Arg:String) = new Matcher[String] {
     def apply[S <: String](e: Expectable[S]) = {
       import java.util.regex.Pattern
@@ -357,6 +406,9 @@ class JsonFormatSpec extends Specification {
     }
     "apiPullRequest" in {
       JsonFormat(apiPullRequest) must beFormatted(apiPullRequestJson)
+    }
+    "apiPullRequestReviewComment" in {
+      JsonFormat(apiPullRequestReviewComment) must beFormatted(apiPullRequestReviewCommentJson)
     }
   }
 }

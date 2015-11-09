@@ -45,7 +45,6 @@ name="@(name).@event.name" value="on" @if(events(event)){checked}
           <label class="checkbox"><input type="checkbox" @check("events",DeploymentStatus) />Deployment status <small class="help-block">Deployment status updated from the API. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",Fork) />Fork <small class="help-block">Repository forked. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",Gollum) />Gollum <small class="help-block">Wiki page updated. </small> </label>
-          <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull Request review comment <small class="help-block">Pull Request diff commented on. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",Member) />Member <small class="help-block">Collaborator added to a non-organization repository. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",PageBuild) />Page build <small class="help-block">Pages site built. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",Public) />Public <small class="help-block">Repository changes from private to public. </small> </label>
@@ -57,6 +56,7 @@ name="@(name).@event.name" value="on" @if(events(event)){checked}
           <label class="checkbox"><input type="checkbox" @check("events",IssueComment) />Issue comment <small class="help-block">Issue commented on. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",Issues) />Issues <small class="help-block">Issue opened, closed<!-- , assigned, or labeled -->. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull Request <small class="help-block">Pull Request opened, closed<!-- , assigned, labeled -->, or synchronized. </small> </label>
+          <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull Request review comment <small class="help-block">Pull Request diff commented on. </small> </label>
           <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <small class="help-block">Git push to a repository. </small> </label>
         <hr />
         @if(!create){
