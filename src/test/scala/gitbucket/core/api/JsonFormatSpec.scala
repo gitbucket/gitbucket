@@ -311,6 +311,7 @@ class JsonFormatSpec extends Specification {
   //  "changed_files": 5
     }"""
 
+  // https://developer.github.com/v3/activity/events/types/#pullrequestreviewcommentevent
   val apiPullRequestReviewComment = ApiPullRequestReviewComment(
     id = 29724692,
   // "diff_hunk": "@@ -1 +1 @@\n-# public-repo",
