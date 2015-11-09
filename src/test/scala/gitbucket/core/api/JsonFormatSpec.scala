@@ -17,7 +17,7 @@ class JsonFormatSpec extends Specification {
     d.set(2011,3,14,16,0,49)
     d.getTime
   }
-  def date(date:String):Date = {
+  def date(date:String): Date = {
     val f = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
     f.setTimeZone(TimeZone.getTimeZone("UTC"))
     f.parse(date)
