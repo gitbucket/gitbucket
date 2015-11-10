@@ -7,7 +7,7 @@
 <div class="btn-group" @if(style.nonEmpty){style="@style"}>
   <button
       @if(flat){style="border: none; background-color: #eee;"}
-      class="dropdown-toggle @if(!flat){btn} else {flat} @if(mini){btn-mini} else {btn-small}" data-toggle="dropdown">
+      class="dropdown-toggle @if(!flat){btn} else {flat} @if(mini){btn-xs} else {btn-sm}" data-toggle="dropdown">
     @if(value.isEmpty){
       <i class="octicon octicon-gear"></i>
     } else {

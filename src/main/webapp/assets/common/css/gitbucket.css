@@ -419,6 +419,7 @@ span.highlight {
 /****************************************************************************/
 ul.sidemenu {
   margin-left: 0px;
+  padding-left: 0px;
 }
 
 ul.sidemenu a {
@@ -910,7 +911,7 @@ span.issue-status {
 }
 
 table.table-issues {
-  margin-top: 12px;
+  margin-top: 30px;
 }
 
 table.table-issues td .octicon-issue-opened,table.table-issues td .octicon-git-pull-request .open {

@@ -15,15 +15,15 @@
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
       <div class="pull-right"><div class="btn-group">
-        <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-small" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="octicon octicon-list-unordered"></i></a>
+        <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="octicon octicon-list-unordered"></i></a>
         @if(pathList.nonEmpty){
-          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-small" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="octicon octicon-clock"></i></a>
+          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="octicon octicon-clock"></i></a>
         }
       </div></div>
       @branchPullRequest.map{ case (pullRequest, issue) =>
-        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-small btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
+        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
       }.getOrElse{
-        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-small btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
+        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
       }
       @helper.html.branchcontrol(
         branch,

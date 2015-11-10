@@ -10,7 +10,7 @@
   <li class="@if(active == "labels"    ){active}"><a href="@url(repository)/issues/labels">Labels</a></li>
   <li class="@if(active == "milestones"){active} last"><a href="@url(repository)/issues/milestones">Milestones</a></li>
   <li class="pull-right">
-    <form method="GET" id="search-filter-form" style="margin-bottom: 0px;">
+    <form method="GET" id="search-filter-form" style="margin-bottom: 0px;" class="form-group">
       @condition.map { condition =>
         @if(loginAccount.isDefined){
           <div class="input-prepend" style="margin-bottom: 0px;">
@@ -29,10 +29,10 @@
                 *@
               </ul>
             </div>
-            <input type="text" id="search-filter-box" class="input-xlarge" name="q" style="height: 24px;" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+            <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
           </div>
         } else {
-          <input type="text" id="search-filter-box" class="input-xlarge" name="q" style="height: 24px;" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+          <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
         }
       }
       @if(loginAccount.isDefined){

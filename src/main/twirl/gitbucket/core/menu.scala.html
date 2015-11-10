@@ -28,12 +28,12 @@
     <div class="pull-right">
       <div class="input-prepend">
         @if(loginAccount.isEmpty){
-          <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
+          <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
         } else {
           @if(isNoGroup) {
-            <a id="fork-link" href="javascript:void(0);" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
+            <a id="fork-link" href="javascript:void(0);" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
           } else {
-            <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+            <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-sm btn-default" rel="facebox" style="margin-bottom: 10px;">Fork</a>
           }
         }
         <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
@@ -87,11 +87,11 @@
       @id.map { id =>
         @if(context.platform != "linux" && context.platform != null){
         <div style="margin-top: 10px;">
-          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
+          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default" style="width: 147px;font-weight: bold;"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
         </div>
         }
         <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-default" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
         </div>
         @*
         <div style="margin-top: 10px;">

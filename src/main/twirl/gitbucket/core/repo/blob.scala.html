@@ -11,7 +11,7 @@
   @html.menu("code", repository){
     <div class="head">
       <div class="pull-right hide-if-blame"><div class="btn-group">
-        <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-mini" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="octicon octicon-list-unordered"></i></a>
+        <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="octicon octicon-list-unordered"></i></a>
       </div></div>
       <div class="line-age-legend">
         <span>Newer</span>
@@ -54,15 +54,15 @@
       <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
       <div class="btn-group pull-right">
         @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-          <a class="btn btn-mini" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+          <a class="btn btn-xs btn-default" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
         }
-        <a class="btn btn-mini" href="?raw=true">Raw</a>
+        <a class="btn btn-xs btn-default" href="?raw=true">Raw</a>
         @if(content.viewType == "text"){
-          <a class="btn btn-mini blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
+          <a class="btn btn-xs btn-default blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
         }
-        <a class="btn btn-mini" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
+        <a class="btn btn-xs btn-default" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
         @if(hasWritePermission && repository.branchList.contains(branch)){
-          <a class="btn btn-mini btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
+          <a class="btn btn-xs btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
         }
       </div>
     </div>

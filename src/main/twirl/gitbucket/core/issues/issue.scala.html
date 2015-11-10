@@ -46,12 +46,12 @@
     <br/><br/>
     <hr>
     <br/>
-    <div class="row-fluid">
-      <div class="span10">
+    <div class="row">
+      <div class="col-md-10">
         @commentlist(Some(issue), comments, hasWritePermission, repository)
         @commentform(issue, true, hasWritePermission, repository)
       </div>
-      <div class="span2">
+      <div class="col-md-2">
         @issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
       </div>
     </div>

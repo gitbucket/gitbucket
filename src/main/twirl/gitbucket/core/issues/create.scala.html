@@ -9,14 +9,14 @@
   @html.menu("issues", repository){
     @navigation("issues", false, repository)
     <br/><br/><hr style="margin-bottom: 10px;">
-    <form action="@url(repository)/issues/new" method="POST" validate="true">
-      <div class="row-fluid">
-        <div class="span10">
+    <form action="@url(repository)/issues/new" method="POST" validate="true" class="form-group">
+      <div class="row">
+        <div class="col-md-10">
           <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
           <div class="box issue-box">
             <div class="box-content">
               <span id="error-title" class="error"></span>
-              <input type="text" name="title" value="" placeholder="Title" style="width: 690px;" autofocus/>
+              <input type="text" name="title" class="form-control" value="" placeholder="Title" style="width: 684px;" autofocus/>
               @helper.html.preview(
                 repository         = repository,
                 content            = "",
@@ -24,7 +24,7 @@
                 enableRefsLink     = true,
                 enableTaskList     = true,
                 hasWritePermission = hasWritePermission,
-                style              = "width: 690px; height: 200px; max-height: 250px;",
+                style              = "width: 684px; height: 200px; max-height: 250px;",
                 elastic            = true
               )
               <div class="align-right">
@@ -33,7 +33,7 @@
             </div>
           </div>
         </div>
-        <div class="span2">
+        <div class="col-md-2">
           @issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, hasWritePermission, repository)
         </div>
       </div>
