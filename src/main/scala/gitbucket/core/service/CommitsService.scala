@@ -13,9 +13,9 @@ import StringUtil._
 
 trait CommitsService {
 
-  def getCommitComments(owner: String, repository: String, commitId: String, pullRequest: Boolean)(implicit s: Session) =
+  def getCommitComments(owner: String, repository: String, commitId: String, includePullRequest: Boolean)(implicit s: Session) =
     CommitComments filter {
-      t => t.byCommit(owner, repository, commitId) && (t.pullRequest === pullRequest || pullRequest)
+      t => t.byCommit(owner, repository, commitId) && (t.issueId.isEmpty || includePullRequest)
     } list
 
   def getCommitComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
@@ -27,7 +27,8 @@ trait CommitsService {
       None
 
   def createCommitComment(owner: String, repository: String, commitId: String, loginUser: String,
-    content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int], pullRequest: Boolean)(implicit s: Session): Int =
+                          content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int],
+                          issueId: Option[Int])(implicit s: Session): Int =
     CommitComments.autoInc insert CommitComment(
       userName          = owner,
       repositoryName    = repository,
@@ -39,7 +40,7 @@ trait CommitsService {
       newLine           = newLine,
       registeredDate    = currentDate,
       updatedDate       = currentDate,
-      pullRequest       = pullRequest)
+      issueId           = issueId)
 
   def updateCommitComment(commentId: Int, content: String)(implicit s: Session) =
     CommitComments
