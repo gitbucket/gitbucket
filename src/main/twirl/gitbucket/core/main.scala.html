@@ -38,58 +38,53 @@
     }
   </head>
   <body>
-    <form id="search" action="@path/search" method="POST">
-      <div class="navbar">
-        <div class="navbar-inner">
-          <div class="container" style="width: 980px;">
-            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-            <a class="brand" href="@path/">
-              <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
-              @defining(AutoUpdate.getCurrentVersion){ version =>
-                <span class="header-version">@version.majorVersion.@version.minorVersion</span>
-              }
-
-            </a>
-            @repository.map { repository =>
-              <input type="text" name="query" style="width: 200px; margin-top: 5px; margin-bottom: 0px;" placeholder="Search this repository"/>
-              <input type="hidden" name="owner" value="@repository.owner"/>
-              <input type="hidden" name="repository" value="@repository.name"/>
+    <form id="search" action="@path/search" method="POST" class="form-inline">
+      <nav class="navbar navbar-default">
+        <div class="container" style="width: 980px;">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="@path/">
+            <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
+            @defining(AutoUpdate.getCurrentVersion){ version =>
+              <span class="header-version">@version.majorVersion.@version.minorVersion</span>
             }
-            @if(loginAccount.isDefined){
-              <a href="@path/dashboard/pulls" class="global-header-menu">Pull requests</a>
-              <a href="@path/dashboard/issues" class="global-header-menu">Issues</a>
-            }
-            <div class="nav-collapse collapse pull-right header-menu">
-              @if(loginAccount.isDefined){
-                <div class="btn-group" style="margin-top: 0px;">
-                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus" style="font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="vertical-align: middle;"></span></a>
-                  <ul class="dropdown-menu pull-right">
-                    <li><a href="@path/new">New repository</a></li>
-                    <li><a href="@path/groups/new">New group</a></li>
-                  </ul>
-                </div>
-                <div class="btn-group" style="margin-top: 0px;">
-                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)<span class="caret" style="vertical-align: middle;"></span></a>
-                  <ul class="dropdown-menu pull-right">
-                    <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
-                    <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
-                    @if(loginAccount.get.isAdmin){
-                      <li><a href="@path/admin/users">System administration</a></li>
-                    }
-                    <li><a href="@path/signout">Sign out</a></li>
-                  </ul>
-                </div>
-              } else {
-                <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn" id="signin">Sign in</a>
-              }
-            </div><!--/.nav-collapse -->
-          </div>
+          </a>
+          @repository.map { repository =>
+            <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 12px; margin-bottom: 0px;" placeholder="Search this repository"/>
+            <input type="hidden" name="owner" value="@repository.owner"/>
+            <input type="hidden" name="repository" value="@repository.name"/>
+          }
+          @if(loginAccount.isDefined){
+            <a href="@path/dashboard/pulls" class="global-header-menu">Pull requests</a>
+            <a href="@path/dashboard/issues" class="global-header-menu">Issues</a>
+          }
+          @if(loginAccount.isDefined){
+            <div class="btn-group" style="margin-top: 0px;">
+              <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus" style="font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="vertical-align: middle;"></span></a>
+              <ul class="dropdown-menu pull-right">
+                <li><a href="@path/new">New repository</a></li>
+                <li><a href="@path/groups/new">New group</a></li>
+              </ul>
+            </div>
+            <div class="btn-group" style="margin-top: 0px;">
+              <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)<span class="caret" style="vertical-align: middle;"></span></a>
+              <ul class="dropdown-menu pull-right">
+                <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
+                <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
+                @if(loginAccount.get.isAdmin){
+                  <li><a href="@path/admin/users">System administration</a></li>
+                }
+                <li><a href="@path/signout">Sign out</a></li>
+              </ul>
+            </div>
+          } else {
+            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 12px;" id="signin">Sign in</a>
+          }
         </div>
-      </div>
+      </nav>
     </form>
     @body
     <script>
