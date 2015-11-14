@@ -16,9 +16,9 @@
       @user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">
           commented
-          @if(comment.pullRequest){
+          @if(comment.issueId.isDefined){
             on this Pull Request
-          }else{
+          } else {
             @if(comment.fileName.isDefined){
               on @comment.fileName.get
             }

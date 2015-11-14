@@ -370,7 +370,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   post("/:owner/:repository/commit/:id/comment/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName, form.content,
-      form.fileName, form.oldLineNumber, form.newLineNumber, form.issueId.isDefined)
+      form.fileName, form.oldLineNumber, form.newLineNumber, form.issueId)
     form.issueId match {
       case Some(issueId) => recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, issueId, form.content)
       case None => recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
@@ -395,7 +395,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ajaxPost("/:owner/:repository/commit/:id/comment/_data/new", commentForm)(readableUsersOnly { (form, repository) =>
     val id = params("id")
     val commentId = createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName,
-      form.content, form.fileName, form.oldLineNumber, form.newLineNumber, form.issueId.isDefined)
+      form.content, form.fileName, form.oldLineNumber, form.newLineNumber, form.issueId)
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {
       case Some(issueId) =>
