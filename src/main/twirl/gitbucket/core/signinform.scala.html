@@ -10,14 +10,16 @@
 </div>
 <div class="box-content-bottom">
   <form action="@path/signin" method="POST" validate="true">
-    <label for="userName">Username:</label>
-    <span id="error-userName" class="error"></span>
-    <input type="text" name="userName" id="userName" style="width: 95%" autofocus/>
-    <label for="password">Password:</label>
-    <span id="error-password" class="error"></span>
-    <input type="password" name="password" id="password" style="width: 95%"/>
-    <div>
-      <input type="submit" class="btn btn-success" value="Sign in"/>
+    <div class="form-group">
+      <label for="userName">Username:</label>
+      <span id="error-userName" class="error"></span>
+      <input type="text" name="userName" id="userName" class="form-control" autofocus/>
     </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <span id="error-password" class="error"></span>
+      <input type="password" name="password" id="password" class="form-control"/>
+    </div>
+    <input type="submit" class="btn btn-success" value="Sign in"/>
   </form>
 </div>

@@ -26,9 +26,9 @@
         } else {
           <div class="box-header">
             <div class="pull-right">
-              <a href="@path/new" class="btn btn-success btn-mini">New repository</a>
+              <a href="@path/new" class="btn btn-success btn-sm">New repository</a>
             </div>
-            <span class="strong">Your repositories</span> <span class="label">@userRepositories.size</span>
+            <span class="strong">Your repositories</span> <span class="badge">@userRepositories.size</span>
           </div>
             @if(userRepositories.isEmpty){
               <div class="box-content-bottom">

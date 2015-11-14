@@ -41,11 +41,13 @@
     <form id="search" action="@path/search" method="POST" class="form-inline">
       <nav class="navbar navbar-default">
         <div class="container" style="width: 980px;">
+          @*
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
+          *@
           <a class="navbar-brand" href="@path/">
             <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
             @defining(AutoUpdate.getCurrentVersion){ version =>
@@ -62,23 +64,25 @@
             <a href="@path/dashboard/issues" class="global-header-menu">Issues</a>
           }
           @if(loginAccount.isDefined){
-            <div class="btn-group" style="margin-top: 0px;">
-              <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus" style="font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="vertical-align: middle;"></span></a>
-              <ul class="dropdown-menu pull-right">
-                <li><a href="@path/new">New repository</a></li>
-                <li><a href="@path/groups/new">New group</a></li>
-              </ul>
-            </div>
-            <div class="btn-group" style="margin-top: 0px;">
-              <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)<span class="caret" style="vertical-align: middle;"></span></a>
-              <ul class="dropdown-menu pull-right">
-                <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
-                <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
-                @if(loginAccount.get.isAdmin){
-                  <li><a href="@path/admin/users">System administration</a></li>
-                }
-                <li><a href="@path/signout">Sign out</a></li>
-              </ul>
+            <div class="pull-right" style="margin-top: 12px;">
+              <div class="btn-group" style="margin-right: 8px;">
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus" style="font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="vertical-align: middle;"></span></a>
+                <ul class="dropdown-menu pull-right">
+                  <li><a href="@path/new">New repository</a></li>
+                  <li><a href="@path/groups/new">New group</a></li>
+                </ul>
+              </div>
+              <div class="btn-group">
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)<span class="caret" style="vertical-align: middle;"></span></a>
+                <ul class="dropdown-menu pull-right">
+                  <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
+                  <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
+                  @if(loginAccount.get.isAdmin){
+                    <li><a href="@path/admin/users">System administration</a></li>
+                  }
+                  <li><a href="@path/signout">Sign out</a></li>
+                </ul>
+              </div>
             </div>
           } else {
             <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 12px;" id="signin">Sign in</a>
