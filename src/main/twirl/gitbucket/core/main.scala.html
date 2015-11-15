@@ -41,7 +41,7 @@
     <form id="search" action="@path/search" method="POST" class="form-inline">
       <nav class="navbar navbar-default">
         <div class="container" style="width: 980px;">
-          @*
+          @* TODO: for plugi-ins?
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -54,26 +54,38 @@
               <span class="header-version">@version.majorVersion.@version.minorVersion</span>
             }
           </a>
-          @repository.map { repository =>
-            <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 12px; margin-bottom: 0px;" placeholder="Search this repository"/>
-            <input type="hidden" name="owner" value="@repository.owner"/>
-            <input type="hidden" name="repository" value="@repository.name"/>
-          }
           @if(loginAccount.isDefined){
+            @repository.map { repository =>
+              <input type="text" name="query" class="form-control" style="width: 200px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="hidden" name="owner" value="@repository.owner"/>
+              <input type="hidden" name="repository" value="@repository.name"/>
+            }
             <a href="@path/dashboard/pulls" class="global-header-menu">Pull requests</a>
             <a href="@path/dashboard/issues" class="global-header-menu">Issues</a>
+          } else {
+            @* TODO: merge with below *@
+            @repository.map { repository =>
+              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 6px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="hidden" name="owner" value="@repository.owner"/>
+              <input type="hidden" name="repository" value="@repository.name"/>
+            }
           }
           @if(loginAccount.isDefined){
-            <div class="pull-right" style="margin-top: 12px;">
+            <div class="pull-right" style="margin-top: 6px;">
               <div class="btn-group" style="margin-right: 8px;">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#"><i class="octicon octicon-plus" style="font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="vertical-align: middle;"></span></a>
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
+                  <i class="octicon octicon-plus" style="color: black; font-size: 20px; vertical-align: middle;height:20px !important;"></i>
+                  <span class="caret" style="color: black; vertical-align: middle;"></span>
+                </a>
                 <ul class="dropdown-menu pull-right">
                   <li><a href="@path/new">New repository</a></li>
                   <li><a href="@path/groups/new">New group</a></li>
                 </ul>
               </div>
               <div class="btn-group">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)<span class="caret" style="vertical-align: middle;"></span></a>
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)
+                  <span class="caret" style="color: black; vertical-align: middle;"></span>
+                </a>
                 <ul class="dropdown-menu pull-right">
                   <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
                   <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
@@ -85,7 +97,7 @@
               </div>
             </div>
           } else {
-            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 12px;" id="signin">Sign in</a>
+            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 6px;" id="signin">Sign in</a>
           }
         </div>
       </nav>

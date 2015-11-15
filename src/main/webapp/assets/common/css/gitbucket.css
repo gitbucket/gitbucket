@@ -72,6 +72,7 @@ blockquote p {
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
+/*
 div.navbar-inner {
   border-radius: 0px;
   -webkit-border-radius: 0px;
@@ -97,6 +98,7 @@ div.header-menu a.btn {
   margin-bottom: 0px;
 }
 
+/*
 div.nav-collapse a.menu {
   margin-right: 12px;
 }
@@ -105,15 +107,15 @@ div.nav-collapse a.btn-last,
 div.nav-collapse a.menu-last {
   margin-right: 30px;
 }
+*/
 
-.navbar .brand {
-  padding-top: 6px;
-  padding-bottom: 6px;
-  padding-left: 0px;
+.navbar-brand {
+  height: unset;
+  padding: 8px;
 }
 
-.navbar .brand img {
-  vertical-align: bottom;
+.navbar {
+  min-height: unset;
 }
 
 span.header-version {
@@ -134,10 +136,11 @@ div.input-prepend span.count {
 a.global-header-menu {
   color: black;
   font-weight: bold;
-  font-size: 80%;
+  font-size: 90%;
+  margin-top: 6px;
   margin-left: 10px;
   margin-right: 10px;
-  line-height: 3.5;
+  line-height: 3.1;
 }
 
 /* ======================================================================== */
