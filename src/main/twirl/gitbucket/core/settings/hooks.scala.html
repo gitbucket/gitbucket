@@ -10,10 +10,10 @@
 
 <div class="box">
   <div class="box-header">
-    <a href="@url(repository)/settings/hooks/new" class="btn btn-small pull-right">Add webhook</a>
+    <a href="@url(repository)/settings/hooks/new" class="btn btn-mini pull-right">Add webhook</a>
     Webhooks
   </div>
-  <div class="box-content">
+  <div class="box-content-bottom">
     <p>
       Webhooks allow external services to be notified when certain events happen within your repository.
       When the specified events happen, we’ll send a POST request to each of the URLs you provide.
@@ -28,7 +28,7 @@
           </a>
           <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
         </td><td>
-          <div class="btn-group">
+          <div class="btn-group pull-right">
             <a href="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" class="btn btn-small">
               <span class="octicon octicon-pencil"></span>
             </a>

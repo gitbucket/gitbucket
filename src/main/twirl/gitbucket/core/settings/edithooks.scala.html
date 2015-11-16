@@ -1,0 +1,164 @@
+@(webHook: gitbucket.core.model.WebHook,
+  events: Set[gitbucket.core.model.WebHook.Event],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  info: Option[Any],
+  create: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.model.WebHook._
+@check(name: String, event: Event)={
+  name="@(name).@event.name" value="on" @if(events(event)){checked}
+}
+@html.main("Settings", Some(repository)){
+  @html.menu("settings", repository){
+    @menu("hooks", repository){
+      @helper.html.information(info)
+
+      <div class="box">
+        <div class="box-header">
+          Webhook / Manage webhook
+        </div>
+        <div class="box-content-bottom">
+          <form method="POST" validate="true">
+            <div>
+              <span class="error" id="error-url"></span>
+            </div>
+            <label class="strong">Payload URL</label>
+            @if(create){
+              <input type="text" name="url" id="url" value="@webHook.url" class="input-xxlarge" style="margin-bottom: 0px;" required />
+            } else {
+              <input type="text" value="@webHook.url" style="margin-bottom: 0px;" class="input-xxlarge" disabled />
+              <input type="hidden" value="@webHook.url" name="url" />
+            }
+            <button class="btn" id="test">Test Hook</button>
+
+            <hr />
+            <div>
+              <span class="error" id="error-events"></span>
+            </div>
+            <label class="strong">Which events would you like to trigger this webhook?</label>
+            <!--
+            <label class="checkbox"><input type="checkbox" @check("events",CommitComment) />Commit comment <small class="help-block">Commit or diff commented on. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Create) />Create <small class="help-block">Branch, or tag created. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Delete) />Delete <small class="help-block">Branch, or tag deleted. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Deployment) />Deployment <small class="help-block">Repository deployed. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",DeploymentStatus) />Deployment status <small class="help-block">Deployment status updated from the API. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Fork) />Fork <small class="help-block">Repository forked. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Gollum) />Gollum <small class="help-block">Wiki page updated. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull Request review comment <small class="help-block">Pull Request diff commented on. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Member) />Member <small class="help-block">Collaborator added to a non-organization repository. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",PageBuild) />Page build <small class="help-block">Pages site built. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Public) />Public <small class="help-block">Repository changes from private to public. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Release) />Release <small class="help-block">Release published in a repository. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",TeamAdd) />Team add <small class="help-block">Team added or modified on a repository. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Watch) />Watch <small class="help-block">User stars a repository.</small></label>
+            <label class="checkbox"><input type="checkbox" @check("events",Status) />Status <small class="help-block">Commit status updated from the API. </small> </label>
+            -->
+            <label class="checkbox"><input type="checkbox" @check("events",IssueComment) />Issue comment <small class="help-block">Issue commented on. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Issues) />Issues <small class="help-block">Issue opened, closed<!-- , assigned, or labeled -->. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull Request <small class="help-block">Pull Request opened, closed<!-- , assigned, labeled -->, or synchronized. </small> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <small class="help-block">Git push to a repository. </small> </label>
+            <hr />
+            @if(!create){
+              <input type="submit" class="btn btn-success" value="Update webhook" formaction="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" />
+              <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn text-error" onclick="return confirm('delete webhook for @webHook.url ?')">
+                Delete webhook
+              </a>
+            } else {
+              <input type="submit" class="btn" value="Add webhook" formaction="@url(repository)/settings/hooks/new" />
+            }
+          </form>
+        </div>
+      </div>
+      <div class="modal hide" id="test-report-modal">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h3>WebHook Test</h3>
+        </div>
+        <div class="modal-body">
+          <p>request to <span id="test-modal-url" style="word-break: break-all; word-wrap: break-word; white-space: pre; white-space: pre-wrap;"></span></p>
+          <div id="test-report" style="display:none">
+            <ul class="nav nav-tabs" id="test-report-tab">
+              <li class="active"><a href="#REQUEST">REQUEST</a></li>
+              <li><a href="#RESPONCE">RESPONCE <span class="badge badge-success" id="res-status"></span></a></li>
+            </ul>
+            <div class="tab-content" style="max-height: 300px;">
+              <div class="tab-pane active" id="REQUEST">
+                <div id="req-errors" class="alert alert-error">
+                  ERROR<span id="req-errors-body"></span>
+                </div>
+                <div id="req-success" style="display:none">
+                  Headers
+                  <pre id="req-headers"></pre>
+                  Payload
+                  <pre id="req-payload"></pre>
+                </div>
+              </div>
+              <div class="tab-pane" id="RESPONCE">
+                <div id="res-errors" class="alert alert-error">
+                  ERROR<span id="res-errors-body"></span>
+                </div>
+                <div id="res-success" style="display:none">
+                  Headers
+                  <pre id="res-headers"></pre>
+                  Body
+                  <pre id="res-body"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+<script>
+$(function(){
+  $('#test-report-tab a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+  });
+  $('#test').click(function(e){
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    var url = this.form.url.value;
+    if(!/^https?:\/\/.+/.test(url)){
+      alert("invalid url");
+      return;
+    }
+    $("#test-modal-url").text(url)
+    $("#test-report-modal").modal('show')
+    $("#test-report").hide();
+    $.ajax({
+      method:'POST',
+      url:'@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url),
+      success: function(e){
+        //console.log(e);
+        $('#test-report-tab a:first').tab('show');
+        $("#test-report").show();
+        $("#req-success").toggle(e.request&&!e.request.error);
+        $("#req-errors").toggle(e.request&&!!e.request.error);
+        $("#req-errors-body").text(e.request.error);
+        function headers(h){
+          h = h["headers"];
+          return h ? $.map(h, function(h){
+            return $("<div>").append($('<b>').text(h[0] + ":"),$('<span>').text(" " + h[1]))
+          }):"";
+        }
+        $("#req-headers").html(headers(e.request));
+        $("#req-payload").text(e.request && e.request.payload ? JSON.stringify(JSON.parse(e.request.payload),undefined,4) : "");
+        $("#res-success").toggle(e.responce && !e.responce.error);
+        $("#res-errors").toggle(e.responce && !!e.responce.error);
+        $("#res-errors-body").text(e.responce.error);
+        var success = !!(e.responce && e.responce.status && /^2\d\d$/.test(e.responce.status.statusCode));
+        $("#res-status").text((e.responce && e.responce.status && e.responce.status.statusCode) || "ERROR");
+        $("#res-status").toggleClass("badge-success", success).toggleClass("badge-important", !success);
+        $("#res-headers").html(headers(e.responce));
+        $("#res-body").text(e.responce && e.responce.body ? e.responce.body : "");
+      },
+    });
+    return false;
+  });
+})
+</script>
+    }
+  }
+}

@@ -47,7 +47,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   case class WebHookForm(url: String, events: Set[WebHook.Event])
 
   def webHookForm(update:Boolean) = mapping(
-    "url" -> trim(label("url", text(required, webHook(update)))),
+    "url"    -> trim(label("url", text(required, webHook(update)))),
     "events" -> webhookEvents
   )(WebHookForm.apply)
 
@@ -149,7 +149,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
     val webhook = WebHook(repository.owner, repository.name, "")
-    html.editHooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
+    html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
   })
 
   /**
@@ -226,7 +226,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/hooks/edit/:url")(ownerOnly { repository =>
     getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
-      html.editHooks(webhook, events, repository, flash.get("info"), false)
+      html.edithooks(webhook, events, repository, flash.get("info"), false)
     } getOrElse NotFound
   })
 
@@ -290,7 +290,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       if(getWebHook(params("owner"), params("repository"), value).isDefined != needExists){
         Some(if(needExists){
           "URL had not been registered yet."
-        }else{
+        } else {
           "URL had been registered already."
         })
       } else {
@@ -299,12 +299,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   }
 
   private def webhookEvents = new ValueType[Set[WebHook.Event]]{
-    def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = WebHook.Event.values.flatMap{ t =>
-      params.get(name+"."+t.name).map(_ => t)
-    }.toSet
+    def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = {
+      val map = params.toSeq.toMap // TODO This transformation will be unnecessary after upgrading to scalatra 2.4 and scalatra-forms 0.2
+      WebHook.Event.values.flatMap { t =>
+        map.get(name + "." + t.name).map(_ => t)
+      }.toSet
+    }
     def validate(name: String, params: Map[String, String], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
       Seq(name -> messages("error.required").format(name))
-    }else{
+    } else {
       Nil
     }
   }
