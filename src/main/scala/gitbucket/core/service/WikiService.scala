@@ -72,20 +72,6 @@ trait WikiService {
   }
 
   /**
-   * Returns the wiki sidebar page.
-   */
-  def getWikiSideBar(owner: String, repository: String): Option[WikiPageInfo] = {
-    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
-      if(!JGitUtil.isEmpty(git)){
-        JGitUtil.getFileList(git, "master", ".").find(_.name == "_Sidebar.md").map { file =>
-          WikiPageInfo(file.name, StringUtil.convertFromByteArray(git.getRepository.open(file.id).getBytes),
-                       file.author, file.time, file.commitId)
-        }
-      } else None
-    }
-  }
-
-  /**
    * Returns the content of the specified file.
    */
   def getFileContent(owner: String, repository: String, path: String): Option[Array[Byte]] =

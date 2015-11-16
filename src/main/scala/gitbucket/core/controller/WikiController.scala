@@ -39,7 +39,7 @@ trait WikiControllerBase extends ControllerBase {
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
       html.page("Home", page, getWikiPageList(repository.owner, repository.name),
         repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
-        getWikiSideBar(repository.owner, repository.name))
+        getWikiPage(repository.owner, repository.name, "_Sidebar"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
@@ -49,7 +49,7 @@ trait WikiControllerBase extends ControllerBase {
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       html.page(pageName, page, getWikiPageList(repository.owner, repository.name),
         repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
-        getWikiSideBar(repository.owner, repository.name))
+        getWikiPage(repository.owner, repository.name, "_Sidebar"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   
