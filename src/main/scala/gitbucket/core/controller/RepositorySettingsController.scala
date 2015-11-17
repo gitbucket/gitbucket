@@ -300,9 +300,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   private def webhookEvents = new ValueType[Set[WebHook.Event]]{
     def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = {
-      val map = params.toSeq.toMap // TODO This transformation will be unnecessary after upgrading to scalatra 2.4 and scalatra-forms 0.2
       WebHook.Event.values.flatMap { t =>
-        map.get(name + "." + t.name).map(_ => t)
+        params.get(name + "." + t.name).map(_ => t)
       }.toSet
     }
     def validate(name: String, params: Map[String, String], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
