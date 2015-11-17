@@ -69,7 +69,7 @@
       @if(content.viewType == "text"){
         @defining(isRenderable(pathList.reverse.head)){ isRrenderable =>
           @if(!isBlame && isRrenderable) {
-            <div class="box-content-bottom markdown-body" style="padding-left: 16px; padding-right: 16px;">
+            <div class="box-content-bottom markdown-body" style="padding-left: 20px; padding-right: 20px;">
               @renderMarkup(pathList, content.content.get, branch, repository, false, false, true)
             </div>
           } else {
