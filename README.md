@@ -1,7 +1,7 @@
 GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
-GitBucket is a GitHub clone powered by Scala which has easy installation and high extendability.
+GitBucket is a GitHub clone powered by Scala which has easy installation and high extensibility.
 
 Features
 --------
