@@ -69,6 +69,19 @@ blockquote p {
   font-size: 15px;
 }
 
+.table-bordered > thead > tr > th,
+.table-bordered > thead > tr > td {
+  border-bottom-width: 1px;
+}
+
+.danger {
+  color: #900;
+}
+
+.warning {
+  color: #F28722;
+}
+
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
