@@ -19,7 +19,7 @@ $(function(){
         var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
           '](@baseUrl/@owner/@repository/_attached/' + id + ')';
         $('#@textareaId').val($('#@textareaId').val() + attachFile);
-        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
+        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();2
       }
     });
   } catch(e) {
@@ -29,7 +29,7 @@ $(function(){
   }
 
   // Adjust clickable area width
-  $('#@textareaId').next('div.clickable').css('width', ($('#@textareaId').width() + 26) + 'px');
+  $('#@textareaId').next('div.clickable').css('width', ($('#@textareaId').width() + 18) + 'px');
 });
 </script>
 }
