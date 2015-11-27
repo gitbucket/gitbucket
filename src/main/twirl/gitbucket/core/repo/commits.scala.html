@@ -41,7 +41,7 @@
         <div class="box-commits">
           @day.map { commit =>
             <div class="box-content-row" style="padding: 8px;">
-              <ul class="nav nav-pills-group pull-right" style="margin-top: 2px; margin-bottom: 0px; margin-right: 4px;">
+              <ul class="nav nav-pills-group pull-right">
                 <li class="first"><a href="@url(repository)/commit/@commit.id" class="link monospace">@commit.id.substring(0, 7)</a></li>
                 <li class="last"><a href="@url(repository)/tree/@commit.id" style="padding-top: 9px; padding-bottom: 10px;"><i class="octicon octicon-code link"></i></a></li>
               </ul>
