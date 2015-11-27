@@ -13,12 +13,12 @@
     <div>
       <div class="show-title pull-right">
         @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
-          <a class="btn" href="#" id="edit">Edit</a>
+          <a class="btn btn-default" href="#" id="edit">Edit</a>
         }
         <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
       </div>
       <div class="edit-title pull-right" style="display: none;">
-        <a class="btn" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
+        <a class="btn btn-default" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
       </div>
       <h1>
         <span class="show-title">
@@ -27,7 +27,7 @@
         </span>
         <span class="edit-title" style="display: none;">
           <span id="error-edit-title" class="error"></span>
-          <input type="text" style="width: 700px;" id="edit-title" value="@issue.title"/>
+          <input type="text" class="form-control" style="width: 700px;" id="edit-title" value="@issue.title"/>
         </span>
       </h1>
     </div>
