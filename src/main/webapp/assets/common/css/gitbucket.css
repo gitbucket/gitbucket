@@ -921,9 +921,8 @@ a.selected {
 }
 
 span.issue-status {
-  font-size: large;
   text-align: center;
-  padding: 8px;
+  padding: 4px 8px 4px 8px;
 }
 
 table.table-issues {
