@@ -1,0 +1,37 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.model.WebHook._
+@html.main("Branches", Some(repository)){
+  @html.menu("settings", repository){
+    @menu("branches", repository){
+      @if(repository.branchList.isEmpty){
+        <div class="well">
+          <center>
+            <p><i class="octicon octicon-git-branch" style="font-size:300%"></i></p>
+            <p>You don’t have any branches</p>
+            <p>Before you can edit branch settings, you need to add a branch.</p>
+          </center>
+        </div>
+      }else{
+        @helper.html.information(info)
+        <div class="box">
+          <div class="box-header">Default branch</div>
+          <div class="box-content">
+            <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made, unless you specify a different branch.</p>
+            <form id="form" method="post" action="@url(repository)/settings/update_default_branch" validate="true" class="form-inline">
+              <span class="error" id="error-defaultBranch"></span>
+              <select name="defaultBranch" id="defaultBranch">
+                @repository.branchList.map { branch =>
+                  <option @if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
+                }
+              </select>
+              <input type="submit" class="btn" value="Update" />
+            </form>
+          </div>
+        </div>
+      }
+    }
+  }
+}

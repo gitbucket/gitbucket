@@ -309,11 +309,17 @@ trait RepositoryService { self: AccountService =>
   /**
    * Save repository options.
    */
-  def saveRepositoryOptions(userName: String, repositoryName: String, 
-      description: Option[String], defaultBranch: String, isPrivate: Boolean)(implicit s: Session): Unit =
+  def saveRepositoryOptions(userName: String, repositoryName: String,
+      description: Option[String], isPrivate: Boolean)(implicit s: Session): Unit =
     Repositories.filter(_.byRepository(userName, repositoryName))
-      .map { r => (r.description.?, r.defaultBranch, r.isPrivate, r.updatedDate) }
-      .update (description, defaultBranch, isPrivate, currentDate)
+      .map { r => (r.description.?, r.isPrivate, r.updatedDate) }
+      .update (description, isPrivate, currentDate)
+
+  def saveRepositoryDefaultBranch(userName: String, repositoryName: String,
+      defaultBranch: String)(implicit s: Session): Unit =
+    Repositories.filter(_.byRepository(userName, repositoryName))
+      .map { r => r.defaultBranch }
+      .update (defaultBranch)
 
   /**
    * Add collaborator to the repository.
