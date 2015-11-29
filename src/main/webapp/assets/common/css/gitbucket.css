@@ -43,6 +43,7 @@ h6 {
     /*font-size: 14px;*/
     text-align: center;
 }
+
 .mega-octicon{
     width: 32px;
     height: 32px;
@@ -74,12 +75,29 @@ blockquote p {
   border-bottom-width: 1px;
 }
 
+.tab-content {
+  margin-top: 20px;
+}
+
 .danger {
   color: #900;
 }
 
 .warning {
   color: #F28722;
+}
+
+dl {
+  margin: 0px;
+}
+
+dd {
+  margin-left: 20px;
+}
+
+hr {
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 /* ======================================================================== */
@@ -343,19 +361,6 @@ table.table th.box-header {
 
 th.box-header .octicon {
   display: inline;
-}
-
-dl {
-  margin: 0px;
-}
-
-dd {
-  margin-left: 20px;
-}
-
-hr {
-  margin-top: 4px;
-  margin-bottom: 4px;
 }
 
 img.avatar {

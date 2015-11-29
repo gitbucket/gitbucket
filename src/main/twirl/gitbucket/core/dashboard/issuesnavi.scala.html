@@ -3,7 +3,7 @@
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-<ul class="nav nav-pills-group pull-left fill-width">
+<ul class="nav nav-pills-group pull-left fill-width" style="margin-bottom: 10px;">
   <li class="@if(filter == "created_by"){active} first">
     <a href="@path/dashboard/@active/created_by@condition.copy(author = None, assigned = None).toURL">Created</a>
   </li>
@@ -15,7 +15,7 @@
   </li>
   <li class="pull-right">
     <form method="GET" id="search-filter-form" action="@path/dashboard/@active" style="margin-bottom: 0px;">
-      <input type="text" id="search-filter-box" class="form-control input-lg" name="q" style="width: 400px;"
+      <input type="text" id="search-filter-box" class="form-control input-lg" name="q" style="width: 400px; font-size: 100%;"
              value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
     </form>
   </li>
