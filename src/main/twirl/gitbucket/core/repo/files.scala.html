@@ -127,7 +127,7 @@
     @readme.map { case(filePath, content) =>
       <div id="readme">
         <div class="box-header">@filePath.reverse.head</div>
-        <div class="box-content-bottom markdown-body" style="padding-left: 16px; padding-right: 16px;">@renderMarkup(filePath, content, branch, repository, false, false, true)</div>
+        <div class="box-content-bottom markdown-body" style="padding-left: 20px; padding-right: 20px;">@renderMarkup(filePath, content, branch, repository, false, false, true)</div>
       </div>
     }
   }
