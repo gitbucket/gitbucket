@@ -29,10 +29,10 @@
                 *@
               </ul>
             </div>
-            <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+            <input type="text" id="search-filter-box" class="form-control input-lg" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
           </div>
         } else {
-          <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+          <input type="text" id="search-filter-box" class="form-control input-lg" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
         }
       }
       @if(loginAccount.isDefined){

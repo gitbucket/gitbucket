@@ -25,7 +25,7 @@
   @helper.html.information(info)
   @helper.html.error(error)
   <div class="row">
-    <div class="head col-md-10">
+    <div class="head col-md-11">
       @helper.html.repositoryicon(repository, true)
       <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
 
@@ -38,8 +38,8 @@
       }
     </div>
     @if(repository.commitCount > 0){
-      <div class="col-md-2">
-        <div class="input-group">
+      <div class="col-md-1">
+        <div class="input-group pull-right">
           <span class="input-group-btn">
           @if(loginAccount.isEmpty){
             <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>

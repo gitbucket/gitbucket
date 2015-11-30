@@ -910,6 +910,10 @@ span.simplified-path {
 /****************************************************************************/
 /* Issues */
 /****************************************************************************/
+#search-filter-box {
+  font-size: 100%;
+}
+
 .btn-group.open .dropdown-toggle.flat {
     background-image: none;
     -webkit-box-shadow: none;
