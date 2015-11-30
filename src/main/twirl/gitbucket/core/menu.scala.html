@@ -24,37 +24,41 @@
 <div class="container">
   @helper.html.information(info)
   @helper.html.error(error)
-  @if(repository.commitCount > 0){
-    <div class="pull-right">
-      <div class="input-prepend">
-        @if(loginAccount.isEmpty){
-          <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
-        } else {
-          @if(isNoGroup) {
-            <a id="fork-link" href="javascript:void(0);" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
-          } else {
-            <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-sm btn-default" rel="facebox" style="margin-bottom: 10px;">Fork</a>
-          }
+  <div class="row">
+    <div class="head col-md-10">
+      @helper.html.repositoryicon(repository, true)
+      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+
+      @defining(repository.repository){ x =>
+        @if(repository.repository.originRepositoryName.isDefined){
+          <div class="forked">
+            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+          </div>
         }
-        <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
-      </div>
-      @if(loginAccount.isDefined && isNoGroup){
-        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
-          <input type="hidden" name="account" value="@loginAccount.get.userName"/>
-        </form>
       }
     </div>
-  }
-  <div class="head">
-    @helper.html.repositoryicon(repository, true)
-    <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
-
-    @defining(repository.repository){ x =>
-      @if(repository.repository.originRepositoryName.isDefined){
-        <div class="forked">
-          forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+    @if(repository.commitCount > 0){
+      <div class="col-md-2">
+        <div class="input-group">
+          <span class="input-group-btn">
+          @if(loginAccount.isEmpty){
+            <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
+          } else {
+            @if(isNoGroup) {
+              <a id="fork-link" href="javascript:void(0);" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
+            } else {
+              <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-sm btn-default" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+            }
+          }
+          </span>
+          <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
         </div>
-      }
+        @if(loginAccount.isDefined && isNoGroup){
+          <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
+            <input type="hidden" name="account" value="@loginAccount.get.userName"/>
+          </form>
+        }
+      </div>
     }
   </div>
 </div>

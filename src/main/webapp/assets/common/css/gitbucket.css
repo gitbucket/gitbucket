@@ -153,15 +153,16 @@ span.header-version {
   font-size: small;
 }
 
-div.input-prepend span.count {
+div.input-group span.count {
   background-color: white;
   -webkit-border-radius: 0 4px 4px 0;
   -moz-border-radius: 0 4px 4px 0;
   border-radius: 0 4px 4px 0;
-  height: 16px;
-  font-size: 12px;
-  padding-top: 2px;
-  padding-bottom: 6px;
+  border: 1px solid #d8d8d8;
+  font-size: 11px;
+  height: 24px;
+  padding: 3px 6px;
+  display: inline-block;
 }
 
 a.global-header-menu {
