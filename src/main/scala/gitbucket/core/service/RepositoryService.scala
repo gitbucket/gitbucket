@@ -47,6 +47,7 @@ trait RepositoryService { self: AccountService =>
         Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
         val webHooks       = WebHooks      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val webHookEvents  = WebHookEvents .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val milestones     = Milestones    .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueId        = IssueId       .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issues         = Issues        .filter(_.byRepository(oldUserName, oldRepositoryName)).list
@@ -75,9 +76,10 @@ trait RepositoryService { self: AccountService =>
 
         deleteRepository(oldUserName, oldRepositoryName)
 
-        WebHooks  .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        Milestones.insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        IssueId   .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
+        WebHooks     .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        WebHookEvents.insertAll(webHookEvents .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Milestones   .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        IssueId      .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
 
         val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
         Issues.insertAll(issues.map { x => x.copy(
@@ -146,6 +148,7 @@ trait RepositoryService { self: AccountService =>
     IssueId       .filter(_.byRepository(userName, repositoryName)).delete
     Milestones    .filter(_.byRepository(userName, repositoryName)).delete
     WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
+    WebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME

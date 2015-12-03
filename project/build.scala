@@ -49,7 +49,7 @@ object MyBuild extends Build {
       "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
       "org.scalatra" %% "scalatra-json" % ScalatraVersion,
       "org.json4s" %% "json4s-jackson" % "3.2.11",
-      "jp.sf.amateras" %% "scalatra-forms" % "0.1.0",
+      "jp.sf.amateras" %% "scalatra-forms" % "0.2.0",
       "commons-io" % "commons-io" % "2.4",
       "io.github.gitbucket" % "markedj" % "1.0.5-SNAPSHOT",
       "org.apache.commons" % "commons-compress" % "1.9",
