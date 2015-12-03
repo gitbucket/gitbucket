@@ -30,6 +30,21 @@
               <input type="submit" class="btn" value="Update" />
             </form>
           </div>
+
+          <div class="box-header">Protected branches</div>
+          <div class="box-content-bottom">
+            <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally require status checks before merging. New to protected branches?</p>
+            <fieldset class="margin">
+              <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()">
+                <option>Choose a branch...</option>
+                @repository.branchList.map { branch =>
+                  <option value="@url(repository)/settings/branches/@encodeRefName(branch)">@branch</option>
+                }
+              </select>
+              <span class="error" id="error-protectBranch"></span>
+            </fieldset>
+          </div>
+
         </div>
       }
     }

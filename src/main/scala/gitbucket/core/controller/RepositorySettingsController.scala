@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.settings.html
 import gitbucket.core.model.WebHook
-import gitbucket.core.service.{RepositoryService, AccountService, WebHookService}
+import gitbucket.core.service.{RepositoryService, AccountService, WebHookService, ProtectedBrancheService, CommitStatusService}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
@@ -18,11 +18,11 @@ import org.eclipse.jgit.lib.ObjectId
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
-  with RepositoryService with AccountService with WebHookService
+  with RepositoryService with AccountService with WebHookService with ProtectedBrancheService with CommitStatusService
   with OwnerAuthenticator with UsersAuthenticator
 
 trait RepositorySettingsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with WebHookService
+  self: RepositoryService with AccountService with WebHookService with ProtectedBrancheService with CommitStatusService
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
@@ -106,10 +106,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
   })
 
+  /** branch settings */
   get("/:owner/:repository/settings/branches")(ownerOnly { repository =>
     html.branches(repository, flash.get("info"))
   });
 
+  /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
     if(repository.branchList.find(_ == form.defaultBranch).isEmpty){
       redirect(s"/${repository.owner}/${repository.name}/settings/options")
@@ -123,6 +125,36 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     }
   })
+
+  /** Branch protection for branch */
+  get("/:owner/:repository/settings/branches/:branch")(ownerOnly { repository =>
+    import gitbucket.core.api._
+    val branch = params("branch")
+    if(repository.branchList.find(_ == branch).isEmpty){
+      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
+    }else{
+      val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
+      val lastWeeks = getRecentCommitStatues(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).map(_.context).toSet
+      val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
+      html.brancheprotection(repository, branch, protection, knownContexts, flash.get("info"))
+    }
+  });
+
+  /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
+  patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
+    import gitbucket.core.api._
+    (for{
+      branch <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
+      protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
+    } yield {
+      if(protection.enabled){
+        enableBranchProtection(repository.owner, repository.name, branch, protection.status.enforcement_level == ApiBranchProtection.Everyone, protection.status.contexts)
+      }else{
+        disableBranchProtection(repository.owner, repository.name, branch)
+      }
+      JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
+    }) getOrElse NotFound
+  });
 
   /**
    * Display the Collaborators page.

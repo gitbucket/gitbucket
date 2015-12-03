@@ -10,15 +10,25 @@ import org.eclipse.jgit.transport.ReceivePack
 import org.eclipse.jgit.lib.ObjectId
 
 
+object MockDB{
+  val data:scala.collection.mutable.Map[(String,String,String),(Boolean, Seq[String])] = scala.collection.mutable.Map(("root", "test58", "hoge2") -> (false, Seq.empty))
+}
+
 trait ProtectedBrancheService {
   import ProtectedBrancheService._
   def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit session: Session): Option[ProtectedBranchInfo] = {
     // TODO: mock
-    if(owner == "root" && repository == "test58" && branch == "hoge2"){
-      Some(new ProtectedBranchInfo(owner, repository, Seq.empty, false))
-    }else{
-      None
+    MockDB.data.get((owner, repository, branch)).map{ case (includeAdministrators, requireStatusChecksToPass) =>
+      new ProtectedBranchInfo(owner, repository, requireStatusChecksToPass, includeAdministrators)
     }
+  }
+  def enableBranchProtection(owner: String, repository: String, branch:String, includeAdministrators: Boolean, requireStatusChecksToPass: Seq[String])(implicit session: Session): Unit = {
+    // TODO: mock
+    MockDB.data.put((owner, repository, branch), includeAdministrators -> requireStatusChecksToPass)
+  }
+  def disableBranchProtection(owner: String, repository: String, branch:String)(implicit session: Session): Unit = {
+    // TODO: mock
+    MockDB.data.remove((owner, repository, branch))
   }
 
   def getBranchProtectedReason(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
@@ -31,7 +41,7 @@ trait ProtectedBrancheService {
   }
 }
 object ProtectedBrancheService {
-  class ProtectedBranchInfo(
+  case class ProtectedBranchInfo(
     owner: String,
     repository: String,
     /**
