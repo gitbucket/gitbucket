@@ -1,4 +1,5 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  protectedBranchList: Seq[String],
   info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
@@ -32,7 +33,7 @@
           </div>
 
           <div class="box-header">Protected branches</div>
-          <div class="box-content-bottom">
+          <div class="box-content">
             <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally require status checks before merging. New to protected branches?</p>
             <fieldset class="margin">
               <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()">
@@ -43,6 +44,17 @@
               </select>
               <span class="error" id="error-protectBranch"></span>
             </fieldset>
+
+            <table class="table table-bordered table-hover branches">
+              @protectedBranchList.map{ branch =>
+              <tr><td>
+                <span class="branch-name">@branch</span>
+                <span class="branch-action">
+                  <a href="@url(repository)/settings/branches/@encodeRefName(branch)" class="btn btn-small">Edit</a>
+                </span>
+              </td></tr>
+              }
+            </table>
           </div>
 
         </div>

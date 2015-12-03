@@ -22,6 +22,13 @@ trait ProtectedBrancheService {
       new ProtectedBranchInfo(owner, repository, requireStatusChecksToPass, includeAdministrators)
     }
   }
+  def getProtectedBranchList(owner: String, repository: String)(implicit session: Session): List[String] = {
+    // TODO: mock
+    MockDB.data.filter{
+      case ((owner, repository, _), _) => true
+      case _ => false
+    }.map{ case ((_, _, branch), _) => branch }.toList
+  }
   def enableBranchProtection(owner: String, repository: String, branch:String, includeAdministrators: Boolean, requireStatusChecksToPass: Seq[String])(implicit session: Session): Unit = {
     // TODO: mock
     MockDB.data.put((owner, repository, branch), includeAdministrators -> requireStatusChecksToPass)

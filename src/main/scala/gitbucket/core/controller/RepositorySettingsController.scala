@@ -108,7 +108,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   /** branch settings */
   get("/:owner/:repository/settings/branches")(ownerOnly { repository =>
-    html.branches(repository, flash.get("info"))
+    val protecteions = getProtectedBranchList(repository.owner, repository.name)
+    html.branches(repository, protecteions, flash.get("info"))
   });
 
   /** Update default branch */
@@ -134,7 +135,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     }else{
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
-      val lastWeeks = getRecentCommitStatues(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).map(_.context).toSet
+      val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
       html.brancheprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }
