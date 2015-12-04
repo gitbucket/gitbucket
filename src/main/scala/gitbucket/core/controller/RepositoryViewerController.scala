@@ -490,6 +490,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays branches.
    */
   get("/:owner/:repository/branches")(referrersOnly { repository =>
+    val protectedBranches = getProtectedBranchList(repository.owner, repository.name).toSet
     val branches = JGitUtil.getBranches(
       owner         = repository.owner,
       name          = repository.name,
@@ -497,7 +498,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       origin        = repository.repository.originUserName.isEmpty
     )
     .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
-    .map(br => br -> getPullRequestByRequestCommit(repository.owner, repository.name, repository.repository.defaultBranch, br.name, br.commitId))
+    .map(br => (br, getPullRequestByRequestCommit(repository.owner, repository.name, repository.repository.defaultBranch, br.name, br.commitId), protectedBranches.contains(br.name)))
     .reverse
 
     html.branches(branches, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
