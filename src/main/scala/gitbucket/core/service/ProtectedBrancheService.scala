@@ -22,6 +22,8 @@ trait ProtectedBrancheService {
       new ProtectedBranchInfo(owner, repository, requireStatusChecksToPass, includeAdministrators)
     }
   }
+  def isProtectedBranchNeedStatusCheck(owner: String, repository: String, branch: String, user: String)(implicit session: Session): Boolean =
+    getProtectedBranchInfo(owner, repository, branch).map{a => println(a); a.needStatusCheck(user)}.getOrElse(false)
   def getProtectedBranchList(owner: String, repository: String)(implicit session: Session): List[String] = {
     // TODO: mock
     MockDB.data.filter{

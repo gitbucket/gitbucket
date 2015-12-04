@@ -55,8 +55,8 @@
 function getValue(){
   var v = {}, contexts=[];
   $("input[type=checkbox]:checked").each(function(){
-    if(this.name == 'context'){
-      contexts.push(this.name);
+    if(this.name === 'contexts'){
+      contexts.push(this.value);
     }else{
       v[this.name] = true;
     }

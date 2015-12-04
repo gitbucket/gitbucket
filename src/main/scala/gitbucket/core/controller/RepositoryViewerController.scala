@@ -14,7 +14,7 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.{Account, CommitState, WebHook}
-import gitbucket.core.service.CommitStatusService
+import gitbucket.core.service.{CommitStatusService, ProtectedBrancheService}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -34,7 +34,7 @@ import org.scalatra._
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
-  with WebHookPullRequestService with WebHookPullRequestReviewCommentService
+  with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBrancheService
 
 /**
  * The repository viewer.
@@ -42,7 +42,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
-    with WebHookPullRequestService with WebHookPullRequestReviewCommentService =>
+    with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBrancheService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -221,12 +221,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
+    val protectedBranch = isProtectedBranchNeedStatusCheck(repository.owner, repository.name, branch, context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
-      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")))
+      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")),
+      protectedBranch)
   })
 
   get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
+    val protectedBranch = isProtectedBranchNeedStatusCheck(repository.owner, repository.name, branch, context.loginAccount.get.userName)
+    println(s"protectedBranch=${protectedBranch}")
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
@@ -234,7 +238,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getPathObjectId(git, path, revCommit).map { objectId =>
         val paths = path.split("/")
         html.editor(branch, repository, paths.take(paths.size - 1).toList, Some(paths.last),
-          JGitUtil.getContentInfo(git, path, objectId))
+          JGitUtil.getContentInfo(git, path, objectId),
+          protectedBranch)
       } getOrElse NotFound
     }
   })

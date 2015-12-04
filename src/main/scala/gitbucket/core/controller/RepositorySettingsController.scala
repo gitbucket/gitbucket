@@ -155,7 +155,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       }
       JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
     }) getOrElse NotFound
-  });
+  })
 
   /**
    * Display the Collaborators page.

@@ -2,11 +2,15 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   fileName: Option[String],
-  content: gitbucket.core.util.JGitUtil.ContentInfo)(implicit context: gitbucket.core.controller.Context)
+  content: gitbucket.core.util.JGitUtil.ContentInfo,
+  protectedBranch: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
+    @if(protectedBranch){
+      <div class="alert alert-danger">branch @branch is protected.</div>
+    }
     <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
       <span class="error" id="error-newFileName"></span>
       <div class="head">
@@ -81,6 +85,9 @@ $(function(){
 
   @if(fileName.isDefined){
     editor.getSession().setMode("ace/mode/@editorType(fileName.get)");
+  }
+  @if(protectedBranch){
+    editor.setReadOnly(true);
   }
 
   editor.on('change', function(){
