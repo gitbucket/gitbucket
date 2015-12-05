@@ -12,10 +12,10 @@
     <div class="col-md-9">
       <div class="box">
         <div class="box-header">Personal access tokens</div>
-        <div class="box-content">
+        <div class="box-content-bottom">
           @if(personalTokens.isEmpty && gneratedToken.isEmpty){
             No tokens.
-          }else{
+          } else {
             Tokens you have generated that can be used to access the GitBucket API.<hr>
           }
           @gneratedToken.map{ case (token, tokenString) =>
@@ -40,11 +40,11 @@
       <form method="POST" action="@path/@account.userName/_personalToken" validate="true">
         <div class="box">
           <div class="box-header">Generate new token</div>
-          <div class="box-content">
+          <div class="box-content-bottom">
             <fieldset>
               <label for="note" class="strong">Token description</label>
               <div><span id="error-note" class="error"></span></div>
-              <input type="text" name="note" id="note" style="width: 400px;"/>
+              <input type="text" name="note" id="note" class="form-control" style="width: 400px;"/>
               <p class="muted">What's this token for?</p>
             </fieldset>
             <input type="submit" class="btn btn-success" value="Generate token"/>
