@@ -104,7 +104,7 @@ trait IndexControllerBase extends ControllerBase {
   })
 
   /**
-   * JSON APU for checking user existence.
+   * JSON API for checking user existence.
    */
   post("/_user/existence")(usersOnly {
     getAccountByUserName(params("userName")).isDefined

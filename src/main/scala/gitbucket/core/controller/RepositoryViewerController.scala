@@ -32,7 +32,7 @@ import org.scalatra._
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
-  with WebHookPullRequestService
+  with WebHookPullRequestService with WebHookPullRequestReviewCommentService
 
 /**
  * The repository viewer.
@@ -40,7 +40,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
-    with WebHookPullRequestService =>
+    with WebHookPullRequestService with WebHookPullRequestReviewCommentService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -396,12 +396,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val id = params("id")
     val commentId = createCommitComment(repository.owner, repository.name, id, context.loginAccount.get.userName,
       form.content, form.fileName, form.oldLineNumber, form.newLineNumber, form.issueId)
+    val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {
-      case Some(issueId) => recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, issueId, form.content)
+      case Some(issueId) =>
+        recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, issueId, form.content)
+        callPullRequestReviewCommentWebHook("create", comment, repository, issueId, context.baseUrl, context.loginAccount.get)
       case None => recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
     }
-    helper.html.commitcomment(getCommitComment(repository.owner, repository.name, commentId.toString).get,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
+    helper.html.commitcomment(comment, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
   })
 
   ajaxGet("/:owner/:repository/commit_comments/_data/:id")(readableUsersOnly { repository =>

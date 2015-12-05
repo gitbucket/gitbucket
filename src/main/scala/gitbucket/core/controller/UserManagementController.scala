@@ -100,12 +100,12 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
 
       if(form.isRemoved){
         // Remove repositories
-        getRepositoryNamesOfUser(userName).foreach { repositoryName =>
-          deleteRepository(userName, repositoryName)
-          FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
-          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
-          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
-        }
+//        getRepositoryNamesOfUser(userName).foreach { repositoryName =>
+//          deleteRepository(userName, repositoryName)
+//          FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
+//          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
+//          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
+//        }
         // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
         removeUserRelatedData(userName)
       }

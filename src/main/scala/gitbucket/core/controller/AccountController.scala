@@ -212,6 +212,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
 //      removeUserRelatedData(userName)
 
+      removeUserRelatedData(userName)
       updateAccount(account.copy(isRemoved = true))
     }
 

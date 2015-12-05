@@ -1,6 +1,6 @@
 @(id: String, width: Int)(implicit context: gitbucket.core.controller.Context)
 @import context._
-<input type="text" name="@id" id="@id" style="width: @{width}px; margin-bottom: 0px;"/>
+<input type="text" name="@id" id="@id" autocomplete="off" style="width: @{width}px; margin-bottom: 0px;"/>
 <script>
 $(function(){
   $('#@id').typeahead({
