@@ -74,17 +74,21 @@ blockquote p {
 .table-bordered > thead > tr > td {
   border-bottom-width: 1px;
 }
-
+/*
 .tab-content {
   margin-top: 20px;
 }
-
+*/
 .danger {
   color: #900;
 }
 
 .warning {
   color: #F28722;
+}
+
+.muted {
+  color: #777;
 }
 
 dl {
@@ -217,6 +221,10 @@ span.error {
 
 .strong {
   font-weight: bold;
+}
+
+.normal {
+  font-weight: normal;
 }
 
 .shorten-text {

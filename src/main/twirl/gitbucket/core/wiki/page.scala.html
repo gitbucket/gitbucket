@@ -18,16 +18,16 @@
       <li class="pull-right">
         @if(hasWritePermission){
           <div>
-            <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+            <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
             <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
           </div>
         }
       </li>
     </ul>
-    <div style="width: 200px;" class="pull-right">
+    <div style="width: 200px; margin-top: 20px;" class="pull-right">
       @defining(15){ max =>
         <div class="box-header">
-          <span class="strong">Pages</span> <span class="label">@pages.length</span>
+          <span class="strong">Pages</span> <span class="badge">@pages.length</span>
         </div>
         <div class="box-content-bottom" style="padding: 0px;">
           @pages.zipWithIndex.map { case (page, i) =>
@@ -54,7 +54,7 @@
         </div>
       }
     </div>
-    <div style="width: 700px;" class="pull-left">
+    <div style="width: 680px;" class="pull-left">
       <div class="markdown-body">
         @markdown(page.content, repository, true, false, false, false, pages)
       </div>

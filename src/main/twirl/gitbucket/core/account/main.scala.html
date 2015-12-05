@@ -39,14 +39,14 @@
             @if(loginAccount.isDefined && loginAccount.get.userName == account.userName){
               <li class="pull-right">
                 <div class="button-group">
-                  <a href="@url(account.userName)/_edit" class="btn">Edit Your Profile</a>
+                  <a href="@url(account.userName)/_edit" class="btn btn-default">Edit Your Profile</a>
                 </div>
               </li>
             }
             @if(loginAccount.isDefined && account.isGroupAccount && isGroupManager){
               <li class="pull-right">
                 <div class="button-group">
-                  <a href="@url(account.userName)/_editgroup" class="btn">Edit Group</a>
+                  <a href="@url(account.userName)/_editgroup" class="btn btn-default">Edit Group</a>
                 </div>
               </li>
             }
