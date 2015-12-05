@@ -12,7 +12,7 @@
     <div class="span9">
       <div class="box">
         <div class="box-header">Personal access tokens</div>
-        <div class="box-content">
+        <div class="box-content-bottom">
           @if(personalTokens.isEmpty && gneratedToken.isEmpty){
             No tokens.
           }else{
@@ -40,7 +40,7 @@
       <form method="POST" action="@path/@account.userName/_personalToken" validate="true">
         <div class="box">
           <div class="box-header">Generate new token</div>
-          <div class="box-content">
+          <div class="box-content-bottom">
             <fieldset>
               <label for="note" class="strong">Token description</label>
               <div><span id="error-note" class="error"></span></div>

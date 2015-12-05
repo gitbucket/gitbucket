@@ -11,7 +11,7 @@
     <div class="span9">
       <div class="box">
         <div class="box-header">SSH Keys</div>
-        <div class="box-content">
+        <div class="box-content-bottom">
           @if(sshKeys.isEmpty){
             No keys
           }
@@ -27,7 +27,7 @@
       <form method="POST" action="@path/@account.userName/_ssh" validate="true">
         <div class="box">
           <div class="box-header">Add an SSH Key</div>
-          <div class="box-content">
+          <div class="box-content-bottom">
             <fieldset>
               <label for="title" class="strong">Title</label>
               <div><span id="error-title" class="error"></span></div>
