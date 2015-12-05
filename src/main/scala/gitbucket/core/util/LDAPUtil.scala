@@ -8,6 +8,8 @@ import com.novell.ldap._
 import java.security.Security
 import org.slf4j.LoggerFactory
 import scala.annotation.tailrec
+import java.security.PublicKey
+import gitbucket.core.ssh.SshUtil
 
 /**
  * Utility for LDAP authentication.
@@ -187,6 +189,50 @@ object LDAPUtil {
         Option(results.next.getAttribute(nameAttribute)).map(_.getStringValue)
       } else None
     }
+
+
+  private def findPubKey(conn: LDAPConnection, userDN: String, userNameAttribute: String, userName: String, pubKeyAttribute: String): Option[String] =
+    defining(conn.search(userDN, LDAPConnection.SCOPE_BASE, userNameAttribute + "=" + userName, Array[String](pubKeyAttribute), false)){ results =>
+      if(results.hasMore) {
+        Option(results.next.getAttribute(pubKeyAttribute)).map(_.getStringValue)
+      } else None
+    }
+
+
+  def authenticatePubkey(ldapSettings: Ldap, userName: String, key: PublicKey): Either[String, Boolean] = {
+    if(ldapSettings.pubKeyAttribute.getOrElse("").isEmpty) {
+      Left("ldapSettings.pubKeyAttribute empty")
+    } else {
+      bind(
+        host     = ldapSettings.host,
+        port     = ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
+        dn       = ldapSettings.bindDN.getOrElse(""),
+        password = ldapSettings.bindPassword.getOrElse(""),
+        tls      = ldapSettings.tls.getOrElse(false),
+        ssl      = ldapSettings.ssl.getOrElse(false),
+        keystore = ldapSettings.keystore.getOrElse(""),
+        error    = "System LDAP authentication failed."
+      ){ conn =>
+        findUser(conn, userName, ldapSettings.baseDN, ldapSettings.userNameAttribute, ldapSettings.additionalFilterCondition) match {
+          case Some(userDN)  => Right(userAuthenticationPubkey(ldapSettings, conn, userDN, userName, key))
+          case None          => Left("User does not exist.")
+        }
+      }
+    }
+  }
+
+  private def userAuthenticationPubkey(ldapSettings: Ldap, conn: LDAPConnection, userDN: String, userName: String, key: PublicKey): Boolean = {
+    findPubKey(conn, userDN, ldapSettings.userNameAttribute, userName, ldapSettings.pubKeyAttribute.getOrElse("") ) match {
+      case Some(pubkey:String) => SshUtil.str2PublicKey(pubkey) match {
+        case Some(publicKey) => key.equals(publicKey)
+        case _ => false
+      }
+      case _ => false
+    }
+  }
+
+
+
 
   case class LDAPUserInfo(userName: String, fullName: String, mailAddress: String)
 
