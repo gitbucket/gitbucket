@@ -5,8 +5,8 @@
 <div class="container">
   <h3>Create your account</h3>
   <form action="@path/register" method="POST" validate="true">
-    <div class="row-fluid">
-      <div class="span6">
+    <div class="row">
+      <div class="col-md-6">
         <fieldset>
           <label for="userName" class="strong">Username:</label>
           <input type="text" name="userName" id="userName" value="" autofocus/>
@@ -35,7 +35,7 @@
           <span id="error-url" class="error"></span>
         </fieldset>
       </div>
-      <div class="span6">
+      <div class="col-md-6">
         <fieldset>
           <label for="avatar" class="strong">Image (optional):</label>
           @helper.html.uploadavatar(None)

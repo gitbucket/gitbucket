@@ -5,8 +5,8 @@
 @html.main(account.userName){
   <div class="container">
     <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span4">
+      <div class="row">
+        <div class="col-md-4">
           <div class="block">
             <div class="account-image">@avatar(account.userName, 270)</div>
             <div class="account-fullname">@account.fullName</div>
@@ -28,7 +28,7 @@
           }
 
         </div>
-        <div class="span8">
+        <div class="col-md-8">
           <ul class="nav nav-tabs" style="margin-bottom: 5px;">
             <li@if(active == "repositories"){ class="active"}><a href="@url(account.userName)?tab=repositories">Repositories</a></li>
             @if(account.isGroupAccount){

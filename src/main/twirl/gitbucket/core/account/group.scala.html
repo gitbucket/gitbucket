@@ -4,8 +4,8 @@
 @html.main(if(account.isEmpty) "Create group" else "Edit group"){
 <div class="container">
   <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
-      <div class="row-fluid">
-        <div class="span5">
+      <div class="row">
+        <div class="col-md-5">
           <fieldset>
             <label for="groupName" class="strong">Group name</label>
             <div>
@@ -25,7 +25,7 @@
             @helper.html.uploadavatar(account)
           </fieldset>
         </div>
-        <div class="span7">
+        <div class="col-md-7">
           <fieldset>
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">

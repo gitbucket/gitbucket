@@ -15,8 +15,8 @@
       <div class="box">
         <div class="box-header">Profile</div>
         <div class="box-content">
-          <div class="row-fluid">
-            <div class="span6">
+          <div class="row">
+            <div class="coil-md-6">
               @if(account.password.nonEmpty){
                 <fieldset>
                   <label for="password" class="strong">
@@ -42,7 +42,7 @@
                 <span id="error-url" class="error"></span>
               </fieldset>
             </div>
-            <div class="span6">
+            <div class="col-md-6">
               <fieldset>
                 <label for="avatar" class="strong">Image (optional):</label>
                 @helper.html.uploadavatar(Some(account))
