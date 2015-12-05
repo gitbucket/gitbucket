@@ -95,6 +95,11 @@ Support
 
 Release Notes
 --------
+### 3.9 - 5 Dec 2015
+- GFM inline breaks support in Markdown
+- WebHook on create review comment is available
+- WebHook event trigger is selectable
+
 ### 3.8 - 31 Oct 2015
 - Moved to GitHub organization
 - Omit diff view for large differences
