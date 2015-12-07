@@ -12,16 +12,26 @@ object ApiBranchProtection{
   /** form for enabling-and-disabling-branch-protection */
   case class EnablingAndDisabling(protection: ApiBranchProtection)
 
-  def apply(info: Option[ProtectedBrancheService.ProtectedBranchInfo]): ApiBranchProtection = info match {
-    case None       => ApiBranchProtection(false, Some(statusNone))
-    case Some(info) => ApiBranchProtection(true, Some(Status(if(info.includeAdministrators){ Everyone }else{ NonAdmins }, info.requireStatusChecksToPass)))
-  }
+  def apply(info: ProtectedBrancheService.ProtectedBranchInfo): ApiBranchProtection = ApiBranchProtection(
+    enabled = info.enabled,
+    required_status_checks = Some(Status(EnforcementLevel(info.enabled, info.includeAdministrators), info.contexts)))
   val statusNone = Status(Off, Seq.empty)
   case class Status(enforcement_level: EnforcementLevel, contexts: Seq[String])
   sealed class EnforcementLevel(val name: String)
   case object Off extends EnforcementLevel("off")
   case object NonAdmins extends EnforcementLevel("non_admins")
   case object Everyone extends EnforcementLevel("everyone")
+  object EnforcementLevel {
+    def apply(enabled: Boolean, includeAdministrators: Boolean): EnforcementLevel = if(enabled){
+      if(includeAdministrators){
+        Everyone
+      }else{
+        NonAdmins
+      }
+    }else{
+      Off
+    }
+  }
 
   implicit val enforcementLevelSerializer = new CustomSerializer[EnforcementLevel](format => (
    {

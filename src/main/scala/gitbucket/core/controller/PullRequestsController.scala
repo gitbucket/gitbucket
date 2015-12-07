@@ -27,13 +27,13 @@ import scala.collection.JavaConverters._
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
-  with CommitStatusService with MergeService
+  with CommitStatusService with MergeService with ProtectedBrancheService
 
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
     with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
-    with CommitStatusService with MergeService =>
+    with CommitStatusService with MergeService with ProtectedBrancheService =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -171,17 +171,21 @@ trait PullRequestsControllerBase extends ControllerBase {
       val owner = repository.owner
       val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-        val statuses = getCommitStatues(owner, name, pullreq.commitIdTo)
+        val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
+        val statuses = branchProtection.withRequireStatues(getCommitStatues(owner, name, pullreq.commitIdTo))
         val hasConfrict = LockUtil.lock(s"${owner}/${name}"){
           checkConflict(owner, name, pullreq.branch, issueId)
         }
-        val hasProblem = hasConfrict || (!statuses.isEmpty && CommitState.combine(statuses.map(_.state).toSet) != CommitState.SUCCESS)
+        val hasRequiredStatusProblem = branchProtection.hasProblem(statuses, pullreq.commitIdTo, context.loginAccount.get.userName)
+        val hasProblem = hasRequiredStatusProblem || hasConfrict || (!statuses.isEmpty && CommitState.combine(statuses.map(_.state).toSet) != CommitState.SUCCESS)
         html.mergeguide(
           hasConfrict,
           hasProblem,
           issue,
           pullreq,
           statuses,
+          branchProtection,
+          hasRequiredStatusProblem,
           repository,
           getRepository(pullreq.requestUserName, pullreq.requestRepositoryName, context.baseUrl).get)
       }

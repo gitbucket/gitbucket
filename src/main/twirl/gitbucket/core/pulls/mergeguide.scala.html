@@ -3,6 +3,8 @@
   issue: gitbucket.core.model.Issue,
   pullreq: gitbucket.core.model.PullRequest,
   statuses: List[model.CommitStatus],
+  branchProtection: gitbucket.core.service.ProtectedBrancheService.ProtectedBranchInfo,
+  hasRequiredStatusProblem: Boolean,
   originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.service.SystemSettingsService
@@ -14,35 +16,27 @@
     <div id="merge-pull-request">
       @if(!statuses.isEmpty){
         <div class="build-statuses">
-          @if(statuses.size==1){
-            @defining(statuses.head){ status =>
-            <div class="build-status-item">
-              @status.targetUrl.map{ url => <a class="pull-right" href="@url">Details</a> }
-              <span class="build-status-icon text-@{status.state.name}">@commitStateIcon(status.state)</span>
-              <strong class="text-@{status.state.name}">@commitStateText(status.state, pullreq.commitIdTo)</strong>
-              @status.description.map{ desc => <span class="muted">— @desc</span> }
-            </div>
-            }
-          } else {
-            @defining(statuses.groupBy(_.state)){ stateMap =>
-              @defining(CommitState.combine(stateMap.keySet)){ state =>
+          @defining(statuses.groupBy(_.state)){ stateMap =>
+            @defining(CommitState.combine(stateMap.keySet)){ state =>
+              <div class="build-status-item-header">
+                <a class="pull-right" id="toggle-all-checks"></a>
+                <span class="build-status-icon text-@{state.name}">@commitStateIcon(state)</span>
+                <strong class="text-@{state.name}">@commitStateText(state, pullreq.commitIdTo)</strong>
+                <span class="text-@{state.name}">— @{stateMap.map{ case (keyState, states) => states.size+" "+keyState.name }.mkString(", ")} checks</span>
+              </div>
+              <div class="build-statuses-list" style="@if(state==CommitState.SUCCESS){ display:none; }else{ }">
+                @statuses.map{ status =>
                 <div class="build-status-item">
-                  <a class="pull-right" id="toggle-all-checks"></a>
-                  <span class="build-status-icon text-@{state.name}">@commitStateIcon(state)</span>
-                  <strong class="text-@{state.name}">@commitStateText(state, pullreq.commitIdTo)</strong>
-                  <span class="text-@{state.name}">— @{stateMap.map{ case (keyState, states) => states.size+" "+keyState.name }.mkString(", ")} checks</span>
-                </div>
-                <div class="build-statuses-list" style="@if(state==CommitState.SUCCESS){ display:none; }else{ }">
-                  @statuses.map{ status =>
-                  <div class="build-status-item">
-                    @status.targetUrl.map{ url => <a class="pull-right" href="@url">Details</a> }
-                    <span class="build-status-icon text-@{status.state.name}">@commitStateIcon(status.state)</span>
-                    <span class="text-@{status.state.name}">@status.context</span>
-                    @status.description.map{ desc => <span class="muted">— @desc</span> }
+                  <div class="pull-right">
+                    @branchProtection.contexts.find(_==status.context).map{ url => <span class="label">Required</span> }
+                    @status.targetUrl.map{ url => <a href="@url">Details</a> }
                   </div>
-                  }
+                  <span class="build-status-icon text-@{status.state.name}">@commitStateIcon(status.state)</span>
+                  <strong>@status.context</strong>
+                  @status.description.map{ desc => <span class="muted">— @desc</span> }
                 </div>
-              }
+                }
+              </div>
             }
           }
         </div>
@@ -52,67 +46,74 @@
       </div>
       <div>
         @if(hasConflict){
-          <span class="strong">We can’t automatically merge this pull request.</span>
+          <div class="merge-indicator merge-indicator-alert"><span class="octicon octicon-alert"></span></div>
+          <span class="strong">This branch has conflicts that must be resolved</span>
+          <div class="small">
+            <a href="#" class="show-command-line">Use the command line</a> to resolve conflicts before continuing.
+          </div>
+        } else { @if(hasRequiredStatusProblem) {
+          <div class="merge-indicator merge-indicator-warning"><span class="octicon octicon-primitive-dot"></span></div>
+          <span class="strong">Required statuses must pass before merging.</span>
+          <div class="small">
+            All required status checks on this pull request must run successfully to enable automatic merging.
+          </div>
         } else {
-          @if(hasProblem){
-            <span class="strong">Merge with caution!</span>
+          <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
+          <span class="strong">Merging can be performed automatically.</span>
+          <div class="small">
+            Merging can be performed automatically.
+          </div>
+        } }
+      </div>
+      <div style="padding:15px;border-top:solid 1px #e5e5e5;background:#fafafa">
+        <input type="button" class="btn @if(!hasProblem){ btn-success }" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict||hasRequiredStatusProblem){ disabled="true"}/>
+        You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
+        <div id="command-line" style="display: none;margin-top: 15px;">
+          <hr>
+          @if(hasConflict){
+            <span class="strong">Checkout via command line</span>
+            <p>
+              If you cannot merge a pull request automatically here, you have the option of checking
+              it out via command line to resolve conflicts and perform a manual merge.
+            </p>
           } else {
-            <span class="strong">This pull request can be automatically merged.</span>
+            <span class="strong">Merging via command line</span>
+            <p>
+              If you do not want to use the merge button or an automatic merge cannot be performed,
+              you can perform a manual merge on the command line.
+            </p>
           }
-        }
-      </div>
-      <div class="small">
-        @if(hasConflict){
-          <a href="#" id="show-command-line">Use the command line</a> to resolve conflicts before continuing.
-        } else {
-          You can also merge branches on the <a href="#" id="show-command-line">command line</a>.
-        }
-      </div>
-      <div id="command-line" style="display: none;">
-        <hr>
-        @if(hasConflict){
-          <span class="strong">Checkout via command line</span>
-          <p>
-            If you cannot merge a pull request automatically here, you have the option of checking
-            it out via command line to resolve conflicts and perform a manual merge.
-          </p>
-        } else {
-          <span class="strong">Merging via command line</span>
-          <p>
-            If you do not want to use the merge button or an automatic merge cannot be performed,
-            you can perform a manual merge on the command line.
-          </p>
-        }
-        @helper.html.copy("repository-url-copy", forkedRepository.httpUrl, true){
-          <div class="btn-group" data-toggle="buttons-radio">
-            <button class="btn btn-small active" type="button" id="repository-url-http">HTTP</button>
-            @if(settings.ssh && loginAccount.isDefined){
-              <button class="btn btn-small" type="button" id="repository-url-ssh" style="border-radius: 0px;">SSH</button>
+          @helper.html.copy("repository-url-copy", forkedRepository.httpUrl, true){
+            <div class="btn-group" data-toggle="buttons-radio">
+              <button class="btn btn-small active" type="button" id="repository-url-http">HTTP</button>
+              @if(settings.ssh && loginAccount.isDefined){
+                <button class="btn btn-small" type="button" id="repository-url-ssh" style="border-radius: 0px;">SSH</button>
+              }
+            </div>
+            <input type="text" style="width: 500px;" value="@forkedRepository.httpUrl" id="repository-url" readonly>
+          }
+          <div>
+            <p>
+              <span class="strong">Step 1:</span> From your project repository, check out a new branch and test the changes.
+            </p>
+            @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
+                      s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
+              @helper.html.copy("merge-command-copy-1", command){
+                <pre style="width: 600px; float: left; font-size: 12px; border-radius: 3px 0px 3px 3px;" id="merge-command">@Html(command)</pre>
+              }
             }
           </div>
-          <input type="text" style="width: 500px;" value="@forkedRepository.httpUrl" id="repository-url" readonly>
-        }
-        <div>
-          <p>
-            <span class="strong">Step 1:</span> From your project repository, check out a new branch and test the changes.
-          </p>
-          @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
-                    s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
-            @helper.html.copy("merge-command-copy-1", command){
-              <pre style="width: 600px; float: left; font-size: 12px; border-radius: 3px 0px 3px 3px;" id="merge-command">@Html(command)</pre>
+          <div>
+            <p>
+              <span class="strong">Step 2:</span> Merge the changes and update on the server.
+            </p>
+            @defining(s"git checkout ${pullreq.branch}\ngit merge --no-ff ${pullreq.requestUserName}-${pullreq.requestBranch}\n" +
+                      s"git push origin ${pullreq.branch}"){ command =>
+              @helper.html.copy("merge-command-copy-2", command){
+                <pre style="width: 600px; float: left; font-size: 12px; border-radius: 3px 0px 3px 3px;">@command</pre>
+              }
             }
-          }
-        </div>
-        <div>
-          <p>
-            <span class="strong">Step 2:</span> Merge the changes and update on the server.
-          </p>
-          @defining(s"git checkout ${pullreq.branch}\ngit merge --no-ff ${pullreq.requestUserName}-${pullreq.requestBranch}\n" +
-                    s"git push origin ${pullreq.branch}"){ command =>
-            @helper.html.copy("merge-command-copy-2", command){
-              <pre style="width: 600px; float: left; font-size: 12px; border-radius: 3px 0px 3px 3px;">@command</pre>
-            }
-          }
+          </div>
         </div>
       </div>
     </div>
@@ -134,8 +135,8 @@
 
 <script>
 $(function(){
-  $('#show-command-line').click(function(){
-    $('#command-line').show();
+  $('.show-command-line').click(function(){
+    $('#command-line').toggle();
     return false;
   });
   function setToggleAllChecksLabel(){
