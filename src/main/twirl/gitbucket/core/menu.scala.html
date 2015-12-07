@@ -81,7 +81,7 @@
         <strong id="repository-url-proto">HTTP</strong> <span class="mute">clone URL</span>
       </div>
       @helper.html.copy("repository-url-copy", repository.httpUrl){
-        <input type="text" value="@repository.httpUrl" id="repository-url" readonly>
+        <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly>
       }
       @if(settings.ssh && loginAccount.isDefined){
         <div class="small">
@@ -91,15 +91,15 @@
       @id.map { id =>
         @if(context.platform != "linux" && context.platform != null){
         <div style="margin-top: 10px;">
-          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default" style="width: 147px;font-weight: bold;"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
+          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
         </div>
         }
         <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-default" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
         </div>
         @*
         <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-sm btn-default btn-block "><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
         </div>
         *@
       }

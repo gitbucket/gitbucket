@@ -798,17 +798,21 @@ pre.commit-description {
 #repository-url {
   background-color: white;
   cursor: default;
-  height: 16px;
-  width: 129px;
   color: silver;
-  font-size: 9pt;
+  font-size: 8pt;
   font-family: monospace;
 }
 
 #repository-url-copy {
-  height: 18px;
+  /*height: 18px;*/
   padding-top: 2px;
 }
+
+#repository-url-copy > i {
+  margin-left: -4px;
+  margin-right: -4px;
+}
+
 
 ul#commit-file-list {
   list-style-type: none;
