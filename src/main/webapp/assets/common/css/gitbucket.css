@@ -1509,7 +1509,8 @@ table.diff tbody tr.not-diff:hover td{
 /****************************************************************************/
 ul.collaborator {
   list-style-type: none;
-  margin-left: 0px;
+  margin: 0px;
+  padding-left: 0px;
 }
 
 ul.collaborator li {
