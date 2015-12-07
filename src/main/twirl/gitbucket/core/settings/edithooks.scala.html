@@ -16,27 +16,28 @@
 
       <div class="box">
         <div class="box-header">
-          Webhook / Manage webhook
+          <span class="strong">Webhook / Manage webhook</span>
         </div>
         <div class="box-content-bottom">
           <form method="POST" validate="true">
-            <div>
-              <span class="error" id="error-url"></span>
-            </div>
-            <label class="strong">Payload URL</label>
-            @if(create){
-              <input type="text" name="url" id="url" value="@webHook.url" class="input-xxlarge" style="margin-bottom: 0px;" required />
-            } else {
-              <input type="text" value="@webHook.url" style="margin-bottom: 0px;" class="input-xxlarge" disabled />
-              <input type="hidden" value="@webHook.url" name="url" />
-            }
-            <button class="btn" id="test">Test Hook</button>
-
+            <fieldset class="form-group">
+              <label class="strong">Payload URL</label>
+              <div>
+                <span class="error" id="error-url"></span>
+              </div>
+              @if(create){
+                <input type="text" name="url" id="url" value="@webHook.url" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" required />
+              } else {
+                <input type="text" value="@webHook.url" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" disabled />
+                <input type="hidden" value="@webHook.url" name="url" />
+              }
+              <button class="btn btn-default" id="test">Test Hook</button>
+            </fieldset>
             <hr />
+            <label class="strong">Which events would you like to trigger this webhook?</label>
             <div>
               <span class="error" id="error-events"></span>
             </div>
-            <label class="strong">Which events would you like to trigger this webhook?</label>
             <!--
             <label class="checkbox"><input type="checkbox" @check("events",CommitComment) />Commit comment <small class="help-block">Commit or diff commented on. </small> </label>
             <label class="checkbox"><input type="checkbox" @check("events",Create) />Create <small class="help-block">Branch, or tag created. </small> </label>
@@ -53,20 +54,21 @@
             <label class="checkbox"><input type="checkbox" @check("events",Watch) />Watch <small class="help-block">User stars a repository.</small></label>
             <label class="checkbox"><input type="checkbox" @check("events",Status) />Status <small class="help-block">Commit status updated from the API. </small> </label>
             -->
-            <label class="checkbox"><input type="checkbox" @check("events",IssueComment) />Issue comment <small class="help-block">Issue commented on. </small> </label>
-            <label class="checkbox"><input type="checkbox" @check("events",Issues) />Issues <small class="help-block">Issue opened, closed<!-- , assigned, or labeled -->. </small> </label>
-            <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull Request <small class="help-block">Pull Request opened, closed<!-- , assigned, labeled -->, or synchronized. </small> </label>
-            <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull Request review comment <small class="help-block">Pull Request diff commented on. </small> </label>
-            <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <small class="help-block">Git push to a repository. </small> </label>
-            <hr />
-            @if(!create){
-              <input type="submit" class="btn btn-success" value="Update webhook" formaction="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" />
-              <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn text-error" onclick="return confirm('delete webhook for @webHook.url ?')">
-                Delete webhook
-              </a>
-            } else {
-              <input type="submit" class="btn" value="Add webhook" formaction="@url(repository)/settings/hooks/new" />
-            }
+            <label class="checkbox"><input type="checkbox" @check("events",IssueComment) />Issue comment <span class="help-block normal">Issue commented on. </span> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Issues) />Issues <span class="help-block normal">Issue opened, closed<!-- , assigned, or labeled -->. </span> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull Request <span class="help-block normal">Pull Request opened, closed<!-- , assigned, labeled -->, or synchronized. </span> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull Request review comment <span class="help-block normal">Pull Request diff commented on. </span> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <span class="help-block normal">Git push to a repository. </span> </label>
+            <div class="text-right">
+              @if(!create){
+                <input type="submit" class="btn btn-success" value="Update webhook" formaction="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" />
+                <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+                  Delete webhook
+                </a>
+              } else {
+                <input type="submit" class="btn btn-success" value="Add webhook" formaction="@url(repository)/settings/hooks/new" />
+              }
+            </div>
           </form>
         </div>
       </div>

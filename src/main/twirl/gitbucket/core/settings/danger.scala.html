@@ -5,15 +5,15 @@
   @html.menu("settings", repository){
     @menu("danger", repository){
       <div class="box">
-        <div class="box-header">Danger Zone</div>
+        <div class="box-header"><span class="strong">Danger Zone</span></div>
         <div class="box-content-bottom">
           <form id="transfer-form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
-            <fieldset>
+            <fieldset class="form-group">
               <label class="strong">Transfer Ownership</label>
               <div>
                 Transfer this repo to another user or to group.
                 <div class="pull-right">
-                  @helper.html.account("newOwner", 150)
+                  @helper.html.account("newOwner", 200)
                   <input type="submit" class="btn btn-danger" value="Transfer"/>
                   <div>
                     <span id="error-newOwner" class="error"></span>
@@ -23,7 +23,7 @@
             </fieldset>
           </form>
           <form id="delete-form" method="post" action="@url(repository)/settings/delete">
-            <fieldset class="margin">
+            <fieldset class="margin form-group">
               <label class="strong">Delete repository</label>
               <div>
                 Once you delete a repository, there is no going back.

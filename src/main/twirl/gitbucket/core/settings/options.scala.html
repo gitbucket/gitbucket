@@ -7,18 +7,18 @@
       @helper.html.information(info)
       <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
         <div class="box">
-          <div class="box-header">Settings</div>
+          <div class="box-header"><span class="strong">Settings</span></div>
           <div class="box-content-bottom">
-            <fieldset>
+            <fieldset class="form-group">
               <label for="repositoryName" class="strong">Repository Name:</label>
-              <input type="text" name="repositoryName" id="repositoryName" value="@repository.name"/>
+              <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
               <span id="error-repositoryName" class="error"></span>
             </fieldset>
-            <fieldset class="margin">
+            <fieldset class="margin form-group">
               <label for="description" class="strong">Description:</label>
-              <input type="text" name="description" id="description" style="width: 600px;" value="@repository.repository.description"/>
+              <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
             </fieldset>
-            <fieldset class="margin">
+            <fieldset class="margin form-group">
               <label for="defaultBranch" class="strong">Default Branch:</label>
               <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled}>
                 @if(repository.branchList.isEmpty){
@@ -40,21 +40,19 @@
                   @if(!repository.repository.isPrivate              ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
-                <span class="strong">Public</span><br>
-                <div>
-                  <span>All users and guests can read this repository.</span>
+                <span class="strong"><i class="octicon octicon-repo"></i> Public</span><br>
+                <div class="normal muted">
+                  Anyone can see this repository. You choose who can commit.
                 </div>
               </label>
-            </fieldset>
-            <fieldset>
               <label class="radio">
                 <input type="radio" name="isPrivate" value="true"
                   @if(repository.repository.isPrivate               ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
-                <span class="strong">Private</span><br>
-                <div>
-                  <span>Only collaborators can read this repository.</span>
+                <span class="strong"><i class="octicon octicon-lock"></i> Private</span><br>
+                <div class="normal muted">
+                  You choose who can see and commit to this repository.
                 </div>
               </label>
             </fieldset>
