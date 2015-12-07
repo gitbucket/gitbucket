@@ -544,10 +544,21 @@ ul.nav-stacked.side-menu {
 
 ul.nav-stacked.side-menu li {
   background-color: #f9f9f9;
+  margin-bottom: -3px;
+}
+
+ul.nav-stacked.side-menu li span.header {
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
+  border: 1px solid #d8d8d8;
+  display: block;
+  padding: 8px 15px 9px;
+  margin-right: 2px;
+  background-color: #f5f5f5;
 }
 
 ul.nav-stacked.side-menu li a:hover {
-  background-color: white;
+  background-color: transparent;
 }
 
 ul.nav-stacked.side-menu li.active a {
@@ -559,15 +570,25 @@ ul.nav-stacked.side-menu li.active a {
 
 ul.nav-stacked.side-menu li.active a:hover {
   background-color: white;
-  color: #333;
+  color: #4183c4;
   font-weight: bold;
   border-left: 2px solid #cc6666;
 }
 
+.nav-tabs.nav-stacked.side-menu > li > a {
+  border: 1px solid #d8d8d8;
+  border-radius: 0px;
+  background-color: white;
+  color: #4183c4;
+  padding: 8px 15px 9px;
+}
+
+/*
 .nav-tabs.nav-stacked.side-menu > li:first-child > a {
   border-top-right-radius: 3px;
   border-top-left-radius: 3px;
 }
+*/
 
 .nav-tabs.nav-stacked.side-menu > li:last-child > a {
   border-bottom-right-radius: 3px;
