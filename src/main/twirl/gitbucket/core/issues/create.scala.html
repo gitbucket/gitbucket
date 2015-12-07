@@ -7,8 +7,6 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
-    @navigation("issues", false, repository)
-    <br/><br/><hr style="margin-bottom: 10px;">
     <form action="@url(repository)/issues/new" method="POST" validate="true" class="form-group">
       <div class="row">
         <div class="col-md-10">

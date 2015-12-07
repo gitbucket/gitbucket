@@ -86,12 +86,14 @@ blockquote p {
 }
 
 .table-bordered > thead > tr:first-child > th:nth-of-type(1),
-.table-bordered > tbody > tr:first-child > th:nth-of-type(1) {
+.table-bordered > tbody > tr:first-child > th:nth-of-type(1),
+.table-bordered > tbody > tr:first-child > td:nth-of-type(1) {
   border-top-left-radius: 4px;
 }
 
 .table-bordered > thead > tr:first-child > th:nth-last-of-type(1),
-.table-bordered > tbody > tr:first-child > th:nth-last-of-type(1) {
+.table-bordered > tbody > tr:first-child > th:nth-last-of-type(1),
+.table-bordered > tbody > tr:first-child > td:nth-last-of-type(1) {
   border-top-right-radius: 4px;
 }
 

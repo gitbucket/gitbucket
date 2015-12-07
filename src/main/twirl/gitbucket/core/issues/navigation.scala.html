@@ -10,48 +10,48 @@
   <li class="@if(active == "labels"    ){active}"><a href="@url(repository)/issues/labels">Labels</a></li>
   <li class="@if(active == "milestones"){active} last"><a href="@url(repository)/issues/milestones">Milestones</a></li>
   <li class="pull-right">
-    <form method="GET" id="search-filter-form" style="margin-bottom: 0px;" class="form-group">
+    <form method="GET" id="search-filter-form" style="margin-bottom: 0px;" class="form-inline">
       @condition.map { condition =>
         @if(loginAccount.isDefined){
-          <div class="input-prepend" style="margin-bottom: 0px;">
-            <div class="btn-group">
-              <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" style="height: 34px;">
-                Filter
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a href="?q=is:open">Open issues and pull requests</a></li>
-                <li><a href="?q=is:open+is:issue+author:@urlEncode(loginAccount.get.userName)">Your issues</a></li>
-                <li><a href="?q=is:open+is:pr+author:@urlEncode(loginAccount.get.userName)">Your pull requests</a></li>
-                <li><a href="?q=is:open+assignee:@urlEncode(loginAccount.get.userName)">Everything assigned to you</a></li>
-                @*
-                <li><a href="?q=is:open+mentions:@urlEncode(loginAccount.get.userName)">Everything mentioning you</a></li>
-                *@
-              </ul>
+          <div class="form-group" style="width: 300px">
+            <div class="input-group" style="margin-bottom: 0px;">
+              <div class="input-group-btn">
+                <button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown">
+                  Filter
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="?q=is:open">Open issues and pull requests</a></li>
+                  <li><a href="?q=is:open+is:issue+author:@urlEncode(loginAccount.get.userName)">Your issues</a></li>
+                  <li><a href="?q=is:open+is:pr+author:@urlEncode(loginAccount.get.userName)">Your pull requests</a></li>
+                  <li><a href="?q=is:open+assignee:@urlEncode(loginAccount.get.userName)">Everything assigned to you</a></li>
+                  @*
+                  <li><a href="?q=is:open+mentions:@urlEncode(loginAccount.get.userName)">Everything mentioning you</a></li>
+                  *@
+                </ul>
+              </div>
+              <input type="text" id="search-filter-box" class="form-control input-lg" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
             </div>
-            <input type="text" id="search-filter-box" class="form-control input-lg" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
           </div>
         } else {
           <input type="text" id="search-filter-box" class="form-control input-lg" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
         }
       }
       @if(loginAccount.isDefined){
-        <div class="btn-group">
-          @if(newButton){
-            @if(active == "issues"){
-              <a class="btn btn-success" href="@url(repository)/issues/new" style="height: 24px;">New issue</a>
-            }
-            @if(active == "pulls"){
-              <a class="btn btn-success" href="@url(repository)/compare" style="height: 24px;">New pull request</a>
-            }
-            @if(active == "labels"){
-              <a class="btn btn-success" href="javascript:void(0);" id="new-label-button" style="height: 24px;">New label</a>
-            }
-            @if(active == "milestones"){
-              <a class="btn btn-success" href="@url(repository)/issues/milestones/new" style="height: 24px;">New milestone</a>
-            }
+        @if(newButton){
+          @if(active == "issues"){
+            <a class="btn btn-success btn-lg" href="@url(repository)/issues/new">New issue</a>
           }
-        </div>
+          @if(active == "pulls"){
+            <a class="btn btn-success btn-lg" href="@url(repository)/compare">New pull request</a>
+          }
+          @if(active == "labels"){
+            <a class="btn btn-success btn-lg" href="javascript:void(0);" id="new-label-button">New label</a>
+          }
+          @if(active == "milestones"){
+            <a class="btn btn-success btn-lg" href="@url(repository)/issues/milestones/new">New milestone</a>
+          }
+        }
       }
     </form>
   </li>
