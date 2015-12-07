@@ -39,7 +39,8 @@ trait WikiControllerBase extends ControllerBase {
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
       html.page("Home", page, getWikiPageList(repository.owner, repository.name),
         repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
-        getWikiPage(repository.owner, repository.name, "_Sidebar"))
+        getWikiPage(repository.owner, repository.name, "_Sidebar"),
+        getWikiPage(repository.owner, repository.name, "_Footer"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
@@ -49,7 +50,8 @@ trait WikiControllerBase extends ControllerBase {
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       html.page(pageName, page, getWikiPageList(repository.owner, repository.name),
         repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
-        getWikiPage(repository.owner, repository.name, "_Sidebar"))
+        getWikiPage(repository.owner, repository.name, "_Sidebar"),
+        getWikiPage(repository.owner, repository.name, "_Footer"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   
@@ -203,7 +205,7 @@ trait WikiControllerBase extends ControllerBase {
       }
   }
 
-  private def notReservedPageName(value: String) = value != "_Sidebar"
+  private def notReservedPageName(value: String) = ! (Array[String]("_Sidebar","_Footer") contains value)
 
   private def conflictForNew: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
