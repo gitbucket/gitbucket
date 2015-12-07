@@ -70,10 +70,49 @@ blockquote p {
   font-size: 15px;
 }
 
+.nav {
+  margin-bottom: 12px;
+}
+
+.table-bordered {
+  border-collapse: inherit;
+  border: none;
+}
+
+.table-bordered > thead > tr > th,
+.table-bordered > tbody > tr > th,
+.table-bordered > tbody > tr > td {
+  border-bottom: none;
+}
+
+.table-bordered > thead > tr:first-child > th:nth-of-type(1),
+.table-bordered > tbody > tr:first-child > th:nth-of-type(1) {
+  border-top-left-radius: 4px;
+}
+
+.table-bordered > thead > tr:first-child > th:nth-last-of-type(1),
+.table-bordered > tbody > tr:first-child > th:nth-last-of-type(1) {
+  border-top-right-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td:nth-of-type(1) {
+  border-bottom-left-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td:nth-last-of-type(1) {
+  border-bottom-right-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td {
+  border-bottom: 1px solid #dddddd;
+}
+
+/*
 .table-bordered > thead > tr > th,
 .table-bordered > thead > tr > td {
   border-bottom-width: 1px;
 }
+*/
 /*
 .tab-content {
   margin-top: 20px;
@@ -973,7 +1012,7 @@ span.issue-status {
 }
 
 table.table-issues {
-  margin-top: 30px;
+  margin-top: 12px;
 }
 
 table.table-issues td .octicon-issue-opened,table.table-issues td .octicon-git-pull-request .open {
