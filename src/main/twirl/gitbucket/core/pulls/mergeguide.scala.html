@@ -48,7 +48,7 @@
         </div>
       }
       <div class="pull-right">
-        <input type="button" class="btn @if(!hasProblem){ btn-success }" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict){ disabled="true"}/>
+        <input type="button" class="btn @if(!hasProblem){ btn-success }else{ btn-default }" id="merge-pull-request-button" value="Merge pull request"@if(hasConflict){ disabled="true"}/>
       </div>
       <div>
         @if(hasConflict){

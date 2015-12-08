@@ -173,7 +173,7 @@
     }
     @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
       <tr>
-        <td style="padding-top: 15px; padding-bottom: 15px;">
+        <td style="padding-top: 12px; padding-bottom: 12px;">
           @if(hasWritePermission){
             <input type="checkbox" value="@issue.issueId"/>
           }
@@ -204,7 +204,7 @@
               </a>
             }
           </span>
-          <div class="small muted" style="margin-left: 40px; margin-top: 5px;">
+          <div class="small muted" style="margin-left: 40px; margin-top: 2px;">
             #@issue.issueId opened  @helper.html.datetimeago(issue.registeredDate) by @user(issue.openedUserName, styleClass="username")
             @milestone.map { milestone =>
               <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>

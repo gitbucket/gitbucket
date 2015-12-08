@@ -38,12 +38,12 @@
         <div class="muted" style="background-color: white;">
           <i class="octicon octicon-git-commit"></i> Commits on @date(day.head.commitTime)
         </div>
-        <div class="box-commits">
+        <div class="list-group box-commits">
           @day.map { commit =>
-            <div class="box-content-row" style="padding: 8px;">
+            <div class="list-group-item">
               <ul class="nav nav-pills pull-right">
-                <li class="first"><a href="@url(repository)/commit/@commit.id" class="link monospace" style="line-height: 16px;">@commit.id.substring(0, 7)</a></li>
-                <li class="last"><a href="@url(repository)/tree/@commit.id" style="line-height: 16px;"><i class="octicon octicon-code link"></i></a></li>
+                <li><a href="@url(repository)/commit/@commit.id" class="link monospace" style="line-height: 16px;">@commit.id.substring(0, 7)</a></li>
+                <li><a href="@url(repository)/tree/@commit.id" style="line-height: 16px;"><i class="octicon octicon-code link"></i></a></li>
               </ul>
               <div>
                 <div class="commit-avatar-image">@avatar(commit, 40)</div>
