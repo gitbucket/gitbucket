@@ -1457,23 +1457,16 @@ th {
   padding: 3px;
 }
 .table-bordered {
-  border: 1px solid #dddddd;
+  border: none;
+  border-collapse: inherit;
 }
-.table-bordered > thead > tr:first-child > th:nth-of-type(1),
-.table-bordered > tbody > tr:first-child > th:nth-of-type(1),
-.table-bordered > tfoot > tr:first-child > th:nth-of-type(1),
-.table-bordered > thead > tr:first-child > td:nth-of-type(1),
-.table-bordered > tbody > tr:first-child > td:nth-of-type(1),
-.table-bordered > tfoot > tr:first-child > td:nth-of-type(1) {
-  border-top-left-radius: 4px;
-}
-.table-bordered > thead > tr:first-child > th:nth-last-of-type(1),
-.table-bordered > tbody > tr:first-child > th:nth-last-of-type(1),
-.table-bordered > tfoot > tr:first-child > th:nth-last-of-type(1),
-.table-bordered > thead > tr:first-child > td:nth-last-of-type(1),
-.table-bordered > tbody > tr:first-child > td:nth-last-of-type(1),
-.table-bordered > tfoot > tr:first-child > td:nth-last-of-type(1) {
-  border-top-right-radius: 4px;
+.table-bordered > thead > tr:last-child > th,
+.table-bordered > tbody > tr:last-child > th,
+.table-bordered > tfoot > tr:last-child > th,
+.table-bordered > thead > tr:last-child > td,
+.table-bordered > tbody > tr:last-child > td,
+.table-bordered > tfoot > tr:last-child > td {
+  border-bottom: 1px solid #dddddd;
 }
 .table-bordered > thead > tr:last-child > td:nth-of-type(1),
 .table-bordered > tbody > tr:last-child > td:nth-of-type(1),
@@ -1492,10 +1485,20 @@ th {
 .table-bordered > tbody > tr > td,
 .table-bordered > tfoot > tr > td {
   border: 1px solid #dddddd;
+  border-bottom: 0;
 }
-.table-bordered > thead > tr > th,
-.table-bordered > thead > tr > td {
-  border-bottom-width: 1px;
+.table-bordered > thead:first-child > tr:first-child > th,
+.table-bordered > thead:first-child > tr:first-child > td {
+  border-top: 1px solid #dddddd;
+  border-bottom: 0;
+}
+.table-bordered > thead:first-child > tr:first-child > th:nth-of-type(1),
+.table-bordered > thead:first-child > tr:first-child > td:nth-of-type(1) {
+  border-top-left-radius: 4px;
+}
+.table-bordered > thead:first-child > tr:first-child > th:nth-last-of-type(1),
+.table-bordered > thead:first-child > tr:first-child > td:nth-last-of-type(1) {
+  border-top-right-radius: 4px;
 }
 .table-striped > tbody > tr:nth-of-type(odd) {
   background-color: #f9f9f9;
@@ -3703,16 +3706,26 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   float: left;
 }
 .nav-pills > li > a {
-  border-radius: 5px;
+  border-radius: 0;
+  border-left: 1px solid #dddddd;
+  border-top: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
 }
 .nav-pills > li + li {
-  margin-left: 2px;
+  margin-left: 0px;
 }
 .nav-pills > li.active > a,
 .nav-pills > li.active > a:hover,
 .nav-pills > li.active > a:focus {
   color: #ffffff;
   background-color: #4183c4;
+}
+.nav-pills > li:nth-of-type(1) > a {
+  border-radius: 3px 0 0 3px;
+}
+.nav-pills > li:nth-last-of-type(1) > a {
+  border-radius: 0 3px 3px 0;
+  border-right: 1px solid #dddddd;
 }
 .nav-stacked > li {
   float: none;

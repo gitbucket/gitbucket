@@ -361,8 +361,13 @@ div.box-header {
   background-color: #f3f3f3;
 }
 
-ul.nav-pills-group .link {
+ul.nav-pills .link {
   color: #4078c0;
+}
+
+ul.nav-pills i.link {
+  line-height: 0px;
+  height: 0;
 }
 
 div.box-commits {
@@ -520,8 +525,8 @@ ul.sidemenu li.active a {
 
 ul.sidemenu {
   background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
-  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px); 
-  box-shadow: inset 1px 0 0 #eee; 
+  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
+  box-shadow: inset 1px 0 0 #eee;
 }
 
 ul.sidemenu div.margin {
@@ -824,11 +829,11 @@ div.commit-avatar-image {
   float: left;
   margin-right: 4px;
 }
-
+/*
 div.commit-message-box {
   margin-left: 42px;
 }
-
+*/
 pre.commit-description {
   font-weight: normal;
   border: none;
@@ -931,6 +936,9 @@ span.simplified-path {
 /****************************************************************************/
 /* nav pulls group */
 /****************************************************************************/
+
+
+/*
 .nav-pills-group:after {
     display: table;
     line-height: 0;
@@ -944,16 +952,24 @@ span.simplified-path {
 .nav-pills-group > li {
     float: left;
 }
+*/
+/*
+.nav-pills > li + li {
+  margin-left: 0px;
+}
 
-.nav-pills-group > li > a {
+.nav-pills > li > a {
     padding-right: 12px;
     padding-left: 12px;
     line-height: 14px;
     color: #666;
     font-weight: bold;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
 }
 
-.nav-pills-group > li > a {
+.nav-pills > li > a {
     padding-top: 10px;
     padding-bottom: 10px;
     border-left   : 1px solid #e5e5e5;
@@ -961,19 +977,20 @@ span.simplified-path {
     border-bottom : 1px solid #e5e5e5;
 }
 
-.nav-pills-group > .first > a {
+.nav-pills > li:nth-of-type(1) > a {
     -webkit-border-radius: 4px 0 0 4px;
     -moz-border-radius: 4px 0 0 4px;
     border-radius: 4px 0 0 4px;
 }
 
-.nav-pills-group > .last > a {
+.nav-pills > li:nth-last-of-type(1) > a {
     -webkit-border-radius: 0 4px 4px 0;
     -moz-border-radius: 0 4px 4px 0;
     border-radius: 0 4px 4px 0;
     border-right  : 1px solid #e5e5e5;
 }
-
+*/
+/*
 .nav-pills-group > .active > a,
 .nav-pills-group > .active > a:hover,
 .nav-pills-group > .active > a:focus {
@@ -981,6 +998,7 @@ span.simplified-path {
     background-color: #0088cc;
     border-color: #0088cc;
 }
+*/
 
 /****************************************************************************/
 /* Issues */
@@ -2068,5 +2086,4 @@ div.container.blame-container{
 /****************************************************************************/
 a[href]:after {
   display: none;
-}  
-
+}
