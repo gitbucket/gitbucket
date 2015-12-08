@@ -70,6 +70,7 @@ blockquote p {
   font-size: 15px;
 }
 
+/*
 .nav {
   margin-bottom: 12px;
 }
@@ -108,7 +109,7 @@ blockquote p {
 .table-bordered > tbody > tr:last-child > td {
   border-bottom: 1px solid #dddddd;
 }
-
+*/
 /*
 .table-bordered > thead > tr > th,
 .table-bordered > thead > tr > td {
