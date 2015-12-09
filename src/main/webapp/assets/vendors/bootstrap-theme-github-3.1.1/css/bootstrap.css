@@ -1486,6 +1486,15 @@ th {
 .table-bordered > tfoot > tr > td {
   border: 1px solid #dddddd;
   border-bottom: 0;
+  border-right: 0;
+}
+.table-bordered > thead > tr > th:nth-last-of-type(1),
+.table-bordered > tbody > tr > th:nth-last-of-type(1),
+.table-bordered > tfoot > tr > th:nth-last-of-type(1),
+.table-bordered > thead > tr > td:nth-last-of-type(1),
+.table-bordered > tbody > tr > td:nth-last-of-type(1),
+.table-bordered > tfoot > tr > td:nth-last-of-type(1) {
+  border-right: 1px solid #dddddd;
 }
 .table-bordered > thead:first-child > tr:first-child > th,
 .table-bordered > thead:first-child > tr:first-child > td {
