@@ -395,10 +395,17 @@ div.box-content-row {
   padding: 4px;
 }
 */
+/*
 div.repo-link {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+*/
+
+li.repo-link {
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 div.box-content-bottom {
