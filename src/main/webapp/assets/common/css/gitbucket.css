@@ -403,9 +403,9 @@ div.repo-link {
 }
 */
 
-li.repo-link {
-  padding-top: 5px;
-  padding-bottom: 5px;
+li.repo-link, li.page-link {
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 div.box-content-bottom {

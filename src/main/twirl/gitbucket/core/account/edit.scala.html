@@ -12,9 +12,9 @@
       @helper.html.information(info)
       @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
       <form action="@url(account.userName)/_edit" method="POST" validate="true">
-      <div class="box">
-        <div class="box-header"><span class="strong">Profile</span></div>
-        <div class="box-content-bottom">
+      <div class="panel panel-default">
+        <div class="panel-heading strong">Profile</div>
+        <div class="panel-body">
           <div class="row">
             <div class="col-md-6">
               @if(account.password.nonEmpty){

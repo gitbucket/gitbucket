@@ -13,9 +13,9 @@
       </ul>
 
       @plugins.map {plugin =>
-        <div class="box">
-          <div class="box-header">@plugin.pluginName</div>
-          <div class="box-content-bottom">
+        <div class="panel panel-default">
+          <div class="panel-heading strong">@plugin.pluginName</div>
+          <div class="panel-body">
             <div class="row">
               <label class="col-md-2">Id</label>
               <span class="col-md-8">@plugin.pluginId</span>

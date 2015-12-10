@@ -26,20 +26,22 @@
     </ul>
     <div style="width: 200px; margin-top: 20px;" class="pull-right">
       @defining(15){ max =>
-        <div class="box-header">
-          <span class="strong">Pages</span> <span class="badge">@pages.length</span>
-        </div>
-        <div class="box-content-bottom" style="padding: 0px;">
-          @pages.zipWithIndex.map { case (page, i) =>
-            <div class="box-content-row page-link" style="border: none; @if(i > max - 1){display:none;}">
-              <a href="@url(repository)/wiki/@urlEncode(page)" class="strong">@page</a>
-            </div>
-          }
-          @if(pages.size > max){
-            <div class="box-content-row show-more">
-              <a href="javascript:void(0);" id="show-more-pages">Show more @{pages.size - max} pages...</a>
-            </div>
-          }
+        <div class="panel panel-default">
+          <div class="panel-heading strong">
+            Pages <span class="badge">@pages.length</span>
+          </div>
+          <ul class="list-group list-group-flush">
+            @pages.zipWithIndex.map { case (page, i) =>
+              <li class="list-group-item page-link" style="border: none; @if(i > max - 1){display:none;}">
+                <a href="@url(repository)/wiki/@urlEncode(page)" class="strong">@page</a>
+              </li>
+            }
+            @if(pages.size > max){
+              <li class="list-group-item show-more">
+                <a href="javascript:void(0);" id="show-more-pages">Show more @{pages.size - max} pages...</a>
+              </li>
+            }
+          </ul>
         </div>
       }
       <div class="small">
