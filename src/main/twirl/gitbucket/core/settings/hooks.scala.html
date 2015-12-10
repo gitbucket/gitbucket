@@ -28,10 +28,10 @@
                 <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
               </td><td>
                 <div class="btn-group pull-right">
-                  <a href="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" class="btn btn-small">
+                  <a href="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" class="btn btn-default">
                     <span class="octicon octicon-pencil"></span>
                   </a>
-                  <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-small btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+                  <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
                     <span class="octicon octicon-x"></span>
                   </a>
                 </div>

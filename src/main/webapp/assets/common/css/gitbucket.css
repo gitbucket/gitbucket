@@ -494,6 +494,10 @@ span.highlight {
 }
 
 .btn-danger .octicon {
+  color: #900;
+}
+
+a.btn-danger:hover .octicon {
   color: #fff;
 }
 
