@@ -7,42 +7,39 @@
   @html.menu("settings", repository){
     @menu("hooks", repository){
       @helper.html.information(info)
+      <div class="panel panel-default">
+        <div class="panel-heading strong">
+          <a href="@url(repository)/settings/hooks/new" class="btn btn-success btn-sm pull-right">Add webhook</a>
+          Webhooks
+        </div>
+        <div class="panel-body">
+          <p>
+            Webhooks allow external services to be notified when certain events happen within your repository.
+            When the specified events happen, we’ll send a POST request to each of the URLs you provide.
+            Learn more in <a href="https://github.com/takezoe/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki Webhook Page</a>.
+          </p>
 
-<div class="box">
-  <div class="box-header">
-    <a href="@url(repository)/settings/hooks/new" class="btn btn-success btn-sm pull-right">Add webhook</a>
-    <span class="strong">Webhooks</span>
-  </div>
-  <div class="box-content-bottom">
-    <p>
-      Webhooks allow external services to be notified when certain events happen within your repository.
-      When the specified events happen, we’ll send a POST request to each of the URLs you provide.
-      Learn more in <a href="https://github.com/takezoe/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki Webhook Page</a>.
-    </p>
-
-    <table class="table table-condensed" style="margin-bottom:0">
-      @webHooks.map { case (webHook, events) =>
-        <tr><td style="vertical-align: middle;">
-          <a href="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
-            <span class="css-truncate-target">@webHook.url</span>
-          </a>
-          <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
-        </td><td>
-          <div class="btn-group pull-right">
-            <a href="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" class="btn btn-small">
-              <span class="octicon octicon-pencil"></span>
-            </a>
-            <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-small btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
-              <span class="octicon octicon-x"></span>
-            </a>
-          </div>
-        </td></tr>
-      }
-    </table>
-
-  </div>
-</div>
-
+          <table class="table table-condensed" style="margin-bottom:0">
+            @webHooks.map { case (webHook, events) =>
+              <tr><td style="vertical-align: middle;">
+                <a href="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
+                  <span class="css-truncate-target">@webHook.url</span>
+                </a>
+                <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
+              </td><td>
+                <div class="btn-group pull-right">
+                  <a href="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" class="btn btn-small">
+                    <span class="octicon octicon-pencil"></span>
+                  </a>
+                  <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-small btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+                    <span class="octicon octicon-x"></span>
+                  </a>
+                </div>
+              </td></tr>
+            }
+          </table>
+        </div>
+      </div>
     }
   }
 }

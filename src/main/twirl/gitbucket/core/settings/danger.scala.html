@@ -4,9 +4,9 @@
 @html.main("Danger Zone", Some(repository)){
   @html.menu("settings", repository){
     @menu("danger", repository){
-      <div class="box">
-        <div class="box-header"><span class="strong">Danger Zone</span></div>
-        <div class="box-content-bottom">
+      <div class="panel panel-default">
+        <div class="panel-heading strong">Danger Zone</div>
+        <div class="panel-body">
           <form id="transfer-form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
             <fieldset class="form-group">
               <label class="strong">Transfer Ownership</label>

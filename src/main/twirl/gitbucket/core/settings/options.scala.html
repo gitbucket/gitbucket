@@ -6,9 +6,9 @@
     @menu("options", repository){
       @helper.html.information(info)
       <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
-        <div class="box">
-          <div class="box-header"><span class="strong">Settings</span></div>
-          <div class="box-content-bottom">
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Settings</div>
+          <div class="panel-body">
             <fieldset class="form-group">
               <label for="repositoryName" class="strong">Repository Name:</label>
               <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
@@ -20,7 +20,7 @@
             </fieldset>
             <fieldset class="margin form-group">
               <label for="defaultBranch" class="strong">Default Branch:</label>
-              <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled}>
+              <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled} class="form-control">
                 @if(repository.branchList.isEmpty){
                   <option value="none" selected>No Branch</option>
                 } else {
