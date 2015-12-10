@@ -1114,6 +1114,7 @@ div.milestone-menu a.delete {
   color: #b00;
 }
 
+/*
 div#milestone-progress-area {
   display: inline-block;
 }
@@ -1152,6 +1153,7 @@ div.issue-header {
   padding-top: 12px;
   padding-bottom: 12px;
 }
+*/
 
 div.issue-info {
   border-top: 1px solid #e5e5e5;

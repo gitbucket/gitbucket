@@ -13,7 +13,7 @@
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.service.IssuesService.IssueInfo
 @if(condition.nonEmpty){
-  <div>
+  <div style="width: 100%; display: inline-block;">
     <a href="@gitbucket.core.service.IssuesService.IssueSearchCondition().toURL" class="header-link">
       <i class="octicon octicon-x" ></i>
       <span class="strong">Clear current search query, filters, and sorts</span>
