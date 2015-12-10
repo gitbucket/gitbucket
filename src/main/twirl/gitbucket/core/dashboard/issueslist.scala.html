@@ -59,6 +59,13 @@
         </td>
       </tr>
     }
+    @if(issues.isEmpty){
+      <tr>
+        <td style="padding: 20px; background-color: #eee; text-align: center;">
+          No results matched your search.
+        </td>
+      </tr>
+    }
   </tbody>
 </table>
 <div class="pull-right">
