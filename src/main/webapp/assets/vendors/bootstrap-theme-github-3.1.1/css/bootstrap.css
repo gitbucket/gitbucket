@@ -4301,7 +4301,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .pagination > li > span {
   position: relative;
   float: left;
-  padding: 3px 8px;
+  padding: 7px 12px;
   line-height: 1.461538461538462;
   text-decoration: none;
   color: #4183c4;
@@ -4353,7 +4353,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .pagination-lg > li > a,
 .pagination-lg > li > span {
-  padding: 4px 10px;
+  padding: 7px 12px;
   font-size: 17px;
 }
 .pagination-lg > li:first-child > a,
@@ -4368,7 +4368,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .pagination-sm > li > a,
 .pagination-sm > li > span {
-  padding: 2px 6px;
+  padding: 7px 12px;
   font-size: 12px;
 }
 .pagination-sm > li:first-child > a,
