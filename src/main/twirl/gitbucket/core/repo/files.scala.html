@@ -126,7 +126,7 @@
     </table>
     @readme.map { case(filePath, content) =>
       <div id="readme" class="panel panel-default">
-        <div class="panel-heading">@filePath.reverse.head</div>
+        <div class="panel-heading strong">@filePath.reverse.head</div>
         <div class="panel-body markdown-body" style="padding-left: 20px; padding-right: 20px;">@renderMarkup(filePath, content, branch, repository, false, false, true)</div>
       </div>
     }
