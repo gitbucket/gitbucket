@@ -2045,29 +2045,37 @@ div.container.blame-container{
     body>form#search {
       margin: 0 -20px 20px -20px;
     }
+
     body>div.dashboard-nav {
       margin: 0 -20px 20px -20px;
       padding: 0 10px;
     }
+
     .container {
       width: auto !important;
     }
-    .nav-pills-group .pull-right #search-filter-box {
+
+    /* Adjust issue search box size and position */
+    #search-filter-box {
       width: 90% !important;
       position: absolute;
-      left: 20px;
+      left: 14px;
       right: 20px;
       margin-top: 42px;
     }
-    .nav-pills-group .pull-right form#search-filter-form {
-      margin-bottom: 60px !important;
+
+    form#search-filter-form {
+      float: none !important;
+      margin-bottom: 80px !important;
     }
+
     .table-issues a.button-link {
       width: 42px;
       height: 16px;
       overflow: hidden;
       display: inline-block;
     }
+
     .nav-tabs a.btn[href$="/_edit"] {
       width: 24px;
       white-space: nowrap;
@@ -2075,24 +2083,28 @@ div.container.blame-container{
       padding: 4px 6px;
       margin: 3px 4px 0 0;
     }
+
     body>div.container.body {
       margin: 0 -12px 40px -12px;
     }
+
     .container.body>div[style="width: 170px;"]{
       width: 32px !important;
       margin-right: -5px;
       overflow: hidden;
       white-space: nowrap;
     }
+
     .container.body>div[style="margin-right: 180px;"]{
       margin-right: 32px !important;
     }
+
     .container.body>div[style="width: 170px;"] .sidemenu i, .container.body>div[style="width: 170px;"] .sidemenu img {
       padding-right: 5px;
     }
-/*    .container.body>div[style="width: 170px;"] .small,.container.body>div[style="width: 170px;"] .input-append, .container.body>div[style="width: 170px;"] div[style="margin-top: 10px;"] { */
-    .container.body>div[style="width: 170px;"] .small,.container.body>div[style="width: 170px;"] .input-append {
 
+    /* Hide repository url box */
+    .container.body>div[style="width: 170px;"] .small,.container.body>div[style="width: 170px;"] .input-group {
       display: none;
     }
 
@@ -2100,9 +2112,16 @@ div.container.blame-container{
       width: 26px !important;
       padding: 2px;
     }
+
     .container.body>div[style="width: 170px;"] div[style="margin-top: 10px;"] a.btn i {
       margin: 5px 10px 5px 6px;
     }
+
+    /* Hide fork button */
+    div.col-md-1>div.input-group.pull-right {
+      display: none;
+    }
+
     body>.container>#fork-form{
       display: inline;
     }
