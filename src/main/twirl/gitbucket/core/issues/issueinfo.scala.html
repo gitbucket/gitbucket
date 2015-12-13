@@ -116,11 +116,13 @@
   <div style="margin-bottom: 8px;">
     @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
       <div class="muted small strong">@participants.size @plural(participants.size, "participant")</div>
-      @participants.map { participant =>
-        @avatarLink(participant, 20, tooltip = true)
-      }
     }
   </div>
+  @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
+    @participants.map { participant =>
+      @avatarLink(participant, 20, tooltip = true)
+    }
+  }
 }
 <script>
 $(function(){

@@ -110,29 +110,31 @@
       @repository.repository.description.map { description =>
         <p class="description">@detectAndRenderLinks(description)</p>
       }
-      <div style="margin-bottom: 10px;" class="box-content">
-        <table class="fill-width">
-          <tr>
-            <td style="width: 33%; text-align: center;">
-              <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
-                <i class="octicon octicon-history"></i>
-                <strong>@repository.commitCount</strong> commits
-              </a>
-            </td>
-            <td style="width: 33%; text-align: center;">
-              <a href="@url(repository)/branches" class="header-link" class="header-link">
-                <i class="octicon octicon-git-branch"></i>
-                <strong>@repository.branchList.length</strong> branches
-              </a>
-            </td>
-            <td style="width: 33%; text-align: center;">
-              <a href="@url(repository)/tags" class="header-link" class="header-link">
-                <i class="octicon octicon-tag"></i>
-                <strong>@repository.tags.length</strong> releases
-              </a>
-            </td>
-          </tr>
-        </table>
+      <div style="margin-bottom: 10px;" class="panel panel-default">
+        <div class="panel-body">
+          <table class="fill-width">
+            <tr>
+              <td style="width: 33%; text-align: center;">
+                <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
+                  <i class="octicon octicon-history"></i>
+                  <strong>@repository.commitCount</strong> commits
+                </a>
+              </td>
+              <td style="width: 33%; text-align: center;">
+                <a href="@url(repository)/branches" class="header-link" class="header-link">
+                  <i class="octicon octicon-git-branch"></i>
+                  <strong>@repository.branchList.length</strong> branches
+                </a>
+              </td>
+              <td style="width: 33%; text-align: center;">
+                <a href="@url(repository)/tags" class="header-link" class="header-link">
+                  <i class="octicon octicon-tag"></i>
+                  <strong>@repository.tags.length</strong> releases
+                </a>
+              </td>
+            </tr>
+          </table>
+        </div>
       </div>
     }
     @body

@@ -1170,6 +1170,7 @@ div.issue-info {
   margin-right: 0px;
 }
 
+/*
 div.issue-content {
   padding: 13px;
   background-color: #fff;
@@ -1182,6 +1183,7 @@ div.issue-content p:first-child {
 div.issue-content p:last-child {
   margin-bottom: 0;
 }
+*/
 
 h4#issueTitle {
   font-size: large;
@@ -1209,10 +1211,17 @@ div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
   margin-left: 70px;
   max-width: 820px;
+  /*padding: 8px;*/
 }
 
+div.issue-comment-box > div.panel-body,
+div.commit-comment-box > div.panel-body {
+  padding: 8px;
+}
+
+
 div.issue-comment-box textarea {
-  width: 670px;
+  width: 650px;
   height: 100px;
   max-height: 300px;
 }
@@ -1328,7 +1337,7 @@ div.author-info div.committer {
   color: #bd2c00;
 }
 
-.box-content .build-statuses{
+.build-statuses{
   margin: -10px -10px 10px -10px;
 }
 .build-statuses .build-status-item{

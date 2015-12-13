@@ -78,8 +78,8 @@
 <script>
 $(function(){
   $('#show-more-repos').click(function(e){
-    $(e.target).parents('div.box-content-bottom').find('div.repo-link').show();
-    $(e.target).parents('div.show-more').remove();
+    $(e.target).parents('ul.list-group').find('li.repo-link').show();
+    $(e.target).parents('li.show-more').remove();
   });
 });
 </script>

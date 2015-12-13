@@ -10,7 +10,7 @@
 @import gitbucket.core.view.helpers._
 @import model.CommitState
 <div class="box issue-comment-box" style="background-color: @if(hasProblem){ #fbeed5 }else{ #d8f5cd };">
-  <div class="box-content"class="issue-content" style="border: 1px solid @if(hasProblem){ #c09853 }else{ #95c97e }; padding: 10px;">
+  <div class="box-content issue-content" style="border: 1px solid @if(hasProblem){ #c09853 }else{ #95c97e }; padding: 10px;">
     <div id="merge-pull-request">
       @if(!statuses.isEmpty){
         <div class="build-statuses">
