@@ -1214,6 +1214,10 @@ div.issue-comment-box, div.commit-comment-box {
   /*padding: 8px;*/
 }
 
+div.issue-box > div.panel-body {
+  padding: 4px;
+}
+
 div.issue-comment-box > div.panel-body,
 div.commit-comment-box > div.panel-body {
   padding: 8px;

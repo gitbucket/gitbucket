@@ -8,8 +8,8 @@
 @import gitbucket.core.model.CommitComment
 @if(issue.isDefined){
   <div class="issue-avatar-image">@avatar(issue.get.openedUserName, 48)</div>
-  <div class="issue-comment-box">
-    <div class="box-header">
+  <div class="panel panel-default issue-comment-box">
+    <div class="panel-heading">
       @user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
         @if(hasWritePermission || loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
@@ -17,7 +17,7 @@
         }
       </span>
     </div>
-    <div class="box-content-bottom issue-content markdown-body" id="issueContent">
+    <div class="panel-body issue-content markdown-body" id="issueContent">
       @markdown(issue.get.content getOrElse "No description provided.", repository, false, true, true, hasWritePermission)
     </div>
   </div>
