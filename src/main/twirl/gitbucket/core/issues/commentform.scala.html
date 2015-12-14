@@ -21,12 +21,12 @@
           elastic            = true,
           tabIndex           = 1
         )
-        <div style="text-align: right;">
+        <div class="text-right">
           <input type="hidden" name="issueId" value="@issue.issueId"/>
           @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
-            <input type="submit" class="btn btn-default" tabindex="3" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+            <input type="submit" class="btn btn-lg btn-default" tabindex="3" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
           }
-          <input type="submit" class="btn btn-success" tabindex="2" formaction="@url(repository)/issue_comments/new" value="Comment"/>
+          <input type="submit" class="btn btn-lg btn-success" tabindex="2" formaction="@url(repository)/issue_comments/new" value="Comment"/>
         </div>
       </div>
     </div>

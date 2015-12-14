@@ -21,7 +21,7 @@
     </ul>
     <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
       <span id="error-pageName" class="error"></span>
-      <input type="text" name="pageName" value="@pageName" class="form-control" style="width: 900px; font-weight: bold;" placeholder="Input a page name."/>
+      <input type="text" name="pageName" value="@pageName" class="form-control input-lg" style="width: 900px; font-weight: bold;" placeholder="Input a page name."/>
       @helper.html.preview(
         repository         = repository,
         content            = page.map(_.content).getOrElse(""),

@@ -14,7 +14,7 @@
           <div class="panel panel-default issue-box">
             <div class="panel-body">
               <span id="error-title" class="error"></span>
-              <input type="text" name="title" class="form-control" value="" placeholder="Title" style="width: 680px;" autofocus/>
+              <input type="text" name="title" class="form-control input-lg" value="" placeholder="Title" style="width: 680px;" autofocus/>
               @helper.html.preview(
                 repository         = repository,
                 content            = "",
@@ -26,7 +26,7 @@
                 elastic            = true
               )
               <div class="align-right">
-                <input type="submit" class="btn btn-success" value="Submit new issue"/>
+                <input type="submit" class="btn btn-lg btn-success" value="Submit new issue"/>
               </div>
             </div>
           </div>
