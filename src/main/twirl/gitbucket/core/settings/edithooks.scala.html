@@ -69,45 +69,49 @@
           </form>
         </div>
       </div>
-      <div class="modal hide" id="test-report-modal">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h3>WebHook Test</h3>
-        </div>
-        <div class="modal-body">
-          <p>request to <span id="test-modal-url" style="word-break: break-all; word-wrap: break-word; white-space: pre; white-space: pre-wrap;"></span></p>
-          <div id="test-report" style="display:none">
-            <ul class="nav nav-tabs" id="test-report-tab">
-              <li class="active"><a href="#REQUEST">REQUEST</a></li>
-              <li><a href="#RESPONCE">RESPONCE <span class="badge badge-success" id="res-status"></span></a></li>
-            </ul>
-            <div class="tab-content" style="max-height: 300px;">
-              <div class="tab-pane active" id="REQUEST">
-                <div id="req-errors" class="alert alert-error">
-                  ERROR<span id="req-errors-body"></span>
-                </div>
-                <div id="req-success" style="display:none">
-                  Headers
-                  <pre id="req-headers"></pre>
-                  Payload
-                  <pre id="req-payload"></pre>
-                </div>
-              </div>
-              <div class="tab-pane" id="RESPONCE">
-                <div id="res-errors" class="alert alert-error">
-                  ERROR<span id="res-errors-body"></span>
-                </div>
-                <div id="res-success" style="display:none">
-                  Headers
-                  <pre id="res-headers"></pre>
-                  Body
-                  <pre id="res-body"></pre>
+      <div class="modal" id="test-report-modal" role="dialog" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h3>WebHook Test</h3>
+            </div>
+            <div class="modal-body" style="max-height: 300px; overflow: auto;">
+              <p>request to <span id="test-modal-url" style="word-break: break-all; word-wrap: break-word; white-space: pre; white-space: pre-wrap;"></span></p>
+              <div id="test-report" style="display:none">
+                <ul class="nav nav-tabs" id="test-report-tab">
+                  <li class="active"><a href="#request">Request</a></li>
+                  <li><a href="#response">Response <span class="badge badge-success" id="res-status"></span></a></li>
+                </ul>
+                <div class="tab-content">
+                  <div class="tab-pane active" id="request">
+                    <div id="req-errors" class="alert alert-error">
+                      ERROR<span id="req-errors-body"></span>
+                    </div>
+                    <div id="req-success" style="display:none">
+                      Headers
+                      <pre id="req-headers"></pre>
+                      Payload
+                      <pre id="req-payload"></pre>
+                    </div>
+                  </div>
+                  <div class="tab-pane" id="response">
+                    <div id="res-errors" class="alert alert-error">
+                      ERROR<span id="res-errors-body"></span>
+                    </div>
+                    <div id="res-success" style="display:none">
+                      Headers
+                      <pre id="res-headers"></pre>
+                      Body
+                      <pre id="res-body"></pre>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
 <script>
 $(function(){
   $('#test-report-tab a').click(function (e) {
