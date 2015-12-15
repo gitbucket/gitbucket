@@ -199,16 +199,23 @@ span.header-version {
   font-size: small;
 }
 
-div.input-group span.count {
+div.input-group>span.fork {
+  display: table;
+  margin-left: 4px;
+  margin-top: 1px;
+}
+
+div.input-group>span.fork>span.count {
   background-color: white;
   -webkit-border-radius: 0 4px 4px 0;
   -moz-border-radius: 0 4px 4px 0;
   border-radius: 0 4px 4px 0;
   border: 1px solid #d8d8d8;
+  border-left: none;
   font-size: 11px;
-  height: 24px;
+  /*height: 24px;*/
   padding: 3px 6px;
-  display: inline-block;
+  display: table-cell;
 }
 
 a.global-header-menu {
