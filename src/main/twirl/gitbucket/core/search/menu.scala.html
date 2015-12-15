@@ -3,8 +3,8 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.menu("", repository){
-  <div class="row-fluid">
-    <div class="span3">
+  <div class="row">
+    <div class="col-md-3">
       <div class="box">
         <ul class="nav nav-tabs nav-stacked side-menu">
           <li@if(active=="code"){ class="active"}>
@@ -26,10 +26,10 @@
         </ul>
       </div>
     </div>
-    <div class="span9">
-      <form action="@url(repository)/search" method="GET">
-        <input type="text" name="q" value="@query" style="width: 80%; margin-bottom: 0px;"/>
-        <input type="submit" value="Search" class="btn" style="width: 15%;"/>
+    <div class="col-md-9">
+      <form action="@url(repository)/search" method="GET" class="form-inline">
+        <input type="text" name="q" value="@query" class="form-control" style="width: 80%; margin-bottom: 0px;"/>
+        <input type="submit" value="Search" class="btn btn-default" style="width: 15%;"/>
         <input type="hidden" name="type" value="@active"/>
       </form>
       @body

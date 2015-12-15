@@ -4,45 +4,56 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
 @import gitbucket.core.view.helpers._
 @html.main("Create a New Repository"){
 <div style="width: 600px; margin: 10px auto;">
+  <h2>Create a new repository</h2>
+  <p class="muted">
+    A repository contains all the files for your project, including the revision history.
+  </p>
   <form id="form" method="post" action="@path/new" validate="true">
-    <fieldset>
-      <label for="name" class="strong">Repository name:</label>
-      <div class="btn-group" style="margin-bottom: 10px;" id="owner-dropdown">
-        <button class="btn dropdown-toggle" data-toggle="dropdown">
-          <span class="strong">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span>
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <li><a href="javascript:void(0);" data-name="@loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span></a></li>
-          @groupNames.map { groupName =>
-            <li><a href="javascript:void(0);" data-name="@groupName"><i class="icon-white"></i> <span>@avatar(groupName, 20) @groupName</span></a></li>
-          }
-        </ul>
-        <input type="hidden" name="owner" id="owner" value="@loginAccount.get.userName"/>
-      </div>
-      <span class="slash">/</span>
-      <input type="text" name="name" id="name" autofocus />
-      <span id="error-name" class="error"></span>
+    <fieldset class="margin form-group">
+      <dl style="float: left;">
+        <dt>Owner</dt>
+        <dd style="margin-left: 0px;">
+          <div class="btn-group" id="owner-dropdown">
+            <button class="btn dropdown-toggle btn-default" data-toggle="dropdown">
+              <span class="strong">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a href="javascript:void(0);" data-name="@loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span></a></li>
+              @groupNames.map { groupName =>
+                <li><a href="javascript:void(0);" data-name="@groupName"><i class="icon-white"></i> <span>@avatar(groupName, 20) @groupName</span></a></li>
+              }
+            </ul>
+            <input type="hidden" name="owner" id="owner" value="@loginAccount.get.userName"/>
+          </div>
+        </dd>
+      </dl>
+      <span class="slash" style="float: left; margin-left: 10px; margin-right: 10px; margin-top: 15px;">/</span>
+      <dl>
+        <dt>Repository name</dt>
+        <dd style="margin-left: 0px;">
+          <input type="text" name="name" id="name" class="form-control" style="width: 200px;" autofocus />
+          <span id="error-name" class="error"></span>
+        </dd>
+      </dl>
     </fieldset>
-    <fieldset>
+    <fieldset class="form-group">
       <label for="description" class="strong">Description (optional):</label>
-      <input type="text" name="description" id="description" style="width: 95%;"/>
+      <input type="text" name="description" id="description" class="form-control" style="width: 95%;"/>
     </fieldset>
     <fieldset class="margin">
       <label class="radio">
         <input type="radio" name="isPrivate" value="false" @if(isCreateRepoOptionPublic){checked}>
-        <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;</i>&nbsp;Public</span><br>
-        <div>
-          <span>All users and guests can read this repository.</span>
+        <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;</i>&nbsp;Public</span>
+        <div class="normal muted">
+          Anyone can see this repository. You choose who can commit.
         </div>
       </label>
-    </fieldset>
-    <fieldset>
       <label class="radio">
         <input type="radio" name="isPrivate" value="true" @if(!isCreateRepoOptionPublic){checked}>
-        <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span><br>
-        <div>
-          <span>Only collaborators can read this repository.</span>
+        <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span>
+        <div class="normal muted">
+          You choose who can see and commit to this repository.
         </div>
       </label>
     </fieldset>
@@ -50,13 +61,13 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
       <label for="createReadme" class="checkbox">
         <input type="checkbox" name="createReadme" id="createReadme"/>
         <span class="strong">Initialize this repository with a README</span>
-        <div>
-          <span>This will allow you to <code>git clone</code> the repository immediately.</span>
+        <div class="normal muted">
+          This will let you immediately clone the repository to your computer. Skip this step if you’re importing an existing repository.
         </div>
       </label>
     </fieldset>
-    <fieldset class="margin">
-      <input type="submit" class="btn btn-success" value="Create repository"/>
+    <fieldset class="margin form-actions">
+      <input type="submit" class="btn btn-success btn-lg" value="Create repository"/>
     </fieldset>
   </form>
 </div>

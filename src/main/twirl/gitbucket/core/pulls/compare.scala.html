@@ -53,13 +53,13 @@
       </div>
       <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
         <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
-          <div class="row-fluid">
-            <div class="span10">
+          <div class="row">
+            <div class="col-md-10">
               <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
-              <div class="box issue-box">
-                <div class="box-content">
+              <div class="panel panel-default issue-box">
+                <div class="panel-body">
                   <span class="error" id="error-title"></span>
-                  <input type="text" name="title" style="width: 690px" placeholder="Title"/>
+                  <input type="text" name="title" class="form-control input-lg" style="width: 680px" placeholder="Title"/>
                   @helper.html.preview(
                     repository         = repository,
                     content            = "",
@@ -67,7 +67,7 @@
                     enableRefsLink     = true,
                     enableTaskList     = true,
                     hasWritePermission = true,
-                    style              = "width: 690px; height: 200px;"
+                    style              = "width: 680px; height: 200px;"
                   )
                   <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
                   <input type="hidden" name="targetBranch" value="@originId"/>
@@ -77,12 +77,12 @@
                   <input type="hidden" name="commitIdFrom" value="@sourceId"/>
                   <input type="hidden" name="commitIdTo" value="@commitId"/>
                   <div class="align-right">
-                    <input type="submit" class="btn btn-success" value="Create pull request"/>
+                    <input type="submit" class="btn btn-lg btn-success" value="Create pull request"/>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="span2">
+            <div class="col-md-2">
               @issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
             </div>
           </div>
@@ -90,6 +90,11 @@
       </div>
     }
     @if(commits.isEmpty){
+      <div class="panel panel-default" style="padding: 20px; background-color: #eee; text-align: center;">
+        <h4>There isn't anything to compare.</h4>
+        <span class="strong">@originRepository.owner:@originId</span> and <span class="strong">@forkedRepository.owner:@forkedId</span> are identical.
+      </div>
+      @*
       <table class="table table-bordered table-hover table-issues">
         <tr>
           <td style="padding: 20px; background-color: #eee; text-align: center;">
@@ -98,8 +103,9 @@
           </td>
         </tr>
       </table>
+      *@
     } else {
-      <div style="margin-bottom: 10px;" class="box-content">
+      <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
         <table class="fill-width">
           <tr>
             <td style="width: 25%; text-align: center;">

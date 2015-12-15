@@ -6,8 +6,8 @@
 @import gitbucket.core.view.helpers._
 <tr id="label-row-@label.labelId">
   <td style="padding-top: 15px; padding-bottom: 15px;">
-    <div class="milestone row-fluid" id="label-@label.labelId">
-      <div class="span8">
+    <div class="milestone row" id="label-@label.labelId">
+      <div class="col-md-8">
         <div style="margin-top: 6px">
           <a href="@url(repository)/issues?labels=@urlEncode(label.labelName)" id="label-row-content-@label.labelId">
             <span style="background-color: #@label.color; color: #@label.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">
@@ -17,13 +17,13 @@
           </a>
         </div>
       </div>
-      <div class="@if(hasWritePermission){span2} else {span4}">
+      <div class="@if(hasWritePermission){col-md-2} else {col-md-4}">
         <div class="pull-right">
           <span class="muted">@counts.get(label.labelName).getOrElse(0) open issues</span>
         </div>
       </div>
       @if(hasWritePermission){
-        <div class="span2">
+        <div class="col-md-2">
           <div class="pull-right">
             <a href="javascript:void(0);" onclick="editLabel(@label.labelId)">Edit</a>
             &nbsp;&nbsp;

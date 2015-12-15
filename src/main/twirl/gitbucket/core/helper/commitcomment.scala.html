@@ -11,8 +11,8 @@
     @if(comment.newLine.isDefined){newline="@comment.newLine.get"}
     @if(comment.oldLine.isDefined){oldline="@comment.oldLine.get"}>
   <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
-  <div class="box commit-comment-box commit-comment-@comment.commentId">
-    <div class="box-header">
+  <div class="panel- panel-default commit-comment-box commit-comment-@comment.commentId">
+    <div class="panel-heading">
       @user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">
           commented
@@ -33,7 +33,7 @@
         }
       </span>
     </div>
-    <div class="box-content-bottom issue-content commit-commentContent-@comment.commentId markdown-body">
+    <div class="panel-body issue-content commit-commentContent-@comment.commentId markdown-body">
       @markdown(comment.content, repository, false, true, true, hasWritePermission)
     </div>
   </div>

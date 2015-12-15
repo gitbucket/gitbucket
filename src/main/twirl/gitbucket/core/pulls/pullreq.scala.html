@@ -36,32 +36,33 @@
           </span>
         </h1>
       </div>
-      @if(issue.closed) {
-        @comments.flatMap @{
-          case comment: IssueComment => Some(comment)
-          case _ => None
-        }.find(_.action == "merge").map{ comment =>
-          <span class="label label-info issue-status">Merged</span>
-          <span class="muted">
-            @user(comment.commentedUserName, styleClass="username strong") merged @commits.size @plural(commits.size, "commit")
-            into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
-            @helper.html.datetimeago(comment.registeredDate)
-          </span>
-        }.getOrElse {
-          <span class="label label-important issue-status">Closed</span>
+      <div style="margin-bottom: 15px">
+        @if(issue.closed) {
+          @comments.flatMap @{
+            case comment: IssueComment => Some(comment)
+            case _ => None
+          }.find(_.action == "merge").map{ comment =>
+            <span class="label label-info issue-status">Merged</span>
+            <span class="muted">
+              @user(comment.commentedUserName, styleClass="username strong") merged @commits.size @plural(commits.size, "commit")
+              into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+              @helper.html.datetimeago(comment.registeredDate)
+            </span>
+          }.getOrElse {
+            <span class="label label-important issue-status">Closed</span>
+            <span class="muted">
+              @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
+              into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+            </span>
+          }
+        } else {
+          <span class="label label-success issue-status">Open</span>
           <span class="muted">
             @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
             into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
           </span>
         }
-      } else {
-        <span class="label label-success issue-status">Open</span>
-        <span class="muted">
-          @user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @plural(commits.size, "commit")
-          into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
-        </span>
-      }
-      <br/><br/>
+      </div>
       <ul class="nav nav-tabs fill-width pull-left" id="pullreq-tab">
         <li class="active"><a href="#conversation">Conversation <span class="badge">@comments.flatMap @{
           case comment: IssueComment => Some(comment)

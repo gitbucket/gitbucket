@@ -4,8 +4,8 @@
 @html.main("Manage Users"){
   @admin.html.menu("users"){
     <div class="pull-right" style="margin-bottom: 4px;">
-      <a href="@path/admin/users/_newuser" class="btn">New User</a>
-      <a href="@path/admin/users/_newgroup" class="btn">New Group</a>
+      <a href="@path/admin/users/_newuser" class="btn btn-default">New User</a>
+      <a href="@path/admin/users/_newgroup" class="btn btn-default">New Group</a>
     </div>
     <label for="includeRemoved">
       <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>

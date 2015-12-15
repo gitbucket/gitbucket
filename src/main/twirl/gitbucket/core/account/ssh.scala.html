@@ -4,14 +4,14 @@
 @import gitbucket.core.view.helpers._
 @html.main("SSH Keys"){
 <div class="container">
-  <div class="row-fluid">
-    <div class="span3">
+  <div class="row">
+    <div class="col-md-3">
       @menu("ssh", settings.ssh)
     </div>
-    <div class="span9">
-      <div class="box">
-        <div class="box-header">SSH Keys</div>
-        <div class="box-content-bottom">
+    <div class="col-md-9">
+      <div class="panel panel-default">
+        <div class="panel-heading strong">SSH Keys</div>
+        <div class="panel-body">
           @if(sshKeys.isEmpty){
             No keys
           }
@@ -25,18 +25,18 @@
         </div>
       </div>
       <form method="POST" action="@path/@account.userName/_ssh" validate="true">
-        <div class="box">
-          <div class="box-header">Add an SSH Key</div>
-          <div class="box-content-bottom">
-            <fieldset>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Add an SSH Key</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
               <label for="title" class="strong">Title</label>
               <div><span id="error-title" class="error"></span></div>
-              <input type="text" name="title" id="title" style="width: 400px;"/>
+              <input type="text" name="title" id="title" class="form-control" style="width: 400px;"/>
             </fieldset>
-            <fieldset>
+            <fieldset class="form-group">
               <label for="publicKey" class="strong">Key</label>
               <div><span id="error-publicKey" class="error"></span></div>
-              <textarea name="publicKey" id="publicKey" style="width: 600px; height: 250px;"></textarea>
+              <textarea name="publicKey" id="publicKey" class="form-control" style="width: 600px; height: 250px;"></textarea>
             </fieldset>
             <input type="submit" class="btn btn-success" value="Add"/>
           </div>

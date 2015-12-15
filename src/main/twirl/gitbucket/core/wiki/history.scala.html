@@ -23,7 +23,7 @@
             }
           } else {
             @if(loginAccount.isDefined){
-              <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+              <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
               <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
             }
           }
@@ -31,14 +31,17 @@
       </li>
     </ul>
     <table class="table table-bordered fill-width pull-left">
-      <tr>
-        <th colspan="3">
-          <div class="pull-left" style="padding-top: 4px;">Revisions</div>
-          <div class="pull-right">
-            <input type="button" id="compare" value="Compare Revisions" class="btn btn-mini"/>
-          </div>
-        </th>
-      </tr>
+      <thead>
+        <tr>
+          <th colspan="3">
+            <div class="pull-left" style="padding-top: 4px;">Revisions</div>
+            <div class="pull-right">
+              <input type="button" id="compare" value="Compare Revisions" class="btn btn-dm btn-default"/>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
       @commits.map { commit =>
         <tr>
           <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
@@ -48,6 +51,7 @@
           </td>
         </tr>
       }
+      </tbody>
     </table>
     <script>
     $(function(){

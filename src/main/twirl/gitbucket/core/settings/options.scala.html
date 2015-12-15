@@ -6,21 +6,21 @@
     @menu("options", repository){
       @helper.html.information(info)
       <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
-        <div class="box">
-          <div class="box-header">Settings</div>
-          <div class="box-content-bottom">
-            <fieldset>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Settings</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
               <label for="repositoryName" class="strong">Repository Name:</label>
-              <input type="text" name="repositoryName" id="repositoryName" value="@repository.name"/>
+              <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
               <span id="error-repositoryName" class="error"></span>
             </fieldset>
-            <fieldset class="margin">
+            <fieldset class="margin form-group">
               <label for="description" class="strong">Description:</label>
-              <input type="text" name="description" id="description" style="width: 600px;" value="@repository.repository.description"/>
+              <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
             </fieldset>
-            <fieldset class="margin">
+            <fieldset class="margin form-group">
               <label for="defaultBranch" class="strong">Default Branch:</label>
-              <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled}>
+              <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled} class="form-control">
                 @if(repository.branchList.isEmpty){
                   <option value="none" selected>No Branch</option>
                 } else {
@@ -40,57 +40,24 @@
                   @if(!repository.repository.isPrivate              ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
-                <span class="strong">Public</span><br>
-                <div>
-                  <span>All users and guests can read this repository.</span>
+                <span class="strong"><i class="octicon octicon-repo"></i> Public</span><br>
+                <div class="normal muted">
+                  Anyone can see this repository. You choose who can commit.
                 </div>
               </label>
-            </fieldset>
-            <fieldset>
               <label class="radio">
                 <input type="radio" name="isPrivate" value="true"
                   @if(repository.repository.isPrivate               ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
-                <span class="strong">Private</span><br>
-                <div>
-                  <span>Only collaborators can read this repository.</span>
+                <span class="strong"><i class="octicon octicon-lock"></i> Private</span><br>
+                <div class="normal muted">
+                  You choose who can see and commit to this repository.
                 </div>
               </label>
             </fieldset>
           </div>
         </div>
-        @*
-        <div class="box">
-          <div class="box-header">Features:</div>
-          <div class="box-content">
-            <dl>
-              <dt>
-                <label class="checkbox strong">
-                  <input type="checkbox" name="wiki" id="wiki"/> Wiki
-                </label>
-              </dt>
-              <dd>
-                Adds lightweight Wiki system to this repository.
-                This is the simplest way to provide documentation or examples.
-                Only collaborators can edit Wiki pages.
-              </dd>
-            </dl>
-            <hr>
-            <dl>
-              <dt>
-                <label class="checkbox strong">
-                  <input type="checkbox" name="issue" id="issue"/> Issue
-                </label>
-              </dt>
-              <dd>
-                Adds lightweight issue tracking integrated with this repository.
-                All users who have signed in and can access this repository can register an issue.
-              </dd>
-            </dl>
-          </div>
-        </div>
-        *@
         <div class="align-right" style="margin-top: 20px;">
           <input type="submit" class="btn btn-success" value="Apply changes"/>
         </div>

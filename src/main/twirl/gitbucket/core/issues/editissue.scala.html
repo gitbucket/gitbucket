@@ -1,11 +1,11 @@
 @(content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @helper.html.attached(owner, repository){
-  <textarea id="edit-content">@content.getOrElse("")</textarea>
+  <textarea id="edit-content" class="form-control">@content.getOrElse("")</textarea>
 }
 <div>
-  <input type="button" id="cancel-issue" class="btn btn-small btn-danger" value="Cancel"/>
-  <input type="button" id="update-issue" class="btn btn-small pull-right" value="Update comment"/>
+  <input type="button" id="cancel-issue" class="btn btn-lg btn-danger" value="Cancel"/>
+  <input type="button" id="update-issue" class="btn btn-lg btn-default pull-right" value="Update comment"/>
 </div>
 <script>
 $(function(){

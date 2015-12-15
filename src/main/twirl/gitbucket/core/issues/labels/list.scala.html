@@ -12,24 +12,28 @@
       <tr><td></td></tr>
     </table>
     <table class="table table-bordered table-hover table-issues">
-      <tr id="label-row-header">
-        <th style="background-color: #eee;">
-          <span class="small">@labels.size labels</span>
-        </th>
-      </tr>
-      @labels.map { label =>
-        @gitbucket.core.issues.labels.html.label(label, counts, repository, hasWritePermission)
-      }
-      @if(labels.isEmpty){
-        <tr>
-          <td style="padding: 20px; background-color: #eee; text-align: center;">
-            No labels to show.
-            @if(hasWritePermission){
-              <a href="@url(repository)/issues/labels/new">Create a new label.</a>
-            }
-          </td>
+      <thead>
+        <tr id="label-row-header">
+          <th style="background-color: #eee;">
+            <span class="small">@labels.size labels</span>
+          </th>
         </tr>
-      }
+      </thead>
+      <tbody>
+        @labels.map { label =>
+          @gitbucket.core.issues.labels.html.label(label, counts, repository, hasWritePermission)
+        }
+        @if(labels.isEmpty){
+          <tr>
+            <td style="padding: 20px; background-color: #eee; text-align: center;">
+              No labels to show.
+              @if(hasWritePermission){
+                <a href="@url(repository)/issues/labels/new">Create a new label.</a>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
     </table>
   }
 }

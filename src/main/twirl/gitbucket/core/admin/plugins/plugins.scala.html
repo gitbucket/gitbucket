@@ -2,29 +2,41 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main("Plugins"){
-    @admin.html.menu("plugins") {
-        <h1>Installed plugins</h1>
+  @admin.html.menu("plugins") {
+    <h1>Installed plugins</h1>
 
-        @if(plugins.size > 0) {
-            <ul>
-            @plugins.map {plugin =>
-                <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.version</a></li>
-            }
-            </ul>
+    @if(plugins.size > 0) {
+      <ul>
+      @plugins.map {plugin =>
+        <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.version</a></li>
+      }
+      </ul>
 
-            @plugins.map {plugin =>
-                <div class="box">
-                    <div class="box-header">@plugin.pluginName</div>
-                    <div class="box-content-bottom">
-                        <p><span class="strong">Id:&nbsp;</span>@plugin.pluginId</p>
-                        <p><span class="strong">Version:&nbsp;</span>@plugin.version</p>
-                        <p><span class="strong">Name:&nbsp;</span>@plugin.pluginName</p>
-                        <p class="muted">@plugin.description</p>
-                    </div>
-                </div>
-            }
-        } else {
-            <p>No plugin detected on your gitbucket installation.</p>
-        }
+      @plugins.map {plugin =>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">@plugin.pluginName</div>
+          <div class="panel-body">
+            <div class="row">
+              <label class="col-md-2">Id</label>
+              <span class="col-md-8">@plugin.pluginId</span>
+            </div>
+            <div class="row">
+              <label class="col-md-2">Version</label>
+              <span class="col-md-8">@plugin.version</span>
+            </div>
+            <div class="row">
+              <label class="col-md-2">Name</label>
+              <span class="col-md-8">@plugin.pluginName</span>
+            </div>
+            <div class="row">
+              <label class="col-md-2">Description</label>
+              <span class="col-md-8 muted">@plugin.description</span>
+            </div>
+          </div>
+        </div>
+      }
+    } else {
+      <p>No plugin detected on your gitbucket installation.</p>
     }
+  }
 }

@@ -6,15 +6,15 @@
 @main("GitBucket"){
   @dashboard.html.tab()
   <div class="container">
-    <div class="row-fluid">
-      <div class="span8">
+    <div class="row">
+      <div class="col-md-8">
         <div class="pull-right">
           <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
         </div>
         @helper.html.activities(activities)
       </div>
 
-      <div class="span4">
+      <div class="col-md-4">
         @settings.information.map { information =>
           <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -24,55 +24,53 @@
         @if(loginAccount.isEmpty){
           @signinform(settings)
         } else {
-          <div class="box-header">
-            <div class="pull-right">
-              <a href="@path/new" class="btn btn-success btn-mini">New repository</a>
-            </div>
-            <span class="strong">Your repositories</span> <span class="label">@userRepositories.size</span>
-          </div>
-            @if(userRepositories.isEmpty){
-              <div class="box-content-bottom">
-                No repositories
+          <div class="panel panel-default">
+            <div class="panel-heading strong">
+              <div class="pull-right">
+                <a href="@path/new" class="btn btn-success btn-sm">New repository</a>
               </div>
-            } else {
-              <div class="box-content-bottom" style="padding: 0px;">
+              Your repositories <span class="badge">@userRepositories.size</span>
+            </div>
+            <ul class="list-group list-group-flush">
+              @if(userRepositories.isEmpty){
+                <li class="list-group-item">No repositories</li>
+              } else {
                 @defining(20){ max =>
                   @userRepositories.zipWithIndex.map { case (repository, i) =>
-                    <div class="box-content-row repo-link" style="@if(i > max - 1){display:none;}">
+                    <li class="list-group-item repo-link" style="@if(i > max - 1){display:none;}">
                       @helper.html.repositoryicon(repository, false)
                       @if(repository.owner == loginAccount.get.userName){
                         <a href="@url(repository)"><span class="strong">@repository.name</span></a>
                       } else {
                         <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
                       }
-                    </div>
+                    </li>
                   }
                   @if(userRepositories.size > max){
-                    <div class="box-content-row show-more">
+                    <li class="list-group-item show-more">
                       <a href="javascript:void(0);" id="show-more-repos">Show more @{userRepositories.size - max} pages...</a>
-                    </div>
+                    </li>
                   }
                 }
-              </div>
-            }
+              }
+            </ul>
+          </div>
         }
-        <div class="box-header">
-          <span class="strong">Recent updated repositories</span>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Recent updated repositories</div>
+          <ul class="list-group list-group-flush">
+          @if(recentRepositories.isEmpty){
+            <li class="list-group-item">No repositories</li>
+          } else {
+              @recentRepositories.map { repository =>
+                <li class="list-group-item repo-link">
+                  @helper.html.repositoryicon(repository, false)
+                  <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
+                </li>
+              }
+          }
+          </ul>
         </div>
-        @if(recentRepositories.isEmpty){
-          <div class="box-content-bottom">
-            No repositories
-          </div>
-        } else {
-          <div class="box-content-bottom" style="padding: 0px;">
-            @recentRepositories.map { repository =>
-              <div class="box-content-row repo-link">
-                @helper.html.repositoryicon(repository, false)
-                <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
-              </div>
-            }
-          </div>
-        }
       </div>
     </div>
   </div>
@@ -80,8 +78,8 @@
 <script>
 $(function(){
   $('#show-more-repos').click(function(e){
-    $(e.target).parents('div.box-content-bottom').find('div.repo-link').show();
-    $(e.target).parents('div.show-more').remove();
+    $(e.target).parents('ul.list-group').find('li.repo-link').show();
+    $(e.target).parents('li.show-more').remove();
   });
 });
 </script>

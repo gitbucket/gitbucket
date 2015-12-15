@@ -24,37 +24,41 @@
 <div class="container">
   @helper.html.information(info)
   @helper.html.error(error)
-  @if(repository.commitCount > 0){
-    <div class="pull-right">
-      <div class="input-prepend">
-        @if(loginAccount.isEmpty){
-          <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
-        } else {
-          @if(isNoGroup) {
-            <a id="fork-link" href="javascript:void(0);" class="btn btn-small" style="margin-bottom: 10px;">Fork</a>
-          } else {
-            <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-small" rel="facebox" style="margin-bottom: 10px;">Fork</a>
-          }
+  <div class="row">
+    <div class="head col-md-11">
+      @helper.html.repositoryicon(repository, true)
+      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+
+      @defining(repository.repository){ x =>
+        @if(repository.repository.originRepositoryName.isDefined){
+          <div class="forked">
+            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+          </div>
         }
-        <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
-      </div>
-      @if(loginAccount.isDefined && isNoGroup){
-        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
-          <input type="hidden" name="account" value="@loginAccount.get.userName"/>
-        </form>
       }
     </div>
-  }
-  <div class="head">
-    @helper.html.repositoryicon(repository, true)
-    <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
-
-    @defining(repository.repository){ x =>
-      @if(repository.repository.originRepositoryName.isDefined){
-        <div class="forked">
-          forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+    @if(repository.commitCount > 0){
+      <div class="col-md-1">
+        <div class="input-group pull-right">
+          <span class="input-group-btn">
+          @if(loginAccount.isEmpty){
+            <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
+          } else {
+            @if(isNoGroup) {
+              <a id="fork-link" href="javascript:void(0);" class="btn btn-sm btn-default" style="margin-bottom: 10px;">Fork</a>
+            } else {
+              <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-sm btn-default" rel="facebox" style="margin-bottom: 10px;">Fork</a>
+            }
+          }
+          </span>
+          <span class="add-on count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
         </div>
-      }
+        @if(loginAccount.isDefined && isNoGroup){
+          <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
+            <input type="hidden" name="account" value="@loginAccount.get.userName"/>
+          </form>
+        }
+      </div>
     }
   </div>
 </div>
@@ -77,7 +81,7 @@
         <strong id="repository-url-proto">HTTP</strong> <span class="mute">clone URL</span>
       </div>
       @helper.html.copy("repository-url-copy", repository.httpUrl){
-        <input type="text" value="@repository.httpUrl" id="repository-url" readonly>
+        <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly>
       }
       @if(settings.ssh && loginAccount.isDefined){
         <div class="small">
@@ -87,26 +91,26 @@
       @id.map { id =>
         @if(context.platform != "linux" && context.platform != null){
         <div style="margin-top: 10px;">
-          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
+          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
         </div>
         }
         <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
         </div>
         @*
         <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-small" style="width: 147px;font-weight: bold;"><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-sm btn-default btn-block "><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
         </div>
         *@
       }
     }
   </div>
-  <div style="margin-right: @if(expand){180px} else {50px};">
+  <div style="margin-right: @if(expand){180px} else {55px};">
     @if(expand){
       @repository.repository.description.map { description =>
         <p class="description">@detectAndRenderLinks(description)</p>
       }
-      <div style="margin-bottom: 10px;" class="box-content">
+      <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
         <table class="fill-width">
           <tr>
             <td style="width: 33%; text-align: center;">

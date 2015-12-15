@@ -13,16 +13,16 @@
     }
     <hr style="margin-top: 12px; margin-bottom: 18px;" class="fill-width"/>
     <form method="POST" action="@url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true">
-      <fieldset>
-        <input type="text" id="title" name="title" style="width: 500px;" value="@milestone.map(_.title)" placeholder="Title"/>
+      <fieldset class="form-group">
+        <input type="text" id="title" name="title" class="form-control" style="width: 500px;" value="@milestone.map(_.title)" placeholder="Title"/>
         <span id="error-title" class="error"></span>
       </fieldset>
-      <fieldset>
+      <fieldset class="form-group">
         <label for="description" class="strong">Description</label>
-        <textarea id="description" name="description" style="width: 500px; height: 150px;">@milestone.map(_.description)</textarea>
+        <textarea id="description" name="description" class="form-control" style="width: 500px; height: 150px;">@milestone.map(_.description)</textarea>
         <span id="error-description" class="error"></span>
       </fieldset>
-      <fieldset>
+      <fieldset class="form-group">
         <label for="dueDate" class="strong">Due Date</label>
         @helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
         <span id="error-dueDate" class="error"></span>
@@ -30,16 +30,16 @@
       <hr>
       <div class="pull-right">
         @if(milestone.isEmpty){
-          <input type="submit" class="btn" value="Create milestone"/>
+          <input type="submit" class="btn btn-default" value="Create milestone"/>
         } else {
           @if(milestone.get.closedDate.isDefined){
-            <input type="button" class="btn" value="Open" id="open"
+            <input type="button" class="btn btn-default" value="Open" id="open"
                    onclick="location.href='@url(repository)/issues/milestones/@milestone.get.milestoneId/close';"/>
           } else {
-            <input type="button" class="btn" value="Close" id="close"
+            <input type="button" class="btn btn-default" value="Close" id="close"
                    onclick="location.href='@url(repository)/issues/milestones/@milestone.get.milestoneId/open';"/>
           }
-          <input type="submit" class="btn" value="Update milestone"/>
+          <input type="submit" class="btn btn-default" value="Update milestone"/>
         }
       </div>
     </form>

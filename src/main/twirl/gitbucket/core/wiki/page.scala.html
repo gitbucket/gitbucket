@@ -18,35 +18,37 @@
       <li class="pull-right">
         @if(hasWritePermission){
           <div>
-            <a class="btn btn-small" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+            <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
             <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
           </div>
         }
       </li>
     </ul>
-    <div style="width: 200px;" class="pull-right">
+    <div style="width: 200px; margin-top: 20px;" class="pull-right">
       @defining(15){ max =>
-        <div class="box-header">
-          <span class="strong">Pages</span> <span class="label">@pages.length</span>
-        </div>
-        <div class="box-content-bottom" style="padding: 0px;">
-          @pages.zipWithIndex.map { case (page, i) =>
-            <div class="box-content-row page-link" style="border: none; @if(i > max - 1){display:none;}">
-              <a href="@url(repository)/wiki/@urlEncode(page)" class="strong">@page</a>
-            </div>
-          }
-          @if(pages.size > max){
-            <div class="box-content-row show-more">
-              <a href="javascript:void(0);" id="show-more-pages">Show more @{pages.size - max} pages...</a>
-            </div>
-          }
+        <div class="panel panel-default">
+          <div class="panel-heading strong">
+            Pages <span class="badge">@pages.length</span>
+          </div>
+          <ul class="list-group list-group-flush">
+            @pages.zipWithIndex.map { case (page, i) =>
+              <li class="list-group-item page-link" style="border: none; @if(i > max - 1){display:none;}">
+                <a href="@url(repository)/wiki/@urlEncode(page)" class="strong">@page</a>
+              </li>
+            }
+            @if(pages.size > max){
+              <li class="list-group-item show-more">
+                <a href="javascript:void(0);" id="show-more-pages">Show more @{pages.size - max} pages...</a>
+              </li>
+            }
+          </ul>
         </div>
       }
       <div class="small">
         <strong>Clone this wiki locally</strong>
       </div>
       @helper.html.copy("repository-url-copy", httpUrl(repository)){
-        <input type="text" value="@httpUrl(repository)" id="repository-url" style="width: 160px;" readonly>
+        <input type="text" value="@httpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
       }
       @if(settings.ssh && loginAccount.isDefined){
         <div class="small">
@@ -54,7 +56,7 @@
         </div>
       }
     </div>
-    <div style="width: 700px;" class="pull-left">
+    <div style="width: 680px;" class="pull-left">
       <div class="markdown-body">
         @markdown(page.content, repository, true, false, false, false, pages)
       </div>
