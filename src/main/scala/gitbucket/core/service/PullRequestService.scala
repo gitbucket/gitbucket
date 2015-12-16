@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{Account, Issue, PullRequest, WebHook}
+import gitbucket.core.model.{Account, Issue, PullRequest, WebHook, CommitStatus, CommitState}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile.simple._

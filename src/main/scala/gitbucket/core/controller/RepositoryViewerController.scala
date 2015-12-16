@@ -14,7 +14,6 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.{Account, CommitState, WebHook}
-import gitbucket.core.service.{CommitStatusService, ProtectedBrancheService}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers

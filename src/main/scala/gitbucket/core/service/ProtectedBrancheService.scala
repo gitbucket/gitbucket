@@ -101,6 +101,7 @@ object ProtectedBrancheService {
     } else {
       contexts.toSet -- getCommitStatues(owner, repository, sha1).filter(_.state == CommitState.SUCCESS).map(_.context).toSet
     }
+    def needStatusCheck(pusher: Option[String])(implicit session: Session): Boolean = pusher.map(needStatusCheck).getOrElse(false)
     def needStatusCheck(pusher: String)(implicit session: Session): Boolean =
       if(!enabled || contexts.isEmpty){
         false
@@ -109,8 +110,7 @@ object ProtectedBrancheService {
       }else{
         !isAdministrator(pusher)
       }
-    def withRequireStatues(statuses: List[CommitStatus]): List[CommitStatus] = {
-      statuses ++ (contexts.toSet -- statuses.map(_.context).toSet).map{ context => CommitStatus(
+    def pendingCommitStatus(context: String) = CommitStatus(
         commitStatusId = 0,
         userName = owner,
         repositoryName = repository,
@@ -122,10 +122,6 @@ object ProtectedBrancheService {
         creator = "",
         registeredDate = new java.util.Date(),
         updatedDate = new java.util.Date())
-      }
-    }
-    def hasProblem(statuses: List[CommitStatus], sha1: String, account: String)(implicit session: Session): Boolean =
-      needStatusCheck(account) && contexts.exists(context => statuses.find(_.context == context).map(_.state) != Some(CommitState.SUCCESS))
   }
   object ProtectedBranchInfo{
     def disabled(owner: String, repository: String): ProtectedBranchInfo = ProtectedBranchInfo(owner, repository, false, Nil, false)
