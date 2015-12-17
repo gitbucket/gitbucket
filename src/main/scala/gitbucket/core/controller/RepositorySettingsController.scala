@@ -30,7 +30,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   case class OptionsForm(repositoryName: String, description: Option[String], defaultBranch: String, isPrivate: Boolean)
   
   val optionsForm = mapping(
-    "repositoryName" -> trim(label("Description"    , text(required, maxlength(40), identifier, renameRepositoryName))),
+    "repositoryName" -> trim(label("Repository Name", text(required, maxlength(40), identifier, renameRepositoryName))),
     "description"    -> trim(label("Description"    , optional(text()))),
     "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100)))),
     "isPrivate"      -> trim(label("Repository Type", boolean()))
