@@ -46,6 +46,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.15",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"            % "1.0.0",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
+  "net.coobird" % "thumbnailator" % "0.4.8",
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                     % "junit"                        % "4.12"           % "test",
