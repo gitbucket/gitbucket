@@ -272,7 +272,8 @@ object WebHookService {
 
   // https://developer.github.com/v3/activity/events/types/#pushevent
   case class WebHookPushPayload(
-    pusher: ApiUser,
+    pusher: ApiPusher,
+    sender: ApiUser,
     ref: String,
     before: String,
     after: String,
@@ -289,11 +290,12 @@ object WebHookService {
   }
 
   object WebHookPushPayload {
-    def apply(git: Git, pusher: Account, refName: String, repositoryInfo: RepositoryInfo,
+    def apply(git: Git, sender: Account, refName: String, repositoryInfo: RepositoryInfo,
               commits: List[CommitInfo], repositoryOwner: Account,
               newId: ObjectId, oldId: ObjectId): WebHookPushPayload =
       WebHookPushPayload(
-        pusher     = ApiUser(pusher),
+        pusher     = ApiPusher(sender),
+        sender     = ApiUser(sender),
         ref        = refName,
         before     = ObjectId.toString(oldId),
         after      = ObjectId.toString(newId),
