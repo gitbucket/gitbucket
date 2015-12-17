@@ -90,8 +90,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class ForkRepositoryForm(owner: String, name: String)
 
   val newRepositoryForm = mapping(
-    "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier, existsAccount))),
-    "name"         -> trim(label("Repository name", text(required, maxlength(40), repository, uniqueRepository))),
+    "owner"        -> trim(label("Owner"          , text(required, maxlength(100), identifier, existsAccount))),
+    "name"         -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
     "createReadme" -> trim(label("Create README"  , boolean()))
