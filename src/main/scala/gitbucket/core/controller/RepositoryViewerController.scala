@@ -177,7 +177,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    *
    * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
    */
-  get("/api/v3/repos/:owner/:repo/commits/:ref/statuses")(referrersOnly { repository =>
+  val listStatusesRoute = get("/api/v3/repos/:owner/:repo/commits/:ref/statuses")(referrersOnly { repository =>
     (for{
       ref <- params.get("ref")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
@@ -187,6 +187,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       })
     }) getOrElse NotFound
   })
+
+  /**
+   * https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
+   *
+   * legacy route
+   */
+  get("/api/v3/repos/:owner/:repo/statuses/:ref"){
+    listStatusesRoute.action()
+  }
 
   /**
    * https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
