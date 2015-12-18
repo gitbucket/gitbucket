@@ -38,6 +38,11 @@ object Directory {
 
   val TemporaryHome = s"${GitBucketHome}/tmp"
 
+  val DatabaseURL = (System.getProperty("h2url") match {
+    case url if(url != null) => url
+    case _ => "jdbc:h2:${DatabaseHome};MVCC=true"
+  })
+
   /**
    * Substance directory of the repository.
    */
