@@ -26,16 +26,6 @@
   @helper.html.error(error)
   <div class="row">
     <div class="head">
-      @helper.html.repositoryicon(repository, true)
-      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
-
-      @defining(repository.repository){ x =>
-        @if(repository.repository.originRepositoryName.isDefined){
-          <div class="forked">
-            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
-          </div>
-        }
-      }
       @if(repository.commitCount > 0){
         <div class="input-group pull-right">
           <span class="fork">
@@ -57,6 +47,16 @@
           <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
             <input type="hidden" name="account" value="@loginAccount.get.userName"/>
           </form>
+        }
+      }
+      @helper.html.repositoryicon(repository, true)
+      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+
+      @defining(repository.repository){ x =>
+        @if(repository.repository.originRepositoryName.isDefined){
+          <div class="forked">
+            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+          </div>
         }
       }
     </div>
