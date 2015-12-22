@@ -30,7 +30,12 @@ object Directory {
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
 
-  val RepositoryHome = s"${GitBucketHome}/repositories"
+  //val RepositoryHome = s"${GitBucketHome}/repositories"
+
+  val RepositoryHome = (System.getProperty("repo.home") match {
+    case repo if(repo != null) => repo
+    case _ => s"${GitBucketHome}/repositories"
+  })
 
   val DatabaseHome = s"${GitBucketHome}/data"
 
