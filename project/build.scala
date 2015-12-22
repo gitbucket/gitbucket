@@ -63,7 +63,7 @@ object MyBuild extends Build {
       "org.eclipse.jetty" % "jetty-webapp" % "8.1.16.v20140903" % "container;provided",
       "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
       "junit" % "junit" % "4.12" % "test",
-      "com.mchange" % "c3p0" % "0.9.5",
+      "com.mchange" % "c3p0" % "0.9.5.2",
       "com.typesafe" % "config" % "1.2.1",
       "com.typesafe.akka" %% "akka-actor" % "2.3.10",
       "com.enragedginger" %% "akka-quartz-scheduler" % "1.3.0-akka-2.3.x"  exclude("c3p0","c3p0")
