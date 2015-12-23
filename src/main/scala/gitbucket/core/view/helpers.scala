@@ -84,14 +84,25 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Converts Markdown of Wiki pages to HTML.
    */
-  def markdown(value: String,
+  def markdown(markdown: String,
                repository: RepositoryService.RepositoryInfo,
                enableWikiLink: Boolean,
                enableRefsLink: Boolean,
+               enableLineBreaks: Boolean,
                enableTaskList: Boolean = false,
                hasWritePermission: Boolean = false,
                pages: List[String] = Nil)(implicit context: Context): Html =
-    Html(Markdown.toHtml(value, repository, enableWikiLink, enableRefsLink, true, enableTaskList, hasWritePermission, pages))
+    Html(Markdown.toHtml(
+      markdown           = markdown,
+      repository         = repository,
+      enableWikiLink     = enableWikiLink,
+      enableRefsLink     = enableRefsLink,
+      enableAnchor       = true,
+      enableLineBreaks   = enableLineBreaks,
+      enableTaskList     = enableTaskList,
+      hasWritePermission = hasWritePermission,
+      pages              = pages
+    ))
 
   /**
    * Render the given source (only markdown is supported in default) as HTML.

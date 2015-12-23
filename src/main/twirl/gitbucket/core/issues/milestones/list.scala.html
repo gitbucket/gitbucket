@@ -79,7 +79,13 @@
               </div>
               @if(milestone.description.isDefined){
                 <div class="milestone-description markdown-body">
-                  @markdown(milestone.description.get, repository, false, false)
+                  @markdown(
+                    markdown = milestone.description.get,
+                    repository = repository,
+                    enableWikiLink = false,
+                    enableRefsLink = false,
+                    enableLineBreaks = true
+                  )
                 </div>
               }
             </td>

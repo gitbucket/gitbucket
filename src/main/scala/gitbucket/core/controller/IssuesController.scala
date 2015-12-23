@@ -231,10 +231,20 @@ trait IssuesControllerBase extends ControllerBase {
         } getOrElse {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
-              Map("title"   -> x.title,
-                  "content" -> Markdown.toHtml(x.content getOrElse "No description given.",
-                      repository, false, true, true, true, isEditable(x.userName, x.repositoryName, x.openedUserName))
-              ))
+            Map(
+              "title"   -> x.title,
+              "content" -> Markdown.toHtml(
+                markdown = x.content getOrElse "No description given.",
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                enableLineBreaks = true,
+                enableTaskList = true,
+                hasWritePermission = isEditable(x.userName, x.repositoryName, x.openedUserName)
+              )
+            )
+          )
         }
       } else Unauthorized
     } getOrElse NotFound
@@ -249,9 +259,19 @@ trait IssuesControllerBase extends ControllerBase {
         } getOrElse {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
-              Map("content" -> view.Markdown.toHtml(x.content,
-                  repository, false, true, true, isEditable(x.userName, x.repositoryName, x.commentedUserName))
-              ))
+            Map(
+              "content" -> view.Markdown.toHtml(
+                markdown = x.content,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                enableLineBreaks = true,
+                enableTaskList = true,
+                hasWritePermission = isEditable(x.userName, x.repositoryName, x.commentedUserName)
+              )
+            )
+          )
         }
       } else Unauthorized
     } getOrElse NotFound

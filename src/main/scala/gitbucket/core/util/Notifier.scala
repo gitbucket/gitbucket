@@ -75,7 +75,14 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       database withSession { implicit session =>
         defining(
           s"[${r.name}] ${issue.title} (#${issue.issueId})" ->
-            msg(Markdown.toHtml(content, r, false, true, false))) { case (subject, msg) =>
+            msg(Markdown.toHtml(
+              markdown         = content,
+              repository       = r,
+              enableWikiLink   = false,
+              enableRefsLink   = true,
+              enableAnchor     = false,
+              enableLineBreaks = false
+            ))) { case (subject, msg) =>
             recipients(issue) { to =>
               val email = new HtmlEmail
               email.setHostName(smtp.host)

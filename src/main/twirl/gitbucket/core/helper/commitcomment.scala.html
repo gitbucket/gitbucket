@@ -34,7 +34,15 @@
       </span>
     </div>
     <div class="panel-body issue-content commit-commentContent-@comment.commentId markdown-body">
-      @markdown(comment.content, repository, false, true, true, hasWritePermission)
+      @markdown(
+        markdown = comment.content,
+        repository = repository,
+        enableWikiLink = false,
+        enableRefsLink = true,
+        enableLineBreaks = true,
+        enableTaskList = false,
+        hasWritePermission = hasWritePermission
+      )
     </div>
   </div>
 </div>

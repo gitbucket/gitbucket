@@ -18,7 +18,15 @@
       </span>
     </div>
     <div class="panel-body issue-content markdown-body" id="issueContent">
-      @markdown(issue.get.content getOrElse "No description provided.", repository, false, true, true, hasWritePermission)
+      @markdown(
+        markdown = issue.get.content getOrElse "No description provided.",
+        repository = repository,
+        enableWikiLink = false,
+        enableRefsLink = true,
+        enableLineBreaks = true,
+        enableTaskList = true,
+        hasWritePermission = hasWritePermission
+      )
     </div>
   </div>
 }
@@ -53,14 +61,30 @@
           </div>
         <div class="panel-body issue-content markdown-body" id="commentContent-@comment.commentId">
           @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
-            @markdown(comment.content.substring(0, comment.content.length - 41), repository, false, true, true, hasWritePermission)
+            @markdown(
+              markdown = comment.content.substring(0, comment.content.length - 41),
+              repository = repository,
+              enableWikiLink = false,
+              enableRefsLink = true,
+              enableLineBreaks = true,
+              enableTaskList = true,
+              hasWritePermission = hasWritePermission
+            )
           } else {
             @if(comment.action == "refer"){
               @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
                 <strong>@issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
               }
             } else {
-              @markdown(comment.content, repository, false, true, true, hasWritePermission)
+              @markdown(
+                markdown = comment.content,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableLineBreaks = true,
+                enableTaskList = true,
+                hasWritePermission = hasWritePermission
+              )
             }
           }
         </div>

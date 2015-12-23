@@ -102,11 +102,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/_preview")(referrersOnly { repository =>
     contentType = "text/html"
-    helpers.markdown(params("content"), repository,
-      params("enableWikiLink").toBoolean,
-      params("enableRefsLink").toBoolean,
-      params("enableTaskList").toBoolean,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+    helpers.markdown(
+      markdown = params("content"),
+      repository = repository,
+      enableWikiLink = params("enableWikiLink").toBoolean,
+      enableRefsLink = params("enableRefsLink").toBoolean,
+      enableLineBreaks = params("enableLineBreaks").toBoolean,
+      enableTaskList = params("enableTaskList").toBoolean,
+      hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount)
+    )
   })
 
   /**
@@ -424,8 +428,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         } getOrElse {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
-            Map("content" -> view.Markdown.toHtml(x.content,
-              repository, false, true, true, isEditable(x.userName, x.repositoryName, x.commentedUserName))
+            Map(
+              "content" -> view.Markdown.toHtml(
+                markdown = x.content,
+                repository = repository,
+                enableWikiLink = false,
+                enableRefsLink = true,
+                enableAnchor = true,
+                enableLineBreaks = true,
+                hasWritePermission = isEditable(x.userName, x.repositoryName, x.commentedUserName)
+              )
             ))
         }
       } else Unauthorized

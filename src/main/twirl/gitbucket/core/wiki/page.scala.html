@@ -58,7 +58,16 @@
     </div>
     <div style="width: 680px;" class="pull-left">
       <div class="markdown-body">
-        @markdown(page.content, repository, true, false, false, false, pages)
+        @markdown(
+          markdown = page.content,
+          repository = repository,
+          enableWikiLink = true,
+          enableRefsLink = false,
+          enableLineBreaks = false,
+          enableTaskList = false,
+          hasWritePermission = false,
+          pages = pages
+        )
       </div>
     </div>
   }

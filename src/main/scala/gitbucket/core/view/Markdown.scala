@@ -19,6 +19,7 @@ object Markdown {
    * @param enableWikiLink if true then wiki style link is available in markdown
    * @param enableRefsLink if true then issue reference (e.g. #123) is rendered as link
    * @param enableAnchor if true then anchor for headline is generated
+   * @param enableLineBreaks if true then render line breaks as &lt;br&gt;
    * @param enableTaskList if true then task list syntax is available
    * @param hasWritePermission true if user has writable to ths given repository
    * @param pages the list of existing Wiki pages
@@ -28,6 +29,7 @@ object Markdown {
              enableWikiLink: Boolean,
              enableRefsLink: Boolean,
              enableAnchor: Boolean,
+             enableLineBreaks: Boolean,
              enableTaskList: Boolean = false,
              hasWritePermission: Boolean = false,
              pages: List[String] = Nil)(implicit context: Context): String = {
@@ -43,7 +45,7 @@ object Markdown {
 
     val options = new Options()
     options.setSanitize(true)
-    options.setBreaks(true)
+    options.setBreaks(enableLineBreaks)
     val renderer = new GitBucketMarkedRenderer(options, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
     Marked.marked(source, options, renderer)
   }
