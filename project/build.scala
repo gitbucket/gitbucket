@@ -1,8 +1,7 @@
 import sbt._
 import Keys._
-import org.scalatra.sbt._
 import play.twirl.sbt.SbtTwirl
-import play.twirl.sbt.Import.TwirlKeys._
+import com.earldouglas.xwp.JettyPlugin
 import sbtassembly._
 import sbtassembly.AssemblyKeys._
 
@@ -17,7 +16,7 @@ object MyBuild extends Build {
     "gitbucket",
     file(".")
   )
-  .settings(ScalatraPlugin.scalatraWithJRebel: _*)
+//  .settings(ScalatraPlugin.scalatraWithJRebel: _*)
   .settings(
     test in assembly := {},
     assemblyMergeStrategy in assembly := {
@@ -59,9 +58,9 @@ object MyBuild extends Build {
       "com.typesafe.slick" %% "slick" % "2.1.0",
       "com.novell.ldap" % "jldap" % "2009-10-07",
       "com.h2database" % "h2" % "1.4.180",
-      "ch.qos.logback" % "logback-classic" % "1.1.1" % "container",
-      "org.eclipse.jetty" % "jetty-webapp" % "8.1.16.v20140903" % "container;provided",
-      "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts Artifact("javax.servlet", "jar", "jar"),
+      "ch.qos.logback" % "logback-classic" % "1.1.1",
+      "org.eclipse.jetty" % "jetty-webapp" % "8.1.16.v20140903" % "provided",
+      "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
       "junit" % "junit" % "4.12" % "test",
       "com.mchange" % "c3p0" % "0.9.5",
       "com.typesafe" % "config" % "1.2.1",
@@ -75,5 +74,5 @@ object MyBuild extends Build {
     testOptions in Test += Tests.Setup( () => new java.io.File("target/gitbucket_home_for_test").mkdir() ),
     fork in Test := true,
     packageOptions += Package.MainClass("JettyLauncher")
-  ).enablePlugins(SbtTwirl)
+  ).enablePlugins(SbtTwirl, JettyPlugin)
 }

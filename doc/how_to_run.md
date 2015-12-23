@@ -7,33 +7,22 @@ for Testers
 If you want to test GitBucket, input following command at the root directory of the source tree.
 
 ```
-C:\gitbucket> sbt ~container:start
+$ sbt jetty:start jetty:join
 ```
 
 Then access to `http://localhost:8080/` by your browser. The default administrator account is `root` and password is `root`.
+
+`CTRL + C` to shutdown.
 
 for Developers
 --------
 If you want to modify source code and confirm it, you can run GitBucket in auto reloading mode as following:
 
-Windows:
-
 ```
-C:\gitbucket> sbt
+$ sbt
 ...
-> container:start
-...
-> ~ ;copy-resources;aux-compile
-```
-
-Linux:
-
-```
-~/gitbucket$ ./sbt.sh
-...
-> container:start
-...
-> ~ ;copy-resources;aux-compile
+> jetty:start
+> ~compile
 ```
 
 Build war file
@@ -41,16 +30,8 @@ Build war file
 
 To build war file, run the following command:
 
-Windows:
-
 ```
-C:\gitbucket> sbt package
-```
-
-Linux:
-
-```
-~/gitbucket$ ./sbt.sh package
+$ sbt package
 ```
 
 `gitbucket_2.11-x.x.x.war` is generated into `target/scala-2.11`.
