@@ -5,44 +5,51 @@ The details are saved at ```ISSUE_COMMENT``` table.
 
 To determine if it was any operation, you see the ```ACTION``` column.
 
-|ACTION|
-|--------|
-|comment|
-|close_comment|
-|reopen_comment|
-|close|
-|reopen|
-|commit|
-|merge|
-|delete_branch|
-|refer|
+|ACTION         |CONTENT          |
+|---------------|-----------------|
+|comment        |comment          |
+|close_comment  |comment          |
+|reopen_comment |comment          |
+|close          |"Close"          |
+|reopen         |"Reopen"         |
+|commit         |comment commitId |
+|merge          |comment          |
+|delete_branch  |branchName       |
+|refer          |issueId:title    |
 
-#####comment
+### comment
+
 This value is saved when users have made a normal comment.
 
-#####close_comment, reopen_comment
+### close_comment, reopen_comment
+
 These values are saved when users have reopened or closed the issue with comments.
 
-#####close, reopen
+### close, reopen
+
 These values are saved when users have reopened or closed the issue.
 At the same time, store the fixed value(i.e. "Close" or "Reopen") to the ```CONTENT``` column.
 Therefore, this comment is not displayed, and not counted as a comment.
 
-#####commit
+### commit
+
 This value is saved when users have pushed including the ```#issueId``` to the commit message.
 At the same time, store it to the ```CONTENT``` column with its commit id.
 This comment is displayed. But it can not be edited by all users, and also not counted as a comment.
 
-#####merge
+### merge
+
 This value is saved when users have merged the pull request.
 At the same time, store the message to the ```CONTENT``` column.
 This comment is displayed. But it can not be edited by all users, and also not counted as a comment.
 
-#####delete_branch
+### delete_branch
+
 This value is saved when users have deleted the branch. Users can delete branch after merging pull request which is requested from the same repository.
 At the same time, store it to the ```CONTENT``` column with the deleted branch name.
 Therefore, this comment is not displayed, and not counted as a comment.
 
-#####refer
+##### refer
+
 This value is saved when other issue or issue comment contains reference to the issue like ```#issueId```.
 At the same time, store id and title of the referrer issue as ```id:title```.
