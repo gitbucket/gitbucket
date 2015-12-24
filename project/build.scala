@@ -8,7 +8,7 @@ import sbtassembly._
 object MyBuild extends Build {
   val Organization = "gitbucket"
   val Name = "gitbucket"
-  val Version = "3.9.0"
+  val Version = "3.9.1"
   val ScalaVersion = "2.11.6"
   val ScalatraVersion = "2.3.1"
 
