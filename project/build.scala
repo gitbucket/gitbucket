@@ -1,9 +1,9 @@
-import sbt._
-import Keys._
-import play.twirl.sbt.SbtTwirl
 import com.earldouglas.xwp.JettyPlugin
-import sbtassembly._
+import play.twirl.sbt.SbtTwirl
+import sbt.Keys._
+import sbt._
 import sbtassembly.AssemblyKeys._
+import sbtassembly._
 
 object MyBuild extends Build {
   val Organization = "gitbucket"
@@ -53,7 +53,7 @@ object MyBuild extends Build {
       "org.apache.commons" % "commons-compress" % "1.9",
       "org.apache.commons" % "commons-email" % "1.3.3",
       "org.apache.httpcomponents" % "httpclient" % "4.3.6",
-      "org.apache.sshd" % "apache-sshd" % "0.11.0",
+      "org.apache.sshd" % "apache-sshd" % "1.0.0",
       "org.apache.tika" % "tika-core" % "1.10",
       "com.typesafe.slick" %% "slick" % "2.1.0",
       "com.novell.ldap" % "jldap" % "2009-10-07",

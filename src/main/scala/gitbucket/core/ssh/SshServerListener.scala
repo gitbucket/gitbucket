@@ -1,20 +1,25 @@
 package gitbucket.core.ssh
 
+import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.{ServletContextEvent, ServletContextListener}
+
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.util.Directory
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
-import java.util.concurrent.atomic.AtomicBoolean
 
 object SshServer {
   private val logger = LoggerFactory.getLogger(SshServer.getClass)
-  private val server = org.apache.sshd.SshServer.setUpDefaultServer()
+  private val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
   private val active = new AtomicBoolean(false)
 
   private def configure(port: Int, baseUrl: String) = {
     server.setPort(port)
-    server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(s"${Directory.GitBucketHome}/gitbucket.ser", "RSA"))
+    val provider = new SimpleGeneratorHostKeyProvider(new File(s"${Directory.GitBucketHome}/gitbucket.ser"))
+    provider.setAlgorithm("RSA")
+    provider.setOverwriteAllowed(false)
+    server.setKeyPairProvider(provider)
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
     server.setCommandFactory(new GitCommandFactory(baseUrl))
     server.setShellFactory(new NoShell)
