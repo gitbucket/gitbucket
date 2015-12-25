@@ -224,7 +224,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Display the web hook edit page.
    */
-  get("/:owner/:repository/settings/hooks/edit/:url")(ownerOnly { repository =>
+  get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
     getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
       html.edithooks(webhook, events, repository, flash.get("info"), false)
     } getOrElse NotFound
@@ -233,7 +233,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   /**
    * Update web hook settings.
    */
-  post("/:owner/:repository/settings/hooks/edit/:url", webHookForm(true))(ownerOnly { (form, repository) =>
+  post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(ownerOnly { (form, repository) =>
     updateWebHook(repository.owner, repository.name, form.url, form.events)
     flash += "info" -> s"webhook ${form.url} updated"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")

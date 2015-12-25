@@ -58,7 +58,7 @@
             <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <span class="help-block normal">Git push to a repository. </span> </label>
             <div class="text-right">
               @if(!create){
-                <input type="submit" class="btn btn-success" value="Update webhook" formaction="@url(repository)/settings/hooks/edit/@urlEncode(webHook.url)" />
+                <input type="submit" class="btn btn-success" value="Update webhook" formaction="@url(repository)/settings/hooks/edit" />
                 <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
                   Delete webhook
                 </a>
