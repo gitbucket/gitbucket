@@ -936,7 +936,8 @@ span.simplified-path {
 
 #branch-control-input {
   border: solid 1px #ccc;
-  margin: 10px;
+  margin: 4px;
+  width: 96%;
 }
 
 .new-branch-name {

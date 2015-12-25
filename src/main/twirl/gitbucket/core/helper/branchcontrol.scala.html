@@ -10,7 +10,7 @@
   prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree"
 ) {
   <li><div id="branch-control-title">Switch branches<button id="branch-control-close" class="pull-right">&times</button></div></li>
-  <li><input id="branch-control-input" type="text" placeholder="Find or create branch ..."/></li>
+  <li><input id="branch-control-input" type="text" class="form-control input-sm" placeholder="Find or create branch ..."/></li>
   @body
   @if(hasWritePermission) {
     <li id="create-branch" style="display: none;">
