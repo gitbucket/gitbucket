@@ -1,5 +1,7 @@
 package gitbucket.core.controller
 
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+
 import gitbucket.core.api._
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
@@ -295,6 +297,21 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}${if(form.path.length == 0) "" else form.path}")
   })
 
+  get("/:owner/:repository/raw/*")(referrersOnly { repository =>
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+      getPathObjectId(git, path, revCommit).flatMap { objectId =>
+        JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
+          contentType = "application/octet-stream"
+          response.setContentLength(loader.getSize.toInt)
+          loader.copyTo(response.outputStream)
+          ()
+        }
+      } getOrElse NotFound
+    }
+  })
+
   /**
    * Displays the file content of the specified branch or commit.
    */
@@ -305,12 +322,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
-          // Download
+          // Download (This route is left for backword compatibility)
           JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
-            //RawData("application/octet-stream", bytes)
             contentType = "application/octet-stream"
             response.setContentLength(loader.getSize.toInt)
-            loader.copyTo(response.getOutputStream)
+            loader.copyTo(response.outputStream)
             ()
           } getOrElse NotFound
         } else {
@@ -745,4 +761,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+
+
+
+  override protected def renderUncaughtException(e: Throwable)(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    e.printStackTrace()
+  }
+
 }

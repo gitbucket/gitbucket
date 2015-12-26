@@ -56,7 +56,7 @@
         @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
           <a class="btn btn-sm btn-default" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
         }
-        <a class="btn btn-sm btn-default" href="?raw=true">Raw</a>
+        <a class="btn btn-sm btn-default" href="@url(repository)/raw/@latestCommit.id/@pathList.mkString("/")">Raw</a>
         @if(content.viewType == "text"){
           <a class="btn btn-sm btn-default blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
         }
@@ -81,12 +81,12 @@
       }
       @if(content.viewType == "image"){
         <div class="box-content-bottom">
-          <img src="?raw=true"/>
+          <img src="@url(repository)/raw/@encodeRefName(branch)/@pathList.mkString("/")"/>
         </div>
       }
       @if(content.viewType == "large" || content.viewType == "binary"){
         <div class="box-content-bottom" style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-          <a href="?raw=true">View Raw</a><br>
+          <a href="@url(repository)/raw/@encodeRefName(branch)/@pathList.mkString("/")">View Raw</a><br>
           <br>
           (Sorry about that, but we can't show files that are this big right now)
         </div>

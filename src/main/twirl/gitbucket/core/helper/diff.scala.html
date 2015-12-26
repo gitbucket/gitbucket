@@ -101,14 +101,14 @@
             @if(diff.newIsImage || diff.oldIsImage){
               <div class="diff-image-render diff2up">@diff.oldIsImage @diff.newIsImage
               @if(oldCommitId.isDefined && diff.oldIsImage){
-                <div class="diff-image-frame diff-old"><img src="@url(repository)/blob/@oldCommitId.get/@diff.oldPath?raw=true" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+                <div class="diff-image-frame diff-old"><img src="@url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
               } else {
                 @if(diff.changeType != ChangeType.ADD){
                   <div style="padding: 12px;">Not supported</div>
                 }
               }
               @if(newCommitId.isDefined && diff.newIsImage){
-                <div class="diff-image-frame diff-new"><img src="@url(repository)/blob/@newCommitId.get/@diff.newPath?raw=true" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+                <div class="diff-image-frame diff-new"><img src="@url(repository)/raw/@newCommitId.get/@diff.newPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
               } else {
                 @if(diff.changeType != ChangeType.DELETE){
                   <div style="padding: 12px;">Not supported</div>
