@@ -14,7 +14,6 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
-import scala.util.{Success, Failure}
 import org.eclipse.jgit.lib.ObjectId
 
 
@@ -174,6 +173,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Send the test request to registered web hook URLs.
    */
   ajaxPost("/:owner/:repository/settings/hooks/test")(ownerOnly { repository =>
+    def _headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map { h => Array(h.getName, h.getValue) }
+
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       import scala.collection.JavaConverters._
       import scala.concurrent.duration._
@@ -183,6 +184,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       import scala.concurrent.ExecutionContext.Implicits.global
 
       val url = params("url")
+      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
         val commits = if(repository.commitCount == 0) List.empty else git.log
@@ -190,34 +192,41 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           .setMaxCount(4)
           .call.iterator.asScala.map(new CommitInfo(_)).toList
         val pushedCommit = commits.drop(1)
-        WebHookPushPayload(git, ownerAccount, "refs/heads/" + repository.repository.defaultBranch, repository, pushedCommit, ownerAccount,
-                           oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
-                           newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()))
+
+        WebHookPushPayload(
+          git = git,
+          sender = ownerAccount,
+          refName = "refs/heads/" + repository.repository.defaultBranch,
+          repositoryInfo = repository,
+          commits = pushedCommit,
+          repositoryOwner = ownerAccount,
+          oldId = commits.lastOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId()),
+          newId = commits.headOption.map(_.id).map(ObjectId.fromString).getOrElse(ObjectId.zeroId())
+        )
       }
-      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url)
 
       val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload).head
 
-      def headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map{ h => Array(h.getName, h.getValue) }
-      val toErrorMap:PartialFunction[Throwable, Map[String,String]] = {
-        case e:java.net.UnknownHostException => Map("error"-> ("Unknown host "+ e.getMessage))
-        case e:java.lang.IllegalArgumentException => Map("error"-> ("invalid url"))
-        case e:org.apache.http.client.ClientProtocolException => Map("error"-> ("invalid url"))
+      val toErrorMap: PartialFunction[Throwable, Map[String,String]] = {
+        case e: java.net.UnknownHostException => Map("error"-> ("Unknown host " + e.getMessage))
+        case e: java.lang.IllegalArgumentException => Map("error"-> ("invalid url"))
+        case e: org.apache.http.client.ClientProtocolException => Map("error"-> ("invalid url"))
         case NonFatal(e) => Map("error"-> (e.getClass + " "+ e.getMessage))
       }
+
       contentType = formats("json")
-      var result = Map(
+      org.json4s.jackson.Serialization.write(Map(
         "url" -> url,
-        "request"  -> Await.result(reqFuture.map(req => Map(
-          "headers"   -> headers(req.getAllHeaders),
-          "payload"   -> json
+        "request" -> Await.result(reqFuture.map(req => Map(
+          "headers" -> _headers(req.getAllHeaders),
+          "payload" -> json
         )).recover(toErrorMap), 20 seconds),
         "responce" -> Await.result(resFuture.map(res => Map(
-            "status"  -> res.getStatusLine(),
-            "body"    -> EntityUtils.toString(res.getEntity()),
-            "headers" -> headers(res.getAllHeaders())
-        )).recover(toErrorMap), 20 seconds))
-      org.json4s.jackson.Serialization.write(result)
+          "status"  -> res.getStatusLine(),
+          "body"    -> EntityUtils.toString(res.getEntity()),
+          "headers" -> _headers(res.getAllHeaders())
+        )).recover(toErrorMap), 20 seconds)
+      ))
     }
   })
 
