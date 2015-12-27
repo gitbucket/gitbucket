@@ -12,9 +12,9 @@
     @menu("branches", repository){
       @helper.html.information(info)
         <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
-        <div class="box"><form name="branchProtection" onsubmit="submitForm(event)">
-          <div class="box-header">Branch protection for <b>@branch</b></div>
-          <div class="box-content">
+        <form name="branchProtection" onsubmit="submitForm(event)"><div class="panel panel-default">
+          <div class="panel-heading">Branch protection for <b>@branch</b></div>
+          <div class="panel-body">
 
             <div class="checkbox">
               <label class="strong"><input type="checkbox" name="enabled" onclick="update()" @check(protection.enabled)>Protect this branch</label>
@@ -32,9 +32,9 @@
                   <p class="help-block">Enforce required status checks for repository administrators.</p>
                 </div>
 
-                <div class="box">
-                  <div class="box-header">Status checks found in the last week for this repository</div>
-                  <div class="box-content">
+                <div class="panel panel-default">
+                  <div class="panel-heading">Status checks found in the last week for this repository</div>
+                  <div class="panel-body">
                     @knownContexts.map{ br =>
                       <div class="checkbox">
                         <label>
@@ -49,7 +49,7 @@
             </div>
             <input class="btn btn-success" type="submit" value="Save changes" />
           </div>
-        </form></div>
+        </div></form>
     }
   }
 }
