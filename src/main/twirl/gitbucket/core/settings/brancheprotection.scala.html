@@ -14,7 +14,7 @@
         <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
         <div class="box"><form name="branchProtection" onsubmit="submitForm(event)">
           <div class="box-header">Branch protection for <b>@branch</b></div>
-          <div class="box-content-bottom">
+          <div class="box-content">
 
             <div class="checkbox">
               <label class="strong"><input type="checkbox" name="enabled" onclick="update()" @check(protection.enabled)>Protect this branch</label>
@@ -34,12 +34,14 @@
 
                 <div class="box">
                   <div class="box-header">Status checks found in the last week for this repository</div>
-                  <div class="box-content-bottom">
+                  <div class="box-content">
                     @knownContexts.map{ br =>
-                      <label class="checkbox">
-                        <input type="checkbox" name="contexts" value="@br" onclick="update()" @check(protection.status.contexts.find(_==br))>
-                        <span>@br</span>
-                      </label>
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" name="contexts" value="@br" onclick="update()" @check(protection.status.contexts.find(_==br))>
+                          <span>@br</span>
+                        </label>
+                      </div>
                     }
                   </div>
                 </div>
