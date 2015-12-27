@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{Collaborator, Repository, Account, CommitState, CommitStatus}
+import gitbucket.core.model.{Collaborator, Repository, Account, CommitState, CommitStatus, ProtectedBranch, ProtectedBranchContext}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile.simple._
@@ -10,38 +10,40 @@ import org.eclipse.jgit.transport.ReceivePack
 import org.eclipse.jgit.lib.ObjectId
 
 
-object MockDB{
-  val data:scala.collection.mutable.Map[(String,String,String),(Boolean, Seq[String])] = scala.collection.mutable.Map(("root", "test58", "hoge2") -> (false, Seq.empty))
-}
-
 trait ProtectedBrancheService {
   import ProtectedBrancheService._
-  private def getProtectedBranchInfoOpt(owner: String, repository: String, branch: String)(implicit session: Session): Option[ProtectedBranchInfo] = {
-    // TODO: mock
-    MockDB.data.get((owner, repository, branch)).map{ case (includeAdministrators, contexts) =>
-      new ProtectedBranchInfo(owner, repository, true, contexts, includeAdministrators)
-    }
-  }
-  def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit session: Session): ProtectedBranchInfo = {
+  private def getProtectedBranchInfoOpt(owner: String, repository: String, branch: String)(implicit session: Session): Option[ProtectedBranchInfo] =
+    ProtectedBranches
+      .leftJoin(ProtectedBrancheContexts)
+      .on{ case (pb, c) => pb.byBranch(c.userName, c.repositoryName, c.branch) }
+      .map{ case (pb, c) => pb -> c.context.? }
+      .filter(_._1.byPrimaryKey(owner, repository, branch))
+      .list
+      .groupBy(_._1)
+      .map(p => p._1 -> p._2.flatMap(_._2))
+      .map{ case (t1, contexts) =>
+        new ProtectedBranchInfo(t1.userName, t1.repositoryName, true, contexts, t1.statusCheckAdmin)
+      }.headOption
+
+  def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit session: Session): ProtectedBranchInfo =
     getProtectedBranchInfoOpt(owner, repository, branch).getOrElse(ProtectedBranchInfo.disabled(owner, repository))
-  }
+
   def isProtectedBranchNeedStatusCheck(owner: String, repository: String, branch: String, user: String)(implicit session: Session): Boolean =
     getProtectedBranchInfo(owner, repository, branch).needStatusCheck(user)
-  def getProtectedBranchList(owner: String, repository: String)(implicit session: Session): List[String] = {
-    // TODO: mock
-    MockDB.data.filter{
-      case ((owner, repository, _), _) => true
-      case _ => false
-    }.map{ case ((_, _, branch), _) => branch }.toList
-  }
+
+  def getProtectedBranchList(owner: String, repository: String)(implicit session: Session): List[String] =
+    ProtectedBranches.filter(_.byRepository(owner, repository)).map(_.branch).list
+
   def enableBranchProtection(owner: String, repository: String, branch:String, includeAdministrators: Boolean, contexts: Seq[String])(implicit session: Session): Unit = {
-    // TODO: mock
-    MockDB.data.put((owner, repository, branch), includeAdministrators -> contexts)
+    disableBranchProtection(owner, repository, branch)
+    ProtectedBranches.insert(new ProtectedBranch(owner, repository, branch, includeAdministrators))
+    contexts.map{ context =>
+      ProtectedBrancheContexts.insert(new ProtectedBranchContext(owner, repository, branch, context))
+    }
   }
-  def disableBranchProtection(owner: String, repository: String, branch:String)(implicit session: Session): Unit = {
-    // TODO: mock
-    MockDB.data.remove((owner, repository, branch))
-  }
+
+  def disableBranchProtection(owner: String, repository: String, branch:String)(implicit session: Session): Unit =
+    ProtectedBranches.filter(_.byPrimaryKey(owner, repository, branch)).delete
 
   def getBranchProtectedReason(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
     val branch = command.getRefName.stripPrefix("refs/heads/")
