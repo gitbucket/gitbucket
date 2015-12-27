@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyKeys._
 import sbtassembly._
+import JettyPlugin.autoImport._
 
 object MyBuild extends Build {
   val Organization = "gitbucket"
@@ -69,6 +70,7 @@ object MyBuild extends Build {
     ),
     play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._",
     javacOptions in compile ++= Seq("-target", "7", "-source", "7"),
+    javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml",
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console"),
     javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test",
     testOptions in Test += Tests.Setup( () => new java.io.File("target/gitbucket_home_for_test").mkdir() ),
