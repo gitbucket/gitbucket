@@ -139,7 +139,6 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
         val pushedIds = scala.collection.mutable.Set[String]()
         commands.asScala.foreach { command =>
-          println(s"onPostReceive commandType: ${command.getType}, refName: ${command.getRefName}")
           logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
           implicit val apiContext = api.JsonFormat.Context(baseUrl)
           val refName = command.getRefName.split("/")

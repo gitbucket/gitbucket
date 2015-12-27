@@ -229,7 +229,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
     val protectedBranch = isProtectedBranchNeedStatusCheck(repository.owner, repository.name, branch, context.loginAccount.get.userName)
-    println(s"protectedBranch=${protectedBranch}")
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
