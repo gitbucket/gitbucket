@@ -58,7 +58,7 @@ object MyBuild extends Build {
       "org.apache.tika" % "tika-core" % "1.10",
       "com.typesafe.slick" %% "slick" % "2.1.0",
       "com.novell.ldap" % "jldap" % "2009-10-07",
-      "com.h2database" % "h2" % "1.4.180",
+      "com.h2database" % "h2" % "1.4.190",
       "ch.qos.logback" % "logback-classic" % "1.1.1",
       "org.eclipse.jetty" % "jetty-webapp" % "8.1.16.v20140903" % "provided",
       "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
