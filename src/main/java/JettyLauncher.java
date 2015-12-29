@@ -1,5 +1,4 @@
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
@@ -30,16 +29,16 @@ public class JettyLauncher {
             }
         }
 
-        Server server = new Server();
+        Server server = new Server(port);
 
-        SelectChannelConnector connector = new SelectChannelConnector();
-        if(host != null) {
-            connector.setHost(host);
-        }
-        connector.setMaxIdleTime(1000 * 60 * 60);
-        connector.setSoLingerTime(-1);
-        connector.setPort(port);
-        server.addConnector(connector);
+//        SelectChannelConnector connector = new SelectChannelConnector();
+//        if(host != null) {
+//            connector.setHost(host);
+//        }
+//        connector.setMaxIdleTime(1000 * 60 * 60);
+//        connector.setSoLingerTime(-1);
+//        connector.setPort(port);
+//        server.addConnector(connector);
 
         WebAppContext context = new WebAppContext();
 

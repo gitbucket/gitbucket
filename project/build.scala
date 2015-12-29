@@ -11,7 +11,7 @@ object MyBuild extends Build {
   val Name = "gitbucket"
   val Version = "3.10.0"
   val ScalaVersion = "2.11.6"
-  val ScalatraVersion = "2.3.1"
+  val ScalatraVersion = "2.4.0"
 
   lazy val project = Project (
     "gitbucket",
@@ -47,7 +47,7 @@ object MyBuild extends Build {
       "org.scalatra" %% "scalatra" % ScalatraVersion,
       "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
       "org.scalatra" %% "scalatra-json" % ScalatraVersion,
-      "org.json4s" %% "json4s-jackson" % "3.2.11",
+      "org.json4s" %% "json4s-jackson" % "3.3.0",
       "jp.sf.amateras" %% "scalatra-forms" % "0.2.0",
       "commons-io" % "commons-io" % "2.4",
       "io.github.gitbucket" % "markedj" % "1.0.6-SNAPSHOT",
@@ -60,8 +60,8 @@ object MyBuild extends Build {
       "com.novell.ldap" % "jldap" % "2009-10-07",
       "com.h2database" % "h2" % "1.4.190",
       "ch.qos.logback" % "logback-classic" % "1.1.1",
-      "org.eclipse.jetty" % "jetty-webapp" % "8.1.16.v20140903" % "provided",
-      "javax.servlet" % "javax.servlet-api" % "3.0.1" % "provided",
+      "org.eclipse.jetty" % "jetty-webapp" % "9.3.6.v20151106" % "provided",
+      "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
       "junit" % "junit" % "4.12" % "test",
       "com.mchange" % "c3p0" % "0.9.5.2",
       "com.typesafe" % "config" % "1.2.1",
