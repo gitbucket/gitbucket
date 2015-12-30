@@ -5,7 +5,7 @@ import gitbucket.core.service._
 import gitbucket.core.util.{StringUtil, ControlUtil, ReferrerAuthenticator, Implicits}
 import ControlUtil._
 import Implicits._
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 
 class SearchController extends SearchControllerBase
   with RepositoryService with AccountService with ActivityService with RepositorySearchService with IssuesService with ReferrerAuthenticator

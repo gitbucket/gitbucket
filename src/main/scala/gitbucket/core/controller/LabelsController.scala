@@ -4,7 +4,7 @@ import gitbucket.core.issues.labels.html
 import gitbucket.core.service.{RepositoryService, AccountService, IssuesService, LabelsService}
 import gitbucket.core.util.{ReferrerAuthenticator, CollaboratorsAuthenticator}
 import gitbucket.core.util.Implicits._
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.scalatra.Ok
 

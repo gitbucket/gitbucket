@@ -8,7 +8,7 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.json4s._
 import org.scalatra._

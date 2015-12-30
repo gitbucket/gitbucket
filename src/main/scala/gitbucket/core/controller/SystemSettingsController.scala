@@ -5,7 +5,7 @@ import gitbucket.core.service.{AccountService, SystemSettingsService}
 import gitbucket.core.util.AdminAuthenticator
 import gitbucket.core.ssh.SshServer
 import SystemSettingsService._
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with AdminAuthenticator

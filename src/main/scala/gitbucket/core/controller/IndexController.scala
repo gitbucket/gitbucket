@@ -8,7 +8,7 @@ import gitbucket.core.service.{RepositoryService, ActivityService, AccountServic
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator}
 
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 
 
 class IndexController extends IndexControllerBase 

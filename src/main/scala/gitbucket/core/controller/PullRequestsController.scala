@@ -16,7 +16,7 @@ import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
 import org.slf4j.LoggerFactory

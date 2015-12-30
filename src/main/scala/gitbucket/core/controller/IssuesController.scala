@@ -11,7 +11,7 @@ import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
 
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.scalatra.Ok
 
 

@@ -4,7 +4,7 @@ import gitbucket.core.issues.milestones.html
 import gitbucket.core.service.{RepositoryService, MilestonesService, AccountService}
 import gitbucket.core.util.{ReferrerAuthenticator, CollaboratorsAuthenticator}
 import gitbucket.core.util.Implicits._
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 
 class MilestonesController extends MilestonesControllerBase
   with MilestonesService with RepositoryService with AccountService

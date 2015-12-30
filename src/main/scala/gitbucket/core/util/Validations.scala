@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.scalatra.i18n.Messages
 
 trait Validations {
