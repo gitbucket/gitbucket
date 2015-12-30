@@ -303,7 +303,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
       getPathObjectId(git, path, revCommit).flatMap { objectId =>
         JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
-          contentType = "application/octet-stream"
+          contentType = FileUtil.getMimeType(path)
           response.setContentLength(loader.getSize.toInt)
           loader.copyTo(response.outputStream)
           ()
@@ -324,7 +324,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         if(raw){
           // Download (This route is left for backword compatibility)
           JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
-            contentType = "application/octet-stream"
+            contentType = FileUtil.getMimeType(path)
             response.setContentLength(loader.getSize.toInt)
             loader.copyTo(response.outputStream)
             ()
