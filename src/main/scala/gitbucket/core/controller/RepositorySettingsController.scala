@@ -137,7 +137,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
       val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
-      html.brancheprotection(repository, branch, protection, knownContexts, flash.get("info"))
+      html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }
   });
 

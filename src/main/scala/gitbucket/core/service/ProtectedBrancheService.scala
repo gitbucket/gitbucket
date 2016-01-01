@@ -14,7 +14,7 @@ trait ProtectedBrancheService {
   import ProtectedBrancheService._
   private def getProtectedBranchInfoOpt(owner: String, repository: String, branch: String)(implicit session: Session): Option[ProtectedBranchInfo] =
     ProtectedBranches
-      .leftJoin(ProtectedBrancheContexts)
+      .leftJoin(ProtectedBranchContexts)
       .on{ case (pb, c) => pb.byBranch(c.userName, c.repositoryName, c.branch) }
       .map{ case (pb, c) => pb -> c.context.? }
       .filter(_._1.byPrimaryKey(owner, repository, branch))
@@ -38,7 +38,7 @@ trait ProtectedBrancheService {
     disableBranchProtection(owner, repository, branch)
     ProtectedBranches.insert(new ProtectedBranch(owner, repository, branch, includeAdministrators))
     contexts.map{ context =>
-      ProtectedBrancheContexts.insert(new ProtectedBranchContext(owner, repository, branch, context))
+      ProtectedBranchContexts.insert(new ProtectedBranchContext(owner, repository, branch, context))
     }
   }
 
