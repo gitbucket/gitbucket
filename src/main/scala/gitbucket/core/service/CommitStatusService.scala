@@ -8,6 +8,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.joda.time.LocalDateTime
+import gitbucket.core.model.Profile.dateColumnType
 
 trait CommitStatusService {
   /** insert or update */
@@ -42,7 +43,6 @@ trait CommitStatusService {
   def getCommitStatues(userName: String, repositoryName: String, sha: String)(implicit s: Session) :List[CommitStatus] =
     byCommitStatues(userName, repositoryName, sha).list
 
-  implicit val date2SqlDate = MappedColumnType.base[java.util.Date, java.sql.Timestamp]( d => new java.sql.Timestamp(d.getTime), d => new java.util.Date(d.getTime) )
   def getRecentStatuesContexts(userName: String, repositoryName: String, time: java.util.Date)(implicit s: Session) :List[String] =
     CommitStatuses.filter(t => t.byRepository(userName, repositoryName)).filter(t => t.updatedDate > time.bind).groupBy(_.context).map(_._1).list
 
