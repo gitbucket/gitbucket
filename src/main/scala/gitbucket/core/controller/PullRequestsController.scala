@@ -177,19 +177,22 @@ trait PullRequestsControllerBase extends ControllerBase {
         }
         val hasMergePermission = hasWritePermission(owner, name, context.loginAccount)
         val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
-        val state = PullRequestService.MergeStatus(
+        val mergeStatus = PullRequestService.MergeStatus(
            hasConflict         = hasConflict,
            commitStatues       = getCommitStatues(owner, name, pullreq.commitIdTo),
            branchProtection    = branchProtection,
            branchIsOutOfDate   = JGitUtil.getShaByRef(owner, name, pullreq.branch) != Some(pullreq.commitIdFrom),
-           needStatusCheck     = branchProtection.needStatusCheck(context.loginAccount.map(_.userName)),
+           needStatusCheck     = context.loginAccount.map{ u =>
+                                   branchProtection.needStatusCheck(u.userName)
+                                 }.getOrElse(true),
            hasUpdatePermission = hasWritePermission(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount) &&
-                                     !getProtectedBranchInfo(pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
-                                         .needStatusCheck(context.loginAccount.map(_.userName)),
+                                   context.loginAccount.map{ u =>
+                                     !getProtectedBranchInfo(pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch).needStatusCheck(u.userName)
+                                   }.getOrElse(false),
            hasMergePermission  = hasMergePermission,
            commitIdTo          = pullreq.commitIdTo)
         html.mergeguide(
-          state,
+          mergeStatus,
           issue,
           pullreq,
           repository,

@@ -220,7 +220,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
-    val protectedBranch = isProtectedBranchNeedStatusCheck(repository.owner, repository.name, branch, context.loginAccount.get.userName)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
       None, JGitUtil.ContentInfo("text", None, Some("UTF-8")),
       protectedBranch)
@@ -228,7 +228,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
-    val protectedBranch = isProtectedBranchNeedStatusCheck(repository.owner, repository.name, branch, context.loginAccount.get.userName)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))

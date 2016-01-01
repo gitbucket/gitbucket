@@ -28,15 +28,12 @@ trait ProtectedBrancheService {
   def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit session: Session): ProtectedBranchInfo =
     getProtectedBranchInfoOpt(owner, repository, branch).getOrElse(ProtectedBranchInfo.disabled(owner, repository))
 
-  def isProtectedBranchNeedStatusCheck(owner: String, repository: String, branch: String, user: String)(implicit session: Session): Boolean =
-    getProtectedBranchInfo(owner, repository, branch).needStatusCheck(user)
-
   def getProtectedBranchList(owner: String, repository: String)(implicit session: Session): List[String] =
     ProtectedBranches.filter(_.byRepository(owner, repository)).map(_.branch).list
 
   def enableBranchProtection(owner: String, repository: String, branch:String, includeAdministrators: Boolean, contexts: Seq[String])(implicit session: Session): Unit = {
     disableBranchProtection(owner, repository, branch)
-    ProtectedBranches.insert(new ProtectedBranch(owner, repository, branch, includeAdministrators))
+    ProtectedBranches.insert(new ProtectedBranch(owner, repository, branch, includeAdministrators && contexts.nonEmpty))
     contexts.map{ context =>
       ProtectedBranchContexts.insert(new ProtectedBranchContext(owner, repository, branch, context))
     }
@@ -45,10 +42,10 @@ trait ProtectedBrancheService {
   def disableBranchProtection(owner: String, repository: String, branch:String)(implicit session: Session): Unit =
     ProtectedBranches.filter(_.byPrimaryKey(owner, repository, branch)).delete
 
-  def getBranchProtectedReason(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
+  def getBranchProtectedReason(owner: String, repository: String, isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
     val branch = command.getRefName.stripPrefix("refs/heads/")
     if(branch != command.getRefName){
-      getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack, command, pusher)
+      getProtectedBranchInfo(owner, repository, branch).getStopReason(isAllowNonFastForwards, command, pusher)
     }else{
       None
     }
@@ -79,10 +76,10 @@ object ProtectedBrancheService {
      * Can't be deleted
      * Can't have changes merged into them until required status checks pass
      */
-    def getStopReason(receivePack: ReceivePack, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
+    def getStopReason(isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
       if(enabled){
         command.getType() match {
-          case ReceiveCommand.Type.UPDATE|ReceiveCommand.Type.UPDATE_NONFASTFORWARD if receivePack.isAllowNonFastForwards =>
+          case ReceiveCommand.Type.UPDATE|ReceiveCommand.Type.UPDATE_NONFASTFORWARD if isAllowNonFastForwards =>
             Some("Cannot force-push to a protected branch")
           case ReceiveCommand.Type.UPDATE|ReceiveCommand.Type.UPDATE_NONFASTFORWARD if needStatusCheck(pusher) =>
             unSuccessedContexts(command.getNewId.name) match {
@@ -103,27 +100,13 @@ object ProtectedBrancheService {
     } else {
       contexts.toSet -- getCommitStatues(owner, repository, sha1).filter(_.state == CommitState.SUCCESS).map(_.context).toSet
     }
-    def needStatusCheck(pusher: Option[String])(implicit session: Session): Boolean = pusher.map(needStatusCheck).getOrElse(false)
-    def needStatusCheck(pusher: String)(implicit session: Session): Boolean =
-      if(!enabled || contexts.isEmpty){
-        false
-      }else if(includeAdministrators){
-        true
-      }else{
-        !isAdministrator(pusher)
-      }
-    def pendingCommitStatus(context: String) = CommitStatus(
-        commitStatusId = 0,
-        userName = owner,
-        repositoryName = repository,
-        commitId = "",
-        context = context,
-        state = CommitState.PENDING,
-        targetUrl = None,
-        description = Some("Waiting for status to be reported"),
-        creator = "",
-        registeredDate = new java.util.Date(),
-        updatedDate = new java.util.Date())
+    def needStatusCheck(pusher: String)(implicit session: Session): Boolean = pusher match {
+      case _ if !enabled              => false
+      case _ if contexts.isEmpty      => false
+      case _ if includeAdministrators => true
+      case p if isAdministrator(p)    => false
+      case _                          => true
+    }
   }
   object ProtectedBranchInfo{
     def disabled(owner: String, repository: String): ProtectedBranchInfo = ProtectedBranchInfo(owner, repository, false, Nil, false)
