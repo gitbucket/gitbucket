@@ -93,7 +93,7 @@
         @collaborators.map { collaborator =>
           <li>
             <a href="javascript:void(0);" class="assign" data-name="@collaborator">
-              @helper.html.checkicon(issue.exists(_.assignedUserName == collaborator))@avatar(collaborator, 20) @collaborator
+              @helper.html.checkicon(issue.exists(_.assignedUserName.exists(_ == collaborator)))@avatar(collaborator, 20) @collaborator
             </a>
           </li>
         }
@@ -164,7 +164,7 @@ $(function(){
     switchLabel($(this));
     var labelNames = Array();
     $('a.toggle-label').each(function(i, e){
-      if($(e).children('i').hasClass('icon-ok') == true){
+      if($(e).children('i').hasClass('octicon-check') == true){
         labelNames.push($(e).text().trim());
       }
     });
@@ -195,17 +195,17 @@ $(function(){
 
   function switchLabel($this){
     var i = $this.children('i');
-    if(i.hasClass('icon-ok')){
-      i.removeClass().addClass('icon-white');
+    if(i.hasClass('octicon-check')){
+      i.removeClass('octicon-check');
       return 'delete';
     } else {
-      i.removeClass().addClass('icon-ok');
+      i.addClass('octicon-check');
       return 'new';
     }
   }
 
   function displayMilestone(title, milestoneId, progress){
-    $('a.milestone i.icon-ok').attr('class', 'icon-white');
+    $('a.milestone i.octicon-check').removeClass('octicon-check');
     if(milestoneId == ''){
       $('#label-milestone').html($('<span class="muted small">').text('No milestone'));
       $('#milestone-progress-area').empty();
@@ -214,19 +214,19 @@ $(function(){
       if(progress){
         $('#milestone-progress-area').html(progress);
       }
-      $('a.milestone[data-id=' + milestoneId + '] i').attr('class', 'icon-ok');
+      $('a.milestone[data-id=' + milestoneId + '] i').addClass('octicon-check');
     }
   }
 
   function displayAssignee($this, userName){
-    $('a.assign i.icon-ok').attr('class', 'icon-white');
+    $('a.assign i.octicon-check').removeClass('octicon-check');
     if(userName == ''){
       $('#label-assigned').html($('<span class="muted small">').text('No one'));
     } else {
       $('#label-assigned').empty()
         .append($this.find('img.avatar-mini').clone(false)).append(' ')
         .append($('<a class="username strong small">').attr('href', '@context.path/' + userName).text(userName));
-      $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').attr('class', 'icon-ok');
+      $('a.assign[data-name=' + jqSelectorEscape(userName) + '] i').addClass('octicon-check');
     }
   }
 });

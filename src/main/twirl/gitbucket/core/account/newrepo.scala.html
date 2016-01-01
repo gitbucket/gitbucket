@@ -21,7 +21,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
             <ul class="dropdown-menu">
               <li><a href="javascript:void(0);" data-name="@loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span></a></li>
               @groupNames.map { groupName =>
-                <li><a href="javascript:void(0);" data-name="@groupName"><i class="icon-white"></i> <span>@avatar(groupName, 20) @groupName</span></a></li>
+                <li><a href="javascript:void(0);" data-name="@groupName"><i class="octicon"></i> <span>@avatar(groupName, 20) @groupName</span></a></li>
               }
             </ul>
             <input type="hidden" name="owner" id="owner" value="@loginAccount.get.userName"/>
@@ -77,8 +77,8 @@ $('#owner-dropdown a').click(function(){
   var userName = $(this).data('name');
   $('#owner').val(userName);
 
-  $('#owner-dropdown i').attr('class', 'icon-white');
-  $(this).find('i').attr('class', 'icon-ok');
+  $('#owner-dropdown i').attr('class', 'octicon');
+  $(this).find('i').attr('class', 'octicon octicon-check');
 
   $('#owner-dropdown span.strong').html($(this).find('span').html());
 });
