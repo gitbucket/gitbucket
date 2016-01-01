@@ -683,7 +683,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           headName, loginAccount.fullName, loginAccount.mailAddress, message)
 
         inserter.flush()
-        inserter.release()
+        inserter.close()
 
         // update refs
         val refUpdate = git.getRepository.updateRef(headName)

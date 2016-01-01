@@ -169,7 +169,7 @@ object PluginRegistry {
           ))
 
         } catch {
-          case e: Exception => {
+          case e: Throwable => {
             logger.error(s"Error during plugin initialization", e)
           }
         }

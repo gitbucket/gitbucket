@@ -164,7 +164,7 @@ object MergeService{
       val inserter = repository.newObjectInserter
       val mergeCommitId = inserter.insert(mergeCommit)
       inserter.flush()
-      inserter.release()
+      inserter.close()
       mergeCommitId
     }
     private def parseCommit(id:ObjectId) = using(new RevWalk( repository ))(_.parseCommit(id))

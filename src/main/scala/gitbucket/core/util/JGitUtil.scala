@@ -688,7 +688,7 @@ object JGitUtil {
 
     val newHeadId = inserter.insert(newCommit)
     inserter.flush()
-    inserter.release()
+    inserter.close()
 
     val refUpdate = git.getRepository.updateRef(ref)
     refUpdate.setNewObjectId(newHeadId)
