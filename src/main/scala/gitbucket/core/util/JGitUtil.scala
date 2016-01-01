@@ -110,6 +110,8 @@ object JGitUtil {
     newIsImage: Boolean,
     oldObjectId: Option[String],
     newObjectId: Option[String],
+    oldMode: String,
+    newMode: String,
     tooLarge: Boolean
   )
 
@@ -515,6 +517,8 @@ object JGitUtil {
                 newIsImage  = newIsImage,
                 oldObjectId = None,
                 newObjectId = Option(treeWalk.getObjectId(0)).map(_.name),
+                oldMode     = treeWalk.getFileMode(0).toString,
+                newMode     = treeWalk.getFileMode(0).toString,
                 tooLarge    = false
               )
             } else {
@@ -528,6 +532,8 @@ object JGitUtil {
                 newIsImage  = newIsImage,
                 oldObjectId = None,
                 newObjectId = Option(treeWalk.getObjectId(0)).map(_.name),
+                oldMode     = treeWalk.getFileMode(0).toString,
+                newMode     = treeWalk.getFileMode(0).toString,
                 tooLarge    = false
               )
             }))
@@ -562,6 +568,8 @@ object JGitUtil {
           newIsImage  = false,
           oldObjectId = Option(diff.getOldId).map(_.name),
           newObjectId = Option(diff.getNewId).map(_.name),
+          oldMode     = diff.getOldMode.toString,
+          newMode     = diff.getNewMode.toString,
           tooLarge    = true
         )
       } else {
@@ -578,6 +586,8 @@ object JGitUtil {
             newIsImage  = newIsImage,
             oldObjectId = Option(diff.getOldId).map(_.name),
             newObjectId = Option(diff.getNewId).map(_.name),
+            oldMode     = diff.getOldMode.toString,
+            newMode     = diff.getNewMode.toString,
             tooLarge    = false
           )
         } else {
@@ -591,6 +601,8 @@ object JGitUtil {
             newIsImage  = newIsImage,
             oldObjectId = Option(diff.getOldId).map(_.name),
             newObjectId = Option(diff.getNewId).map(_.name),
+            oldMode     = diff.getOldMode.toString,
+            newMode     = diff.getNewMode.toString,
             tooLarge    = false
           )
         }

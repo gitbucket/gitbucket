@@ -54,9 +54,8 @@
               <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
             </div>
           }
-          <span class="diffstat">
-            <i class="octicon octicon-diff-renamed"></i>
-          </span> @diff.oldPath -> @diff.newPath
+          <span class="diffstat"><i class="octicon octicon-diff-renamed"></i></span>
+          <span class="monospace">@diff.oldPath → @diff.newPath</span>
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @if(newCommitId.isDefined){
@@ -73,7 +72,7 @@
             <i class="octicon octicon-diff-modified"></i>
           }
           </span>
-          @diff.newPath
+          <span class="monospace">@diff.newPath</span>
         }
         @if(diff.changeType == ChangeType.DELETE){
           @if(oldCommitId.isDefined){
@@ -82,16 +81,22 @@
               <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-default btn-sm" title="View the whole file at version @oldCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
             </div>
           }
-          <span class="diffstat">
-            <i class="octicon octicon-diff-removed"></i>
-          </span> @diff.oldPath
+          <span class="diffstat"><i class="octicon octicon-diff-removed"></i></span>
+          <span class="monospace">@diff.oldPath</span>
+        }
+        @if(diff.oldMode != diff.newMode){
+          <span class="monospace">@diff.oldMode → @diff.newMode</span>
         }
       </th>
     </tr>
     <tr>
       <td style="padding: 0;">
         @if(diff.oldObjectId == diff.newObjectId){
-          <div class="diff-same">File renamed without changes</div>
+          @if(diff.oldPath != diff.newPath){
+            <div class="diff-same">File renamed without changes</div>
+          } else {
+            <div class="diff-same">File mode changed</div>
+          }
         } else {
           @if(diff.newContent != None || diff.oldContent != None){
             <div id="diffText-@i" class="diffText"></div>
