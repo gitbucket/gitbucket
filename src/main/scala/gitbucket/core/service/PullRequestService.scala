@@ -145,4 +145,29 @@ object PullRequestService {
 
   case class PullRequestCount(userName: String, count: Int)
 
+  case class MergeStatus(
+    hasConflict: Boolean,
+    commitStatues:List[CommitStatus],
+    branchProtection: ProtectedBrancheService.ProtectedBranchInfo,
+    branchIsOutOfDate: Boolean,
+    hasUpdatePermission: Boolean,
+    needStatusCheck: Boolean,
+    hasMergePermission: Boolean,
+    commitIdTo: String){
+
+    val statuses: List[CommitStatus] =
+      commitStatues ++ (branchProtection.contexts.toSet -- commitStatues.map(_.context).toSet).map(branchProtection.pendingCommitStatus(_))
+    val hasRequiredStatusProblem = needStatusCheck && branchProtection.contexts.exists(context => statuses.find(_.context == context).map(_.state) != Some(CommitState.SUCCESS))
+    val hasProblem = hasRequiredStatusProblem || hasConflict || (!statuses.isEmpty && CommitState.combine(statuses.map(_.state).toSet) != CommitState.SUCCESS)
+    val canUpdate = branchIsOutOfDate && !hasConflict
+    val canMerge = hasMergePermission && !hasConflict && !hasRequiredStatusProblem
+    lazy val commitStateSummary:(CommitState, String) = {
+      val stateMap = statuses.groupBy(_.state)
+      val state = CommitState.combine(stateMap.keySet)
+      val summary = stateMap.map{ case (keyState, states) => states.size+" "+keyState.name }.mkString(", ")
+      state -> summary
+    }
+    lazy val statusesAndRequired:List[(CommitStatus, Boolean)] = statuses.map{ s => s -> branchProtection.contexts.exists(_==s.context) }
+    lazy val isAllSuccess = commitStateSummary._1==CommitState.SUCCESS
+  }
 }
