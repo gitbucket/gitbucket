@@ -641,7 +641,7 @@ object JGitUtil {
 
   def initRepository(dir: java.io.File): Unit =
     using(new RepositoryBuilder().setGitDir(dir).setBare.build){ repository =>
-      repository.create
+      repository.create(true)
       setReceivePack(repository)
     }
 
