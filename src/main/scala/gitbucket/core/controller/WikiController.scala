@@ -38,7 +38,9 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki")(referrersOnly { repository =>
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
       html.page("Home", page, getWikiPageList(repository.owner, repository.name),
-        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
+        getWikiPage(repository.owner, repository.name, "_Sidebar"),
+        getWikiPage(repository.owner, repository.name, "_Footer"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
@@ -47,7 +49,9 @@ trait WikiControllerBase extends ControllerBase {
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       html.page(pageName, page, getWikiPageList(repository.owner, repository.name),
-        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
+        getWikiPage(repository.owner, repository.name, "_Sidebar"),
+        getWikiPage(repository.owner, repository.name, "_Footer"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   
@@ -124,7 +128,11 @@ trait WikiControllerBase extends ControllerBase {
         updateLastActivityDate(repository.owner, repository.name)
         recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
       }
-      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+      if(notReservedPageName(form.pageName)) {
+        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+      } else {
+        redirect(s"/${repository.owner}/${repository.name}/wiki")
+      }
     }
   })
   
@@ -140,7 +148,11 @@ trait WikiControllerBase extends ControllerBase {
       updateLastActivityDate(repository.owner, repository.name)
       recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
-      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+      if(notReservedPageName(form.pageName)) {
+        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+      } else {
+        redirect(s"/${repository.owner}/${repository.name}/wiki")
+      }
     }
   })
   
@@ -186,12 +198,14 @@ trait WikiControllerBase extends ControllerBase {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if(value.exists("\\/:*?\"<>|".contains(_))){
         Some(s"${name} contains invalid character.")
-      } else if(value.startsWith("_") || value.startsWith("-")){
+      } else if(notReservedPageName(value) && (value.startsWith("_") || value.startsWith("-"))){
         Some(s"${name} starts with invalid character.")
       } else {
         None
       }
   }
+
+  private def notReservedPageName(value: String) = ! (Array[String]("_Sidebar","_Footer") contains value)
 
   private def conflictForNew: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
