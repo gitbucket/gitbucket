@@ -174,8 +174,8 @@
 $(function(){
   $('a.origin-owner, a.forked-owner, a.origin-branch, a.forked-branch').click(function(){
     var e = $(this);
-    e.parents('ul').find('i').attr('class', 'icon-white');
-    e.find('i').attr('class', 'octicon-check');
+    e.parents('ul').find('i').attr('class', 'octicon');
+    e.find('i').addClass('octicon-check');
     e.parents('div.btn-group').find('button span.strong').text(e.text());
 
     @if(members.isEmpty){
