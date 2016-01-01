@@ -9,7 +9,7 @@ import JettyPlugin.autoImport._
 object MyBuild extends Build {
   val Organization = "gitbucket"
   val Name = "gitbucket"
-  val Version = "3.10.0"
+  val Version = "3.11.0-SNAPSHOT"
   val ScalaVersion = "2.11.6"
   val ScalatraVersion = "2.4.0"
 
