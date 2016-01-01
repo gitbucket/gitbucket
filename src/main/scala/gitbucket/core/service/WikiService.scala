@@ -93,7 +93,7 @@ trait WikiService {
   def getWikiPageList(owner: String, repository: String): List[String] = {
     using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
       JGitUtil.getFileList(git, "master", ".")
-        .filter(_.name.endsWith(".md"))
+        .filter(_.name.endsWith(".md")).filterNot(_.name.startsWith("_"))
         .map(_.name.stripSuffix(".md"))
         .sortBy(x => x)
     }

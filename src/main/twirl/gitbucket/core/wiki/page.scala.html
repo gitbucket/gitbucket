@@ -2,7 +2,9 @@
   page: gitbucket.core.service.WikiService.WikiPageInfo,
   pages: List[String],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasWritePermission: Boolean,
+  sidebar: Option[gitbucket.core.service.WikiService.WikiPageInfo],
+  footer: Option[gitbucket.core.service.WikiService.WikiPageInfo])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.service.WikiService._
@@ -28,9 +30,13 @@
       @defining(15){ max =>
         <div class="panel panel-default">
           <div class="panel-heading strong">
-            Pages <span class="badge">@pages.length</span>
+            <a id="show-pages-index" href="javascript:void(0);">
+              <span id="triangle-down" class="octicon octicon-triangle-down"></span>
+              <span id="triangle-right" class="octicon octicon-triangle-right" style="display: none;"></span>
+              <span class="strong">Pages</span> <span class="badge">@pages.length</span>
+            </a>
           </div>
-          <ul class="list-group list-group-flush">
+          <ul id="pages-index" class="list-group list-group-flush">
             @pages.zipWithIndex.map { case (page, i) =>
               <li class="list-group-item page-link" style="border: none; @if(i > max - 1){display:none;}">
                 <a href="@url(repository)/wiki/@urlEncode(page)" class="strong">@page</a>
@@ -43,6 +49,20 @@
             }
           </ul>
         </div>
+      }
+      @sidebar.map { sidebarPage =>
+        <div class="wiki-sidebar">
+          @if(hasWritePermission){
+            <a href="@url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
+          }
+          @markdown(sidebarPage.content, repository, true, false, false, false, pages)
+        </div>
+      }.getOrElse{
+        @if(hasWritePermission){
+          <a class="button-link" href="@url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;">
+            <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom sidebar</div>
+          </a>
+        }
       }
       <div class="small">
         <strong>Clone this wiki locally</strong>
@@ -69,6 +89,20 @@
           pages = pages
         )
       </div>
+      @footer.map { footerPage =>
+        <div class="wiki-sidebar wiki-footer">
+          @if(hasWritePermission){
+            <a href="@url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
+          }
+          @markdown(footerPage.content, repository, true, false, false, false, pages)
+        </div>
+      }.getOrElse{
+        @if(hasWritePermission){
+          <a class="button-link" href="@url(repository)/wiki/_Footer/_edit" style="text-decoration: none;">
+            <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom footer</div>
+          </a>
+        }
+      }
     </div>
   }
 }
@@ -78,6 +112,24 @@ $(function(){
     $('div.page-link').show();
     $(e.target).parents('div.show-more').remove();
   });
+
+  $('#show-pages-index').click(function(e){
+    if($('#pages-index').is(":visible")){
+      $('#triangle-down').hide();
+      $('#triangle-right').show();
+      $('#pages-index').hide();
+    } else {
+      $('#triangle-right').hide();
+      $('#triangle-down').show();
+      $('#pages-index').show();
+    }
+  });
+
+  @sidebar.map { sidebarPage =>
+    $('#pages-index').hide();
+    $('#triangle-down').hide();
+    $('#triangle-right').show();
+  }
 
   @if(settings.ssh && loginAccount.isDefined){
     $('#repository-url-http').click(function(){

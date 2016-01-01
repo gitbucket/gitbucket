@@ -613,6 +613,11 @@ ul.nav-stacked.side-menu li {
   margin-bottom: -3px;
 }
 
+a#show-pages-index {
+  color: #333;
+  text-decoration: none;
+}
+
 /*
 ul.nav-stacked.side-menu li span.header {
   border-top-right-radius: 3px;
@@ -1330,6 +1335,55 @@ h1.wiki-title {
 a.absent {
   color: #c00;
 }
+
+/*
+div.wiki-index-header {
+  background-color: #f5f5f5;
+  color: #333333;
+  margin: 0;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border: 1px solid #d8d8d8;
+  padding: 8px 8px 8px 8px;
+}
+*/
+
+div.wiki-sidebar {
+  background-color: white;
+  border: 1px solid #d8d8d8;
+  padding: 8px 10px 0px 10px;
+  border-radius: 3px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+div.wiki-sidebar-dotted {
+  background-color: white;
+  border: 1px dashed #ddd;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  border-radius: 3px;
+  font-size: 16px;
+}
+
+div.wiki-footer {
+  margin-top: 50px;
+  background-color: #f5f5f5;
+  color: gray;
+}
+
+/*
+div.wiki-index-content {
+  background-color: white;
+  border: 1px solid #d8d8d8;
+  padding: 0px;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  margin-bottom: 20px;
+  border-top: none;
+}
+*/
 
 /****************************************************************************/
 /* Commit */
