@@ -124,7 +124,7 @@
               @labels.map { label =>
                 <li>
                   <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
-                    <i class="icon-white"></i>
+                    <i class="octicon"></i>
                     <span class="label" style="background-color: #@label.color;">&nbsp;</span>
                     @label.labelName
                   </a>
@@ -140,7 +140,7 @@
             @helper.html.dropdown("Assignee", flat = true) {
               <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
               @collaborators.map { collaborator =>
-                <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="icon-white"></i>@avatar(collaborator, 20) @collaborator</a></li>
+                <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@avatar(collaborator, 20) @collaborator</a></li>
               }
             }
           </div>
