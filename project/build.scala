@@ -47,6 +47,7 @@ object MyBuild extends Build {
       "org.scalatra" %% "scalatra" % ScalatraVersion,
       "org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test",
       "org.scalatra" %% "scalatra-json" % ScalatraVersion,
+      "org.specs2" %% "specs2-junit" % "3.6.6" % "test",
       "org.json4s" %% "json4s-jackson" % "3.3.0",
       "io.github.gitbucket" %% "scalatra-forms" % "1.0.0",
       "commons-io" % "commons-io" % "2.4",
