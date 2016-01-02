@@ -7,7 +7,7 @@
   isBlame: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+@html.main(s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
     <div class="head">
       <div class="pull-right hide-if-blame"><div class="btn-group">
