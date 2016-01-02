@@ -45,73 +45,73 @@ class MergeServiceSpec extends Specification {
       conflicted  mustEqual false
     }
     "checkConflict true if not conflicted, and create cache" in {
-      val repo1Dir = initRepository("user1","repo1")
-      using(Git.open(repo1Dir)){ git =>
+      val repo2Dir = initRepository("user1","repo2")
+      using(Git.open(repo2Dir)){ git =>
         createConfrict(git)
       }
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual None
-      val conflicted = service.checkConflict("user1", "repo1", branch, issueId)
+      service.checkConflictCache("user1", "repo2", branch, issueId) mustEqual None
+      val conflicted = service.checkConflict("user1", "repo2", branch, issueId)
       conflicted  mustEqual true
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual Some(true)
+      service.checkConflictCache("user1", "repo2", branch, issueId) mustEqual Some(true)
     }
   }
   "checkConflictCache" should {
     "merged cache invalid if origin branch moved" in {
-      val repo1Dir = initRepository("user1","repo1")
-      service.checkConflict("user1", "repo1", branch, issueId) mustEqual false
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual Some(false)
-      using(Git.open(repo1Dir)){ git =>
+      val repo3Dir = initRepository("user1","repo3")
+      service.checkConflict("user1", "repo3", branch, issueId) mustEqual false
+      service.checkConflictCache("user1", "repo3", branch, issueId) mustEqual Some(false)
+      using(Git.open(repo3Dir)){ git =>
         createFile(git, s"refs/heads/${branch}", "test.txt", "hoge2" )
       }
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual None
+      service.checkConflictCache("user1", "repo3", branch, issueId) mustEqual None
     }
     "merged cache invalid if request branch moved" in {
-      val repo1Dir = initRepository("user1","repo1")
-      service.checkConflict("user1", "repo1", branch, issueId) mustEqual false
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual Some(false)
-      using(Git.open(repo1Dir)){ git =>
+      val repo4Dir = initRepository("user1","repo4")
+      service.checkConflict("user1", "repo4", branch, issueId) mustEqual false
+      service.checkConflictCache("user1", "repo4", branch, issueId) mustEqual Some(false)
+      using(Git.open(repo4Dir)){ git =>
         createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge4" )
       }
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual None
+      service.checkConflictCache("user1", "repo4", branch, issueId) mustEqual None
     }
     "merged cache invalid if origin branch moved" in {
-      val repo1Dir = initRepository("user1","repo1")
-      service.checkConflict("user1", "repo1", branch, issueId) mustEqual false
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual Some(false)
-      using(Git.open(repo1Dir)){ git =>
+      val repo5Dir = initRepository("user1","repo5")
+      service.checkConflict("user1", "repo5", branch, issueId) mustEqual false
+      service.checkConflictCache("user1", "repo5", branch, issueId) mustEqual Some(false)
+      using(Git.open(repo5Dir)){ git =>
         createFile(git, s"refs/heads/${branch}", "test.txt", "hoge2" )
       }
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual None
+      service.checkConflictCache("user1", "repo5", branch, issueId) mustEqual None
     }
     "conflicted cache invalid if request branch moved" in {
-      val repo1Dir = initRepository("user1","repo1")
-      using(Git.open(repo1Dir)){ git =>
+      val repo6Dir = initRepository("user1","repo6")
+      using(Git.open(repo6Dir)){ git =>
         createConfrict(git)
       }
-      service.checkConflict("user1", "repo1", branch, issueId) mustEqual true
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual Some(true)
-      using(Git.open(repo1Dir)){ git =>
+      service.checkConflict("user1", "repo6", branch, issueId) mustEqual true
+      service.checkConflictCache("user1", "repo6", branch, issueId) mustEqual Some(true)
+      using(Git.open(repo6Dir)){ git =>
         createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge4" )
       }
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual None
+      service.checkConflictCache("user1", "repo6", branch, issueId) mustEqual None
     }
     "conflicted cache invalid if origin branch moved" in {
-      val repo1Dir = initRepository("user1","repo1")
-      using(Git.open(repo1Dir)){ git =>
+      val repo7Dir = initRepository("user1","repo7")
+      using(Git.open(repo7Dir)){ git =>
         createConfrict(git)
       }
-      service.checkConflict("user1", "repo1", branch, issueId) mustEqual true
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual Some(true)
-      using(Git.open(repo1Dir)){ git =>
+      service.checkConflict("user1", "repo7", branch, issueId) mustEqual true
+      service.checkConflictCache("user1", "repo7", branch, issueId) mustEqual Some(true)
+      using(Git.open(repo7Dir)){ git =>
         createFile(git, s"refs/heads/${branch}", "test.txt", "hoge4" )
       }
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual None
+      service.checkConflictCache("user1", "repo7", branch, issueId) mustEqual None
     }
   }
   "mergePullRequest" should {
     "can merge" in {
-      val repo1Dir = initRepository("user1","repo1")
-      using(Git.open(repo1Dir)){ git =>
+      val repo8Dir = initRepository("user1","repo8")
+      using(Git.open(repo8Dir)){ git =>
         createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge2" )
         val committer = new PersonIdent("dummy2", "dummy2@example.com")
         getFile(git, branch, "test.txt").content.get mustEqual "hoge"
