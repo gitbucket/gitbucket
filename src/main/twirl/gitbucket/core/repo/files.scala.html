@@ -13,7 +13,7 @@
 @import gitbucket.core.view.helpers._
 @html.main(
   if(pathList.isEmpty){
-    if(branch == "master"){
+    if(branch == repository.repository.defaultBranch){
       s"${repository.owner}/${repository.name}"
     } else {
       s"${repository.owner}/${repository.name} at ${encodeRefName(branch)}"
