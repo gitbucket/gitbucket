@@ -606,7 +606,7 @@ var imageDiff ={
       .css({marginTop:size.height-5});
     var bar = $('<hr class="diff-silde-bar">').css({top:size.height+size.paddingTop});
     var div = $('<div class="diff-image-stack">')
-      .css({height:size.height+size.paddingTop, paddingLeft:size.padding})
+      .css({height:size.height+size.paddingTop*2, paddingLeft:size.padding})
       .append(diffOld, diffNew, bar, handle);
     return {
       neo:diffNew,
