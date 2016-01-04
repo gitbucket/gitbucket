@@ -11,7 +11,16 @@
   error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+@html.main(
+  if(pathList.isEmpty){
+    if(branch == repository.repository.defaultBranch){
+      s"${repository.owner}/${repository.name}"
+    } else {
+      s"${repository.owner}/${repository.name} at ${encodeRefName(branch)}"
+    }
+  } else {
+    s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}"
+  }, Some(repository)) {
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
       <div class="pull-right"><div class="btn-group">
