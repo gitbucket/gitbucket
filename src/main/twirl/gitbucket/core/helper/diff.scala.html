@@ -104,7 +104,7 @@
             <textarea id="oldText-@i" style="display: none;" data-file-name="@diff.newPath">@diff.oldContent.getOrElse("")</textarea>
           } else {
             @if(diff.newIsImage || diff.oldIsImage){
-              <div class="diff-image-render diff2up">@diff.oldIsImage @diff.newIsImage
+              <div class="diff-image-render diff2up">
               @if(oldCommitId.isDefined && diff.oldIsImage){
                 <div class="diff-image-frame diff-old"><img src="@url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
               } else {
