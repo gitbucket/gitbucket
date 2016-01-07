@@ -837,7 +837,6 @@ table.table-file-list .content-name .content-name-truncate {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
 }
 
 table.table-file-list .commit-message {
