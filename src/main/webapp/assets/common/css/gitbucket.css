@@ -832,9 +832,12 @@ table.table-file-list .content-name {
 }
 
 table.table-file-list .content-name .content-name-truncate {
+  display: inline-block;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
 }
 
 table.table-file-list .commit-message {
