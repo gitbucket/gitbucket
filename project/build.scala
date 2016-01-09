@@ -52,6 +52,7 @@ object MyBuild extends Build {
       "io.github.gitbucket" %% "scalatra-forms" % "1.0.0",
       "commons-io" % "commons-io" % "2.4",
       "io.github.gitbucket" % "markedj" % "1.0.6-SNAPSHOT",
+      "io.github.gitbucket" % "solidbase" % "1.0.0-SNAPSHOT",
       "org.apache.commons" % "commons-compress" % "1.10",
       "org.apache.commons" % "commons-email" % "1.4",
       "org.apache.httpcomponents" % "httpclient" % "4.5.1",

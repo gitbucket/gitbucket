@@ -4,7 +4,7 @@ import javax.servlet.ServletContext
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.Version
+import io.github.gitbucket.solidbase.model.Version
 
 /**
  * Trait for define plugin interface.

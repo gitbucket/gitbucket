@@ -2,15 +2,15 @@ package gitbucket.core.servlet
 
 import akka.event.Logging
 import com.typesafe.config.ConfigFactory
+import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
-import org.apache.commons.io.FileUtils
+import io.github.gitbucket.solidbase.Solidbase
+import liquibase.database.core.H2Database
 import javax.servlet.{ServletContextListener, ServletContextEvent}
 import org.slf4j.LoggerFactory
-import gitbucket.core.util.Versions
 import akka.actor.{Actor, Props, ActorSystem}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
-import AutoUpdate._
 
 /**
  * Initialize GitBucket system.
@@ -31,13 +31,12 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       val conn = session.conn
 
       // Migration
-      logger.debug("Start schema update")
-      Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
-        FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
-      }
+      logger.info("Start schema update")
+      val solidbase = new Solidbase()
+      solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, new H2Database(), GitBucketCoreModule)
 
       // Load plugins
-      logger.debug("Initialize plugins")
+      logger.info("Initialize plugins")
       PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
     }
 

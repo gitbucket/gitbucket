@@ -1,6 +1,5 @@
 package gitbucket.core.service
 
-import gitbucket.core.servlet.AutoUpdate
 import gitbucket.core.util.{ControlUtil, DatabaseConfig, FileUtil}
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.model._
