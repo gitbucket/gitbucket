@@ -6,6 +6,7 @@ import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
 import org.apache.commons.io.FileUtils
 import javax.servlet.{ServletContextListener, ServletContextEvent}
+import org.h2.tools.Server
 import org.slf4j.LoggerFactory
 import gitbucket.core.util.Versions
 import akka.actor.{Actor, Props, ActorSystem}
@@ -19,13 +20,16 @@ import AutoUpdate._
 class InitializeListener extends ServletContextListener with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
+  private var server: Server = null
 
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
     if(dataDir != null){
       System.setProperty("gitbucket.home", dataDir)
     }
-    org.h2.Driver.load()
+    //org.h2.Driver.load()
+    // Start H2 database
+    server = Server.createTcpServer().start()
 
     Database() withTransaction { session =>
       val conn = session.conn
@@ -65,6 +69,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     PluginRegistry.shutdown(event.getServletContext, loadSystemSettings())
     // Close datasource
     Database.closeDataSource()
+    server.stop()
   }
 
 }

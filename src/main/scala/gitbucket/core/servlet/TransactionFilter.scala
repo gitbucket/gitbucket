@@ -2,6 +2,7 @@ package gitbucket.core.servlet
 
 import javax.servlet._
 import javax.servlet.http.HttpServletRequest
+
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import gitbucket.core.util.DatabaseConfig
 import org.scalatra.ScalatraBase
@@ -58,6 +59,12 @@ object Database {
 
   private val db: SlickDatabase = {
     SlickDatabase.forDataSource(dataSource)
+//    SlickDatabase.forURL(
+//      url = DatabaseConfig.url,
+//      user = DatabaseConfig.user,
+//      password = DatabaseConfig.password,
+//      driver = DatabaseConfig.driver
+//    )
   }
 
   def apply(): SlickDatabase = db
