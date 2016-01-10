@@ -29,7 +29,13 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     }
     //org.h2.Driver.load()
     // Start H2 database
-    server = Server.createTcpServer().start()
+    server = System.getProperty("h2.port") match {
+      case null => null
+      case port => {
+        logger.info("Start H2 server with port: " + port)
+        Server.createTcpServer("-tcpPort", port).start()
+      }
+    }
 
     Database() withTransaction { session =>
       val conn = session.conn
@@ -66,10 +72,17 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
   override def contextDestroyed(event: ServletContextEvent): Unit = {
     // Shutdown plugins
+    logger.info("Shutdown all plugins")
     PluginRegistry.shutdown(event.getServletContext, loadSystemSettings())
     // Close datasource
+    logger.info("Close data source")
     Database.closeDataSource()
-    server.stop()
+    // Shutdown H2 server
+    if(server != null){
+      logger.info("Shutdown H2 server")
+      server.stop()
+    }
+    logger.info("All shutdown completed.")
   }
 
 }

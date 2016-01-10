@@ -53,7 +53,7 @@ object Database {
     ds.setJdbcUrl(DatabaseConfig.url)
     ds.setUser(DatabaseConfig.user)
     ds.setPassword(DatabaseConfig.password)
-    logger.debug("load database connection pool")
+    logger.info("setup database connection pool: " + DatabaseConfig.url)
     ds
   }
 

@@ -38,8 +38,11 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 - --prefix=[CONTEXTPATH]
 - --host=[HOSTNAME]
 - --gitbucket.home=[DATA_DIR]
+- --h2.port=[NUMBER] (Experimental)
 
-To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
+**Note:** In default, GitBucket uses embedded H2 database. It's also possible to use server mode by specifying `--h2.port` option. It might improve performance issue about database access. However this option is experimental, so it will be removed in the future version.
+
+To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in `HOME/.gitbucket/`. So if you want to back up GitBucket data, copy this directory to the other disk.
 
 For Installation on Windows Server with IIS see [this wiki page](https://github.com/gitbucket/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
 
