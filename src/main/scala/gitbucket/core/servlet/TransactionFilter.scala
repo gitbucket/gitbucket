@@ -53,6 +53,10 @@ object Database {
     ds.setJdbcUrl(DatabaseConfig.url)
     ds.setUser(DatabaseConfig.user)
     ds.setPassword(DatabaseConfig.password)
+    ds.setMaxIdleTime(30)
+    ds.setMaxIdleTimeExcessConnections(20)
+    ds.setTestConnectionOnCheckout(true)
+    ds.setPreferredTestQuery("SELECT 1;")
     logger.info("setup database connection pool: " + DatabaseConfig.url)
     ds
   }
