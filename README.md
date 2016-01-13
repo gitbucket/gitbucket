@@ -19,7 +19,7 @@ The current version of GitBucket provides a basic features below:
 - Gravatar support
 - Plug-in system
 
-If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/gitbucket/gitbucket/wiki).
+If you want to try the development version of GitBucket, see [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
 Installation
 --------
@@ -41,7 +41,7 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 
 To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
-For Installation on Mac or Windows Server with IIS see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
+About installation on Mac or Windows Server (with IIS), configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
 Plug-ins
 --------
