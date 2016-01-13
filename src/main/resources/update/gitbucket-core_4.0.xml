@@ -187,7 +187,7 @@
 
   <addPrimaryKey constraintName="IDX_ACCESS_TOKEN_PK" tableName="ACCESS_TOKEN" columnNames="ACCESS_TOKEN_ID"/>
   <addUniqueConstraint constraintName="IDX_ACCESS_TOKEN_TOKEN_HASH" tableName="ACCESS_TOKEN" columnNames="TOKEN_HASH"/>
-  <addForeignKeyConstraint constraintName="IDX_ACCESS_TOKEN_FK0" baseTableName="ACCESS_TOKEN" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ACCESS_TOKEN_FK0" baseTableName="ACCESS_TOKEN" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
 
   <addPrimaryKey constraintName="IDX_ACCOUNT_PK" tableName="ACCOUNT" columnNames="USER_NAME"/>
   <addUniqueConstraint constraintName="IDX_ACCOUNT_1" tableName="ACCOUNT" columnNames="MAIL_ADDRESS"/>
@@ -205,9 +205,9 @@
 
   <addPrimaryKey constraintName="IDX_COMMIT_STATUS_PK" tableName="COMMIT_STATUS" columnNames="COMMIT_STATUS_ID"/>
   <addUniqueConstraint constraintName="IDX_COMMIT_STATUS_1" tableName="COMMIT_STATUS" columnNames="USER_NAME, REPOSITORY_NAME, COMMIT_ID, CONTEXT"/>
-  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK3" baseTableName="COMMIT_STATUS" baseColumnNames="CREATOR" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK2" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
-  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK1" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK3" baseTableName="COMMIT_STATUS" baseColumnNames="CREATOR" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK2" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK1" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
 
   <addPrimaryKey constraintName="IDX_GROUP_MEMBER_PK" tableName="GROUP_MEMBER" columnNames="GROUP_NAME, USER_NAME"/>
   <addForeignKeyConstraint constraintName="IDX_GROUP_MEMBER_FK1" baseTableName="GROUP_MEMBER" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
@@ -248,7 +248,7 @@
   <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
 
   <addPrimaryKey constraintName="IDX_WEB_HOOK_EVENT_PK" tableName="WEB_HOOK_EVENT" columnNames="USER_NAME, REPOSITORY_NAME, URL, EVENT"/>
-  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
 
   <insert tableName="ACCOUNT">
     <column name="USER_NAME" value="root"/>
