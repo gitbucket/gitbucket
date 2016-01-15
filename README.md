@@ -40,7 +40,7 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 - --gitbucket.home=[DATA_DIR]
 - --h2.port=[NUMBER] (Experimental)
 
-**Note:** In default, GitBucket uses embedded H2 database. It's also possible to use server mode by specifying `--h2.port` option. It might improve performance issue about database access. However this option is experimental, so it will be removed in the future version.
+**Note:** In default, GitBucket uses embedded H2 database. It's also possible to use server mode by specifying `--h2.port` option. It might improve performance issue about database access. However this option is experimental, so it might be removed in the future version.
 
 To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in `HOME/.gitbucket/`. So if you want to back up GitBucket data, copy this directory to the other disk.
 
