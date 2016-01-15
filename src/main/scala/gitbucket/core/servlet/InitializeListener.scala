@@ -1,13 +1,19 @@
 package gitbucket.core.servlet
 
+import java.io.File
+
 import akka.event.Logging
 import com.typesafe.config.ConfigFactory
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.JDBCUtil._
 import io.github.gitbucket.solidbase.Solidbase
+import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import liquibase.database.core.H2Database
 import javax.servlet.{ServletContextListener, ServletContextEvent}
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import akka.actor.{Actor, Props, ActorSystem}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
@@ -30,7 +36,37 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     Database() withTransaction { session =>
       val conn = session.conn
 
-      // Migration
+      // Check version
+      val versionFile = new File(GitBucketHome, "version")
+
+      if(versionFile.exists()){
+        val version = FileUtils.readFileToString(versionFile, "UTF-8")
+        if(version == "3.10"){
+          // Initialization for GitBucket 3.10
+          logger.info("Migration to GitBucket 4.x start")
+
+          // Backup current data
+          FileUtils.copyFile(new File(GitBucketHome, "data.mv.db"), new File(GitBucketHome, "data.mv.db_3.10"))
+          FileUtils.copyFile(new File(GitBucketHome, "data.trace.db"), new File(GitBucketHome, "data.trace.db_3.10"))
+
+          // Change form
+          val manager = new JDBCVersionManager(conn)
+          manager.initialize()
+          manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0")
+          conn.select("SELECT PLUGIN_ID, VERSION FROM PLUGIN"){ rs =>
+            manager.updateVersion(rs.getString("PLUGIN_ID"), rs.getString("VERSION"))
+          }
+          conn.update("DROP TABLE PLUGIN")
+          versionFile.delete()
+
+          logger.info("Migration to GitBucket 4.x completed")
+
+        } else {
+          throw new Exception("GitBucket can't migrate from this version. Please update to 3.10 at first.")
+        }
+      }
+
+      // Run normal migration
       logger.info("Start schema update")
       val solidbase = new Solidbase()
       solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, new H2Database(), GitBucketCoreModule)
