@@ -1724,27 +1724,32 @@ div.markdown-body h1 {
 div.markdown-body h2 {
   border-bottom: 1px solid #eee;
   font-size: 2em;
+  font-weight: bold;
   line-height: 1.7;
 }
 
 div.markdown-body h3 {
   font-size: 1.5em;
+  font-weight: bold;
   line-height: 1.7;
 }
 
 div.markdown-body h4 {
   font-size: 1.2em;
+  font-weight: bold;
   line-height: 1.7;
 }
 
 div.markdown-body h5 {
   font-size: 1em;
+  font-weight: bold;
   line-height: 1.7;
 }
 
 div.markdown-body h6 {
   color:#777;
   font-size: 1em;
+  font-weight: bold;
   line-height: 1.7;
 }
 
