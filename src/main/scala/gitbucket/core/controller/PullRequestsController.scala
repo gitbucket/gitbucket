@@ -27,13 +27,13 @@ import scala.collection.JavaConverters._
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
-  with CommitStatusService with MergeService with ProtectedBrancheService
+  with CommitStatusService with MergeService with ProtectedBranchService
 
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
     with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
-    with CommitStatusService with MergeService with ProtectedBrancheService =>
+    with CommitStatusService with MergeService with ProtectedBranchService =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 

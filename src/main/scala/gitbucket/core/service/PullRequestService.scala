@@ -148,7 +148,7 @@ object PullRequestService {
   case class MergeStatus(
     hasConflict: Boolean,
     commitStatues:List[CommitStatus],
-    branchProtection: ProtectedBrancheService.ProtectedBranchInfo,
+    branchProtection: ProtectedBranchService.ProtectedBranchInfo,
     branchIsOutOfDate: Boolean,
     hasUpdatePermission: Boolean,
     needStatusCheck: Boolean,

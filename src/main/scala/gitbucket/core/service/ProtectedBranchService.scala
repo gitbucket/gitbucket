@@ -1,17 +1,15 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{Collaborator, Repository, Account, CommitState, CommitStatus, ProtectedBranch, ProtectedBranchContext}
+import gitbucket.core.model._
 import gitbucket.core.model.Profile._
-import gitbucket.core.util.JGitUtil
+import gitbucket.core.plugin.CommitHook
 import profile.simple._
 
 import org.eclipse.jgit.transport.ReceiveCommand
-import org.eclipse.jgit.transport.ReceivePack
-import org.eclipse.jgit.lib.ObjectId
 
 
-trait ProtectedBrancheService {
-  import ProtectedBrancheService._
+trait ProtectedBranchService {
+  import ProtectedBranchService._
   private def getProtectedBranchInfoOpt(owner: String, repository: String, branch: String)(implicit session: Session): Option[ProtectedBranchInfo] =
     ProtectedBranches
       .leftJoin(ProtectedBranchContexts)
@@ -43,17 +41,23 @@ trait ProtectedBrancheService {
   def disableBranchProtection(owner: String, repository: String, branch:String)(implicit session: Session): Unit =
     ProtectedBranches.filter(_.byPrimaryKey(owner, repository, branch)).delete
 
-  def getBranchProtectedReason(owner: String, repository: String, isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)
-                              (implicit session: Session): Option[String] = {
-    val branch = command.getRefName.stripPrefix("refs/heads/")
-    if(branch != command.getRefName){
-      getProtectedBranchInfo(owner, repository, branch).getStopReason(isAllowNonFastForwards, command, pusher)
-    } else {
-      None
+}
+
+object ProtectedBranchService {
+
+  class ProtectedBranchCommitHook extends CommitHook with ProtectedBranchService {
+    override def hook(owner: String, repository: String, isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)
+                     (implicit session: Session): Option[String] = {
+      val branch = command.getRefName.stripPrefix("refs/heads/")
+      if(branch != command.getRefName){
+        getProtectedBranchInfo(owner, repository, branch).getStopReason(isAllowNonFastForwards, command, pusher)
+      } else {
+        None
+      }
     }
   }
-}
-object ProtectedBrancheService {
+
+
   case class ProtectedBranchInfo(
     owner: String,
     repository: String,

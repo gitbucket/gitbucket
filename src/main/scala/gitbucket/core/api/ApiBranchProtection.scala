@@ -1,6 +1,6 @@
 package gitbucket.core.api
 
-import gitbucket.core.service.ProtectedBrancheService
+import gitbucket.core.service.ProtectedBranchService
 import org.json4s._
 
 /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
@@ -12,7 +12,7 @@ object ApiBranchProtection{
   /** form for enabling-and-disabling-branch-protection */
   case class EnablingAndDisabling(protection: ApiBranchProtection)
 
-  def apply(info: ProtectedBrancheService.ProtectedBranchInfo): ApiBranchProtection = ApiBranchProtection(
+  def apply(info: ProtectedBranchService.ProtectedBranchInfo): ApiBranchProtection = ApiBranchProtection(
     enabled = info.enabled,
     required_status_checks = Some(Status(EnforcementLevel(info.enabled, info.includeAdministrators), info.contexts)))
   val statusNone = Status(Off, Seq.empty)

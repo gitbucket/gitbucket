@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.settings.html
 import gitbucket.core.model.WebHook
-import gitbucket.core.service.{RepositoryService, AccountService, WebHookService, ProtectedBrancheService, CommitStatusService}
+import gitbucket.core.service.{RepositoryService, AccountService, WebHookService, ProtectedBranchService, CommitStatusService}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
@@ -18,11 +18,11 @@ import org.eclipse.jgit.lib.ObjectId
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
-  with RepositoryService with AccountService with WebHookService with ProtectedBrancheService with CommitStatusService
+  with RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService
   with OwnerAuthenticator with UsersAuthenticator
 
 trait RepositorySettingsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with WebHookService with ProtectedBrancheService with CommitStatusService
+  self: RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
