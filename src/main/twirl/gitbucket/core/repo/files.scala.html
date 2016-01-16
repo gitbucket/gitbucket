@@ -115,7 +115,7 @@
                 }</span>@file.name.split("/").toList.last
               </a>
             } else {
-              <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
+              <a href="@url(repository)/tree@{(branch :: pathList).map(encodeRefName).mkString("/", "/", "/")}@{encodeRefName(file.name)}">
                 <span class="simplified-path">@file.name.split("/").toList.init match {
                   case Nil => {}
                   case list => {@list.mkString("", "/", "/")}
