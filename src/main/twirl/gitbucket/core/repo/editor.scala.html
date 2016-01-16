@@ -122,16 +122,17 @@ $(function(){
     $('#editor').hide();
     $('#preview').show();
     $('#btn-code').removeClass('active');
-    $('#btn-preview').appendClass('active');
+    $('#btn-preview').addClass('active');
 
     @if(fileName.map(isRenderable _).getOrElse(false)) {
       // update preview
       $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
       $.post('@url(repository)/_preview', {
-        content        : editor.getValue(),
-        enableWikiLink : false,
-        enableRefsLink : false,
-        enableTaskList : false
+        content          : editor.getValue(),
+        enableWikiLink   : false,
+        enableRefsLink   : false,
+        enableLineBreaks : false,
+        enableTaskList   : false
       }, function(data){
         $('#preview').empty().append(
           $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
