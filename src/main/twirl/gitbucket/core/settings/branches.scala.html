@@ -18,7 +18,7 @@
       }else{
         @helper.html.information(info)
         <div class="panel panel-default">
-          <div class="panel-heading">Default branch</div>
+          <div class="panel-heading strong">Default branch</div>
           <div class="panel-body">
             <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made, unless you specify a different branch.</p>
             <form id="form" method="post" action="@url(repository)/settings/update_default_branch" validate="true" class="form-inline">
@@ -34,7 +34,7 @@
         </div>
 
         <div class="panel panel-default">
-          <div class="panel-heading">Protected branches</div>
+          <div class="panel-heading strong">Protected branches</div>
           <div class="panel-body">
             <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally require status checks before merging. New to protected branches?
               <form class="form-inline">

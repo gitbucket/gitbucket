@@ -11,24 +11,34 @@
   @html.menu("settings", repository){
     @menu("branches", repository){
       @helper.html.information(info)
-        <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
-        <form name="branchProtection" onsubmit="submitForm(event)"><div class="panel panel-default">
+      <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
+      <form name="branchProtection" onsubmit="submitForm(event)">
+        <div class="panel panel-default">
           <div class="panel-heading">Branch protection for <b>@branch</b></div>
           <div class="panel-body">
 
             <div class="checkbox">
-              <label class="strong"><input type="checkbox" name="enabled" onclick="update()" @check(protection.enabled)>Protect this branch</label>
+              <label>
+                <input type="checkbox" name="enabled" onclick="update()" @check(protection.enabled)>
+                <span class="strong">Protect this branch</span>
+              </label>
               <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
             </div>
 
             <div class="checkbox js-enabled" style="display:none">
-              <label class="strong"><input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off")>Require status checks to pass before merging</label>
+              <label>
+                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off")>
+                <span class="strong">Require status checks to pass before merging</span>
+              </label>
               <p class="help-block">Choose which status checks must pass before branches can be merged into test.
               When enabled, commits must first be pushed to another branch, then merged or pushed directly to test after status checks have passed.</p>
 
               <div class="js-has_required_statuses" style="display:none">
                 <div class="checkbox">
-                  <label class="strong"><input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>Include administrators</label>
+                  <label>
+                    <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
+                    <span class="strong">Include administrators</span>
+                  </label>
                   <p class="help-block">Enforce required status checks for repository administrators.</p>
                 </div>
 
@@ -49,7 +59,8 @@
             </div>
             <input class="btn btn-success" type="submit" value="Save changes" />
           </div>
-        </div></form>
+        </div>
+      </form>
     }
   }
 }
