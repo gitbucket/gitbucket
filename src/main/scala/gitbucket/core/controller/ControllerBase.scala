@@ -28,7 +28,7 @@ abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
   with SystemSettingsService {
 
-  implicit val jsonFormats = DefaultFormats
+  implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
 
 // TODO Scala 2.11
 //  // Don't set content type via Accept header.

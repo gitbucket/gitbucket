@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.settings.html
 import gitbucket.core.model.WebHook
-import gitbucket.core.service.{RepositoryService, AccountService, WebHookService}
+import gitbucket.core.service.{RepositoryService, AccountService, WebHookService, ProtectedBrancheService, CommitStatusService}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
@@ -18,22 +18,28 @@ import org.eclipse.jgit.lib.ObjectId
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
-  with RepositoryService with AccountService with WebHookService
+  with RepositoryService with AccountService with WebHookService with ProtectedBrancheService with CommitStatusService
   with OwnerAuthenticator with UsersAuthenticator
 
 trait RepositorySettingsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with WebHookService
+  self: RepositoryService with AccountService with WebHookService with ProtectedBrancheService with CommitStatusService
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
-  case class OptionsForm(repositoryName: String, description: Option[String], defaultBranch: String, isPrivate: Boolean)
+  case class OptionsForm(repositoryName: String, description: Option[String], isPrivate: Boolean)
   
   val optionsForm = mapping(
     "repositoryName" -> trim(label("Repository Name", text(required, maxlength(40), identifier, renameRepositoryName))),
     "description"    -> trim(label("Description"    , optional(text()))),
-    "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100)))),
     "isPrivate"      -> trim(label("Repository Type", boolean()))
   )(OptionsForm.apply)
+
+  // for default branch
+  case class DefaultBranchForm(defaultBranch: String)
+
+  val defaultBranchForm = mapping(
+    "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100))))
+  )(DefaultBranchForm.apply)
 
   // for collaborator addition
   case class CollaboratorForm(userName: String)
@@ -75,12 +81,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Save the repository options.
    */
   post("/:owner/:repository/settings/options", optionsForm)(ownerOnly { (form, repository) =>
-    val defaultBranch = if(repository.branchList.isEmpty) "master" else form.defaultBranch
     saveRepositoryOptions(
       repository.owner,
       repository.name,
       form.description,
-      defaultBranch,
       repository.repository.parentUserName.map { _ =>
         repository.repository.isPrivate
       } getOrElse form.isPrivate
@@ -98,14 +102,61 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
       }
     }
-    // Change repository HEAD
-    using(Git.open(getRepositoryDir(repository.owner, form.repositoryName))) { git =>
-      git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + defaultBranch)
-    }
     flash += "info" -> "Repository settings has been updated."
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
   })
-  
+
+  /** branch settings */
+  get("/:owner/:repository/settings/branches")(ownerOnly { repository =>
+    val protecteions = getProtectedBranchList(repository.owner, repository.name)
+    html.branches(repository, protecteions, flash.get("info"))
+  });
+
+  /** Update default branch */
+  post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
+    if(repository.branchList.find(_ == form.defaultBranch).isEmpty){
+      redirect(s"/${repository.owner}/${repository.name}/settings/options")
+    }else{
+      saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
+      // Change repository HEAD
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + form.defaultBranch)
+      }
+      flash += "info" -> "Repository default branch has been updated."
+      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
+    }
+  })
+
+  /** Branch protection for branch */
+  get("/:owner/:repository/settings/branches/:branch")(ownerOnly { repository =>
+    import gitbucket.core.api._
+    val branch = params("branch")
+    if(repository.branchList.find(_ == branch).isEmpty){
+      redirect(s"/${repository.owner}/${repository.name}/settings/branches")
+    }else{
+      val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
+      val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).toSet
+      val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
+      html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
+    }
+  });
+
+  /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
+  patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
+    import gitbucket.core.api._
+    (for{
+      branch <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
+      protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
+    } yield {
+      if(protection.enabled){
+        enableBranchProtection(repository.owner, repository.name, branch, protection.status.enforcement_level == ApiBranchProtection.Everyone, protection.status.contexts)
+      }else{
+        disableBranchProtection(repository.owner, repository.name, branch)
+      }
+      JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
+    }) getOrElse NotFound
+  })
+
   /**
    * Display the Collaborators page.
    */

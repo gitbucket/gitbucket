@@ -354,6 +354,16 @@ class JsonFormatSpec extends Specification {
   }"""
 
 
+  val apiBranchProtection = ApiBranchProtection(true, Some(ApiBranchProtection.Status(ApiBranchProtection.Everyone, Seq("continuous-integration/travis-ci"))))
+  val apiBranchProtectionJson = """{
+    "enabled": true,
+    "required_status_checks": {
+      "enforcement_level": "everyone",
+      "contexts": [
+        "continuous-integration/travis-ci"
+      ]
+    }
+}"""
 
   def beFormatted(json2Arg:String) = new Matcher[String] {
     def apply[S <: String](e: Expectable[S]) = {
@@ -410,6 +420,9 @@ class JsonFormatSpec extends Specification {
     }
     "apiPullRequestReviewComment" in {
       JsonFormat(apiPullRequestReviewComment) must beFormatted(apiPullRequestReviewCommentJson)
+    }
+    "apiBranchProtection" in {
+      JsonFormat(apiBranchProtection) must beFormatted(apiBranchProtectionJson)
     }
   }
 }

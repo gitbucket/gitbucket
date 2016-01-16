@@ -1408,11 +1408,41 @@ div.author-info div.committer {
   margin: -10px -10px 10px -10px;
 }
 .build-statuses .build-status-item{
-  padding: 10px 15px 10px 12px;
+  padding: 10px 15px 10px 64px;
   border-bottom: 1px solid #eee;
 }
 .build-statuses-list .build-status-item{
   background-color: #fafafa;
+}
+
+.merge-indicator{
+  float:left;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.merge-indicator-success{
+  background-color: #6cc644;
+}
+.merge-indicator-warning{
+  background-color: #cea61b;
+}
+.merge-indicator-alert{
+  background-color: #888;
+}
+.merge-indicator .octicon{
+  color: white;
+  font-size: 16px;
+  width: 15px;
+  height: 15px;
+}
+.merge-indicator-warning .octicon{
+  color: white;
+  font-size: 30px;
 }
 
 /****************************************************************************/

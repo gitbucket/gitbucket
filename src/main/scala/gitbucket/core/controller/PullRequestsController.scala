@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.api._
-import gitbucket.core.model.{Account, CommitState, Repository, PullRequest, Issue}
+import gitbucket.core.model.{Account, CommitStatus, CommitState, Repository, PullRequest, Issue, WebHook}
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
@@ -27,13 +27,13 @@ import scala.collection.JavaConverters._
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
-  with CommitStatusService with MergeService
+  with CommitStatusService with MergeService with ProtectedBrancheService
 
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
     with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
-    with CommitStatusService with MergeService =>
+    with CommitStatusService with MergeService with ProtectedBrancheService =>
 
   private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
@@ -119,7 +119,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             commits,
             diffs,
             hasWritePermission(owner, name, context.loginAccount),
-            repository)
+            repository,
+            flash.toMap.map(f => f._1 -> f._2.toString))
         }
       }
     } getOrElse NotFound
@@ -166,22 +167,34 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound
   })
 
-  ajaxGet("/:owner/:repository/pull/:id/mergeguide")(collaboratorsOnly { repository =>
+  ajaxGet("/:owner/:repository/pull/:id/mergeguide")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
       val name  = repository.name
       getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-        val statuses = getCommitStatues(owner, name, pullreq.commitIdTo)
-        val hasConfrict = LockUtil.lock(s"${owner}/${name}"){
+        val hasConflict = LockUtil.lock(s"${owner}/${name}"){
           checkConflict(owner, name, pullreq.branch, issueId)
         }
-        val hasProblem = hasConfrict || (!statuses.isEmpty && CommitState.combine(statuses.map(_.state).toSet) != CommitState.SUCCESS)
+        val hasMergePermission = hasWritePermission(owner, name, context.loginAccount)
+        val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
+        val mergeStatus = PullRequestService.MergeStatus(
+           hasConflict         = hasConflict,
+           commitStatues       = getCommitStatues(owner, name, pullreq.commitIdTo),
+           branchProtection    = branchProtection,
+           branchIsOutOfDate   = JGitUtil.getShaByRef(owner, name, pullreq.branch) != Some(pullreq.commitIdFrom),
+           needStatusCheck     = context.loginAccount.map{ u =>
+                                   branchProtection.needStatusCheck(u.userName)
+                                 }.getOrElse(true),
+           hasUpdatePermission = hasWritePermission(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount) &&
+                                   context.loginAccount.map{ u =>
+                                     !getProtectedBranchInfo(pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch).needStatusCheck(u.userName)
+                                   }.getOrElse(false),
+           hasMergePermission  = hasMergePermission,
+           commitIdTo          = pullreq.commitIdTo)
         html.mergeguide(
-          hasConfrict,
-          hasProblem,
+          mergeStatus,
           issue,
           pullreq,
-          statuses,
           repository,
           getRepository(pullreq.requestUserName, pullreq.requestRepositoryName, context.baseUrl).get)
       }
@@ -201,6 +214,75 @@ trait PullRequestsControllerBase extends ControllerBase {
       createComment(repository.owner, repository.name, userName, issueId, branchName, "delete_branch")
       redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
     } getOrElse NotFound
+  })
+
+  post("/:owner/:repository/pull/:id/update_branch")(referrersOnly { baseRepository =>
+    (for {
+      issueId <- params("id").toIntOpt
+      loginAccount <- context.loginAccount
+      (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      owner = pullreq.requestUserName
+      name  = pullreq.requestRepositoryName
+      if hasWritePermission(owner, name, context.loginAccount)
+    } yield {
+      val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
+      if(branchProtection.needStatusCheck(loginAccount.userName)){
+        flash += "error" -> s"branch ${pullreq.requestBranch} is protected need status check."
+      } else {
+        val repository = getRepository(owner, name, context.baseUrl).get
+        LockUtil.lock(s"${owner}/${name}"){
+          val alias = if(pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName){
+            pullreq.branch
+          }else{
+            s"${pullreq.userName}:${pullreq.branch}"
+          }
+          val existIds = using(Git.open(Directory.getRepositoryDir(owner, name))) { git => JGitUtil.getAllCommitIds(git) }.toSet
+          pullRemote(owner, name, pullreq.requestBranch, pullreq.userName, pullreq.repositoryName, pullreq.branch, loginAccount,
+                     "Merge branch '${alias}' into ${pullreq.requestBranch}") match {
+            case None => // conflict
+              flash += "error" -> s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}."
+            case Some(oldId) =>
+              // update pull request
+              updatePullRequests(owner, name, pullreq.requestBranch)
+
+              using(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
+                //  after update branch
+
+                val newCommitId = git.getRepository.resolve(s"refs/heads/${pullreq.requestBranch}")
+                val commits = git.log.addRange(oldId, newCommitId).call.iterator.asScala.map(c => new JGitUtil.CommitInfo(c)).toList
+
+                commits.foreach{ commit =>
+                  if(!existIds.contains(commit.id)){
+                    createIssueComment(owner, name, commit)
+                  }
+                }
+
+                // record activity
+                recordPushActivity(owner, name, loginAccount.userName, pullreq.branch, commits)
+
+                // close issue by commit message
+                if(pullreq.requestBranch == repository.repository.defaultBranch){
+                  commits.map{ commit =>
+                    closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
+                  }
+                }
+
+                // call web hook
+                callPullRequestWebHookByRequestBranch("synchronize", repository, pullreq.requestBranch, baseUrl, loginAccount)
+                callWebHookOf(owner, name, WebHook.Push) {
+                  for {
+                    ownerAccount <- getAccountByUserName(owner)
+                  } yield {
+                    WebHookService.WebHookPushPayload(git, loginAccount, pullreq.requestBranch, repository, commits, ownerAccount, oldId = oldId, newId = newCommitId)
+                  }
+                }
+              }
+              flash += "info" -> s"Merge branch '${alias}' into ${pullreq.requestBranch}"
+          }
+        }
+        redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+      }
+    }) getOrElse NotFound
   })
 
   post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
@@ -528,4 +610,15 @@ trait PullRequestsControllerBase extends ControllerBase {
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))
     }
+
+  // TODO: same as gitbucket.core.servlet.CommitLogHook ...
+  private def createIssueComment(owner: String, repository: String, commit: CommitInfo) = {
+    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
+      if(getIssue(owner, repository, issueId).isDefined){
+        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
+          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
+        }
+      }
+    }
+  }
 }

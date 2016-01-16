@@ -111,13 +111,18 @@ import scala.collection.JavaConverters._
 class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)(implicit session: Session)
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
-  with WebHookPullRequestService {
+  with WebHookPullRequestService with ProtectedBrancheService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil
 
   def onPreReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
+      commands.asScala.foreach { command =>
+        getBranchProtectedReason(owner, repository, receivePack.isAllowNonFastForwards, command, pusher).map{ reason =>
+          command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, reason)
+        }
+      }
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
         existIds = JGitUtil.getAllCommitIds(git)
       }

@@ -11,6 +11,11 @@
         <li@if(active=="collaborators"){ class="active"}>
           <a href="@url(repository)/settings/collaborators">Collaborators</a>
         </li>
+        @if(!repository.branchList.isEmpty){
+        <li@if(active=="branches"){ class="active"}>
+          <a href="@url(repository)/settings/branches">Branches</a>
+        </li>
+        }
         <li@if(active=="hooks"){ class="active"}>
           <a href="@url(repository)/settings/hooks">Service Hooks</a>
         </li>
