@@ -33,13 +33,9 @@ object Markdown {
              enableTaskList: Boolean = false,
              hasWritePermission: Boolean = false,
              pages: List[String] = Nil)(implicit context: Context): String = {
-    // escape issue id
-    val s = if(enableRefsLink){
-      markdown.replaceAll("(?<=(\\W|^))#(\\d+)(?=(\\W|$))", "issue:$2")
-    } else markdown
 
     // escape task list
-    val source = if(enableTaskList) escapeTaskList(s) else s
+    val source = if(enableTaskList) escapeTaskList(markdown) else markdown
 
     val options = new Options()
     options.setSanitize(true)
@@ -112,7 +108,7 @@ object Markdown {
 
     override def text(text: String): String = {
       // convert commit id and username to link.
-      val t1 = if(enableRefsLink) convertRefsLinks(text, repository, "issue:", false) else text
+      val t1 = if(enableRefsLink) convertRefsLinks(text, repository, "#", false) else text
 
       // convert task list to checkbox.
       val t2 = if(enableTaskList) convertCheckBox(t1, hasWritePermission) else t1
