@@ -4,13 +4,15 @@ import org.specs2.mutable.Specification
 import org.eclipse.jgit.transport.ReceiveCommand
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.CommitState
-import ProtectedBrancheService.ProtectedBranchInfo
+import gitbucket.core.service.ProtectedBranchService.{ProtectedBranchCommitHook, ProtectedBranchInfo}
 
+class ProtectedBranchServiceSpec extends Specification with ServiceSpecBase with ProtectedBranchService with CommitStatusService {
 
-class ProtectedBrancheServiceSpec extends Specification with ServiceSpecBase with ProtectedBrancheService with CommitStatusService {
+  val commitHook = new ProtectedBranchCommitHook()
   val now = new java.util.Date()
   val sha = "0c77148632618b59b6f70004e3084002be2b8804"
   val sha2 = "0c77148632618b59b6f70004e3084002be2b8805"
+
   "getProtectedBranchInfo" should {
     "empty is disabled" in {
       withTestDB { implicit session =>
@@ -50,56 +52,56 @@ class ProtectedBrancheServiceSpec extends Specification with ServiceSpecBase wit
       withTestDB { implicit session =>
         val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE_NONFASTFORWARD)
         generateNewUserWithDBRepository("user1", "repo1")
-        getBranchProtectedReason("user1", "repo1", true, rc, "user1") must_== None
+        commitHook.hook("user1", "repo1", true, rc, "user1") must_== None
         enableBranchProtection("user1", "repo1", "branch", false, Nil)
-        getBranchProtectedReason("user1", "repo1", true, rc, "user1") must_== Some("Cannot force-push to a protected branch")
+        commitHook.hook("user1", "repo1", true, rc, "user1") must_== Some("Cannot force-push to a protected branch")
       }
     }
     "getBranchProtectedReason on force push from othre" in {
       withTestDB { implicit session =>
         val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE_NONFASTFORWARD)
         generateNewUserWithDBRepository("user1", "repo1")
-        getBranchProtectedReason("user1", "repo1", true, rc, "user2") must_== None
+        commitHook.hook("user1", "repo1", true, rc, "user2") must_== None
         enableBranchProtection("user1", "repo1", "branch", false, Nil)
-        getBranchProtectedReason("user1", "repo1", true, rc, "user2") must_== Some("Cannot force-push to a protected branch")
+        commitHook.hook("user1", "repo1", true, rc, "user2") must_== Some("Cannot force-push to a protected branch")
       }
     }
     "getBranchProtectedReason check status on push from othre" in {
       withTestDB { implicit session =>
         val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE)
         val user1 = generateNewUserWithDBRepository("user1", "repo1")
-        getBranchProtectedReason("user1", "repo1", false, rc, "user2") must_== None
+        commitHook.hook("user1", "repo1", false, rc, "user2") must_== None
         enableBranchProtection("user1", "repo1", "branch", false, Seq("must"))
-        getBranchProtectedReason("user1", "repo1", false, rc, "user2") must_== Some("Required status check \"must\" is expected")
+        commitHook.hook("user1", "repo1", false, rc, "user2") must_== Some("Required status check \"must\" is expected")
         enableBranchProtection("user1", "repo1", "branch", false, Seq("must", "must2"))
-        getBranchProtectedReason("user1", "repo1", false, rc, "user2") must_== Some("2 of 2 required status checks are expected")
+        commitHook.hook("user1", "repo1", false, rc, "user2") must_== Some("2 of 2 required status checks are expected")
         createCommitStatus("user1", "repo1", sha2, "context", CommitState.SUCCESS, None, None, now, user1)
-        getBranchProtectedReason("user1", "repo1", false, rc, "user2") must_== Some("2 of 2 required status checks are expected")
+        commitHook.hook("user1", "repo1", false, rc, "user2") must_== Some("2 of 2 required status checks are expected")
         createCommitStatus("user1", "repo1", sha2, "must", CommitState.SUCCESS, None, None, now, user1)
-        getBranchProtectedReason("user1", "repo1", false, rc, "user2") must_== Some("Required status check \"must2\" is expected")
+        commitHook.hook("user1", "repo1", false, rc, "user2") must_== Some("Required status check \"must2\" is expected")
         createCommitStatus("user1", "repo1", sha2, "must2", CommitState.SUCCESS, None, None, now, user1)
-        getBranchProtectedReason("user1", "repo1", false, rc, "user2") must_== None
+        commitHook.hook("user1", "repo1", false, rc, "user2") must_== None
       }
     }
     "getBranchProtectedReason check status on push from admin" in {
       withTestDB { implicit session =>
         val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE)
         val user1 = generateNewUserWithDBRepository("user1", "repo1")
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== None
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== None
         enableBranchProtection("user1", "repo1", "branch", false, Seq("must"))
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== None
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== None
         enableBranchProtection("user1", "repo1", "branch", true, Seq("must"))
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== Some("Required status check \"must\" is expected")
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== Some("Required status check \"must\" is expected")
         enableBranchProtection("user1", "repo1", "branch", false, Seq("must", "must2"))
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== None
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== None
         enableBranchProtection("user1", "repo1", "branch", true, Seq("must", "must2"))
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== Some("2 of 2 required status checks are expected")
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== Some("2 of 2 required status checks are expected")
         createCommitStatus("user1", "repo1", sha2, "context", CommitState.SUCCESS, None, None, now, user1)
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== Some("2 of 2 required status checks are expected")
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== Some("2 of 2 required status checks are expected")
         createCommitStatus("user1", "repo1", sha2, "must", CommitState.SUCCESS, None, None, now, user1)
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== Some("Required status check \"must2\" is expected")
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== Some("Required status check \"must2\" is expected")
         createCommitStatus("user1", "repo1", sha2, "must2", CommitState.SUCCESS, None, None, now, user1)
-        getBranchProtectedReason("user1", "repo1", false, rc, "user1") must_== None
+        commitHook.hook("user1", "repo1", false, rc, "user1") must_== None
       }
     }
   }

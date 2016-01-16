@@ -1,8 +1,6 @@
 package gitbucket.core.service
 
 import gitbucket.core.model._
-import gitbucket.core.model.Profile._
-
 import org.specs2.mutable.Specification
 
 
@@ -11,7 +9,7 @@ class RepositoryServiceSpec extends Specification with ServiceSpecBase with Repo
     "renameRepository can rename CommitState, ProtectedBranches" in { withTestDB { implicit session =>
       val tester = generateNewAccount("tester")
       createRepository("repo","root",None,false)
-      val service = new CommitStatusService with ProtectedBrancheService{}
+      val service = new CommitStatusService with ProtectedBranchService {}
       val id = service.createCommitStatus(
         userName    = "root",
         repositoryName = "repo",
