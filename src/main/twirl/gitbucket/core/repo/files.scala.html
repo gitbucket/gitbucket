@@ -106,25 +106,25 @@
         }
         </td>
         <td class="content-name">
-        @if(file.isDirectory){
-          @if(file.linkUrl.isDefined){
-            <a href="@file.linkUrl">
-              <span class="simplified-path">@file.name.split("/").toList.init match {
-                case Nil => {}
-                case list => {@list.mkString("", "/", "/")}
-              }</span>@file.name.split("/").toList.last
-            </a>
+          @if(file.isDirectory){
+            @if(file.linkUrl.isDefined){
+              <a href="@file.linkUrl">
+                <span class="simplified-path">@file.name.split("/").toList.init match {
+                  case Nil => {}
+                  case list => {@list.mkString("", "/", "/")}
+                }</span>@file.name.split("/").toList.last
+              </a>
+            } else {
+              <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
+                <span class="simplified-path">@file.name.split("/").toList.init match {
+                  case Nil => {}
+                  case list => {@list.mkString("", "/", "/")}
+                }</span>@file.name.split("/").toList.last
+              </a>
+            }
           } else {
-            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
-              <span class="simplified-path">@file.name.split("/").toList.init match {
-                case Nil => {}
-                case list => {@list.mkString("", "/", "/")}
-              }</span>@file.name.split("/").toList.last
-            </a>
+            <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
           }
-        } else {
-          <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
-        }
         </td>
         <td class="mute">
           <a href="@url(repository)/commit/@file.commitId" class="commit-message shorten-text" title="@file.message">@link(file.message, repository)</a>

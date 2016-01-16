@@ -829,6 +829,9 @@ table.table-file-list .file-icon {
 
 table.table-file-list .content-name {
   max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 table.table-file-list .commit-message {
