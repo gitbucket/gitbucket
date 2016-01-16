@@ -111,6 +111,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       enableRefsLink = params("enableRefsLink").toBoolean,
       enableLineBreaks = params("enableLineBreaks").toBoolean,
       enableTaskList = params("enableTaskList").toBoolean,
+      enableAnchor = false,
       hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount)
     )
   })

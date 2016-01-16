@@ -39,22 +39,28 @@ object Markdown {
     } else markdown
 
     // escape task list
-    val source = if(enableTaskList){
-      escapeTaskList(s)
-    } else s
+    val source = if(enableTaskList) escapeTaskList(s) else s
 
     val options = new Options()
     options.setSanitize(true)
     options.setBreaks(enableLineBreaks)
-    val renderer = new GitBucketMarkedRenderer(options, repository, enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
+
+    val renderer = new GitBucketMarkedRenderer(options, repository,
+      enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
+
     Marked.marked(source, options, renderer)
   }
 
   /**
    * Extends markedj Renderer for GitBucket
    */
-  class GitBucketMarkedRenderer(options: Options, repository: RepositoryService.RepositoryInfo,
-                                enableWikiLink: Boolean, enableRefsLink: Boolean, enableAnchor: Boolean, enableTaskList: Boolean, hasWritePermission: Boolean,
+  class GitBucketMarkedRenderer(options: Options,
+                                repository: RepositoryService.RepositoryInfo,
+                                enableWikiLink: Boolean,
+                                enableRefsLink: Boolean,
+                                enableAnchor: Boolean,
+                                enableTaskList: Boolean,
+                                hasWritePermission: Boolean,
                                 pages: List[String])
                                (implicit val context: Context) extends Renderer(options) with LinkConverter with RequestCache {
 
@@ -62,11 +68,14 @@ object Markdown {
       val id = generateAnchorName(text)
       val out = new StringBuilder()
 
-      out.append("<h" + level + " id=\"" + options.getHeaderPrefix + id + "\" class=\"markdown-head\">")
+      out.append("<h" + level + " id=\"" + options.getHeaderPrefix + id + "\"")
 
       if(enableAnchor){
+        out.append(" class=\"markdown-head\">")
         out.append("<a class=\"markdown-anchor-link\" href=\"#" + id + "\"></a>")
         out.append("<a class=\"markdown-anchor\" name=\"" + id + "\"></a>")
+      } else {
+        out.append(">")
       }
 
       out.append(text)
@@ -83,22 +92,21 @@ object Markdown {
       var listType: String = null
       if (ordered) {
         listType = "ol"
-      }
-      else {
+      } else {
         listType = "ul"
       }
       if(body.contains("""class="task-list-item-checkbox"""")){
-        return "<" + listType + " class=\"task-list\">\n" + body + "</" + listType + ">\n"
+        "<" + listType + " class=\"task-list\">\n" + body + "</" + listType + ">\n"
       } else {
-        return "<" + listType + ">\n" + body + "</" + listType + ">\n"
+        "<" + listType + ">\n" + body + "</" + listType + ">\n"
       }
     }
 
     override def listitem(text: String): String = {
       if(text.contains("""class="task-list-item-checkbox" """)){
-        return "<li class=\"task-list-item\">" + text + "</li>\n"
+        "<li class=\"task-list-item\">" + text + "</li>\n"
       } else {
-        return "<li>" + text + "</li>\n"
+        "<li>" + text + "</li>\n"
       }
     }
 

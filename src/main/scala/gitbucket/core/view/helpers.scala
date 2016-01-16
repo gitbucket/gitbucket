@@ -89,6 +89,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                enableWikiLink: Boolean,
                enableRefsLink: Boolean,
                enableLineBreaks: Boolean,
+               enableAnchor: Boolean = true,
                enableTaskList: Boolean = false,
                hasWritePermission: Boolean = false,
                pages: List[String] = Nil)(implicit context: Context): Html =
@@ -97,7 +98,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       repository         = repository,
       enableWikiLink     = enableWikiLink,
       enableRefsLink     = enableRefsLink,
-      enableAnchor       = true,
+      enableAnchor       = enableAnchor,
       enableLineBreaks   = enableLineBreaks,
       enableTaskList     = enableTaskList,
       hasWritePermission = hasWritePermission,
