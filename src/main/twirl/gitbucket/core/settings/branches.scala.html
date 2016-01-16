@@ -49,13 +49,15 @@
             </p>
 
             <table class="table table-bordered table-hover branches">
-              @protectedBranchList.map{ branch =>
-              <tr><td>
-                <span class="branch-name">@branch</span>
-                <span class="branch-action">
-                  <a href="@url(repository)/settings/branches/@encodeRefName(branch)" class="btn btn-small btn-default">Edit</a>
-                </span>
-              </td></tr>
+              @protectedBranchList.map { branch =>
+                <tr>
+                  <td>
+                    <span class="branch-name">@branch</span>
+                    <span class="branch-action">
+                      <a href="@url(repository)/settings/branches/@encodeRefName(branch)" class="btn btn-small btn-default">Edit</a>
+                    </span>
+                  </td>
+                </tr>
               }
             </table>
           </div>

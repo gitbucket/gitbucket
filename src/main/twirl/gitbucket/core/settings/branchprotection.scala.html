@@ -45,11 +45,11 @@
                 <div class="panel panel-default">
                   <div class="panel-heading">Status checks found in the last week for this repository</div>
                   <div class="panel-body">
-                    @knownContexts.map{ br =>
+                    @knownContexts.map { context =>
                       <div class="checkbox">
                         <label>
-                          <input type="checkbox" name="contexts" value="@br" onclick="update()" @check(protection.status.contexts.find(_==br))>
-                          <span>@br</span>
+                          <input type="checkbox" name="contexts" value="@context" onclick="update()" @check(protection.status.contexts.find(_ == context))>
+                          <span>@context</span>
                         </label>
                       </div>
                     }
@@ -57,7 +57,7 @@
                 </div>
               </div>
             </div>
-            <input class="btn btn-success" type="submit" value="Save changes" />
+            <input class="btn btn-success btn-lg" type="submit" value="Save changes" />
           </div>
         </div>
       </form>
@@ -70,7 +70,7 @@ function getValue(){
   $("input[type=checkbox]:checked").each(function(){
     if(this.name === 'contexts'){
       contexts.push(this.value);
-    }else{
+    } else {
       v[this.name] = true;
     }
   });
@@ -82,7 +82,7 @@ function getValue(){
         contexts: v.has_required_statuses ? contexts : []
       }
     };
-  }else{
+  } else {
     return {
       enabled: false,
       required_status_checks: {

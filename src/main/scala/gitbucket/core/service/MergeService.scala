@@ -70,7 +70,7 @@ trait MergeService {
         try {
           if(merger.merge(mergeBaseTip, mergeTip)){
             Some((merger.getResultTreeId, mergeBaseTip, mergeTip))
-          }else{
+          } else {
             None
           }
         } catch {
@@ -139,17 +139,17 @@ object MergeService{
     lazy val mergeTip = repository.resolve(s"refs/pull/${issueId}/head")
     def checkConflictCache(): Option[Boolean] = {
       Option(repository.resolve(mergedBranchName)).flatMap{ merged =>
-          if(parseCommit( merged ).getParents().toSet == Set( mergeBaseTip, mergeTip )){
+          if(parseCommit(merged).getParents().toSet == Set( mergeBaseTip, mergeTip )){
             // merged branch exists
             Some(false)
-          }else{
+          } else {
             None
           }
       }.orElse(Option(repository.resolve(conflictedBranchName)).flatMap{ conflicted =>
-        if(parseCommit( conflicted ).getParents().toSet == Set( mergeBaseTip, mergeTip )){
+        if(parseCommit(conflicted).getParents().toSet == Set( mergeBaseTip, mergeTip )){
           // conflict branch exists
           Some(true)
-        }else{
+        } else {
           None
         }
       })
@@ -174,7 +174,7 @@ object MergeService{
       if(!conflicted){
         updateBranch(merger.getResultTreeId, s"Merge ${mergeTip.name} into ${mergeBaseTip.name}", mergedBranchName)
         git.branchDelete().setForce(true).setBranchNames(conflictedBranchName).call()
-      }else{
+      } else {
         updateBranch(mergeTipCommit.getTree().getId(), s"can't merge ${mergeTip.name} into ${mergeBaseTip.name}", conflictedBranchName)
         git.branchDelete().setForce(true).setBranchNames(mergedBranchName).call()
       }

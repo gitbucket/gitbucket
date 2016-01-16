@@ -119,7 +119,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   def onPreReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
       commands.asScala.foreach { command =>
-        getBranchProtectedReason(owner, repository, receivePack.isAllowNonFastForwards, command, pusher).map{ reason =>
+
+        getBranchProtectedReason(owner, repository, receivePack.isAllowNonFastForwards, command, pusher).map { reason =>
           command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, reason)
         }
       }

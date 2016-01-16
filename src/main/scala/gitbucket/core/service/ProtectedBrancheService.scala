@@ -31,7 +31,8 @@ trait ProtectedBrancheService {
   def getProtectedBranchList(owner: String, repository: String)(implicit session: Session): List[String] =
     ProtectedBranches.filter(_.byRepository(owner, repository)).map(_.branch).list
 
-  def enableBranchProtection(owner: String, repository: String, branch:String, includeAdministrators: Boolean, contexts: Seq[String])(implicit session: Session): Unit = {
+  def enableBranchProtection(owner: String, repository: String, branch:String, includeAdministrators: Boolean, contexts: Seq[String])
+                            (implicit session: Session): Unit = {
     disableBranchProtection(owner, repository, branch)
     ProtectedBranches.insert(new ProtectedBranch(owner, repository, branch, includeAdministrators && contexts.nonEmpty))
     contexts.map{ context =>
@@ -42,11 +43,12 @@ trait ProtectedBrancheService {
   def disableBranchProtection(owner: String, repository: String, branch:String)(implicit session: Session): Unit =
     ProtectedBranches.filter(_.byPrimaryKey(owner, repository, branch)).delete
 
-  def getBranchProtectedReason(owner: String, repository: String, isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
+  def getBranchProtectedReason(owner: String, repository: String, isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)
+                              (implicit session: Session): Option[String] = {
     val branch = command.getRefName.stripPrefix("refs/heads/")
     if(branch != command.getRefName){
       getProtectedBranchInfo(owner, repository, branch).getStopReason(isAllowNonFastForwards, command, pusher)
-    }else{
+    } else {
       None
     }
   }
@@ -69,7 +71,8 @@ object ProtectedBrancheService {
      */
     includeAdministrators: Boolean) extends AccountService with CommitStatusService {
 
-    def isAdministrator(pusher: String)(implicit session: Session): Boolean = pusher == owner || getGroupMembers(owner).filter(gm => gm.userName == pusher && gm.isManager).nonEmpty
+    def isAdministrator(pusher: String)(implicit session: Session): Boolean =
+      pusher == owner || getGroupMembers(owner).filter(gm => gm.userName == pusher && gm.isManager).nonEmpty
 
     /**
      * Can't be force pushed

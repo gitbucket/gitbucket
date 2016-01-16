@@ -116,7 +116,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
     if(repository.branchList.find(_ == form.defaultBranch).isEmpty){
       redirect(s"/${repository.owner}/${repository.name}/settings/options")
-    }else{
+    } else {
       saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
       // Change repository HEAD
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
@@ -133,13 +133,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     val branch = params("branch")
     if(repository.branchList.find(_ == branch).isEmpty){
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
-    }else{
+    } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
       val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
       html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }
-  });
+  })
 
   /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
   patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
@@ -150,7 +150,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     } yield {
       if(protection.enabled){
         enableBranchProtection(repository.owner, repository.name, branch, protection.status.enforcement_level == ApiBranchProtection.Everyone, protection.status.contexts)
-      }else{
+      } else {
         disableBranchProtection(repository.owner, repository.name, branch)
       }
       JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
