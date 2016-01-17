@@ -19,7 +19,7 @@ The current version of GitBucket provides a basic features below:
 - Gravatar support
 - Plug-in system
 
-If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/gitbucket/gitbucket/wiki).
+If you want to try the development version of GitBucket, see [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
 Installation
 --------
@@ -41,35 +41,7 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 
 To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
-For Installation on Windows Server with IIS see [this wiki page](https://github.com/gitbucket/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
-
-### Mac OS X
-#### Installing Via Homebrew
-
-```
-$ brew install gitbucket
-==> Downloading https://github.com/takezoe/gitbucket/releases/download/1.10/gitbucket.war
-######################################################################## 100.0%
-==> Caveats
-Note: When using launchctl the port will be 8080.
-
-To have launchd start gitbucket at login:
-    ln -sfv /usr/local/opt/gitbucket/*.plist ~/Library/LaunchAgents
-Then to load gitbucket now:
-    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.gitbucket.plist
-Or, if you don't want/need launchctl, you can just run:
-    java -jar /usr/local/opt/gitbucket/libexec/gitbucket.war
-==> Summary
-/usr/local/Cellar/gitbucket/1.10: 3 files, 42M, built in 11 seconds
-```
-
-#### Manual Installation
-On OS X, generate `gitbucket.plist` by [this script](https://raw.githubusercontent.com/gitbucket/gitbucket/master/contrib/macosx/makePlist) and copy it to `~/Library/LaunchAgents/`
-
-Run the following commands in `Terminal` to
-
-- start gitbucket: `launchctl load ~/Library/LaunchAgents/gitbucket.plist`
-- stop gitbucket: `launchctl unload ~/Library/LaunchAgents/gitbucket.plist`
+About installation on Mac or Windows Server (with IIS), configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
 Plug-ins
 --------

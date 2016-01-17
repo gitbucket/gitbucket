@@ -9,3 +9,4 @@ Developer's Guide
  * [Notification Email](notification.md)
  * [Automatic Schema Updating](auto_update.md)
  * [Release Operation](release.md)
+ * [JRebel integration (optional)](jrebel.md)

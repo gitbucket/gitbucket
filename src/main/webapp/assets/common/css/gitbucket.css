@@ -829,6 +829,9 @@ table.table-file-list .file-icon {
 
 table.table-file-list .content-name {
   max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 table.table-file-list .commit-message {
@@ -1715,28 +1718,39 @@ div.markdown-body h1 {
   border-bottom: 1px solid #ddd;
   font-size: 2.5em;
   font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h2 {
   border-bottom: 1px solid #eee;
   font-size: 2em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h3 {
   font-size: 1.5em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h4 {
   font-size: 1.2em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h5 {
   font-size: 1em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h6 {
   color:#777;
   font-size: 1em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body li {
@@ -1902,7 +1916,6 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 
 .markdown-head {
   position: relative;
-  line-height: 1.7;
 }
 
 a.markdown-anchor-link {
