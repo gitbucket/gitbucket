@@ -49,6 +49,5 @@ trait CoreProfile extends ProfileProvider with Profile
   with SshKeyComponent
   with WebHookComponent
   with WebHookEventComponent
-  with PluginComponent
 
 object Profile extends CoreProfile

@@ -55,12 +55,6 @@ trait SystemSettingsControllerBase extends ControllerBase {
     } else Nil
   }
 
-  private val pluginForm = mapping(
-    "pluginId" -> list(trim(label("", text())))
-  )(PluginForm.apply)
-
-  case class PluginForm(pluginIds: List[String])
-
   get("/admin/system")(adminOnly {
     html.system(flash.get("info"))
   })
