@@ -5,7 +5,7 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.plugin.CommitHook
 import profile.simple._
 
-import org.eclipse.jgit.transport.ReceiveCommand
+import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 
 
 trait ProtectedBranchService {
@@ -46,11 +46,11 @@ trait ProtectedBranchService {
 object ProtectedBranchService {
 
   class ProtectedBranchCommitHook extends CommitHook with ProtectedBranchService {
-    override def hook(owner: String, repository: String, isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)
+    override def preCommit(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)
                      (implicit session: Session): Option[String] = {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if(branch != command.getRefName){
-        getProtectedBranchInfo(owner, repository, branch).getStopReason(isAllowNonFastForwards, command, pusher)
+        getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack.isAllowNonFastForwards, command, pusher)
       } else {
         None
       }
