@@ -120,8 +120,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     try {
       commands.asScala.foreach { command =>
         // call pre-commit hook
-        PluginRegistry().getCommitHooks
-          .flatMap(_.preCommit(owner, repository, receivePack, command, pusher))
+        PluginRegistry().getReceiveHooks
+          .flatMap(_.preReceive(owner, repository, receivePack, command, pusher))
           .headOption.foreach { error =>
           command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
         }
@@ -217,7 +217,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           }
 
           // call post-commit hook
-          PluginRegistry().getCommitHooks.foreach(_.postCommit(owner, repository, receivePack, command, pusher))
+          PluginRegistry().getReceiveHooks.foreach(_.postReceive(owner, repository, receivePack, command, pusher))
         }
       }
       // update repository last modified time.

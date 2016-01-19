@@ -4,11 +4,11 @@ import org.specs2.mutable.Specification
 import org.eclipse.jgit.transport.ReceiveCommand
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.CommitState
-import gitbucket.core.service.ProtectedBranchService.{ProtectedBranchCommitHook, ProtectedBranchInfo}
+import gitbucket.core.service.ProtectedBranchService.{ProtectedBranchReceiveHook, ProtectedBranchInfo}
 
 class ProtectedBranchServiceSpec extends Specification with ServiceSpecBase with ProtectedBranchService with CommitStatusService {
 
-  val commitHook = new ProtectedBranchCommitHook()
+  val commitHook = new ProtectedBranchReceiveHook()
   val now = new java.util.Date()
   val sha = "0c77148632618b59b6f70004e3084002be2b8804"
   val sha2 = "0c77148632618b59b6f70004e3084002be2b8805"

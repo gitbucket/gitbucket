@@ -6,7 +6,7 @@ import javax.servlet.ServletContext
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.controller.{Context, ControllerBase}
-import gitbucket.core.service.ProtectedBranchService.ProtectedBranchCommitHook
+import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
@@ -30,8 +30,8 @@ class PluginRegistry {
     "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
   )
   private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
-  private val commitHooks = new ListBuffer[CommitHook]
-  commitHooks += new ProtectedBranchCommitHook()
+  private val receiveHooks = new ListBuffer[ReceiveHook]
+  receiveHooks += new ProtectedBranchReceiveHook()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -101,11 +101,11 @@ class PluginRegistry {
     }
   }
 
-  def addCommitHook(commitHook: CommitHook): Unit = {
-    commitHooks += commitHook
+  def addReceiveHook(commitHook: ReceiveHook): Unit = {
+    receiveHooks += commitHook
   }
 
-  def getCommitHooks: Seq[CommitHook] = commitHooks.toSeq
+  def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
 
   private case class GlobalAction(
     method: String,

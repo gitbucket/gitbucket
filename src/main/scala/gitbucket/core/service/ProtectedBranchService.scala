@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._
-import gitbucket.core.plugin.CommitHook
+import gitbucket.core.plugin.ReceiveHook
 import profile.simple._
 
 import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
@@ -45,9 +45,9 @@ trait ProtectedBranchService {
 
 object ProtectedBranchService {
 
-  class ProtectedBranchCommitHook extends CommitHook with ProtectedBranchService {
-    override def preCommit(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)
-                     (implicit session: Session): Option[String] = {
+  class ProtectedBranchReceiveHook extends ReceiveHook with ProtectedBranchService {
+    override def preReceive(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)
+                           (implicit session: Session): Option[String] = {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if(branch != command.getRefName){
         getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack.isAllowNonFastForwards, command, pusher)
