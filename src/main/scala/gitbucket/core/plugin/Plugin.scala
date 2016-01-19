@@ -68,6 +68,16 @@ trait Plugin {
   def repositoryRoutings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[GitRepositoryRouting] = Nil
 
   /**
+   * Override to add receive hooks.
+   */
+  val receiveHooks: Seq[ReceiveHook] = Nil
+
+  /**
+   * Override to add receive hooks.
+   */
+  def receiveHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[ReceiveHook] = Nil
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -86,6 +96,9 @@ trait Plugin {
     }
     (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { routing =>
       registry.addRepositoryRouting(routing)
+    }
+    (receiveHooks ++ receiveHooks(registry, context, settings)).foreach { receiveHook =>
+      registry.addReceiveHook(receiveHook)
     }
   }
 

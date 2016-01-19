@@ -111,13 +111,21 @@ import scala.collection.JavaConverters._
 class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)(implicit session: Session)
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
-  with WebHookPullRequestService {
+  with WebHookPullRequestService with ProtectedBranchService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil
 
   def onPreReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
+      commands.asScala.foreach { command =>
+        // call pre-commit hook
+        PluginRegistry().getReceiveHooks
+          .flatMap(_.preReceive(owner, repository, receivePack, command, pusher))
+          .headOption.foreach { error =>
+          command.setResult(ReceiveCommand.Result.REJECTED_OTHER_REASON, error)
+        }
+      }
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
         existIds = JGitUtil.getAllCommitIds(git)
       }
@@ -207,6 +215,9 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
                                  newId = command.getNewId(), oldId = command.getOldId())
             }
           }
+
+          // call post-commit hook
+          PluginRegistry().getReceiveHooks.foreach(_.postReceive(owner, repository, receivePack, command, pusher))
         }
       }
       // update repository last modified time.

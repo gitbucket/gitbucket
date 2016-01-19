@@ -9,28 +9,21 @@ The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http and ssh access)
 - Repository viewer and online file editing
-- Repository search (Code and Issues)
 - Wiki
-- Issues
-- Fork / Pull request
+- Issues / Pull request
 - Email notification
-- Activity timeline
 - Simple user and group management with LDAP integration
-- Gravatar support
 - Plug-in system
 
 If you want to try the development version of GitBucket, see [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
 Installation
 --------
+GitBucket requires **Java8**. You have to install beforehand when it's not installed.
 
 1. Download latest **gitbucket.war** from [the release page](https://github.com/gitbucket/gitbucket/releases).
 2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
-3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
-
-If you are using Gitbucket behind a webserver please make sure you have increased the **client_max_body_size** (on nginx)
-
-The default administrator account is **root** and password is **root**.
+3. Access **http://[hostname]:[port]/gitbucket/** using your web browser and logged-in with **root** / **root**.
 
 or you can start GitBucket by `java -jar gitbucket.war` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
 

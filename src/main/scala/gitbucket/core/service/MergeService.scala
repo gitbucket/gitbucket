@@ -10,9 +10,8 @@ import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.errors.NoMergeBaseException
-import org.eclipse.jgit.lib.{ObjectId, CommitBuilder, PersonIdent}
+import org.eclipse.jgit.lib.{ObjectId, CommitBuilder, PersonIdent, Repository}
 import org.eclipse.jgit.revwalk.RevWalk
-
 
 trait MergeService {
   import MergeService._
@@ -52,26 +51,30 @@ trait MergeService {
   /**
    * Checks whether conflict will be caused in merging. Returns true if conflict will be caused.
    */
-  def checkConflict(userName: String, repositoryName: String, branch: String,
-                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean = {
-    using(Git.open(getRepositoryDir(requestUserName, requestRepositoryName))) { git =>
-      val remoteRefName = s"refs/heads/${branch}"
-      val tmpRefName = s"refs/merge-check/${userName}/${branch}"
+  def tryMergeRemote(localUserName: String, localRepositoryName: String, localBranch: String,
+                      remoteUserName: String, remoteRepositoryName: String, remoteBranch: String): Option[(ObjectId, ObjectId, ObjectId)] = {
+    using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
+      val remoteRefName = s"refs/heads/${remoteBranch}"
+      val tmpRefName = s"refs/remote-temp/${remoteUserName}/${remoteRepositoryName}/${remoteBranch}"
       val refSpec = new RefSpec(s"${remoteRefName}:${tmpRefName}").setForceUpdate(true)
       try {
         // fetch objects from origin repository branch
         git.fetch
-           .setRemote(getRepositoryDir(userName, repositoryName).toURI.toString)
+           .setRemote(getRepositoryDir(remoteUserName, remoteRepositoryName).toURI.toString)
            .setRefSpecs(refSpec)
            .call
         // merge conflict check
         val merger = MergeStrategy.RECURSIVE.newMerger(git.getRepository, true)
-        val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${requestBranch}")
+        val mergeBaseTip = git.getRepository.resolve(s"refs/heads/${localBranch}")
         val mergeTip = git.getRepository.resolve(tmpRefName)
         try {
-          !merger.merge(mergeBaseTip, mergeTip)
+          if(merger.merge(mergeBaseTip, mergeTip)){
+            Some((merger.getResultTreeId, mergeBaseTip, mergeTip))
+          } else {
+            None
+          }
         } catch {
-          case e: NoMergeBaseException =>  true
+          case e: NoMergeBaseException =>  None
         }
       } finally {
         val refUpdate = git.getRepository.updateRef(refSpec.getDestination)
@@ -80,8 +83,54 @@ trait MergeService {
       }
     }
   }
+  /**
+   * Checks whether conflict will be caused in merging. Returns true if conflict will be caused.
+   */
+  def checkConflict(userName: String, repositoryName: String, branch: String,
+                            requestUserName: String, requestRepositoryName: String, requestBranch: String): Boolean =
+    tryMergeRemote(userName, repositoryName, branch, requestUserName, requestRepositoryName, requestBranch).isEmpty
+
+  def pullRemote(localUserName: String, localRepositoryName: String, localBranch: String,
+                      remoteUserName: String, remoteRepositoryName: String, remoteBranch: String,
+                      loginAccount: Account, message: String): Option[ObjectId] = {
+    tryMergeRemote(localUserName, localRepositoryName, localBranch, remoteUserName, remoteRepositoryName, remoteBranch).map{ case (newTreeId, oldBaseId, oldHeadId) =>
+      using(Git.open(getRepositoryDir(localUserName, localRepositoryName))) { git =>
+        val committer = new PersonIdent(loginAccount.fullName, loginAccount.mailAddress)
+        val newCommit = Util.createMergeCommit(git.getRepository, newTreeId, committer, message, Seq(oldBaseId, oldHeadId))
+        Util.updateRefs(git.getRepository, s"refs/heads/${localBranch}", newCommit, false, committer, Some("merge"))
+      }
+      oldBaseId
+    }
+  }
+
 }
 object MergeService{
+  object Util{
+    // return treeId
+    def createMergeCommit(repository: Repository, treeId: ObjectId, committer: PersonIdent, message: String, parents: Seq[ObjectId]): ObjectId = {
+      val mergeCommit = new CommitBuilder()
+      mergeCommit.setTreeId(treeId)
+      mergeCommit.setParentIds(parents:_*)
+      mergeCommit.setAuthor(committer)
+      mergeCommit.setCommitter(committer)
+      mergeCommit.setMessage(message)
+      // insertObject and got mergeCommit Object Id
+      val inserter = repository.newObjectInserter
+      val mergeCommitId = inserter.insert(mergeCommit)
+      inserter.flush()
+      inserter.close()
+      mergeCommitId
+    }
+    def updateRefs(repository: Repository, ref: String, newObjectId: ObjectId, force: Boolean, committer: PersonIdent, refLogMessage: Option[String] = None):Unit = {
+      // update refs
+      val refUpdate = repository.updateRef(ref)
+      refUpdate.setNewObjectId(newObjectId)
+      refUpdate.setForceUpdate(force)
+      refUpdate.setRefLogIdent(committer)
+      refLogMessage.map(refUpdate.setRefLogMessage(_, true))
+      refUpdate.update()
+    }
+  }
   case class MergeCacheInfo(git:Git, branch:String, issueId:Int){
     val repository = git.getRepository
     val mergedBranchName = s"refs/pull/${issueId}/merge"
@@ -90,17 +139,17 @@ object MergeService{
     lazy val mergeTip = repository.resolve(s"refs/pull/${issueId}/head")
     def checkConflictCache(): Option[Boolean] = {
       Option(repository.resolve(mergedBranchName)).flatMap{ merged =>
-          if(parseCommit( merged ).getParents().toSet == Set( mergeBaseTip, mergeTip )){
+          if(parseCommit(merged).getParents().toSet == Set( mergeBaseTip, mergeTip )){
             // merged branch exists
             Some(false)
-          }else{
+          } else {
             None
           }
       }.orElse(Option(repository.resolve(conflictedBranchName)).flatMap{ conflicted =>
-        if(parseCommit( conflicted ).getParents().toSet == Set( mergeBaseTip, mergeTip )){
+        if(parseCommit(conflicted).getParents().toSet == Set( mergeBaseTip, mergeTip )){
           // conflict branch exists
           Some(true)
-        }else{
+        } else {
           None
         }
       })
@@ -120,17 +169,12 @@ object MergeService{
       def updateBranch(treeId:ObjectId, message:String, branchName:String){
         // creates merge commit
         val mergeCommitId = createMergeCommit(treeId, committer, message)
-        // update refs
-        val refUpdate = repository.updateRef(branchName)
-        refUpdate.setNewObjectId(mergeCommitId)
-        refUpdate.setForceUpdate(true)
-        refUpdate.setRefLogIdent(committer)
-        refUpdate.update()
+        Util.updateRefs(repository, branchName, mergeCommitId, true, committer)
       }
       if(!conflicted){
         updateBranch(merger.getResultTreeId, s"Merge ${mergeTip.name} into ${mergeBaseTip.name}", mergedBranchName)
         git.branchDelete().setForce(true).setBranchNames(conflictedBranchName).call()
-      }else{
+      } else {
         updateBranch(mergeTipCommit.getTree().getId(), s"can't merge ${mergeTip.name} into ${mergeBaseTip.name}", conflictedBranchName)
         git.branchDelete().setForce(true).setBranchNames(mergedBranchName).call()
       }
@@ -145,28 +189,12 @@ object MergeService{
       // creates merge commit
       val mergeCommitId = createMergeCommit(mergeResultCommit.getTree().getId(), committer, message)
       // update refs
-      val refUpdate = repository.updateRef(s"refs/heads/${branch}")
-      refUpdate.setNewObjectId(mergeCommitId)
-      refUpdate.setForceUpdate(false)
-      refUpdate.setRefLogIdent(committer)
-      refUpdate.setRefLogMessage("merged", true)
-      refUpdate.update()
+      Util.updateRefs(repository, s"refs/heads/${branch}", mergeCommitId, false, committer, Some("merged"))
     }
     // return treeId
-    private def createMergeCommit(treeId:ObjectId, committer:PersonIdent, message:String) = {
-      val mergeCommit = new CommitBuilder()
-      mergeCommit.setTreeId(treeId)
-      mergeCommit.setParentIds(Array[ObjectId](mergeBaseTip, mergeTip): _*)
-      mergeCommit.setAuthor(committer)
-      mergeCommit.setCommitter(committer)
-      mergeCommit.setMessage(message)
-      // insertObject and got mergeCommit Object Id
-      val inserter = repository.newObjectInserter
-      val mergeCommitId = inserter.insert(mergeCommit)
-      inserter.flush()
-      inserter.close()
-      mergeCommitId
-    }
+    private def createMergeCommit(treeId: ObjectId, committer: PersonIdent, message: String) =
+      Util.createMergeCommit(repository, treeId, committer, message, Seq[ObjectId](mergeBaseTip, mergeTip))
+
     private def parseCommit(id:ObjectId) = using(new RevWalk( repository ))(_.parseCommit(id))
   }
 }
