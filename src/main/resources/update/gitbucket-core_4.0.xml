@@ -185,6 +185,20 @@
     <column name="EVENT" type="varchar(30)" nullable="false"/>
   </createTable>
 
+  <createTable tableName="PROTECTED_BRANCH">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="BRANCH" type="varchar(100)" nullable="false"/>
+    <column name="STATUS_CHECK_ADMIN" type="boolean" nullable="false" defaultValueBoolean="false"/>
+  </createTable>
+
+  <createTable tableName="PROTECTED_BRANCH_REQUIRE_CONTEXT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="BRANCH" type="varchar(100)" nullable="false"/>
+    <column name="CONTEXT" type="varchar(255)" nullable="false"/>
+  </createTable>
+
   <addPrimaryKey constraintName="IDX_ACCESS_TOKEN_PK" tableName="ACCESS_TOKEN" columnNames="ACCESS_TOKEN_ID"/>
   <addUniqueConstraint constraintName="IDX_ACCESS_TOKEN_TOKEN_HASH" tableName="ACCESS_TOKEN" columnNames="TOKEN_HASH"/>
   <addForeignKeyConstraint constraintName="IDX_ACCESS_TOKEN_FK0" baseTableName="ACCESS_TOKEN" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
@@ -249,6 +263,12 @@
 
   <addPrimaryKey constraintName="IDX_WEB_HOOK_EVENT_PK" tableName="WEB_HOOK_EVENT" columnNames="USER_NAME, REPOSITORY_NAME, URL, EVENT"/>
   <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_PK" tableName="PROTECTED_BRANCH" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_FK0" baseTableName="PROTECTED_BRANCH" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_PK" tableName="PROTECTED_BRANCH_REQUIRE_CONTEXT" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH, CONTEXT"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_FK0" baseTableName="PROTECTED_BRANCH_REQUIRE_CONTEXT" baseColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" referencedTableName="PROTECTED_BRANCH" referencedColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" onDelete="CASCADE" onUpdate="CASCADE"/>
 
   <insert tableName="ACCOUNT">
     <column name="USER_NAME" value="root"/>
