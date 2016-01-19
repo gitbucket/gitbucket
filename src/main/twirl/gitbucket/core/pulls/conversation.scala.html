@@ -20,7 +20,7 @@
       case comment: gitbucket.core.model.IssueComment => Some(comment)
       case other => None
     }.exists(_.action == "merge")){ merged =>
-      @if(hasWritePermission && !issue.closed){
+      @if(!issue.closed){
         <div class="check-conflict" style="display: none;">
           <div class="box issue-comment-box" style="background-color: #fbeed5">
             <div class="box-content"class="issue-content" style="border: 1px solid #c09853; padding: 10px;">
@@ -40,9 +40,9 @@
             <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
           </div>
         </div>
-        }
-        @issues.html.commentform(issue, !merged, hasWritePermission, repository)
       }
+      @issues.html.commentform(issue, !merged, hasWritePermission, repository)
+    }
   </div>
   <div class="col-md-2">
     @issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
@@ -55,10 +55,12 @@ $(function(){
     $('#merge-pull-request').show();
   });
 
-  @if(hasWritePermission){
-    $('.check-conflict').show();
+  var checkConflict = $('.check-conflict').show();
+  if(checkConflict.length){
     $.get('@url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+  }
 
+  @if(hasWritePermission){
     $('.delete-branch').click(function(e){
       var branchName = $(e.target).data('name');
       return confirm('Are you sure you want to remove the ' + branchName + ' branch?');

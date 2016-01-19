@@ -18,22 +18,6 @@
               <label for="description" class="strong">Description:</label>
               <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
             </fieldset>
-            <fieldset class="margin form-group">
-              <label for="defaultBranch" class="strong">Default Branch:</label>
-              <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled} class="form-control">
-                @if(repository.branchList.isEmpty){
-                  <option value="none" selected>No Branch</option>
-                } else {
-                  @repository.branchList.map { branch =>
-                    <option@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
-                  }
-                }
-              </select>
-              @if(repository.branchList.isEmpty){
-                <input type="hidden" name="defaultBranch" value="none"/>
-              }
-              <span class="error" id="error-defaultBranch"></span>
-            </fieldset>
             <fieldset class="margin">
               <label class="radio">
                 <input type="radio" name="isPrivate" value="false"

@@ -1,0 +1,123 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  branch: String,
+  protection: gitbucket.core.api.ApiBranchProtection,
+  knownContexts: Seq[String],
+  info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@import gitbucket.core.model.WebHook._
+@check(bool:Boolean)={@if(bool){ checked}}
+@html.main(s"Branch protection for ${branch}", Some(repository)){
+  @html.menu("settings", repository){
+    @menu("branches", repository){
+      @helper.html.information(info)
+      <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
+      <form name="branchProtection" onsubmit="submitForm(event)">
+        <div class="panel panel-default">
+          <div class="panel-heading">Branch protection for <b>@branch</b></div>
+          <div class="panel-body">
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="enabled" onclick="update()" @check(protection.enabled)>
+                <span class="strong">Protect this branch</span>
+              </label>
+              <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
+            </div>
+
+            <div class="checkbox js-enabled" style="display:none">
+              <label>
+                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off")>
+                <span class="strong">Require status checks to pass before merging</span>
+              </label>
+              <p class="help-block">Choose which status checks must pass before branches can be merged into test.
+              When enabled, commits must first be pushed to another branch, then merged or pushed directly to test after status checks have passed.</p>
+
+              <div class="js-has_required_statuses" style="display:none">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
+                    <span class="strong">Include administrators</span>
+                  </label>
+                  <p class="help-block">Enforce required status checks for repository administrators.</p>
+                </div>
+
+                <div class="panel panel-default">
+                  <div class="panel-heading">Status checks found in the last week for this repository</div>
+                  <div class="panel-body">
+                    @knownContexts.map { context =>
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" name="contexts" value="@context" onclick="update()" @check(protection.status.contexts.find(_ == context))>
+                          <span>@context</span>
+                        </label>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+            <input class="btn btn-success btn-lg" type="submit" value="Save changes" />
+          </div>
+        </div>
+      </form>
+    }
+  }
+}
+<script>
+function getValue(){
+  var v = {}, contexts=[];
+  $("input[type=checkbox]:checked").each(function(){
+    if(this.name === 'contexts'){
+      contexts.push(this.value);
+    } else {
+      v[this.name] = true;
+    }
+  });
+  if(v.enabled){
+    return {
+      enabled: true,
+      required_status_checks: {
+        enforcement_level: v.has_required_statuses ? ((v.enforce_for_admins ? 'everyone' : 'non_admins')) : 'off',
+        contexts: v.has_required_statuses ? contexts : []
+      }
+    };
+  } else {
+    return {
+      enabled: false,
+      required_status_checks: {
+        enforcement_level: "off",
+        contexts: []
+      }
+    };
+  }
+}
+function updateView(protection){
+  $('.js-enabled').toggle(protection.enabled);
+  $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level != 'off');
+}
+function update(){
+  var protection = getValue();
+  updateView(protection);
+}
+$(update);
+function submitForm(e){
+  e.stopPropagation();
+  e.preventDefault();
+  var protection = getValue();
+  $.ajax({
+    method:'PATCH',
+    url:'/api/v3/repos/@repository.owner/@repository.name/branches/@encodeRefName(branch)',
+    contentType: 'application/json',
+    dataType: 'json',
+    data:JSON.stringify({protection:protection}),
+    success:function(r){
+      $('#saved-info').show();
+    },
+    error:function(err){
+      console.log(err);
+      alert('update error');
+    }
+  });
+}
+</script>
