@@ -260,6 +260,7 @@ div.pagination {
 
 div.body {
   margin-bottom: 40px;
+  position: relative;
 }
 
 span.error {
@@ -518,8 +519,14 @@ a.btn-danger:hover .octicon {
 /* Side Menu */
 /****************************************************************************/
 ul.sidemenu {
-  margin-left: 0px;
-  padding-left: 0px;
+  width: 40px;
+  position: absolute;
+  right: 15px;
+  top: 0;
+  padding-left: 0;
+  background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
+  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
+  box-shadow: inset 1px 0 0 #eee;
 }
 
 ul.sidemenu a {
@@ -529,6 +536,15 @@ ul.sidemenu a {
 
 ul.sidemenu a:hover {
   text-decoration: none;
+}
+
+
+ul.sidemenu li {
+  border-left: 1px solid #eee;
+  margin-left: 0;
+  border-right: 2px solid white;
+  list-style-type: none;
+  font-size: 90%;
 }
 
 ul.sidemenu li.active {
@@ -542,25 +558,11 @@ ul.sidemenu li.active a {
   background-color: #fff;
 }
 
-ul.sidemenu {
-  background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
-  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
-  box-shadow: inset 1px 0 0 #eee;
-}
-
 ul.sidemenu div.margin {
   width: 5px;
   height: 30px;
   margin-right: 4px;
   border-left: 1px solid white;
-}
-
-ul.sidemenu li {
-  border-left: 1px solid #eee;
-  margin-left:0px;
-  border-right: 2px solid white;
-  list-style-type: none;
-  font-size: 90%;
 }
 
 ul.sidemenu span.badge {
