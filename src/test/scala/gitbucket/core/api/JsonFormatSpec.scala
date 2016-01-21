@@ -209,6 +209,15 @@ class JsonFormatSpec extends Specification {
     "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/commits/$sha1/status"
   }"""
 
+  val apiLabel = ApiLabel(
+    name = "bug",
+    color = "f29513")(RepositoryName("octocat","Hello-World"))
+  val apiLabelJson = s"""{
+    "name": "bug",
+    "color": "f29513",
+    "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/labels/bug"
+  }"""
+
   val apiIssue = ApiIssue(
       number = 1347,
       title  = "Found a bug",
@@ -410,6 +419,9 @@ class JsonFormatSpec extends Specification {
     }
     "apiCombinedCommitStatus" in {
       JsonFormat(apiCombinedCommitStatus) must beFormatted(apiCombinedCommitStatusJson)
+    }
+    "apiLabel" in {
+      JsonFormat(apiLabel) must beFormatted(apiLabelJson)
     }
     "apiIssue" in {
       JsonFormat(apiIssue) must beFormatted(apiIssueJson)
