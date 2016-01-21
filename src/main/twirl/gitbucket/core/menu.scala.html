@@ -105,7 +105,7 @@
       }
     }
   </div>
-  <div style="margin-right: @if(expand){180px} else {55px};">
+  <div class="pull-left" style="width: @if(expand){770px} else {895px};">
     @if(expand){
       @repository.repository.description.map { description =>
         <p class="description">@detectAndRenderLinks(description)</p>
