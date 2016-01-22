@@ -23,12 +23,13 @@ import org.scalatra.i18n.Messages
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService
+  with AccessTokenService with WebHookService with AdminAuthenticator
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
+    with AdminAuthenticator
     with AccessTokenService with WebHookService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
@@ -174,6 +175,25 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse Unauthorized
   }
 
+  /**
+    * User api add on - user creation
+    */
+  post("/api/v3/user") (adminOnly {
+    (
+      for {
+      data <- extractFromJsonBody[CreateAUser] if data.isValid
+    } yield {
+          if(context.settings.allowAccountRegistration){
+            createAccount(data.userName, sha1(data.password), data.fullName, data.mailAddress, false, data.url)
+            updateImage(data.userName, data.fileId, false)
+            Some(s"""{message: user created for ${data.userName }"""")
+          } else  Some("""{message: user creation is not allowed}""")
+
+    }) getOrElse {
+      val body = parsedBody.extract[CreateAUser]
+      Some(s"""{message: unknown error ${body.userName}""")
+    }
+  })
 
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
