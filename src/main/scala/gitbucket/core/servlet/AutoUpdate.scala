@@ -18,7 +18,7 @@ import gitbucket.core.util.Directory
 object AutoUpdate {
 
   /**
-   * The history of versions. A head of this sequence is the current BitBucket version.
+   * The history of versions. A head of this sequence is the current GitBucket version.
    */
   val versions = Seq(
     new Version(3, 11),
@@ -156,7 +156,7 @@ object AutoUpdate {
   )
 
   /**
-   * The head version of BitBucket.
+   * The head version of GitBucket.
    */
   val headVersion = versions.head
 

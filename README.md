@@ -63,7 +63,7 @@ Release Notes
 ### 3.10 - 30 Dec 2015
 - Move to Bootstrap3
 - New URL for raw contents (`raw/master/doc/activity.md` instead of `blob/master/doc/activity.md?raw=true`)
-- Update xsbt-web-pligin
+- Update xsbt-web-plugin
 - Update H2 database
 
 ### 3.9 - 5 Dec 2015
