@@ -7,7 +7,7 @@ import gitbucket.core.util.{LockUtil, RepositoryName, ReferrerAuthenticator, Col
 import gitbucket.core.util.Implicits._
 import io.github.gitbucket.scalatra.forms._
 import org.scalatra.i18n.Messages
-import org.scalatra.{UnprocessableEntity, Created, Ok}
+import org.scalatra.{NoContent, UnprocessableEntity, Created, Ok}
 
 class LabelsController extends LabelsControllerBase
   with LabelsService with IssuesService with RepositoryService with AccountService
@@ -37,9 +37,9 @@ trait LabelsControllerBase extends ControllerBase {
     * https://developer.github.com/v3/issues/labels/#list-all-labels-for-this-repository
     */
   get("/api/v3/repos/:owner/:repository/labels")(referrersOnly { repository =>
-    getLabels(repository.owner, repository.name).map { label =>
-      JsonFormat(ApiLabel(label, RepositoryName(repository)))
-    }
+    JsonFormat(getLabels(repository.owner, repository.name).map { label =>
+      ApiLabel(label, RepositoryName(repository))
+    })
   })
 
   /**
@@ -146,7 +146,7 @@ trait LabelsControllerBase extends ControllerBase {
     LockUtil.lock(RepositoryName(repository).fullName) {
       getLabel(repository.owner, repository.name, params("labelName")).map { label =>
         deleteLabel(repository.owner, repository.name, label.labelId)
-        Ok()
+        NoContent()
       } getOrElse NotFound()
     }
   })
