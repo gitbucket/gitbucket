@@ -48,7 +48,7 @@
                   }
                   @if(userRepositories.size > max){
                     <li class="list-group-item show-more">
-                      <a href="javascript:void(0);" id="show-more-repos">Show more @{userRepositories.size - max} pages...</a>
+                      <a href="javascript:void(0);" id="show-more-repos">Show @{userRepositories.size - max} more repositories...</a>
                     </li>
                   }
                 }
@@ -62,12 +62,19 @@
           @if(recentRepositories.isEmpty){
             <li class="list-group-item">No repositories</li>
           } else {
-              @recentRepositories.map { repository =>
-                <li class="list-group-item repo-link">
+            @defining(20){ max =>
+              @recentRepositories.zipWithIndex.map { case (repository, i) =>
+                <li class="list-group-item repo-link" style="@if(i > max - 1){display:none;}">
                   @helper.html.repositoryicon(repository, false)
                   <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
                 </li>
               }
+              @if(recentRepositories.size > max){
+                <li class="list-group-item show-more">
+                  <a href="javascript:void(0);" id="show-more-recent-repos">Show @{recentRepositories.size - max} more repositories...</a>
+                </li>
+              }
+            }
           }
           </ul>
         </div>
@@ -77,7 +84,7 @@
 }
 <script>
 $(function(){
-  $('#show-more-repos').click(function(e){
+  $('#show-more-repos, #show-more-recent-repos').click(function(e){
     $(e.target).parents('ul.list-group').find('li.repo-link').show();
     $(e.target).parents('li.show-more').remove();
   });
