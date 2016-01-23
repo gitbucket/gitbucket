@@ -30,6 +30,10 @@ abstract class ControllerBase extends ScalatraFilter
 
   implicit val jsonFormats = DefaultFormats
 
+  before("/api/v3/*") {
+    contentType = formats("json")
+  }
+
 // TODO Scala 2.11
 //  // Don't set content type via Accept header.
 //  override def format(implicit request: HttpServletRequest) = ""
