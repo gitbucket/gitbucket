@@ -5,8 +5,8 @@ case class CreateAUser (
   password: String,
   fullName: String,
   mailAddress: String,
-  url: Option[String],
-  fileId: Option[String]
+  url: Option[String] = None,
+  fileId: Option[String] = None
   ) {
   def isValid: Boolean = {
     userName.length <= 40 &&

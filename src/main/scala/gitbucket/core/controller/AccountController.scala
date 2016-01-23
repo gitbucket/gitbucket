@@ -175,26 +175,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse Unauthorized
   }
 
-  /**
-    * User api add on - user creation
-    */
-  post("/api/v3/user") (adminOnly {
-    (
-      for {
-      data <- extractFromJsonBody[CreateAUser] if data.isValid
-    } yield {
-          if(context.settings.allowAccountRegistration){
-            createAccount(data.userName, sha1(data.password), data.fullName, data.mailAddress, false, data.url)
-            updateImage(data.userName, data.fileId, false)
-            Some(s"""{message: user created for ${data.userName }"""")
-          } else  Some("""{message: user creation is not allowed}""")
-
-    }) getOrElse {
-      val body = parsedBody.extract[CreateAUser]
-      Some(s"""{message: unknown error ${body.userName}""")
-    }
-  })
-
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
@@ -515,6 +495,118 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }
   })
+
+  /**
+    * User api add on - user creation
+    */
+  post("/api/v3/user") (adminOnly {
+    (
+      for {
+        data <- extractFromJsonBody[CreateAUser] if data.isValid
+      } yield {
+        if(context.settings.allowAccountRegistration){
+          createAccount(data.userName, sha1(data.password), data.fullName, data.mailAddress, false, data.url)
+          updateImage(data.userName, data.fileId, false)
+          org.scalatra.Accepted(s"""{ "message": "${data.userName} is added"} """)
+        }
+        else org.scalatra.NotAcceptable("""{ "message": "user creation is not allowed" }""")
+
+      }) getOrElse
+      org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
+  })
+
+  delete("/api/v3/user/:userName") (adminOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName, true).map { account =>
+      removeUserRelatedData(userName)
+
+      updateAccount(account.copy(
+        password     = account.password,
+        fullName     = account.fullName,
+        mailAddress  = account.mailAddress,
+        isAdmin      = false,
+        url          = account.url,
+        isRemoved    = true))
+
+      updateImage(userName, None, true)
+
+      org.scalatra.Accepted(s"""{ "message": "$userName is disabled" }""")
+    } getOrElse NotFound
+  })
+
+  post("/api/v3/newgroup")(adminOnly {
+    (for {
+      data <- extractFromJsonBody[CreateAGroup] if data.isValid
+    } yield {
+      createGroup(data.groupName, data.url)
+      updateGroupMembers(data.groupName,
+        data.members.map ( m => (m, m.equalsIgnoreCase( data.manager ))))
+
+      updateImage(data.groupName, data.fileId, false)
+      org.scalatra.Accepted(s"""{"message": "${data.groupName} is added"}""")
+
+    }) getOrElse
+    org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
+
+  })
+
+  delete("/api/v3/group/:groupName")(adminOnly{
+    defining(params("groupName")) { groupName => {
+      getAccountByUserName(groupName, true).map { account =>
+        updateGroup(groupName, None, true)
+
+        // Remove from GROUP_MEMBER
+        updateGroupMembers(groupName, Nil)
+        // Remove repositories
+        getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+          deleteRepository(groupName, repositoryName)
+          FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+          FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+          FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+        }
+        org.scalatra.Accepted( s"""{"message": "$groupName is disabled" }""")
+      } getOrElse NotFound
+    }}})
+
+  post("/api/v3/:groupName/add/user/:userName") (adminOnly{
+    defining(params("groupName"), params("userName")) { case (groupName, userName) =>
+      val _oMembers = getGroupMembers(groupName).map{ member => (member.userName, member.isManager)}
+      if(_oMembers.contains((userName, false)))
+        org.scalatra.NotAcceptable(s"""{"message": "$userName is already in group $groupName" }""")
+      else{
+        val _nMembers = _oMembers:+(userName, false)
+        updateGroupMembers(groupName, _nMembers)
+        getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+          removeCollaborators(groupName, repositoryName)
+          _nMembers.foreach { case (userName, isManager) =>
+            addCollaborator(groupName, repositoryName, userName)
+          }
+        }
+        org.scalatra.Accepted(s"""{"message": "$userName added to group $groupName" }""")
+      }
+    }
+  })
+
+  post("/api/v3/:groupName/remove/user/:userName") (adminOnly{
+    defining(params("groupName"), params("userName")) { case (groupName, userName) =>
+      val _oMembers = getGroupMembers(groupName)
+        .filter(member => !member.userName.equalsIgnoreCase(userName)).map{ member =>
+
+          (member.userName, member.isManager)
+      }
+
+      updateGroupMembers(groupName, _oMembers)
+      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+        removeCollaborators(groupName, repositoryName)
+        _oMembers.foreach { case (userName, isManager) =>
+          addCollaborator(groupName, repositoryName, userName)
+        }
+      }
+      org.scalatra.Accepted(s"""{"message": "$userName removed from group $groupName" }""")
+
+    }
+  })
+
 
   private def createRepository(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean) {
     val ownerAccount  = getAccountByUserName(owner).get
