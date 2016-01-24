@@ -78,8 +78,7 @@
             <div class="pull-right" style="margin-top: 6px;">
               <div class="btn-group" style="margin-right: 8px;">
                 <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
-                  <i class="octicon octicon-plus" style="color: black; font-size: 20px; vertical-align: middle;height:20px !important;"></i>
-                  <span class="caret" style="color: black; vertical-align: middle;"></span>
+                  <i class="octicon octicon-plus" style="color: black; font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
                 </a>
                 <ul class="dropdown-menu pull-right">
                   <li><a href="@path/new">New repository</a></li>
@@ -87,8 +86,8 @@
                 </ul>
               </div>
               <div class="btn-group">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)
-                  <span class="caret" style="color: black; vertical-align: middle;"></span>
+                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">
+                  @avatar(loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
                 </a>
                 <ul class="dropdown-menu pull-right">
                   <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
