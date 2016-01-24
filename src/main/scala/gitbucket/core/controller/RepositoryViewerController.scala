@@ -634,7 +634,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             val parentPath = if (path == ".") Nil else path.split("/").toList
             // process README.md or README.markdown
             val readme = files.find { file =>
-              readmeFiles.contains(file.name.toLowerCase)
+              !file.isDirectory && readmeFiles.contains(file.name.toLowerCase)
             }.map { file =>
               val path = (file.name :: parentPath.reverse).reverse
               path -> StringUtil.convertFromByteArray(JGitUtil.getContentFromId(

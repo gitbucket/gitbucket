@@ -8,7 +8,7 @@ To release a new version of GitBucket, add the version definition to the [gitbuc
 object AutoUpdate {
   ...
   /**
-   * The history of versions. A head of this sequence is the current BitBucket version.
+   * The history of versions. A head of this sequence is the current GitBucket version.
    */
   val versions = Seq(
       Version(1, 0)
@@ -20,7 +20,7 @@ Next, add a SQL file which updates database schema into [/src/main/resources/upd
 
 GitBucket stores the current version to ```GITBUCKET_HOME/version``` and checks it at start-up. If the stored version differs from the actual version, it executes differences of SQL files between the stored version and the actual version. And ```GITBUCKET_HOME/version``` is updated by the actual version.
 
-We can also add any Scala code for upgrade GitBucket which modifies ｒesources other than database. Override ```Version.update``` like below:
+We can also add any Scala code for upgrade GitBucket which modifies resources other than database. Override ```Version.update``` like below:
 
 ```scala
 val versions = Seq(
