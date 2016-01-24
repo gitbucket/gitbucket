@@ -23,7 +23,7 @@ object MyBuild extends Build {
 object AutoUpdate {
 
   /**
-   * The history of versions. A head of this sequence is the current BitBucket version.
+   * The history of versions. A head of this sequence is the current GitBucket version.
    */
   val versions = Seq(
     new Version(3, 3), // <---- add this line!!
