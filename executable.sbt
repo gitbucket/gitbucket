@@ -1,19 +1,20 @@
+val executableJetty		= "8.1.16.v20140903"
 val executableConfig	= config("executable").hide
-val executableKey		= TaskKey[File]("executable")
-
-Keys.ivyConfigurations		+= executableConfig
-libraryDependencies	++= Seq(
-	"org.eclipse.jetty"	%	"jetty-security"		% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-webapp"			% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-continuation"	% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-server"			% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-xml"				% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-http"			% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-servlet"			% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-io"				% "8.1.16.v20140903"	% "executable",
-	"org.eclipse.jetty"	%	"jetty-util"			% "8.1.16.v20140903"	% "executable"
+Keys.ivyConfigurations	+= executableConfig
+libraryDependencies		++= Seq(
+	"org.eclipse.jetty"	%	"jetty-security"		% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-webapp"			% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-continuation"	% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-server"			% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-xml"				% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-http"			% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-servlet"			% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-io"				% executableJetty	% "executable",
+	"org.eclipse.jetty"	%	"jetty-util"			% executableJetty	% "executable"
 )
-executableKey	:= {
+
+val executableKey	= TaskKey[File]("executable")
+executableKey		:= {
 	import org.apache.ivy.util.ChecksumHelper
 	import java.util.jar.{ Manifest => JarManifest }
 	import java.util.jar.Attributes.{ Name => AttrName }
