@@ -1446,6 +1446,10 @@ div.wiki-sidebar {
   margin-top: 20px;
 }
 
+div.wiki-sidebar img {
+  max-width: 100%;
+}
+
 div.wiki-sidebar-dotted {
   background-color: white;
   border: 1px dashed #ddd;
@@ -1876,6 +1880,10 @@ div.markdown-body li {
 div.markdown-body p {
   margin: 15px 0;
   line-height: 1.5;
+}
+
+div.markdown-body img {
+  max-width: 100%;
 }
 
 div.markdown-body pre {
