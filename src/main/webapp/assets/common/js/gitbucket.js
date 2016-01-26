@@ -19,14 +19,11 @@ $(function(){
   });
 
   // anchor icon for markdown
-  $('.markdown-head').mouseenter(function(e){
-    $(e.target).children('a.markdown-anchor-link').show();
+  $('.markdown-head').on('mouseenter', function(e){
+    $(this).find('span.octicon').css('visibility', 'visible');
   });
-  $('.markdown-head').mouseleave(function(e){
-    $(e.target).children('a.markdown-anchor-link').hide();
-  });
-  $('a.markdown-anchor-link').mouseleave(function(e){
-    $(e.target).hide();
+  $('.markdown-head').on('mouseleave', function(e){
+    $(this).find('span.octicon').css('visibility', 'hidden');
   });
 
   // syntax highlighting by google-code-prettify
