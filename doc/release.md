@@ -37,11 +37,10 @@ Note: Release operation requires [Ant](http://ant.apache.org/) and [Maven](https
 
 ### Make release war file
 
-Run `release/make-release-war.sh`. The release war file is generated into `target/scala-2.11/gitbucket.war`.
+Run `sbt executable`. The release war file and fingerprint are generated into `target/executable/gitbucket.war`.
 
 ```bash
-$ cd release
-$ ./make-release-war.sh
+$sbt executable
 ```
 
 ### Deploy assembly jar file
