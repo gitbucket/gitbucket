@@ -417,9 +417,7 @@ object RepositoryService {
   def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"
   def sshUrl(owner: String, name: String)(implicit context: Context): Option[String] =
     if(context.settings.ssh){
-      context.loginAccount.flatMap { loginAccount =>
-        context.settings.sshAddress.map { x => s"ssh://${loginAccount.userName}@${x.host}:${x.port}/${owner}/${name}.git" }
-      }
+      context.settings.sshAddress.map { x => s"ssh://${x.genericUser}@${x.host}:${x.port}/${owner}/${name}.git" }
     } else None
   def openRepoUrl(openUrl: String)(implicit context: Context): String = s"github-${context.platform}://openRepo/${openUrl}"
 

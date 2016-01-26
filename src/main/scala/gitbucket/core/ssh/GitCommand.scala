@@ -5,7 +5,8 @@ import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
 import gitbucket.core.servlet.{Database, CommitLogHook}
 import gitbucket.core.util.{Directory, ControlUtil}
-import org.apache.sshd.server.{CommandFactory, Environment, ExitCallback, Command}
+import org.apache.sshd.server.{CommandFactory, Environment, ExitCallback, Command, SessionAware}
+import org.apache.sshd.server.session.ServerSession
 import org.slf4j.LoggerFactory
 import java.io.{File, InputStream, OutputStream}
 import ControlUtil._
@@ -20,37 +21,44 @@ object GitCommand {
   val SimpleCommandRegex  = """\Agit-(upload|receive)-pack '/(.+\.git)'\Z""".r
 }
 
-abstract class GitCommand() extends Command {
+abstract class GitCommand extends Command with SessionAware {
 
   private val logger = LoggerFactory.getLogger(classOf[GitCommand])
   @volatile protected var err: OutputStream = null
   @volatile protected var in: InputStream = null
   @volatile protected var out: OutputStream = null
   @volatile protected var callback: ExitCallback = null
+  @volatile private var authUser:Option[String] = None
 
-  protected def runTask(user: String)(implicit session: Session): Unit
+  protected def runTask(authUser: String)(implicit session: Session): Unit
 
-  private def newTask(user: String): Runnable = new Runnable {
+  private def newTask(): Runnable = new Runnable {
     override def run(): Unit = {
-      Database() withSession { implicit session =>
-        try {
-          runTask(user)
-          callback.onExit(0)
-        } catch {
-          case e: RepositoryNotFoundException =>
-            logger.info(e.getMessage)
-            callback.onExit(1, "Repository Not Found")
-          case e: Throwable =>
-            logger.error(e.getMessage, e)
-            callback.onExit(1)
-        }
+      authUser match {
+        case Some(authUser) =>
+          Database() withSession { implicit session =>
+            try {
+              runTask(authUser)
+              callback.onExit(0)
+            } catch {
+              case e: RepositoryNotFoundException =>
+                logger.info(e.getMessage)
+                callback.onExit(1, "Repository Not Found")
+              case e: Throwable =>
+                logger.error(e.getMessage, e)
+                callback.onExit(1)
+            }
+          }
+        case None =>
+          val message = "User not authenticated"
+          logger.error(message)
+          callback.onExit(1, message)
       }
     }
   }
 
-  override def start(env: Environment): Unit = {
-    val user = env.getEnv.get("USER")
-    val thread = new Thread(newTask(user))
+  final override def start(env: Environment): Unit = {
+    val thread = new Thread(newTask())
     thread.start()
   }
 
@@ -70,6 +78,10 @@ abstract class GitCommand() extends Command {
 
   override def setInputStream(in: InputStream): Unit = {
     this.in = in
+  }
+
+  override def setSession(serverSession:ServerSession) {
+  	this.authUser = PublicKeyAuthenticator.getUserName(serverSession)
   }
 
 }
