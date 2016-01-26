@@ -2,15 +2,15 @@ val executableJetty		= "8.1.16.v20140903"
 val executableConfig	= config("executable").hide
 Keys.ivyConfigurations	+= executableConfig
 libraryDependencies		++= Seq(
-	"org.eclipse.jetty"	%	"jetty-security"		% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-webapp"			% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-continuation"	% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-server"			% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-xml"				% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-http"			% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-servlet"			% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-io"				% executableJetty	% "executable",
-	"org.eclipse.jetty"	%	"jetty-util"			% executableJetty	% "executable"
+	"org.eclipse.jetty"	%	"jetty-security"     % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-webapp"       % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-continuation" % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-server"       % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-xml"          % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-http"         % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-servlet"      % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-io"           % executableJetty % "executable",
+	"org.eclipse.jetty"	%	"jetty-util"         % executableJetty % "executable"
 )
 
 val executableKey	= TaskKey[File]("executable")
@@ -20,7 +20,7 @@ executableKey		:= {
 	import java.util.jar.Attributes.{ Name => AttrName }
 	
 	val workDir	= Keys.target.value / "executable"
-	var warName	= Keys.name.value + "-" + Keys.version.value + "-executable.war"
+	val warName	= Keys.name.value + "-" + Keys.version.value + "-executable.war"
 	
 	val log		= streams.value.log
 	log info s"building executable webapp in ${workDir}"
