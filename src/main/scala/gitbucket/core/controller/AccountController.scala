@@ -17,6 +17,7 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
+import org.scalatra
 import org.scalatra.i18n.Messages
 
 
@@ -514,6 +515,36 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }) getOrElse
       org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
   })
+
+  post("/api/v3/user/:userName") (adminOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName, true) match {
+      case Some(acc) => {
+        (for {
+          data <- extractFromJsonBody[CreateAUser] if data.isValid
+        } yield {
+          if(context.settings.allowAccountRegistration){
+
+            updateAccount(acc.copy(
+              password     = sha1(data.password),
+              fullName     = data.fullName,
+              mailAddress  = data.mailAddress,
+              url          = data.url))
+
+            updateImage(data.userName, data.fileId, false)
+            org.scalatra.Accepted(s"""{ "message": "${data.userName} is updated"} """)
+          }
+          else org.scalatra.NotAcceptable("""{ "message": "user creation is not allowed" }""")
+
+        }) getOrElse
+        org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
+
+      }
+      case None => org.scalatra.NotFound(s"""{"message": "user with username $userName is not found"}""")
+    }
+  })
+
+
 
   delete("/api/v3/user/:userName") (adminOnly {
     val userName = params("userName")
