@@ -68,7 +68,7 @@ object Markdown {
 
       if(enableAnchor){
         out.append(" class=\"markdown-head\">")
-        out.append("<a class=\"markdown-anchor-link\" href=\"#" + id + "\"></a>")
+        out.append("<a class=\"markdown-anchor-link\" href=\"#" + id + "\"><span class=\"octicon octicon-link\"></span></a>")
         out.append("<a class=\"markdown-anchor\" name=\"" + id + "\"></a>")
       } else {
         out.append(">")

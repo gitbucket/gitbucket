@@ -1446,6 +1446,10 @@ div.wiki-sidebar {
   margin-top: 20px;
 }
 
+div.wiki-sidebar img {
+  max-width: 100%;
+}
+
 div.wiki-sidebar-dotted {
   background-color: white;
   border: 1px dashed #ddd;
@@ -1878,6 +1882,10 @@ div.markdown-body p {
   line-height: 1.5;
 }
 
+div.markdown-body img {
+  max-width: 100%;
+}
+
 div.markdown-body pre {
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 12px;
@@ -2035,39 +2043,16 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 }
 
 a.markdown-anchor-link {
-  position: absolute;
-  left: -18px;
-  display: none;
+  margin-left: -16px;
+  margin-right: 2px;
+  line-height: 1;
   color: #999;
-  /* From octicon style */
-  font: normal normal normal 16px/1 octicons;
-  text-decoration: none;
-  text-rendering: auto;
-}
-a.markdown-anchor-link:before { content: '\f05c'} /*  */
-
-h1 a.markdown-anchor-link {
-  top: 24px;
+  cursor: pointer;
 }
 
-h2 a.markdown-anchor-link {
-  top: 20px;
-}
-
-h3 a.markdown-anchor-link {
-  top: 12px;
-}
-
-h4 a.markdown-anchor-link {
-  top: 8px;
-}
-
-h5 a.markdown-anchor-link {
-  top: 6px;
-}
-
-h6 a.markdown-anchor-link {
-  top: 6px;
+a.markdown-anchor-link span.octicon {
+  visibility: hidden;
+  vertical-align: middle;
 }
 
 /****************************************************************************/

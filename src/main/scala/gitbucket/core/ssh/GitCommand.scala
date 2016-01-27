@@ -23,10 +23,10 @@ object GitCommand {
 abstract class GitCommand() extends Command {
 
   private val logger = LoggerFactory.getLogger(classOf[GitCommand])
-  protected var err: OutputStream = null
-  protected var in: InputStream = null
-  protected var out: OutputStream = null
-  protected var callback: ExitCallback = null
+  @volatile protected var err: OutputStream = null
+  @volatile protected var in: InputStream = null
+  @volatile protected var out: OutputStream = null
+  @volatile protected var callback: ExitCallback = null
 
   protected def runTask(user: String)(implicit session: Session): Unit
 
