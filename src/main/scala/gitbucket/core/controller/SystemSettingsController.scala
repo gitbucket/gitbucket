@@ -74,7 +74,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
     if(form.ssh && !SshServer.isActive && form.baseUrl.isDefined){
       SshServer.start(
-        form.sshPort.getOrElse(SystemSettingsService.DefaultSshPort),
+        form.sshPortOrDefault,
         form.baseUrl.get)
     } else if(!form.ssh && SshServer.isActive){
       SshServer.stop()

@@ -60,7 +60,7 @@ class SshServerListener extends ServletContextListener with SystemSettingsServic
         case None =>
           logger.error("Could not start SshServer because the baseUrl is not configured.")
         case Some(baseUrl) =>
-          SshServer.start(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), baseUrl)
+          SshServer.start(settings.sshPortOrDefault, baseUrl)
       }
     }
   }

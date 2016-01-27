@@ -15,7 +15,7 @@ class NoShell extends Factory[Command] with SystemSettingsService {
 
     override def start(env: Environment): Unit = {
       val user = env.getEnv.get("USER")
-      val port = loadSystemSettings().sshPort.getOrElse(SystemSettingsService.DefaultSshPort)
+      val port = loadSystemSettings().sshPortOrDefault
       val message =
         """
           | Welcome to

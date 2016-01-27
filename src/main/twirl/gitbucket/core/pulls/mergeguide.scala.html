@@ -178,7 +178,7 @@ $(function(){
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
       // Update command guidance
       $('#merge-command').text($('#merge-command').text().replace(
-        '@forkedRepository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)',
+        '@forkedRepository.sshUrl(settings.sshPortOrDefault, loginAccount.get.userName)',
         '@forkedRepository.httpUrl'
       ));
       $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
@@ -186,12 +186,12 @@ $(function(){
 
     $('#repository-url-ssh').click(function(){
       // Update URL box
-      $('#repository-url').val('@forkedRepository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
+      $('#repository-url').val('@forkedRepository.sshUrl(settings.sshPortOrDefault, loginAccount.get.userName)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
       // Update command guidance
       $('#merge-command').text($('#merge-command').text().replace(
         '@forkedRepository.httpUrl',
-        '@forkedRepository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)'
+        '@forkedRepository.sshUrl(settings.sshPortOrDefault, loginAccount.get.userName)'
       ));
       $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
     });

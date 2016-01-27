@@ -191,8 +191,8 @@ $(function(){
 
     $('#repository-url-ssh').click(function(){
       $('#repository-url-proto').text('SSH');
-      $('#repository-url').val('@repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
-      $('#repository-clone-url').attr('href', '@repository.sshOpenRepoUrl(context.platform, settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
+      $('#repository-url').val('@repository.sshUrl(settings.sshPortOrDefault, loginAccount.get.userName)');
+      $('#repository-clone-url').attr('href', '@repository.sshOpenRepoUrl(context.platform, settings.sshPortOrDefault, loginAccount.get.userName)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
   }

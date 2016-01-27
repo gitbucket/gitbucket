@@ -136,6 +136,7 @@ object SystemSettingsService {
         url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
       }
     }.stripSuffix("/")
+    def sshPortOrDefault:Int = sshPort.getOrElse(DefaultSshPort)
   }
 
   case class Ldap(
