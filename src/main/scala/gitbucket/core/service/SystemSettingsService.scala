@@ -1,6 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.util.{Directory, ControlUtil}
+import gitbucket.core.util.Implicits._
 import Directory._
 import ControlUtil._
 import SystemSettingsService._
@@ -131,11 +132,7 @@ object SystemSettingsService {
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
     ldap: Option[Ldap]){
-    def baseUrl(request: HttpServletRequest): String = baseUrl.getOrElse {
-      defining(request.getRequestURL.toString){ url =>
-        url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
-      }
-    }.stripSuffix("/")
+    def baseUrl(request: HttpServletRequest): String = baseUrl.fold(request.baseUrl)(_.stripSuffix("/"))
     def sshPortOrDefault:Int = sshPort.getOrElse(DefaultSshPort)
   }
 
