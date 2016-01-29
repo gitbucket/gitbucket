@@ -137,7 +137,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       baseOwner <- users.get(repository.owner)
       headOwner <- users.get(pullRequest.requestUserName)
       issueUser <- users.get(issue.openedUserName)
-      headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
+      headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
       JsonFormat(ApiPullRequest(
         issue,
@@ -196,7 +196,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           issue,
           pullreq,
           repository,
-          getRepository(pullreq.requestUserName, pullreq.requestRepositoryName, context.baseUrl).get)
+          getRepository(pullreq.requestUserName, pullreq.requestRepositoryName).get)
       }
     } getOrElse NotFound
   })
@@ -229,7 +229,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       if(branchProtection.needStatusCheck(loginAccount.userName)){
         flash += "error" -> s"branch ${pullreq.requestBranch} is protected need status check."
       } else {
-        val repository = getRepository(owner, name, context.baseUrl).get
+        val repository = getRepository(owner, name).get
         LockUtil.lock(s"${owner}/${name}"){
           val alias = if(pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName){
             pullreq.branch
@@ -310,7 +310,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo)
 
             // close issue by content of pull request
-            val defaultBranch = getRepository(owner, name, context.baseUrl).get.repository.defaultBranch
+            val defaultBranch = getRepository(owner, name).get.repository.defaultBranch
             if(pullreq.branch == defaultBranch){
               commits.flatten.foreach { commit =>
                 closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
@@ -343,7 +343,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     val headBranch:Option[String] = params.get("head")
     (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
       case (Some(originUserName), Some(originRepositoryName)) => {
-        getRepository(originUserName, originRepositoryName, context.baseUrl).map { originRepository =>
+        getRepository(originUserName, originRepositoryName).map { originRepository =>
           using(
             Git.open(getRepositoryDir(originUserName, originRepositoryName)),
             Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))
@@ -384,12 +384,12 @@ trait PullRequestsControllerBase extends ControllerBase {
         forkedRepository.repository.originRepositoryName
       } else {
         // Sibling repository
-        getUserRepositories(originOwner, context.baseUrl).find { x =>
+        getUserRepositories(originOwner).find { x =>
           x.repository.originUserName == forkedRepository.repository.originUserName &&
             x.repository.originRepositoryName == forkedRepository.repository.originRepositoryName
         }.map(_.repository.repositoryName)
       };
-      originRepository <- getRepository(originOwner, originRepositoryName, context.baseUrl)
+      originRepository <- getRepository(originOwner, originRepositoryName)
     ) yield {
       using(
         Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),
@@ -457,7 +457,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
         }
       };
-      originRepository <- getRepository(originOwner, originRepositoryName, context.baseUrl)
+      originRepository <- getRepository(originOwner, originRepositoryName)
     ) yield {
       using(
         Git.open(getRepositoryDir(originRepository.owner, originRepository.name)),

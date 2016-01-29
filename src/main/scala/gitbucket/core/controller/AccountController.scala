@@ -133,7 +133,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           val members = getGroupMembers(account.userName)
           gitbucket.core.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getVisibleRepositories(context.loginAccount, context.baseUrl, Some(userName)),
+            getVisibleRepositories(context.loginAccount, Some(userName)),
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
       }
@@ -366,7 +366,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
-      if(getRepository(form.owner, form.name, context.baseUrl).isEmpty){
+      if(getRepository(form.owner, form.name).isEmpty){
         createRepository(form.owner, form.name, form.description, form.isPrivate, form.createReadme)
       }
 
@@ -385,9 +385,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
       LockUtil.lock(s"${owner}/${data.name}") {
-        if(getRepository(owner, data.name, context.baseUrl).isEmpty){
+        if(getRepository(owner, data.name).isEmpty){
           createRepository(owner, data.name, data.description, data.`private`, data.auto_init)
-          val repository = getRepository(owner, data.name, context.baseUrl).get
+          val repository = getRepository(owner, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
         } else {
           ApiError(
@@ -409,9 +409,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       data <- extractFromJsonBody[CreateARepository] if data.isValid
     } yield {
       LockUtil.lock(s"${groupName}/${data.name}") {
-        if(getRepository(groupName, data.name, context.baseUrl).isEmpty){
+        if(getRepository(groupName, data.name).isEmpty){
           createRepository(groupName, data.name, data.description, data.`private`, data.auto_init)
-          val repository = getRepository(groupName, data.name, context.baseUrl).get
+          val repository = getRepository(groupName, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
         } else {
           ApiError(
@@ -447,7 +447,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val accountName   = form.accountName
 
     LockUtil.lock(s"${accountName}/${repository.name}"){
-      if(getRepository(accountName, repository.name, baseUrl).isDefined ||
+      if(getRepository(accountName, repository.name).isDefined ||
           (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
         // redirect to the repository if repository already exists
         redirect(s"/${accountName}/${repository.name}")

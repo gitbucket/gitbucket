@@ -194,10 +194,9 @@ trait RepositoryService { self: AccountService =>
    * 
    * @param userName the user name of the repository owner
    * @param repositoryName the repository name
-   * @param baseUrl the base url of this application
    * @return the repository information
    */
-  def getRepository(userName: String, repositoryName: String, baseUrl: String)(implicit s: Session): Option[RepositoryInfo] = {
+  def getRepository(userName: String, repositoryName: String)(implicit s: Session): Option[RepositoryInfo] = {
     (Repositories filter { t => t.byRepository(userName, repositoryName) } firstOption) map { repository =>
       // for getting issue count and pull request count
       val issues = Issues.filter { t =>
@@ -207,7 +206,6 @@ trait RepositoryService { self: AccountService =>
       new RepositoryInfo(
         JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName),
         repository,
-        baseUrl,
         issues.count(_ == false),
         issues.count(_ == true),
         getForkedCount(
@@ -235,7 +233,7 @@ trait RepositoryService { self: AccountService =>
     }.list
   }
 
-  def getUserRepositories(userName: String, baseUrl: String, withoutPhysicalInfo: Boolean = false)
+  def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)
                          (implicit s: Session): List[RepositoryInfo] = {
     Repositories.filter { t1 =>
       (t1.userName === userName.bind) ||
@@ -248,7 +246,6 @@ trait RepositoryService { self: AccountService =>
           JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
-        baseUrl,
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)
@@ -262,13 +259,12 @@ trait RepositoryService { self: AccountService =>
    * If repositoryUserName is given then filters results by repository owner.
    *
    * @param loginAccount the logged in account
-   * @param baseUrl the base url of this application
    * @param repositoryUserName the repository owner (if None then returns all repositories which are visible for logged in user)
    * @param withoutPhysicalInfo if true then the result does not include physical repository information such as commit count,
    *                            branches and tags
    * @return the repository information which is sorted in descending order of lastActivityDate.
    */
-  def getVisibleRepositories(loginAccount: Option[Account], baseUrl: String, repositoryUserName: Option[String] = None,
+  def getVisibleRepositories(loginAccount: Option[Account], repositoryUserName: Option[String] = None,
                              withoutPhysicalInfo: Boolean = false)
                             (implicit s: Session): List[RepositoryInfo] = {
     (loginAccount match {
@@ -291,7 +287,6 @@ trait RepositoryService { self: AccountService =>
           JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
-        baseUrl,
         getForkedCount(
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)
@@ -401,7 +396,7 @@ object RepositoryService {
     /**
      * Creates instance with issue count and pull request count.
      */
-    def this(repo: JGitUtil.RepositoryInfo, model: Repository, baseUrl:String, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
+    def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
       this(
         repo.owner, repo.name, model,
         issueCount, pullCount,
@@ -410,7 +405,7 @@ object RepositoryService {
     /**
      * Creates instance without issue count and pull request count.
      */
-    def this(repo: JGitUtil.RepositoryInfo, model: Repository, baseUrl:String, forkedCount: Int, managers: Seq[String]) =
+    def this(repo: JGitUtil.RepositoryInfo, model: Repository, 	forkedCount: Int, managers: Seq[String]) =
       this(
         repo.owner, repo.name, model,
         0, 0,
