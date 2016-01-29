@@ -23,6 +23,7 @@ trait SystemSettingsControllerBase extends ControllerBase {
     "notification"             -> trim(label("Notification", boolean())),
     "activityLogLimit"         -> trim(label("Limit of activity logs", optional(number()))),
     "ssh"                      -> trim(label("SSH access", boolean())),
+    "sshHost"                  -> trim(label("SSH host", optional(text()))),
     "sshPort"                  -> trim(label("SSH port", optional(number()))),
     "useSMTP"                  -> trim(label("SMTP", boolean())),
     "smtp"                     -> optionalIfNotChecked("useSMTP", mapping(
@@ -50,9 +51,14 @@ trait SystemSettingsControllerBase extends ControllerBase {
         "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply))
   )(SystemSettings.apply).verifying { settings =>
-    if(settings.ssh && settings.baseUrl.isEmpty){
-      Seq("baseUrl" -> "Base URL is required if SSH access is enabled.")
-    } else Nil
+    Vector(
+      if(settings.ssh && settings.baseUrl.isEmpty){
+        Some("baseUrl" -> "Base URL is required if SSH access is enabled.")
+      } else None,
+      if(settings.ssh && settings.sshHost.isEmpty){
+        Some("sshHost" -> "SSH host is required if SSH access is enabled.")
+      } else None
+    ).flatten
   }
 
   private val pluginForm = mapping(

@@ -22,6 +22,7 @@ trait SystemSettingsService {
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
       props.setProperty(Ssh, settings.ssh.toString)
+      settings.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
       settings.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
       props.setProperty(UseSMTP, settings.useSMTP.toString)
       if(settings.useSMTP) {
@@ -76,6 +77,7 @@ trait SystemSettingsService {
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
         getValue(props, Ssh, false),
+        getOptionValue[String](props, SshHost, None).map(_.trim),
         getOptionValue(props, SshPort, Some(DefaultSshPort)),
         getValue(props, UseSMTP, getValue(props, Notification, false)),   // handle migration scenario from only notification to useSMTP
         if(getValue(props, UseSMTP, getValue(props, Notification, false))){
@@ -127,6 +129,7 @@ object SystemSettingsService {
     notification: Boolean,
     activityLogLimit: Option[Int],
     ssh: Boolean,
+    sshHost: Option[String],
     sshPort: Option[Int],
     useSMTP: Boolean,
     smtp: Option[Smtp],
@@ -136,18 +139,10 @@ object SystemSettingsService {
 
     def sshAddress:Option[SshAddress] =
       for {
-      	host <- sshHostFromBaseUrl
+      	host <- sshHost
         if ssh
       }
       yield SshAddress(host, sshPort.getOrElse(DefaultSshPort))
-
-    // TODO host should be configured separately
-    private def sshHostFromBaseUrl:Option[String] =
-      for {
-        baseUrl <- baseUrl
-        m       <- """^https?://([^:/]+)""".r.findFirstMatchIn(baseUrl)
-      }
-      yield m.group(1)
   }
 
   case class Ldap(
@@ -186,6 +181,7 @@ object SystemSettingsService {
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"
   private val Ssh = "ssh"
+  private val SshHost = "ssh.host"
   private val SshPort = "ssh.port"
   private val UseSMTP = "useSMTP"
   private val SmtpHost = "smtp.host"
