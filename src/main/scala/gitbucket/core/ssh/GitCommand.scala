@@ -124,7 +124,7 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) ex
   }
 }
 
-class PluginGitUploadPack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand
+class PluginGitUploadPack(repoName: String, routing: GitRepositoryRouting) extends GitCommand
     with SystemSettingsService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -139,7 +139,7 @@ class PluginGitUploadPack(repoName: String, baseUrl: String, routing: GitReposit
   }
 }
 
-class PluginGitReceivePack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand
+class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting) extends GitCommand
     with SystemSettingsService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -163,8 +163,8 @@ class GitCommandFactory(baseUrl: String) extends CommandFactory {
     logger.debug(s"command: $command")
 
     command match {
-      case SimpleCommandRegex ("upload" , repoName) if(pluginRepository(repoName)) => new PluginGitUploadPack (repoName, baseUrl, routing(repoName))
-      case SimpleCommandRegex ("receive", repoName) if(pluginRepository(repoName)) => new PluginGitReceivePack(repoName, baseUrl, routing(repoName))
+      case SimpleCommandRegex ("upload" , repoName) if(pluginRepository(repoName)) => new PluginGitUploadPack (repoName, routing(repoName))
+      case SimpleCommandRegex ("receive", repoName) if(pluginRepository(repoName)) => new PluginGitReceivePack(repoName, routing(repoName))
       case DefaultCommandRegex("upload" , owner, repoName) => new DefaultGitUploadPack (owner, repoName, baseUrl)
       case DefaultCommandRegex("receive", owner, repoName) => new DefaultGitReceivePack(owner, repoName, baseUrl)
       case _ => new UnknownCommand(command)
