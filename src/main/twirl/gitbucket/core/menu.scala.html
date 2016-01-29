@@ -116,7 +116,11 @@
             <td style="width: 33%; text-align: center;">
               <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
                 <i class="octicon octicon-history"></i>
-                <strong>@repository.commitCount</strong> commits
+                @if(repository.commitCount > 10000){
+                  <strong>10000+</strong> commits
+                } else {
+                  <strong>@repository.commitCount</strong> commits
+                }
               </a>
             </td>
             <td style="width: 33%; text-align: center;">
