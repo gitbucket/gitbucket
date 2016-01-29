@@ -37,7 +37,7 @@
     <script src="@assets/vendors/jquery-hotkeys/jquery.hotkeys.js"></script>
     @repository.map { repository =>
       @if(!repository.repository.isPrivate){
-        <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
+        <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.urls(repoBase).httpUrl" />
       }
     }
   </head>

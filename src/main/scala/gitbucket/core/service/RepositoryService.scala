@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.{Collaborator, Repository, Account}
 import gitbucket.core.model.Profile._
-import gitbucket.core.util.JGitUtil
+import gitbucket.core.util.{JGitUtil, RepoBase}
 import profile.simple._
 
 trait RepositoryService { self: AccountService =>
@@ -392,23 +392,11 @@ trait RepositoryService { self: AccountService =>
 
 object RepositoryService {
 
-  object RepositoryInfo {
-    def httpUrl(baseUrl:String, owner:String, name:String):String = s"${baseUrl}/git/${owner}/${name}.git"
-    def sshUrl(baseUrl:String, owner:String, name:String)(port: Int, userName: String):String = {
-      val host = """^https?://(.+?)(:\d+)?/""".r.findFirstMatchIn(baseUrl).get.group(1)
-	  s"ssh://${userName}@${host}:${port}/${owner}/${name}.git"
-	}
-  }
   case class RepositoryInfo(owner: String, name: String, repository: Repository,
-    httpUrl: String, sshUrl:(Int, String)=>String,
     issueCount: Int, pullCount: Int, commitCount: Int, forkedCount: Int,
-    branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]){
+    branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]) {
 
-    def sshOpenRepoUrl(platform: String, port: Int, userName: String) = openRepoUrl(platform, sshUrl(port, userName))
-
-    def httpOpenRepoUrl(platform: String) = openRepoUrl(platform, httpUrl)
-
-    def openRepoUrl(platform: String, openUrl: String) = s"github-${platform}://openRepo/${openUrl}"
+    def urls(repoBase:RepoBase):RepositoryUrls = new RepositoryUrls(repoBase, owner, name)
 
     /**
      * Creates instance with issue count and pull request count.
@@ -416,8 +404,6 @@ object RepositoryService {
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, baseUrl:String, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
       this(
         repo.owner, repo.name, model,
-        RepositoryInfo.httpUrl(baseUrl, repo.owner, repo.name),
-        RepositoryInfo.sshUrl(baseUrl, repo.owner, repo.name),
         issueCount, pullCount,
         repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
 
@@ -427,10 +413,26 @@ object RepositoryService {
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, baseUrl:String, forkedCount: Int, managers: Seq[String]) =
       this(
         repo.owner, repo.name, model,
-        RepositoryInfo.httpUrl(baseUrl, repo.owner, repo.name),
-        RepositoryInfo.sshUrl(baseUrl, repo.owner, repo.name),
         0, 0,
         repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
+  }
+
+  final class RepositoryUrls(repoBase:RepoBase, owner:String, name:String) {
+    def httpUrl:String =
+      s"${repoBase.baseUrl}/git/${owner}/${name}.git"
+
+    // BETTER make this return an Option and use it in the gui
+    def sshUrl(userName: String):String =
+      repoBase.sshAddress.fold("")(adr => s"ssh://${userName}@${adr.host}:${adr.port}/${owner}/${name}.git")
+
+    def sshOpenRepoUrl(platform: String, userName: String) =
+      openRepoUrl(platform, sshUrl(userName))
+
+    def httpOpenRepoUrl(platform: String) =
+      openRepoUrl(platform, httpUrl)
+
+    private def openRepoUrl(platform: String, openUrl: String) =
+      s"github-${platform}://openRepo/${openUrl}"
   }
 
   case class RepositoryTreeNode(owner: String, name: String, children: List[RepositoryTreeNode])

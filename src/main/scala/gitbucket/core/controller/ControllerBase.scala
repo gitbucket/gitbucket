@@ -180,11 +180,14 @@ abstract class ControllerBase extends ScalatraFilter
  * Context object for the current request.
  */
 case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
-
   val path = settings.baseUrl.getOrElse(request.getContextPath)
   val currentPath = request.getRequestURI.substring(request.getContextPath.length)
   val baseUrl = settings.baseUrl(request)
   val host = new java.net.URL(baseUrl).getHost
+  val repoBase = RepoBase(
+    baseUrl,
+    if (settings.ssh) Some(SshAddress(host, settings.sshPortOrDefault)) else None
+ )
   val platform = request.getHeader("User-Agent") match {
     case null => null
     case agent if agent.contains("Mac") => "mac"

@@ -38,10 +38,11 @@ object WikiService {
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
 
-  def httpUrl(repository: RepositoryInfo) = repository.httpUrl.replaceFirst("\\.git\\Z", ".wiki.git")
+  def httpUrl(repoBase:RepoBase, repository: RepositoryInfo) =
+    repository.urls(repoBase).httpUrl.replaceFirst("\\.git\\Z", ".wiki.git")
 
-  def sshUrl(repository: RepositoryInfo, settings: SystemSettingsService.SystemSettings, userName: String) =
-    repository.sshUrl(settings.sshPortOrDefault, userName).replaceFirst("\\.git\\Z", ".wiki.git")
+  def sshUrl(repoBase:RepoBase, repository: RepositoryInfo, userName: String) =
+    repository.urls(repoBase).sshUrl(userName).replaceFirst("\\.git\\Z", ".wiki.git")
 }
 
 trait WikiService {
