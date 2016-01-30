@@ -500,6 +500,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   /**
     * User api add on - user creation
     */
+  get("/api/v3/user/:userName") (adminOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName, true) match {
+      case Some(account) => {
+        if(account.isRemoved)
+          org.scalatra.Ok(s"""{"message": "user with username $userName is found, but is disabled"}""")
+        else
+          org.scalatra.Ok(s"""{"message": "user with username $userName is found"}""")
+      }
+      case None => org.scalatra.NotFound(s"""{"message": "user with username $userName is not found"}""")
+    }
+
+  })
+
   post("/api/v3/user") (adminOnly {
     (
       for {
@@ -579,6 +593,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }) getOrElse
     org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
 
+  })
+
+  get("/api/v3/group/:groupName")(adminOnly {
+    defining(params("groupName")){ groupName =>
+      getAccountByUserName(groupName, true) match {
+        case Some(account) => {
+          if(account.isRemoved)
+            org.scalatra.Ok(s"""{"message": "group with name $groupName is found, but is disabled"}""")
+          else
+            org.scalatra.Ok(s"""{"message": "group with name $groupName is found"}""")
+        }
+        case None => org.scalatra.NotFound(s"""{"message": "group with name $groupName is not found"}""")
+      }
+    }
   })
 
   delete("/api/v3/group/:groupName")(adminOnly{

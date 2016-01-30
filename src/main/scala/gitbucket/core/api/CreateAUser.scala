@@ -10,7 +10,7 @@ case class CreateAUser (
   ) {
   def isValid: Boolean = {
     userName.length <= 40 &&
-      userName.matches("[a-zA-Z0-9\\-\\+_.]+") &&
+      userName.matches("[a-zA-Z0-9\\@\\-\\+_.]+") &&
       !userName.startsWith("_") &&
       !userName.startsWith("-") &&
     // password rule
