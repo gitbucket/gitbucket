@@ -9,7 +9,7 @@ import gitbucket.core.plugin.{RenderRequest, PluginRegistry}
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 
-import play.twirl.api.Html
+import play.twirl.api.{Html, HtmlFormat}
 
 /**
  * Provides helper methods for Twirl templates.
@@ -306,6 +306,17 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 
   def detectAndRenderLinks(text: String): Html = {
-    Html(detectAndRenderLinksRegex.replaceAllIn(text, m => s"""<a href="${m.group(0)}">${m.group(0)}</a>"""))
+    val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toVector
+    var pos = 0
+    var out = Vector.empty[Html]
+    for (m <- matches) {
+      if (pos < m.start) out :+= HtmlFormat.escape(text.substring(pos, m.start))
+      val url  = m.group(0)
+      val href = url.replace("\"", "&quot;")
+      out :+= Html(s"""<a href="${href}">${url}</a>""")
+      pos = m.end
+    }
+    if (pos < text.length) out :+= HtmlFormat.escape(text.substring(pos))
+    HtmlFormat.fill(out)
   }
 }
