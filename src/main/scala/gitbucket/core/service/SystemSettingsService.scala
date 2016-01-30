@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.util.{Directory, ControlUtil}
+import gitbucket.core.util.{Directory, ControlUtil, SshAddress}
 import gitbucket.core.util.Implicits._
 import Directory._
 import ControlUtil._
@@ -133,7 +133,21 @@ object SystemSettingsService {
     ldapAuthentication: Boolean,
     ldap: Option[Ldap]){
     def baseUrl(request: HttpServletRequest): String = baseUrl.fold(request.baseUrl)(_.stripSuffix("/"))
-    def sshPortOrDefault:Int = sshPort.getOrElse(DefaultSshPort)
+
+    def sshAddress:Option[SshAddress] =
+      for {
+      	host <- sshHostFromBaseUrl
+        if ssh
+      }
+      yield SshAddress(host, sshPort.getOrElse(DefaultSshPort))
+
+    // TODO host should be configured separately
+    private def sshHostFromBaseUrl:Option[String] =
+      for {
+        baseUrl <- baseUrl
+        m       <- """^https?://([^:/]+)""".r.findFirstMatchIn(baseUrl)
+      }
+      yield m.group(1)
   }
 
   case class Ldap(

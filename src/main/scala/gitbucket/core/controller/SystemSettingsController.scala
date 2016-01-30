@@ -68,16 +68,13 @@ trait SystemSettingsControllerBase extends ControllerBase {
   post("/admin/system", form)(adminOnly { form =>
     saveSystemSettings(form)
 
-    if(form.ssh && SshServer.isActive && context.settings.sshPort != form.sshPort){
+    if (form.sshAddress != context.settings.sshAddress) {
       SshServer.stop()
-    }
-
-    if(form.ssh && !SshServer.isActive && form.baseUrl.isDefined){
-      SshServer.start(
-        form.sshPortOrDefault,
-        form.baseUrl.get)
-    } else if(!form.ssh && SshServer.isActive){
-      SshServer.stop()
+       for {
+         sshAddress <- form.sshAddress
+         baseUrl    <- form.baseUrl
+       }
+       SshServer.start(sshAddress, baseUrl)
     }
 
     flash += "info" -> "System settings has been updated."
