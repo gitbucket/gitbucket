@@ -60,6 +60,14 @@ Support
 
 Release Notes
 --------
+### 3.11 - 30 Jan 2016
+- Upgrade Scalatra to 2.4
+- Sidebar and Footer for Wiki
+- Branch protection and receive hook extension point for plug-in
+- Limit recent updated repositories list
+- Issue actions look-alike GitHub
+- Web API for labels
+
 ### 3.10 - 30 Dec 2015
 - Move to Bootstrap3
 - New URL for raw contents (`raw/master/doc/activity.md` instead of `blob/master/doc/activity.md?raw=true`)
