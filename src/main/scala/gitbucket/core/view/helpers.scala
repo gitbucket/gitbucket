@@ -306,17 +306,19 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 
   def detectAndRenderLinks(text: String): Html = {
-    val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toVector
-    var pos = 0
-    var out = Vector.empty[Html]
-    for (m <- matches) {
-      if (pos < m.start) out :+= HtmlFormat.escape(text.substring(pos, m.start))
+    val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toSeq
+
+    val (x, pos) = matches.foldLeft((collection.immutable.Seq.empty[Html], 0)){ case ((x, pos), m) =>
       val url  = m.group(0)
       val href = url.replace("\"", "&quot;")
-      out :+= Html(s"""<a href="${href}">${url}</a>""")
-      pos = m.end
+      (x ++ (Seq(
+        if(pos < m.start) Some(HtmlFormat.escape(text.substring(pos, m.start))) else None,
+        Some(Html(s"""<a href="${href}">${url}</a>"""))
+      ).flatten), m.end)
     }
-    if (pos < text.length) out :+= HtmlFormat.escape(text.substring(pos))
+    // append rest fragment
+    val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
+
     HtmlFormat.fill(out)
   }
 }
