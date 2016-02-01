@@ -43,6 +43,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                     % "junit"                        % "4.12"           % "test",
+  "org.scalatra"             %% "scalatra-scalatest"           % ScalatraVersion  % "test",
   "org.scalatra"             %% "scalatra-specs2"              % ScalatraVersion  % "test",
   "org.specs2"               %% "specs2-junit"                 % "3.6.6"          % "test"
 )

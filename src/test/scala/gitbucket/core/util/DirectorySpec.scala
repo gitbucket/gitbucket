@@ -1,15 +1,16 @@
 package gitbucket.core.util
 
-import org.specs2.mutable._
+import org.scalatest.FunSpec
 
+class DirectorySpec extends FunSpec {
 
-class DirectorySpec extends Specification {
-  "GitBucketHome" should {
-    "set under target in test scope" in {
-      Directory.GitBucketHome mustEqual new java.io.File("target/gitbucket_home_for_test").getAbsolutePath
-    }
-    "exists" in {
-      new java.io.File(Directory.GitBucketHome).exists
+  describe("GitBucketHome"){
+    it("should set under target in test scope"){
+      assert(Directory.GitBucketHome === new java.io.File("target/gitbucket_home_for_test").getAbsolutePath)
     }
   }
+//  test("GitBucketHome should exists"){
+//    new java.io.File(Directory.GitBucketHome).exists
+//  }
+
 }
