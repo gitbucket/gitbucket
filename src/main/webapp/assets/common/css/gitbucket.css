@@ -1099,6 +1099,10 @@ a.issue-title {
   background-color: #6cc644;
 }
 
+.label-important {
+  background-color: #bd2c00;
+}
+
 ul.label-list {
   list-style-type: none;
   padding-left: 0px;
