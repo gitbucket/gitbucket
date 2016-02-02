@@ -30,13 +30,23 @@ object Directory {
 
   val GitBucketConf = new File(GitBucketHome, "gitbucket.conf")
 
-  val RepositoryHome = s"${GitBucketHome}/repositories"
+  //val RepositoryHome = s"${GitBucketHome}/repositories"
+
+  val RepositoryHome = (System.getProperty("repo.home") match {
+    case repo if(repo != null) => repo
+    case _ => s"${GitBucketHome}/repositories"
+  })
 
   val DatabaseHome = s"${GitBucketHome}/data"
 
   val PluginHome = s"${GitBucketHome}/plugins"
 
   val TemporaryHome = s"${GitBucketHome}/tmp"
+
+  val DatabaseURL = (System.getProperty("h2url") match {
+    case url if(url != null) => url
+    case _ => "jdbc:h2:${DatabaseHome};MVCC=true"
+  })
 
   /**
    * Substance directory of the repository.

@@ -6,7 +6,8 @@ import Directory.DatabaseHome
 object DatabaseConfig {
 
   private val config = ConfigFactory.load("database")
-  private val dbUrl = config.getString("db.url")
+  //private val dbUrl = config.getString("db.url")
+  private val dbUrl = Directory.DatabaseURL
 
   def url(directory: Option[String]): String =
     dbUrl.replace("${DatabaseHome}", directory.getOrElse(DatabaseHome))
