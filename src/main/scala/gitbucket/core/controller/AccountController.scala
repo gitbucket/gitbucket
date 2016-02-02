@@ -583,12 +583,34 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     (for {
       data <- extractFromJsonBody[CreateAGroup] if data.isValid
     } yield {
-      createGroup(data.groupName, data.url)
-      updateGroupMembers(data.groupName,
-        data.members.map ( m => (m, m.equalsIgnoreCase( data.manager ))))
+      //check if the members
+      val temp =
+        for {
+        member <- data.members.map ( m => (m, m.equalsIgnoreCase( data.manager )))
+      } yield {
+        getAccountByUserName(member._1, true) match {
+          case Some(account) => {
+            if(!account.isRemoved) Some(member) else None
+          }
+          case None => None
+        }
+      }
 
-      updateImage(data.groupName, data.fileId, false)
-      org.scalatra.Accepted(s"""{"message": "${data.groupName} is added"}""")
+      val _nMembers = temp.flatten
+
+      if(_nMembers.size == data.members.size) {
+        createGroup(data.groupName, data.url)
+        updateGroupMembers(data.groupName,
+          data.members.map ( m => (m, m.equalsIgnoreCase( data.manager ))))
+
+        updateImage(data.groupName, data.fileId, false)
+        org.scalatra.Accepted(s"""{"message": "${data.groupName} is added"}""")
+      }
+      else
+      {
+        org.scalatra.NotAcceptable("""{"message": "Some of the member is not exist in content-store"}""")
+
+      }
 
     }) getOrElse
     org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
@@ -627,6 +649,53 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       } getOrElse org.scalatra.NotFound(s"""{"message": "$groupName is not found" }""")
     }}})
 
+  put("/api/v3/group/:groupName") (adminOnly{
+    (for {
+      data <- extractFromJsonBody[CreateAGroup] if data.isValid
+    } yield {
+      defining(params("groupName")) { groupName => {
+        getAccountByUserName(groupName, true).map {account =>
+          val temp =
+            for {
+              member <- data.members.map ( m => (m, m.equalsIgnoreCase( data.manager )))
+            } yield {
+              getAccountByUserName(member._1, true) match {
+                case Some(account) => {
+                  if(!account.isRemoved) Some(member) else None
+                }
+                case None => None
+              }
+            }
+
+          val _nMembers = temp.flatten
+
+          if(_nMembers.size == data.members.size)
+          {
+            updateGroupMembers(groupName, _nMembers)
+
+            getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+              removeCollaborators(groupName, repositoryName)
+              _nMembers.foreach { case (userName, isManager) =>
+                addCollaborator(groupName, repositoryName, userName)}}
+
+            org.scalatra.Accepted(s"""{"message": "${data.groupName} is modified"}""")
+
+          }
+          else
+          {
+            org.scalatra.NotAcceptable("""{"message": "Some of the member is not exist in content-store"}""")
+          }
+
+        } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
+
+      }}
+
+
+    }) getOrElse
+      org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
+
+  })
+
   put("/api/v3/group/:groupName/add") (adminOnly{
     (for {
       data <- extractFromJsonBody[ModifyGroupMembers] if data.isValid
@@ -644,6 +713,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             removeCollaborators(groupName, repositoryName)
             _cMembers.foreach { case (userName, isManager) =>
               addCollaborator(groupName, repositoryName, userName)}}
+
+          org.scalatra.Accepted(s"""{"message": "$groupName is modified"}""")
 
         } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
 
@@ -674,6 +745,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             _cMembers.foreach { case (userName, isManager) =>
               addCollaborator(groupName, repositoryName, userName)}}
 
+          org.scalatra.Accepted(s"""{"message": "$groupName is modified"}""")
+
         } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
 
       }}
@@ -681,23 +754,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
     }) getOrElse
       org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
-//    defining(params("groupName"), params("userName")) { case (groupName, userName) =>
-//      val _oMembers = getGroupMembers(groupName)
-//        .filter(member => !member.userName.equalsIgnoreCase(userName)).map{ member =>
-//
-//          (member.userName, member.isManager)
-//      }
-//
-//      updateGroupMembers(groupName, _oMembers)
-//      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-//        removeCollaborators(groupName, repositoryName)
-//        _oMembers.foreach { case (userName, isManager) =>
-//          addCollaborator(groupName, repositoryName, userName)
-//        }
-//      }
-//      org.scalatra.Accepted(s"""{"message": "$userName removed from group $groupName" }""")
-//
-//    }
   })
 
 
