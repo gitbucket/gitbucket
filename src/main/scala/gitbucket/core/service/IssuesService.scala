@@ -399,7 +399,7 @@ trait IssuesService {
 object IssuesService {
   import javax.servlet.http.HttpServletRequest
 
-  val IssueLimit = 30
+  val IssueLimit = 25
 
   case class IssueSearchCondition(
       labels: Set[String] = Set.empty,
