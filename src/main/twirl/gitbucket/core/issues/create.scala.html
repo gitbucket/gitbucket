@@ -10,7 +10,7 @@
     <form action="@url(repository)/issues/new" method="POST" validate="true" class="form-group">
       <div class="row">
         <div class="col-md-10">
-          <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+          <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
           <div class="panel panel-default issue-box">
             <div class="panel-body">
               <span id="error-title" class="error"></span>

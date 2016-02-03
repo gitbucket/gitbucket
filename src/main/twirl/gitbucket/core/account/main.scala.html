@@ -22,7 +22,7 @@
             <div>
               <div>Groups</div>
               @groupNames.map { groupName =>
-                <a href="@url(groupName)">@avatar(groupName, 36, tooltip = true)</a>
+                @avatarLink(groupName, 36, tooltip = true)
               }
             </div>
           }
