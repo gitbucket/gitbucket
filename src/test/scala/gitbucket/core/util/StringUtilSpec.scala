@@ -18,14 +18,14 @@ class StringUtilSpec extends FunSpec {
       assert(StringUtil.urlDecode(encoded) == "あいうえお")
     }
     it("should decode en%20 to whitespace") {
-      assert(StringUtil.urlDecode("aa%20bb") == "aa b1")
+      assert(StringUtil.urlDecode("aa%20bb") == "aa bb")
     }
   }
 
   describe("splitWords") {
     it("should split string by whitespaces") {
       val split = StringUtil.splitWords("aa bb\tcc　dd \t　ee")
-      assert(split == Array("aa", "bb", "cc", "dd", "ee"))
+      assert(split === Array("aa", "bb", "cc", "dd", "ee"))
     }
   }
 
