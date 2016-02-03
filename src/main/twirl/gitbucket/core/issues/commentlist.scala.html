@@ -7,7 +7,7 @@
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.model.CommitComment
 @if(issue.isDefined){
-  <div class="issue-avatar-image">@avatar(issue.get.openedUserName, 48)</div>
+  <div class="issue-avatar-image">@avatarLink(issue.get.openedUserName, 48)</div>
   <div class="panel panel-default issue-comment-box">
     <div class="panel-heading">
       @user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.get.registeredDate)</span>
@@ -36,7 +36,7 @@
   case comment: gitbucket.core.model.IssueComment => {
     @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"
       && comment.action != "commit" && comment.action != "refer"){
-      <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
+      <div class="issue-avatar-image">@avatarLink(comment.commentedUserName, 48)</div>
       <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
         <div class="panel-heading">
           @user(comment.commentedUserName, styleClass="username strong")
