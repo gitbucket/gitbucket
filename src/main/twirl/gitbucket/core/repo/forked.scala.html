@@ -13,7 +13,7 @@
       @if(originRepository.isDefined){
         @avatar(originRepository.get.owner, 20)
         <span@if(repository.owner == originRepository.get.owner){ class="highlight"}>
-          <a href="@url(originRepository.get)">@originRepository.get.owner</a> / <a href="@path/@originRepository.get.owner/@originRepository.get.name">@originRepository.get.name</a>
+          <a href="@url(originRepository.get.owner)">@originRepository.get.owner</a> / <a href="@path/@originRepository.get.owner/@originRepository.get.name">@originRepository.get.name</a>
         </span>
       } else {
         @avatar(repository.repository.originUserName.get, 20)
