@@ -67,6 +67,7 @@ Release Notes
 - Limit recent updated repositories list
 - Issue actions look-alike GitHub
 - Web API for labels
+- Requires Java 8
 
 ### 3.10 - 30 Dec 2015
 - Move to Bootstrap3
