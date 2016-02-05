@@ -1,92 +1,92 @@
 package gitbucket.core.view
 
-import org.specs2.mutable._
+import org.scalatest.FunSpec
 
-class MarkdownSpec extends Specification {
+class MarkdownSpec extends FunSpec {
 
   import Markdown._
 
-  "generateAnchorName" should {
-    "convert whitespace characters to hyphens" in {
+  describe("generateAnchorName") {
+    it("should convert whitespace characters to hyphens") {
       val before = "foo bar baz"
       val after = generateAnchorName(before)
-      after mustEqual "foo-bar-baz"
+      assert(after == "foo-bar-baz")
     }
 
-    "normalize characters with diacritics" in {
+    it("should normalize characters with diacritics") {
       val before = "Dónde estará mi vida"
       val after = generateAnchorName(before)
-      after mustEqual "do%cc%81nde-estara%cc%81-mi-vida"
+      assert(after == "do%cc%81nde-estara%cc%81-mi-vida")
     }
 
-    "omit special characters" in {
+    it("should omit special characters") {
       val before = "foo!bar@baz>9000"
       val after = generateAnchorName(before)
-      after mustEqual "foo%21bar%40baz%3e9000"
+      assert(after == "foo%21bar%40baz%3e9000")
     }
   }
 
-  "escapeTaskList" should {
-    "convert '- [ ] ' to '* task: :'" in {
+  describe("escapeTaskList") {
+    it("should convert '- [ ] ' to '* task: :'") {
       val before = "- [ ] aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "* task: : aaaa"
+      assert(after == "* task: : aaaa")
     }
 
-    "convert '  - [ ] ' to '  * task: :'" in {
+    it("should convert '  - [ ] ' to '  * task: :'") {
       val before = "  - [ ]   aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "  * task: :   aaaa"
+      assert(after == "  * task: :   aaaa")
     }
 
-    "convert only first '- [ ] '" in {
+    it("should convert only first '- [ ] '") {
       val before = "   - [ ]   aaaa - [ ] bbb"
       val after = escapeTaskList(before)
-      after mustEqual "   * task: :   aaaa - [ ] bbb"
+      assert(after == "   * task: :   aaaa - [ ] bbb")
     }
 
-    "convert '- [x] ' to '* task:x:'" in {
+    it("should convert '- [x] ' to '* task:x:'") {
       val before = "  - [x]   aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "  * task:x:   aaaa"
+      assert(after == "  * task:x:   aaaa")
     }
 
-    "convert multi lines" in {
+    it("should convert multi lines") {
       val before = """
 tasks
 - [x] aaaa
 - [ ] bbb
 """
       val after = escapeTaskList(before)
-      after mustEqual """
+      assert(after == """
 tasks
 * task:x: aaaa
 * task: : bbb
-"""
+""")
     }
 
-    "no convert if inserted before '- [ ] '" in {
+    it("should not convert if inserted before '- [ ] '") {
       val before = " a  - [ ]   aaaa"
       val after = escapeTaskList(before)
-      after mustEqual " a  - [ ]   aaaa"
+      assert(after == " a  - [ ]   aaaa")
     }
 
-    "no convert '- [] '" in {
+    it("should not convert '- [] '") {
       val before = "  - []   aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "  - []   aaaa"
+      assert(after == "  - []   aaaa")
     }
 
-    "no convert '- [ ]a'" in {
+    it("should not convert '- [ ]a'") {
       val before = "  - [ ]a aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "  - [ ]a aaaa"
+      assert(after == "  - [ ]a aaaa")
     }
 
-    "no convert '-[ ] '" in {
+    it("should not convert '-[ ] '") {
       val before = "  -[ ]   aaaa"
       val after = escapeTaskList(before)
-      after mustEqual "  -[ ]   aaaa"
+      assert(after == "  -[ ]   aaaa")
     }
   }
 }

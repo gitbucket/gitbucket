@@ -1,6 +1,5 @@
 package gitbucket.core.util
 
-//import org.specs2.mutable._
 import org.scalatest.FunSpec
 
 class StringUtilSpec extends FunSpec {
