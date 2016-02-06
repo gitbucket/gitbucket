@@ -5,15 +5,17 @@ import java.util.Date
 import gitbucket.core.model.Account
 import gitbucket.core.service.{SystemSettingsService, RequestCache}
 import gitbucket.core.controller.Context
-import org.mockito.Mockito._
 import SystemSettingsService.SystemSettings
 import javax.servlet.http.HttpServletRequest
 import play.twirl.api.Html
 import org.scalatest.FunSpec
+import org.scalatest.mock.MockitoSugar._
+import org.mockito.Mockito._
+
 
 class AvatarImageProviderSpec extends FunSpec {
 
-  val request = mock(classOf[HttpServletRequest])
+  val request = mock[HttpServletRequest]
   when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
   when(request.getRequestURI).thenReturn("/path.html")
   when(request.getContextPath).thenReturn("")

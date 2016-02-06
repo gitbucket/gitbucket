@@ -2,14 +2,11 @@ package gitbucket.core.api
 
 import gitbucket.core.util.RepositoryName
 
-//import org.specs2.mutable.Specification
-import org.json4s.jackson.JsonMethods.{pretty, parse}
+import org.json4s.jackson.JsonMethods.parse
 import org.json4s._
-//import org.specs2.matcher._
 import org.scalatest.FunSuite
 
 import java.util.{Calendar, TimeZone, Date}
-
 
 
 class JsonFormatSpec extends FunSuite {
