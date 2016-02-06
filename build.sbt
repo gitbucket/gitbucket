@@ -10,7 +10,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 // dependency settings
 resolvers ++= Seq(
@@ -43,8 +43,8 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                     % "junit"                        % "4.12"           % "test",
-  "org.scalatra"             %% "scalatra-specs2"              % ScalatraVersion  % "test",
-  "org.specs2"               %% "specs2-junit"                 % "3.6.6"          % "test"
+  "org.scalatra"             %% "scalatra-scalatest"           % ScalatraVersion  % "test",
+  "org.scalaz"               %% "scalaz-core"                  % "7.2.0"          % "test"
 )
 
 // Twirl settings

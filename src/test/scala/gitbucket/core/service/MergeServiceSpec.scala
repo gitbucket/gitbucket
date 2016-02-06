@@ -1,26 +1,17 @@
 package gitbucket.core.service
 
-import gitbucket.core.model._
-import gitbucket.core.util.JGitUtil
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.GitSpecUtil._
 
-import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
-import org.eclipse.jgit.treewalk._
-import org.specs2.mutable.Specification
+import org.scalatest.FunSpec
 
 import java.io.File
-import java.nio.file._
-import java.util.Date
 
-class MergeServiceSpec extends Specification {
-  sequential
+class MergeServiceSpec extends FunSpec {
   val service = new MergeService{}
   val branch = "master"
   val issueId = 10
@@ -36,95 +27,95 @@ class MergeServiceSpec extends Specification {
     createFile(git, s"refs/heads/${branch}", "test.txt", "hoge2" )
     createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge4" )
   }
-  "checkConflict, checkConflictCache" should {
-    "checkConflict false if not conflicted, and create cache" in {
+  describe("checkConflict, checkConflictCache") {
+    it("checkConflict false if not conflicted, and create cache") {
       val repo1Dir = initRepository("user1","repo1")
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual None
+      assert(service.checkConflictCache("user1", "repo1", branch, issueId) == None)
       val conflicted = service.checkConflict("user1", "repo1", branch, issueId)
-      service.checkConflictCache("user1", "repo1", branch, issueId) mustEqual Some(false)
-      conflicted  mustEqual false
+      assert(service.checkConflictCache("user1", "repo1", branch, issueId) == Some(false))
+      assert(conflicted  == false)
     }
-    "checkConflict true if not conflicted, and create cache" in {
+    it("checkConflict true if not conflicted, and create cache") {
       val repo2Dir = initRepository("user1","repo2")
       using(Git.open(repo2Dir)){ git =>
         createConfrict(git)
       }
-      service.checkConflictCache("user1", "repo2", branch, issueId) mustEqual None
+      assert(service.checkConflictCache("user1", "repo2", branch, issueId) == None)
       val conflicted = service.checkConflict("user1", "repo2", branch, issueId)
-      conflicted  mustEqual true
-      service.checkConflictCache("user1", "repo2", branch, issueId) mustEqual Some(true)
+      assert(conflicted  == true)
+      assert(service.checkConflictCache("user1", "repo2", branch, issueId) == Some(true))
     }
   }
-  "checkConflictCache" should {
-    "merged cache invalid if origin branch moved" in {
+  describe("checkConflictCache") {
+    it("merged cache invalid if origin branch moved") {
       val repo3Dir = initRepository("user1","repo3")
-      service.checkConflict("user1", "repo3", branch, issueId) mustEqual false
-      service.checkConflictCache("user1", "repo3", branch, issueId) mustEqual Some(false)
+      assert(service.checkConflict("user1", "repo3", branch, issueId) == false)
+      assert(service.checkConflictCache("user1", "repo3", branch, issueId) == Some(false))
       using(Git.open(repo3Dir)){ git =>
         createFile(git, s"refs/heads/${branch}", "test.txt", "hoge2" )
       }
-      service.checkConflictCache("user1", "repo3", branch, issueId) mustEqual None
+      assert(service.checkConflictCache("user1", "repo3", branch, issueId) == None)
     }
-    "merged cache invalid if request branch moved" in {
+    it("merged cache invalid if request branch moved") {
       val repo4Dir = initRepository("user1","repo4")
-      service.checkConflict("user1", "repo4", branch, issueId) mustEqual false
-      service.checkConflictCache("user1", "repo4", branch, issueId) mustEqual Some(false)
+      assert(service.checkConflict("user1", "repo4", branch, issueId) == false)
+      assert(service.checkConflictCache("user1", "repo4", branch, issueId) == Some(false))
       using(Git.open(repo4Dir)){ git =>
         createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge4" )
       }
-      service.checkConflictCache("user1", "repo4", branch, issueId) mustEqual None
+      assert(service.checkConflictCache("user1", "repo4", branch, issueId) == None)
     }
-    "merged cache invalid if origin branch moved" in {
+    it("should merged cache invalid if origin branch moved") {
       val repo5Dir = initRepository("user1","repo5")
-      service.checkConflict("user1", "repo5", branch, issueId) mustEqual false
-      service.checkConflictCache("user1", "repo5", branch, issueId) mustEqual Some(false)
+      assert(service.checkConflict("user1", "repo5", branch, issueId) == false)
+      assert(service.checkConflictCache("user1", "repo5", branch, issueId) == Some(false))
       using(Git.open(repo5Dir)){ git =>
         createFile(git, s"refs/heads/${branch}", "test.txt", "hoge2" )
       }
-      service.checkConflictCache("user1", "repo5", branch, issueId) mustEqual None
+      assert(service.checkConflictCache("user1", "repo5", branch, issueId) == None)
     }
-    "conflicted cache invalid if request branch moved" in {
+    it("conflicted cache invalid if request branch moved") {
       val repo6Dir = initRepository("user1","repo6")
       using(Git.open(repo6Dir)){ git =>
         createConfrict(git)
       }
-      service.checkConflict("user1", "repo6", branch, issueId) mustEqual true
-      service.checkConflictCache("user1", "repo6", branch, issueId) mustEqual Some(true)
+      assert(service.checkConflict("user1", "repo6", branch, issueId) == true)
+      assert(service.checkConflictCache("user1", "repo6", branch, issueId) == Some(true))
       using(Git.open(repo6Dir)){ git =>
         createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge4" )
       }
-      service.checkConflictCache("user1", "repo6", branch, issueId) mustEqual None
+      assert(service.checkConflictCache("user1", "repo6", branch, issueId) == None)
     }
-    "conflicted cache invalid if origin branch moved" in {
+    it("conflicted cache invalid if origin branch moved") {
       val repo7Dir = initRepository("user1","repo7")
       using(Git.open(repo7Dir)){ git =>
         createConfrict(git)
       }
-      service.checkConflict("user1", "repo7", branch, issueId) mustEqual true
-      service.checkConflictCache("user1", "repo7", branch, issueId) mustEqual Some(true)
+      assert(service.checkConflict("user1", "repo7", branch, issueId) == true)
+      assert(service.checkConflictCache("user1", "repo7", branch, issueId) == Some(true))
       using(Git.open(repo7Dir)){ git =>
         createFile(git, s"refs/heads/${branch}", "test.txt", "hoge4" )
       }
-      service.checkConflictCache("user1", "repo7", branch, issueId) mustEqual None
+      assert(service.checkConflictCache("user1", "repo7", branch, issueId) == None)
     }
   }
-  "mergePullRequest" should {
-    "can merge" in {
+  describe("mergePullRequest") {
+    it("can merge") {
       val repo8Dir = initRepository("user1","repo8")
       using(Git.open(repo8Dir)){ git =>
         createFile(git, s"refs/pull/${issueId}/head", "test.txt", "hoge2" )
         val committer = new PersonIdent("dummy2", "dummy2@example.com")
-        getFile(git, branch, "test.txt").content.get mustEqual "hoge"
+        assert(getFile(git, branch, "test.txt").content.get == "hoge")
         val requestBranchId = git.getRepository.resolve(s"refs/pull/${issueId}/head")
         val masterId = git.getRepository.resolve(branch)
         service.mergePullRequest(git, branch, issueId, "merged", committer)
-        val lastCommitId = git.getRepository.resolve(branch);
+        val lastCommitId = git.getRepository.resolve(branch)
         val commit = using(new RevWalk(git.getRepository))(_.parseCommit(lastCommitId))
-        commit.getCommitterIdent() mustEqual committer
-        commit.getAuthorIdent() mustEqual committer
-        commit.getFullMessage() mustEqual "merged"
-        commit.getParents.toSet mustEqual Set( requestBranchId, masterId )
-        getFile(git, branch, "test.txt").content.get mustEqual "hoge2"
+        assert(commit.getCommitterIdent() == committer)
+        assert(commit.getAuthorIdent() == committer)
+        assert(commit.getFullMessage() == "merged")
+        assert(commit.getParents.toSet == Set( requestBranchId, masterId ))
+        assert(getFile(git, branch, "test.txt").content.get == "hoge2")
       }
     }
   }
