@@ -9,11 +9,11 @@ import SystemSettingsService.SystemSettings
 import javax.servlet.http.HttpServletRequest
 import play.twirl.api.Html
 import org.scalatest.FunSpec
-import org.scalatest.mock.MockitoSugar._
+import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 
 
-class AvatarImageProviderSpec extends FunSpec {
+class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
 
   val request = mock[HttpServletRequest]
   when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
