@@ -52,7 +52,7 @@ play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._"
 
 // Compiler settings
 scalacOptions := Seq("-deprecation", "-language:postfixOps")
-javacOptions in compile ++= Seq("-target", "7", "-source", "7")
+javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console")
 javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test"
