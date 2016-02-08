@@ -53,7 +53,11 @@ object Database {
     ds.setJdbcUrl(DatabaseConfig.url)
     ds.setUser(DatabaseConfig.user)
     ds.setPassword(DatabaseConfig.password)
+    ds.setPreferredTestQuery("SELECT 1;")
+    ds.setTestConnectionOnCheckout(true)
+
     //--- setting to keep the connection alive
+    /**
     ds.setInitialPoolSize(10)
     ds.setMinPoolSize(1)
     ds.setMaxPoolSize(25)
@@ -62,11 +66,9 @@ object Database {
     ds.setPreferredTestQuery("SELECT 1;")
     ds.setTestConnectionOnCheckin(false)
     ds.setMaxConnectionAge(14400)
-    ds.setMaxIdleTime(10800)
-    //ds.setMaxIdleTimeExcessConnections(20)
-    //ds.setTestConnectionOnCheckout(true)
-    //ds.setTestConnectionOnCheckout(false)
-    //ds.setAutoCommitOnClose(true)
+    ds.setMaxIdleTime(10800) */
+
+
     logger.debug("load database connection pool")
     ds
   }
