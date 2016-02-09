@@ -35,7 +35,7 @@ protected[model] trait TemplateComponent { self: Profile =>
       byRepository(userName, repositoryName) && (this.labelId === labelId)
 
     def byLabel(owner: String, repository: String, labelName: String) =
-      byRepository(userName, repositoryName) && (this.labelName === labelName.bind)
+      byRepository(owner, repository) && (this.labelName === labelName.bind)
   }
 
   trait MilestoneTemplate extends BasicTemplate { self: Table[_] =>
