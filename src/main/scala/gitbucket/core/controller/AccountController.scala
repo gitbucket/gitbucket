@@ -509,7 +509,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         else
           org.scalatra.Ok(s"""{"message": "user with username $userName is found"}""")
       }
-      case None => org.scalatra.NotFound(s"""{"message": "user with username $userName is not found"}""")
+      case None => {
+        getAccountByMailAddress(userName, true) match {
+          case Some(account) => {
+            if(account.isRemoved)
+              org.scalatra.Ok(s"""{"message": "user with email $userName is found, but is disabled"}""")
+            else
+              org.scalatra.Ok(s"""{"message": "user with email $userName is found"}""")
+          }
+          case None => org.scalatra.NotFound(s"""{"message": "user with username $userName is not found"}""")
+        }
+      }
     }
 
   })
@@ -535,13 +545,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     getAccountByUserName(userName, true) match {
       case Some(acc) => {
         (for {
-          data <- extractFromJsonBody[CreateAUser] if data.isValid
+          data <- extractFromJsonBody[ModifyAUser] if data.isValid
         } yield {
           if(context.settings.allowAccountRegistration){
 
             updateAccount(acc.copy(
-              password     = sha1(data.password),
-              fullName     = data.fullName,
+              password     = sha1(data.password.getOrElse(acc.password)),
+              fullName     = data.fullName.getOrElse(acc.fullName),
               mailAddress  = data.mailAddress,
               url          = data.url))
 
