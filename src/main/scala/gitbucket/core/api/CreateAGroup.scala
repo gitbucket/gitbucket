@@ -9,7 +9,7 @@ case class CreateAGroup (
                        ) {
   def isValid: Boolean = {
     groupName.length <= 100 &&
-      groupName.matches("[a-zA-Z0-9\\-\\+_.]+") &&
+      groupName.matches("[a-zA-Z0-9\\s\\-\\+_.]+") &&
       !groupName.startsWith("_") &&
       !groupName.startsWith("-") &&
       members.contains(manager) &&
