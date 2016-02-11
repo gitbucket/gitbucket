@@ -1,7 +1,7 @@
 package gitbucket.core.ssh
 
 import gitbucket.core.service.SystemSettingsService
-import gitbucket.core.util.SshAddress
+import gitbucket.core.service.SystemSettingsService.SshAddress
 import org.apache.sshd.common.Factory
 import org.apache.sshd.server.{Environment, ExitCallback, Command}
 import java.io.{OutputStream, InputStream}

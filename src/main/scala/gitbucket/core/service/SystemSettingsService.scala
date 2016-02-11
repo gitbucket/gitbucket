@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.util.{Directory, ControlUtil, SshAddress}
+import gitbucket.core.util.{Directory, ControlUtil}
 import gitbucket.core.util.Implicits._
 import Directory._
 import ControlUtil._
@@ -167,6 +167,10 @@ object SystemSettingsService {
     ssl: Option[Boolean],
     fromAddress: Option[String],
     fromName: Option[String])
+
+  case class SshAddress(
+    host:String,
+    port:Int)
 
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25

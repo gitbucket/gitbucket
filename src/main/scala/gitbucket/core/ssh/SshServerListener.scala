@@ -5,7 +5,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import gitbucket.core.service.SystemSettingsService
-import gitbucket.core.util.{Directory, SshAddress}
+import gitbucket.core.service.SystemSettingsService.SshAddress
+import gitbucket.core.util.{Directory}
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
 
