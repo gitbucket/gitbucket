@@ -80,8 +80,8 @@
       <div class="small">
         <strong id="repository-url-proto">HTTP</strong> <span class="mute">clone URL</span>
       </div>
-      @helper.html.copy("repository-url-copy", repository.urls(repoBase).httpUrl){
-        <input type="text" value="@repository.urls(repoBase).httpUrl" id="repository-url" class="form-control input-sm" readonly>
+      @helper.html.copy("repository-url-copy", context.urls(repository).httpUrl){
+        <input type="text" value="@context.urls(repository).httpUrl" id="repository-url" class="form-control input-sm" readonly>
       }
       @if(settings.ssh && loginAccount.isDefined){
         <div class="small">
@@ -91,7 +91,7 @@
       @id.map { id =>
         @if(context.platform != "linux" && context.platform != null){
         <div style="margin-top: 10px;">
-          <a href="@repository.urls(repoBase).httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
+          <a href="@context.urls(repository).httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
         </div>
         }
         <div style="margin-top: 10px;">
@@ -184,15 +184,15 @@ $(function(){
   @if(settings.ssh && loginAccount.isDefined){
     $('#repository-url-http').click(function(){
       $('#repository-url-proto').text('HTTP');
-      $('#repository-url').val('@repository.urls(repoBase).httpUrl');
-      $('#repository-clone-url').attr('href', '@repository.urls(repoBase).httpOpenRepoUrl(context.platform)')
+      $('#repository-url').val('@context.urls(repository).httpUrl');
+      $('#repository-clone-url').attr('href', '@context.urls(repository).httpOpenRepoUrl(context.platform)')
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
 
     $('#repository-url-ssh').click(function(){
       $('#repository-url-proto').text('SSH');
-      $('#repository-url').val('@repository.urls(repoBase).sshUrl(loginAccount.get.userName)');
-      $('#repository-clone-url').attr('href', '@repository.urls(repoBase).sshOpenRepoUrl(context.platform, loginAccount.get.userName)');
+      $('#repository-url').val('@context.urls(repository).sshUrl(loginAccount.get.userName)');
+      $('#repository-clone-url').attr('href', '@context.urls(repository).sshOpenRepoUrl(context.platform, loginAccount.get.userName)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
   }

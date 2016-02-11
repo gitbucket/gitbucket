@@ -3,6 +3,7 @@ package gitbucket.core.controller
 import gitbucket.core.api.ApiError
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, SystemSettingsService}
+import gitbucket.core.service.RepositoryService.{RepositoryInfo, RepositoryUrls}
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
@@ -184,7 +185,8 @@ case class Context(settings: SystemSettingsService.SystemSettings, loginAccount:
   val currentPath = request.getRequestURI.substring(request.getContextPath.length)
   val baseUrl = settings.baseUrl(request)
   val host = new java.net.URL(baseUrl).getHost
-  val repoBase = RepoBase(baseUrl, settings.sshAddress)
+  val urls = (repositoryInfo:RepositoryInfo) => new RepositoryUrls(baseUrl, settings.sshAddress, repositoryInfo.owner, repositoryInfo.name)
+  val wikiUrls = (repositoryInfo:RepositoryInfo) => new RepositoryUrls(baseUrl, settings.sshAddress, repositoryInfo.owner, repositoryInfo.name + ".wiki")
   val platform = request.getHeader("User-Agent") match {
     case null => null
     case agent if agent.contains("Mac") => "mac"

@@ -60,7 +60,7 @@ object Markdown {
                                 pages: List[String])
                                (implicit val context: Context) extends Renderer(options) with LinkConverter with RequestCache {
 
-    private val repositoryUrls = repository.urls(context.repoBase)
+    private val repositoryUrls = context.urls(repository)
 
     override  def heading(text: String, level: Int, raw: String): String = {
       val id = generateAnchorName(text)

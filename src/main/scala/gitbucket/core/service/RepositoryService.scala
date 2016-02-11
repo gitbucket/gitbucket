@@ -1,8 +1,9 @@
 package gitbucket.core.service
 
+import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.model.{Collaborator, Repository, Account}
 import gitbucket.core.model.Profile._
-import gitbucket.core.util.{JGitUtil, RepoBase}
+import gitbucket.core.util.JGitUtil
 import profile.simple._
 
 trait RepositoryService { self: AccountService =>
@@ -391,8 +392,6 @@ object RepositoryService {
     issueCount: Int, pullCount: Int, commitCount: Int, forkedCount: Int,
     branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]) {
 
-    def urls(repoBase:RepoBase):RepositoryUrls = new RepositoryUrls(repoBase, owner, name)
-
     /**
      * Creates instance with issue count and pull request count.
      */
@@ -412,13 +411,13 @@ object RepositoryService {
         repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
   }
 
-  final class RepositoryUrls(repoBase:RepoBase, owner:String, name:String) {
+  final class RepositoryUrls(baseUrl:String, sshAddress:Option[SshAddress], owner:String, name:String) {
     def httpUrl:String =
-      s"${repoBase.baseUrl}/git/${owner}/${name}.git"
+      s"${baseUrl}/git/${owner}/${name}.git"
 
     // BETTER make this return an Option and use it in the gui
     def sshUrl(userName: String):String =
-      repoBase.sshAddress.fold("")(adr => s"ssh://${userName}@${adr.host}:${adr.port}/${owner}/${name}.git")
+      sshAddress.fold("")(adr => s"ssh://${userName}@${adr.host}:${adr.port}/${owner}/${name}.git")
 
     def sshOpenRepoUrl(platform: String, userName: String) =
       openRepoUrl(platform, sshUrl(userName))

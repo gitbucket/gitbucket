@@ -1,6 +1,7 @@
 package gitbucket.core.service
 
 import java.util.Date
+import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.model.Account
 import gitbucket.core.util._
 import gitbucket.core.util.ControlUtil._
@@ -38,9 +39,6 @@ object WikiService {
    * @param date the commit date
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
-
-  def urls(repoBase:RepoBase, repository: RepositoryInfo):RepositoryUrls =
-    new RepositoryUrls(repoBase, repository.owner, repository.name + ".wiki")
 }
 
 trait WikiService {
