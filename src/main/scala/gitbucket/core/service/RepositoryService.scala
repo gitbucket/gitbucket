@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.service.SystemSettingsService.SshAddress
+import gitbucket.core.controller.Context
 import gitbucket.core.model.{Collaborator, Repository, Account}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
@@ -398,8 +398,8 @@ object RepositoryService {
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
       this(
         repo.owner, repo.name, model,
-        issueCount, pullCount,
-        repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
+        issueCount, pullCount, repo.commitCount, forkedCount,
+        repo.branchList, repo.tags, managers)
 
     /**
      * Creates instance without issue count and pull request count.
@@ -407,27 +407,20 @@ object RepositoryService {
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, 	forkedCount: Int, managers: Seq[String]) =
       this(
         repo.owner, repo.name, model,
-        0, 0,
-        repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
+        0, 0, repo.commitCount, forkedCount,
+        repo.branchList, repo.tags, managers)
+
+    def httpUrl(implicit context: Context): String = RepositoryService.httpUrl(owner, name)
+    def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)
   }
 
-  final class RepositoryUrls(baseUrl:String, sshAddress:Option[SshAddress], owner:String, name:String) {
-    def httpUrl:String =
-      s"${baseUrl}/git/${owner}/${name}.git"
+  def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"
+  def sshUrl(owner: String, name: String)(implicit context: Context): Option[String] =
+    if(context.settings.ssh){
+      context.loginAccount.flatMap { loginAccount =>
+        context.settings.sshAddress.map { x => s"ssh://${loginAccount.userName}@${x.host}:${x.port}/${owner}/${name}.git" }
+      }
+    } else None
+  def openRepoUrl(openUrl: String)(implicit context: Context): String = s"github-${context.platform}://openRepo/${openUrl}"
 
-    // BETTER make this return an Option and use it in the gui
-    def sshUrl(userName: String):String =
-      sshAddress.fold("")(adr => s"ssh://${userName}@${adr.host}:${adr.port}/${owner}/${name}.git")
-
-    def sshOpenRepoUrl(platform: String, userName: String) =
-      openRepoUrl(platform, sshUrl(userName))
-
-    def httpOpenRepoUrl(platform: String) =
-      openRepoUrl(platform, httpUrl)
-
-    private def openRepoUrl(platform: String, openUrl: String) =
-      s"github-${platform}://openRepo/${openUrl}"
-  }
-
-  case class RepositoryTreeNode(owner: String, name: String, children: List[RepositoryTreeNode])
 }

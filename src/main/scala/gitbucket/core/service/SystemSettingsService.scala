@@ -139,8 +139,7 @@ object SystemSettingsService {
 
     def sshAddress:Option[SshAddress] =
       for {
-      	host <- sshHost
-        if ssh
+        host <- sshHost if ssh
       }
       yield SshAddress(host, sshPort.getOrElse(DefaultSshPort))
   }
@@ -227,8 +226,5 @@ object SystemSettingsService {
       else if(c == classOf[Int]) value.toInt
       else value
     }
-
-//  // TODO temporary flag
-//  val enablePluginSystem = Option(System.getProperty("enable.plugin")).getOrElse("false").toBoolean
 
 }

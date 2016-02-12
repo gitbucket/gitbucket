@@ -5,9 +5,9 @@
   isNoGroup: Boolean = true,
   info: Option[Any] = None,
   error: Option[Any] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.service.SystemSettingsService
 @import context._
 @import gitbucket.core.view.helpers._
+@import gitbucket.core.service.RepositoryService._
 
 @sidemenu(path: String, name: String, icon: String, label: String, count: Int = 0) = {
   <li @if(active == name){class="active"} @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="@label"}>
@@ -80,10 +80,10 @@
       <div class="small">
         <strong id="repository-url-proto">HTTP</strong> <span class="mute">clone URL</span>
       </div>
-      @helper.html.copy("repository-url-copy", context.urls(repository).httpUrl){
-        <input type="text" value="@context.urls(repository).httpUrl" id="repository-url" class="form-control input-sm" readonly>
+      @helper.html.copy("repository-url-copy", repository.httpUrl){
+        <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly>
       }
-      @if(settings.ssh && loginAccount.isDefined){
+      @if(repository.sshUrl.isDefined){
         <div class="small">
           <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
         </div>
@@ -91,7 +91,7 @@
       @id.map { id =>
         @if(context.platform != "linux" && context.platform != null){
         <div style="margin-top: 10px;">
-          <a href="@context.urls(repository).httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
+          <a href="@openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
         </div>
         }
         <div style="margin-top: 10px;">
@@ -181,18 +181,18 @@ $(function(){
     });
   }
 
-  @if(settings.ssh && loginAccount.isDefined){
+  @repository.sshUrl.map { sshUrl =>
     $('#repository-url-http').click(function(){
       $('#repository-url-proto').text('HTTP');
-      $('#repository-url').val('@context.urls(repository).httpUrl');
-      $('#repository-clone-url').attr('href', '@context.urls(repository).httpOpenRepoUrl(context.platform)')
+      $('#repository-url').val('@repository.httpUrl');
+      $('#repository-clone-url').attr('href', '@openRepoUrl(repository.httpUrl)')
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
 
     $('#repository-url-ssh').click(function(){
       $('#repository-url-proto').text('SSH');
-      $('#repository-url').val('@context.urls(repository).sshUrl(loginAccount.get.userName)');
-      $('#repository-clone-url').attr('href', '@context.urls(repository).sshOpenRepoUrl(context.platform, loginAccount.get.userName)');
+      $('#repository-url').val('@sshUrl');
+      $('#repository-clone-url').attr('href', '@openRepoUrl(sshUrl)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
   }
