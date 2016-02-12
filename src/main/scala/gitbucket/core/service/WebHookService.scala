@@ -161,7 +161,7 @@ trait WebHookPullRequestService extends WebHookService {
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
         issueUser <- users.get(issue.openedUserName)
-        headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
+        headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
       } yield {
         WebHookPullRequestPayload(
           action         = action,
@@ -200,7 +200,7 @@ trait WebHookPullRequestService extends WebHookService {
     import WebHookService._
     for{
       ((issue, issueUser, pullRequest, baseOwner, headOwner), webHooks) <- getPullRequestsByRequestForWebhook(requestRepository.owner, requestRepository.name, requestBranch)
-      baseRepo <- getRepository(pullRequest.userName, pullRequest.repositoryName, baseUrl)
+      baseRepo <- getRepository(pullRequest.userName, pullRequest.repositoryName)
     } yield {
       val payload = WebHookPullRequestPayload(
         action         = action,
@@ -229,7 +229,7 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
         issueUser <- users.get(issue.openedUserName)
-        headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName, baseUrl)
+        headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
       } yield {
         WebHookPullRequestReviewCommentPayload(
           action         = action,

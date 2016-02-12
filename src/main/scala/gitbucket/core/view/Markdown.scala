@@ -60,6 +60,8 @@ object Markdown {
                                 pages: List[String])
                                (implicit val context: Context) extends Renderer(options) with LinkConverter with RequestCache {
 
+    private val repositoryUrls = context.urls(repository)
+
     override  def heading(text: String, level: Int, raw: String): String = {
       val id = generateAnchorName(text)
       val out = new StringBuilder()
@@ -135,7 +137,7 @@ object Markdown {
           (link, link)
         }
 
-        val url = repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/" + StringUtil.urlEncode(page)
+        val url = repositoryUrls.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/" + StringUtil.urlEncode(page)
         if(pages.contains(page)){
           "<a href=\"" + url + "\">" + escape(label) + "</a>"
         } else {
@@ -157,14 +159,14 @@ object Markdown {
         } else if(context.currentPath.contains("/tree/")){
           val paths = context.currentPath.split("/")
           val branch = if(paths.length > 3) paths.drop(4).mkString("/") else repository.repository.defaultBranch
-          repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url + (if(isImage) "?raw=true" else "")
+          repositoryUrls.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url + (if(isImage) "?raw=true" else "")
         } else {
           val paths = context.currentPath.split("/")
           val branch = if(paths.length > 3) paths.last else repository.repository.defaultBranch
-          repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url + (if(isImage) "?raw=true" else "")
+          repositoryUrls.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/blob/" + branch + "/" + url + (if(isImage) "?raw=true" else "")
         }
       } else {
-        repository.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url
+        repositoryUrls.httpUrl.replaceFirst("/git/", "/").stripSuffix(".git") + "/wiki/_blob/" + url
       }
     }
 

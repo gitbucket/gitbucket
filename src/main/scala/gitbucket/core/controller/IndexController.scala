@@ -29,8 +29,8 @@ trait IndexControllerBase extends ControllerBase {
     val loginAccount = context.loginAccount
     if(loginAccount.isEmpty) {
         html.index(getRecentActivities(),
-            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
-            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
+            getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
     } else {
         val loginUserName = loginAccount.get.userName
@@ -40,8 +40,8 @@ trait IndexControllerBase extends ControllerBase {
         visibleOwnerSet ++= loginUserGroups
 
         html.index(getRecentActivitiesByOwners(visibleOwnerSet),
-            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
-            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil) 
+            getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil) 
         )
     }
   }

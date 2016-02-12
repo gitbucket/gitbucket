@@ -1,5 +1,6 @@
 package gitbucket.core.service
 
+import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.model.{Collaborator, Repository, Account}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
@@ -194,10 +195,9 @@ trait RepositoryService { self: AccountService =>
    * 
    * @param userName the user name of the repository owner
    * @param repositoryName the repository name
-   * @param baseUrl the base url of this application
    * @return the repository information
    */
-  def getRepository(userName: String, repositoryName: String, baseUrl: String)(implicit s: Session): Option[RepositoryInfo] = {
+  def getRepository(userName: String, repositoryName: String)(implicit s: Session): Option[RepositoryInfo] = {
     (Repositories filter { t => t.byRepository(userName, repositoryName) } firstOption) map { repository =>
       // for getting issue count and pull request count
       val issues = Issues.filter { t =>
@@ -205,7 +205,7 @@ trait RepositoryService { self: AccountService =>
       }.map(_.pullRequest).list
 
       new RepositoryInfo(
-        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl),
+        JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName),
         repository,
         issues.count(_ == false),
         issues.count(_ == true),
@@ -234,7 +234,7 @@ trait RepositoryService { self: AccountService =>
     }.list
   }
 
-  def getUserRepositories(userName: String, baseUrl: String, withoutPhysicalInfo: Boolean = false)
+  def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)
                          (implicit s: Session): List[RepositoryInfo] = {
     Repositories.filter { t1 =>
       (t1.userName === userName.bind) ||
@@ -242,9 +242,9 @@ trait RepositoryService { self: AccountService =>
     }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
         if(withoutPhysicalInfo){
-          new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+          new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
         } else {
-          JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+          JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
         getForkedCount(
@@ -260,13 +260,12 @@ trait RepositoryService { self: AccountService =>
    * If repositoryUserName is given then filters results by repository owner.
    *
    * @param loginAccount the logged in account
-   * @param baseUrl the base url of this application
    * @param repositoryUserName the repository owner (if None then returns all repositories which are visible for logged in user)
    * @param withoutPhysicalInfo if true then the result does not include physical repository information such as commit count,
    *                            branches and tags
    * @return the repository information which is sorted in descending order of lastActivityDate.
    */
-  def getVisibleRepositories(loginAccount: Option[Account], baseUrl: String, repositoryUserName: Option[String] = None,
+  def getVisibleRepositories(loginAccount: Option[Account], repositoryUserName: Option[String] = None,
                              withoutPhysicalInfo: Boolean = false)
                             (implicit s: Session): List[RepositoryInfo] = {
     (loginAccount match {
@@ -284,9 +283,9 @@ trait RepositoryService { self: AccountService =>
     }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
         if(withoutPhysicalInfo){
-          new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+          new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
         } else {
-          JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName, baseUrl)
+          JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
         getForkedCount(
@@ -389,31 +388,45 @@ trait RepositoryService { self: AccountService =>
 
 object RepositoryService {
 
-  case class RepositoryInfo(owner: String, name: String, httpUrl: String, repository: Repository,
+  case class RepositoryInfo(owner: String, name: String, repository: Repository,
     issueCount: Int, pullCount: Int, commitCount: Int, forkedCount: Int,
-    branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]){
-
-    lazy val host = """^https?://(.+?)(:\d+)?/""".r.findFirstMatchIn(httpUrl).get.group(1)
-
-    def sshUrl(port: Int, userName: String) = s"ssh://${userName}@${host}:${port}/${owner}/${name}.git"
-
-    def sshOpenRepoUrl(platform: String, port: Int, userName: String) = openRepoUrl(platform, sshUrl(port, userName))
-
-    def httpOpenRepoUrl(platform: String) = openRepoUrl(platform, httpUrl)
-
-    def openRepoUrl(platform: String, openUrl: String) = s"github-${platform}://openRepo/${openUrl}"
+    branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]) {
 
     /**
      * Creates instance with issue count and pull request count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
-      this(repo.owner, repo.name, repo.url, model, issueCount, pullCount, repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
+      this(
+        repo.owner, repo.name, model,
+        issueCount, pullCount,
+        repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
 
     /**
      * Creates instance without issue count and pull request count.
      */
-    def this(repo: JGitUtil.RepositoryInfo, model: Repository, forkedCount: Int, managers: Seq[String]) =
-      this(repo.owner, repo.name, repo.url, model, 0, 0, repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
+    def this(repo: JGitUtil.RepositoryInfo, model: Repository, 	forkedCount: Int, managers: Seq[String]) =
+      this(
+        repo.owner, repo.name, model,
+        0, 0,
+        repo.commitCount, forkedCount, repo.branchList, repo.tags, managers)
+  }
+
+  final class RepositoryUrls(baseUrl:String, sshAddress:Option[SshAddress], owner:String, name:String) {
+    def httpUrl:String =
+      s"${baseUrl}/git/${owner}/${name}.git"
+
+    // BETTER make this return an Option and use it in the gui
+    def sshUrl(userName: String):String =
+      sshAddress.fold("")(adr => s"ssh://${userName}@${adr.host}:${adr.port}/${owner}/${name}.git")
+
+    def sshOpenRepoUrl(platform: String, userName: String) =
+      openRepoUrl(platform, sshUrl(userName))
+
+    def httpOpenRepoUrl(platform: String) =
+      openRepoUrl(platform, httpUrl)
+
+    private def openRepoUrl(platform: String, openUrl: String) =
+      s"github-${platform}://openRepo/${openUrl}"
   }
 
   case class RepositoryTreeNode(owner: String, name: String, children: List[RepositoryTreeNode])

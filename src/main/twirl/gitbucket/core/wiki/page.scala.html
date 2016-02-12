@@ -67,8 +67,8 @@
       <div class="small">
         <strong>Clone this wiki locally</strong>
       </div>
-      @helper.html.copy("repository-url-copy", httpUrl(repository)){
-        <input type="text" value="@httpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
+      @helper.html.copy("repository-url-copy", context.wikiUrls(repository).httpUrl){
+        <input type="text" value="@context.wikiUrls(repository).httpUrl" id="repository-url" class="form-control input-sm" readonly>
       }
       @if(settings.ssh && loginAccount.isDefined){
         <div class="small">
@@ -133,11 +133,11 @@ $(function(){
 
   @if(settings.ssh && loginAccount.isDefined){
     $('#repository-url-http').click(function(){
-      $('#repository-url').val('@httpUrl(repository)');
+      $('#repository-url').val('@context.wikiUrls(repository).httpUrl');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
     $('#repository-url-ssh').click(function(){
-      $('#repository-url').val('@sshUrl(repository, settings, loginAccount.get.userName)');
+      $('#repository-url').val('@context.wikiUrls(repository).sshUrl(loginAccount.get.userName)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
   }

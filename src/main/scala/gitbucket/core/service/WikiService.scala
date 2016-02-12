@@ -1,6 +1,7 @@
 package gitbucket.core.service
 
 import java.util.Date
+import gitbucket.core.service.SystemSettingsService.SshAddress
 import gitbucket.core.model.Account
 import gitbucket.core.util._
 import gitbucket.core.util.ControlUtil._
@@ -14,6 +15,7 @@ import org.eclipse.jgit.patch._
 import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
 import RepositoryService.RepositoryInfo
+import RepositoryService.RepositoryUrls
 
 object WikiService {
   
@@ -37,11 +39,6 @@ object WikiService {
    * @param date the commit date
    */
   case class WikiPageHistoryInfo(name: String, committer: String, message: String, date: Date)
-
-  def httpUrl(repository: RepositoryInfo) = repository.httpUrl.replaceFirst("\\.git\\Z", ".wiki.git")
-
-  def sshUrl(repository: RepositoryInfo, settings: SystemSettingsService.SystemSettings, userName: String) =
-    repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), userName).replaceFirst("\\.git\\Z", ".wiki.git")
 }
 
 trait WikiService {

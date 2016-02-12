@@ -100,21 +100,21 @@
                 you can perform a manual merge on the command line.
               </p>
             }
-            @helper.html.copy("repository-url-copy", forkedRepository.httpUrl, true){
+            @helper.html.copy("repository-url-copy", context.urls(forkedRepository).httpUrl, true){
               <div class="btn-group" data-toggle="buttons-radio">
                 <button class="btn btn-small active" type="button" id="repository-url-http">HTTP</button>
                 @if(settings.ssh && loginAccount.isDefined){
                   <button class="btn btn-small" type="button" id="repository-url-ssh" style="border-radius: 0px;">SSH</button>
                 }
               </div>
-              <input type="text" style="width: 500px;" value="@forkedRepository.httpUrl" id="repository-url" readonly />
+              <input type="text" style="width: 500px;" value="@context.urls(forkedRepository).httpUrl" id="repository-url" readonly />
             }
             <div>
               <p>
                 <span class="strong">Step 1:</span> From your project repository, check out a new branch and test the changes.
               </p>
               @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
-                        s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
+                        s"git pull ${context.urls(forkedRepository).httpUrl} ${pullreq.requestBranch}"){ command =>
                 @helper.html.copy("merge-command-copy-1", command){
                   <pre style="width: 600px; float: left; font-size: 12px; border-radius: 3px 0px 3px 3px;" id="merge-command">@Html(command)</pre>
                 }
@@ -174,24 +174,24 @@ $(function(){
   @if(settings.ssh && loginAccount.isDefined){
     $('#repository-url-http').click(function(){
       // Update URL box
-      $('#repository-url').val('@forkedRepository.httpUrl');
+      $('#repository-url').val('@context.urls(forkedRepository).httpUrl');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
       // Update command guidance
       $('#merge-command').text($('#merge-command').text().replace(
-        '@forkedRepository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)',
-        '@forkedRepository.httpUrl'
+        '@context.urls(forkedRepository).sshUrl(loginAccount.get.userName)',
+        '@context.urls(forkedRepository).httpUrl'
       ));
       $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
     });
 
     $('#repository-url-ssh').click(function(){
       // Update URL box
-      $('#repository-url').val('@forkedRepository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)');
+      $('#repository-url').val('@context.urls(forkedRepository).sshUrl(loginAccount.get.userName)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
       // Update command guidance
       $('#merge-command').text($('#merge-command').text().replace(
-        '@forkedRepository.httpUrl',
-        '@forkedRepository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)'
+        '@context.urls(forkedRepository).httpUrl',
+        '@context.urls(forkedRepository).sshUrl(loginAccount.get.userName)'
       ));
       $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
     });

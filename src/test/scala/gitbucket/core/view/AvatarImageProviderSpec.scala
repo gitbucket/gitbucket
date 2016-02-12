@@ -104,6 +104,7 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       notification             = false,
       activityLogLimit         = None,
       ssh                      = false,
+      sshHost                  = None,
       sshPort                  = None,
       useSMTP                  = false,
       smtp                     = None,
