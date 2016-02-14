@@ -19,57 +19,56 @@
     </a>
   </li>
 }
-
-<div class="container">
-  @helper.html.information(info)
-  @helper.html.error(error)
-  <div class="head">
-    @if(repository.commitCount > 0){
-      <div class="input-group pull-right">
-        <span class="fork">
-          <span class="input-group-btn">
-          @if(loginAccount.isEmpty){
-            <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">Fork</a>
-          } else {
-            @if(isNoGroup) {
-              <a id="fork-link" href="javascript:void(0);" class="btn btn-default">Fork</a>
+<div class="headbar">
+  <div class="container">
+    @helper.html.information(info)
+    @helper.html.error(error)
+    <div class="head">
+      @if(repository.commitCount > 0){
+        <div class="input-group pull-right">
+          <span class="fork">
+            <span class="input-group-btn">
+            @if(loginAccount.isEmpty){
+              <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">Fork</a>
             } else {
-              <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">Fork</a>
+              @if(isNoGroup) {
+                <a id="fork-link" href="javascript:void(0);" class="btn btn-default">Fork</a>
+              } else {
+                <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">Fork</a>
+              }
             }
-          }
+            </span>
+            <span class="count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
           </span>
-          <span class="count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
-        </span>
-      </div>
-      @if(loginAccount.isDefined && isNoGroup){
-        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
-          <input type="hidden" name="account" value="@loginAccount.get.userName"/>
-        </form>
-      }
-    }
-    @helper.html.repositoryicon(repository, true)
-    <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
-
-    @defining(repository.repository){ x =>
-      @if(repository.repository.originRepositoryName.isDefined){
-        <div class="forked">
-          forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
         </div>
+        @if(loginAccount.isDefined && isNoGroup){
+          <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
+            <input type="hidden" name="account" value="@loginAccount.get.userName"/>
+          </form>
+        }
       }
-    }
-  </div>
-  <ul class="headmenu">
-    @sidemenu(""       , "code"   , "code" , "Code")
-    @sidemenu("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
-    @sidemenu("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
-    @sidemenu("/wiki"  , "wiki"   , "book"  , "Wiki")
-    @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-      @sidemenu("/settings" , "settings" , "tools", "Settings")
-    }
-  </ul>
-</div>
-<hr style="margin-bottom: 20px;"/>
+      @helper.html.repositoryicon(repository, true)
+      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
 
+      @defining(repository.repository){ x =>
+        @if(repository.repository.originRepositoryName.isDefined){
+          <div class="forked">
+            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+          </div>
+        }
+      }
+    </div>
+    <ul class="headmenu">
+      @sidemenu(""       , "code"   , "code" , "Code")
+      @sidemenu("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
+      @sidemenu("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
+      @sidemenu("/wiki"  , "wiki"   , "book"  , "Wiki")
+      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+        @sidemenu("/settings" , "settings" , "tools", "Settings")
+      }
+    </ul>
+  </div>
+</div>
 <div class="container body">
 @*
     @if(expand){

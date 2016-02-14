@@ -211,6 +211,7 @@ div.nav-collapse a.menu-last {
 
 .navbar {
   min-height: unset;
+  margin-bottom: 0px;
 }
 
 span.header-version {
@@ -535,11 +536,19 @@ a.btn-danger:hover .octicon {
 /****************************************************************************/
 /* Head Menu */
 /****************************************************************************/
+div.headbar {
+  background-color: #fafafa;
+  padding-top: 19px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+}
+
+
 ul.headmenu {
   margin-top: 20px;
   margin-left: 0px;
   padding-left: 0px;
-  margin-bottom: -5px;
+  margin-bottom: -1px;
 }
 
 ul.headmenu a:hover {
