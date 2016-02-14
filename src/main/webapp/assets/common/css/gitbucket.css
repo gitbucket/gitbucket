@@ -533,61 +533,48 @@ a.btn-danger:hover .octicon {
 }
 
 /****************************************************************************/
-/* Side Menu */
+/* Head Menu */
 /****************************************************************************/
-ul.sidemenu {
+ul.headmenu {
+  margin-top: 20px;
   margin-left: 0px;
   padding-left: 0px;
+  margin-bottom: -5px;
 }
 
-ul.sidemenu a {
-  display: block;
-  padding: 8px 10px;
-}
-
-ul.sidemenu a:hover {
+ul.headmenu a:hover {
   text-decoration: none;
+  color: black;
 }
 
-ul.sidemenu li.active {
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-  border-right: 3px solid #bb4444;
-  border-left: 1px solid white;
+ul.headmenu li {
+  display: inline-block;
+  list-style-type: none;
+  font-size: 13px;
 }
 
-ul.sidemenu li.active a {
+ul.headmenu li a {
+  color: #666;
+  padding: 8px 10px;
+  display: block;
+}
+
+ul.headmenu li.active a {
+  color: black;
+}
+
+ul.headmenu li.active {
+  border-top: 3px solid #bb4444;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  border-bottom: none;
+  background-color: white;
+}
+
+ul.headmenu li.active a {
   background-color: #fff;
 }
 
-ul.sidemenu {
-  background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
-  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
-  box-shadow: inset 1px 0 0 #eee;
-}
-
-ul.sidemenu div.margin {
-  width: 5px;
-  height: 30px;
-  margin-right: 4px;
-  border-left: 1px solid white;
-}
-
-ul.sidemenu li {
-  border-left: 1px solid #eee;
-  margin-left:0px;
-  border-right: 2px solid white;
-  list-style-type: none;
-  font-size: 90%;
-}
-
-ul.sidemenu span.badge {
-
-}
-
-ul.sidemenu a:hover i.menu-icon, ul.sidemenu i.menu-icon-active {
-  color: #333;
-}
 /****************************************************************************/
 /* Create Repository */
 /****************************************************************************/
@@ -2220,89 +2207,75 @@ div.container.blame-container{
 /* Mobile */
 /****************************************************************************/
 @media (max-width: 767px) {
-    body>form#search {
-      margin: 0 -20px 20px -20px;
-    }
+  /* Hide header search box */
+  input[name=query] {
+    display: none;
+  }
+  #dashboard-signin-form {
+    display: none;
+  }
+  .container {
+    width: auto !important;
+  }
+  .body>div.pull-left {
+    width: auto !important;
+  }
 
-    body>div.dashboard-nav {
-      margin: 0 -20px 20px -20px;
-      padding: 0 10px;
-    }
+  /* Adjust issue search box size and position */
+  #search-filter-box {
+    width: 98% !important;
+    position: absolute;
+    left: 4px;
+    margin-top: 42px;
+  }
 
-    .container {
-      width: auto !important;
-    }
+  form#search-filter-form {
+    float: none !important;
+    margin-bottom: 80px !important;
+  }
 
-    /* Adjust issue search box size and position */
-    #search-filter-box {
-      width: 90% !important;
-      position: absolute;
-      left: 14px;
-      right: 20px;
-      margin-top: 42px;
-    }
+  .table-issues a.button-link {
+    width: 42px;
+    height: 16px;
+    overflow: hidden;
+    display: inline-block;
+  }
 
-    form#search-filter-form {
-      float: none !important;
-      margin-bottom: 80px !important;
-    }
+  .nav-tabs a.btn[href$="/_edit"] {
+    width: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 4px 6px;
+    margin: 3px 4px 0 0;
+  }
 
-    .table-issues a.button-link {
-      width: 42px;
-      height: 16px;
-      overflow: hidden;
-      display: inline-block;
-    }
-
-    .nav-tabs a.btn[href$="/_edit"] {
-      width: 24px;
-      white-space: nowrap;
-      overflow: hidden;
-      padding: 4px 6px;
-      margin: 3px 4px 0 0;
-    }
-
-    body>div.container.body {
-      margin: 0 -12px 40px -12px;
-    }
-
-    .container.body>div[style="width: 170px;"]{
-      width: 32px !important;
-      margin-right: -5px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    .container.body>div[style="margin-right: 180px;"]{
-      margin-right: 32px !important;
-    }
-
-    .container.body>div[style="width: 170px;"] .sidemenu i, .container.body>div[style="width: 170px;"] .sidemenu img {
-      padding-right: 5px;
-    }
-
-    /* Hide repository url box */
-    .container.body>div[style="width: 170px;"] .small,.container.body>div[style="width: 170px;"] .input-group {
-      display: none;
-    }
-
-    .container.body>div[style="width: 170px;"] div[style="margin-top: 10px;"] a.btn{
-      width: 26px !important;
-      padding: 2px;
-    }
-
-    .container.body>div[style="width: 170px;"] div[style="margin-top: 10px;"] a.btn i {
-      margin: 5px 10px 5px 6px;
-    }
-
-    /* Hide fork button */
-    div.col-md-1>div.input-group.pull-right {
-      display: none;
-    }
-
-    body>.container>#fork-form{
-      display: inline;
-    }
+  body>div.container.body {
+    margin: 0 -12px 40px -12px;
+  }
+  /* Adjust sidemenu */
+  .container.body>div[style="width: 170px;"]{
+    width: 32px !important;
+    margin-right: -5px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  /* Hide badge of sidemenu */
+  .container.body>div[style="width: 170px;"] span.badge {
+    display: none;
+  }
+  /* Hide download button */
+  .container.body>div[style="width: 170px;"] a.btn-sm {
+    display: none;
+  }
+  /* Hide repository url box */
+  .container.body>div[style="width: 170px;"] .small,
+  .container.body>div[style="width: 170px;"] .input-group {
+    display: none;
+  }
+  /* Hide fork button */
+  div.input-group>span.fork {
+    display: none;
+  }
 }
 
 /****************************************************************************/

@@ -10,12 +10,11 @@
 @import gitbucket.core.service.RepositoryService._
 
 @sidemenu(path: String, name: String, icon: String, label: String, count: Int = 0) = {
-  <li @if(active == name){class="active"} @if(!expand){data-toggle="tooltip" data-placement="left" data-original-title="@label"}>
+  <li @if(active == name){class="active"}>
     <a href="@url(repository)@path">
-      <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i>
-      @if(expand){ @label}
-      @if(expand && count > 0){
-        <div class="pull-right"><span class="badge">@count</span></div>
+      <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i> @label
+      @if(count > 0){
+        <span class="badge">@count</span>
       }
     </a>
   </li>
@@ -24,58 +23,55 @@
 <div class="container">
   @helper.html.information(info)
   @helper.html.error(error)
-  <div class="row">
-    <div class="head">
-      @if(repository.commitCount > 0){
-        <div class="input-group pull-right">
-          <span class="fork">
-            <span class="input-group-btn">
-            @if(loginAccount.isEmpty){
-              <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">Fork</a>
+  <div class="head">
+    @if(repository.commitCount > 0){
+      <div class="input-group pull-right">
+        <span class="fork">
+          <span class="input-group-btn">
+          @if(loginAccount.isEmpty){
+            <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">Fork</a>
+          } else {
+            @if(isNoGroup) {
+              <a id="fork-link" href="javascript:void(0);" class="btn btn-default">Fork</a>
             } else {
-              @if(isNoGroup) {
-                <a id="fork-link" href="javascript:void(0);" class="btn btn-default">Fork</a>
-              } else {
-                <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">Fork</a>
-              }
+              <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">Fork</a>
             }
-            </span>
-            <span class="count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+          }
           </span>
-        </div>
-        @if(loginAccount.isDefined && isNoGroup){
-          <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
-            <input type="hidden" name="account" value="@loginAccount.get.userName"/>
-          </form>
-        }
+          <span class="count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
+        </span>
+      </div>
+      @if(loginAccount.isDefined && isNoGroup){
+        <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
+          <input type="hidden" name="account" value="@loginAccount.get.userName"/>
+        </form>
       }
-      @helper.html.repositoryicon(repository, true)
-      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+    }
+    @helper.html.repositoryicon(repository, true)
+    <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
 
-      @defining(repository.repository){ x =>
-        @if(repository.repository.originRepositoryName.isDefined){
-          <div class="forked">
-            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
-          </div>
-        }
+    @defining(repository.repository){ x =>
+      @if(repository.repository.originRepositoryName.isDefined){
+        <div class="forked">
+          forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+        </div>
       }
-    </div>
+    }
   </div>
+  <ul class="headmenu">
+    @sidemenu(""       , "code"   , "code" , "Code")
+    @sidemenu("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
+    @sidemenu("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
+    @sidemenu("/wiki"  , "wiki"   , "book"  , "Wiki")
+    @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+      @sidemenu("/settings" , "settings" , "tools", "Settings")
+    }
+  </ul>
 </div>
 <hr style="margin-bottom: 20px;"/>
+
 <div class="container body">
-  <div style="width: @if(expand){170px} else {40px};" class="pull-right">
-    <ul class="sidemenu">
-      <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
-      @sidemenu(""       , "code"   , "code" , "Code")
-      @sidemenu("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
-      @sidemenu("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
-      @sidemenu("/wiki"  , "wiki"   , "book"  , "Wiki")
-      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-        @sidemenu("/settings" , "settings" , "tools", "Settings")
-      }
-      <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
-    </ul>
+@*
     @if(expand){
       <div class="small">
         <strong id="repository-url-proto">HTTP</strong> <span class="mute">clone URL</span>
@@ -97,15 +93,13 @@
         <div style="margin-top: 10px;">
           <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
         </div>
-        @*
         <div style="margin-top: 10px;">
           <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-sm btn-default btn-block "><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
         </div>
-        *@
       }
     }
-  </div>
-  <div class="pull-left" style="width: @if(expand){770px} else {895px};">
+*@
+@*  <div class="pull-left" style="width: 895px;">*@
     @if(expand){
       @repository.repository.description.map { description =>
         <p class="description">@detectAndRenderLinks(description)</p>
@@ -141,7 +135,7 @@
     }
     @body
   </div>
-</div>
+@*</div>*@
 <script>
 $(function(){
 
@@ -150,7 +144,7 @@ $(function(){
     if(e.target.tagName == "I"){
       target = e.target.parentElement;
     }
-    $(target).prev    ('div.gradient'        ).css('border-left', '1px solid silver');
+    $(target).prev('div.gradient').css('border-left', '1px solid silver');
   });
 
   $('ul.sidemenu a').mouseout(function(e){
@@ -158,7 +152,7 @@ $(function(){
     if(e.target.tagName == "I"){
       target = e.target.parentElement;
     }
-    $(target).prev    ('div.gradient'        ).css('border-left', '1px solid #eee');
+    $(target).prev('div.gradient').css('border-left', '1px solid #eee');
   });
 
   $('a[rel*=facebox]').facebox({
