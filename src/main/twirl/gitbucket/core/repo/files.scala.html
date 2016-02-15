@@ -32,8 +32,29 @@
           <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default">Download ZIP</a>
         </div>
         <div class="pull-right">
-          <div style="width: 200px; margin-top: 2px; margin-right: 5px; margin-left: 5px;">
+          <div style="width: 240px; margin-top: 2px; margin-right: 5px; margin-left: 5px;">
             @helper.html.copy("repository-url-copy", repository.httpUrl){
+              @if(repository.sshUrl.isDefined){
+                <div class="btn-group input-group-btn">
+                  <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span id="repository-url-proto">HTTP</span> <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a href="javascript:void(0);" id="repository-url-http">
+                        <strong>HTTP (recommended)</strong><br>
+                        Clone with Git using the repository's web address.
+                      </a>
+                    </li>
+                    <li>
+                      <a href="javascript:void(0);" id="repository-url-ssh">
+                        <strong>SSH</strong><br>
+                        Clone with an SSH key and passphrase from your GitBucket settings.
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              }
               <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly>
             }
           </div>
@@ -158,3 +179,20 @@
     }
   }
 }
+<script>
+@repository.sshUrl.map { sshUrl =>
+  $('#repository-url-http').click(function(){
+    $('#repository-url-proto').text('HTTP');
+    $('#repository-url').val('@repository.httpUrl');
+    $('#repository-clone-url').attr('href', '@openRepoUrl(repository.httpUrl)')
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+
+  $('#repository-url-ssh').click(function(){
+    $('#repository-url-proto').text('SSH');
+    $('#repository-url').val('@sshUrl');
+    $('#repository-clone-url').attr('href', '@openRepoUrl(sshUrl)');
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+}
+</script>
