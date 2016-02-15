@@ -29,7 +29,7 @@
           @if(platform != "linux" && platform != null){
             <a href="@openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
           }
-          <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default">Download ZIP</a>
         </div>
         <div class="pull-right">
           <div style="width: 200px; margin-top: 2px; margin-right: 5px; margin-left: 5px;">
@@ -40,36 +40,32 @@
         </div>
         <div class="pull-right">
           <div class="btn-group">
-          <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" data-hotkey="t">Find file</a>
-          @*
-          @if(pathList.nonEmpty){
-            <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch">History</a>
-          }
-          *@
+            <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" title="Create a new file here" @if(!hasWritePermission){disabled}>New file</i></a>
+            <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" data-hotkey="t">Find file</a>
+            @*
+            @if(pathList.nonEmpty){
+              <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch">History</a>
+            }
+            *@
           </div>
         </div>
       }
 
-      @branchPullRequest.map{ case (pullRequest, issue) =>
-        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
-      }.getOrElse{
-        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
-      }
-      @helper.html.branchcontrol(
-        branch,
-        repository,
-        hasWritePermission
-      ){
+      @helper.html.branchcontrol(branch, repository, hasWritePermission){
         @repository.branchList.map { x =>
           <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
         }
       }
-      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-      @pathList.zipWithIndex.map { case (section, i) =>
-        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+      @branchPullRequest.map{ case (pullRequest, issue) =>
+        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">View #@pullRequest.issueId</a>
+      }.getOrElse {
+        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i> New pull request</a>
       }
-      @if(hasWritePermission){
-        <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" title="Create a new file here" style="text-decoration: none;">+</i></a>
+      @if(pathList.nonEmpty) {
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
       }
     </div>
     <table class="table table-file-list">
