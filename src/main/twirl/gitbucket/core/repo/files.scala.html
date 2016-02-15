@@ -25,13 +25,13 @@
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
       @if(pathList.isEmpty){
-        <div class="pull-right">
+        <div class="pull-right pc">
           @if(platform != "linux" && platform != null){
             <a href="@openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
           }
           <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default">Download ZIP</a>
         </div>
-        <div class="pull-right">
+        <div class="pull-right pc">
           <div style="width: 240px; margin-top: 2px; margin-right: 5px; margin-left: 5px;">
             @helper.html.copy("repository-url-copy", repository.httpUrl){
               @if(repository.sshUrl.isDefined){
@@ -62,8 +62,8 @@
       }
       <div class="pull-right">
         <div class="btn-group">
-          <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" title="Create a new file here" @if(!hasWritePermission){disabled}>New file</i></a>
-          <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
+          <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here" @if(!hasWritePermission){disabled}>New file</i></a>
+          <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default pc" data-hotkey="t">Find file</a>
           @if(pathList.nonEmpty){
             <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch">History</a>
           }

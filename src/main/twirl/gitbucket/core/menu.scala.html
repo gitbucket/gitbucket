@@ -11,7 +11,7 @@
 @menuitem(path: String, name: String, icon: String, label: String, count: Int = 0) = {
   <li @if(active == name){class="active"}>
     <a href="@url(repository)@path">
-      <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i> @label
+      <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i> <span class="pc">@label</span>
       @if(count > 0){
         <span class="badge">@count</span>
       }
@@ -143,22 +143,5 @@ $(function(){
       $('#fork-form').submit();
     });
   }
-@*
-  @repository.sshUrl.map { sshUrl =>
-    $('#repository-url-http').click(function(){
-      $('#repository-url-proto').text('HTTP');
-      $('#repository-url').val('@repository.httpUrl');
-      $('#repository-clone-url').attr('href', '@openRepoUrl(repository.httpUrl)')
-      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
-    });
-
-    $('#repository-url-ssh').click(function(){
-      $('#repository-url-proto').text('SSH');
-      $('#repository-url').val('@sshUrl');
-      $('#repository-clone-url').attr('href', '@openRepoUrl(sshUrl)');
-      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
-    });
-  }
-*@
 });
 </script>

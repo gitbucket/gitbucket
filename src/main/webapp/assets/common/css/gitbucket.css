@@ -1965,6 +1965,9 @@ div.container.blame-container{
   .body>div.pull-left {
     width: auto !important;
   }
+  .pc {
+    display: none;
+  }
 
   /* Adjust issue search box size and position */
   #search-filter-box {
@@ -1985,7 +1988,7 @@ div.container.blame-container{
     overflow: hidden;
     display: inline-block;
   }
-
+/*
   .nav-tabs a.btn[href$="/_edit"] {
     width: 24px;
     white-space: nowrap;
@@ -1993,7 +1996,7 @@ div.container.blame-container{
     padding: 4px 6px;
     margin: 3px 4px 0 0;
   }
-
+*/
   body>div.container.body {
     margin: 0 -12px 40px -12px;
   }
