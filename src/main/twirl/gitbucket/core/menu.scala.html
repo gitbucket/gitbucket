@@ -70,71 +70,41 @@
   </div>
 </div>
 <div class="container body">
-@*
-    @if(expand){
-      <div class="small">
-        <strong id="repository-url-proto">HTTP</strong> <span class="mute">clone URL</span>
-      </div>
-      @helper.html.copy("repository-url-copy", repository.httpUrl){
-        <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly>
-      }
-      @if(repository.sshUrl.isDefined){
-        <div class="small">
-          <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
-        </div>
-      }
-      @id.map { id =>
-        @if(context.platform != "linux" && context.platform != null){
-        <div style="margin-top: 10px;">
-          <a href="@openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
-        </div>
-        }
-        <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
-        </div>
-        <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-sm btn-default btn-block "><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
-        </div>
-      }
+  @if(isRepoTop){
+    @repository.repository.description.map { description =>
+      <p class="description">@detectAndRenderLinks(description)</p>
     }
-*@
-@*  <div class="pull-left" style="width: 895px;">*@
-    @if(isRepoTop){
-      @repository.repository.description.map { description =>
-        <p class="description">@detectAndRenderLinks(description)</p>
-      }
-      <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
-        <table class="fill-width">
-          <tr>
-            <td style="width: 33%; text-align: center;">
-              <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
-                <i class="octicon octicon-history"></i>
-                @if(repository.commitCount > 10000){
-                  <strong>10000+</strong> commits
-                } else {
-                  <strong>@repository.commitCount</strong> commits
-                }
-              </a>
-            </td>
-            <td style="width: 33%; text-align: center;">
-              <a href="@url(repository)/branches" class="header-link" class="header-link">
-                <i class="octicon octicon-git-branch"></i>
-                <strong>@repository.branchList.length</strong> branches
-              </a>
-            </td>
-            <td style="width: 33%; text-align: center;">
-              <a href="@url(repository)/tags" class="header-link" class="header-link">
-                <i class="octicon octicon-tag"></i>
-                <strong>@repository.tags.length</strong> releases
-              </a>
-            </td>
-          </tr>
-        </table>
-      </div>
-    }
-    @body
-  </div>
-@*</div>*@
+    <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
+      <table class="fill-width">
+        <tr>
+          <td style="width: 33%; text-align: center;">
+            <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
+              <i class="octicon octicon-history"></i>
+              @if(repository.commitCount > 10000){
+                <strong>10000+</strong> commits
+              } else {
+                <strong>@repository.commitCount</strong> commits
+              }
+            </a>
+          </td>
+          <td style="width: 33%; text-align: center;">
+            <a href="@url(repository)/branches" class="header-link" class="header-link">
+              <i class="octicon octicon-git-branch"></i>
+              <strong>@repository.branchList.length</strong> branches
+            </a>
+          </td>
+          <td style="width: 33%; text-align: center;">
+            <a href="@url(repository)/tags" class="header-link" class="header-link">
+              <i class="octicon octicon-tag"></i>
+              <strong>@repository.tags.length</strong> releases
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  }
+  @body
+</div>
 <script>
 $(function(){
 
