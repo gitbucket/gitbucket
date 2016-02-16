@@ -58,7 +58,7 @@ h6 {
     margin-right: 5px;
 }
 
-.head .octicon,.head .mega-octicon{
+.head .octicon, .head .mega-octicon{
     color : #BBB;
 }
 
@@ -70,57 +70,6 @@ blockquote p {
   font-size: 15px;
 }
 
-/*
-.nav {
-  margin-bottom: 12px;
-}
-
-.table-bordered {
-  border-collapse: inherit;
-  border: none;
-}
-
-.table-bordered > thead > tr > th,
-.table-bordered > tbody > tr > th,
-.table-bordered > tbody > tr > td {
-  border-bottom: none;
-}
-
-.table-bordered > thead > tr:first-child > th:nth-of-type(1),
-.table-bordered > tbody > tr:first-child > th:nth-of-type(1),
-.table-bordered > tbody > tr:first-child > td:nth-of-type(1) {
-  border-top-left-radius: 4px;
-}
-
-.table-bordered > thead > tr:first-child > th:nth-last-of-type(1),
-.table-bordered > tbody > tr:first-child > th:nth-last-of-type(1),
-.table-bordered > tbody > tr:first-child > td:nth-last-of-type(1) {
-  border-top-right-radius: 4px;
-}
-
-.table-bordered > tbody > tr:last-child > td:nth-of-type(1) {
-  border-bottom-left-radius: 4px;
-}
-
-.table-bordered > tbody > tr:last-child > td:nth-last-of-type(1) {
-  border-bottom-right-radius: 4px;
-}
-
-.table-bordered > tbody > tr:last-child > td {
-  border-bottom: 1px solid #dddddd;
-}
-*/
-/*
-.table-bordered > thead > tr > th,
-.table-bordered > thead > tr > td {
-  border-bottom-width: 1px;
-}
-*/
-/*
-.tab-content {
-  margin-top: 20px;
-}
-*/
 .danger {
   color: #900;
 }
@@ -167,43 +116,6 @@ pre.reset {
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
-/*
-div.navbar-inner {
-  border-radius: 0px;
-  -webkit-border-radius: 0px;
-  -moz-border-radius: 0px;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  border-bottom: 1px solid #d4d4d4;
-  padding-right: 0px;
-}
-
-div.header-menu {
-  line-height: 40px;
-}
-
-div.header-menu .octicon{
-  color: #333;
-}
-
-div.header-menu input,
-div.header-menu a.btn {
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-
-/*
-div.nav-collapse a.menu {
-  margin-right: 12px;
-}
-
-div.nav-collapse a.btn-last,
-div.nav-collapse a.menu-last {
-  margin-right: 30px;
-}
-*/
-
 .navbar-brand {
   height: unset;
   padding: 8px;
@@ -211,6 +123,7 @@ div.nav-collapse a.menu-last {
 
 .navbar {
   min-height: unset;
+  margin-bottom: 0px;
 }
 
 span.header-version {
@@ -277,6 +190,7 @@ div.pagination {
 */
 
 div.body {
+  margin-top: 20px;
   margin-bottom: 40px;
 }
 
@@ -412,23 +326,6 @@ div.box-content {
   padding: 4px;
   border-radius: 3px;
 }
-/*
-div > div.box-content-row:nth-of-type(1) {
-  border: none;
-}
-
-div.box-content-row {
-  border-top: 1px solid #d8d8d8;
-  padding: 4px;
-}
-*/
-/*
-div.repo-link {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-*/
 
 li.repo-link, li.page-link {
   padding-top: 4px;
@@ -533,61 +430,56 @@ a.btn-danger:hover .octicon {
 }
 
 /****************************************************************************/
-/* Side Menu */
+/* Head Menu */
 /****************************************************************************/
-ul.sidemenu {
+div.headbar {
+  background-color: #fafafa;
+  padding-top: 19px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+}
+
+
+ul.headmenu {
+  margin-top: 20px;
   margin-left: 0px;
   padding-left: 0px;
+  margin-bottom: -1px;
 }
 
-ul.sidemenu a {
-  display: block;
-  padding: 8px 10px;
-}
-
-ul.sidemenu a:hover {
+ul.headmenu a:hover {
   text-decoration: none;
+  color: black;
 }
 
-ul.sidemenu li.active {
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-  border-right: 3px solid #bb4444;
-  border-left: 1px solid white;
+ul.headmenu li {
+  display: inline-block;
+  list-style-type: none;
+  font-size: 13px;
 }
 
-ul.sidemenu li.active a {
+ul.headmenu li a {
+  color: #666;
+  padding: 8px 10px;
+  display: block;
+}
+
+ul.headmenu li.active a {
+  color: black;
+}
+
+ul.headmenu li.active {
+  border-top: 3px solid #bb4444;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  border-bottom: none;
+  background-color: white;
+}
+
+ul.headmenu li.active a {
   background-color: #fff;
 }
 
-ul.sidemenu {
-  background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
-  background-image: linear-gradient(to right, #f6f6f6 0%, #fff 8px);
-  box-shadow: inset 1px 0 0 #eee;
-}
-
-ul.sidemenu div.margin {
-  width: 5px;
-  height: 30px;
-  margin-right: 4px;
-  border-left: 1px solid white;
-}
-
-ul.sidemenu li {
-  border-left: 1px solid #eee;
-  margin-left:0px;
-  border-right: 2px solid white;
-  list-style-type: none;
-  font-size: 90%;
-}
-
-ul.sidemenu span.badge {
-
-}
-
-ul.sidemenu a:hover i.menu-icon, ul.sidemenu i.menu-icon-active {
-  color: #333;
-}
 /****************************************************************************/
 /* Create Repository */
 /****************************************************************************/
@@ -635,18 +527,6 @@ a#show-pages-index {
   color: #333;
   text-decoration: none;
 }
-
-/*
-ul.nav-stacked.side-menu li span.header {
-  border-top-right-radius: 3px;
-  border-top-left-radius: 3px;
-  border: 1px solid #d8d8d8;
-  display: block;
-  padding: 8px 15px 9px;
-  margin-right: 2px;
-  background-color: #f5f5f5;
-}
-*/
 
 ul.nav-stacked.side-menu li a:hover {
   background-color: transparent;
@@ -749,7 +629,6 @@ div.repository-content {
 .branches .a-b-count-widget .count-half .count-value{
   padding: 0 3px;
 }
-
 
 /****************************************************************************/
 /* Activity */
@@ -979,73 +858,6 @@ span.simplified-path {
 }
 
 /****************************************************************************/
-/* nav pulls group */
-/****************************************************************************/
-
-
-/*
-.nav-pills-group:after {
-    display: table;
-    line-height: 0;
-    content: "";
-}
-
-.nav-pills-group:after {
-    clear: both;
-}
-
-.nav-pills-group > li {
-    float: left;
-}
-*/
-/*
-.nav-pills > li + li {
-  margin-left: 0px;
-}
-
-.nav-pills > li > a {
-    padding-right: 12px;
-    padding-left: 12px;
-    line-height: 14px;
-    color: #666;
-    font-weight: bold;
-    -webkit-border-radius: 0;
-    -moz-border-radius: 0;
-    border-radius: 0;
-}
-
-.nav-pills > li > a {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    border-left   : 1px solid #e5e5e5;
-    border-top    : 1px solid #e5e5e5;
-    border-bottom : 1px solid #e5e5e5;
-}
-
-.nav-pills > li:nth-of-type(1) > a {
-    -webkit-border-radius: 4px 0 0 4px;
-    -moz-border-radius: 4px 0 0 4px;
-    border-radius: 4px 0 0 4px;
-}
-
-.nav-pills > li:nth-last-of-type(1) > a {
-    -webkit-border-radius: 0 4px 4px 0;
-    -moz-border-radius: 0 4px 4px 0;
-    border-radius: 0 4px 4px 0;
-    border-right  : 1px solid #e5e5e5;
-}
-*/
-/*
-.nav-pills-group > .active > a,
-.nav-pills-group > .active > a:hover,
-.nav-pills-group > .active > a:focus {
-    color: #ffffff;
-    background-color: #0088cc;
-    border-color: #0088cc;
-}
-*/
-
-/****************************************************************************/
 /* Issues */
 /****************************************************************************/
 #search-filter-box {
@@ -1081,11 +893,11 @@ table.table-issues {
   margin-top: 12px;
 }
 
-table.table-issues td .octicon-issue-opened,table.table-issues td .octicon-git-pull-request .open {
+table.table-issues td .octicon-issue-opened, table.table-issues td .octicon-git-pull-request .open {
   color: #6CC644;
 }
 
-table.table-issues td .octicon-issue-closed,table.table-issues td .octicon-git-pull-request .closed{
+table.table-issues td .octicon-issue-closed, table.table-issues td .octicon-git-pull-request .closed{
   color : #BD2C00;;
 }
 
@@ -1157,47 +969,6 @@ div.milestone-menu a.delete {
   color: #b00;
 }
 
-/*
-div#milestone-progress-area {
-  display: inline-block;
-}
-
-div#milestone-progress-area div.milestone-progress {
-  width: 130px;
-  margin-bottom: -6px;
-}
-
-div.milestone-progress {
-  position: relative;
-  height: 10px;
-  color: white;
-  margin-bottom: 4px;
-  font-weight: bold;
-  font-size: 12px;
-  text-shadow: 0px 0px 5px #444;
-  background-color: silver;
-  border-radius: 4px;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-}
-
-span.milestone-progress {
-  position: absolute;
-  height: 100%;
-  background-color: green;
-  border-radius: 4px;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-}
-
-div.issue-header {
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-*/
-
 div.issue-info {
   border-top: 1px solid #e5e5e5;
   border-bottom: 1px solid #e5e5e5;
@@ -1206,21 +977,6 @@ div.issue-info {
   margin-left: 0px;
   margin-right: 0px;
 }
-
-/*
-div.issue-content {
-  padding: 13px;
-  background-color: #fff;
-}
-
-div.issue-content p:first-child {
-  margin-top: 0;
-}
-
-div.issue-content p:last-child {
-  margin-bottom: 0;
-}
-*/
 
 h4#issueTitle {
   font-size: large;
@@ -1429,18 +1185,6 @@ a.absent {
   color: #c00;
 }
 
-/*
-div.wiki-index-header {
-  background-color: #f5f5f5;
-  color: #333333;
-  margin: 0;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  border: 1px solid #d8d8d8;
-  padding: 8px 8px 8px 8px;
-}
-*/
-
 div.wiki-sidebar {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -1469,18 +1213,6 @@ div.wiki-footer {
   background-color: #f5f5f5;
   color: gray;
 }
-
-/*
-div.wiki-index-content {
-  background-color: white;
-  border: 1px solid #d8d8d8;
-  padding: 0px;
-  border-bottom-left-radius: 3px;
-  border-bottom-right-radius: 3px;
-  margin-bottom: 20px;
-  border-top: none;
-}
-*/
 
 /****************************************************************************/
 /* Commit */
@@ -2220,89 +1952,86 @@ div.container.blame-container{
 /* Mobile */
 /****************************************************************************/
 @media (max-width: 767px) {
-    body>form#search {
-      margin: 0 -20px 20px -20px;
-    }
+  /* Hide header search box */
+  input[name=query] {
+    display: none;
+  }
+  #dashboard-signin-form {
+    display: none;
+  }
+  .container {
+    width: auto !important;
+  }
+  .body>div.pull-left {
+    width: auto !important;
+  }
+  .pc {
+    display: none;
+  }
 
-    body>div.dashboard-nav {
-      margin: 0 -20px 20px -20px;
-      padding: 0 10px;
-    }
+  /* Adjust issue / comment form */
+  #issue-title {
+    width: 100% !important;
+  }
+  div.attachable>textarea,
+  div.attachable>div.clickable {
+    width: 100% !important;
+  }
 
-    .container {
-      width: auto !important;
-    }
-
-    /* Adjust issue search box size and position */
-    #search-filter-box {
-      width: 90% !important;
-      position: absolute;
-      left: 14px;
-      right: 20px;
-      margin-top: 42px;
-    }
-
-    form#search-filter-form {
-      float: none !important;
-      margin-bottom: 80px !important;
-    }
-
-    .table-issues a.button-link {
-      width: 42px;
-      height: 16px;
-      overflow: hidden;
-      display: inline-block;
-    }
-
-    .nav-tabs a.btn[href$="/_edit"] {
-      width: 24px;
-      white-space: nowrap;
-      overflow: hidden;
-      padding: 4px 6px;
-      margin: 3px 4px 0 0;
-    }
-
-    body>div.container.body {
-      margin: 0 -12px 40px -12px;
-    }
-
-    .container.body>div[style="width: 170px;"]{
-      width: 32px !important;
-      margin-right: -5px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    .container.body>div[style="margin-right: 180px;"]{
-      margin-right: 32px !important;
-    }
-
-    .container.body>div[style="width: 170px;"] .sidemenu i, .container.body>div[style="width: 170px;"] .sidemenu img {
-      padding-right: 5px;
-    }
-
-    /* Hide repository url box */
-    .container.body>div[style="width: 170px;"] .small,.container.body>div[style="width: 170px;"] .input-group {
-      display: none;
-    }
-
-    .container.body>div[style="width: 170px;"] div[style="margin-top: 10px;"] a.btn{
-      width: 26px !important;
-      padding: 2px;
-    }
-
-    .container.body>div[style="width: 170px;"] div[style="margin-top: 10px;"] a.btn i {
-      margin: 5px 10px 5px 6px;
-    }
-
-    /* Hide fork button */
-    div.col-md-1>div.input-group.pull-right {
-      display: none;
-    }
-
-    body>.container>#fork-form{
-      display: inline;
-    }
+  /* Adjust issue search box size and position */
+  #search-filter-box {
+    width: 100% !important;
+  }
+  form#search-filter-form {
+    float: none !important;
+    margin-bottom: 10px;
+  }
+  form#search-filter-form>div.form-group {
+    width: 100% !important;
+    margin-bottom: 10px;
+  }
+  .table-issues a.button-link {
+    width: 42px;
+    height: 16px;
+    overflow: hidden;
+    display: inline-block;
+  }
+/*
+  .nav-tabs a.btn[href$="/_edit"] {
+    width: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 4px 6px;
+    margin: 3px 4px 0 0;
+  }
+*/
+  body>div.container.body {
+    margin: 0 -12px 40px -12px;
+  }
+  /* Adjust sidemenu */
+  .container.body>div[style="width: 170px;"]{
+    width: 32px !important;
+    margin-right: -5px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  /* Hide badge of sidemenu */
+  .container.body>div[style="width: 170px;"] span.badge {
+    display: none;
+  }
+  /* Hide download button */
+  .container.body>div[style="width: 170px;"] a.btn-sm {
+    display: none;
+  }
+  /* Hide repository url box */
+  .container.body>div[style="width: 170px;"] .small,
+  .container.body>div[style="width: 170px;"] .input-group {
+    display: none;
+  }
+  /* Hide fork button */
+  div.input-group>span.fork {
+    display: none;
+  }
 }
 
 /****************************************************************************/
