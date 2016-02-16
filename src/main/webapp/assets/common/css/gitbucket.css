@@ -1969,6 +1969,15 @@ div.container.blame-container{
     display: none;
   }
 
+  /* Adjust issue / comment form */
+  #issue-title {
+    width: 100% !important;
+  }
+  div.attachable>textarea,
+  div.attachable>div.clickable {
+    width: 100% !important;
+  }
+
   /* Adjust issue search box size and position */
   #search-filter-box {
     width: 100% !important;
