@@ -1971,17 +1971,16 @@ div.container.blame-container{
 
   /* Adjust issue search box size and position */
   #search-filter-box {
-    width: 98% !important;
-    position: absolute;
-    left: 4px;
-    margin-top: 42px;
+    width: 100% !important;
   }
-
   form#search-filter-form {
     float: none !important;
-    margin-bottom: 80px !important;
+    margin-bottom: 10px;
   }
-
+  form#search-filter-form>div.form-group {
+    width: 100% !important;
+    margin-bottom: 10px;
+  }
   .table-issues a.button-link {
     width: 42px;
     height: 16px;
