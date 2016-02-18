@@ -15,7 +15,7 @@
       <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i>
       @if(expand){ @label}
       @if(expand && count > 0){
-        <div class="pull-right"><span class="label">@count</span></div>
+        <div class="pull-right"><span class="badge">@count</span></div>
       }
     </a>
   </li>
@@ -105,7 +105,7 @@
       }
     }
   </div>
-  <div style="margin-right: @if(expand){180px} else {55px};">
+  <div class="pull-left" style="width: @if(expand){770px} else {895px};">
     @if(expand){
       @repository.repository.description.map { description =>
         <p class="description">@detectAndRenderLinks(description)</p>

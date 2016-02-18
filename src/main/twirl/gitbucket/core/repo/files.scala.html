@@ -7,8 +7,10 @@
   readme: Option[(List[String], String)],
   hasWritePermission: Boolean,
   branchPullRequest: Option[(gitbucket.core.model.PullRequest, gitbucket.core.model.Issue)],
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
   info: Option[Any] = None,
-  error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
+  error: Option[Any] = None
+)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(
@@ -21,8 +23,13 @@
   } else {
     s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
+  <div class="row">
+      <div class="col-md-3">
+        @dashboard.html.repopanel(userRepositories)  
+      </div>
+  <div class="col-md-9">
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
-    <div class="head">
+    <div class="head">      
       <div class="pull-right"><div class="btn-group">
         <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="octicon octicon-list-unordered"></i></a>
         @if(pathList.nonEmpty){
@@ -106,25 +113,25 @@
         }
         </td>
         <td class="content-name">
-        @if(file.isDirectory){
-          @if(file.linkUrl.isDefined){
-            <a href="@file.linkUrl">
-              <span class="simplified-path">@file.name.split("/").toList.init match {
-                case Nil => {}
-                case list => {@list.mkString("", "/", "/")}
-              }</span>@file.name.split("/").toList.last
-            </a>
+          @if(file.isDirectory){
+            @if(file.linkUrl.isDefined){
+              <a href="@file.linkUrl">
+                <span class="simplified-path">@file.name.split("/").toList.init match {
+                  case Nil => {}
+                  case list => {@list.mkString("", "/", "/")}
+                }</span>@file.name.split("/").toList.last
+              </a>
+            } else {
+              <a href="@url(repository)/tree@{(branch :: pathList).map(encodeRefName).mkString("/", "/", "/")}@{encodeRefName(file.name)}">
+                <span class="simplified-path">@file.name.split("/").toList.init match {
+                  case Nil => {}
+                  case list => {@list.mkString("", "/", "/")}
+                }</span>@file.name.split("/").toList.last
+              </a>
+            }
           } else {
-            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
-              <span class="simplified-path">@file.name.split("/").toList.init match {
-                case Nil => {}
-                case list => {@list.mkString("", "/", "/")}
-              }</span>@file.name.split("/").toList.last
-            </a>
+            <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
           }
-        } else {
-          <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
-        }
         </td>
         <td class="mute">
           <a href="@url(repository)/commit/@file.commitId" class="commit-message shorten-text" title="@file.message">@link(file.message, repository)</a>
@@ -140,4 +147,6 @@
       </div>
     }
   }
+</div>
+</div>
 }

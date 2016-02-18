@@ -1,10 +1,17 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasWritePermission: Boolean,
+userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.service.SystemSettingsService
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
+   
+       <div class="row">
+        <div class="col-md-4">
+         @dashboard.html.repopanel(userRepositories)
+        </div>
+     <div class="col-md-8">     
     @if(!hasWritePermission){
       <h3>This is an empty repository</h3>
     } else {
@@ -30,6 +37,9 @@
         git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
         git push -u origin master
       }
+        </div> 
+     </div>
+ 
       <script>
       $(function(){
         $('.git-protocol-selector').click(function(e){

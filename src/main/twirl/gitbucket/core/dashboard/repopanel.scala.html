@@ -1,0 +1,34 @@
+@(  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+ <div class="panel panel-default">
+            <div class="panel-heading strong">
+              <div class="pull-right">
+                <a href="@path/new" class="btn btn-success btn-sm">New repository</a>
+              </div>
+              Your repositories <span class="badge">@userRepositories.size</span>
+            </div>
+            <ul class="list-group list-group-flush">
+              @if(userRepositories.isEmpty){
+                <li class="list-group-item">No repositories</li>
+              } else {
+                @defining(20){ max =>
+                  @userRepositories.zipWithIndex.map { case (repository, i) =>
+                    <li class="list-group-item repo-link" style="@if(i > max - 1){display:none;}">
+                      @helper.html.repositoryicon(repository, false)
+                      @if(repository.owner == loginAccount.get.userName){
+                        <a href="@url(repository)"><span class="strong">@repository.name</span></a>
+                      } else {
+                        <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
+                      }
+                    </li>
+                  }
+                  @if(userRepositories.size > max){
+                    <li class="list-group-item show-more">
+                      <a href="javascript:void(0);" id="show-more-repos">Show @{userRepositories.size - max} more repositories...</a>
+                    </li>
+                  }
+                }
+              }
+            </ul>
+          </div>

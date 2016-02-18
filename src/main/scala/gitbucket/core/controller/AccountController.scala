@@ -17,20 +17,18 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
-import org.scalatra
 import org.scalatra.i18n.Messages
 
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService with AdminAuthenticator
+  with AccessTokenService with WebHookService
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AdminAuthenticator
     with AccessTokenService with WebHookService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
@@ -175,6 +173,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       JsonFormat(ApiUser(account))
     } getOrElse Unauthorized
   }
+
 
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
@@ -496,266 +495,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }
   })
-
-  /**
-    * User api add on - user creation
-    */
-  get("/api/v3/user/:userName") (adminOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName, true) match {
-      case Some(account) => {
-        if(account.isRemoved)
-          org.scalatra.Ok(s"""{"message": "user with username $userName is found, but is disabled"}""")
-        else
-          org.scalatra.Ok(s"""{"message": "user with username $userName is found"}""")
-      }
-      case None => org.scalatra.NotFound(s"""{"message": "user with username $userName is not found"}""")
-    }
-
-  })
-
-  post("/api/v3/user") (adminOnly {
-    (
-      for {
-        data <- extractFromJsonBody[CreateAUser] if data.isValid
-      } yield {
-        if(context.settings.allowAccountRegistration){
-          createAccount(data.userName, sha1(data.password), data.fullName, data.mailAddress, false, data.url)
-          updateImage(data.userName, data.fileId, false)
-          org.scalatra.Accepted(s"""{ "message": "${data.userName} is added"} """)
-        }
-        else org.scalatra.NotAcceptable("""{ "message": "user creation is not allowed" }""")
-
-      }) getOrElse
-      org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
-  })
-
-  put("/api/v3/user/:userName") (adminOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName, true) match {
-      case Some(acc) => {
-        (for {
-          data <- extractFromJsonBody[CreateAUser] if data.isValid
-        } yield {
-          if(context.settings.allowAccountRegistration){
-
-            updateAccount(acc.copy(
-              password     = sha1(data.password),
-              fullName     = data.fullName,
-              mailAddress  = data.mailAddress,
-              url          = data.url))
-
-            updateImage(data.userName, data.fileId, false)
-            org.scalatra.Accepted(s"""{ "message": "${data.userName} is updated"} """)
-          }
-          else org.scalatra.NotAcceptable("""{ "message": "user creation is not allowed" }""")
-
-        }) getOrElse
-        org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
-
-      }
-      case None => org.scalatra.NotFound(s"""{"message": "user with username $userName is not found"}""")
-    }
-  })
-
-
-
-  delete("/api/v3/user/:userName") (adminOnly {
-    val userName = params("userName")
-    getAccountByUserName(userName, true).map { account =>
-      removeUserRelatedData(userName)
-
-      updateAccount(account.copy(
-        password     = account.password,
-        fullName     = account.fullName,
-        mailAddress  = account.mailAddress,
-        isAdmin      = false,
-        url          = account.url,
-        isRemoved    = true))
-
-      updateImage(userName, None, true)
-
-      org.scalatra.Accepted(s"""{ "message": "$userName is disabled" }""")
-    } getOrElse org.scalatra.NotFound(s"""{ "message": "$userName is not found" }""")
-  })
-
-  post("/api/v3/newgroup")(adminOnly {
-    (for {
-      data <- extractFromJsonBody[CreateAGroup] if data.isValid
-    } yield {
-      //check if the members
-      val temp =
-        for {
-        member <- data.members.map ( m => (m, m.equalsIgnoreCase( data.manager )))
-      } yield {
-        getAccountByUserName(member._1, true) match {
-          case Some(account) => {
-            if(!account.isRemoved) Some(member) else None
-          }
-          case None => None
-        }
-      }
-
-      val _nMembers = temp.flatten
-
-      if(_nMembers.size == data.members.size) {
-        createGroup(data.groupName, data.url)
-        updateGroupMembers(data.groupName,
-          data.members.map ( m => (m, m.equalsIgnoreCase( data.manager ))))
-
-        updateImage(data.groupName, data.fileId, false)
-        org.scalatra.Accepted(s"""{"message": "${data.groupName} is added"}""")
-      }
-      else
-      {
-        org.scalatra.NotAcceptable("""{"message": "Some of the member is not exist in content-store"}""")
-
-      }
-
-    }) getOrElse
-    org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
-
-  })
-
-  get("/api/v3/group/:groupName")(adminOnly {
-    defining(params("groupName")){ groupName =>
-      getAccountByUserName(groupName, true) match {
-        case Some(account) => {
-          if(account.isRemoved)
-            org.scalatra.Ok(s"""{"message": "group with name $groupName is found, but is disabled"}""")
-          else
-            org.scalatra.Ok(s"""{"message": "group with name $groupName is found"}""")
-        }
-        case None => org.scalatra.NotFound(s"""{"message": "group with name $groupName is not found"}""")
-      }
-    }
-  })
-
-  delete("/api/v3/group/:groupName")(adminOnly{
-    defining(params("groupName")) { groupName => {
-      getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, None, true)
-
-        // Remove from GROUP_MEMBER
-        updateGroupMembers(groupName, Nil)
-        // Remove repositories
-        getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-          deleteRepository(groupName, repositoryName)
-          FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-          FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-          FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
-        }
-        org.scalatra.Accepted( s"""{"message": "$groupName is disabled" }""")
-      } getOrElse org.scalatra.NotFound(s"""{"message": "$groupName is not found" }""")
-    }}})
-
-  put("/api/v3/group/:groupName") (adminOnly{
-    (for {
-      data <- extractFromJsonBody[CreateAGroup] if data.isValid
-    } yield {
-      defining(params("groupName")) { groupName => {
-        getAccountByUserName(groupName, true).map {account =>
-          val temp =
-            for {
-              member <- data.members.map ( m => (m, m.equalsIgnoreCase( data.manager )))
-            } yield {
-              getAccountByUserName(member._1, true) match {
-                case Some(account) => {
-                  if(!account.isRemoved) Some(member) else None
-                }
-                case None => None
-              }
-            }
-
-          val _nMembers = temp.flatten
-
-          if(_nMembers.size == data.members.size)
-          {
-            updateGroupMembers(groupName, _nMembers)
-
-            getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-              removeCollaborators(groupName, repositoryName)
-              _nMembers.foreach { case (userName, isManager) =>
-                addCollaborator(groupName, repositoryName, userName)}}
-
-            org.scalatra.Accepted(s"""{"message": "${data.groupName} is modified"}""")
-
-          }
-          else
-          {
-            org.scalatra.NotAcceptable("""{"message": "Some of the member is not exist in content-store"}""")
-          }
-
-        } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
-
-      }}
-
-
-    }) getOrElse
-      org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
-
-  })
-
-  put("/api/v3/group/:groupName/add") (adminOnly{
-    (for {
-      data <- extractFromJsonBody[ModifyGroupMembers] if data.isValid
-    } yield {
-      defining(params("groupName")) { groupName => {
-        getAccountByUserName(groupName, true).map {account =>
-          val _oMembers = getGroupMembers(groupName).map( member => (member.userName, member.isManager))
-          val _nMembers = data.members.filter(m => !_oMembers.map(g => g._1).contains(m))
-            .map(member => (member, false))
-
-          val _cMembers = _oMembers:::_nMembers
-          updateGroupMembers(groupName, _cMembers)
-
-          getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-            removeCollaborators(groupName, repositoryName)
-            _cMembers.foreach { case (userName, isManager) =>
-              addCollaborator(groupName, repositoryName, userName)}}
-
-          org.scalatra.Accepted(s"""{"message": "$groupName is modified"}""")
-
-        } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
-
-      }}
-
-
-    }) getOrElse
-      org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
-
-  })
-
-  put("/api/v3/group/:groupName/remove") (adminOnly{
-    (for {
-      data <- extractFromJsonBody[ModifyGroupMembers] if data.isValid
-    } yield {
-      defining(params("groupName")) { groupName => {
-        getAccountByUserName(groupName, true).map {account =>
-          val _oMembers = getGroupMembers(groupName).map( member => (member.userName, member.isManager))
-
-          val _cMembers = _oMembers.filter ( item =>
-            !data.members.contains(item._1)
-          )
-
-          updateGroupMembers(groupName, _cMembers)
-
-          getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-            removeCollaborators(groupName, repositoryName)
-            _cMembers.foreach { case (userName, isManager) =>
-              addCollaborator(groupName, repositoryName, userName)}}
-
-          org.scalatra.Accepted(s"""{"message": "$groupName is modified"}""")
-
-        } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
-
-      }}
-
-
-    }) getOrElse
-      org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
-  })
-
 
   private def createRepository(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean) {
     val ownerAccount  = getAccountByUserName(owner).get

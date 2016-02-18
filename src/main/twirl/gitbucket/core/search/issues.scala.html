@@ -2,7 +2,8 @@
   fileCount: Int,
   query: String,
   page: Int,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  userRepositories: Option[List[gitbucket.core.service.RepositoryService.RepositoryInfo]] = None)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.service.RepositorySearchService._

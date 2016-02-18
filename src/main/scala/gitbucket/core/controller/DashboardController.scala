@@ -97,6 +97,10 @@ trait DashboardControllerBase extends ControllerBase {
     val userRepos = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
     val page      = IssueSearchCondition.page(request)
 
+    val loginAccount = context.loginAccount
+    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
+    
+
     html.issues(
       searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
       page,
@@ -108,7 +112,8 @@ trait DashboardControllerBase extends ControllerBase {
         case _           => condition.copy(author    = Some(userName))
       },
       filter,
-      getGroupNames(userName))
+      getGroupNames(userName),
+      userRepositories)
   }
 
   private def searchPullRequests(filter: String) = {
@@ -119,6 +124,8 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
     val allRepos  = getAllRepositories(userName)
     val page      = IssueSearchCondition.page(request)
+    val loginAccount = context.loginAccount
+    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
 
     html.pulls(
       searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
@@ -131,7 +138,8 @@ trait DashboardControllerBase extends ControllerBase {
         case _           => condition.copy(author    = Some(userName))
       },
       filter,
-      getGroupNames(userName))
+      getGroupNames(userName),
+      userRepositories)
   }
 
 

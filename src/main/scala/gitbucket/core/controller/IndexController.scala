@@ -26,9 +26,19 @@ trait IndexControllerBase extends ControllerBase {
   )(SignInForm.apply)
 
   get("/"){
+      
+    val req = request.headers.get("User-Agent").get
+      
     val loginAccount = context.loginAccount
     if(loginAccount.isEmpty) {
-        html.index(getRecentActivities(),
+        
+       /* authenticate(context.settings, "root", "root") match {
+      case Some(account) => signinatindex(account)
+      case None => //do nothing
+    }
+        redirect("/") */
+        
+       html.index(getRecentActivities(),
             getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
@@ -91,6 +101,28 @@ trait IndexControllerBase extends ControllerBase {
     }.getOrElse {
       redirect("/")
     }
+  }
+    
+     /**
+   * Set account information into HttpSession during home page first visit.
+   */
+  private def signinatindex(account: Account) = {
+    session.setAttribute(Keys.Session.LoginAccount, account)
+    updateLastLoginDate(account.userName)
+
+    /*if(LDAPUtil.isDummyMailAddress(account)) {
+      redirect("/" + account.userName + "/_edit")
+    }
+
+    flash.get(Keys.Flash.Redirect).asInstanceOf[Option[String]].map { redirectUrl =>
+      if(redirectUrl.stripSuffix("/") == request.getContextPath){
+        redirect("/")
+      } else {
+        redirect(redirectUrl)
+      }
+    }.getOrElse {
+      redirect("/")
+    }*/
   }
 
   /**

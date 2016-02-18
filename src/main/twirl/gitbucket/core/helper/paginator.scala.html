@@ -1,8 +1,8 @@
 @(page: Int, count: Int, limit: Int, width: Int, baseURL: String)
 @defining(gitbucket.core.view.Pagination(page, count, limit, width)){ p =>
   @if(p.count > p.limit){
-    <div class="pagination">
-      <ul>
+    <div>
+      <ul class="pagination">
         @if(page == 1){
           <li class="disabled"><span>&#9664;</span></li>
         } else {

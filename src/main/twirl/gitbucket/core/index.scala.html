@@ -7,13 +7,6 @@
   @dashboard.html.tab()
   <div class="container">
     <div class="row">
-      <div class="col-md-8">
-        <div class="pull-right">
-          <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
-        </div>
-        @helper.html.activities(activities)
-      </div>
-
       <div class="col-md-4">
         @settings.information.map { information =>
           <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
@@ -24,60 +17,45 @@
         @if(loginAccount.isEmpty){
           @signinform(settings)
         } else {
-          <div class="panel panel-default">
-            <div class="panel-heading strong">
-              <div class="pull-right">
-                <a href="@path/new" class="btn btn-success btn-sm">New repository</a>
-              </div>
-              Your repositories <span class="badge">@userRepositories.size</span>
-            </div>
-            <ul class="list-group list-group-flush">
-              @if(userRepositories.isEmpty){
-                <li class="list-group-item">No repositories</li>
-              } else {
-                @defining(20){ max =>
-                  @userRepositories.zipWithIndex.map { case (repository, i) =>
-                    <li class="list-group-item repo-link" style="@if(i > max - 1){display:none;}">
-                      @helper.html.repositoryicon(repository, false)
-                      @if(repository.owner == loginAccount.get.userName){
-                        <a href="@url(repository)"><span class="strong">@repository.name</span></a>
-                      } else {
-                        <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
-                      }
-                    </li>
-                  }
-                  @if(userRepositories.size > max){
-                    <li class="list-group-item show-more">
-                      <a href="javascript:void(0);" id="show-more-repos">Show more @{userRepositories.size - max} pages...</a>
-                    </li>
-                  }
-                }
-              }
-            </ul>
-          </div>
+         
+          @dashboard.html.repopanel(userRepositories)
+          
         }
-        <div class="panel panel-default">
+        <div class="panel panel-default commonbackgrnd">
           <div class="panel-heading strong">Recent updated repositories</div>
           <ul class="list-group list-group-flush">
           @if(recentRepositories.isEmpty){
             <li class="list-group-item">No repositories</li>
           } else {
-              @recentRepositories.map { repository =>
-                <li class="list-group-item repo-link">
+            @defining(20){ max =>
+              @recentRepositories.zipWithIndex.map { case (repository, i) =>
+                <li class="list-group-item repo-link panelbackgrnd" style="@if(i > max - 1){display:none;}">
                   @helper.html.repositoryicon(repository, false)
                   <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
                 </li>
               }
+              @if(recentRepositories.size > max){
+                <li class="list-group-item show-more">
+                  <a href="javascript:void(0);" id="show-more-recent-repos">Show @{recentRepositories.size - max} more repositories...</a>
+                </li>
+              }
+            }
           }
           </ul>
         </div>
+      </div>
+      <div class="col-md-8">
+        <div class="pull-right">
+          <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
+        </div>
+        @helper.html.activities(activities)
       </div>
     </div>
   </div>
 }
 <script>
 $(function(){
-  $('#show-more-repos').click(function(e){
+  $('#show-more-repos, #show-more-recent-repos').click(function(e){
     $(e.target).parents('ul.list-group').find('li.repo-link').show();
     $(e.target).parents('li.show-more').remove();
   });

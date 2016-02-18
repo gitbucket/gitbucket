@@ -9,7 +9,7 @@
     <meta charset="utf-8">
     <title>@title</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="icon" href="@assets/common/images/se_logo_white-1.png" type="image/vnd.microsoft.icon" />
+    <link rel="icon" href="@assets/common/images/gitbucket.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap.css" rel="stylesheet">
     @*
@@ -42,7 +42,7 @@
     }
   </head>
   <body>
-    <form id="search" action="@path/search" method="POST" class="form-inline">
+    <form id="search" action="@path/search" method="POST" class="form-inline hidedisplay">
       <nav class="navbar navbar-default">
         <div class="container" style="width: 980px;">
           @* TODO: for plugi-ins?
@@ -53,7 +53,7 @@
           </button>
           *@
           <a class="navbar-brand" href="@path/">
-            <img src="@assets/common/images/se_logo_white-1.png" style="width: 108px; height: 32px;"/>  Model Repository
+            <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
             @defining(AutoUpdate.getCurrentVersion){ version =>
               <span class="header-version">@version.majorVersion.@version.minorVersion</span>
             }
@@ -75,37 +75,14 @@
             }
           }
           @if(loginAccount.isDefined){
-            <div class="pull-right" style="margin-top: 6px;">
-              <div class="btn-group" style="margin-right: 8px;">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
-                  <i class="octicon octicon-plus" style="color: black; font-size: 20px; vertical-align: middle;height:20px !important;"></i>
-                  <span class="caret" style="color: black; vertical-align: middle;"></span>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                  <li><a href="@path/new">New repository</a></li>
-                  <li><a href="@path/groups/new">New group</a></li>
-                </ul>
-              </div>
-              <div class="btn-group">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">@avatar(loginAccount.get.userName, 16)
-                  <span class="caret" style="color: black; vertical-align: middle;"></span>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                  <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
-                  <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
-                  @if(loginAccount.get.isAdmin){
-                    <li><a href="@path/admin/users">System administration</a></li>
-                  }
-                  <li><a href="@path/signout">Sign out</a></li>
-                </ul>
-              </div>
-            </div>
+            
           } else {
             <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 6px;" id="signin">Sign in</a>
           }
         </div>
       </nav>
     </form>
+       
     @body
     <script>
       $(function(){

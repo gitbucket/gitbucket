@@ -8,7 +8,8 @@
   dayByDayCommits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
   hasWritePermission: Boolean,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  flash: Map[String, String])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.model._
@@ -73,6 +74,12 @@
       </ul>
       <div class="tab-content fill-width pull-left">
         <div class="tab-pane active" id="conversation">
+          @flash.get("error").map{ error =>
+            <div class="alert alert-error">@error</div>
+          }
+          @flash.get("info").map{ info =>
+            <div class="alert alert-info">@info</div>
+          }
           @pulls.html.conversation(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
         </div>
         <div class="tab-pane" id="commits">
