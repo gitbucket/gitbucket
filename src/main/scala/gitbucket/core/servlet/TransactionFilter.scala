@@ -49,26 +49,9 @@ object Database {
   private val dataSource: ComboPooledDataSource = {
     val ds = new ComboPooledDataSource
     ds.setDriverClass(DatabaseConfig.driver)
-    //ds.setJdbcUrl("jdbc:h2:tcp://H2-ELB-Public-1985951393.us-west-2.elb.amazonaws.com:1521//opt/h2-data/.gitbucket/data")
     ds.setJdbcUrl(DatabaseConfig.url)
     ds.setUser(DatabaseConfig.user)
     ds.setPassword(DatabaseConfig.password)
-    ds.setPreferredTestQuery("SELECT 1;")
-    ds.setTestConnectionOnCheckout(true)
-
-    //--- setting to keep the connection alive
-    /**
-    ds.setInitialPoolSize(10)
-    ds.setMinPoolSize(1)
-    ds.setMaxPoolSize(25)
-    ds.setAcquireRetryAttempts(10)
-    ds.setIdleConnectionTestPeriod(3600)
-    ds.setPreferredTestQuery("SELECT 1;")
-    ds.setTestConnectionOnCheckin(false)
-    ds.setMaxConnectionAge(14400)
-    ds.setMaxIdleTime(10800) */
-
-
     logger.debug("load database connection pool")
     ds
   }

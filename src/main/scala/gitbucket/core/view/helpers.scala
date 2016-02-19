@@ -89,6 +89,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                enableWikiLink: Boolean,
                enableRefsLink: Boolean,
                enableLineBreaks: Boolean,
+               enableAnchor: Boolean = true,
                enableTaskList: Boolean = false,
                hasWritePermission: Boolean = false,
                pages: List[String] = Nil)(implicit context: Context): Html =
@@ -97,7 +98,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       repository         = repository,
       enableWikiLink     = enableWikiLink,
       enableRefsLink     = enableRefsLink,
-      enableAnchor       = true,
+      enableAnchor       = enableAnchor,
       enableLineBreaks   = enableLineBreaks,
       enableTaskList     = enableTaskList,
       hasWritePermission = hasWritePermission,
@@ -288,10 +289,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   }
 
   def commitStateIcon(state: CommitState) = Html(state match {
-    case CommitState.PENDING => "●"
-    case CommitState.SUCCESS => "&#x2714;"
-    case CommitState.ERROR   => "×"
-    case CommitState.FAILURE => "×"
+    case CommitState.PENDING => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-primitive-dot"></i>"""
+    case CommitState.SUCCESS => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-check"></i>"""
+    case CommitState.ERROR   => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-x"></i>"""
+    case CommitState.FAILURE => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-x"></i>"""
   })
 
   def commitStateText(state: CommitState, commitId:String) = state match {

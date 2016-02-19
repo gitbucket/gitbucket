@@ -70,6 +70,20 @@ blockquote p {
   font-size: 15px;
 }
 
+.hidedisplay{
+  display: none;
+}
+
+.commonbackgrnd{
+ background-color: grey;
+ color:#FFF;
+}
+
+.panelbackgrnd{
+ background-color: #339;
+ color:#FFF;
+}
+
 /*
 .nav {
   margin-bottom: 12px;
@@ -144,6 +158,24 @@ dd {
 hr {
   margin-top: 4px;
   margin-bottom: 4px;
+}
+
+pre.reset {
+  /* defaults */
+  display: block;
+  font-family: monospace;
+  white-space: pre;
+  margin: 1em 0px;
+  /* bootstrap overrides */
+  padding: initial;
+  line-height: initial;
+  color: initial;
+  background-color: initial;
+  border: initial;
+  overflow: initial;
+  word-break: initial;
+  word-wrap: initial;
+  border-radius: initial;
 }
 
 /* ======================================================================== */
@@ -564,7 +596,7 @@ ul.sidemenu li {
 }
 
 ul.sidemenu span.badge {
-  padding-right: 4px;
+
 }
 
 ul.sidemenu a:hover i.menu-icon, ul.sidemenu i.menu-icon-active {
@@ -829,6 +861,9 @@ table.table-file-list .file-icon {
 
 table.table-file-list .content-name {
   max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 table.table-file-list .commit-message {
@@ -1315,6 +1350,74 @@ li.task-list-item input.task-list-item-checkbox {
   vertical-align: middle;
 }
 
+.discussion-item {
+    position: relative;
+    margin: 15px 0 15px 79px;
+    padding-left: 25px;
+}
+.discussion-item-header {
+    min-height: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #767676;
+    line-height: 20px;
+    word-wrap: break-word;
+}
+.discussion-item-icon {
+    float: left;
+    width: 32px;
+    height: 32px;
+    margin-top: -7px;
+    margin-left: -40px;
+    line-height: 28px;
+    color: #767676;
+    text-align: center;
+    background-color: #f3f3f3;
+    border: 2px solid #fff;
+    border-radius: 50%;
+}
+.discussion-item-content {
+  margin-left:36px;
+}
+.discussion-item-content-head{
+  padding-right:20px;
+  background-color: white;
+  float:left
+}
+pre.reset.discussion-item-content-text{
+  border-left: 1px solid rgb(238, 238, 238);
+  margin: 0 0 0 5px;
+  padding-left: 25px;
+}
+.discussion-item-commit .discussion-item-content {
+    font-size:12px;
+}
+.discussion-item-icon .octicon {
+  color: inherit;
+}
+.discussion-item-merge .discussion-item-icon {
+  background-color: #6e5494;
+  color: white;
+  padding-top: 1px;
+  padding-left: 3px;
+}
+.discussion-item-close .discussion-item-icon {
+  background-color: #bd2c00;
+  color: white;
+  padding-top: 1px;
+}
+.discussion-item-delete_branch .discussion-item-icon {
+  padding-left: 2px;
+  padding-top: 1px;
+  background-color: #767676;
+  color: white;
+}
+.discussion-item-reopen .discussion-item-icon {
+  background-color: #6cc644;
+  padding-top: 1px;
+  color: white;
+}
+
 /****************************************************************************/
 /* Pull Request */
 /****************************************************************************/
@@ -1405,11 +1508,41 @@ div.author-info div.committer {
   margin: -10px -10px 10px -10px;
 }
 .build-statuses .build-status-item{
-  padding: 10px 15px 10px 12px;
+  padding: 10px 15px 10px 64px;
   border-bottom: 1px solid #eee;
 }
 .build-statuses-list .build-status-item{
   background-color: #fafafa;
+}
+
+.merge-indicator{
+  float:left;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.merge-indicator-success{
+  background-color: #6cc644;
+}
+.merge-indicator-warning{
+  background-color: #cea61b;
+}
+.merge-indicator-alert{
+  background-color: #888;
+}
+.merge-indicator .octicon{
+  color: white;
+  font-size: 16px;
+  width: 15px;
+  height: 15px;
+}
+.merge-indicator-warning .octicon{
+  color: white;
+  font-size: 30px;
 }
 
 /****************************************************************************/
@@ -1715,28 +1848,39 @@ div.markdown-body h1 {
   border-bottom: 1px solid #ddd;
   font-size: 2.5em;
   font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h2 {
   border-bottom: 1px solid #eee;
   font-size: 2em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h3 {
   font-size: 1.5em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h4 {
   font-size: 1.2em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h5 {
   font-size: 1em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body h6 {
   color:#777;
   font-size: 1em;
+  font-weight: bold;
+  line-height: 1.7;
 }
 
 div.markdown-body li {
@@ -1902,7 +2046,6 @@ div.markdown-body table colgroup + tbody tr:first-child td:last-child {
 
 .markdown-head {
   position: relative;
-  line-height: 1.7;
 }
 
 a.markdown-anchor-link {
