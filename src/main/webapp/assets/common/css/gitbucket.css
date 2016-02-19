@@ -2037,6 +2037,11 @@ div.container.blame-container{
 /****************************************************************************/
 /* Print */
 /****************************************************************************/
-a[href]:after {
-  display: none;
+@media print {
+  div.headbar {
+    display: none;
+  }
+  a[href]:after {
+    display: none;
+  }
 }
