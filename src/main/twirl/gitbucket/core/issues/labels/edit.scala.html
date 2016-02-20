@@ -11,7 +11,7 @@
       <span class="input-group-addon"><i style="background-color: #@label.map(_.color).getOrElse("888888");"></i></span>
     </div>
     <script>
-    $('div#label-color-@labelId').colorpicker();
+    $('div#label-color-@labelId').colorpicker({format: "hex"});
     </script>
     <span class="pull-right">
       <span id="label-error-@labelId" class="error"></span>
