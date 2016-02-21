@@ -4,6 +4,7 @@ import gitbucket.core.admin.html
 import gitbucket.core.service.{AccountService, SystemSettingsService}
 import gitbucket.core.util.AdminAuthenticator
 import gitbucket.core.ssh.SshServer
+import gitbucket.core.plugin.PluginRegistry
 import SystemSettingsService._
 import io.github.gitbucket.scalatra.forms._
 
@@ -85,6 +86,10 @@ trait SystemSettingsControllerBase extends ControllerBase {
 
     flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
+  })
+
+  get("/admin/plugins")(adminOnly {
+    html.plugins(PluginRegistry().getPlugins())
   })
 
 }
