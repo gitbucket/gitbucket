@@ -17,10 +17,10 @@
           }
           @sshKeys.zipWithIndex.map { case (key, i) =>
             @if(i != 0){
-              <hr>
+              <hr style="margin-top: 10px;">
             }
             <strong>@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
-            <a href="@path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-mini btn-danger pull-right">Delete</a>
+            <a href="@path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
           }
         </div>
       </div>
@@ -31,12 +31,12 @@
             <fieldset class="form-group">
               <label for="title" class="strong">Title</label>
               <div><span id="error-title" class="error"></span></div>
-              <input type="text" name="title" id="title" class="form-control" style="width: 400px;"/>
+              <input type="text" name="title" id="title" class="form-control"/>
             </fieldset>
             <fieldset class="form-group">
               <label for="publicKey" class="strong">Key</label>
               <div><span id="error-publicKey" class="error"></span></div>
-              <textarea name="publicKey" id="publicKey" class="form-control" style="width: 600px; height: 250px;"></textarea>
+              <textarea name="publicKey" id="publicKey" class="form-control" style="height: 250px;"></textarea>
             </fieldset>
             <input type="submit" class="btn btn-success" value="Add"/>
           </div>
