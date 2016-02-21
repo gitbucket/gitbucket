@@ -79,7 +79,7 @@
         @branchPullRequest.map{ case (pullRequest, issue) =>
           <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">View #@pullRequest.issueId</a>
         }.getOrElse {
-          <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i> New pull request</a>
+          <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success" @if(loginAccount.isEmpty){disabled}>New pull request</a>
         }
       } else {
         <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
