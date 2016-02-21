@@ -83,8 +83,8 @@
       </div>
       @if(status.hasMergePermission){
         <div style="padding:15px;border-top:solid 1px #e5e5e5;background:#fafafa">
-          <input type="button" class="btn @if(!status.hasProblem){ btn-success }" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge){ disabled="true"}/>
-          You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
+          <input type="button" class="btn btn-lg @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge){ disabled="true"}/>
+          &nbsp;&nbsp;You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
           <div id="command-line" style="display: none;margin-top: 15px;">
             <hr />
             @if(status.hasConflict){
@@ -100,24 +100,23 @@
                 you can perform a manual merge on the command line.
               </p>
             }
-            @helper.html.copy("repository-url-copy", forkedRepository.httpUrl, true){
-              <div class="btn-group" data-toggle="buttons-radio">
-                <button class="btn btn-small active" type="button" id="repository-url-http">HTTP</button>
+            @helper.html.copy("repository-url-copy", forkedRepository.httpUrl){
+              <div class="input-group-btn" data-toggle="buttons">
+                <label class="btn btn-sm btn-default active" id="repository-url-http"><input type="radio" checked>HTTP</label>
                 @if(settings.ssh && loginAccount.isDefined){
-                  <button class="btn btn-small" type="button" id="repository-url-ssh" style="border-radius: 0px;">SSH</button>
+                  <label class="btn btn-sm btn-default" id="repository-url-ssh"><input type="radio">SSH</label>
                 }
               </div>
-              <input type="text" style="width: 500px;" value="@forkedRepository.httpUrl" id="repository-url" readonly />
+              <input type="text" class="form-control input-sm" value="@forkedRepository.httpUrl" id="repository-url" readonly />
             }
-            <div>
+            <div style="margin-top: 10px;">
               <p>
                 <span class="strong">Step 1:</span> From your project repository, check out a new branch and test the changes.
               </p>
               @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
                         s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
-                @helper.html.copy("merge-command-copy-1", command){
-                  <pre style="width: 600px; float: left; font-size: 12px; border-radius: 3px 0px 3px 3px;" id="merge-command">@Html(command)</pre>
-                }
+                @helper.html.copy("merge-command-copy-1", command, "position: absolute; right: 31px;")()
+                <pre style="font-size: 12px; border-radius: 3px;" id="merge-command">@Html(command)</pre>
               }
             </div>
             <div>
@@ -126,9 +125,8 @@
               </p>
               @defining(s"git checkout ${pullreq.branch}\ngit merge --no-ff ${pullreq.requestUserName}-${pullreq.requestBranch}\n" +
                         s"git push origin ${pullreq.branch}"){ command =>
-                @helper.html.copy("merge-command-copy-2", command){
-                  <pre style="width: 600px; float: left; font-size: 12px; border-radius: 3px 0px 3px 3px;">@command</pre>
-                }
+                @helper.html.copy("merge-command-copy-2", command, "position: absolute; right: 31px;")()
+                <pre style="font-size: 12px; border-radius: 3px;">@command</pre>
               }
             </div>
           </div>
@@ -171,9 +169,8 @@ $(function(){
     $('#confirm-merge-form').show();
   });
 
-  @* @if(settings.ssh && loginAccount.isDefined){ *@
   @forkedRepository.sshUrl.map { sshUrl =>
-    $('#repository-url-http').click(function(){
+    $('#repository-url-http').click(function(e){
       // Update URL box
       $('#repository-url').val('@forkedRepository.httpUrl');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
@@ -184,7 +181,7 @@ $(function(){
       $('#merge-command-copy-1').attr('data-clipboard-text', $('#merge-command').text());
     });
 
-    $('#repository-url-ssh').click(function(){
+    $('#repository-url-ssh').click(function(e){
       // Update URL box
       $('#repository-url').val('@sshUrl');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());

@@ -1,8 +1,16 @@
-@(id: String, value: String, prepend: Boolean = false)(html: Html)
-<div class="input-group @if(prepend){input-prepend}" style="margin-bottom: 0px;">
-  @html
-  <span class="input-group-btn"><span id="@id" class="btn btn-sm btn-default" data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="octicon octicon-clippy"></i></span></span>
-</div>
+@(id: String, value: String, style: String = "")(html: Html = Html(""))
+@if(html.body.nonEmpty){
+  <div class="input-group" style="margin-bottom: 0px;">
+    @html
+    <span class="input-group-btn">
+      <span id="@id" class="btn btn-sm btn-default" @if(style.nonEmpty){style="@style"}
+        data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="octicon octicon-clippy"></i></span>
+    </span>
+  </div>
+} else {
+  <span id="@id" class="btn btn-sm btn-default" @if(style.nonEmpty){style="@style"}
+    data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="octicon octicon-clippy"></i></span>
+}
 <script>
 // copy to clipboard
 (function() {
