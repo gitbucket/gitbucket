@@ -341,6 +341,10 @@ div.box-content-bottom {
   margin-bottom: 20px;
 }
 
+div.box-content-bottom img {
+  max-width: 100%;
+}
+
 table.table th.box-header {
   background-color: #f5f5f5;
 }
