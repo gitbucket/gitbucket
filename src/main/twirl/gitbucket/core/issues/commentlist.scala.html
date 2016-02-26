@@ -210,7 +210,7 @@ $(function(){
   $(document).on('click', '.commit-comment-box i.octicon-pencil', function(){
     var id  = $(this).closest('a').data('comment-id');
     var url = '@url(repository)/commit_comments/_data/' + id;
-    var $content = $('.commit-commentContent-' + id, $(this).closest('.box'));
+    var $content = $('.commit-commentContent-' + id, $(this).closest('.commit-comment-box'));
 
     $.get(url,
     {
