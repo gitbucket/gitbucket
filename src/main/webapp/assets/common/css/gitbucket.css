@@ -330,6 +330,9 @@ div.box-content {
 li.repo-link, li.page-link {
   padding-top: 4px;
   padding-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 div.box-content-bottom {
