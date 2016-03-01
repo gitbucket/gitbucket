@@ -32,3 +32,11 @@ $ sbt executable
 ```
 
 at the top of the source tree. It generates executable `gitbucket.war` into `target/executable`. We release this war file as release artifact.
+
+Run tests spec
+---------
+To run the full serie of tests, run the following command:
+
+```
+sbt test
+```
