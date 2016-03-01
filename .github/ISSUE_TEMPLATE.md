@@ -1,6 +1,6 @@
 ### Before submitting an issue to Gitbucket I have first:
 
-- [] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/CONTRIBUTING.md)
+- [] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
 - [] searched for similar already existing issue
 - [] read the documentation and [wiki](https://github.com/gitbucket/gitbucket/wiki) 
 
