@@ -6,7 +6,7 @@
   No activity
 } else {
   @activities.map { activity =>
-    <div class="block">
+    <div class="block panelbackgrnd">
       @(activity.activityType match {
         case "open_issue"        => detailActivity(activity, "issue-opened")
         case "comment_issue"     => detailActivity(activity, "comment-discussion")
@@ -63,7 +63,7 @@
 @detailActivity(activity: gitbucket.core.model.Activity, image: String) = {
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   <div class="activity-content">
-    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
+    <div class=" small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
@@ -77,7 +77,7 @@
 @customActivity(activity: gitbucket.core.model.Activity, image: String)(additionalInfo: Any) = {
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   <div class="activity-content">
-    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
+    <div class=" small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
@@ -92,7 +92,7 @@
     <div>
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
-      <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
+      <span class=" small">@helper.html.datetimeago(activity.activityDate)</span>
     </div>
   </div>
 }

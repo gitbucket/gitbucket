@@ -70,6 +70,13 @@ trait IndexControllerBase extends ControllerBase {
       case None          => redirect("/signin")
     }
   }
+    
+  post("/signinoffline", form){ form =>
+    authenticate(context.settings, form.userName, form.password) match {
+      case Some(account) => signin(account)
+      case None          => halt(405)
+    }
+  }
 
   get("/signout"){
     session.invalidate

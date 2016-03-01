@@ -31,12 +31,12 @@
           <span class="fork">
             <span class="input-group-btn">
             @if(loginAccount.isEmpty){
-              <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">Fork</a>
+              <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-success">Fork</a>
             } else {
               @if(isNoGroup) {
-                <a id="fork-link" href="javascript:void(0);" class="btn btn-default">Fork</a>
+                <a id="fork-link" href="javascript:void(0);" class="btn btn-success">Fork</a>
               } else {
-                <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">Fork</a>
+                <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-success" rel="facebox">Fork</a>
               }
             }
             </span>
@@ -65,7 +65,7 @@
 <hr style="margin-bottom: 20px;"/>
 <div class="container body">
   <div style="width: @if(expand){170px} else {40px};" class="pull-right">
-    <ul class="sidemenu">
+    <ul class="sidemenu panelbackgrnd panelborder">
       <li style="height: 12px"><div class="gradient pull-left" style="height: 12px"></div></li>
       @sidemenu(""       , "code"   , "code" , "Code")
       @sidemenu("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
@@ -91,15 +91,15 @@
       @id.map { id =>
         @if(context.platform != "linux" && context.platform != null){
         <div style="margin-top: 10px;">
-          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
+          <a href="@repository.httpOpenRepoUrl(context.platform)" id="repository-clone-url" class="btn btn-sm btn-success btn-block"><i class="octicon octicon-desktop-download"></i>&nbsp;&nbsp;Clone in Desktop</a>
         </div>
         }
         <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-default btn-block"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.zip" class="btn btn-sm btn-success btn-block"><i class="octicon octicon-cloud-download"></i>Download ZIP</a>
         </div>
         @*
         <div style="margin-top: 10px;">
-          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-sm btn-default btn-block "><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
+          <a href="@{url(repository)}/archive/@{encodeRefName(id)}.tar.gz" class="btn btn-sm btn-success btn-block "><i class="octicon octicon-cloud-download"></i>Download TAR.GZ</a>
         </div>
         *@
       }
@@ -110,8 +110,8 @@
       @repository.repository.description.map { description =>
         <p class="description">@detectAndRenderLinks(description)</p>
       }
-      <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
-        <table class="fill-width">
+      <div style="margin-bottom: 10px" class="panel panelborder">
+        <table class="fill-width panelbackgrnd panelborder" >
           <tr>
             <td style="width: 33%; text-align: center;">
               <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">

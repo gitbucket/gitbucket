@@ -36,7 +36,7 @@
           <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="octicon octicon-clock"></i></a>
         }
       </div></div>
-      @branchPullRequest.map{ case (pullRequest, issue) =>
+      @branchPullRequest.map{ case (pullRequest, issue) =>  
         <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
       }.getOrElse{
         <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
@@ -141,9 +141,9 @@
       }
     </table>
     @readme.map { case(filePath, content) =>
-      <div id="readme" class="panel panel-default">
-        <div class="panel-heading strong">@filePath.reverse.head</div>
-        <div class="panel-body markdown-body" style="padding-left: 20px; padding-right: 20px;">@renderMarkup(filePath, content, branch, repository, false, false, true)</div>
+      <div id="readme" class="panel panel-default panelborder">
+        <div class="panel-heading-custom strong">@filePath.reverse.head</div>
+        <div class="panel-body markdown-body panelbackgrnd" style="padding-left: 20px; padding-right: 20px;">@renderMarkup(filePath, content, branch, repository, false, false, true)</div>
       </div>
     }
   }

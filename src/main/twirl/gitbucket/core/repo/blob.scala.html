@@ -54,13 +54,13 @@
       <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
       <div class="btn-group pull-right">
         @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-          <a class="btn btn-sm btn-default" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+          <a class="btn btn-sm btn-success" href="@url(repository)/edit/@encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
         }
-        <a class="btn btn-sm btn-default" href="@url(repository)/raw/@latestCommit.id/@pathList.mkString("/")">Raw</a>
+        <a class="btn btn-sm btn-success" href="@url(repository)/raw/@latestCommit.id/@pathList.mkString("/")">Raw</a>
         @if(content.viewType == "text"){
-          <a class="btn btn-sm btn-default blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
+          <a class="btn btn-sm btn-success blame-action" href="@url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@url(repository)">Blame</a>
         }
-        <a class="btn btn-sm btn-default" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
+        <a class="btn btn-sm btn-success" href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")">History</a>
         @if(hasWritePermission && repository.branchList.contains(branch)){
           <a class="btn btn-sm btn-danger" href="@url(repository)/remove/@encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
         }

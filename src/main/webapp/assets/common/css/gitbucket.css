@@ -3,6 +3,7 @@
 /****************************************************************************/
 body {
   color: #333;
+  background-color: #222222
 }
 
 li p {
@@ -70,6 +71,8 @@ blockquote p {
   font-size: 15px;
 }
 
+/* start custom styles for dynsim modelergy */
+
 .hidedisplay{
   display: none;
 }
@@ -80,9 +83,39 @@ blockquote p {
 }
 
 .panelbackgrnd{
- background-color: #339;
- color:#FFF;
+ background-color: #464545;
+ color:white;
 }
+
+.panelborder{
+
+  border-color: #5cb85c
+}
+
+.panelborder > strong {
+   color: white;
+}
+
+.panelbackgrnd > a : hover , .panelbackgrnd > a : focus {
+
+  text-decoration: none;
+  color: white;
+  /*background-color: #375a7f;*/
+}
+
+.badgeblue{
+
+  background-color: #5cb85c;
+  color: white;
+}
+
+.panel-default > .panel-heading-custom {
+  color: white;
+  background-color: grey;
+  border-color: #dddddd;
+}
+/* end custom styles for dynsim modelergy */
+
 
 /*
 .nav {
@@ -144,7 +177,7 @@ blockquote p {
 }
 
 .muted {
-  color: #777;
+  color: #a8a8a8;    /* #777; */
 }
 
 dl {
@@ -317,7 +350,7 @@ span.error {
 }
 
 a.commit-message, a.commit-id, a.username, a.issue-comment-count {
-  color: #333333;
+  color: #a8a8a8; /* #333333;*/
 }
 
 a.omit {
@@ -369,13 +402,14 @@ h3 {
 }
 
 div.box-header {
-  background-color: #f5f5f5;
+  background-color: #a8a8a8;
   margin: 0;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
   border: 1px solid #d8d8d8;
   border-bottom: none;
   padding: 8px 8px 8px 8px;
+  color: white;
 }
 
 .inline-comment div.box-header-small {
@@ -557,6 +591,7 @@ ul.sidemenu {
 ul.sidemenu a {
   display: block;
   padding: 8px 10px;
+  color: white;
 }
 
 ul.sidemenu a:hover {
@@ -568,11 +603,13 @@ ul.sidemenu li.active {
   border-bottom: 1px solid #eee;
   border-right: 3px solid #bb4444;
   border-left: 1px solid white;
+  background-color: grey
 }
 
-ul.sidemenu li.active a {
+/*ul.sidemenu li.active a {
   background-color: #fff;
-}
+
+}*/
 
 ul.sidemenu {
   background-image: -webkit-linear-gradient(left, #f6f6f6 0%, #fff 8px);
@@ -593,6 +630,7 @@ ul.sidemenu li {
   border-right: 2px solid white;
   list-style-type: none;
   font-size: 90%;
+  background-color: #464545;
 }
 
 ul.sidemenu span.badge {
@@ -794,12 +832,13 @@ p.description {
 }
 
 a.header-link {
-  color: #888;
+  /*color: #888;*/
+  color: white;
   font-size: 90%;
 }
 
 a.header-link strong {
-  color: black;
+  /*color: black;*/
 }
 
 a.header-link:hover {
@@ -844,14 +883,21 @@ table.table-file-list th, table.table-file-list td {
   padding-bottom: 8px;
 }
 
+table.table-file-list th {
+ 
+  background-color: grey;
+  color: white;
+}
+
 table.table-file-list td.latest-commit {
   padding-top: 4px;
   padding-bottom: 4px;
-  background-color: white;
+  background-color: #46 ;
+  color: white;
 }
 
 table.table-file-list td {
-  background-color: #F8F8F8;
+  background-color: #464545;
   font-size: small;
 }
 
@@ -869,6 +915,7 @@ table.table-file-list .content-name {
 table.table-file-list .commit-message {
   max-width: 415px;
   display: inline-block;
+  color: white;
 }
 
 table.table-file-list .commit-author {
@@ -1842,6 +1889,8 @@ div.markdown-body {
   line-height: 1.7;
   font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   word-wrap: break-word;
+  background-color: #464545;
+  color: white;
 }
 
 div.markdown-body h1 {

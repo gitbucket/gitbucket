@@ -1,0 +1,6 @@
+{
+    "jscodehints.detectedExclusions": [
+        "C:/Users/Arijit/Documents/Gitbucket/gitbucket/src/main/webapp/assets/vendors/ace/worker-xquery.js",
+        "C:/Users/Arijit/Documents/Gitbucket/gitbucket/src/main/webapp/assets/vendors/ace/worker-php.js"
+    ]
+}
