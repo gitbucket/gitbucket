@@ -1,7 +1,6 @@
 package gitbucket.core.service
 
 import java.io.ByteArrayInputStream
-
 import fr.brouillard.oss.security.xhub.XHub
 import fr.brouillard.oss.security.xhub.XHub.{XHubDigest, XHubConverter}
 import gitbucket.core.api._
@@ -12,7 +11,6 @@ import profile.simple._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-
 import org.apache.http.NameValuePair
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.message.BasicNameValuePair
@@ -22,6 +20,8 @@ import org.slf4j.LoggerFactory
 import scala.concurrent._
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
+import gitbucket.core.model.WebHookContentType
+import org.apache.http.client.entity.EntityBuilder
 
 
 trait WebHookService {
@@ -52,15 +52,15 @@ trait WebHookService {
       .map{ case (w,t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).headOption
 
-  def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], token: Option[String])(implicit s: Session): Unit = {
-    WebHooks insert WebHook(owner, repository, url, token)
+  def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType,  token: Option[String])(implicit s: Session): Unit = {
+    WebHooks insert WebHook(owner, repository, url, ctype, token)
     events.toSet.map{ event: WebHook.Event =>
       WebHookEvents insert WebHookEvent(owner, repository, url, event)
     }
   }
 
-  def updateWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], token: Option[String])(implicit s: Session): Unit = {
-    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => w.token).update(token)
+  def updateWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])(implicit s: Session): Unit = {
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => (w.ctype, w.token)).update((ctype, token))
     WebHookEvents.filter(_.byWebHook(owner, repository, url)).delete
     events.toSet.map{ event: WebHook.Event =>
       WebHookEvents insert WebHookEvent(owner, repository, url, event)
@@ -100,19 +100,29 @@ trait WebHookService {
             val httpClient = HttpClientBuilder.create.addInterceptorLast(itcp).build
             logger.debug(s"start web hook invocation for ${webHook.url}")
             val httpPost = new HttpPost(webHook.url)
-            httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded")
+            logger.info(s"Content-Type: ${webHook.ctype.ctype}")
+            httpPost.addHeader("Content-Type", webHook.ctype.ctype)
             httpPost.addHeader("X-Github-Event", event.name)
             httpPost.addHeader("X-Github-Delivery", java.util.UUID.randomUUID().toString)
 
-            val params: java.util.List[NameValuePair] = new java.util.ArrayList()
-            params.add(new BasicNameValuePair("payload", json))
-            def postContent = new UrlEncodedFormEntity(params, "UTF-8")
-            httpPost.setEntity(postContent)
-
-            if (!webHook.token.isEmpty) {
-              // TODO find a better way and see how to extract content from postContent
-              val contentAsBytes = URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8")
-              httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.orNull, contentAsBytes))
+            webHook.ctype match {
+              case WebHookContentType.FORM => {
+            	  val params: java.util.List[NameValuePair] = new java.util.ArrayList()
+                params.add(new BasicNameValuePair("payload", json))
+                def postContent = new UrlEncodedFormEntity(params, "UTF-8")
+                httpPost.setEntity(postContent)
+                if (!webHook.token.isEmpty) {
+                  // TODO find a better way and see how to extract content from postContent
+                  val contentAsBytes = URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8")
+                  httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.orNull, contentAsBytes))
+                }
+              }
+              case WebHookContentType.JSON => {
+            	  httpPost.setEntity(EntityBuilder.create().setText(json).build())
+                if (!webHook.token.isEmpty) {
+                  httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.orNull, json.getBytes("UTF-8")))
+                }
+              }
             }
 
             val res = httpClient.execute(httpPost)
