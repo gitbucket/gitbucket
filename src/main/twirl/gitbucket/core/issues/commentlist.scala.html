@@ -138,7 +138,7 @@
           <span class="discussion-item-icon"><i class="octicon octicon-circle-slash"></i></span>
           @avatar(comment.commentedUserName, 16)
           @user(comment.commentedUserName, styleClass="username strong")
-          close @issueOrPullRequest()
+          closed this @issueOrPullRequest()
           @helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
