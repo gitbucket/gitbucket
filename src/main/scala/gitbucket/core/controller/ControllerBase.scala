@@ -50,7 +50,7 @@ abstract class ControllerBase extends ScalatraFilter
       if(account == null){
         // Redirect to login form
         httpResponse.sendRedirect(baseUrl + "/signin?redirect=" + StringUtil.urlEncode(path))
-      } else if(account.isAdmin){
+      } else if(account.administrator){
         // H2 Console (administrators only)
         chain.doFilter(request, response)
       } else {

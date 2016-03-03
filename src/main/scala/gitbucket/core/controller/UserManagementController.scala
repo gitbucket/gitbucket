@@ -72,7 +72,7 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
   get("/admin/users")(adminOnly {
     val includeRemoved = params.get("includeRemoved").map(_.toBoolean).getOrElse(false)
     val users          = getAllUsers(includeRemoved)
-    val members        = users.collect { case account if(account.isGroupAccount) =>
+    val members        = users.collect { case account if(account.groupAccount) =>
       account.userName -> getGroupMembers(account.userName).map(_.userName)
     }.toMap
 
@@ -111,12 +111,12 @@ trait UserManagementControllerBase extends AccountManagementControllerBase {
       }
 
       updateAccount(account.copy(
-        password     = form.password.map(sha1).getOrElse(account.password),
-        fullName     = form.fullName,
-        mailAddress  = form.mailAddress,
-        isAdmin      = form.isAdmin,
-        url          = form.url,
-        isRemoved    = form.isRemoved))
+        password      = form.password.map(sha1).getOrElse(account.password),
+        fullName      = form.fullName,
+        mailAddress   = form.mailAddress,
+        administrator = form.isAdmin,
+        url           = form.url,
+        removed       = form.isRemoved))
 
       updateImage(userName, form.fileId, form.clearImage)
       redirect("/admin/users")

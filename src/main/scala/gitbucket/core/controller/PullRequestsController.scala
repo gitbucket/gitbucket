@@ -113,7 +113,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             (commits.flatten.map(commit => getCommitComments(owner, name, commit.id, true)).flatten.toList ::: getComments(owner, name, issueId))
               .sortWith((a, b) => a.registeredDate before b.registeredDate),
             getIssueLabels(owner, name, issueId),
-            (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
+            (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.groupAccount) Nil else List(owner))).sorted,
             getMilestonesWithIssueCount(owner, name),
             getLabels(owner, name),
             commits,
@@ -430,7 +430,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               originRepository,
               forkedRepository,
               hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
-              (getCollaborators(originRepository.owner, originRepository.name) ::: (if(getAccountByUserName(originRepository.owner).get.isGroupAccount) Nil else List(originRepository.owner))).sorted,
+              (getCollaborators(originRepository.owner, originRepository.name) ::: (if(getAccountByUserName(originRepository.owner).get.groupAccount) Nil else List(originRepository.owner))).sorted,
               getMilestones(originRepository.owner, originRepository.name),
               getLabels(originRepository.owner, originRepository.name)
             )
@@ -597,7 +597,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         "pulls",
         searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         page,
-        if(!getAccountByUserName(owner).exists(_.isGroupAccount)){
+        if(!getAccountByUserName(owner).exists(_.groupAccount)){
           (getCollaborators(owner, repoName) :+ owner).sorted
         } else {
           getCollaborators(owner, repoName)

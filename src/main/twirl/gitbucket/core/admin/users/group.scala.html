@@ -14,7 +14,7 @@
             <input type="text" name="groupName" id="groupName" class="form-control" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
             @if(account.isDefined){
               <label for="removed">
-                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
+                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.removed){checked}/>
                 Disable
               </label>
             }

@@ -29,8 +29,8 @@ object ApiUser{
   def apply(user: Account): ApiUser = ApiUser(
     login      = user.userName,
     email      = user.mailAddress,
-    `type`     = if(user.isGroupAccount){ "Organization" }else{ "User" },
-    site_admin = user.isAdmin,
+    `type`     = if(user.groupAccount){ "Organization" }else{ "User" },
+    site_admin = user.administrator,
     created_at = user.registeredDate
   )
 }

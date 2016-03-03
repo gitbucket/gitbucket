@@ -115,7 +115,7 @@ trait RepositoryService { self: AccountService =>
           repositoryName = newRepositoryName
         )) :_*)
 
-        if(account.isGroupAccount){
+        if(account.groupAccount){
           Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
         } else {
           Collaborators.insertAll(collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
@@ -270,9 +270,9 @@ trait RepositoryService { self: AccountService =>
                             (implicit s: Session): List[RepositoryInfo] = {
     (loginAccount match {
       // for Administrators
-      case Some(x) if(x.isAdmin) => Repositories
+      case Some(x) if(x.administrator) => Repositories
       // for Normal Users
-      case Some(x) if(!x.isAdmin) =>
+      case Some(x) if(!x.administrator) =>
         Repositories filter { t => (t.isPrivate === false.bind) || (t.userName === x.userName) ||
           (Collaborators.filter { t2 => t2.byRepository(t.userName, t.repositoryName) && (t2.collaboratorName === x.userName.bind)} exists)
         }
@@ -297,7 +297,7 @@ trait RepositoryService { self: AccountService =>
   }
 
   private def getRepositoryManagers(userName: String)(implicit s: Session): Seq[String] =
-    if(getAccountByUserName(userName).exists(_.isGroupAccount)){
+    if(getAccountByUserName(userName).exists(_.groupAccount)){
       getGroupMembers(userName).collect { case x if(x.isManager) => x.userName }
     } else {
       Seq(userName)
@@ -365,7 +365,7 @@ trait RepositoryService { self: AccountService =>
 
   def hasWritePermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
-      case Some(a) if(a.isAdmin) => true
+      case Some(a) if(a.administrator) => true
       case Some(a) if(a.userName == owner) => true
       case Some(a) if(getCollaborators(owner, repository).contains(a.userName)) => true
       case _ => false

@@ -92,7 +92,7 @@
                 <ul class="dropdown-menu pull-right">
                   <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
                   <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
-                  @if(loginAccount.get.isAdmin){
+                  @if(loginAccount.get.administrator){
                     <li><a href="@path/admin/users">System administration</a></li>
                   }
                   <li><a href="@path/signout">Sign out</a></li>

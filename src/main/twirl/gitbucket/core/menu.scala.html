@@ -63,7 +63,7 @@
       @menuitem("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
       @menuitem("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
       @menuitem("/wiki"  , "wiki"   , "book"  , "Wiki")
-      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+      @if(loginAccount.isDefined && (loginAccount.get.administrator || repository.managers.contains(loginAccount.get.userName))){
         @menuitem("/settings" , "settings" , "tools", "Settings")
       }
     </ul>

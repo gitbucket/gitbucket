@@ -31,7 +31,7 @@
         <div class="col-md-8">
           <ul class="nav nav-tabs" style="margin-bottom: 5px;">
             <li@if(active == "repositories"){ class="active"}><a href="@url(account.userName)?tab=repositories">Repositories</a></li>
-            @if(account.isGroupAccount){
+            @if(account.groupAccount){
               <li@if(active == "members"){ class="active"}><a href="@url(account.userName)?tab=members">Members</a></li>
             } else {
               <li@if(active == "activity"){ class="active"}><a href="@url(account.userName)?tab=activity">Public Activity</a></li>
@@ -43,9 +43,9 @@
                 </div>
               </li>
             }
-            @if(loginAccount.isDefined && account.isGroupAccount && isGroupManager){
+            @if(loginAccount.isDefined && account.groupAccount && isGroupManager){
               <li class="pull-right">
-                <div class="button-group">
+                <div class="button-groRepiosup">
                   <a href="@url(account.userName)/_editgroup" class="btn btn-default">Edit Group</a>
                 </div>
               </li>

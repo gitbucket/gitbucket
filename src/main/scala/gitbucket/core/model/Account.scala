@@ -11,7 +11,7 @@ trait AccountComponent { self: Profile =>
     val fullName = column[String]("FULL_NAME")
     val mailAddress = column[String]("MAIL_ADDRESS")
     val password = column[String]("PASSWORD")
-    val isAdmin = column[Boolean]("ADMINISTRATOR")
+    val administrator = column[Boolean]("ADMINISTRATOR")
     val url = column[String]("URL")
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
@@ -19,7 +19,7 @@ trait AccountComponent { self: Profile =>
     val image = column[String]("IMAGE")
     val groupAccount = column[Boolean]("GROUP_ACCOUNT")
     val removed = column[Boolean]("REMOVED")
-    def * = (userName, fullName, mailAddress, password, isAdmin, url.?, registeredDate, updatedDate, lastLoginDate.?, image.?, groupAccount, removed) <> (Account.tupled, Account.unapply)
+    def * = (userName, fullName, mailAddress, password, administrator, url.?, registeredDate, updatedDate, lastLoginDate.?, image.?, groupAccount, removed) <> (Account.tupled, Account.unapply)
   }
 }
 
@@ -28,12 +28,12 @@ case class Account(
   fullName: String,
   mailAddress: String,
   password: String,
-  isAdmin: Boolean,
+  administrator: Boolean,
   url: Option[String],
   registeredDate: java.util.Date,
   updatedDate: java.util.Date,
   lastLoginDate: Option[java.util.Date],
   image: Option[String],
-  isGroupAccount: Boolean,
-  isRemoved: Boolean
+  groupAccount: Boolean,
+  removed: Boolean
 )

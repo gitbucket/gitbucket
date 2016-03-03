@@ -17,7 +17,7 @@ trait OneselfAuthenticator { self: ControllerBase =>
     {
       defining(request.paths){ paths =>
         context.loginAccount match {
-          case Some(x) if(x.isAdmin) => action
+          case Some(x) if(x.administrator) => action
           case Some(x) if(paths(0) == x.userName) => action
           case _ => Unauthorized()
         }
@@ -38,7 +38,7 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
       defining(request.paths){ paths =>
         getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
+            case Some(x) if(x.administrator) => action(repository)
             case Some(x) if(repository.owner == x.userName) => action(repository)
             case Some(x) if(getGroupMembers(repository.owner).exists { member =>
               member.userName == x.userName && member.isManager == true
@@ -78,7 +78,7 @@ trait AdminAuthenticator { self: ControllerBase =>
   private def authenticate(action: => Any) = {
     {
       context.loginAccount match {
-        case Some(x) if(x.isAdmin) => action
+        case Some(x) if(x.administrator) => action
         case _ => Unauthorized()
       }
     }
@@ -97,7 +97,7 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
       defining(request.paths){ paths =>
         getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
+            case Some(x) if(x.administrator) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
             case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
             case _ => Unauthorized()
@@ -123,7 +123,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
             action(repository)
           } else {
             context.loginAccount match {
-              case Some(x) if(x.isAdmin) => action(repository)
+              case Some(x) if(x.administrator) => action(repository)
               case Some(x) if(paths(0) == x.userName) => action(repository)
               case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
               case _ => Unauthorized()
@@ -147,7 +147,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
       defining(request.paths){ paths =>
         getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
+            case Some(x) if(x.administrator) => action(repository)
             case Some(x) if(!repository.repository.isPrivate) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
             case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)

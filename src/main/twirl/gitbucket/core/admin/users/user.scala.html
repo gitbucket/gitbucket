@@ -13,7 +13,7 @@
             <input type="text" name="userName" id="userName" class="form-control" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
             @if(account.isDefined){
               <label for="removed">
-                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
+                <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.removed){checked}/>
                 Disable
               </label>
               <div>
@@ -53,10 +53,10 @@
           <fieldset class="form-group">
             <label class="strong">User Type:</label>
             <label class="radio" for="userType_Normal">
-              <input type="radio" name="isAdmin" id="userType_Normal" value="false"@if(account.isEmpty || !account.get.isAdmin){ checked}/> Normal
+              <input type="radio" name="isAdmin" id="userType_Normal" value="false"@if(account.isEmpty || !account.get.administrator){ checked}/> Normal
             </label>
             <label class="radio" for="userType_Admin">
-              <input type="radio" name="isAdmin" id="userType_Admin" value="true"@if(account.isDefined && account.get.isAdmin){ checked}/> Administrator
+              <input type="radio" name="isAdmin" id="userType_Admin" value="true"@if(account.isDefined && account.get.administrator){ checked}/> Administrator
             </label>
           </fieldset>
           <fieldset class="form-group">

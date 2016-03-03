@@ -118,11 +118,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // Public Activity
         case "activity" =>
           gitbucket.core.account.html.activity(account,
-            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            if(account.groupAccount) Nil else getGroupsByUserName(userName),
             getActivitiesByUser(userName, true))
 
         // Members
-        case "members" if(account.isGroupAccount) => {
+        case "members" if(account.groupAccount) => {
           val members = getGroupMembers(account.userName)
           gitbucket.core.account.html.members(account, members.map(_.userName),
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
@@ -132,7 +132,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         case _ => {
           val members = getGroupMembers(account.userName)
           gitbucket.core.account.html.repositories(account,
-            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+            if(account.groupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, Some(userName)),
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
@@ -213,7 +213,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //      removeUserRelatedData(userName)
 
       removeUserRelatedData(userName)
-      updateAccount(account.copy(isRemoved = true))
+      updateAccount(account.copy(removed = true))
     }
 
     session.invalidate
@@ -469,7 +469,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
         // Add collaborators for group repository
         val ownerAccount = getAccountByUserName(accountName).get
-        if(ownerAccount.isGroupAccount){
+        if(ownerAccount.groupAccount){
           getGroupMembers(accountName).foreach { member =>
             addCollaborator(accountName, repository.name, member.userName)
           }
@@ -505,7 +505,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     createRepository(name, owner, description, isPrivate)
 
     // Add collaborators for group repository
-    if(ownerAccount.isGroupAccount){
+    if(ownerAccount.groupAccount){
       getGroupMembers(owner).foreach { member =>
         addCollaborator(owner, name, member.userName)
       }

@@ -14,9 +14,9 @@
     <table class="table table-bordered table-hover">
       @users.map { account =>
         <tr>
-          <td @if(account.isRemoved){style="background-color: #dddddd;"}>
+          <td @if(account.removed){style="background-color: #dddddd;"}>
             <div class="pull-right">
-              @if(account.isGroupAccount){
+              @if(account.groupAccount){
                 <a href="@path/admin/users/@account.userName/_editgroup">Edit</a>
               } else {
                 <a href="@path/admin/users/@account.userName/_edituser">Edit</a>
@@ -25,16 +25,16 @@
             <div class="strong">
               @avatar(account.userName, 20)
               <a href="@url(account.userName)">@account.userName</a>
-              @if(account.isGroupAccount){
+              @if(account.groupAccount){
                 (Group)
               } else {
-                @if(account.isAdmin){
+                @if(account.administrator){
                   (Administrator)
                 } else {
                   (Normal)
                 }
               }
-              @if(account.isGroupAccount){
+              @if(account.groupAccount){
                 @members(account.userName).map { userName =>
                   @avatar(userName, 20, tooltip = true)
                 }
@@ -42,7 +42,7 @@
             </div>
             <div>
               <hr>
-              @if(!account.isGroupAccount){
+              @if(!account.groupAccount){
                 <i class="octicon octicon-mail"></i> @account.mailAddress
               }
               @account.url.map { url =>
@@ -52,7 +52,7 @@
             <div>
               <span class="muted">Registered:</span> @datetime(account.registeredDate)
               <span class="muted">Updated:</span> @datetime(account.updatedDate)
-              @if(!account.isGroupAccount){
+              @if(!account.groupAccount){
                 <span class="muted">Last Login:</span> @account.lastLoginDate.map(datetime)
               }
             </div>
