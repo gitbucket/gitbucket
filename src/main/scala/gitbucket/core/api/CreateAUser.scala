@@ -18,3 +18,19 @@ case class CreateAUser (
   }
 }
 
+case class ModifyAUser (
+                         userName: String,
+                         password: Option[String] = None,
+                         fullName: Option[String] = None,
+                         mailAddress: String,
+                         url: Option[String] = None,
+                         fileId: Option[String] = None
+                       ) {
+  def isValid: Boolean = {
+    userName.length <= 40 &&
+      userName.matches("[a-zA-Z0-9\\@\\-\\+_.]+") &&
+      !userName.startsWith("_") &&
+      !userName.startsWith("-")
+  }
+}
+
