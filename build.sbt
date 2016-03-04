@@ -139,18 +139,15 @@ executableKey := {
   val outputFile    = workDir / warName
   IO jar (contentMappings, outputFile, manifest)
 
-  // patch ChecksumHelper to allow sha256
-  val hack  = classOf[ChecksumHelper] getDeclaredField "algorithms"
-  hack setAccessible true
-  val algos = (hack get null).asInstanceOf[java.util.Map[String,String]]
-  algos put ("sha256", "SHA-256")
-
   // generate checksums
-  Seq("md5", "sha1", "sha256") foreach { algorithm =>
-    IO.write(
-      workDir / (warName + "." + algorithm),
-      ChecksumHelper computeAsString (outputFile, algorithm)
-    )
+  Seq(
+    "md5"    -> "MD5",
+    "sha1"   -> "SHA-1",
+    "sha256" -> "SHA-256"
+  )
+  .foreach { case (extension, algorithm) =>
+    val checksumFile = workDir / (warName + "." + extension)
+    Checksums generate (outputFile, checksumFile, algorithm)
   }
 
   // done
