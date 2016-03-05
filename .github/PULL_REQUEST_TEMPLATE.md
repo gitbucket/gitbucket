@@ -1,6 +1,6 @@
 ### Before submitting a pull-request to Gitbucket I have first:
 
-- [] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/CONTRIBUTING.md)
+- [] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
 - [] rebased my branch over master
 - [] verified that project is compiling
 - [] verified that tests are passing
