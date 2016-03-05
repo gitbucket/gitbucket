@@ -160,16 +160,22 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, Some(form.content), repository)() map { case (issue, id) =>
-      redirect(s"/${repository.owner}/${repository.name}/${
-        if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+    getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
+      val actionOpt = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
+      handleComment(issue, Some(form.content), repository, actionOpt) map { case (issue, id) =>
+        redirect(s"/${repository.owner}/${repository.name}/${
+          if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+      }
     } getOrElse NotFound
   })
 
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, form.content, repository)() map { case (issue, id) =>
-      redirect(s"/${repository.owner}/${repository.name}/${
-        if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+    getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
+      val actionOpt = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
+      handleComment(issue, form.content, repository, actionOpt) map { case (issue, id) =>
+        redirect(s"/${repository.owner}/${repository.name}/${
+          if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+      }
     } getOrElse NotFound
   })
 
@@ -287,8 +293,16 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
     defining(params.get("value")){ action =>
       action match {
-        case Some("open")  => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("reopen")) }
-        case Some("close") => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("close"))  }
+        case Some("open")  => executeBatch(repository) { issueId =>
+          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+            handleComment(issue, None, repository, Some("reopen"))
+          }
+        }
+        case Some("close") => executeBatch(repository) { issueId =>
+          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+            handleComment(issue, None, repository, Some("close"))
+          }
+        }
         case _ => // TODO BadRequest
       }
     }

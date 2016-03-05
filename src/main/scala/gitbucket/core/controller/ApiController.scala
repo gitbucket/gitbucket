@@ -163,8 +163,10 @@ trait ApiControllerBase extends ControllerBase {
   post("/api/v3/repos/:owner/:repository/issues/:id/comments")(readableUsersOnly { repository =>
     (for{
       issueId      <- params("id").toIntOpt
+      issue        <- getIssue(repository.owner, repository.name, issueId.toString)
       body         <- extractFromJsonBody[CreateAComment].map(_.body) if ! body.isEmpty
-      (issue, id)  <- handleComment(issueId, Some(body), repository)()
+      action       =  params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
+      (issue, id)  <- handleComment(issue, Some(body), repository, action)
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
       JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get), issue.isPullRequest))
@@ -379,6 +381,9 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
     }) getOrElse NotFound
   })
+
+  private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
+    hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
 }
 
