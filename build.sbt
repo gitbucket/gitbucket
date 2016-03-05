@@ -15,8 +15,9 @@ scalaVersion := "2.11.7"
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
-  "amateras-repo" at "http://amateras.sourceforge.jp/mvn/",
-  "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/"
+  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
+//  "amateras-repo" at "http://amateras.sourceforge.jp/mvn/",
+//  "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % "4.1.1.201511131810-r",
@@ -26,7 +27,7 @@ libraryDependencies ++= Seq(
   "org.json4s"               %% "json4s-jackson"               % "3.3.0",
   "io.github.gitbucket"      %% "scalatra-forms"               % "1.0.0",
   "commons-io"                % "commons-io"                   % "2.4",
-  "io.github.gitbucket"       % "markedj"                      % "1.0.6",
+  "io.github.gitbucket"       % "markedj"                      % "1.0.7-SNAPSHOT",
   "org.apache.commons"        % "commons-compress"             % "1.10",
   "org.apache.commons"        % "commons-email"                % "1.4",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.1",
