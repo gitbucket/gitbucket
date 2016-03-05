@@ -1,6 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
+import gitbucket.core.util.StringUtil
 import profile.simple._
 
 import gitbucket.core.util.StringUtil._
@@ -394,6 +395,19 @@ trait IssuesService {
       }
     }
   }
+
+  def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String, loginAccount: Account)(implicit s: Session) = {
+    StringUtil.extractIssueId(message).foreach { issueId =>
+      val content = fromIssue.issueId + ":" + fromIssue.title
+      if(getIssue(owner, repository, issueId).isDefined){
+        // Not add if refer comment already exist.
+        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
+          createComment(owner, repository, loginAccount.userName, issueId.toInt, content, "refer")
+        }
+      }
+    }
+  }
+
 }
 
 object IssuesService {
