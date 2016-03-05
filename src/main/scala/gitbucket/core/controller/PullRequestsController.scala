@@ -538,14 +538,4 @@ trait PullRequestsControllerBase extends ControllerBase {
         hasWritePermission(owner, repoName, context.loginAccount))
     }
 
-  // TODO: same as gitbucket.core.servlet.CommitLogHook ...
-  private def createIssueComment(owner: String, repository: String, commit: CommitInfo) = {
-    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
-      if(getIssue(owner, repository, issueId).isDefined){
-        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
-          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
-        }
-      }
-    }
-  }
 }
