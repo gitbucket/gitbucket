@@ -15,9 +15,7 @@ scalaVersion := "2.11.7"
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
-  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
-//  "amateras-repo" at "http://amateras.sourceforge.jp/mvn/",
-//  "amateras-snapshot-repo" at "http://amateras.sourceforge.jp/mvn-snapshot/"
+  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 libraryDependencies ++= Seq(
   "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % "4.1.1.201511131810-r",
