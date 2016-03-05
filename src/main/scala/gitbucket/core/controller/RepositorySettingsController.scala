@@ -199,7 +199,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = WebHook(repository.owner, repository.name, "", null)
+    val webhook = WebHook(repository.owner, repository.name, "", None)
     html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
   })
 
