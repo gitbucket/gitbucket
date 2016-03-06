@@ -30,7 +30,7 @@ trait AccountService {
   /**
    * Authenticate by internal database.
    */
-  private def defaultAuthentication(userName: String, password: String)(implicit s: Session) = {
+  private def defaultAuthentication(userName: String, password: String) = {
     getAccountByUserName(userName).collect {
       case account if(!account.groupAccount && account.password == sha1(password)) => Some(account)
     } getOrElse None
@@ -80,7 +80,7 @@ trait AccountService {
   }
 
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false): Option[Account] = {
-    val r = db.run(
+    db.run(
       quote { (userName: String, includeRemoved: Boolean) =>
         query[Account].filter { t =>
           if(includeRemoved){
@@ -91,12 +91,6 @@ trait AccountService {
         }
       }
     )(userName, includeRemoved).headOption
-
-    println("************")
-    println(r)
-    println("************")
-
-    r
   }
 
 
@@ -105,7 +99,7 @@ trait AccountService {
     val needs = userNames -- map.keySet
     if(needs.isEmpty){
       map
-    }else{
+    } else {
       map ++ Accounts.filter(t => (t.userName inSetBind needs) && (t.removed === false.bind, !includeRemoved)).list.map(a => a.userName -> a).toMap
     }
   }
@@ -115,20 +109,27 @@ trait AccountService {
 
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false): Option[Account] = {
     db.run(
-      if(includeRemoved) {
-        quote { (mailAddress: String) => query[Account].filter { t => t.mailAddress.toLowerCase == mailAddress.toLowerCase } }
-      } else {
-        quote { (mailAddress: String) => query[Account].filter { t => t.mailAddress.toLowerCase == mailAddress.toLowerCase && t.removed == false } }
+      quote { (mailAddress: String, includeRemoved: Boolean) =>
+        query[Account].filter { t =>
+          if(includeRemoved){
+            t.mailAddress.toLowerCase == mailAddress.toLowerCase
+          } else {
+            t.mailAddress.toLowerCase == mailAddress.toLowerCase && t.removed == false
+          }
+        }
       }
-    )(mailAddress).headOption
+    )(mailAddress, includeRemoved).headOption
   }
 
-  def getAllUsers(includeRemoved: Boolean = true)(implicit s: Session): List[Account] =
-    if(includeRemoved){
-      Accounts sortBy(_.userName) list
-    } else {
-      Accounts filter (_.removed === false.bind) sortBy(_.userName) list
-    }
+  def getAllUsers(includeRemoved: Boolean = true): List[Account] = {
+    db.run(
+      if(includeRemoved){
+        quote { query[Account].sortBy(_.userName) }
+      } else {
+        quote { query[Account].filter(_.removed == false).sortBy(_.userName) }
+      }
+    )
+  }
 
   def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
                    (implicit s: Session): Unit = {
@@ -188,8 +189,8 @@ trait AccountService {
     })(List((userName, Some(currentDate))))
   }
 
-  def createGroup(groupName: String, url: Option[String])(implicit s: Session): Unit =
-    Accounts insert Account(
+  def createGroup(groupName: String, url: Option[String]): Unit = {
+    db.run( quote { query[Account].insert })(List(Account(
       userName       = groupName,
       password       = "",
       fullName       = groupName,
@@ -201,7 +202,9 @@ trait AccountService {
       lastLoginDate  = None,
       image          = None,
       groupAccount  = true,
-      removed       = false)
+      removed       = false
+    )))
+  }
 
   def updateGroup(groupName: String, url: Option[String], removed: Boolean)(implicit s: Session): Unit = {
     db.run(quote { (groupName: String, url: Option[String], removed: Boolean) =>
