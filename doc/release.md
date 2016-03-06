@@ -6,7 +6,7 @@ Update version number
 
 Note to update version number in files below:
 
-### project/build.scala
+### build.sbt
 
 ```scala
 val Organization = "gitbucket"
