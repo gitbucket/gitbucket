@@ -176,6 +176,7 @@
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="URL" type="varchar(200)" nullable="false"/>
+    <column name="TOKEN" type="varchar(100)" nullable="true"/>
   </createTable>
 
   <createTable tableName="WEB_HOOK_EVENT">
