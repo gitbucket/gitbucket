@@ -125,7 +125,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         case "members" if(account.groupAccount) => {
           val members = getGroupMembers(account.userName)
           gitbucket.core.account.html.members(account, members.map(_.userName),
-            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
+            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.manager }))
         }
 
         // Repositories
@@ -134,7 +134,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           gitbucket.core.account.html.repositories(account,
             if(account.groupAccount) Nil else getGroupsByUserName(userName),
             getVisibleRepositories(context.loginAccount, Some(userName)),
-            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
+            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.manager }))
         }
       }
     } getOrElse NotFound
@@ -431,7 +431,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       case _: List[String] =>
         val managerPermissions = groups.map { group =>
           val members = getGroupMembers(group)
-          context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager })
+          context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.manager })
         }
         helper.html.forkrepository(
           repository,

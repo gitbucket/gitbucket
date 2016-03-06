@@ -298,7 +298,7 @@ trait RepositoryService { self: AccountService =>
 
   private def getRepositoryManagers(userName: String)(implicit s: Session): Seq[String] =
     if(getAccountByUserName(userName).exists(_.groupAccount)){
-      getGroupMembers(userName).collect { case x if(x.isManager) => x.userName }
+      getGroupMembers(userName).collect { case x if(x.manager) => x.userName }
     } else {
       Seq(userName)
     }

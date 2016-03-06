@@ -80,13 +80,23 @@ trait AccountService {
   }
 
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false): Option[Account] = {
-    db.run(
-      if(includeRemoved) {
-        quote { (userName: String) => query[Account].filter { t => t.userName == userName } }
-      } else {
-        quote { (userName: String) => query[Account].filter { t => t.userName == userName && t.removed == false }}
+    val r = db.run(
+      quote { (userName: String, includeRemoved: Boolean) =>
+        query[Account].filter { t =>
+          if(includeRemoved){
+            t.userName == userName
+          } else {
+            t.userName == userName && t.removed == false
+          }
+        }
       }
-    )(userName).headOption
+    )(userName, includeRemoved).headOption
+
+    println("************")
+    println(r)
+    println("************")
+
+    r
   }
 
 

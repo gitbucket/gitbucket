@@ -32,7 +32,7 @@
             </ul>
             @helper.html.account("memberName", 200)
             <input type="button" class="btn btn-default" value="Add" id="addMember"/>
-            <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
+            <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.manager).mkString(",")"/>
             <div>
               <span class="error" id="error-members"></span>
             </div>
@@ -103,7 +103,7 @@ $(function(){
   });
 
   @members.map { member =>
-    addMemberHTML('@member.userName', @member.isManager);
+    addMemberHTML('@member.userName', @member.manager);
   }
 
   function addMemberHTML(userName, isManager){
