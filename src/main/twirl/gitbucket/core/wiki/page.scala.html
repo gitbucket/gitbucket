@@ -7,7 +7,7 @@
   footer: Option[gitbucket.core.service.WikiService.WikiPageInfo])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-@import gitbucket.core.service.WikiService._
+@import gitbucket.core.service.WikiService.{wikiHttpUrl, wikiSshUrl}
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
     <ul class="nav nav-tabs fill-width">
@@ -26,7 +26,7 @@
         }
       </li>
     </ul>
-    <div style="width: 200px; margin-top: 20px;" class="pull-right">
+    <div style="width: 200px; margin-top: 20px;" class="pull-right pc">
       @defining(15){ max =>
         <div class="panel panel-default">
           <div class="panel-heading strong">
@@ -67,10 +67,10 @@
       <div class="small">
         <strong>Clone this wiki locally</strong>
       </div>
-      @helper.html.copy("repository-url-copy", httpUrl(repository)){
-        <input type="text" value="@httpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
+      @helper.html.copy("repository-url-copy", wikiHttpUrl(repository)){
+        <input type="text" value="@wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
       }
-      @if(settings.ssh && loginAccount.isDefined){
+      @if(wikiSshUrl(repository).isDefined) {
         <div class="small">
           <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
         </div>
@@ -131,13 +131,13 @@ $(function(){
     $('#triangle-right').show();
   }
 
-  @if(settings.ssh && loginAccount.isDefined){
+  @wikiSshUrl(repository).map { sshUrl =>
     $('#repository-url-http').click(function(){
-      $('#repository-url').val('@httpUrl(repository)');
+      $('#repository-url').val('@wikiHttpUrl(repository)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
     $('#repository-url-ssh').click(function(){
-      $('#repository-url').val('@sshUrl(repository, settings, loginAccount.get.userName)');
+      $('#repository-url').val('@sshUrl');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
   }

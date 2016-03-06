@@ -6,15 +6,14 @@ Update version number
 
 Note to update version number in files below:
 
-### project/build.scala
+### build.sbt
 
 ```scala
-object MyBuild extends Build {
-  val Organization = "gitbucket"
-  val Name = "gitbucket"
-  val Version = "3.3.0" // <---- update version!!
-  val ScalaVersion = "2.11.6"
-  val ScalatraVersion = "2.3.1"
+val Organization = "gitbucket"
+val Name = "gitbucket"
+val GitBucketVersion = "3.12.0" // <---- update version!!
+val ScalatraVersion = "2.4.0"
+val JettyVersion = "9.3.6.v20151106"
 ```
 
 ### src/main/scala/gitbucket/core/servlet/AutoUpdate.scala
@@ -26,8 +25,8 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current GitBucket version.
    */
   val versions = Seq(
-    new Version(3, 3), // <---- add this line!!
-    new Version(3, 2),
+    new Version(3, 12), // <---- add this line!!
+    new Version(3, 11),
 ```
 
 Generate release files

@@ -74,7 +74,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
 
     request.paths match {
       case Array(_, repositoryOwner, repositoryName, _*) =>
-        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", ""), "") match {
+        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", "")) match {
           case Some(repository) => {
             if(!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess){
               chain.doFilter(request, response)

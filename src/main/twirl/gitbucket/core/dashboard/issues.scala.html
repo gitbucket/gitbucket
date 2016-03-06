@@ -8,9 +8,11 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main("Issues"){
-  @dashboard.html.tab("issues")
-  <div class="container">
-    @issuesnavi(filter, "issues", condition)
-    @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
+  <div class="body">
+    @dashboard.html.tab("issues")
+    <div class="container">
+      @issuesnavi(filter, "issues", condition)
+      @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
+    </div>
   </div>
 }

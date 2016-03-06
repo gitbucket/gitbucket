@@ -87,11 +87,11 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
 }
 
 
-class DefaultGitUploadPack(owner: String, repoName: String, baseUrl: String) extends DefaultGitCommand(owner, repoName)
+class DefaultGitUploadPack(owner: String, repoName: String) extends DefaultGitCommand(owner, repoName)
     with RepositoryService with AccountService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
-    getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""), baseUrl).foreach { repositoryInfo =>
+    getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).foreach { repositoryInfo =>
       if(!repositoryInfo.repository.isPrivate || isWritableUser(user, repositoryInfo)){
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
@@ -107,7 +107,7 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) ex
     with RepositoryService with AccountService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
-    getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", ""), baseUrl).foreach { repositoryInfo =>
+    getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).foreach { repositoryInfo =>
       if(isWritableUser(user, repositoryInfo)){
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
@@ -124,7 +124,7 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) ex
   }
 }
 
-class PluginGitUploadPack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand
+class PluginGitUploadPack(repoName: String, routing: GitRepositoryRouting) extends GitCommand
     with SystemSettingsService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -139,7 +139,7 @@ class PluginGitUploadPack(repoName: String, baseUrl: String, routing: GitReposit
   }
 }
 
-class PluginGitReceivePack(repoName: String, baseUrl: String, routing: GitRepositoryRouting) extends GitCommand
+class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting) extends GitCommand
     with SystemSettingsService {
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
@@ -163,9 +163,9 @@ class GitCommandFactory(baseUrl: String) extends CommandFactory {
     logger.debug(s"command: $command")
 
     command match {
-      case SimpleCommandRegex ("upload" , repoName) if(pluginRepository(repoName)) => new PluginGitUploadPack (repoName, baseUrl, routing(repoName))
-      case SimpleCommandRegex ("receive", repoName) if(pluginRepository(repoName)) => new PluginGitReceivePack(repoName, baseUrl, routing(repoName))
-      case DefaultCommandRegex("upload" , owner, repoName) => new DefaultGitUploadPack (owner, repoName, baseUrl)
+      case SimpleCommandRegex ("upload" , repoName) if(pluginRepository(repoName)) => new PluginGitUploadPack (repoName, routing(repoName))
+      case SimpleCommandRegex ("receive", repoName) if(pluginRepository(repoName)) => new PluginGitReceivePack(repoName, routing(repoName))
+      case DefaultCommandRegex("upload" , owner, repoName) => new DefaultGitUploadPack (owner, repoName)
       case DefaultCommandRegex("receive", owner, repoName) => new DefaultGitReceivePack(owner, repoName, baseUrl)
       case _ => new UnknownCommand(command)
     }

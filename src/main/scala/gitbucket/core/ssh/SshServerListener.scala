@@ -5,7 +5,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import gitbucket.core.service.SystemSettingsService
-import gitbucket.core.util.Directory
+import gitbucket.core.service.SystemSettingsService.SshAddress
+import gitbucket.core.util.{Directory}
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
 
@@ -14,20 +15,20 @@ object SshServer {
   private val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
   private val active = new AtomicBoolean(false)
 
-  private def configure(port: Int, baseUrl: String) = {
-    server.setPort(port)
+  private def configure(sshAddress: SshAddress, baseUrl: String) = {
+    server.setPort(sshAddress.port)
     val provider = new SimpleGeneratorHostKeyProvider(new File(s"${Directory.GitBucketHome}/gitbucket.ser"))
     provider.setAlgorithm("RSA")
     provider.setOverwriteAllowed(false)
     server.setKeyPairProvider(provider)
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
     server.setCommandFactory(new GitCommandFactory(baseUrl))
-    server.setShellFactory(new NoShell)
+    server.setShellFactory(new NoShell(sshAddress))
   }
 
-  def start(port: Int, baseUrl: String) = {
+  def start(sshAddress: SshAddress, baseUrl: String) = {
     if(active.compareAndSet(false, true)){
-      configure(port, baseUrl)
+      configure(sshAddress, baseUrl)
       server.start()
       logger.info(s"Start SSH Server Listen on ${server.getPort}")
     }
@@ -55,20 +56,18 @@ class SshServerListener extends ServletContextListener with SystemSettingsServic
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val settings = loadSystemSettings()
-    if(settings.ssh){
-      settings.baseUrl match {
-        case None =>
-          logger.error("Could not start SshServer because the baseUrl is not configured.")
-        case Some(baseUrl) =>
-          SshServer.start(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), baseUrl)
-      }
+    if (settings.sshAddress.isDefined && settings.baseUrl.isEmpty) {
+    	logger.error("Could not start SshServer because the baseUrl is not configured.")
     }
+    for {
+      sshAddress <- settings.sshAddress
+      baseUrl    <- settings.baseUrl
+    }
+    SshServer.start(sshAddress, baseUrl)
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {
-    if(loadSystemSettings().ssh){
-      SshServer.stop()
-    }
+    SshServer.stop()
   }
 
 }

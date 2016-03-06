@@ -11,6 +11,7 @@
   error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
+@import gitbucket.core.service.RepositoryService._
 @html.main(
   if(pathList.isEmpty){
     if(branch == repository.repository.defaultBranch){
@@ -23,32 +24,68 @@
   }, Some(repository)) {
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
-      <div class="pull-right"><div class="btn-group">
-        <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="octicon octicon-list-unordered"></i></a>
-        @if(pathList.nonEmpty){
-          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="octicon octicon-clock"></i></a>
-        }
-      </div></div>
-      @branchPullRequest.map{ case (pullRequest, issue) =>
-        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
-      }.getOrElse{
-        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success"><i class="octicon octicon-git-compare" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
+      @if(pathList.isEmpty){
+        <div class="pull-right pc">
+          @if(platform != "linux" && platform != null){
+            <a href="@openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
+          }
+          <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default">Download ZIP</a>
+        </div>
+        <div class="pull-right pc">
+          <div style="width: 240px; margin-top: 2px; margin-right: 5px; margin-left: 5px;">
+            @helper.html.copy("repository-url-copy", repository.httpUrl){
+              @if(repository.sshUrl.isDefined){
+                <div class="btn-group input-group-btn">
+                  <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span id="repository-url-proto">HTTP</span> <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a href="javascript:void(0);" id="repository-url-http">
+                        <strong>HTTP (recommended)</strong><br>
+                        Clone with Git using the repository's web address.
+                      </a>
+                    </li>
+                    <li>
+                      <a href="javascript:void(0);" id="repository-url-ssh">
+                        <strong>SSH</strong><br>
+                        Clone with an SSH key and passphrase from your GitBucket settings.
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              }
+              <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly>
+            }
+          </div>
+        </div>
       }
-      @helper.html.branchcontrol(
-        branch,
-        repository,
-        hasWritePermission
-      ){
+      <div class="pull-right">
+        <div class="btn-group">
+          <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here" @if(!hasWritePermission){disabled}>New file</i></a>
+          <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default pc" data-hotkey="t">Find file</a>
+          @if(pathList.nonEmpty){
+            <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch">History</a>
+          }
+        </div>
+      </div>
+
+      @helper.html.branchcontrol(branch, repository, hasWritePermission){
         @repository.branchList.map { x =>
           <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
         }
       }
-      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-      @pathList.zipWithIndex.map { case (section, i) =>
-        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
-      }
-      @if(hasWritePermission){
-        <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" title="Create a new file here" style="text-decoration: none;">+</i></a>
+      @if(pathList.isEmpty){
+        @branchPullRequest.map{ case (pullRequest, issue) =>
+          <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">View #@pullRequest.issueId</a>
+        }.getOrElse {
+          <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success" @if(loginAccount.isEmpty){disabled}>New pull request</a>
+        }
+      } else {
+        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
       }
     </div>
     <table class="table table-file-list">
@@ -141,3 +178,20 @@
     }
   }
 }
+<script>
+@repository.sshUrl.map { sshUrl =>
+  $('#repository-url-http').click(function(){
+    $('#repository-url-proto').text('HTTP');
+    $('#repository-url').val('@repository.httpUrl');
+    $('#repository-clone-url').attr('href', '@openRepoUrl(repository.httpUrl)')
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+
+  $('#repository-url-ssh').click(function(){
+    $('#repository-url-proto').text('SSH');
+    $('#repository-url').val('@sshUrl');
+    $('#repository-clone-url').attr('href', '@openRepoUrl(sshUrl)');
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+}
+</script>

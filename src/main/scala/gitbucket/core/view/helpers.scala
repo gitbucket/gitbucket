@@ -9,7 +9,7 @@ import gitbucket.core.plugin.{RenderRequest, PluginRegistry}
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 
-import play.twirl.api.Html
+import play.twirl.api.{Html, HtmlFormat}
 
 /**
  * Provides helper methods for Twirl templates.
@@ -225,6 +225,13 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(implicit context: Context): Html =
     userWithContent(userName, mailAddress)(avatar(userName, size, tooltip, mailAddress))
 
+  /**
+    * Generates the avatar link to the account page.
+    * If user does not exist or disabled, this method returns avatar image without link.
+    */
+  def avatarLink(commit: JGitUtil.CommitInfo, size: Int)(implicit context: Context): Html =
+    userWithContent(commit.authorName, commit.authorEmailAddress)(avatar(commit, size))
+
   private def userWithContent(userName: String, mailAddress: String = "", styleClass: String = "")(content: Html)(implicit context: Context): Html =
     (if(mailAddress.isEmpty){
       getAccountByUserName(userName)
@@ -306,6 +313,19 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 
   def detectAndRenderLinks(text: String): Html = {
-    Html(detectAndRenderLinksRegex.replaceAllIn(text, m => s"""<a href="${m.group(0)}">${m.group(0)}</a>"""))
+    val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toSeq
+
+    val (x, pos) = matches.foldLeft((collection.immutable.Seq.empty[Html], 0)){ case ((x, pos), m) =>
+      val url  = m.group(0)
+      val href = url.replace("\"", "&quot;")
+      (x ++ (Seq(
+        if(pos < m.start) Some(HtmlFormat.escape(text.substring(pos, m.start))) else None,
+        Some(Html(s"""<a href="${href}">${url}</a>"""))
+      ).flatten), m.end)
+    }
+    // append rest fragment
+    val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
+
+    HtmlFormat.fill(out)
   }
 }

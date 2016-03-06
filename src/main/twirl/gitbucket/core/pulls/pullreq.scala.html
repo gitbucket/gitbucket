@@ -21,7 +21,9 @@
           @if(hasWritePermission || loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
             <a class="btn" href="#" id="edit">Edit</a>
           }
-          <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
+          @if(loginAccount.isDefined){
+            <a class="btn btn-success" href="@url(repository)/compare">New pull request</a>
+          }
         </div>
         <div class="edit-title pull-right" style="display: none;">
           <a class="btn" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
@@ -65,7 +67,7 @@
         }
       </div>
       <ul class="nav nav-tabs fill-width pull-left" id="pullreq-tab">
-        <li class="active"><a href="#conversation">Conversation <span class="badge">@comments.flatMap @{
+        <li><a href="#conversation">Conversation <span class="badge">@comments.flatMap @{
           case comment: IssueComment => Some(comment)
           case _: CommitComment => None
         }.size</span></a></li>
@@ -73,7 +75,7 @@
         <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
       </ul>
       <div class="tab-content fill-width pull-left">
-        <div class="tab-pane active" id="conversation">
+        <div class="tab-pane" id="conversation">
           @flash.get("error").map{ error =>
             <div class="alert alert-error">@error</div>
           }
@@ -94,6 +96,22 @@
 }
 <script>
 $(function(){
+  // Determine active tab from hash
+  if(location.hash == '#commits'){
+    $('li:has(a[href=#commits])').addClass('active');
+    $('div#commits').addClass('active');
+  } else if(location.hash == '#files'){
+    $('li:has(a[href=#files])').addClass('active');
+    $('div#files').addClass('active');
+  } else {
+    $('li:has(a[href=#conversation])').addClass('active');
+    $('div#conversation').addClass('active');
+  }
+  // Set hash when tab is clicked
+  $('ul.nav-tabs li a').click(function(e){
+    location.href = $(e.delegateTarget).attr("href");
+  });
+
   $('#pullreq-tab a').click(function (e) {
     e.preventDefault();
     $(this).tab('show');

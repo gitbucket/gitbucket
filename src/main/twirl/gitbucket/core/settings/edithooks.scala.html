@@ -30,6 +30,11 @@
               }
               <button class="btn btn-default" id="test">Test Hook</button>
             </fieldset>
+            <fieldset class="form-group">
+              <label class="strong">Security Token</label>
+              <div></div>
+              <input type="text" name="token" id="token" placeholder="leave blank for no X-Hub-Signature usage" value="@webHook.token" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" />
+            </fieldset>
             <hr />
             <label class="strong">Which events would you like to trigger this webhook?</label>
             <div>
@@ -123,6 +128,7 @@ $(function(){
     e.stopImmediatePropagation();
     e.preventDefault();
     var url = this.form.url.value;
+    var token = this.form.token.value;
     if(!/^https?:\/\/.+/.test(url)){
       alert("invalid url");
       return;
@@ -132,7 +138,7 @@ $(function(){
     $("#test-report").hide();
     $.ajax({
       method:'POST',
-      url:'@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url),
+      url:'@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&token=' + encodeURIComponent(token),
       success: function(e){
         //console.log(e);
         $('#test-report-tab a:first').tab('show');

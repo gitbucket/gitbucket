@@ -1,26 +1,25 @@
 package gitbucket.core.model
 
 import gitbucket.core.model.CommitState._
+import org.scalatest.FunSpec
 
-import org.specs2.mutable.Specification
 
-
-class CommitStateSpec extends Specification {
-  "CommitState" should {
-    "combine empty must eq PENDING" in {
-      combine(Set()) must_== PENDING
+class CommitStateSpec extends FunSpec {
+  describe("CommitState") {
+    it("should combine empty must eq PENDING") {
+      assert(combine(Set()) == PENDING)
     }
-    "combine includes ERROR must eq FAILURE" in {
-      combine(Set(ERROR, SUCCESS, PENDING)) must_== FAILURE
+    it("should combine includes ERROR must eq FAILURE") {
+      assert(combine(Set(ERROR, SUCCESS, PENDING)) == FAILURE)
     }
-    "combine includes FAILURE must eq peinding" in {
-      combine(Set(FAILURE, SUCCESS, PENDING)) must_== FAILURE
+    it("should combine includes FAILURE must eq peinding") {
+      assert(combine(Set(FAILURE, SUCCESS, PENDING)) == FAILURE)
     }
-    "combine includes PENDING must eq peinding" in {
-      combine(Set(PENDING, SUCCESS)) must_== PENDING
+    it("should combine includes PENDING must eq peinding") {
+      assert(combine(Set(PENDING, SUCCESS)) == PENDING)
     }
-    "combine only SUCCESS must eq SUCCESS" in {
-      combine(Set(SUCCESS)) must_== SUCCESS
+    it("should combine only SUCCESS must eq SUCCESS") {
+      assert(combine(Set(SUCCESS)) == SUCCESS)
     }
   }
 }

@@ -2,16 +2,14 @@ package gitbucket.core.api
 
 import gitbucket.core.util.RepositoryName
 
-import org.specs2.mutable.Specification
-import org.json4s.jackson.JsonMethods.{pretty, parse}
+import org.json4s.jackson.JsonMethods.parse
 import org.json4s._
-import org.specs2.matcher._
+import org.scalatest.FunSuite
 
 import java.util.{Calendar, TimeZone, Date}
 
 
-
-class JsonFormatSpec extends Specification {
+class JsonFormatSpec extends FunSuite {
   val date1 = {
     val d = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     d.set(2011,3,14,16,0,49)
@@ -374,67 +372,58 @@ class JsonFormatSpec extends Specification {
     }
 }"""
 
-  def beFormatted(json2Arg:String) = new Matcher[String] {
-    def apply[S <: String](e: Expectable[S]) = {
-      import java.util.regex.Pattern
-      val json2 = Pattern.compile("""^\s*//.*$""", Pattern.MULTILINE).matcher(json2Arg).replaceAll("")
-      val js2 = try{
-        parse(json2)
-      }catch{
-        case e:com.fasterxml.jackson.core.JsonParseException => {
-          val p = java.lang.Math.max(e.getLocation.getCharOffset()-10,0).toInt
-          val message = json2.substring(p,java.lang.Math.min(p+100,json2.length))
-          throw new com.fasterxml.jackson.core.JsonParseException(message + e.getMessage , e.getLocation)
-        }
+  def assertJson(resultJson: String, expectJson: String) = {
+    import java.util.regex.Pattern
+    val json2 = Pattern.compile("""^\s*//.*$""", Pattern.MULTILINE).matcher(expectJson).replaceAll("")
+    val js2 = try {
+      parse(json2)
+    } catch {
+      case e: com.fasterxml.jackson.core.JsonParseException => {
+        val p = java.lang.Math.max(e.getLocation.getCharOffset() - 10, 0).toInt
+        val message = json2.substring(p, java.lang.Math.min(p + 100, json2.length))
+        throw new com.fasterxml.jackson.core.JsonParseException(message + e.getMessage, e.getLocation)
       }
-      val js1 = parse(e.value)
-      result(js1 == js2,
-        "expected",
-        {
-            val diff = js2 diff js1
-            s"${pretty(js1)} is not ${pretty(js2)} \n\n ${pretty(Extraction.decompose(diff)(org.json4s.DefaultFormats))}"
-        },
-        e)
     }
+    val js1 = parse(resultJson)
+    assert(js1 === js2)
   }
-  "JsonFormat" should {
-    "apiUser" in {
-        JsonFormat(apiUser) must beFormatted(apiUserJson)
-    }
-    "repository" in {
-        JsonFormat(repository) must beFormatted(repositoryJson)
-    }
-    "apiPushCommit" in {
-        JsonFormat(apiPushCommit) must beFormatted(apiPushCommitJson)
-    }
-    "apiComment" in {
-        JsonFormat(apiComment) must beFormatted(apiCommentJson)
-        JsonFormat(apiCommentPR) must beFormatted(apiCommentPRJson)
-    }
-    "apiCommitListItem" in {
-        JsonFormat(apiCommitListItem) must beFormatted(apiCommitListItemJson)
-    }
-    "apiCommitStatus" in {
-      JsonFormat(apiCommitStatus) must beFormatted(apiCommitStatusJson)
-    }
-    "apiCombinedCommitStatus" in {
-      JsonFormat(apiCombinedCommitStatus) must beFormatted(apiCombinedCommitStatusJson)
-    }
-    "apiLabel" in {
-      JsonFormat(apiLabel) must beFormatted(apiLabelJson)
-    }
-    "apiIssue" in {
-      JsonFormat(apiIssue) must beFormatted(apiIssueJson)
-      JsonFormat(apiIssuePR) must beFormatted(apiIssuePRJson)
-    }
-    "apiPullRequest" in {
-      JsonFormat(apiPullRequest) must beFormatted(apiPullRequestJson)
-    }
-    "apiPullRequestReviewComment" in {
-      JsonFormat(apiPullRequestReviewComment) must beFormatted(apiPullRequestReviewCommentJson)
-    }
-    "apiBranchProtection" in {
-      JsonFormat(apiBranchProtection) must beFormatted(apiBranchProtectionJson)
-    }
+
+  test("apiUser") {
+    assertJson(JsonFormat(apiUser), apiUserJson)
+  }
+  test("repository") {
+    assertJson(JsonFormat(repository), repositoryJson)
+  }
+  test("apiPushCommit") {
+    assertJson(JsonFormat(apiPushCommit), apiPushCommitJson)
+  }
+  test("apiComment") {
+    assertJson(JsonFormat(apiComment), apiCommentJson)
+    assertJson(JsonFormat(apiCommentPR), apiCommentPRJson)
+  }
+  test("apiCommitListItem") {
+    assertJson(JsonFormat(apiCommitListItem), apiCommitListItemJson)
+  }
+  test("apiCommitStatus") {
+    assertJson(JsonFormat(apiCommitStatus), apiCommitStatusJson)
+  }
+  test("apiCombinedCommitStatus") {
+    assertJson(JsonFormat(apiCombinedCommitStatus), apiCombinedCommitStatusJson)
+  }
+  test("apiLabel") {
+    assertJson(JsonFormat(apiLabel), apiLabelJson)
+  }
+  test("apiIssue") {
+    assertJson(JsonFormat(apiIssue), apiIssueJson)
+    assertJson(JsonFormat(apiIssuePR), apiIssuePRJson)
+  }
+  test("apiPullRequest") {
+    assertJson(JsonFormat(apiPullRequest), apiPullRequestJson)
+  }
+  test("apiPullRequestReviewComment") {
+    assertJson(JsonFormat(apiPullRequestReviewComment), apiPullRequestReviewCommentJson)
+  }
+  test("apiBranchProtection") {
+    assertJson(JsonFormat(apiBranchProtection), apiBranchProtectionJson)
   }
 }

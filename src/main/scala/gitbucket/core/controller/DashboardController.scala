@@ -94,7 +94,7 @@ trait DashboardControllerBase extends ControllerBase {
 
     val userName  = context.loginAccount.get.userName
     val condition = getOrCreateCondition(Keys.Session.DashboardIssues, filter, userName)
-    val userRepos = getUserRepositories(userName, context.baseUrl, true).map(repo => repo.owner -> repo.name)
+    val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
     val page      = IssueSearchCondition.page(request)
 
     html.issues(
