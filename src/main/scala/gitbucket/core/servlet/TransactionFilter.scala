@@ -4,10 +4,14 @@ import javax.servlet._
 import javax.servlet.http.HttpServletRequest
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import gitbucket.core.util.DatabaseConfig
+import io.getquill._
+import io.getquill.naming.SnakeCase
+import io.getquill.sources.sql.idiom.H2Dialect
 import org.scalatra.ScalatraBase
 import org.slf4j.LoggerFactory
 import slick.jdbc.JdbcBackend.{Database => SlickDatabase, Session}
 import gitbucket.core.util.Keys
+import Database._
 
 /**
  * Controls the transaction with the open session in view pattern.
@@ -25,17 +29,20 @@ class TransactionFilter extends Filter {
       // assets don't need transaction
       chain.doFilter(req, res)
     } else {
-      Database() withTransaction { session =>
-        // Register Scalatra error callback to rollback transaction
-        ScalatraBase.onFailure { _ =>
-          logger.debug("Rolled back transaction")
-          session.rollback()
-        }(req.asInstanceOf[HttpServletRequest])
+      db.transaction {
+        // TODO Delete after moving to quill
+        Database() withTransaction { session =>
+          // Register Scalatra error callback to rollback transaction
+          ScalatraBase.onFailure { _ =>
+            logger.debug("Rolled back transaction")
+            session.rollback()
+          }(req.asInstanceOf[HttpServletRequest])
 
-        logger.debug("begin transaction")
-        req.setAttribute(Keys.Request.DBSession, session)
-        chain.doFilter(req, res)
-        logger.debug("end transaction")
+          logger.debug("begin transaction")
+          req.setAttribute(Keys.Request.DBSession, session)
+          chain.doFilter(req, res)
+          logger.debug("end transaction")
+        }
       }
     }
   }
@@ -46,6 +53,9 @@ object Database {
 
   private val logger = LoggerFactory.getLogger(Database.getClass)
 
+  lazy val db = source(new JdbcSourceConfig[H2Dialect, SnakeCase]("db"))
+
+  // TODO Delete after moving to quill
   private val dataSource: ComboPooledDataSource = {
     val ds = new ComboPooledDataSource
     ds.setDriverClass(DatabaseConfig.driver)
@@ -56,15 +66,19 @@ object Database {
     ds
   }
 
-  private val db: SlickDatabase = {
+  // TODO Delete after moving to quill
+  private val slickDatabase: SlickDatabase = {
     SlickDatabase.forDataSource(dataSource)
   }
 
-  def apply(): SlickDatabase = db
+  // TODO Delete after moving to quill
+  def apply(): SlickDatabase = slickDatabase
 
+  // TODO Delete after moving to quill
   def getSession(req: ServletRequest): Session =
     req.getAttribute(Keys.Request.DBSession).asInstanceOf[Session]
 
+  // TODO Delete after moving to quill
   def closeDataSource(): Unit = dataSource.close
 
 }

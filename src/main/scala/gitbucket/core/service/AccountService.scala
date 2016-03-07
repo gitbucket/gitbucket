@@ -9,18 +9,15 @@ import gitbucket.core.service.SystemSettingsService.SystemSettings
 import profile.simple._
 import StringUtil._
 import org.slf4j.LoggerFactory
-// TODO Why is direct import required?
-import gitbucket.core.model.Profile.dateColumnType
 
+import gitbucket.core.servlet.Database._
 import io.getquill._
-import io.getquill.naming.SnakeCase
-import io.getquill.sources.sql.idiom.H2Dialect
 
 trait AccountService {
 
   private val logger = LoggerFactory.getLogger(classOf[AccountService])
 
-  def authenticate(settings: SystemSettings, userName: String, password: String)(implicit s: Session): Option[Account] =
+  def authenticate(settings: SystemSettings, userName: String, password: String): Option[Account] =
     if(settings.ldapAuthentication){
       ldapAuthentication(settings, userName, password)
     } else {
@@ -39,7 +36,7 @@ trait AccountService {
   /**
    * Authenticate by LDAP.
    */
-  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String)(implicit s: Session): Option[Account] = {
+  private def ldapAuthentication(settings: SystemSettings, userName: String, password: String): Option[Account] = {
     LDAPUtil.authenticate(settings.ldap.get, userName, password) match {
       case Right(ldapUserInfo) => {
         // Create or update account by LDAP information
@@ -104,9 +101,6 @@ trait AccountService {
     }
   }
 
-  // TODO
-  lazy val db = source(new JdbcSourceConfig[H2Dialect, SnakeCase]("db"))
-
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false): Option[Account] = {
     db.run(
       quote { (mailAddress: String, includeRemoved: Boolean) =>
@@ -131,8 +125,7 @@ trait AccountService {
     )
   }
 
-  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
-                   (implicit s: Session): Unit = {
+  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit = {
     db.run(quote { query[Account].insert })(List(Account(
       userName       = userName,
       password       = password,
@@ -206,16 +199,21 @@ trait AccountService {
     )))
   }
 
-  def updateGroup(groupName: String, url: Option[String], removed: Boolean)(implicit s: Session): Unit = {
+  def updateGroup(groupName: String, url: Option[String], removed: Boolean): Unit = {
     db.run(quote { (groupName: String, url: Option[String], removed: Boolean) =>
       query[Account].filter(_.userName == groupName).update(_.url -> url, _.removed -> removed)
     })(List((groupName, url, removed)))
   }
 
-  def updateGroupMembers(groupName: String, members: List[(String, Boolean)])(implicit s: Session): Unit = {
-    GroupMembers.filter(_.groupName === groupName.bind).delete
+  def updateGroupMembers(groupName: String, members: List[(String, Boolean)]): Unit = {
+    db.run(
+      quote { (groupName: String) => query[GroupMember].filter(_.groupName == groupName).delete }
+    )(List(groupName))
+
     members.foreach { case (userName, isManager) =>
-      GroupMembers insert GroupMember (groupName, userName, isManager)
+      db.run(
+        quote { query[GroupMember].insert }
+      )(List(GroupMember(groupName, userName, isManager)))
     }
   }
 
@@ -231,13 +229,10 @@ trait AccountService {
     })(userName)
   }
 
-  def removeUserRelatedData(userName: String)(implicit s: Session): Unit = {
-    // TODO db.transactionはコントローラでやる？
-    db.transaction {
-      db.run(quote { (userName: String) => query[GroupMember].filter(_.userName == userName).delete })(List(userName))
-      db.run(quote { (userName: String) => query[Collaborator].filter(_.collaboratorName == userName).delete })(List(userName))
-      db.run(quote { (userName: String) => query[Repository].filter(_.userName == userName).delete })(List(userName))
-    }
+  def removeUserRelatedData(userName: String): Unit = {
+    db.run(quote { (userName: String) => query[GroupMember].filter(_.userName == userName).delete })(List(userName))
+    db.run(quote { (userName: String) => query[Collaborator].filter(_.collaboratorName == userName).delete })(List(userName))
+    db.run(quote { (userName: String) => query[Repository].filter(_.userName == userName).delete })(List(userName))
   }
 
   def getGroupNames(userName: String): List[String] = {
