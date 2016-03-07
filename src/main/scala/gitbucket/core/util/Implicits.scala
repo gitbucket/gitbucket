@@ -75,6 +75,11 @@ object Implicits {
 
     def gitRepositoryPath: String = request.getRequestURI.replaceFirst("^/git/", "/")
 
+    def baseUrl:String = {
+      val url = request.getRequestURL.toString
+      val len = url.length - (request.getRequestURI.length - request.getContextPath.length)
+      url.substring(0, len).stripSuffix("/")
+    }
   }
 
   implicit class RichSession(session: HttpSession){

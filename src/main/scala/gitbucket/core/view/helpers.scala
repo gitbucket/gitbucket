@@ -9,7 +9,7 @@ import gitbucket.core.plugin.{RenderRequest, PluginRegistry}
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 
-import play.twirl.api.Html
+import play.twirl.api.{Html, HtmlFormat}
 
 /**
  * Provides helper methods for Twirl templates.
@@ -89,6 +89,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                enableWikiLink: Boolean,
                enableRefsLink: Boolean,
                enableLineBreaks: Boolean,
+               enableAnchor: Boolean = true,
                enableTaskList: Boolean = false,
                hasWritePermission: Boolean = false,
                pages: List[String] = Nil)(implicit context: Context): Html =
@@ -97,7 +98,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
       repository         = repository,
       enableWikiLink     = enableWikiLink,
       enableRefsLink     = enableRefsLink,
-      enableAnchor       = true,
+      enableAnchor       = enableAnchor,
       enableLineBreaks   = enableLineBreaks,
       enableTaskList     = enableTaskList,
       hasWritePermission = hasWritePermission,
@@ -224,6 +225,13 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(implicit context: Context): Html =
     userWithContent(userName, mailAddress)(avatar(userName, size, tooltip, mailAddress))
 
+  /**
+    * Generates the avatar link to the account page.
+    * If user does not exist or disabled, this method returns avatar image without link.
+    */
+  def avatarLink(commit: JGitUtil.CommitInfo, size: Int)(implicit context: Context): Html =
+    userWithContent(commit.authorName, commit.authorEmailAddress)(avatar(commit, size))
+
   private def userWithContent(userName: String, mailAddress: String = "", styleClass: String = "")(content: Html)(implicit context: Context): Html =
     (if(mailAddress.isEmpty){
       getAccountByUserName(userName)
@@ -288,10 +296,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   }
 
   def commitStateIcon(state: CommitState) = Html(state match {
-    case CommitState.PENDING => "●"
-    case CommitState.SUCCESS => "&#x2714;"
-    case CommitState.ERROR   => "×"
-    case CommitState.FAILURE => "×"
+    case CommitState.PENDING => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-primitive-dot"></i>"""
+    case CommitState.SUCCESS => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-check"></i>"""
+    case CommitState.ERROR   => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-x"></i>"""
+    case CommitState.FAILURE => """<i style="color:inherit;width:inherit;height:inherit" class="octicon octicon-x"></i>"""
   })
 
   def commitStateText(state: CommitState, commitId:String) = state match {
@@ -305,6 +313,19 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 
   def detectAndRenderLinks(text: String): Html = {
-    Html(detectAndRenderLinksRegex.replaceAllIn(text, m => s"""<a href="${m.group(0)}">${m.group(0)}</a>"""))
+    val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toSeq
+
+    val (x, pos) = matches.foldLeft((collection.immutable.Seq.empty[Html], 0)){ case ((x, pos), m) =>
+      val url  = m.group(0)
+      val href = url.replace("\"", "&quot;")
+      (x ++ (Seq(
+        if(pos < m.start) Some(HtmlFormat.escape(text.substring(pos, m.start))) else None,
+        Some(Html(s"""<a href="${href}">${url}</a>"""))
+      ).flatten), m.end)
+    }
+    // append rest fragment
+    val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
+
+    HtmlFormat.fill(out)
   }
 }

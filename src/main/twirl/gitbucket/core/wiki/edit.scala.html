@@ -5,7 +5,7 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"${if(pageName.isEmpty) "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
-    <ul class="nav nav-tabs fill-width pull-left">
+    <ul class="nav nav-tabs fill-width">
       <li>
         <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
       </li>
@@ -21,7 +21,7 @@
     </ul>
     <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
       <span id="error-pageName" class="error"></span>
-      <input type="text" name="pageName" value="@pageName" class="form-control input-lg" style="width: 900px; font-weight: bold;" placeholder="Input a page name."/>
+      <input type="text" name="pageName" value="@pageName" class="form-control input-lg" style="font-weight: bold;" placeholder="Input a page name."/>
       @helper.html.preview(
         repository         = repository,
         content            = page.map(_.content).getOrElse(""),
@@ -30,13 +30,13 @@
         enableLineBreaks   = false,
         enableTaskList     = false,
         hasWritePermission = false,
-        style              = "width: 900px; height: 400px;",
+        style              = "height: 400px;",
         styleClass         = "monospace",
         placeholder        = ""
       )
       <div class="form-group">
         <label for="message">Edit Message</label>
-        <input type="text" id="message" name="message" value="" class="form-control" style="width: 900px;" placeholder="Write a small message here explaining this change. (Optional)"/>
+        <input type="text" id="message" name="message" value="" class="form-control" placeholder="Write a small message here explaining this change. (Optional)"/>
       </div>
       <div class="form-group pull-right">
         <input type="hidden" name="currentPageName" value="@pageName"/>

@@ -11,9 +11,9 @@
       <h3><strong>Quick setup</strong> — if you've done this kind of thing before</h3>
       <div class="empty-repo-options">
         via <a href="@repository.httpUrl" class="git-protocol-selector">HTTP</a>
-      @if(settings.ssh && loginAccount.isDefined){
+      @repository.sshUrl.map { sshUrl =>
          or
-         <a href="@repository.sshUrl(settings.sshPort.getOrElse(SystemSettingsService.DefaultSshPort), loginAccount.get.userName)" class="git-protocol-selector">SSH</a>
+         <a href="@sshUrl" class="git-protocol-selector">SSH</a>
       }
       </div>
       <h3 style="margin-top: 30px;">Create a new repository on the command line</h3>

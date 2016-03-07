@@ -2,35 +2,46 @@ package gitbucket.core.controller
 
 import gitbucket.core.api._
 import gitbucket.core.helper.xml
-import gitbucket.core.html
 import gitbucket.core.model.Account
-import gitbucket.core.service.{RepositoryService, ActivityService, AccountService}
+import gitbucket.core.service.{RepositoryService, ActivityService, AccountService, RepositorySearchService, IssuesService}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator}
+import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator, ReferrerAuthenticator, StringUtil}
 
 import io.github.gitbucket.scalatra.forms._
 
 
 class IndexController extends IndexControllerBase 
-  with RepositoryService with ActivityService with AccountService with UsersAuthenticator
+  with RepositoryService with ActivityService with AccountService with RepositorySearchService with IssuesService
+  with UsersAuthenticator with ReferrerAuthenticator
 
 
 trait IndexControllerBase extends ControllerBase {
-  self: RepositoryService with ActivityService with AccountService with UsersAuthenticator =>
+  self: RepositoryService with ActivityService with AccountService with RepositorySearchService
+    with UsersAuthenticator with ReferrerAuthenticator =>
 
   case class SignInForm(userName: String, password: String)
 
-  val form = mapping(
+  val signinForm = mapping(
     "userName" -> trim(label("Username", text(required))),
     "password" -> trim(label("Password", text(required)))
   )(SignInForm.apply)
 
+  val searchForm = mapping(
+    "query"      -> trim(text(required)),
+    "owner"      -> trim(text(required)),
+    "repository" -> trim(text(required))
+  )(SearchForm.apply)
+
+  case class SearchForm(query: String, owner: String, repository: String)
+
+
   get("/"){
     val loginAccount = context.loginAccount
     if(loginAccount.isEmpty) {
-        html.index(getRecentActivities(),
-            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
-            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil)
+        gitbucket.core.html.index(getRecentActivities(),
+            getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
     } else {
         val loginUserName = loginAccount.get.userName
@@ -39,9 +50,9 @@ trait IndexControllerBase extends ControllerBase {
         
         visibleOwnerSet ++= loginUserGroups
 
-        html.index(getRecentActivitiesByOwners(visibleOwnerSet),
-            getVisibleRepositories(loginAccount, context.baseUrl, withoutPhysicalInfo = true),
-            loginAccount.map{ account => getUserRepositories(account.userName, context.baseUrl, withoutPhysicalInfo = true) }.getOrElse(Nil) 
+        gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet),
+            getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
+            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil) 
         )
     }
   }
@@ -51,10 +62,10 @@ trait IndexControllerBase extends ControllerBase {
     if(redirect.isDefined && redirect.get.startsWith("/")){
       flash += Keys.Flash.Redirect -> redirect.get
     }
-    html.signin()
+    gitbucket.core.html.signin()
   }
 
-  post("/signin", form){ form =>
+  post("/signin", signinForm){ form =>
     authenticate(context.settings, form.userName, form.password) match {
       case Some(account) => signin(account)
       case None          => redirect("/signin")
@@ -119,4 +130,33 @@ trait IndexControllerBase extends ControllerBase {
     // this message is same as github enterprise...
     org.scalatra.NotFound(ApiError("Rate limiting is not enabled."))
   }
+
+  // TODO Move to RepositoryViwerController?
+  post("/search", searchForm){ form =>
+    redirect(s"/${form.owner}/${form.repository}/search?q=${StringUtil.urlEncode(form.query)}")
+  }
+
+  // TODO Move to RepositoryViwerController?
+  get("/:owner/:repository/search")(referrersOnly { repository =>
+    defining(params("q").trim, params.getOrElse("type", "code")){ case (query, target) =>
+      val page   = try {
+        val i = params.getOrElse("page", "1").toInt
+        if(i <= 0) 1 else i
+      } catch {
+        case e: NumberFormatException => 1
+      }
+
+      target.toLowerCase match {
+        case "issue" => gitbucket.core.search.html.issues(
+          searchIssues(repository.owner, repository.name, query),
+          countFiles(repository.owner, repository.name, query),
+          query, page, repository)
+
+        case _ => gitbucket.core.search.html.code(
+          searchFiles(repository.owner, repository.name, query),
+          countIssues(repository.owner, repository.name, query),
+          query, page, repository)
+      }
+    }
+  })
 }

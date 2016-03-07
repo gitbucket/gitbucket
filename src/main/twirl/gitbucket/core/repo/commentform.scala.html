@@ -11,7 +11,7 @@
   @if(!fileName.isDefined){<hr/><br/>}
   <form method="POST" validate="true" style="max-width: 874px;">
     @if(!fileName.isDefined){
-      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+      <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
     }
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
@@ -23,7 +23,7 @@
           enableLineBreaks   = true,
           enableTaskList     = true,
           hasWritePermission = hasWritePermission,
-          style              = "width: 635px; height: 100px; max-height: 150px;",
+          style              = "height: 100px; max-height: 150px;",
           elastic            = true
         )
       </div>

@@ -14,7 +14,6 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import gitbucket.core.model.{Account, CommitState, WebHook}
-import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -34,7 +33,7 @@ import org.scalatra._
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
-  with WebHookPullRequestService with WebHookPullRequestReviewCommentService
+  with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBranchService
 
 /**
  * The repository viewer.
@@ -42,7 +41,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
-    with WebHookPullRequestService with WebHookPullRequestReviewCommentService =>
+    with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBranchService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
@@ -111,6 +110,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       enableRefsLink = params("enableRefsLink").toBoolean,
       enableLineBreaks = params("enableLineBreaks").toBoolean,
       enableTaskList = params("enableTaskList").toBoolean,
+      enableAnchor = false,
       hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount)
     )
   })
@@ -221,12 +221,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
-      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")))
+      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")),
+      protectedBranch)
   })
 
   get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
 
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
@@ -234,7 +237,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getPathObjectId(git, path, revCommit).map { objectId =>
         val paths = path.split("/")
         html.editor(branch, repository, paths.take(paths.size - 1).toList, Some(paths.last),
-          JGitUtil.getContentInfo(git, path, objectId))
+          JGitUtil.getContentInfo(git, path, objectId),
+          protectedBranch)
       } getOrElse NotFound
     }
   })
@@ -485,6 +489,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays branches.
    */
   get("/:owner/:repository/branches")(referrersOnly { repository =>
+    val protectedBranches = getProtectedBranchList(repository.owner, repository.name).toSet
     val branches = JGitUtil.getBranches(
       owner         = repository.owner,
       name          = repository.name,
@@ -492,7 +497,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       origin        = repository.repository.originUserName.isEmpty
     )
     .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
-    .map(br => br -> getPullRequestByRequestCommit(repository.owner, repository.name, repository.repository.defaultBranch, br.name, br.commitId))
+    .map(br => (br, getPullRequestByRequestCommit(repository.owner, repository.name, repository.repository.defaultBranch, br.name, br.commitId), protectedBranches.contains(br.name)))
     .reverse
 
     html.branches(branches, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
@@ -555,8 +560,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     html.forked(
       getRepository(
         repository.repository.originUserName.getOrElse(repository.owner),
-        repository.repository.originRepositoryName.getOrElse(repository.name),
-        context.baseUrl),
+        repository.repository.originRepositoryName.getOrElse(repository.name)),
       getForkedRepositories(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name)),
@@ -629,7 +633,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             val parentPath = if (path == ".") Nil else path.split("/").toList
             // process README.md or README.markdown
             val readme = files.find { file =>
-              readmeFiles.contains(file.name.toLowerCase)
+              !file.isDirectory && readmeFiles.contains(file.name.toLowerCase)
             }.map { file =>
               val path = (file.name :: parentPath.reverse).reverse
               path -> StringUtil.convertFromByteArray(JGitUtil.getContentFromId(
@@ -754,8 +758,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
          .setTree(revCommit.getTree)
          .setOutputStream(response.getOutputStream)
          .call()
-
-      Unit
     }
   }
 

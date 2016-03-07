@@ -1,68 +1,68 @@
 package gitbucket.core.view
 
 import gitbucket.core.util.ControlUtil
-import org.specs2.mutable._
 import ControlUtil._
+import org.scalatest.FunSpec
 
-class PaginationSpec extends Specification {
+class PaginationSpec extends FunSpec {
 
-  "max" should {
-    "return max page number" in {
+  describe("max") {
+    it("should return max page number") {
       val pagination = Pagination(1, 100, 10, 6)
-      pagination.max mustEqual 10
+      assert(pagination.max == 10)
     }
   }
 
-  "omitLeft and omitRight" should {
-    "return true if pagination links at their side will be omitted" in {
+  describe("omitLeft and omitRight") {
+    it("should return true if pagination links at their side will be omitted") {
       defining(Pagination(1, 100, 10, 6)){ pagination =>
-        pagination.omitLeft mustEqual false
-        pagination.omitRight mustEqual true
+        assert(pagination.omitLeft == false)
+        assert(pagination.omitRight == true)
       }
       defining(Pagination(9, 100, 10, 6)){ pagination =>
-        pagination.omitLeft mustEqual true
-        pagination.omitRight mustEqual false
+        assert(pagination.omitLeft == true)
+        assert(pagination.omitRight == false)
       }
     }
   }
 
-  "visibleFor" should {
-    "return true for visible pagination links" in {
+  describe("visibleFor") {
+    it("should return true for visible pagination links") {
       defining(Pagination(1, 100, 10, 6)){ pagination =>
-        pagination.visibleFor(1) mustEqual true
-        pagination.visibleFor(2) mustEqual true
-        pagination.visibleFor(3) mustEqual true
-        pagination.visibleFor(4) mustEqual true
-        pagination.visibleFor(5) mustEqual true
-        pagination.visibleFor(6) mustEqual false
-        pagination.visibleFor(7) mustEqual false
-        pagination.visibleFor(8) mustEqual false
-        pagination.visibleFor(9) mustEqual false
-        pagination.visibleFor(10) mustEqual true
+        assert(pagination.visibleFor(1) == true)
+        assert(pagination.visibleFor(2) == true)
+        assert(pagination.visibleFor(3) == true)
+        assert(pagination.visibleFor(4) == true)
+        assert(pagination.visibleFor(5) == true)
+        assert(pagination.visibleFor(6) == false)
+        assert(pagination.visibleFor(7) == false)
+        assert(pagination.visibleFor(8) == false)
+        assert(pagination.visibleFor(9) == false)
+        assert(pagination.visibleFor(10) == true)
       }
       defining(Pagination(5, 100, 10, 6)){ pagination =>
-        pagination.visibleFor(1) mustEqual true
-        pagination.visibleFor(2) mustEqual false
-        pagination.visibleFor(3) mustEqual false
-        pagination.visibleFor(4) mustEqual true
-        pagination.visibleFor(5) mustEqual true
-        pagination.visibleFor(6) mustEqual true
-        pagination.visibleFor(7) mustEqual false
-        pagination.visibleFor(8) mustEqual false
-        pagination.visibleFor(9) mustEqual false
-        pagination.visibleFor(10) mustEqual true
+        assert(pagination.visibleFor(1) == true)
+        assert(pagination.visibleFor(2) == false)
+        assert(pagination.visibleFor(3) == false)
+        assert(pagination.visibleFor(4) == true)
+        assert(pagination.visibleFor(5) == true)
+        assert(pagination.visibleFor(6) == true)
+        assert(pagination.visibleFor(7) == false)
+        assert(pagination.visibleFor(8) == false)
+        assert(pagination.visibleFor(9) == false)
+        assert(pagination.visibleFor(10) == true)
       }
       defining(Pagination(8, 100, 10, 6)){ pagination =>
-        pagination.visibleFor(1) mustEqual true
-        pagination.visibleFor(2) mustEqual false
-        pagination.visibleFor(3) mustEqual false
-        pagination.visibleFor(4) mustEqual false
-        pagination.visibleFor(5) mustEqual false
-        pagination.visibleFor(6) mustEqual true
-        pagination.visibleFor(7) mustEqual true
-        pagination.visibleFor(8) mustEqual true
-        pagination.visibleFor(9) mustEqual true
-        pagination.visibleFor(10) mustEqual true
+        assert(pagination.visibleFor(1) == true)
+        assert(pagination.visibleFor(2) == false)
+        assert(pagination.visibleFor(3) == false)
+        assert(pagination.visibleFor(4) == false)
+        assert(pagination.visibleFor(5) == false)
+        assert(pagination.visibleFor(6) == true)
+        assert(pagination.visibleFor(7) == true)
+        assert(pagination.visibleFor(8) == true)
+        assert(pagination.visibleFor(9) == true)
+        assert(pagination.visibleFor(10) == true)
       }
     }
   }

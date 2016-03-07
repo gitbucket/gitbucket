@@ -7,7 +7,7 @@
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.model.CommitComment
 @if(issue.isDefined){
-  <div class="issue-avatar-image">@avatar(issue.get.openedUserName, 48)</div>
+  <div class="issue-avatar-image">@avatarLink(issue.get.openedUserName, 48)</div>
   <div class="panel panel-default issue-comment-box">
     <div class="panel-heading">
       @user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.get.registeredDate)</span>
@@ -30,11 +30,13 @@
     </div>
   </div>
 }
+@issueOrPullRequest()={ @if(issue.isDefined && issue.get.isPullRequest)( "pull request" )else( "issue" ) }
 
 @comments.map {
   case comment: gitbucket.core.model.IssueComment => {
-    @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"){
-      <div class="issue-avatar-image">@avatar(comment.commentedUserName, 48)</div>
+    @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"
+      && comment.action != "commit" && comment.action != "refer"){
+      <div class="issue-avatar-image">@avatarLink(comment.commentedUserName, 48)</div>
       <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
         <div class="panel-heading">
           @user(comment.commentedUserName, styleClass="username strong")
@@ -42,7 +44,7 @@
             @if(comment.action == "comment"){
               commented
             } else {
-              @if(pullreq.isEmpty){ referenced the issue } else { referenced the pull request }
+              referenced the @issueOrPullRequest()
             }
             @helper.html.datetimeago(comment.registeredDate)
           </span>
@@ -53,79 +55,114 @@
               <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
             </span>
           }
-          @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
-            @defining(comment.content.substring(comment.content.length - 40)){ id =>
-              <span class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></span>
-            }
-          }
           </div>
         <div class="panel-body issue-content markdown-body" id="commentContent-@comment.commentId">
-          @if(comment.action == "commit" && comment.content.split(" ").last.matches("[a-f0-9]{40}")){
-            @markdown(
-              markdown = comment.content.substring(0, comment.content.length - 41),
-              repository = repository,
-              enableWikiLink = false,
-              enableRefsLink = true,
-              enableLineBreaks = true,
-              enableTaskList = true,
-              hasWritePermission = hasWritePermission
-            )
-          } else {
-            @if(comment.action == "refer"){
-              @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
-                <strong>@issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
-              }
-            } else {
-              @markdown(
-                markdown = comment.content,
-                repository = repository,
-                enableWikiLink = false,
-                enableRefsLink = true,
-                enableLineBreaks = true,
-                enableTaskList = true,
-                hasWritePermission = hasWritePermission
-              )
+          @markdown(
+            markdown = comment.content,
+            repository = repository,
+            enableWikiLink = false,
+            enableRefsLink = true,
+            enableLineBreaks = true,
+            enableTaskList = true,
+            hasWritePermission = hasWritePermission
+          )
+        </div>
+      </div>
+    }
+    @if(comment.action == "commit"){
+      @defining({
+        val (content, id) = " ([a-f0-9]{40})$".r.findFirstMatchIn(comment.content)
+          .map(m => (m.before.toString -> Some(m.group(1))))
+          .getOrElse(comment.content -> None)
+        val head = content.take(100).takeWhile(_ != '\n')
+        (id, head, if(head == content){ None }else{ Some(content.drop(head.length).dropWhile(_ == '\n')) }.filter(_.nonEmpty))
+      }){ case (commitId, head, rest) =>
+        <div class="discussion-item discussion-item-commit">
+          <div class="discussion-item-header">
+            <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
+            @avatar(comment.commentedUserName, 16)
+            @user(comment.commentedUserName, styleClass="username strong")
+            added a commit that referenced this @issueOrPullRequest()
+            @helper.html.datetimeago(comment.registeredDate)
+          </div>
+          <div style="discussion-item-content">
+            @commitId.map{ id =>
+              <span class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></span>
             }
+            <span class="discussion-item-content-head"><i class="octicon octicon-git-commit"></i></span>
+            @link(head, repository)
+            @rest.map{ content =>
+              <a href="javascript:void(0)" class="omit" onclick="$(this.parentNode).find('.discussion-item-content-text').toggle()">...</a>
+              <pre class="reset discussion-item-content-text" style="display:none">@link(content, repository)</pre>
+            }
+          </div>
+        </div>
+      }
+    }
+    @if(comment.action == "refer"){
+      <div class="discussion-item discussion-item-refer">
+        <div class="discussion-item-header">
+          <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
+          @avatar(comment.commentedUserName, 16)
+          @user(comment.commentedUserName, styleClass="username strong")
+          referenced the @issueOrPullRequest()
+          @helper.html.datetimeago(comment.registeredDate)
+        </div>
+        <div style="discussion-item-content">
+          @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
+            <strong>@issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
           }
         </div>
       </div>
     }
     @if(comment.action == "merge"){
-      <div class="small" style="margin-top: 10px; margin-bottom: 10px;">
-        <span class="label label-info">Merged</span>
-        @avatar(comment.commentedUserName, 20)
-        @user(comment.commentedUserName, styleClass="username strong") merged commit <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
-        @if(pullreq.get.requestUserName == repository.owner){
-          <span class="label label-info monospace">@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span>
-        } else {
-          <span class="label label-info monospace">@pullreq.map(_.userName):@pullreq.map(_.branch)</span> from <span class="label label-info monospace">@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</span>
-        }
-        @helper.html.datetimeago(comment.registeredDate)
+      <div class="discussion-item discussion-item-merge">
+        <div class="discussion-item-header">
+          <span class="discussion-item-icon"><i class="octicon octicon-git-merge"></i></span>
+          @avatar(comment.commentedUserName, 16)
+          @user(comment.commentedUserName, styleClass="username strong")
+          merged commit
+          <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
+          @if(pullreq.get.requestUserName == repository.owner){
+            <code>@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestBranch)</code>
+          } else {
+            <code>@pullreq.map(_.userName):@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</code>
+          }
+          @helper.html.datetimeago(comment.registeredDate)
+        </div>
       </div>
     }
     @if(comment.action == "close" || comment.action == "close_comment"){
-      <div class="issue-comment-action">
-        <i class="octicon octicon-circle-slash danger"></i>
-        @avatar(comment.commentedUserName, 20)
-        @if(issue.isDefined && issue.get.isPullRequest){
-          @user(comment.commentedUserName, styleClass="username strong") closed the pull request @helper.html.datetimeago(comment.registeredDate)
-        } else {
-          @user(comment.commentedUserName, styleClass="username strong") closed the issue @helper.html.datetimeago(comment.registeredDate)
-        }
+      <div class="discussion-item discussion-item-close">
+        <div class="discussion-item-header">
+          <span class="discussion-item-icon"><i class="octicon octicon-circle-slash"></i></span>
+          @avatar(comment.commentedUserName, 16)
+          @user(comment.commentedUserName, styleClass="username strong")
+          closed this @issueOrPullRequest()
+          @helper.html.datetimeago(comment.registeredDate)
+        </div>
       </div>
     }
     @if(comment.action == "reopen" || comment.action == "reopen_comment"){
-      <div class="issue-comment-action issue-reopened">
-        <i class="octicon octicon-primitive-dot"></i>
-        @avatar(comment.commentedUserName, 20)
-        @user(comment.commentedUserName, styleClass="username strong") reopened the issue @helper.html.datetimeago(comment.registeredDate)
+      <div class="discussion-item discussion-item-reopen">
+        <div class="discussion-item-header">
+          <span class="discussion-item-icon"><i class="octicon octicon-primitive-dot"></i></span>
+          @avatar(comment.commentedUserName, 16)
+          @user(comment.commentedUserName, styleClass="username strong")
+          reopened the @issueOrPullRequest()
+          @helper.html.datetimeago(comment.registeredDate)
+        </div>
       </div>
     }
     @if(comment.action == "delete_branch"){
-      <div class="issue-comment-action">
-        <span class="label">Deleted</span>
-        @avatar(comment.commentedUserName, 20)
-        @user(comment.commentedUserName, styleClass="username strong") deleted the <span class="label label-info monospace">@pullreq.map(_.requestBranch)</span> branch @helper.html.datetimeago(comment.registeredDate)
+      <div class="discussion-item discussion-item-delete_branch">
+        <div class="discussion-item-header">
+          <span class="discussion-item-icon"><i class="octicon octicon-git-branch"></i></span>
+          @avatar(comment.commentedUserName, 16)
+          @user(comment.commentedUserName, styleClass="username strong")
+          deleted the <code>@pullreq.map(_.requestBranch)</code> branch
+          @helper.html.datetimeago(comment.registeredDate)
+        </div>
       </div>
     }
   }
@@ -173,7 +210,7 @@ $(function(){
   $(document).on('click', '.commit-comment-box i.octicon-pencil', function(){
     var id  = $(this).closest('a').data('comment-id');
     var url = '@url(repository)/commit_comments/_data/' + id;
-    var $content = $('.commit-commentContent-' + id, $(this).closest('.box'));
+    var $content = $('.commit-commentContent-' + id, $(this).closest('.commit-comment-box'));
 
     $.get(url,
     {

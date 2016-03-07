@@ -28,7 +28,11 @@ abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
   with SystemSettingsService {
 
-  implicit val jsonFormats = DefaultFormats
+  implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+
+  before("/api/v3/*") {
+    contentType = formats("json")
+  }
 
 // TODO Scala 2.11
 //  // Don't set content type via Accept header.
@@ -176,7 +180,6 @@ abstract class ControllerBase extends ScalatraFilter
  * Context object for the current request.
  */
 case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
-
   val path = settings.baseUrl.getOrElse(request.getContextPath)
   val currentPath = request.getRequestURI.substring(request.getContextPath.length)
   val baseUrl = settings.baseUrl(request)

@@ -36,7 +36,7 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
-        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+        getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(repository.owner == x.userName) => action(repository)
@@ -95,7 +95,7 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
-        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+        getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
@@ -118,7 +118,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
-        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+        getRepository(paths(0), paths(1)).map { repository =>
           if(!repository.repository.isPrivate){
             action(repository)
           } else {
@@ -145,7 +145,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
   private def authenticate(action: (RepositoryInfo) => Any) = {
     {
       defining(request.paths){ paths =>
-        getRepository(paths(0), paths(1), baseUrl).map { repository =>
+        getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(!repository.repository.isPrivate) => action(repository)

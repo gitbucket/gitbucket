@@ -27,7 +27,16 @@ $ sbt package
 
 To build executable war file, run
 
-*  Windows: Not available
-*  Linux: `./release/make-release-war.sh`
+```
+$ sbt executable
+```
 
-at the top of the source tree. It generates executable `gitbucket.war` into `target/scala-2.11`. We release this war file as release artifact.
+at the top of the source tree. It generates executable `gitbucket.war` into `target/executable`. We release this war file as release artifact.
+
+Run tests spec
+---------
+To run the full serie of tests, run the following command:
+
+```
+sbt test
+```

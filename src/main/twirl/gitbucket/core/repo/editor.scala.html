@@ -2,11 +2,15 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   fileName: Option[String],
-  content: gitbucket.core.util.JGitUtil.ContentInfo)(implicit context: gitbucket.core.controller.Context)
+  content: gitbucket.core.util.JGitUtil.ContentInfo,
+  protectedBranch: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
+    @if(protectedBranch){
+      <div class="alert alert-danger">branch @branch is protected.</div>
+    }
     <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
       <span class="error" id="error-newFileName"></span>
       <div class="head">
@@ -43,7 +47,7 @@
           </td>
         </tr>
       </table>
-      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+      <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
       <div class="panel panel-default issue-comment-box">
         <div class="panel-body">
           <div>
@@ -81,6 +85,9 @@ $(function(){
 
   @if(fileName.isDefined){
     editor.getSession().setMode("ace/mode/@editorType(fileName.get)");
+  }
+  @if(protectedBranch){
+    editor.setReadOnly(true);
   }
 
   editor.on('change', function(){
@@ -122,16 +129,17 @@ $(function(){
     $('#editor').hide();
     $('#preview').show();
     $('#btn-code').removeClass('active');
-    $('#btn-preview').appendClass('active');
+    $('#btn-preview').addClass('active');
 
     @if(fileName.map(isRenderable _).getOrElse(false)) {
       // update preview
       $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
       $.post('@url(repository)/_preview', {
-        content        : editor.getValue(),
-        enableWikiLink : false,
-        enableRefsLink : false,
-        enableTaskList : false
+        content          : editor.getValue(),
+        enableWikiLink   : false,
+        enableRefsLink   : false,
+        enableLineBreaks : false,
+        enableTaskList   : false
       }, function(data){
         $('#preview').empty().append(
           $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));

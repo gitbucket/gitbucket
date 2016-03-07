@@ -26,12 +26,16 @@ protected[model] trait TemplateComponent { self: Profile =>
 
   trait LabelTemplate extends BasicTemplate { self: Table[_] =>
     val labelId = column[Int]("LABEL_ID")
+    val labelName = column[String]("LABEL_NAME")
 
     def byLabel(owner: String, repository: String, labelId: Int) =
       byRepository(owner, repository) && (this.labelId === labelId.bind)
 
     def byLabel(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) =
       byRepository(userName, repositoryName) && (this.labelId === labelId)
+
+    def byLabel(owner: String, repository: String, labelName: String) =
+      byRepository(owner, repository) && (this.labelName === labelName.bind)
   }
 
   trait MilestoneTemplate extends BasicTemplate { self: Table[_] =>
@@ -54,4 +58,9 @@ protected[model] trait TemplateComponent { self: Profile =>
       byRepository(userName, repositoryName) && (this.commitId === commitId)
   }
 
+  trait BranchTemplate extends BasicTemplate{ self: Table[_] =>
+    val branch = column[String]("BRANCH")
+    def byBranch(owner: String, repository: String, branchName: String) = byRepository(owner, repository) && (branch === branchName.bind)
+    def byBranch(owner: Column[String], repository: Column[String], branchName: Column[String]) = byRepository(owner, repository) && (this.branch === branchName)
+  }
 }

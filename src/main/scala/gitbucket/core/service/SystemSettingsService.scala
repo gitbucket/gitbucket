@@ -1,6 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.util.{Directory, ControlUtil}
+import gitbucket.core.util.Implicits._
 import Directory._
 import ControlUtil._
 import SystemSettingsService._
@@ -21,6 +22,7 @@ trait SystemSettingsService {
       props.setProperty(Notification, settings.notification.toString)
       settings.activityLogLimit.foreach(x => props.setProperty(ActivityLogLimit, x.toString))
       props.setProperty(Ssh, settings.ssh.toString)
+      settings.sshHost.foreach(x => props.setProperty(SshHost, x.trim))
       settings.sshPort.foreach(x => props.setProperty(SshPort, x.toString))
       props.setProperty(UseSMTP, settings.useSMTP.toString)
       if(settings.useSMTP) {
@@ -75,6 +77,7 @@ trait SystemSettingsService {
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
         getValue(props, Ssh, false),
+        getOptionValue[String](props, SshHost, None).map(_.trim),
         getOptionValue(props, SshPort, Some(DefaultSshPort)),
         getValue(props, UseSMTP, getValue(props, Notification, false)),   // handle migration scenario from only notification to useSMTP
         if(getValue(props, UseSMTP, getValue(props, Notification, false))){
@@ -126,16 +129,19 @@ object SystemSettingsService {
     notification: Boolean,
     activityLogLimit: Option[Int],
     ssh: Boolean,
+    sshHost: Option[String],
     sshPort: Option[Int],
     useSMTP: Boolean,
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
     ldap: Option[Ldap]){
-    def baseUrl(request: HttpServletRequest): String = baseUrl.getOrElse {
-      defining(request.getRequestURL.toString){ url =>
-        url.substring(0, url.length - (request.getRequestURI.length - request.getContextPath.length))
+    def baseUrl(request: HttpServletRequest): String = baseUrl.fold(request.baseUrl)(_.stripSuffix("/"))
+
+    def sshAddress:Option[SshAddress] =
+      for {
+        host <- sshHost if ssh
       }
-    }.stripSuffix("/")
+      yield SshAddress(host, sshPort.getOrElse(DefaultSshPort))
   }
 
   case class Ldap(
@@ -161,6 +167,10 @@ object SystemSettingsService {
     fromAddress: Option[String],
     fromName: Option[String])
 
+  case class SshAddress(
+    host:String,
+    port:Int)
+
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
@@ -174,6 +184,7 @@ object SystemSettingsService {
   private val Notification = "notification"
   private val ActivityLogLimit = "activity_log_limit"
   private val Ssh = "ssh"
+  private val SshHost = "ssh.host"
   private val SshPort = "ssh.port"
   private val UseSMTP = "useSMTP"
   private val SmtpHost = "smtp.host"
@@ -215,8 +226,5 @@ object SystemSettingsService {
       else if(c == classOf[Int]) value.toInt
       else value
     }
-
-//  // TODO temporary flag
-//  val enablePluginSystem = Option(System.getProperty("enable.plugin")).getOrElse("false").toBoolean
 
 }

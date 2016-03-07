@@ -32,14 +32,13 @@ object JGitUtil {
    *
    * @param owner the user name of the repository owner
    * @param name the repository name
-   * @param url the repository URL
    * @param commitCount the commit count. If the repository has over 1000 commits then this property is 1001.
    * @param branchList the list of branch names
    * @param tags the list of tags
    */
-  case class RepositoryInfo(owner: String, name: String, url: String, commitCount: Int, branchList: List[String], tags: List[TagInfo]){
-    def this(owner: String, name: String, baseUrl: String) = {
-      this(owner, name, s"${baseUrl}/git/${owner}/${name}.git", 0, Nil, Nil)
+  case class RepositoryInfo(owner: String, name: String, commitCount: Int, branchList: List[String], tags: List[TagInfo]){
+    def this(owner: String, name: String) = {
+      this(owner, name, 0, Nil, Nil)
     }
   }
 
@@ -174,14 +173,14 @@ object JGitUtil {
   /**
    * Returns the repository information. It contains branch names and tag names.
    */
-  def getRepositoryInfo(owner: String, repository: String, baseUrl: String): RepositoryInfo = {
+  def getRepositoryInfo(owner: String, repository: String): RepositoryInfo = {
     using(Git.open(getRepositoryDir(owner, repository))){ git =>
       try {
         // get commit count
         val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(10001).sum
 
         RepositoryInfo(
-          owner, repository, s"${baseUrl}/git/${owner}/${repository}.git",
+          owner, repository,
           // commit count
           commitCount,
           // branches
@@ -197,7 +196,7 @@ object JGitUtil {
       } catch {
         // not initialized
         case e: NoHeadException => RepositoryInfo(
-          owner, repository, s"${baseUrl}/git/${owner}/${repository}.git", 0, Nil, Nil)
+          owner, repository, 0, Nil, Nil)
 
       }
     }

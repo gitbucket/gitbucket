@@ -9,28 +9,21 @@ The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http and ssh access)
 - Repository viewer and online file editing
-- Repository search (Code and Issues)
 - Wiki
-- Issues
-- Fork / Pull request
+- Issues / Pull request
 - Email notification
-- Activity timeline
 - Simple user and group management with LDAP integration
-- Gravatar support
 - Plug-in system
 
-If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/gitbucket/gitbucket/wiki).
+If you want to try the development version of GitBucket, see [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
 Installation
 --------
+GitBucket requires **Java8**. You have to install beforehand when it's not installed.
 
 1. Download latest **gitbucket.war** from [the release page](https://github.com/gitbucket/gitbucket/releases).
 2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
-3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
-
-If you are using Gitbucket behind a webserver please make sure you have increased the **client_max_body_size** (on nginx)
-
-The default administrator account is **root** and password is **root**.
+3. Access **http://[hostname]:[port]/gitbucket/** using your web browser and logged-in with **root** / **root**.
 
 or you can start GitBucket by `java -jar gitbucket.war` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
 
@@ -41,35 +34,7 @@ or you can start GitBucket by `java -jar gitbucket.war` without servlet containe
 
 To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
 
-For Installation on Windows Server with IIS see [this wiki page](https://github.com/gitbucket/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
-
-### Mac OS X
-#### Installing Via Homebrew
-
-```
-$ brew install gitbucket
-==> Downloading https://github.com/takezoe/gitbucket/releases/download/1.10/gitbucket.war
-######################################################################## 100.0%
-==> Caveats
-Note: When using launchctl the port will be 8080.
-
-To have launchd start gitbucket at login:
-    ln -sfv /usr/local/opt/gitbucket/*.plist ~/Library/LaunchAgents
-Then to load gitbucket now:
-    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.gitbucket.plist
-Or, if you don't want/need launchctl, you can just run:
-    java -jar /usr/local/opt/gitbucket/libexec/gitbucket.war
-==> Summary
-/usr/local/Cellar/gitbucket/1.10: 3 files, 42M, built in 11 seconds
-```
-
-#### Manual Installation
-On OS X, generate `gitbucket.plist` by [this script](https://raw.githubusercontent.com/gitbucket/gitbucket/master/contrib/macosx/makePlist) and copy it to `~/Library/LaunchAgents/`
-
-Run the following commands in `Terminal` to
-
-- start gitbucket: `launchctl load ~/Library/LaunchAgents/gitbucket.plist`
-- stop gitbucket: `launchctl unload ~/Library/LaunchAgents/gitbucket.plist`
+About installation on Mac or Windows Server (with IIS), configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
 Plug-ins
 --------
@@ -95,10 +60,26 @@ Support
 
 Release Notes
 --------
+### 3.12 - 27 Feb 2016
+- New GitHub UI
+- Improve mobile view
+- Improve printing style
+- Individual URL for pull request tabs
+- SSH host configuration is separated from HTTP base URL
+
+### 3.11 - 30 Jan 2016
+- Upgrade Scalatra to 2.4
+- Sidebar and Footer for Wiki
+- Branch protection and receive hook extension point for plug-in
+- Limit recent updated repositories list
+- Issue actions look-alike GitHub
+- Web API for labels
+- Requires Java 8
+
 ### 3.10 - 30 Dec 2015
 - Move to Bootstrap3
 - New URL for raw contents (`raw/master/doc/activity.md` instead of `blob/master/doc/activity.md?raw=true`)
-- Update xsbt-web-pligin
+- Update xsbt-web-plugin
 - Update H2 database
 
 ### 3.9 - 5 Dec 2015
@@ -342,7 +323,3 @@ Release Notes
 
 ### 1.0 - 04 Jul 2013
 - This is a first public release
-
-Sponsors
---------
-[![IntelliJ IDEA](https://www.jetbrains.com/idea/docs/logo_intellij_idea.png)](https://www.jetbrains.com/idea/)

@@ -17,7 +17,7 @@
             <li><a href="@url(repository)/tree/@commit.id" style="line-height: 16px;"><i class="octicon octicon-code link"></i></a></li>
           </ul>
           <div>
-            <div class="commit-avatar-image">@avatar(commit, 40)</div>
+            <div class="commit-avatar-image">@avatarLink(commit, 40)</div>
             <div>
               <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
               @if(commit.description.isDefined){

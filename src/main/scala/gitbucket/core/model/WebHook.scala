@@ -7,7 +7,8 @@ trait WebHookComponent extends TemplateComponent { self: Profile =>
 
   class WebHooks(tag: Tag) extends Table[WebHook](tag, "WEB_HOOK") with BasicTemplate {
     val url = column[String]("URL")
-    def * = (userName, repositoryName, url) <> ((WebHook.apply _).tupled, WebHook.unapply)
+    val token = column[Option[String]]("TOKEN", O.Nullable)
+    def * = (userName, repositoryName, url, token) <> ((WebHook.apply _).tupled, WebHook.unapply)
 
     def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url === url.bind)
   }
@@ -16,7 +17,8 @@ trait WebHookComponent extends TemplateComponent { self: Profile =>
 case class WebHook(
   userName: String,
   repositoryName: String,
-  url: String
+  url: String,
+  token: Option[String]
 )
 
 object WebHook {

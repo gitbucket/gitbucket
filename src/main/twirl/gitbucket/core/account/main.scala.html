@@ -3,7 +3,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(account.userName){
-  <div class="container">
+  <div class="container body">
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-4">
@@ -22,7 +22,7 @@
             <div>
               <div>Groups</div>
               @groupNames.map { groupName =>
-                <a href="@url(groupName)">@avatar(groupName, 36, tooltip = true)</a>
+                @avatarLink(groupName, 36, tooltip = true)
               }
             </div>
           }

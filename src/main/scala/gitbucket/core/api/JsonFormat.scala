@@ -30,7 +30,9 @@ object JsonFormat {
     FieldSerializer[ApiCombinedCommitStatus]() +
     FieldSerializer[ApiPullRequest.Commit]() +
     FieldSerializer[ApiIssue]() +
-    FieldSerializer[ApiComment]()
+    FieldSerializer[ApiComment]() +
+    FieldSerializer[ApiLabel]() +
+    ApiBranchProtection.enforcementLevelSerializer
 
   def apiPathSerializer(c: Context) = new CustomSerializer[ApiPath](format =>
     (
