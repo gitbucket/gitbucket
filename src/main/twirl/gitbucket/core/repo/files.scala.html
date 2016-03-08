@@ -160,7 +160,7 @@
               </a>
             }
           } else {
-            <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
+            <a href="@url(repository)/blob@{(branch :: pathList).map(encodeRefName).mkString("/", "/", "/")}@{encodeRefName(file.name)}">@file.name</a>
           }
         </td>
         <td class="mute">
