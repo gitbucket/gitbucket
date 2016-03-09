@@ -1,8 +1,13 @@
 package gitbucket.core.service
 
+import java.io.ByteArrayInputStream
+
+import fr.brouillard.oss.security.xhub.XHub
+import fr.brouillard.oss.security.xhub.XHub.{XHubDigest, XHubConverter}
 import gitbucket.core.api._
 import gitbucket.core.model.{WebHook, Account, Issue, PullRequest, IssueComment, WebHookEvent, CommitComment}
 import gitbucket.core.model.Profile._
+import org.apache.http.client.utils.URLEncodedUtils
 import profile.simple._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
@@ -33,8 +38,11 @@ trait WebHookService {
 
   /** get All WebHook informations of repository event */
   def getWebHooksByEvent(owner: String, repository: String, event: WebHook.Event)(implicit s: Session): List[WebHook] =
-    WebHookEvents.filter(t => t.byRepository(owner, repository) && t.event === event.bind)
-      .list.map(t => WebHook(t.userName, t.repositoryName, t.url))
+     WebHooks.filter(_.byRepository(owner, repository))
+       .innerJoin(WebHookEvents).on { (wh, whe) => whe.byWebHook(wh) }
+       .filter{ case (wh, whe) => whe.event === event.bind}
+       .map{ case (wh, whe) => wh }
+       .list.distinct
 
   /** get All WebHook information from repository to url */
   def getWebHook(owner: String, repository: String, url: String)(implicit s: Session): Option[(WebHook, Set[WebHook.Event])] =
@@ -44,14 +52,15 @@ trait WebHookService {
       .map{ case (w,t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).headOption
 
-  def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event])(implicit s: Session): Unit = {
-    WebHooks insert WebHook(owner, repository, url)
+  def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], token: Option[String])(implicit s: Session): Unit = {
+    WebHooks insert WebHook(owner, repository, url, token)
     events.toSet.map{ event: WebHook.Event =>
       WebHookEvents insert WebHookEvent(owner, repository, url, event)
     }
   }
 
-  def updateWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event])(implicit s: Session): Unit = {
+  def updateWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], token: Option[String])(implicit s: Session): Unit = {
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => w.token).update(token)
     WebHookEvents.filter(_.byWebHook(owner, repository, url)).delete
     events.toSet.map{ event: WebHook.Event =>
       WebHookEvents insert WebHookEvent(owner, repository, url, event)
@@ -69,17 +78,17 @@ trait WebHookService {
     }
   }
 
-  def callWebHook(event: WebHook.Event, webHookURLs: List[WebHook], payload: WebHookPayload)
+  def callWebHook(event: WebHook.Event, webHooks: List[WebHook], payload: WebHookPayload)
                  (implicit c: JsonFormat.Context): List[(WebHook, String, Future[HttpRequest], Future[HttpResponse])] = {
     import org.apache.http.impl.client.HttpClientBuilder
     import ExecutionContext.Implicits.global
     import org.apache.http.protocol.HttpContext
     import org.apache.http.client.methods.HttpPost
 
-    if(webHookURLs.nonEmpty){
+    if(webHooks.nonEmpty){
       val json = JsonFormat(payload)
 
-      webHookURLs.map { webHookUrl =>
+      webHooks.map { webHook =>
         val reqPromise = Promise[HttpRequest]
         val f = Future {
           val itcp = new org.apache.http.HttpRequestInterceptor{
@@ -89,19 +98,26 @@ trait WebHookService {
           }
           try{
             val httpClient = HttpClientBuilder.create.addInterceptorLast(itcp).build
-            logger.debug(s"start web hook invocation for ${webHookUrl.url}")
-            val httpPost = new HttpPost(webHookUrl.url)
+            logger.debug(s"start web hook invocation for ${webHook.url}")
+            val httpPost = new HttpPost(webHook.url)
             httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded")
             httpPost.addHeader("X-Github-Event", event.name)
             httpPost.addHeader("X-Github-Delivery", java.util.UUID.randomUUID().toString)
 
             val params: java.util.List[NameValuePair] = new java.util.ArrayList()
             params.add(new BasicNameValuePair("payload", json))
-            httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"))
+            def postContent = new UrlEncodedFormEntity(params, "UTF-8")
+            httpPost.setEntity(postContent)
+
+            if (!webHook.token.isEmpty) {
+              // TODO find a better way and see how to extract content from postContent
+              val contentAsBytes = URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8")
+              httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.orNull, contentAsBytes))
+            }
 
             val res = httpClient.execute(httpPost)
             httpPost.releaseConnection()
-            logger.debug(s"end web hook invocation for ${webHookUrl}")
+            logger.debug(s"end web hook invocation for ${webHook}")
             res
           }catch{
             case e:Throwable => {
@@ -113,12 +129,12 @@ trait WebHookService {
           }
         }
         f.onSuccess {
-          case s => logger.debug(s"Success: web hook request to ${webHookUrl.url}")
+          case s => logger.debug(s"Success: web hook request to ${webHook.url}")
         }
         f.onFailure {
-          case t => logger.error(s"Failed: web hook request to ${webHookUrl.url}", t)
+          case t => logger.error(s"Failed: web hook request to ${webHook.url}", t)
         }
-        (webHookUrl, json, reqPromise.future, f)
+        (webHook, json, reqPromise.future, f)
       }
     } else {
       Nil

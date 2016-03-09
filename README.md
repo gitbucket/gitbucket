@@ -60,6 +60,13 @@ Support
 
 Release Notes
 --------
+### 3.12 - 27 Feb 2016
+- New GitHub UI
+- Improve mobile view
+- Improve printing style
+- Individual URL for pull request tabs
+- SSH host configuration is separated from HTTP base URL
+
 ### 3.11 - 30 Jan 2016
 - Upgrade Scalatra to 2.4
 - Sidebar and Footer for Wiki

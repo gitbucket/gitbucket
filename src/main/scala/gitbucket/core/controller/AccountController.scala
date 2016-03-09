@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
 import gitbucket.core.account.html
-import gitbucket.core.api._
 import gitbucket.core.helper
 import gitbucket.core.model.GroupMember
 import gitbucket.core.service._
@@ -14,22 +13,19 @@ import gitbucket.core.util._
 
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.scalatra.i18n.Messages
 
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService
+  with AccessTokenService with WebHookService with RepositoryCreationService
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AccessTokenService with WebHookService =>
+    with AccessTokenService with WebHookService with RepositoryCreationService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
@@ -155,25 +151,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
     }
   }
-
-  /**
-   * https://developer.github.com/v3/users/#get-a-single-user
-   */
-  get("/api/v3/users/:userName") {
-    getAccountByUserName(params("userName")).map { account =>
-      JsonFormat(ApiUser(account))
-    } getOrElse NotFound
-  }
-
-  /**
-   * https://developer.github.com/v3/users/#get-the-authenticated-user
-   */
-  get("/api/v3/user") {
-    context.loginAccount.map { account =>
-      JsonFormat(ApiUser(account))
-    } getOrElse Unauthorized
-  }
-
 
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
@@ -367,60 +344,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
-        createRepository(form.owner, form.name, form.description, form.isPrivate, form.createReadme)
+        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme)
       }
 
       // redirect to the repository
       redirect(s"/${form.owner}/${form.name}")
     }
-  })
-
-  /**
-   * Create user repository
-   * https://developer.github.com/v3/repos/#create
-   */
-  post("/api/v3/user/repos")(usersOnly {
-    val owner = context.loginAccount.get.userName
-    (for {
-      data <- extractFromJsonBody[CreateARepository] if data.isValid
-    } yield {
-      LockUtil.lock(s"${owner}/${data.name}") {
-        if(getRepository(owner, data.name).isEmpty){
-          createRepository(owner, data.name, data.description, data.`private`, data.auto_init)
-          val repository = getRepository(owner, data.name).get
-          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
-        } else {
-          ApiError(
-            "A repository with this name already exists on this account", 
-            Some("https://developer.github.com/v3/repos/#create")
-          )
-        }
-      }
-    }) getOrElse NotFound
-  })
-
-  /**
-   * Create group repository
-   * https://developer.github.com/v3/repos/#create
-   */
-  post("/api/v3/orgs/:org/repos")(managersOnly {
-    val groupName = params("org")
-    (for {
-      data <- extractFromJsonBody[CreateARepository] if data.isValid
-    } yield {
-      LockUtil.lock(s"${groupName}/${data.name}") {
-        if(getRepository(groupName, data.name).isEmpty){
-          createRepository(groupName, data.name, data.description, data.`private`, data.auto_init)
-          val repository = getRepository(groupName, data.name).get
-          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
-        } else {
-          ApiError(
-            "A repository with this name already exists for this group", 
-            Some("https://developer.github.com/v3/repos/#create")
-          )
-        }
-      }
-    }) getOrElse NotFound
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
@@ -456,7 +385,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
         val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
 
-        createRepository(
+        insertRepository(
           repositoryName       = repository.name,
           userName             = accountName,
           description          = repository.repository.description,
@@ -495,68 +424,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }
   })
-
-  private def createRepository(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean) {
-    val ownerAccount  = getAccountByUserName(owner).get
-    val loginAccount  = context.loginAccount.get
-    val loginUserName = loginAccount.userName
-
-    // Insert to the database at first
-    createRepository(name, owner, description, isPrivate)
-
-    // Add collaborators for group repository
-    if(ownerAccount.groupAccount){
-      getGroupMembers(owner).foreach { member =>
-        addCollaborator(owner, name, member.userName)
-      }
-    }
-
-    // Insert default labels
-    insertDefaultLabels(owner, name)
-
-    // Create the actual repository
-    val gitdir = getRepositoryDir(owner, name)
-    JGitUtil.initRepository(gitdir)
-
-    if(createReadme){
-      using(Git.open(gitdir)){ git =>
-        val builder  = DirCache.newInCore.builder()
-        val inserter = git.getRepository.newObjectInserter()
-        val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-        val content  = if(description.nonEmpty){
-          name + "\n" +
-          "===============\n" +
-          "\n" +
-          description.get
-        } else {
-          name + "\n" +
-          "===============\n"
-        }
-
-        builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
-          inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
-        builder.finish()
-
-        JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-          Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
-      }
-    }
-
-    // Create Wiki repository
-    createWikiRepository(loginAccount, owner, name)
-
-    // Record activity
-    recordCreateRepositoryActivity(owner, name, loginUserName)
-  }
-
-  private def insertDefaultLabels(userName: String, repositoryName: String): Unit = {
-    createLabel(userName, repositoryName, "bug", "fc2929")
-    createLabel(userName, repositoryName, "duplicate", "cccccc")
-    createLabel(userName, repositoryName, "enhancement", "84b6eb")
-    createLabel(userName, repositoryName, "invalid", "e6e6e6")
-    createLabel(userName, repositoryName, "question", "cc317c")
-    createLabel(userName, repositoryName, "wontfix", "ffffff")
-  }
 
   private def existsAccount: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =

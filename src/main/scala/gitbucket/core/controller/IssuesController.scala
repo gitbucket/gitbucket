@@ -1,8 +1,6 @@
 package gitbucket.core.controller
 
-import gitbucket.core.api._
 import gitbucket.core.issues.html
-import gitbucket.core.model.Issue
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
@@ -16,11 +14,11 @@ import org.scalatra.Ok
 
 
 class IssuesController extends IssuesControllerBase
-  with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
+  with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with WebHookIssueCommentService
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService
+  self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with WebHookIssueCommentService =>
 
   case class IssueCreateForm(title: String, content: Option[String],
@@ -78,18 +76,6 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  /**
-   * https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
-   */
-  get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
-    (for{
-      issueId <- params("id").toIntOpt
-      comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
-    } yield {
-      JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
-    }).getOrElse(NotFound)
-  })
-
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       html.create(
@@ -128,7 +114,7 @@ trait IssuesControllerBase extends ControllerBase {
 
       getIssue(owner, name, issueId.toString).foreach { issue =>
         // extract references and create refer comment
-        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
 
         // call web hooks
         callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
@@ -150,7 +136,7 @@ trait IssuesControllerBase extends ControllerBase {
           // update issue
           updateIssue(owner, name, issue.issueId, title, issue.content)
           // extract references and create refer comment
-          createReferComment(owner, name, issue.copy(title = title), title)
+          createReferComment(owner, name, issue.copy(title = title), title, context.loginAccount.get)
 
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
         } else Unauthorized
@@ -165,7 +151,7 @@ trait IssuesControllerBase extends ControllerBase {
           // update issue
           updateIssue(owner, name, issue.issueId, issue.title, content)
           // extract references and create refer comment
-          createReferComment(owner, name, issue, content.getOrElse(""))
+          createReferComment(owner, name, issue, content.getOrElse(""), context.loginAccount.get)
 
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
         } else Unauthorized
@@ -174,30 +160,22 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issue_comments/new", commentForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, Some(form.content), repository)() map { case (issue, id) =>
-      redirect(s"/${repository.owner}/${repository.name}/${
-        if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+    getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
+      val actionOpt = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
+      handleComment(issue, Some(form.content), repository, actionOpt) map { case (issue, id) =>
+        redirect(s"/${repository.owner}/${repository.name}/${
+          if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+      }
     } getOrElse NotFound
   })
 
-  /**
-   * https://developer.github.com/v3/issues/comments/#create-a-comment
-   */
-  post("/api/v3/repos/:owner/:repository/issues/:id/comments")(readableUsersOnly { repository =>
-    (for{
-      issueId <- params("id").toIntOpt
-      body <- extractFromJsonBody[CreateAComment].map(_.body) if ! body.isEmpty
-      (issue, id) <- handleComment(issueId, Some(body), repository)()
-      issueComment <- getComment(repository.owner, repository.name, id.toString())
-    } yield {
-      JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get), issue.isPullRequest))
-    }) getOrElse NotFound
-  })
-
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
-    handleComment(form.issueId, form.content, repository)() map { case (issue, id) =>
-      redirect(s"/${repository.owner}/${repository.name}/${
-        if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+    getIssue(repository.owner, repository.name, form.issueId.toString).flatMap { issue =>
+      val actionOpt = params.get("action").filter(_ => isEditable(issue.userName, issue.repositoryName, issue.openedUserName))
+      handleComment(issue, form.content, repository, actionOpt) map { case (issue, id) =>
+        redirect(s"/${repository.owner}/${repository.name}/${
+          if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
+      }
     } getOrElse NotFound
   })
 
@@ -315,8 +293,16 @@ trait IssuesControllerBase extends ControllerBase {
   post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
     defining(params.get("value")){ action =>
       action match {
-        case Some("open")  => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("reopen")) }
-        case Some("close") => executeBatch(repository) { handleComment(_, None, repository)( _ => Some("close"))  }
+        case Some("open")  => executeBatch(repository) { issueId =>
+          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+            handleComment(issue, None, repository, Some("reopen"))
+          }
+        }
+        case Some("close") => executeBatch(repository) { issueId =>
+          getIssue(repository.owner, repository.name, issueId.toString).foreach { issue =>
+            handleComment(issue, None, repository, Some("close"))
+          }
+        }
         case _ => // TODO BadRequest
       }
     }
@@ -370,99 +356,6 @@ trait IssuesControllerBase extends ControllerBase {
     params("from") match {
       case "issues" => redirect(s"/${repository.owner}/${repository.name}/issues")
       case "pulls"  => redirect(s"/${repository.owner}/${repository.name}/pulls")
-    }
-  }
-
-  // TODO Same method exists in PullRequestController. Should it moved to IssueService?
-  private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
-    StringUtil.extractIssueId(message).foreach { issueId =>
-      val content = fromIssue.issueId + ":" + fromIssue.title
-      if(getIssue(owner, repository, issueId).isDefined){
-        // Not add if refer comment already exist.
-        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
-          createComment(owner, repository, context.loginAccount.get.userName, issueId.toInt, content, "refer")
-        }
-      }
-    }
-  }
-
-  /**
-   * @see [[https://github.com/takezoe/gitbucket/wiki/CommentAction]]
-   */
-  private def handleComment(issueId: Int, content: Option[String], repository: RepositoryService.RepositoryInfo)
-      (getAction: Issue => Option[String] =
-           p1 => params.get("action").filter(_ => isEditable(p1.userName, p1.repositoryName, p1.openedUserName))) = {
-
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      val userName = context.loginAccount.get.userName
-
-      getIssue(owner, name, issueId.toString) flatMap { issue =>
-        val (action, recordActivity) =
-          getAction(issue)
-            .collect {
-              case "close" if(!issue.closed) => true  ->
-                (Some("close")  -> Some(if(issue.isPullRequest) recordClosePullRequestActivity _ else recordCloseIssueActivity _))
-              case "reopen" if(issue.closed) => false ->
-                (Some("reopen") -> Some(recordReopenIssueActivity _))
-            }
-            .map { case (closed, t) =>
-              updateClosed(owner, name, issueId, closed)
-              t
-            }
-            .getOrElse(None -> None)
-
-        val commentId = (content, action) match {
-          case (None, None) => None
-          case (None, Some(action)) => Some(createComment(owner, name, userName, issueId, action.capitalize, action))
-          case (Some(content), _) => Some(createComment(owner, name, userName, issueId, content, action.map(_+ "_comment").getOrElse("comment")))
-        }
-
-        // record comment activity if comment is entered
-        content foreach {
-          (if(issue.isPullRequest) recordCommentPullRequestActivity _ else recordCommentIssueActivity _)
-          (owner, name, userName, issueId, _)
-        }
-        recordActivity foreach ( _ (owner, name, userName, issueId, issue.title) )
-
-        // extract references and create refer comment
-        content.map { content =>
-          createReferComment(owner, name, issue, content)
-        }
-
-        // call web hooks
-        action match {
-          case None => commentId.map{ commentIdSome => callIssueCommentWebHook(repository, issue, commentIdSome, context.loginAccount.get) }
-          case Some(act) => val webHookAction = act match {
-            case "open"   => "opened"
-            case "reopen" => "reopened"
-            case "close"  => "closed"
-            case _ => act
-          }
-          if(issue.isPullRequest){
-            callPullRequestWebHook(webHookAction, repository, issue.issueId, context.baseUrl, context.loginAccount.get)
-          } else {
-            callIssuesWebHook(webHookAction, repository, issue, context.baseUrl, context.loginAccount.get)
-          }
-        }
-
-        // notifications
-        Notifier() match {
-          case f =>
-            content foreach {
-              f.toNotify(repository, issue, _){
-                Notifier.msgComment(s"${context.baseUrl}/${owner}/${name}/${
-                  if(issue.isPullRequest) "pull" else "issues"}/${issueId}#comment-${commentId.get}")
-              }
-            }
-            action foreach {
-              f.toNotify(repository, issue, _){
-                Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
-              }
-            }
-        }
-
-        commentId.map( issue -> _ )
-      }
     }
   }
 

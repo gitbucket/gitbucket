@@ -59,7 +59,7 @@
               <div class="panel panel-default issue-box">
                 <div class="panel-body">
                   <span class="error" id="error-title"></span>
-                  <input type="text" name="title" class="form-control input-lg" style="width: 680px" placeholder="Title"/>
+                  <input type="text" name="title" class="form-control input-lg" placeholder="Title"/>
                   @helper.html.preview(
                     repository         = repository,
                     content            = "",
@@ -68,7 +68,7 @@
                     enableLineBreaks   = true,
                     enableTaskList     = true,
                     hasWritePermission = true,
-                    style              = "width: 680px; height: 200px;"
+                    style              = "height: 200px;"
                   )
                   <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
                   <input type="hidden" name="targetBranch" value="@originId"/>
