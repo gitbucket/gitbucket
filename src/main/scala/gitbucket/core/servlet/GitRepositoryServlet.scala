@@ -10,7 +10,6 @@ import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util._
 
 import org.eclipse.jgit.api.Git
@@ -168,7 +167,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
             if (!existIds.contains(commit.id) && !pushedIds.contains(commit.id)) {
               if (issueCount > 0) {
                 pushedIds.add(commit.id)
-                createIssueComment(commit)
+                createIssueComment(owner, repository, commit)
                 // close issues
                 if(refName(1) == "heads" && branchName == defaultBranch && command.getType == ReceiveCommand.Type.UPDATE){
                   closeIssuesFromMessage(commit.fullMessage, pusher, owner, repository)
@@ -230,13 +229,4 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
     }
   }
 
-  private def createIssueComment(commit: CommitInfo) = {
-    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
-      if(getIssue(owner, repository, issueId).isDefined){
-        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
-          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
-        }
-      }
-    }
-  }
 }

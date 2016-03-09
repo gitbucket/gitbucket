@@ -19,7 +19,7 @@ trait RepositoryService { self: AccountService =>
    * @param originRepositoryName specify for the forked repository. (default is None)
    * @param originUserName specify for the forked repository. (default is None)
    */
-  def createRepository(repositoryName: String, userName: String, description: Option[String], isPrivate: Boolean,
+  def insertRepository(repositoryName: String, userName: String, description: Option[String], isPrivate: Boolean,
                        originRepositoryName: Option[String] = None, originUserName: Option[String] = None,
                        parentRepositoryName: Option[String] = None, parentUserName: Option[String] = None)
                       (implicit s: Session): Unit = {

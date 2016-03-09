@@ -121,16 +121,6 @@ trait IndexControllerBase extends ControllerBase {
     getAccountByUserName(params("userName")).isDefined
   })
 
-  /**
-   * @see https://developer.github.com/v3/rate_limit/#get-your-current-rate-limit-status
-   * but not enabled.
-   */
-  get("/api/v3/rate_limit"){
-    contentType = formats("json")
-    // this message is same as github enterprise...
-    org.scalatra.NotFound(ApiError("Rate limiting is not enabled."))
-  }
-
   // TODO Move to RepositoryViwerController?
   post("/search", searchForm){ form =>
     redirect(s"/${form.owner}/${form.repository}/search?q=${StringUtil.urlEncode(form.query)}")
