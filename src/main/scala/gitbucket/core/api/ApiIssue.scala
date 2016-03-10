@@ -20,6 +20,16 @@ case class ApiIssue(
   body: String)(repositoryName: RepositoryName, isPullRequest: Boolean){
   val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${number}/comments")
   val html_url = ApiPath(s"/${repositoryName.fullName}/${if(isPullRequest){ "pull" }else{ "issues" }}/${number}")
+  val pull_request = if (isPullRequest) {
+    Some(Map(
+      "url" -> ApiPath(s"/api/v3/repos/${repositoryName.fullName}/pulls/${number}"),
+      "html_url" -> ApiPath(s"/${repositoryName.fullName}/pull/${number}")
+      // "diff_url" -> ApiPath(s"/${repositoryName.fullName}/pull/${number}.diff"),
+      // "patch_url" -> ApiPath(s"/${repositoryName.fullName}/pull/${number}.patch")
+    ))
+  } else {
+    None
+  }
 }
 
 object ApiIssue{
