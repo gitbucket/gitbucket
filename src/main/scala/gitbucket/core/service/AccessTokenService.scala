@@ -5,6 +5,8 @@ import profile.simple._
 
 import gitbucket.core.model.{Account, AccessToken}
 import gitbucket.core.util.StringUtil
+import gitbucket.core.servlet.Database._
+import io.getquill._
 
 import scala.util.Random
 
@@ -27,28 +29,43 @@ trait AccessTokenService {
     var hash: String = null
     do{
       token = makeAccessTokenString
-      hash = tokenToHash(token)
-    }while(AccessTokens.filter(_.tokenHash === hash.bind).exists.run)
+      hash  = tokenToHash(token)
+    } while (
+      db.run(quote { (hash: String) => query[AccessToken].filter(_.tokenHash == hash).nonEmpty })(hash).head
+    )
     val newToken = AccessToken(
         userName = userName,
         note = note,
         tokenHash = hash)
+
     val tokenId = (AccessTokens returning AccessTokens.map(_.accessTokenId)) += newToken
     (tokenId, token)
   }
 
-  def getAccountByAccessToken(token: String)(implicit s: Session): Option[Account] =
-    Accounts
-      .innerJoin(AccessTokens)
-      .filter{ case (ac, t) => (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind) }
-      .map{ case (ac, t) => ac }
-      .firstOption
+  def getAccountByAccessToken(token: String)(implicit s: Session): Option[Account] = {
+    db.run(
+      quote { (tokenHash: String) =>
+        query[AccessToken].filter(_.tokenHash == tokenHash)
+          .join(query[Account]).on { (t, a) => t.userName == a.userName && a.registeredDate == false }
+          .map { case (t, a) => a }
+      }
+    )(tokenToHash(token)).headOption
+  }
 
-  def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] =
-    AccessTokens.filter(_.userName === userName.bind).sortBy(_.accessTokenId.desc).list
+  def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] = {
+    db.run(
+      quote { (userName: String) =>
+        query[AccessToken].filter(_.userName == userName).sortBy(_.accessTokenId)(Ord.desc)
+      }
+    )(userName)
+  }
 
   def deleteAccessToken(userName: String, accessTokenId: Int)(implicit s: Session): Unit =
-    AccessTokens filter (t => t.userName === userName.bind && t.accessTokenId === accessTokenId) delete
+    db.run(
+      quote { (userName: String, accessTokenId: Int) =>
+        query[AccessToken].filter { t => t.userName == userName && t.accessTokenId == accessTokenId }.delete
+      }
+    )(List((userName, accessTokenId)))
 
 }
 

@@ -97,7 +97,11 @@ trait AccountService {
     if(needs.isEmpty){
       map
     } else {
-      map ++ Accounts.filter(t => (t.userName inSetBind needs) && (t.removed === false.bind, !includeRemoved)).list.map(a => a.userName -> a).toMap
+      map ++ db.run(
+        quote { (userNames: Set[String]) =>
+          query[Account].filter { t => userNames.contains(t.userName) && t.removed == false }
+        }
+      )(userNames.toSet).map { a => a.userName -> a }.toMap
     }
   }
 
@@ -126,7 +130,7 @@ trait AccountService {
   }
 
   def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String]): Unit = {
-    db.run(quote { query[Account].insert })(List(Account(
+    db.run(quote { query[Account].insert })(Account(
       userName       = userName,
       password       = password,
       fullName       = fullName,
@@ -139,7 +143,7 @@ trait AccountService {
       image          = None,
       groupAccount   = false,
       removed        = false
-    )))
+    ))
   }
 
   def updateAccount(account: Account): Unit = {
@@ -156,7 +160,7 @@ trait AccountService {
         _.lastLoginDate  -> lastLoginDate,
         _.removed        -> removed
       )
-    })(List((
+    })((
       account.userName,
       account.password,
       account.fullName,
@@ -167,19 +171,19 @@ trait AccountService {
       currentDate,
       account.lastLoginDate,
       account.removed
-    )))
+    ))
   }
 
   def updateAvatarImage(userName: String, image: Option[String]): Unit = {
     db.run(quote { (userName: String, image: Option[String]) =>
       query[Account].filter(_.userName == userName).update(_.image -> image)
-    })(List((userName, image)))
+    })((userName, image))
   }
 
   def updateLastLoginDate(userName: String): Unit = {
     db.run(quote { (userName: String, lastLoginDate: Option[Date]) =>
       query[Account].filter(_.userName == userName).update(_.lastLoginDate -> lastLoginDate)
-    })(List((userName, Some(currentDate))))
+    })((userName, Some(currentDate)))
   }
 
   def createGroup(groupName: String, url: Option[String]): Unit = {
@@ -208,12 +212,12 @@ trait AccountService {
   def updateGroupMembers(groupName: String, members: List[(String, Boolean)]): Unit = {
     db.run(
       quote { (groupName: String) => query[GroupMember].filter(_.groupName == groupName).delete }
-    )(List(groupName))
+    )(groupName)
 
     members.foreach { case (userName, isManager) =>
       db.run(
         quote { query[GroupMember].insert }
-      )(List(GroupMember(groupName, userName, isManager)))
+      )(GroupMember(groupName, userName, isManager))
     }
   }
 
@@ -230,9 +234,9 @@ trait AccountService {
   }
 
   def removeUserRelatedData(userName: String): Unit = {
-    db.run(quote { (userName: String) => query[GroupMember].filter(_.userName == userName).delete })(List(userName))
-    db.run(quote { (userName: String) => query[Collaborator].filter(_.collaboratorName == userName).delete })(List(userName))
-    db.run(quote { (userName: String) => query[Repository].filter(_.userName == userName).delete })(List(userName))
+    db.run(quote { (userName: String) => query[GroupMember].filter(_.userName == userName).delete })(userName)
+    db.run(quote { (userName: String) => query[Collaborator].filter(_.collaboratorName == userName).delete })(userName)
+    db.run(quote { (userName: String) => query[Repository].filter(_.userName == userName).delete })(userName)
   }
 
   def getGroupNames(userName: String): List[String] = {

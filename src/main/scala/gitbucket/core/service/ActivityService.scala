@@ -5,11 +5,18 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile.simple._
 
+import gitbucket.core.servlet.Database._
+import io.getquill._
+
 trait ActivityService {
 
   def deleteOldActivities(limit: Int)(implicit s: Session): Int = {
-    Activities.map(_.activityId).sortBy(_ desc).drop(limit).firstOption.map { id =>
-      Activities.filter(_.activityId <= id.bind).delete
+    db.run (
+      quote { (limit: Int) => query[Activity].map(_.activityId).sortBy(x => x)(Ord.desc).drop(limit) }
+    )(limit).headOption.map { activityId =>
+      db.run (
+        quote { (activityId: Int) => query[Activity].filter(_.activityId <= activityId).delete }
+      )(activityId)
     } getOrElse 0
   }
 
