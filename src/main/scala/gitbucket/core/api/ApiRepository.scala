@@ -39,7 +39,7 @@ object ApiRepository{
       description = repository.description.getOrElse(""),
       watchers    = 0,
       forks       = forkedCount,
-      `private`   = repository.isPrivate,
+      `private`   = repository.`private`,
       default_branch = repository.defaultBranch,
       owner       = owner
     )(urlIsHtmlUrl)

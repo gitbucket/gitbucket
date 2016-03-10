@@ -76,14 +76,14 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
       case Array(_, repositoryOwner, repositoryName, _*) =>
         getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", "")) match {
           case Some(repository) => {
-            if(!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess){
+            if(!isUpdating && !repository.repository.`private` && settings.allowAnonymousAccess){
               chain.doFilter(request, response)
             } else {
               val passed = for {
                 auth <- Option(request.getHeader("Authorization"))
                 Array(username, password) = decodeAuthHeader(auth).split(":", 2)
                 account <- authenticate(settings, username, password)
-              } yield if(isUpdating || repository.repository.isPrivate){
+              } yield if(isUpdating || repository.repository.`private`){
                   if(hasWritePermission(repository.owner, repository.name, Some(account))){
                     request.setAttribute(Keys.Request.UserName, account.userName)
                     true

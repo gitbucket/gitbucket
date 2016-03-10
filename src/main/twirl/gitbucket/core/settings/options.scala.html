@@ -21,7 +21,7 @@
             <fieldset class="margin">
               <label class="radio">
                 <input type="radio" name="isPrivate" value="false"
-                  @if(!repository.repository.isPrivate              ){ checked  }
+                  @if(!repository.repository.`private`              ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
                 <span class="strong"><i class="octicon octicon-repo"></i> Public</span><br>
@@ -31,7 +31,7 @@
               </label>
               <label class="radio">
                 <input type="radio" name="isPrivate" value="true"
-                  @if(repository.repository.isPrivate               ){ checked  }
+                  @if(repository.repository.`private`               ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
                 <span class="strong"><i class="octicon octicon-lock"></i> Private</span><br>

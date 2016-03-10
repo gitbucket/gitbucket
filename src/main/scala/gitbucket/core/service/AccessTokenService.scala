@@ -42,30 +42,22 @@ trait AccessTokenService {
     (tokenId, token)
   }
 
-  def getAccountByAccessToken(token: String)(implicit s: Session): Option[Account] = {
-    db.run(
-      quote { (tokenHash: String) =>
+  def getAccountByAccessToken(token: String)(implicit s: Session): Option[Account] =
+    db.run(quote { (tokenHash: String) =>
         query[AccessToken].filter(_.tokenHash == tokenHash)
           .join(query[Account]).on { (t, a) => t.userName == a.userName && a.registeredDate == false }
           .map { case (t, a) => a }
-      }
-    )(tokenToHash(token)).headOption
-  }
+    })(tokenToHash(token)).headOption
 
-  def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] = {
-    db.run(
-      quote { (userName: String) =>
-        query[AccessToken].filter(_.userName == userName).sortBy(_.accessTokenId)(Ord.desc)
-      }
-    )(userName)
-  }
+  def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] =
+    db.run(quote { (userName: String) =>
+      query[AccessToken].filter(_.userName == userName).sortBy(_.accessTokenId)(Ord.desc)
+    })(userName)
 
   def deleteAccessToken(userName: String, accessTokenId: Int)(implicit s: Session): Unit =
-    db.run(
-      quote { (userName: String, accessTokenId: Int) =>
-        query[AccessToken].filter { t => t.userName == userName && t.accessTokenId == accessTokenId }.delete
-      }
-    )(List((userName, accessTokenId)))
+    db.run(quote { (userName: String, accessTokenId: Int) =>
+      query[AccessToken].filter { t => t.userName == userName && t.accessTokenId == accessTokenId }.delete
+    })(List((userName, accessTokenId)))
 
 }
 

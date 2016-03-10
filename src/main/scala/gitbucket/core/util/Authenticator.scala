@@ -119,7 +119,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
     {
       defining(request.paths){ paths =>
         getRepository(paths(0), paths(1)).map { repository =>
-          if(!repository.repository.isPrivate){
+          if(!repository.repository.`private`){
             action(repository)
           } else {
             context.loginAccount match {
@@ -148,7 +148,7 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
         getRepository(paths(0), paths(1)).map { repository =>
           context.loginAccount match {
             case Some(x) if(x.administrator) => action(repository)
-            case Some(x) if(!repository.repository.isPrivate) => action(repository)
+            case Some(x) if(!repository.repository.`private`) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
             case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
             case _ => Unauthorized()

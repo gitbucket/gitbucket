@@ -15,7 +15,7 @@
         <div class="repository-content">
           <div class="block-header">
             <a href="@url(repository)">@repository.name</a>
-            @if(repository.repository.isPrivate){
+            @if(repository.repository.`private`){
               <i class="octicon octicon-lock"></i>
             }
           </div>

@@ -92,7 +92,7 @@ class DefaultGitUploadPack(owner: String, repoName: String) extends DefaultGitCo
 
   override protected def runTask(user: String)(implicit session: Session): Unit = {
     getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).foreach { repositoryInfo =>
-      if(!repositoryInfo.repository.isPrivate || isWritableUser(user, repositoryInfo)){
+      if(!repositoryInfo.repository.`private` || isWritableUser(user, repositoryInfo)){
         using(Git.open(getRepositoryDir(owner, repoName))) { git =>
           val repository = git.getRepository
           val upload = new UploadPack(repository)

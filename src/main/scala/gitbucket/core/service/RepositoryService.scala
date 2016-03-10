@@ -27,7 +27,7 @@ trait RepositoryService { self: AccountService =>
       Repository(
         userName             = userName,
         repositoryName       = repositoryName,
-        isPrivate            = isPrivate,
+        `private`            = isPrivate,
         description          = description,
         defaultBranch        = "master",
         registeredDate       = currentDate,

@@ -389,7 +389,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           repositoryName       = repository.name,
           userName             = accountName,
           description          = repository.repository.description,
-          isPrivate            = repository.repository.isPrivate,
+          isPrivate            = repository.repository.`private`,
           originRepositoryName = Some(originRepositoryName),
           originUserName       = Some(originUserName),
           parentRepositoryName = Some(repository.name),

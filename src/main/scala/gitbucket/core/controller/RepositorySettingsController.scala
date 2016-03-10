@@ -87,7 +87,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       repository.name,
       form.description,
       repository.repository.parentUserName.map { _ =>
-        repository.repository.isPrivate
+        repository.repository.`private`
       } getOrElse form.isPrivate
     )
     // Change repository name

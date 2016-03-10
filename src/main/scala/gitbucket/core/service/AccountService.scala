@@ -77,17 +77,15 @@ trait AccountService {
   }
 
   def getAccountByUserName(userName: String, includeRemoved: Boolean = false): Option[Account] = {
-    db.run(
-      quote { (userName: String, includeRemoved: Boolean) =>
-        query[Account].filter { t =>
-          if(includeRemoved){
-            t.userName == userName
-          } else {
-            t.userName == userName && t.removed == false
-          }
+    db.run(quote { (userName: String, includeRemoved: Boolean) =>
+      query[Account].filter { t =>
+        if(includeRemoved){
+          t.userName == userName
+        } else {
+          t.userName == userName && t.removed == false
         }
       }
-    )(userName, includeRemoved).headOption
+    })(userName, includeRemoved).headOption
   }
 
 
@@ -97,26 +95,22 @@ trait AccountService {
     if(needs.isEmpty){
       map
     } else {
-      map ++ db.run(
-        quote { (userNames: Set[String]) =>
+      map ++ db.run(quote { (userNames: Set[String]) =>
           query[Account].filter { t => userNames.contains(t.userName) && t.removed == false }
-        }
-      )(userNames.toSet).map { a => a.userName -> a }.toMap
+      })(userNames.toSet).map { a => a.userName -> a }.toMap
     }
   }
 
   def getAccountByMailAddress(mailAddress: String, includeRemoved: Boolean = false): Option[Account] = {
-    db.run(
-      quote { (mailAddress: String, includeRemoved: Boolean) =>
-        query[Account].filter { t =>
-          if(includeRemoved){
-            t.mailAddress.toLowerCase == mailAddress.toLowerCase
-          } else {
-            t.mailAddress.toLowerCase == mailAddress.toLowerCase && t.removed == false
-          }
+    db.run(quote { (mailAddress: String, includeRemoved: Boolean) =>
+      query[Account].filter { t =>
+        if(includeRemoved){
+          t.mailAddress.toLowerCase == mailAddress.toLowerCase
+        } else {
+          t.mailAddress.toLowerCase == mailAddress.toLowerCase && t.removed == false
         }
       }
-    )(mailAddress, includeRemoved).headOption
+    })(mailAddress, includeRemoved).headOption
   }
 
   def getAllUsers(includeRemoved: Boolean = true): List[Account] = {
@@ -210,14 +204,10 @@ trait AccountService {
   }
 
   def updateGroupMembers(groupName: String, members: List[(String, Boolean)]): Unit = {
-    db.run(
-      quote { (groupName: String) => query[GroupMember].filter(_.groupName == groupName).delete }
-    )(groupName)
+    db.run(quote { (groupName: String) => query[GroupMember].filter(_.groupName == groupName).delete })(groupName)
 
     members.foreach { case (userName, isManager) =>
-      db.run(
-        quote { query[GroupMember].insert }
-      )(GroupMember(groupName, userName, isManager))
+      db.run(quote { query[GroupMember].insert })(GroupMember(groupName, userName, isManager))
     }
   }
 

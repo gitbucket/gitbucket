@@ -2,7 +2,7 @@
 @import gitbucket.core.service.RepositoryService
 @import context._
 @import gitbucket.core.view.helpers._
-@if(repository.repository.isPrivate){
+@if(repository.repository.`private`){
   <i class="@{if(large){"mega-"}}octicon octicon-lock"></i>
 } else {
   @if(repository.repository.originUserName.isDefined){

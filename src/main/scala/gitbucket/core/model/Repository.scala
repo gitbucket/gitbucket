@@ -26,7 +26,7 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
 case class Repository(
   userName: String,
   repositoryName: String,
-  isPrivate: Boolean,
+  `private`: Boolean,
   description: Option[String],
   defaultBranch: String,
   registeredDate: java.util.Date,
