@@ -30,6 +30,14 @@ import org.eclipse.jgit.treewalk._
 import org.scalatra._
 
 
+import gitbucket.core.helper.xml
+import gitbucket.core.model.Account
+import gitbucket.core.service.{RepositoryService, ActivityService, AccountService}
+import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator}
+
+
+
+
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
@@ -620,8 +628,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * @return HTML of the file list
    */
   private def fileList(repository: RepositoryService.RepositoryInfo, revstr: String = "", path: String = ".") = {
+      
+     val loginAccount = context.loginAccount
     if(repository.commitCount == 0){
-      html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+        
+       
+    
+        
+      html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),loginAccount.map{ account => getUserRepositories(account.userName,withoutPhysicalInfo = true) }.getOrElse(Nil))
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         // get specified commit
@@ -649,6 +663,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount),
               getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),
+              loginAccount.map{ account => getUserRepositories(account.userName,withoutPhysicalInfo = true) }.getOrElse(Nil),
               flash.get("info"), flash.get("error"))
           }
         } getOrElse NotFound

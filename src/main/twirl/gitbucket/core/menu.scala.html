@@ -25,7 +25,7 @@
     @helper.html.error(error)
     <div class="head">
       @if(repository.commitCount > 0){
-        <div class="input-group pull-right">
+        <div class="input-group pull-right hidedisplay">
           <span class="fork">
             <span class="input-group-btn">
             @if(loginAccount.isEmpty){
@@ -58,14 +58,14 @@
         }
       }
     </div>
-    <ul class="headmenu">
+    <ul class="headmenu panelbackgrnd panelborder">
       @menuitem(""       , "code"   , "code" , "Code")
       @menuitem("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
       @menuitem("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
       @menuitem("/wiki"  , "wiki"   , "book"  , "Wiki")
-      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+     <!-- @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         @menuitem("/settings" , "settings" , "tools", "Settings")
-      }
+      }-->
     </ul>
   </div>
 </div>
@@ -74,7 +74,7 @@
     @repository.repository.description.map { description =>
       <p class="description">@detectAndRenderLinks(description)</p>
     }
-    <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
+    <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-success panelrepoartifacts">
       <table class="fill-width">
         <tr>
           <td style="width: 33%; text-align: center;">

@@ -2,6 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.api._
 import gitbucket.core.helper.xml
+import gitbucket.core.html
 import gitbucket.core.model.Account
 import gitbucket.core.service.{RepositoryService, ActivityService, AccountService, RepositorySearchService, IssuesService}
 import gitbucket.core.util.Implicits._
@@ -39,7 +40,7 @@ trait IndexControllerBase extends ControllerBase {
   get("/"){
     val loginAccount = context.loginAccount
     if(loginAccount.isEmpty) {
-        gitbucket.core.html.index(getRecentActivities(),
+        gitbucket.core.html.indexcontent(getRecentActivities(),
             getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
@@ -50,7 +51,7 @@ trait IndexControllerBase extends ControllerBase {
         
         visibleOwnerSet ++= loginUserGroups
 
-        gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet),
+        gitbucket.core.html.indexcontent(getRecentActivitiesByOwners(visibleOwnerSet),
             getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil) 
         )
@@ -69,6 +70,13 @@ trait IndexControllerBase extends ControllerBase {
     authenticate(context.settings, form.userName, form.password) match {
       case Some(account) => signin(account)
       case None          => redirect("/signin")
+    }
+  }
+    
+  post("/signinoffline", signinForm){ form =>
+    authenticate(context.settings, form.userName, form.password) match {
+      case Some(account) => signin(account)
+      case None          => halt(405)
     }
   }
 

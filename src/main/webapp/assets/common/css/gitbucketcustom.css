@@ -1,0 +1,2172 @@
+/****************************************************************************/
+/* Common */
+/****************************************************************************/
+body {
+  color: #333;
+  background-color: #222222; /*dynsim modelergy changes*/
+}
+
+li p {
+  margin: 0px;
+}
+
+h1 {
+  font-size: 30px;
+  line-height: 32px;
+}
+
+h2 {
+  font-size: 28px;
+  line-height: 30px;
+}
+
+h3 {
+  font-size: 26px;
+  line-height: 28px;
+}
+
+h4 {
+  font-size: 24px;
+}
+
+h5 {
+  font-size: 22px;
+}
+
+h6 {
+  font-size: 18px;
+}
+
+.octicon,.mega-octicon{
+    color : #999;
+    width: 14px;
+    height: 14px;
+    /*font-size: 14px;*/
+    text-align: center;
+}
+
+.mega-octicon{
+    width: 32px;
+    height: 32px;
+}
+
+.octicon.active,.mega-octicon.active{
+    color : #333;
+}
+
+.octicon-cloud-download{
+    color: #333;
+    margin-right: 5px;
+}
+
+.head .octicon, .head .mega-octicon{
+    color : #BBB;
+}
+
+.align-right {
+  text-align: right;
+}
+
+blockquote p {
+  font-size: 15px;
+}
+
+/* start custom styles for dynsim modelergy */
+
+.hidedisplay{
+  display: none;
+}
+
+.commonbackgrnd{
+ background-color: grey;
+ color:#FFF;
+}
+
+.panelbackgrnd{
+ background-color: #464545;
+ color:white;
+}
+
+.panelborder{
+
+  border-color: #5cb85c
+}
+
+.panelborder > strong {
+   color: white;
+}
+
+.badgeblue{
+
+  background-color: #5cb85c;
+  color: white;
+}
+
+.panel-default > .panel-heading-custom {
+  color: white;
+  background-color: grey;
+  border-color: #dddddd;
+}
+
+.panelrepoartifacts 
+{
+  background-color: #5cb85c;
+}
+
+.panelrepoartifacts table
+{
+  background-color: #5cb85c;
+} 
+
+
+
+/* end custom styles for dynsim modelergy */
+
+
+/*
+.nav {
+  margin-bottom: 12px;
+}
+
+.table-bordered {
+  border-collapse: inherit;
+  border: none;
+}
+
+.table-bordered > thead > tr > th,
+.table-bordered > tbody > tr > th,
+.table-bordered > tbody > tr > td {
+  border-bottom: none;
+}
+
+.table-bordered > thead > tr:first-child > th:nth-of-type(1),
+.table-bordered > tbody > tr:first-child > th:nth-of-type(1),
+.table-bordered > tbody > tr:first-child > td:nth-of-type(1) {
+  border-top-left-radius: 4px;
+}
+
+.table-bordered > thead > tr:first-child > th:nth-last-of-type(1),
+.table-bordered > tbody > tr:first-child > th:nth-last-of-type(1),
+.table-bordered > tbody > tr:first-child > td:nth-last-of-type(1) {
+  border-top-right-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td:nth-of-type(1) {
+  border-bottom-left-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td:nth-last-of-type(1) {
+  border-bottom-right-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td {
+  border-bottom: 1px solid #dddddd;
+}
+*/
+/*
+.table-bordered > thead > tr > th,
+.table-bordered > thead > tr > td {
+  border-bottom-width: 1px;
+}
+*/
+/*
+.tab-content {
+  margin-top: 20px;
+}
+*/
+.danger {
+  color: #900;
+}
+
+.warning {
+  color: #F28722;
+}
+
+.muted {
+  color: #a8a8a8;    /* dynsim modelergy changes  color:#777; */
+}
+
+dl {
+  margin: 0px;
+}
+
+dd {
+  margin-left: 20px;
+}
+
+hr {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+pre.reset {
+  /* defaults */
+  display: block;
+  font-family: monospace;
+  white-space: pre;
+  margin: 1em 0px;
+  /* bootstrap overrides */
+  padding: initial;
+  line-height: initial;
+  color: initial;
+  background-color: initial;
+  border: initial;
+  overflow: initial;
+  word-break: initial;
+  word-wrap: initial;
+  border-radius: initial;
+}
+
+/* ======================================================================== */
+/* Global Header */
+/* ======================================================================== */
+.navbar-brand {
+  height: unset;
+  padding: 8px;
+}
+
+.navbar {
+  min-height: unset;
+  margin-bottom: 0px;
+}
+
+span.header-version {
+  font-size: small;
+}
+
+div.input-group>span.fork {
+  display: table;
+  margin-left: 4px;
+  margin-top: 1px;
+}
+
+div.input-group>span.fork>span.count {
+  background-color: white;
+  -webkit-border-radius: 0 4px 4px 0;
+  -moz-border-radius: 0 4px 4px 0;
+  border-radius: 0 4px 4px 0;
+  border: 1px solid #d8d8d8;
+  border-left: none;
+  font-size: 11px;
+  /*height: 24px;*/
+  padding: 3px 6px;
+  display: table-cell;
+}
+
+a.global-header-menu {
+  color: black;
+  font-weight: bold;
+  font-size: 90%;
+  margin-top: 6px;
+  margin-left: 10px;
+  margin-right: 10px;
+  line-height: 3.1;
+}
+
+/* ======================================================================== */
+/* General Styles */
+/* ======================================================================== */
+div.head {
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+div.head div.forked {
+  font-size: 60%;
+  margin-left: 36px;
+  color: #999999;
+}
+
+div.container {
+  width: 80%; /*dynsim changes for style */
+}
+
+div.container-wide {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/*
+div.pagination {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+*/
+
+div.body {
+  /* dynsim modelergy changes  margin-top: 20px;*/
+  margin-bottom: 40px;
+}
+
+span.error {
+  color: red;
+}
+
+.small {
+  font-size: 80%;
+}
+
+.strong {
+  font-weight: bold;
+}
+
+.normal {
+  font-weight: normal;
+}
+
+.shorten-text {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+a.commit-message, a.commit-id, a.username, a.issue-comment-count {
+  color: #a8a8a8; /* dynsim modelergy changes #333333;*/
+}
+
+a.omit {
+  background-color: #ddd;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-weight: bold;
+}
+
+a.omit:hover {
+  background-color: #aaa;
+}
+
+div.show-more {
+  text-align: center;
+  border-top: 1px solid silver;
+}
+
+div.show-more a {
+  color: #7aa1d3;
+}
+
+span.count-right {
+  float: right;
+  font-weight: bold;
+}
+
+.monospace {
+  font-family: Consolas, 'Courier New', Courier, Monaco, monospace;
+}
+
+table.table th {
+  background-color: #d9edf7;
+}
+
+div.block-header {
+  font-size: large;
+  font-weight: bold;
+}
+
+div.block {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+h3 {
+  margin-top: 0px;
+}
+
+div.box-header {
+  background-color: #a8a8a8; /*dynsim changes background-color: #f5f5f5;*/
+  margin: 0;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border: 1px solid #d8d8d8;
+  border-bottom: none;
+  padding: 8px 8px 8px 8px;
+  color: white; /*dynsim changes added*/
+}
+
+.inline-comment div.box-header-small {
+  background: #f2f8fa;
+}
+
+.inline-comment div.box-content-bottom {
+  margin-bottom: 0px;
+}
+
+.commit-list {
+  position: relative;
+}
+
+.commit-list::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  z-index: -1;
+  display: block;
+  width: 2px;
+  content: "";
+  background-color: #f3f3f3;
+}
+
+ul.nav-pills .link {
+  color: #4078c0;
+}
+
+ul.nav-pills i.link {
+  line-height: 0px;
+  height: 0;
+}
+
+div.box-commits {
+  background-color: white;
+  padding-left: 0px;
+  padding-right: 0px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+}
+
+div.box-content {
+  background-color: white;
+  border: 1px solid #d8d8d8;
+  padding: 4px;
+  border-radius: 3px;
+}
+
+li.repo-link, li.page-link {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+div.box-content-bottom {
+  background-color: white;
+  border: 1px solid #d8d8d8;
+  padding: 4px;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  margin-bottom: 20px;
+}
+
+div.box-content-bottom img {
+  max-width: 100%;
+}
+
+table.table th.box-header {
+  background-color: #f5f5f5;
+}
+
+th.box-header .octicon {
+  display: inline;
+}
+
+img.avatar {
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+}
+
+img.avatar-mini {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
+
+div.activity-message {
+  margin-left: 20px;
+}
+
+fieldset.margin {
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+div.account-image {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+ul.dropdown-menu {
+  padding: 2px 0;
+}
+
+ul.dropdown-menu li {
+  border-bottom: 1px solid #eee;
+  font-size: 85%;
+}
+
+ul.dropdown-menu li a {
+  padding: 2px 10px;
+}
+
+ul.dropdown-menu :last-child {
+  border-bottom: none;
+}
+
+span.highlight {
+  background-color: #ffff88;
+}
+
+.fill-width {
+  width: 100%;
+}
+
+.dz-clickable {
+  cursor: pointer;
+}
+
+.btn .octicon {
+  color: #333;
+}
+
+.btn-success .octicon {
+  color: #fff;
+}
+
+.btn-warning .octicon {
+  color: #fff;
+}
+
+.btn-danger .octicon {
+  color: #900;
+}
+
+a.btn-danger:hover .octicon {
+  color: #fff;
+}
+
+.no-margin {
+  margin: 0px;
+}
+
+/****************************************************************************/
+/* Head Menu (Modified for dynsim modelergy*/
+/****************************************************************************/
+div.headbar {
+  /*background-color: #fafafa;*/
+  /*background-color: #464545;*/
+  padding-top: 19px;
+  /*border-bottom: 1px solid #4183C4;*/
+  margin-bottom: 20px;
+}
+
+
+ul.headmenu {
+  margin-top: 20px;
+  margin-left: 0px;
+  padding-left: 0px;
+  margin-bottom: -1px;
+}
+
+ul.headmenu a:hover {
+  text-decoration: none;
+  color: white;
+}
+
+ul.headmenu li {
+  display: inline-block;
+  list-style-type: none;
+  font-size: 13px;
+}
+
+ul.headmenu li a {
+  color: #666;
+  padding: 8px 10px;
+  display: block;
+}
+
+ul.headmenu li.active a {
+  color: white;
+}
+
+ul.headmenu li.active {
+  border-top: 3px solid #bb4444;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  border-bottom: none;
+  background-color: #5cb85c;
+}
+
+ul.headmenu li.active a {
+  background-color: #5cb85c;
+  color: white;
+}
+
+/****************************************************************************/
+/* Create Repository */
+/****************************************************************************/
+.slash {
+  font-size: 20px;
+}
+
+/****************************************************************************/
+/* Sign-in form */
+/****************************************************************************/
+div.signin-form {
+  width: 350px;
+  margin: 30px auto;
+}
+
+/****************************************************************************/
+/* Account page */
+/****************************************************************************/
+.account-fullname {
+  margin-top: 20px;
+  font-size: 180%;
+  font-weight: bold;
+}
+
+.account-username {
+  margin-top: 10px;
+  font-size: 140%;
+  color: #888888;
+  font-weight: bold;
+}
+
+/****************************************************************************/
+/* Stacked side menu */
+/****************************************************************************/
+ul.nav-stacked.side-menu {
+  margin-bottom: 0px;
+}
+
+ul.nav-stacked.side-menu li {
+  background-color: #f9f9f9;
+  margin-bottom: -3px;
+}
+
+a#show-pages-index {
+  color: #333;
+  text-decoration: none;
+}
+
+ul.nav-stacked.side-menu li a:hover {
+  background-color: transparent;
+}
+
+ul.nav-stacked.side-menu li.active a {
+  background-color: white;
+  color: #333;
+  font-weight: bold;
+  border-left: 2px solid #cc6666;
+}
+
+ul.nav-stacked.side-menu li.active a:hover {
+  background-color: white;
+  color: #4183c4;
+  font-weight: bold;
+  border-left: 2px solid #cc6666;
+}
+
+.nav-tabs.nav-stacked.side-menu > li > a {
+  border: 1px solid #d8d8d8;
+  border-radius: 0px;
+  background-color: white;
+  color: #4183c4;
+  padding: 8px 15px 9px;
+}
+
+.nav-tabs.nav-stacked.side-menu > li:first-child > a {
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
+}
+
+.nav-tabs.nav-stacked.side-menu > li:last-child > a {
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+/****************************************************************************/
+/* Repositories */
+/****************************************************************************/
+div.repository-icon {
+  position: absolute;
+}
+
+div.repository-content {
+  margin-left: 40px;
+}
+
+.branches .muted-link{
+  color: #777;
+}
+.branches .muted-link:hover{
+  color: #4183c4;
+}
+.branches .branch-details{
+  display: inline-block;
+  width: 490px;
+  margin-right: 10px;
+}
+.branches .branch-name{
+  color: #4183c4;
+  display: inline-block;
+  padding: 2px 6px;
+  font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  background-color: rgba(209,227,237,0.5);
+  border-radius: 3px;
+}
+.branches .branch-meta{
+  color: #aaa;
+  font-size: 12px;
+  line-height: 20px;
+}
+.branches .branch-action{
+  display: inline-block;
+  float: right;
+  position: relative;
+  top: -3px;
+  height: 20px;
+}
+.branches .branch-a-b-count{
+  display: inline-block;
+  vertical-align: middle;
+  width: 181px;
+  text-align: center;
+  color: rgba(0,0,0,0.5);
+}
+.branches .a-b-count-widget{
+  font-size: 10px;
+}
+.branches .a-b-count-widget .count-half{
+  width:90px;
+  position: relative;
+  text-align: right;
+  float: left;
+}
+.branches .a-b-count-widget .count-half:last-child {
+  text-align: left;
+  border-left: 1px solid #bbb;
+}
+.branches .a-b-count-widget .count-half .count-value{
+  padding: 0 3px;
+}
+
+/****************************************************************************/
+/* Activity */
+/****************************************************************************/
+div.activity-icon-large {
+  position: absolute;
+  padding-top: 8px;
+}
+
+div.activity-icon-small {
+  position: absolute;
+  padding-left: 8px;
+}
+
+div.activity-content {
+  margin-left: 40px;
+}
+
+div[class^="activity-icon"] i{
+    color: #BBB;
+}
+
+/****************************************************************************/
+/* Repository Viewer */
+/****************************************************************************/
+p.description {
+  color: gray;
+}
+
+a.header-link {
+  /*dynsim changes color: #888;*/
+  color: white;
+  font-size: 90%;
+}
+
+a.header-link strong {
+  /*dynsim changes color: black;*/
+}
+
+a.header-link:hover {
+  color: #4183c4;
+  text-decoration: none;
+}
+
+a.header-link:hover i.octicon, a.header-link:hover strong{
+  color: inherit;
+}
+
+a.header-link i.octicon-x{
+    opacity: 1;
+    width: 20px;
+    height: 20px;
+    margin-right: 3px;
+    color: #FFF;
+    line-height: 20px;
+    background-color: #777;
+    border-radius: 3px;
+}
+a.header-link:hover i.octicon-x{
+    background-color: #4183c4;
+    color: #FFF;
+}
+
+/*
+table.blobview {
+  table-layout: fixed;
+}
+*/
+
+table.table-file-list {
+  margin-bottom: 0px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  border-collapse: separate;
+}
+
+table.table-file-list th, table.table-file-list td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* dynsim modelergy changes */
+table.table-file-list th {
+ 
+  background-color: grey;
+  color: white;
+}
+
+table.table-file-list td.latest-commit {
+  padding-top: 4px;
+  padding-bottom: 4px;  
+  background-color: #46 ;/* dynsim modelergy changes */
+  color: white;
+}
+
+table.table-file-list td {
+  background-color: #464545; /*background-color: #F8F8F8;*/
+  font-size: small;
+}
+
+table.table-file-list .file-icon {
+  padding-right: 1px;
+}
+
+table.table-file-list .content-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+table.table-file-list .commit-message {
+  max-width: 415px;
+  display: inline-block;
+  color: white; /* dynsim modelergy changes */
+}
+
+table.table-file-list .commit-author {
+  color: #999;
+  font-size: 12px;
+  float: right;
+}
+
+th, td, .table th, .table td {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  line-height: 100%;
+}
+
+div.commit-avatar-image {
+  float: left;
+  margin-right: 4px;
+}
+/*
+div.commit-message-box {
+  margin-left: 42px;
+}
+*/
+pre.commit-description {
+  font-weight: normal;
+  border: none;
+  background-color: transparent;
+  padding: 2px;
+  margin: 0px;
+}
+
+#repository-url {
+  background-color: white;
+  cursor: default;
+  color: silver;
+  font-size: 8pt;
+  font-family: monospace;
+}
+
+#repository-url-copy {
+  /*height: 18px;*/
+  padding-top: 2px;
+}
+
+#repository-url-copy > i {
+  margin-left: -4px;
+  margin-right: -4px;
+}
+
+
+ul#commit-file-list {
+  list-style-type: none;
+  padding-left: 0px;
+  margin-left: 0px;
+}
+
+ul#commit-file-list li.border {
+  padding-bottom: 2px;
+  border-top: 1px solid #eee;
+}
+
+li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9 {
+  list-style-type: decimal;
+  background: white;
+  border-left: 1px solid #E5E5E5;
+  padding-left: 10px;
+  color: rgba(0, 0, 0, 0.3);
+}
+
+pre.blob {
+  border: none;
+  background-color: white;
+  padding-left: 20px;
+  font-size: 12px;
+}
+
+#readme {
+  margin-top: 20px;
+}
+
+#readme .box-content {
+  padding: 20px;
+}
+
+li.highlight {
+  background-color: #ffb;
+}
+
+span.simplified-path {
+  color: #888;
+}
+
+#branch-control-title {
+  margin: 5px 10px;
+  font-weight: bold;
+}
+
+#branch-control-close {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-weight: bold;
+  line-height: 15px;
+}
+
+#branch-control-input {
+  border: solid 1px #ccc;
+  margin: 4px;
+  width: 96%;
+}
+
+.new-branch-name {
+  font-weight: bold;
+  font-size: 1.2em;
+  padding-left: 16px;
+}
+
+.btn-pullrequest-branch{
+  background: none;
+  border: 1px solid #0088cc;
+  color: #0088cc;
+}
+
+/****************************************************************************/
+/* Issues */
+/****************************************************************************/
+#search-filter-box {
+  font-size: 100%;
+}
+
+.btn-group.open .dropdown-toggle.flat {
+    background-image: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+a.button-link {
+    font-weight: normal;
+    color: gray;
+}
+
+a.button-link i {
+    color: inherit;
+}
+a.selected {
+    font-weight: bold;
+    color: black;
+}
+
+span.issue-status {
+  text-align: center;
+  padding: 4px 8px 4px 8px;
+}
+
+table.table-issues {
+  margin-top: 12px;
+}
+
+table.table-issues td .octicon-issue-opened, table.table-issues td .octicon-git-pull-request .open {
+  color: #6CC644;
+}
+
+table.table-issues td .octicon-issue-closed, table.table-issues td .octicon-git-pull-request .closed{
+  color : #BD2C00;;
+}
+
+a.issue-title {
+  color: #333;
+  font-weight: bold;
+  font-size: 120%;
+}
+
+.label-success {
+  background-color: #6cc644;
+}
+
+.label-important {
+  background-color: #bd2c00;
+}
+
+ul.label-list {
+  list-style-type: none;
+  padding-left: 0px;
+  margin-left: 0px;
+  font-size: 90%;
+}
+
+ul.label-list a {
+  padding-left: 6px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+span.label-color {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
+
+a#clear-filter {
+  display: block;
+  color: #444;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+span.milestone-alert {
+  font-weight: bold;
+  color: #bd2c00;
+}
+
+a.milestone-title {
+  font-size: 180%;
+}
+
+div.milestone-description {
+  border-top: 1px solid #eee;
+  color: #666;
+}
+
+a.milestone-title {
+  color: #333;
+}
+
+div.milestone-menu {
+ margin-top: 8px;
+}
+
+div.milestone-menu a.delete {
+  color: #b00;
+}
+
+div.issue-info {
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  background-color: #f5f5f5;
+  padding: 8px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+h4#issueTitle {
+  font-size: large;
+  font-weight: bold;
+  margin-top: 2px;
+  margin-bottom: 0px;
+  padding: 0px;
+}
+
+div.issue-avatar-image {
+  float: left;
+}
+
+div.issue-box {
+  margin-bottom: 5px;
+  margin-left: 50px;
+}
+
+div.issue-participants {
+  margin-bottom: 15px;
+  margin-left: 50px;
+}
+
+div.issue-comment-box, div.commit-comment-box {
+  margin-bottom: 15px;
+  margin-left: 70px;
+  max-width: 820px;
+  /*padding: 8px;*/
+}
+
+div.issue-box > div.panel-body {
+  padding: 4px;
+}
+
+div.issue-comment-box > div.panel-body,
+div.commit-comment-box > div.panel-body {
+  padding: 8px;
+}
+
+
+div.issue-comment-box textarea {
+  height: 100px;
+  max-height: 300px;
+}
+
+div.issue-comment-action {
+  padding-bottom: 10px;
+  padding-top: 0px;
+  margin-left: 70px;
+  margin-bottom: 10px;
+  border-bottom: 4px solid #ddd;
+}
+
+div.issue-comment-action .octicon {
+  border-radius: 50%;
+  background-color: #f3f3f3;
+  color: #767676;
+  font-size: 18px;
+  margin-right: 7px;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+}
+
+div.issue-reopened .octicon {
+  background-color: #6cc644;
+  color: #fff;
+}
+
+div.issue-comment-action .octicon.danger {
+  background-color: #bd2c00;
+  color: #fff;
+}
+
+.nav-pills > li > span.issue-label {
+  display: block;
+  padding: 0px 8px 2px 8px;
+  margin-top: 2px;
+  -webkit-border-radius: 5px;
+     -moz-border-radius: 5px;
+          border-radius: 5px;
+}
+
+div.attachable {
+  margin-bottom: 10px;
+}
+
+div.attachable textarea {
+  margin-bottom: 0px;
+  border-bottom: 1px dashed #ccc;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  border-radius: 0px;
+}
+
+div.attachable div.clickable {
+  padding: 2px;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background-color: white;
+}
+
+ul.task-list {
+  padding-left: 2em;
+  margin-left: 0;
+}
+
+li.task-list-item {
+  list-style-type: none;
+}
+
+li.task-list-item input.task-list-item-checkbox {
+  margin: 0 4px 0.25em -20px;
+  vertical-align: middle;
+}
+
+.discussion-item {
+    position: relative;
+    margin: 15px 0 15px 79px;
+    padding-left: 25px;
+}
+.discussion-item-header {
+    min-height: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #767676;
+    line-height: 20px;
+    word-wrap: break-word;
+}
+.discussion-item-icon {
+    float: left;
+    width: 32px;
+    height: 32px;
+    margin-top: -7px;
+    margin-left: -40px;
+    line-height: 28px;
+    color: #767676;
+    text-align: center;
+    background-color: #f3f3f3;
+    border: 2px solid #fff;
+    border-radius: 50%;
+}
+.discussion-item-content {
+  margin-left:36px;
+}
+.discussion-item-content-head{
+  padding-right:20px;
+  background-color: white;
+  float:left
+}
+pre.reset.discussion-item-content-text{
+  border-left: 1px solid rgb(238, 238, 238);
+  margin: 0 0 0 5px;
+  padding-left: 25px;
+}
+.discussion-item-commit .discussion-item-content {
+    font-size:12px;
+}
+.discussion-item-icon .octicon {
+  color: inherit;
+}
+.discussion-item-merge .discussion-item-icon {
+  background-color: #6e5494;
+  color: white;
+  padding-top: 1px;
+  padding-left: 3px;
+}
+.discussion-item-close .discussion-item-icon {
+  background-color: #bd2c00;
+  color: white;
+  padding-top: 1px;
+}
+.discussion-item-delete_branch .discussion-item-icon {
+  padding-left: 2px;
+  padding-top: 1px;
+  background-color: #767676;
+  color: white;
+}
+.discussion-item-reopen .discussion-item-icon {
+  background-color: #6cc644;
+  padding-top: 1px;
+  color: white;
+}
+
+/****************************************************************************/
+/* Pull Request */
+/****************************************************************************/
+div.pullreq-info {
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+
+/****************************************************************************/
+/* Wiki */
+/****************************************************************************/
+h1.wiki-title {
+  margin-top: 0px;
+}
+
+a.absent {
+  color: #c00;
+}
+
+div.wiki-sidebar {
+  background-color: white;
+  border: 1px solid #d8d8d8;
+  padding: 8px 10px 0px 10px;
+  border-radius: 3px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+div.wiki-sidebar img {
+  max-width: 100%;
+}
+
+div.wiki-sidebar-dotted {
+  background-color: white;
+  border: 1px dashed #ddd;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  border-radius: 3px;
+  font-size: 16px;
+}
+
+div.wiki-footer {
+  margin-top: 50px;
+  background-color: #f5f5f5;
+  color: gray;
+}
+
+/****************************************************************************/
+/* Commit */
+/****************************************************************************/
+div.author-info div.committer {
+  display: block;
+  margin-left: 25px;
+  font-size: 12px;
+}
+
+.text-pending{
+  color: #cea61b;
+}
+.text-failure{
+  color: #bd2c00;
+}
+
+.build-statuses{
+  margin: -10px -10px 10px -10px;
+}
+.build-statuses .build-status-item{
+  padding: 10px 15px 10px 64px;
+  border-bottom: 1px solid #eee;
+}
+.build-statuses-list .build-status-item{
+  background-color: #fafafa;
+}
+
+.merge-indicator{
+  float:left;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.merge-indicator-success{
+  background-color: #6cc644;
+}
+.merge-indicator-warning{
+  background-color: #cea61b;
+}
+.merge-indicator-alert{
+  background-color: #888;
+}
+.merge-indicator .octicon{
+  color: white;
+  font-size: 16px;
+  width: 15px;
+  height: 15px;
+}
+.merge-indicator-warning .octicon{
+  color: white;
+  font-size: 30px;
+}
+
+/****************************************************************************/
+/* Diff */
+/****************************************************************************/
+table.diff {
+    font-size: 12px;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    width: 100%;
+}
+
+table.diff thead {
+    display: none;
+}
+
+table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delete {
+    width: 900px;
+}
+
+td.insert, td.equal, td.delete, td.empty {
+    width: 50%;
+}
+
+table.diff td.body{
+  position: relative;
+}
+
+table.diff th.line-num{
+  min-width: 20px;
+}
+
+table.diff .add-comment {
+    position: absolute;
+    background: #4183c4;
+    top: 0;
+    left: -7px;
+    color: white;
+    padding: 2px 4px;
+    border: solid 1px #4183c4;
+    border-radius: 3px;
+    z-index: 99;
+    cursor: pointer;
+}
+
+table.diff .add-comment:hover {
+    padding: 4px 6px;
+    top: -1px;
+}
+
+table.diff tr td.body b.add-comment{
+  display: none;
+}
+
+table.diff tr:hover td.body b.add-comment{
+  display: inline-block;
+}
+
+.container-wide table.diff tr:hover td.body b.add-comment{
+  display: none;
+}
+
+.container-wide table.diff tr:hover td.body:hover b.add-comment,
+.container-wide table.diff tr:hover th.line-num:hover + td b.add-comment{
+  display: inline-block;
+}
+
+
+table.diff tbody tr.not-diff {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+tr.not-diff .box {
+    margin-bottom: 0px;
+}
+
+table.diff tbody tr.not-diff:hover {
+    background-color: #fff;
+}
+
+table.diff tbody tr.not-diff:hover td{
+    background-color: #fff;
+}
+
+.not-diff > .comment-box-container {
+    white-space: initial;
+    line-height: initial;
+    padding: 10px;
+}
+
+.diff .oldline:before, .diff .newline:before {
+    content: attr(line-number);
+}
+
+.diff .skipline:before {
+    content: "..."
+}
+
+.diffstat-bar {
+    display: inline-block;
+    /* For IE 6/7 */
+    *display: inline;
+    *zoom: 1;
+    margin-left: 3px;
+    font-size: 16px;
+    color: #ddd;
+    letter-spacing: 1px;
+    text-align: left;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+}
+.text-diff-added {
+    color: #55a532;
+}
+.text-diff-deleted {
+    color: #bd2c00;
+}
+.diffstat {
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    white-space: nowrap;
+    letter-spacing: 0px;
+}
+.diff-same{
+  background: #DDD;
+  color: #BBB;
+  font-size: 16px;
+  padding: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+/* ------- for imageDiff */
+.diff-image-frame{
+  display: table-cell;
+  *float: left; /* for ie7 */
+  vertical-align: middle;
+  padding: 20px;
+  background-color: #eee;
+}
+.diff-image-frame.diff-old{
+  padding-right: 2px;
+}
+.diff-image-frame.diff-new{
+  padding-left: 2px;
+}
+.diff-image-frame .diff-meta{
+  margin-top: 12px;
+  color: #999;
+  font-family: Helvetica,arial,freesans,clean,sans-serif;
+  font-size: 12px;
+}
+.diff-image-frame.diff-old .diff-meta .diff{
+  color: #bd2c00;
+}
+.diff-image-frame.diff-new .diff-meta .diff{
+  color: #55a532;
+}
+.diff-image-frame img{
+  max-height: 410px;
+  max-width: 410px;
+  background: url(../images/checker.png);
+}
+.diff-image-render.diff2up{
+  width:100%;
+  text-align: center;
+  display: table;
+}
+.diff-image-frame.diff-new img{
+    border: 1px solid #55a532;
+}
+.diff-image-frame.diff-old img{
+  border: 1px solid #bd2c00;
+}
+.diff-image-stack{
+  position: relative;
+  background: #EEE;
+  padding-top: 20px;
+}
+.diff-image-stack .diff-old,
+.diff-image-stack .diff-new{
+  position:absolute;
+  overflow: hidden;
+  margin:0 20px;
+}
+.diff-image-stack img {
+  max-width: none;
+  background: url(../images/checker.png);
+}
+.diff-image-stack .diff-new{
+  border: 1px solid #55a532;
+  background: #EEE;
+}
+.diff-image-stack .diff-old{
+  border: 1px solid #bd2c00;
+}
+.diff-swipe-handle{
+  position:absolute;
+  margin-left: 325px;
+  left: 100px;
+}
+.diff-silde-bar{
+  width: 200px;
+  position: absolute;
+  left: 325px;
+  margin: 6px 0 0 7px;
+  box-sizing: border-box;
+  border: 1px solid gray;
+  height: 8px;
+}
+.image-diff-tools{
+  text-align: center;
+  padding: 4px;
+  background: #f7f7f7;
+}
+.image-diff-tools{
+  font-family: 'Helvetica Neue', Helvetica, arial, freesans, clean, sans-serif;
+  font-size: 12px;
+  background: #f7f7f7;
+  margin: 0;
+  text-align: center;
+}
+.image-diff-tools li{
+  background: none;
+  display: inline;
+  cursor: pointer;
+  border-right: 1px solid #ccc;
+  padding: 0 5px;
+  position: relative;
+  color: #666;
+}
+.image-diff-tools li:last-child{
+  border-right: none;
+}
+.image-diff-tools li.active {
+  font-weight: bold;
+}
+.no-canvas .need-canvas{
+  display: none;
+}
+.diff-image-stack.swipe .diff-new{
+  border-right: 1px solid #888;
+}
+.diff-image-stack.swipe .diff-swipe-handle{
+  margin-left: 15px;
+  left: 410px;
+}
+.diff-image-stack.swipe .diff-silde-bar{
+  display: none;
+}
+
+.diff-image-stack.onion .diff-silde-bar{
+  background: -ms-linear-gradient(left,  #bd2c00 0%,#55a532 100%); /* IE10+ */
+  background: linear-gradient(to right,  #bd2c00 0%,#55a532 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bd2c00', endColorstr='#55a532',GradientType=1 ); /* IE6-9 */
+}
+
+.diff-image-stack.blink .diff-silde-bar{
+  border-style: dotted;
+  background-image: linear-gradient(to right, #bd2c00, #bd2c00 50%, #55a532 50%, #55a532 100%);
+  background-size: 2px 2px;
+}
+
+.diff-image-stack.difference {
+  padding-bottom: 18px;
+  text-align: center;
+}
+/****************************************************************************/
+/* Repository Settings */
+/****************************************************************************/
+ul.collaborator {
+  list-style-type: none;
+  margin: 0px;
+  padding-left: 0px;
+}
+
+ul.collaborator li {
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 6px;
+  margin-bottom: 2px;
+}
+
+ul.collaborator li:hover {
+  background-color: #f8f8f8;
+}
+
+ul.collaborator a.remove {
+  color: #dd0000;
+  text-decoration: underline;
+}
+
+/****************************************************************************/
+/* Markdown */
+/****************************************************************************/
+div.markdown-body {
+  line-height: 1.7;
+  font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  word-wrap: break-word;
+  background-color: #464545;/*dynsim modelergy changes */
+  color: white;/*dynsim modelergy changes */
+}
+
+div.markdown-body h1 {
+  border-bottom: 1px solid #ddd;
+  font-size: 2.5em;
+  font-weight: bold;
+  line-height: 1.7;
+}
+
+div.markdown-body h2 {
+  border-bottom: 1px solid #eee;
+  font-size: 2em;
+  font-weight: bold;
+  line-height: 1.7;
+}
+
+div.markdown-body h3 {
+  font-size: 1.5em;
+  font-weight: bold;
+  line-height: 1.7;
+}
+
+div.markdown-body h4 {
+  font-size: 1.2em;
+  font-weight: bold;
+  line-height: 1.7;
+}
+
+div.markdown-body h5 {
+  font-size: 1em;
+  font-weight: bold;
+  line-height: 1.7;
+}
+
+div.markdown-body h6 {
+  color:#777;
+  font-size: 1em;
+  font-weight: bold;
+  line-height: 1.7;
+}
+
+div.markdown-body li {
+  line-height: 1.7;
+}
+
+div.markdown-body p {
+  margin: 15px 0;
+  line-height: 1.5;
+}
+
+div.markdown-body img {
+  max-width: 100%;
+}
+
+div.markdown-body pre {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+  white-space: pre;
+  word-wrap: normal;
+  overflow: auto;
+  border: none;
+  padding: 4px;
+}
+
+div.markdown-body code {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 12px;
+  padding: 4px;
+  background-color: rgba(0,0,0,0.04);
+  border: none;
+  color: black;
+}
+
+div.markdown-body table {
+  /*width: 100%;*/
+  margin-bottom: 20px;
+}
+
+div.markdown-body table th,
+div.markdown-body table td {
+  padding: 8px;
+  line-height: 20px;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid #dddddd;
+}
+
+div.markdown-body table th {
+  font-weight: bold;
+  background-color: #efefef;
+}
+
+div.markdown-body table thead th {
+  vertical-align: bottom;
+}
+
+div.markdown-body table caption + thead tr:first-child th,
+div.markdown-body table caption + thead tr:first-child td,
+div.markdown-body table colgroup + thead tr:first-child th,
+div.markdown-body table colgroup + thead tr:first-child td,
+div.markdown-body table thead:first-child tr:first-child th,
+div.markdown-body table thead:first-child tr:first-child td {
+  border-top: 0;
+}
+
+div.markdown-body table tbody + tbody {
+  border-top: 2px solid #dddddd;
+}
+
+div.markdown-body table {
+  background-color: #ffffff;
+}
+
+div.markdown-body table {
+  border: 1px solid #dddddd;
+  border-collapse: separate;
+  *border-collapse: collapse;
+  border-left: 0;
+  -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+}
+
+div.markdown-body table th,
+div.markdown-body table td {
+  border-left: 1px solid #dddddd;
+}
+
+div.markdown-body table caption + thead tr:first-child th,
+div.markdown-body table caption + tbody tr:first-child th,
+div.markdown-body table caption + tbody tr:first-child td,
+div.markdown-body table colgroup + thead tr:first-child th,
+div.markdown-body table colgroup + tbody tr:first-child th,
+div.markdown-body table colgroup + tbody tr:first-child td,
+div.markdown-body table thead:first-child tr:first-child th,
+div.markdown-body table tbody:first-child tr:first-child th,
+div.markdown-body table tbody:first-child tr:first-child td {
+  border-top: 0;
+}
+
+div.markdown-body table thead:first-child tr:first-child > th:first-child,
+div.markdown-body table tbody:first-child tr:first-child > td:first-child,
+div.markdown-body table tbody:first-child tr:first-child > th:first-child {
+  -webkit-border-top-left-radius: 4px;
+          border-top-left-radius: 4px;
+  -moz-border-radius-topleft: 4px;
+}
+
+div.markdown-body table thead:first-child tr:first-child > th:last-child,
+div.markdown-body table tbody:first-child tr:first-child > td:last-child,
+div.markdown-body table tbody:first-child tr:first-child > th:last-child {
+  -webkit-border-top-right-radius: 4px;
+          border-top-right-radius: 4px;
+  -moz-border-radius-topright: 4px;
+}
+
+div.markdown-body table thead:last-child tr:last-child > th:first-child,
+div.markdown-body table tbody:last-child tr:last-child > td:first-child,
+div.markdown-body table tbody:last-child tr:last-child > th:first-child,
+div.markdown-body table tfoot:last-child tr:last-child > td:first-child,
+div.markdown-body table tfoot:last-child tr:last-child > th:first-child {
+  -webkit-border-bottom-left-radius: 4px;
+          border-bottom-left-radius: 4px;
+  -moz-border-radius-bottomleft: 4px;
+}
+
+div.markdown-body table thead:last-child tr:last-child > th:last-child,
+div.markdown-body table tbody:last-child tr:last-child > td:last-child,
+div.markdown-body table tbody:last-child tr:last-child > th:last-child,
+div.markdown-body table tfoot:last-child tr:last-child > td:last-child,
+div.markdown-body table tfoot:last-child tr:last-child > th:last-child {
+  -webkit-border-bottom-right-radius: 4px;
+          border-bottom-right-radius: 4px;
+  -moz-border-radius-bottomright: 4px;
+}
+
+div.markdown-body table tfoot + tbody:last-child tr:last-child td:first-child {
+  -webkit-border-bottom-left-radius: 0;
+          border-bottom-left-radius: 0;
+  -moz-border-radius-bottomleft: 0;
+}
+
+div.markdown-body table tfoot + tbody:last-child tr:last-child td:last-child {
+  -webkit-border-bottom-right-radius: 0;
+          border-bottom-right-radius: 0;
+  -moz-border-radius-bottomright: 0;
+}
+
+div.markdown-body table caption + thead tr:first-child th:first-child,
+div.markdown-body table caption + tbody tr:first-child td:first-child,
+div.markdown-body table colgroup + thead tr:first-child th:first-child,
+div.markdown-body table colgroup + tbody tr:first-child td:first-child {
+  -webkit-border-top-left-radius: 4px;
+          border-top-left-radius: 4px;
+  -moz-border-radius-topleft: 4px;
+}
+
+div.markdown-body table caption + thead tr:first-child th:last-child,
+div.markdown-body table caption + tbody tr:first-child td:last-child,
+div.markdown-body table colgroup + thead tr:first-child th:last-child,
+div.markdown-body table colgroup + tbody tr:first-child td:last-child {
+  -webkit-border-top-right-radius: 4px;
+          border-top-right-radius: 4px;
+  -moz-border-radius-topright: 4px;
+}
+
+.markdown-head {
+  position: relative;
+}
+
+a.markdown-anchor-link {
+  margin-left: -16px;
+  margin-right: 2px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+}
+
+a.markdown-anchor-link span.octicon {
+  visibility: hidden;
+  vertical-align: middle;
+}
+
+/****************************************************************************/
+/* File finder */
+/****************************************************************************/
+#tree-finder-field{
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  vertical-align: baseline;
+  font-size: 100%;
+  height: inherit;
+  width: 780px;
+}
+.find-input{
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+#tree-finder-results td{
+  padding:7px 6px;
+}
+#tree-finder-results td.icon{
+  width:16px; padding: 7px 2px 7px 6px;
+}
+#tree-finder-results .tree-browser-result .icon-chevron-right{
+  visibility: hidden;
+}
+#tree-finder-results .tree-browser-result.navigation-focus .icon-chevron-right{
+  visibility: visible;
+}
+#tree-finder-results .navigation-focus td{
+  background: #fff;
+}
+
+/****************************************************************************/
+/* blame */
+/****************************************************************************/
+.blobview pre.blob{
+  padding-left: 0;
+}
+.blobview ol.linenums{
+  margin-left: 0;
+  padding-left: 50px;
+}
+
+/*
+div.container.blame-container{
+  width:1270px;
+}
+*/
+
+.line-age-legend {
+  display: none;
+}
+.blame-container .line-age-legend {
+  display: block;
+  float: right;
+  font-size: 12px;
+  color: #777;
+}
+.blame-container .line-age-legend ol {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+  list-style: none;
+  margin: 0 5px;
+}
+.blame-container .line-age-legend ol li {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+  width: 8px;
+  height: 10px;
+}
+.blame-container pre.blob{
+  margin-left: 350px;
+}
+.blame-container pre.prettyprint ol.linenums li.blame-sep{
+  border-top: 1px solid rgb(219, 219, 219);
+  margin-top: -1px;
+}
+.blame-container .hide-if-blame {
+  display: none;
+}
+.blame{
+  font-size: 12px;
+  white-space: normal;
+  width: 340px;
+  float: left;
+  min-height: 100px;
+  display: none;
+}
+.blame-container .blame{
+  display: block;
+}
+.blame .blame-commit-title{
+  font-weight: bold;
+  color: #333;
+  line-height: 1.1;
+}
+.blame .avatar{
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+.blame .blame-info{
+  background: white;
+  box-shadow:rgba(113, 135, 164, 0.65098) 0px 0px 4px 0px;
+  position: absolute;
+  width: 340px;
+  padding: 2px;
+  border-right: 2px solid;
+}
+.no-box-shadow .blame .blame-info{
+  border-top: 1px solid #888;
+  border-bottom: 1px solid #888;
+  border-left: 1px solid #888;
+}
+.blame-sha{
+  font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  float: right;
+  text-align: right;
+}
+.blame-sha .muted-link{
+  color: #777;
+}
+.blame-sha .muted-link:hover{
+  color: #4183c4;
+}
+
+.blame .blame-info:hover{
+  z-index: 100;
+  box-shadow:rgba(113, 135, 164, 0.65098) 0px 0px 4px 3px;
+}
+.blame .blame-info.blame-last{
+  background: #FDFCED;
+}
+.blame-info.heat1{ border-right-color:#ffeca7}
+.blame-info.heat2{ border-right-color:#ffdd8c}
+.blame-info.heat3{ border-right-color:#ffdd7c}
+.blame-info.heat4{ border-right-color:#fba447}
+.blame-info.heat5{ border-right-color:#f68736}
+.blame-info.heat6{ border-right-color:#f37636}
+.blame-info.heat7{ border-right-color:#ca6632}
+.blame-info.heat8{ border-right-color:#c0513f}
+.blame-info.heat9{ border-right-color:#a2503a}
+.blame-info.heat10{border-right-color:#793738}
+
+.heat1{background-color:#ffeca7}
+.heat2{background-color:#ffdd8c}
+.heat3{background-color:#ffdd7c}
+.heat4{background-color:#fba447}
+.heat5{background-color:#f68736}
+.heat6{background-color:#f37636}
+.heat7{background-color:#ca6632}
+.heat8{background-color:#c0513f}
+.heat9{background-color:#a2503a}
+.heat10{background-color:#793738}
+
+/****************************************************************************/
+/* Mobile */
+/****************************************************************************/
+@media (max-width: 767px) {
+  /* Hide header search box */
+  input[name=query] {
+    display: none;
+  }
+  #dashboard-signin-form {
+    display: none;
+  }
+  .container {
+    width: auto !important;
+  }
+  .body>div.pull-left {
+    width: auto !important;
+  }
+  .pc {
+    display: none;
+  }
+
+  /* Adjust issue / comment form */
+  #issue-title {
+    width: 100% !important;
+  }
+  div.attachable>textarea,
+  div.attachable>div.clickable {
+    width: 100% !important;
+  }
+
+  /* Adjust issue search box size and position */
+  #search-filter-box {
+    width: 100% !important;
+  }
+  form#search-filter-form {
+    float: none !important;
+    margin-bottom: 10px;
+  }
+  form#search-filter-form>div.form-group {
+    width: 100% !important;
+    margin-bottom: 10px;
+  }
+  .table-issues a.button-link {
+    width: 42px;
+    height: 16px;
+    overflow: hidden;
+    display: inline-block;
+  }
+/*
+  .nav-tabs a.btn[href$="/_edit"] {
+    width: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 4px 6px;
+    margin: 3px 4px 0 0;
+  }
+*/
+  body>div.container.body {
+    margin: 0 -12px 40px -12px;
+  }
+  /* Adjust sidemenu */
+  .container.body>div[style="width: 170px;"]{
+    width: 32px !important;
+    margin-right: -5px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  /* Hide badge of sidemenu */
+  .container.body>div[style="width: 170px;"] span.badge {
+    display: none;
+  }
+  /* Hide download button */
+  .container.body>div[style="width: 170px;"] a.btn-sm {
+    display: none;
+  }
+  /* Hide repository url box */
+  .container.body>div[style="width: 170px;"] .small,
+  .container.body>div[style="width: 170px;"] .input-group {
+    display: none;
+  }
+  /* Hide fork button */
+  div.input-group>span.fork {
+    display: none;
+  }
+}
+
+/****************************************************************************/
+/* Print */
+/****************************************************************************/
+@media print {
+  div.headbar {
+    display: none;
+  }
+  a[href]:after {
+    display: none;
+  }
+}
