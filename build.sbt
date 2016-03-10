@@ -10,7 +10,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 // dependency settings
 resolvers ++= Seq(
@@ -18,6 +18,7 @@ resolvers ++= Seq(
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 libraryDependencies ++= Seq(
+  "org.scala-lang.modules"   %% "scala-java8-compat"           % "0.7.0",
   "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % "4.1.1.201511131810-r",
   "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % "4.1.1.201511131810-r",
   "org.scalatra"             %% "scalatra"                     % ScalatraVersion,
@@ -51,7 +52,7 @@ libraryDependencies ++= Seq(
 play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._"
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-Ybackend:GenBCode", "-Ydelambdafy:method", "-target:jvm-1.8")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console")
