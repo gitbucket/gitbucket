@@ -202,6 +202,10 @@ span.error {
   font-size: 80%;
 }
 
+.large {
+  font-size: 120%;
+}
+
 .strong {
   font-weight: bold;
 }
