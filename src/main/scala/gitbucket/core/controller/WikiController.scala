@@ -37,10 +37,13 @@ trait WikiControllerBase extends ControllerBase {
   
   get("/:owner/:repository/wiki")(referrersOnly { repository =>
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
+      val loginAccount = context.loginAccount
+    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
       html.page("Home", page, getWikiPageList(repository.owner, repository.name),
         repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
         getWikiPage(repository.owner, repository.name, "_Sidebar"),
-        getWikiPage(repository.owner, repository.name, "_Footer"))
+        getWikiPage(repository.owner, repository.name, "_Footer"),
+        userRepositories)
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
@@ -48,10 +51,13 @@ trait WikiControllerBase extends ControllerBase {
     val pageName = StringUtil.urlDecode(params("page"))
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
+       val loginAccount = context.loginAccount
+    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
       html.page(pageName, page, getWikiPageList(repository.owner, repository.name),
         repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),
         getWikiPage(repository.owner, repository.name, "_Sidebar"),
-        getWikiPage(repository.owner, repository.name, "_Footer"))
+        getWikiPage(repository.owner, repository.name, "_Footer"),
+        userRepositories)
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   
@@ -168,8 +174,11 @@ trait WikiControllerBase extends ControllerBase {
   })
   
   get("/:owner/:repository/wiki/_pages")(referrersOnly { repository =>
+    val loginAccount = context.loginAccount
+    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
     html.pages(getWikiPageList(repository.owner, repository.name), repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      hasWritePermission(repository.owner, repository.name, context.loginAccount),
+      userRepositories)
   })
   
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>

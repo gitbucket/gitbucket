@@ -2,6 +2,7 @@
 /* Common */
 /****************************************************************************/
 body {
+  overflow-x:hidden;
   color: #333;
   background-color: #222222; /*dynsim modelergy changes*/
 }

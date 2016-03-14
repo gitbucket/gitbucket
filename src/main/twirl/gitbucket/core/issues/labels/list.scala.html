@@ -1,10 +1,18 @@
 @(labels: List[gitbucket.core.model.Label],
   counts: Map[String, Int],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasWritePermission: Boolean,
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"Labels - ${repository.owner}/${repository.name}"){
+  <div class="row">
+    <div class="col-md-4">
+      <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
+       @dashboard.html.repopanel(userRepositories)
+     </div>
+    </div>
+    <div class="col-md-7">
   @html.menu("issues", repository){
     @issues.html.navigation("labels", hasWritePermission, repository)
     <br>
@@ -36,6 +44,9 @@
       </tbody>
     </table>
   }
+
+   </div>
+  </div>
 }
 <script>
 $(function(){

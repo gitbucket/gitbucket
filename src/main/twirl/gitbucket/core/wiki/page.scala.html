@@ -4,11 +4,19 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean,
   sidebar: Option[gitbucket.core.service.WikiService.WikiPageInfo],
-  footer: Option[gitbucket.core.service.WikiService.WikiPageInfo])(implicit context: gitbucket.core.controller.Context)
+  footer: Option[gitbucket.core.service.WikiService.WikiPageInfo],
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.service.WikiService.{wikiHttpUrl, wikiSshUrl}
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
+  <div class="row">
+    <div class="col-md-4">
+      <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
+       @dashboard.html.repopanel(userRepositories)
+     </div>
+    </div>
+    <div class="col-md-7">
   @html.menu("wiki", repository){
     <ul class="nav nav-tabs fill-width">
       <li>
@@ -105,6 +113,8 @@
       }
     </div>
   }
+  </div>
+</div>
 }
 <script>
 $(function(){

@@ -10,6 +10,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
+import gitbucket.core.service.{RepositoryService, PullRequestService, AccountService, IssuesService}
 
 import io.github.gitbucket.scalatra.forms._
 import org.scalatra.Ok
@@ -483,6 +484,9 @@ trait IssuesControllerBase extends ControllerBase {
         } else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
       )
 
+       val loginAccount = context.loginAccount
+    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
+
       html.list(
           "issues",
           searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
@@ -498,7 +502,8 @@ trait IssuesControllerBase extends ControllerBase {
           countIssue(condition.copy(state = "closed"), false, owner -> repoName),
           condition,
           repository,
-          hasWritePermission(owner, repoName, context.loginAccount))
+          hasWritePermission(owner, repoName, context.loginAccount),
+          userRepositories)
     }
   }
 }
