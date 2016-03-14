@@ -13,15 +13,15 @@
     <ul class="nav nav-tabs fill-width">
       <li>
         <h1 class="wiki-title">@pageName</h1>
-        <div class="small">
+        <div>
           <span class="muted"><strong>@page.committer</strong> edited this page @helper.html.datetimeago(page.time)</span>
         </div>
       </li>
       <li class="pull-right">
         @if(hasWritePermission){
           <div>
-            <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
-            <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
+            <a class="btn btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+            <a class="btn btn-success" href="@url(repository)/wiki/_new">New Page</a>
           </div>
         }
       </li>
@@ -64,7 +64,7 @@
           </a>
         }
       }
-      <div class="small">
+      <div>
         <strong>Clone this wiki locally</strong>
       </div>
       @helper.html.copy("repository-url-copy", wikiHttpUrl(repository)){

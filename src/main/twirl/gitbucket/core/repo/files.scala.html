@@ -32,7 +32,7 @@
           <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default">Download ZIP</a>
         </div>
         <div class="pull-right pc">
-          <div style="width: 240px; margin-top: 2px; margin-right: 5px; margin-left: 5px;">
+          <div style="width: 240px; margin-right: 5px; margin-left: 5px;">
             @helper.html.copy("repository-url-copy", repository.httpUrl){
               @if(repository.sshUrl.isDefined){
                 <div class="btn-group input-group-btn">
