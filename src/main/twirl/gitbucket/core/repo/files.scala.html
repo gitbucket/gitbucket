@@ -88,7 +88,8 @@
         }
       }
     </div>
-    <table class="table table-file-list">
+    <table class="table table-hover">
+      @*
       <tr>
         <th colspan="4" style="font-weight: normal; border: none;">
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
@@ -98,8 +99,9 @@
           }
         </th>
       </tr>
+      *@
       <tr>
-        <td colspan="4" class="latest-commit">
+        <th colspan="4" class="latest-commit">
           <div>
             <div class="pull-right align-right monospace" style="line-height: 18px;">
               <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
@@ -119,7 +121,7 @@
               }
             </div>
           </div>
-        </td>
+        </th>
       </tr>
       @if(pathList.size > 0){
       <tr>
