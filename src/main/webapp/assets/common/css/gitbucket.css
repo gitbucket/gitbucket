@@ -481,60 +481,6 @@ div.signin-form {
 }
 
 /****************************************************************************/
-/* Stacked side menu */
-/****************************************************************************/
-/*
-ul.nav-stacked.side-menu {
-  margin-bottom: 0px;
-}
-
-ul.nav-stacked.side-menu li {
-  background-color: #f9f9f9;
-  margin-bottom: -3px;
-}
-
-a#show-pages-index {
-  color: #333;
-  text-decoration: none;
-}
-
-ul.nav-stacked.side-menu li a:hover {
-  background-color: transparent;
-}
-
-ul.nav-stacked.side-menu li.active a {
-  background-color: white;
-  color: #333;
-  font-weight: bold;
-  border-left: 2px solid #cc6666;
-}
-
-ul.nav-stacked.side-menu li.active a:hover {
-  background-color: white;
-  color: #4183c4;
-  font-weight: bold;
-  border-left: 2px solid #cc6666;
-}
-
-.nav-tabs.nav-stacked.side-menu > li > a {
-  border: 1px solid #d8d8d8;
-  border-radius: 0px;
-  background-color: white;
-  color: #4183c4;
-  padding: 8px 15px 9px;
-}
-
-.nav-tabs.nav-stacked.side-menu > li:first-child > a {
-  border-top-right-radius: 3px;
-  border-top-left-radius: 3px;
-}
-
-.nav-tabs.nav-stacked.side-menu > li:last-child > a {
-  border-bottom-right-radius: 3px;
-  border-bottom-left-radius: 3px;
-}
-*/
-/****************************************************************************/
 /* Repositories */
 /****************************************************************************/
 div.repository-icon {
