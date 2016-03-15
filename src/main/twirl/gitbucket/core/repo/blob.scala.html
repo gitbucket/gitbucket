@@ -48,7 +48,7 @@
       }
     </div>
     <div class="box-header">
-      @avatar(latestCommit, 20)
+      @avatar(latestCommit, 28)
       @user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
       <span class="muted">@helper.html.datetimeago(latestCommit.commitTime)</span>
       <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>

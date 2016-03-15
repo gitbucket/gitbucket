@@ -26,20 +26,28 @@
     <div class="head">
       @if(repository.commitCount > 0){
         <div class="input-group pull-right">
+          @*
           <span class="fork">
-            <span class="input-group-btn">
+            <span class="input-group-btn">*@
             @if(loginAccount.isEmpty){
-              <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">Fork</a>
+              <a href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">
+                Fork <span class="badge">@repository.forkedCount</span>
+              </a>
             } else {
               @if(isNoGroup) {
-                <a id="fork-link" href="javascript:void(0);" class="btn btn-default">Fork</a>
+                <a id="fork-link" href="javascript:void(0);" class="btn btn-default">
+                  Fork <span class="badge">@repository.forkedCount</span>
+                </a>
               } else {
-                <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">Fork</a>
+                <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">
+                  Fork <span class="badge">@repository.forkedCount</span>
+                </a>
               }
             }
+          @*
             </span>
             <span class="count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
-          </span>
+          </span>*@
         </div>
         @if(loginAccount.isDefined && isNoGroup){
           <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
@@ -58,7 +66,7 @@
         }
       }
     </div>
-    <ul class="headmenu">
+    <ul class="nav nav-tabs">
       @menuitem(""       , "code"   , "code" , "Code")
       @menuitem("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
       @menuitem("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
