@@ -42,12 +42,12 @@
       <fieldset class="margin">
         @if(account.isDefined){
           <div class="pull-right">
-            <a href="@url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger btn-lg">Delete Group</a>
+            <a href="@url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete Group</a>
           </div>
         }
-        <input type="submit" class="btn btn-success btn-lg" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
         @if(account.isDefined){
-          <a href="@url(account.get.userName)" class="btn btn-default btn-lg">Cancel</a>
+          <a href="@url(account.get.userName)" class="btn btn-default">Cancel</a>
         }
       </fieldset>
   </form>
