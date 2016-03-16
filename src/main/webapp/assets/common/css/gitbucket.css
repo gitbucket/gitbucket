@@ -285,22 +285,6 @@ div.box-header {
   margin-bottom: 0px;
 }
 
-.commit-list {
-  position: relative;
-}
-
-.commit-list::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 6px;
-  z-index: -1;
-  display: block;
-  width: 2px;
-  content: "";
-  background-color: #f3f3f3;
-}
-
 ul.nav-pills .link {
   color: #4078c0;
 }
@@ -308,15 +292,6 @@ ul.nav-pills .link {
 ul.nav-pills i.link {
   line-height: 0px;
   height: 0;
-}
-
-div.box-commits {
-  background-color: white;
-  padding-left: 0px;
-  padding-right: 0px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  margin-left: 20px;
 }
 
 div.box-content {

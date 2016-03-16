@@ -66,7 +66,7 @@
           </span>
         }
       </div>
-      <ul class="nav nav-tabs fill-width pull-left" id="pullreq-tab">
+      <ul class="nav nav-tabs fill-width" id="pullreq-tab">
         <li><a href="#conversation">Conversation <span class="badge">@comments.flatMap @{
           case comment: IssueComment => Some(comment)
           case _: CommitComment => None
@@ -74,7 +74,7 @@
         <li><a href="#commits">Commits <span class="badge">@commits.size</span></a></li>
         <li><a href="#files">Files Changed <span class="badge">@diffs.size</span></a></li>
       </ul>
-      <div class="tab-content fill-width pull-left">
+      <div class="tab-content fill-width" style="padding-top: 20px;">
         <div class="tab-pane" id="conversation">
           @flash.get("error").map{ error =>
             <div class="alert alert-error">@error</div>
