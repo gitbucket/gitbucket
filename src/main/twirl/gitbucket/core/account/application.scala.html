@@ -33,9 +33,9 @@
           }
           @personalTokens.zipWithIndex.map { case (token, i) =>
             @if(i != 0){
-              <hr style="margin-top: 10px;">
+              <hr>
             }
-            <strong>@token.note</strong>
+            <strong style="line-height: 30px;">@token.note</strong>
             <a href="@path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
           }
         </div>
