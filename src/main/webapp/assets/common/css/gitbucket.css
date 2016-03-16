@@ -37,29 +37,29 @@ h6 {
 }
 
 .octicon,.mega-octicon{
-    color : #999;
-    width: 14px;
-    height: 14px;
-    /*font-size: 14px;*/
-    text-align: center;
+  color : #999;
+  width: 14px;
+  height: 14px;
+  /*font-size: 14px;*/
+  text-align: center;
 }
 
 .mega-octicon{
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .octicon.active,.mega-octicon.active{
-    color : #333;
+  color : #333;
 }
 
 .octicon-cloud-download{
-    color: #333;
-    margin-right: 5px;
+  color: #333;
+  margin-right: 5px;
 }
 
 .head .octicon, .head .mega-octicon{
-    color : #BBB;
+  color : #BBB;
 }
 
 .align-right {
@@ -141,6 +141,7 @@ div.input-group>span.fork {
   margin-top: 1px;
 }
 
+/*
 div.input-group>span.fork>span.count {
   background-color: white;
   -webkit-border-radius: 0 4px 4px 0;
@@ -149,10 +150,10 @@ div.input-group>span.fork>span.count {
   border: 1px solid #d8d8d8;
   border-left: none;
   font-size: 11px;
-  /*height: 24px;*/
   padding: 3px 6px;
   display: table-cell;
 }
+*/
 
 a.global-header-menu {
   color: black;
@@ -173,7 +174,7 @@ div.head {
 }
 
 div.head div.forked {
-  font-size: 60%;
+  font-size: 65%;
   margin-left: 36px;
   color: #999999;
 }
@@ -186,13 +187,6 @@ div.container-wide {
   padding-left: 10px;
   padding-right: 10px;
 }
-
-/*
-div.pagination {
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-*/
 
 div.body {
   margin-top: 20px;

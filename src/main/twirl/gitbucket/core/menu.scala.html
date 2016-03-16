@@ -1,7 +1,6 @@
 @(active: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   id: Option[String] = None,
-  isRepoTop: Boolean = false,
   info: Option[Any] = None,
   error: Option[Any] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
@@ -22,6 +21,24 @@
   <div class="container">
     @helper.html.information(info)
     @helper.html.error(error)
+    <div class="pull-right">
+      <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
+        <i class="octicon octicon-history"></i>
+        @if(repository.commitCount > 10000){
+          <strong>10000+</strong> commits
+        } else {
+          <strong>@repository.commitCount</strong> commits
+        }
+      </a>
+      <a href="@url(repository)/branches" class="header-link" class="header-link">
+        <i class="octicon octicon-git-branch"></i>
+        <strong>@repository.branchList.length</strong> branches
+      </a>
+      <a href="@url(repository)/tags" class="header-link" class="header-link">
+        <i class="octicon octicon-tag"></i>
+        <strong>@repository.tags.length</strong> releases
+      </a>
+    </div>
     <div class="head">
       @helper.html.repositoryicon(repository, true)
       <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
@@ -31,6 +48,9 @@
           <div class="forked">
             forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
           </div>
+        }
+        @x.description.map { description =>
+          <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@detectAndRenderLinks(description)</div>
         }
       }
     </div>
@@ -47,38 +67,5 @@
   </div>
 </div>
 <div class="container body">
-  @if(isRepoTop){
-    @repository.repository.description.map { description =>
-      <p class="description">@detectAndRenderLinks(description)</p>
-    }
-    <div style="margin-bottom: 10px; padding: 4px;" class="panel panel-default">
-      <table class="fill-width">
-        <tr>
-          <td style="width: 33%; text-align: center;">
-            <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
-              <i class="octicon octicon-history"></i>
-              @if(repository.commitCount > 10000){
-                <strong>10000+</strong> commits
-              } else {
-                <strong>@repository.commitCount</strong> commits
-              }
-            </a>
-          </td>
-          <td style="width: 33%; text-align: center;">
-            <a href="@url(repository)/branches" class="header-link" class="header-link">
-              <i class="octicon octicon-git-branch"></i>
-              <strong>@repository.branchList.length</strong> branches
-            </a>
-          </td>
-          <td style="width: 33%; text-align: center;">
-            <a href="@url(repository)/tags" class="header-link" class="header-link">
-              <i class="octicon octicon-tag"></i>
-              <strong>@repository.tags.length</strong> releases
-            </a>
-          </td>
-        </tr>
-      </table>
-    </div>
-  }
   @body
 </div>

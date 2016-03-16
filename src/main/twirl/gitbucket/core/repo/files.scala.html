@@ -21,7 +21,7 @@
   } else {
     s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
-  @html.menu("code", repository, Some(branch), pathList.isEmpty, info, error){
+  @html.menu("code", repository, Some(branch), info, error){
     <div class="head">
       @if(pathList.isEmpty){
         <div class="pull-right pc">
