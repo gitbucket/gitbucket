@@ -51,7 +51,7 @@
             <div class="pull-right">
               <form method="POST" action="@url(originRepository)/pull/@pullreq.issueId/update_branch">
                 <input type="hidden" name="expected_head_oid" value="@pullreq.commitIdFrom">
-                <button class="btn"@if(!status.canUpdate){ disabled="true"} id="update-branch-button">Update branch</button>
+                <button class="btn btn-default"@if(!status.canUpdate){ disabled="true"} id="update-branch-button">Update branch</button>
               </form>
             </div>
           }
@@ -83,7 +83,7 @@
       </div>
       @if(status.hasMergePermission){
         <div style="padding:15px;border-top:solid 1px #e5e5e5;background:#fafafa">
-          <input type="button" class="btn btn-lg @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge){ disabled="true"}/>
+          <input type="button" class="btn @if(!status.hasProblem){btn-success} else {btn-default}" id="merge-pull-request-button" value="Merge pull request"@if(!status.canMerge){ disabled="true"}/>
           &nbsp;&nbsp;You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
           <div id="command-line" style="display: none;margin-top: 15px;">
             <hr />

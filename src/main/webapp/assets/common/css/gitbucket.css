@@ -198,7 +198,7 @@ span.error {
 }
 
 .small {
-  font-size: 80%;
+  font-size: 90%;
 }
 
 .strong {
@@ -388,7 +388,6 @@ ul.dropdown-menu {
 
 ul.dropdown-menu li {
   border-bottom: 1px solid #eee;
-  font-size: 85%;
 }
 
 ul.dropdown-menu li a {
