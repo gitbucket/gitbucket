@@ -3,10 +3,10 @@
 @import gitbucket.core.view.helpers._
 <div class="container headbar">
   <ul class="nav nav-tabs">
-    <li @if(active == ""){ class="active"}><a href="@path/"><i class="octicon octicon-rss"></i> News Feed</a></li>
+    <li @if(active == ""){ class="active"}><a href="@path/">News Feed</a></li>
     @if(loginAccount.isDefined){
-      <li @if(active == "pulls" ){ class="active"}><a href="@path/dashboard/pulls"><i class="octicon octicon-git-pull-request"></i> Pull Requests</a></li>
-      <li @if(active == "issues"){ class="active"}><a href="@path/dashboard/issues"><i class="octicon octicon-issue-opened"></i> Issues</a></li>
+      <li @if(active == "pulls" ){ class="active"}><a href="@path/dashboard/pulls">Pull Requests</a></li>
+      <li @if(active == "issues"){ class="active"}><a href="@path/dashboard/issues">Issues</a></li>
     }
   </ul>
 </div>

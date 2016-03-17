@@ -6,10 +6,10 @@
 @import context._
 @import gitbucket.core.view.helpers._
 
-@menuitem(path: String, name: String, icon: String, label: String, count: Int = 0) = {
+@menuitem(path: String, name: String, label: String, count: Int = 0) = {
   <li @if(active == name){class="active"}>
     <a href="@url(repository)@path">
-      <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i> <span class="pc">@label</span>
+      @label
       @if(count > 0){
         <span class="badge">@count</span>
       }
@@ -55,14 +55,14 @@
       }
     </div>
     <ul class="nav nav-tabs">
-      @menuitem(""       , "code"   , "code" , "Code")
-      @menuitem("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
-      @menuitem("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
-      @menuitem("/wiki"  , "wiki"   , "book"  , "Wiki")
+      @menuitem(""       , "code"   , "Code")
+      @menuitem("/issues", "issues" , "Issues", repository.issueCount)
+      @menuitem("/pulls" , "pulls"  , "Pull Requests", repository.pullCount)
+      @menuitem("/wiki"  , "wiki"   , "Wiki")
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-        @menuitem("/settings" , "settings" , "tools", "Settings")
+        @menuitem("/settings" , "settings" , "Settings")
       }
-      @menuitem("/network/members", "fork", "git-branch", "Forks", repository.forkedCount)
+      @menuitem("/network/members", "fork", "Forks", repository.forkedCount)
     </ul>
   </div>
 </div>
