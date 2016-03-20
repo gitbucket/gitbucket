@@ -17,9 +17,9 @@
           }
           @sshKeys.zipWithIndex.map { case (key, i) =>
             @if(i != 0){
-              <hr style="margin-top: 10px;">
+              <hr>
             }
-            <strong>@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
+            <strong style="line-height: 30px;">@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
             <a href="@path/@account.userName/_ssh/delete/@key.sshKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
           }
         </div>

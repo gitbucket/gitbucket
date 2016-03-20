@@ -1,14 +1,28 @@
 @(originRepository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo],
   members: List[(String, String)],
+  groupNames: List[String],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("network", repository){
-    <ul class="nav nav-tabs fill-width pull-left">
-      <li class="active"><a href="@url(repository)/network/members">Members</a></li>
-    </ul>
-    <h3>Members of the @repository.name Network</h3>
+  @html.menu("fork", repository){
+    <h3>
+      Forked repositories
+      @if(loginAccount.isEmpty){
+        <a href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-success">Fork</a>
+      } else {
+        @if(groupNames.isEmpty) {
+          <a id="fork-link" href="javascript:void(0);" class="btn btn-success">Fork</a>
+        } else {
+          <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-success" rel="facebox">Fork</a>
+        }
+      }
+    </h3>
+    @if(loginAccount.isDefined && groupNames.isEmpty){
+      <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
+        <input type="hidden" name="account" value="@loginAccount.get.userName"/>
+      </form>
+    }
     <div class="block">
       @if(originRepository.isDefined){
         @avatar(originRepository.get.owner, 20)
@@ -33,3 +47,26 @@
     }
   }
 }
+<script>
+$(function(){
+  $('a[rel*=facebox]').facebox({
+    'loadingImage': '@assets/vendors/facebox/loading.gif',
+    'closeImage': '@assets/vendors/facebox/closelabel.png'
+  });
+
+  $(document).on("click", ".js-fork-owner-select-target", function() {
+    if (!$(this).hasClass("disabled")) {
+      var account = $(this).text().replace("@@", "");
+      $("#account").val(account);
+      $("#fork").submit();
+    }
+  });
+
+  @if(loginAccount.isDefined){
+  $(document).on("click", "a#fork-link", function(e) {
+    e.preventDefault();
+    $('#fork-form').submit();
+  });
+  }
+});
+</script>

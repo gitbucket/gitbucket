@@ -497,6 +497,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getForkedRepositories(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name)),
+      context.loginAccount match {
+        case None => List()
+        case account: Option[Account] => getGroupsByUserName(account.get.userName)
+      }, // groups of current user
       repository)
   })
 
@@ -507,13 +511,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val ref = multiParams("splat").head
       JGitUtil.getTreeId(git, ref).map{ treeId =>
-        html.find(ref,
-                  treeId,
-                  repository,
-                  context.loginAccount match {
-                    case None => List()
-                    case account: Option[Account] => getGroupsByUserName(account.get.userName)
-                  })
+        html.find(ref, treeId, repository)
       } getOrElse NotFound
     }
   })
@@ -575,10 +573,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
-              context.loginAccount match {
-                case None => List()
-                case account: Option[Account] => getGroupsByUserName(account.get.userName)
-              }, // groups of current user
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount),
               getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),

@@ -9,12 +9,12 @@
   @html.menu("issues", repository){
     <form action="@url(repository)/issues/new" method="POST" validate="true" class="form-group">
       <div class="row">
-        <div class="col-md-10">
+        <div class="col-md-9">
           <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
           <div class="panel panel-default issue-box">
             <div class="panel-body">
               <span id="error-title" class="error"></span>
-              <input type="text" id="issue-title" name="title" class="form-control input-lg" value="" placeholder="Title" autofocus/>
+              <input type="text" id="issue-title" name="title" class="form-control" value="" placeholder="Title" autofocus/>
               @helper.html.preview(
                 repository         = repository,
                 content            = "",
@@ -27,12 +27,12 @@
                 elastic            = true
               )
               <div class="align-right">
-                <input type="submit" class="btn btn-lg btn-success" value="Submit new issue"/>
+                <input type="submit" class="btn btn-success" value="Submit new issue"/>
               </div>
             </div>
           </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           @issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, hasWritePermission, repository)
         </div>
       </div>
