@@ -11,7 +11,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="icon" href="@assets/common/images/gitbucket.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap.css" rel="stylesheet">
+    <link href="@assets/vendors/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet">
     @*
     <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap-responsive.css" rel="stylesheet">
     *@
@@ -25,7 +25,7 @@
     <script src="@assets/vendors/dropzone/dropzone.js"></script>
     <script src="@assets/common/js/validation.js"></script>
     <script src="@assets/common/js/gitbucket.js"></script>
-    <script src="@assets/vendors/bootstrap-theme-github-3.1.1/js/bootstrap.js"></script>
+    <script src="@assets/vendors/bootstrap-3.3.6/js/bootstrap.js"></script>
     <script src="@assets/vendors/bootstrap3-typeahead/bootstrap3-typeahead.js"></script>
     <script src="@assets/vendors/datepicker/js/moment.js"></script>
     <script src="@assets/vendors/datepicker/js/bootstrap-datetimepicker.min.js"></script>
@@ -53,14 +53,14 @@
           </button>
           *@
           <a class="navbar-brand" href="@path/">
-            <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
+            <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px; display: inline;"/>GitBucket
             @defining(AutoUpdate.getCurrentVersion){ version =>
               <span class="header-version">@version.majorVersion.@version.minorVersion</span>
             }
           </a>
           @if(loginAccount.isDefined){
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
             }
@@ -69,7 +69,7 @@
           } else {
             @* TODO: merge with below *@
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 6px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
             }
@@ -100,7 +100,7 @@
               </div>
             </div>
           } else {
-            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 6px;" id="signin">Sign in</a>
+            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 3px; margin-bottom: 3px;" id="signin">Sign in</a>
           }
         </div>
       </nav>

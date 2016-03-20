@@ -4,19 +4,19 @@
   condition: Option[gitbucket.core.service.IssuesService.IssueSearchCondition] = None)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-<ul class="nav nav-pills pull-left" style="line-height: 14px;">
+<ul class="nav nav-pills pull-left" style="line-height: 14px; margin-bottom: 10px;">
   <li class="@if(active == "issues"    ){active}"><a href="@url(repository)/issues">Issues</a></li>
   <li class="@if(active == "pulls"     ){active}"><a href="@url(repository)/pulls">Pull requests</a></li>
   <li class="@if(active == "labels"    ){active}"><a href="@url(repository)/issues/labels">Labels</a></li>
   <li class="@if(active == "milestones"){active}"><a href="@url(repository)/issues/milestones">Milestones</a></li>
 </ul>
-<form method="GET" id="search-filter-form" style="margin-bottom: 0px;" class="form-inline pull-right">
+<form method="GET" id="search-filter-form" class="form-inline pull-right">
   @condition.map { condition =>
     @if(loginAccount.isDefined){
       <div class="form-group" style="width: 300px">
         <div class="input-group" style="margin-bottom: 0px;">
           <div class="input-group-btn">
-            <button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
               Filter
               <span class="caret"></span>
             </button>
@@ -30,26 +30,26 @@
               *@
             </ul>
           </div>
-          <input type="text" id="search-filter-box" class="form-control input-lg" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+          <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
         </div>
       </div>
     } else {
-      <input type="text" id="search-filter-box" class="form-control input-lg" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
+      <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
     }
   }
   @if(loginAccount.isDefined){
     @if(newButton){
       @if(active == "issues"){
-        <a class="btn btn-success btn-lg" href="@url(repository)/issues/new">New issue</a>
+        <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
       }
       @if(active == "pulls"){
-        <a class="btn btn-success btn-lg" href="@url(repository)/compare">New pull request</a>
+        <a class="btn btn-success" href="@url(repository)/compare">New pull request</a>
       }
       @if(active == "labels"){
-        <a class="btn btn-success btn-lg" href="javascript:void(0);" id="new-label-button">New label</a>
+        <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
       }
       @if(active == "milestones"){
-        <a class="btn btn-success btn-lg" href="@url(repository)/issues/milestones/new">New milestone</a>
+        <a class="btn btn-success" href="@url(repository)/issues/milestones/new">New milestone</a>
       }
     }
   }

@@ -37,29 +37,29 @@ h6 {
 }
 
 .octicon,.mega-octicon{
-    color : #999;
-    width: 14px;
-    height: 14px;
-    /*font-size: 14px;*/
-    text-align: center;
+  color : #999;
+  width: 14px;
+  height: 14px;
+  /*font-size: 14px;*/
+  text-align: center;
 }
 
 .mega-octicon{
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .octicon.active,.mega-octicon.active{
-    color : #333;
+  color : #333;
 }
 
 .octicon-cloud-download{
-    color: #333;
-    margin-right: 5px;
+  color: #333;
+  margin-right: 5px;
 }
 
 .head .octicon, .head .mega-octicon{
-    color : #BBB;
+  color : #BBB;
 }
 
 .align-right {
@@ -113,6 +113,11 @@ pre.reset {
   border-radius: initial;
 }
 
+label.radio, label.checkbox {
+  position: relative;
+  left: 20px;
+}
+
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
@@ -136,6 +141,7 @@ div.input-group>span.fork {
   margin-top: 1px;
 }
 
+/*
 div.input-group>span.fork>span.count {
   background-color: white;
   -webkit-border-radius: 0 4px 4px 0;
@@ -144,10 +150,10 @@ div.input-group>span.fork>span.count {
   border: 1px solid #d8d8d8;
   border-left: none;
   font-size: 11px;
-  /*height: 24px;*/
   padding: 3px 6px;
   display: table-cell;
 }
+*/
 
 a.global-header-menu {
   color: black;
@@ -168,7 +174,7 @@ div.head {
 }
 
 div.head div.forked {
-  font-size: 60%;
+  font-size: 65%;
   margin-left: 36px;
   color: #999999;
 }
@@ -182,13 +188,6 @@ div.container-wide {
   padding-right: 10px;
 }
 
-/*
-div.pagination {
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-*/
-
 div.body {
   margin-top: 20px;
   margin-bottom: 40px;
@@ -199,7 +198,7 @@ span.error {
 }
 
 .small {
-  font-size: 80%;
+  font-size: 90%;
 }
 
 .large {
@@ -254,7 +253,7 @@ span.count-right {
 }
 
 table.table th {
-  background-color: #d9edf7;
+  background-color: #f5f5f5;
 }
 
 div.block-header {
@@ -290,22 +289,6 @@ div.box-header {
   margin-bottom: 0px;
 }
 
-.commit-list {
-  position: relative;
-}
-
-.commit-list::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 6px;
-  z-index: -1;
-  display: block;
-  width: 2px;
-  content: "";
-  background-color: #f3f3f3;
-}
-
 ul.nav-pills .link {
   color: #4078c0;
 }
@@ -313,15 +296,6 @@ ul.nav-pills .link {
 ul.nav-pills i.link {
   line-height: 0px;
   height: 0;
-}
-
-div.box-commits {
-  background-color: white;
-  padding-left: 0px;
-  padding-right: 0px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  margin-left: 20px;
 }
 
 div.box-content {
@@ -393,7 +367,6 @@ ul.dropdown-menu {
 
 ul.dropdown-menu li {
   border-bottom: 1px solid #eee;
-  font-size: 85%;
 }
 
 ul.dropdown-menu li a {
@@ -444,51 +417,8 @@ a.btn-danger:hover .octicon {
 /* Head Menu */
 /****************************************************************************/
 div.headbar {
-  background-color: #fafafa;
   padding-top: 19px;
-  border-bottom: 1px solid #eee;
   margin-bottom: 20px;
-}
-
-
-ul.headmenu {
-  margin-top: 20px;
-  margin-left: 0px;
-  padding-left: 0px;
-  margin-bottom: -1px;
-}
-
-ul.headmenu a:hover {
-  text-decoration: none;
-  color: black;
-}
-
-ul.headmenu li {
-  display: inline-block;
-  list-style-type: none;
-  font-size: 13px;
-}
-
-ul.headmenu li a {
-  color: #666;
-  padding: 8px 10px;
-  display: block;
-}
-
-ul.headmenu li.active a {
-  color: black;
-}
-
-ul.headmenu li.active {
-  border-top: 3px solid #bb4444;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #eee;
-  border-bottom: none;
-  background-color: white;
-}
-
-ul.headmenu li.active a {
-  background-color: #fff;
 }
 
 /****************************************************************************/
@@ -520,59 +450,6 @@ div.signin-form {
   font-size: 140%;
   color: #888888;
   font-weight: bold;
-}
-
-/****************************************************************************/
-/* Stacked side menu */
-/****************************************************************************/
-ul.nav-stacked.side-menu {
-  margin-bottom: 0px;
-}
-
-ul.nav-stacked.side-menu li {
-  background-color: #f9f9f9;
-  margin-bottom: -3px;
-}
-
-a#show-pages-index {
-  color: #333;
-  text-decoration: none;
-}
-
-ul.nav-stacked.side-menu li a:hover {
-  background-color: transparent;
-}
-
-ul.nav-stacked.side-menu li.active a {
-  background-color: white;
-  color: #333;
-  font-weight: bold;
-  border-left: 2px solid #cc6666;
-}
-
-ul.nav-stacked.side-menu li.active a:hover {
-  background-color: white;
-  color: #4183c4;
-  font-weight: bold;
-  border-left: 2px solid #cc6666;
-}
-
-.nav-tabs.nav-stacked.side-menu > li > a {
-  border: 1px solid #d8d8d8;
-  border-radius: 0px;
-  background-color: white;
-  color: #4183c4;
-  padding: 8px 15px 9px;
-}
-
-.nav-tabs.nav-stacked.side-menu > li:first-child > a {
-  border-top-right-radius: 3px;
-  border-top-left-radius: 3px;
-}
-
-.nav-tabs.nav-stacked.side-menu > li:last-child > a {
-  border-bottom-right-radius: 3px;
-  border-bottom-left-radius: 3px;
 }
 
 /****************************************************************************/

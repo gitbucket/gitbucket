@@ -8,7 +8,7 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-<div style="margin-bottom: 8px;">
+<div style="margin-bottom: 14px;">
   <span class="muted small strong">Labels</span>
   @if(hasWritePermission){
     <div class="pull-right">
@@ -33,7 +33,7 @@
   @labellist(issueLabels)
 </ul>
 <hr/>
-<div style="margin-bottom: 8px;">
+<div style="margin-bottom: 14px;">
   <span class="muted small strong">Milestone</span>
   @if(hasWritePermission){
     <div class="pull-right">
@@ -85,7 +85,7 @@
   <input type="hidden" name="milestoneId" value=""/>
 }
 <hr/>
-<div style="margin-bottom: 8px;">
+<div style="margin-bottom: 14px;">
   <span class="muted small strong">Assignee</span>
   @if(hasWritePermission){
     <div class="pull-right">
@@ -114,7 +114,7 @@
 }
 @issue.map { issue =>
   <hr/>
-  <div style="margin-bottom: 8px;">
+  <div style="margin-bottom: 14px;">
     @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
       <div class="muted small strong">@participants.size @plural(participants.size, "participant")</div>
     }

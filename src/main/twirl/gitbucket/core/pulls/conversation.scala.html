@@ -12,7 +12,7 @@
 @import gitbucket.core.model._
 
 <div class="row">
-  <div class="col-md-10">
+  <div class="col-md-9">
     <div id="comment-list">
       @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
     </div>
@@ -44,7 +44,7 @@
       @issues.html.commentform(issue, !merged, hasWritePermission, repository)
     }
   </div>
-  <div class="col-md-2">
+  <div class="col-md-3">
     @issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
   </div>
 </div>
