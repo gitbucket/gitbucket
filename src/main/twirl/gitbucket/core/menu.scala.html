@@ -22,7 +22,7 @@
     @helper.html.information(info)
     @helper.html.error(error)
     <div class="pull-right">
-      <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
+      <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(repository.repository.defaultBranch))" class="header-link">
         <i class="octicon octicon-history"></i>
         @if(repository.commitCount > 10000){
           <strong>10000+</strong> commits
