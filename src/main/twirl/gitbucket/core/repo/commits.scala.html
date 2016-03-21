@@ -34,21 +34,21 @@
       }
     </div>
 
+    <table class="table table-bordered">
     @commits.map { day =>
-      <div class="muted">
-        <i class="octicon octicon-git-commit"></i> Commits on @date(day.head.commitTime)
-      </div>
-      <div class="list-group">
-        @day.map { commit =>
-          <div class="list-group-item">
-            <div class="btn-group pull-right">
-              <a href="@url(repository)/commit/@commit.id" class="btn btn-default monospace">@commit.id.substring(0, 7)</a>
-              <a href="@url(repository)/tree/@commit.id" class="btn btn-default"><i class="octicon octicon-code link"></i></a>
+      <tr>
+        <th rowspan="@day.size" width="100">@date(day.head.commitTime)</th>
+        @day.zipWithIndex.map { case (commit, i) =>
+          @if(i != 0){ <tr> }
+          <td>
+            <div class="pull-right text-right">
+              <a href="@url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
+              <a href="@url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
             </div>
             <div>
               <div class="commit-avatar-image">@avatarLink(commit, 40)</div>
               <div>
-                <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
+                <a href="@url(repository)/commit/@commit.id" class="commit-message strong">@link(commit.summary, repository)</a>
                 @if(commit.description.isDefined){
                   <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
                 }
@@ -67,12 +67,13 @@
                 </div>
               </div>
             </div>
-          </div>
+          </td>
+          </tr>
         }
-      </div>
     }
+    </table>
 
-    <nav style="text-align: center; margin-top: 30px">
+    <nav style="text-align: center; margin-top: 20px">
       <ul class="pagination">
         @if(page <= 1){
           <li class="disabled"><span>Newer</span></li>

@@ -23,13 +23,21 @@
   }, Some(repository)) {
   @html.menu("code", repository, Some(branch), info, error){
     <div class="head">
-      @if(pathList.isEmpty){
-        <div class="pull-right pc">
-          @if(platform != "linux" && platform != null){
-            <a href="@openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
-          }
-          <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default">Download ZIP</a>
+      <div class="pull-right pc">
+        <div class="btn-group">
+          <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default pc" data-hotkey="t"><i class="octicon octicon-search"></i></a>
+          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i></a>
         </div>
+      </div>
+      @if(pathList.isEmpty){
+        @if(platform != "linux" && platform != null){
+          <div class="pull-right pc" style="margin-right: 5px;">
+            <div class="btn-group">
+              <a href="@openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
+              <a href="@{url(repository)}/archive/@{encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
+            </div>
+          </div>
+        }
         <div class="pull-right pc">
           <div style="width: 240px; margin-right: 5px; margin-left: 5px;">
             @helper.html.copy("repository-url-copy", repository.httpUrl){
@@ -59,33 +67,26 @@
           </div>
         </div>
       }
-      <div class="pull-right">
-        <div class="btn-group">
-          <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here" @if(!hasWritePermission){disabled}>New file</i></a>
-          <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default pc" data-hotkey="t">Find file</a>
-          @if(pathList.nonEmpty){
-            <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch">History</a>
-          }
-        </div>
-      </div>
-
       @helper.html.branchcontrol(branch, repository, hasWritePermission){
         @repository.branchList.map { x =>
           <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
         }
       }
       @if(pathList.isEmpty){
+        @*
         @branchPullRequest.map{ case (pullRequest, issue) =>
           <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">View #@pullRequest.issueId</a>
         }.getOrElse {
           <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success" @if(loginAccount.isEmpty){disabled}>New pull request</a>
         }
+        *@
       } else {
         <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
           <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
       }
+      <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here" @if(!hasWritePermission){disabled}><i class="octicon octicon-plus"></i></a>
     </div>
     <table class="table table-hover">
       @*
