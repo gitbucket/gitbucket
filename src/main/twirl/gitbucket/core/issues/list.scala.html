@@ -13,7 +13,7 @@
 @import gitbucket.core.view.helpers._
 @html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu(target, repository){
-    @navigation(target, true, repository, Some(condition))
+    @navigation(target, true, repository, openCount, closedCount, condition)
     @listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
     @if(hasWritePermission){
       <form id="batcheditForm" method="POST">

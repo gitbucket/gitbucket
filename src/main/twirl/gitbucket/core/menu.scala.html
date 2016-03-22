@@ -55,10 +55,12 @@
       }
     </div>
     <ul class="nav nav-tabs">
-      @menuitem(""       , "code"   , "Code")
-      @menuitem("/issues", "issues" , "Issues", repository.issueCount)
-      @menuitem("/pulls" , "pulls"  , "Pull Requests", repository.pullCount)
-      @menuitem("/wiki"  , "wiki"   , "Wiki")
+      @menuitem(""                   ,"code"       ,"Code")
+      @menuitem("/issues"            ,"issues"     ,"Issues", repository.issueCount)
+      @menuitem("/pulls"             ,"pulls"      ,"Pull Requests", repository.pullCount)
+      @menuitem("/issues/labels"     ,"labels"     ,"Labels")
+      @menuitem("/issues/milestones" ,"milestones" ,"Milestones")
+      @menuitem("/wiki"              ,"wiki"       ,"Wiki")
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         @menuitem("/settings" , "settings" , "Settings")
       }

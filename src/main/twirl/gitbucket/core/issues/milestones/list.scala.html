@@ -5,9 +5,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
-  @html.menu("issues", repository){
-    @issues.html.navigation("milestones", hasWritePermission, repository)
-    <br>
+  @html.menu("milestones", repository){
     <table class="table table-bordered table-hover table-issues">
       <thead>
         <tr>

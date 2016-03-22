@@ -1,42 +1,21 @@
 @(active: String,
   newButton: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  condition: Option[gitbucket.core.service.IssuesService.IssueSearchCondition] = None)(implicit context: gitbucket.core.controller.Context)
+  openCount: Int,
+  closedCount: Int,
+  condition: gitbucket.core.service.IssuesService.IssueSearchCondition)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
+
 <ul class="nav nav-pills pull-left" style="line-height: 14px; margin-bottom: 10px;">
-  <li class="@if(active == "issues"    ){active}"><a href="@url(repository)/issues">Issues</a></li>
-  <li class="@if(active == "pulls"     ){active}"><a href="@url(repository)/pulls">Pull requests</a></li>
-  <li class="@if(active == "labels"    ){active}"><a href="@url(repository)/issues/labels">Labels</a></li>
-  <li class="@if(active == "milestones"){active}"><a href="@url(repository)/issues/milestones">Milestones</a></li>
+  <li class="@if(condition.state == "open"){active}">
+    <a href="@condition.copy(state = "open").toURL">Open <span class="badge">@openCount</span></a>
+  </li>
+  <li class="@if(condition.state == "closed"){active}">
+    <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
+  </li>
 </ul>
 <form method="GET" id="search-filter-form" class="form-inline pull-right">
-  @condition.map { condition =>
-    @if(loginAccount.isDefined){
-      <div class="form-group" style="width: 300px">
-        <div class="input-group" style="margin-bottom: 0px;">
-          <div class="input-group-btn">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-              Filter
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-              <li><a href="?q=is:open">Open issues and pull requests</a></li>
-              <li><a href="?q=is:open+is:issue+author:@urlEncode(loginAccount.get.userName)">Your issues</a></li>
-              <li><a href="?q=is:open+is:pr+author:@urlEncode(loginAccount.get.userName)">Your pull requests</a></li>
-              <li><a href="?q=is:open+assignee:@urlEncode(loginAccount.get.userName)">Everything assigned to you</a></li>
-              @*
-              <li><a href="?q=is:open+mentions:@urlEncode(loginAccount.get.userName)">Everything mentioning you</a></li>
-              *@
-            </ul>
-          </div>
-          <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
-        </div>
-      </div>
-    } else {
-      <input type="text" id="search-filter-box" class="form-control" size="40" name="q" value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
-    }
-  }
   @if(loginAccount.isDefined){
     @if(newButton){
       @if(active == "issues"){
