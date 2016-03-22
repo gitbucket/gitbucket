@@ -54,36 +54,31 @@
       <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
         <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
           <div class="row">
-            <div class="col-md-10">
-              <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
-              <div class="panel panel-default issue-box">
-                <div class="panel-body">
-                  <span class="error" id="error-title"></span>
-                  <input type="text" name="title" class="form-control input-lg" placeholder="Title"/>
-                  @helper.html.preview(
-                    repository         = repository,
-                    content            = "",
-                    enableWikiLink     = false,
-                    enableRefsLink     = true,
-                    enableLineBreaks   = true,
-                    enableTaskList     = true,
-                    hasWritePermission = true,
-                    style              = "height: 200px;"
-                  )
-                  <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
-                  <input type="hidden" name="targetBranch" value="@originId"/>
-                  <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
-                  <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
-                  <input type="hidden" name="requestBranch" value="@forkedId"/>
-                  <input type="hidden" name="commitIdFrom" value="@sourceId"/>
-                  <input type="hidden" name="commitIdTo" value="@commitId"/>
-                  <div class="align-right">
-                    <input type="submit" class="btn btn-success" value="Create pull request"/>
-                  </div>
-                </div>
+            <div class="col-md-9">
+              <span class="error" id="error-title"></span>
+              <input type="text" name="title" class="form-control" style="margin-bottom: 6px;" placeholder="Title"/>
+              @helper.html.preview(
+                repository         = repository,
+                content            = "",
+                enableWikiLink     = false,
+                enableRefsLink     = true,
+                enableLineBreaks   = true,
+                enableTaskList     = true,
+                hasWritePermission = true,
+                style              = "height: 200px;"
+              )
+              <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
+              <input type="hidden" name="targetBranch" value="@originId"/>
+              <input type="hidden" name="requestUserName" value="@forkedRepository.owner"/>
+              <input type="hidden" name="requestRepositoryName" value="@forkedRepository.name"/>
+              <input type="hidden" name="requestBranch" value="@forkedId"/>
+              <input type="hidden" name="commitIdFrom" value="@sourceId"/>
+              <input type="hidden" name="commitIdTo" value="@commitId"/>
+              <div class="align-right">
+                <input type="submit" class="btn btn-success" value="Create pull request"/>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
               @issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
             </div>
           </div>

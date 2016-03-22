@@ -874,11 +874,6 @@ div.issue-avatar-image {
   float: left;
 }
 
-div.issue-box {
-  margin-bottom: 5px;
-  margin-left: 50px;
-}
-
 div.issue-participants {
   margin-bottom: 15px;
   margin-left: 50px;
@@ -889,10 +884,6 @@ div.issue-comment-box, div.commit-comment-box {
   margin-left: 70px;
   max-width: 820px;
   /*padding: 8px;*/
-}
-
-div.issue-box > div.panel-body {
-  padding: 4px;
 }
 
 div.issue-comment-box > div.panel-body,
