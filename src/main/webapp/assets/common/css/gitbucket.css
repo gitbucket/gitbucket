@@ -466,7 +466,7 @@ ul.headmenu li {
 }
 
 ul.headmenu li a {
-  color: #666;
+  color: #9e9e9e;
   padding: 8px 10px;
   display: block;
 }
@@ -666,7 +666,7 @@ p.description {
 }
 
 a.header-link {
-  color: #888;
+  color: #616161;
   font-size: 90%;
 }
 
@@ -675,7 +675,7 @@ a.header-link strong {
 }
 
 a.header-link:hover {
-  color: #4183c4;
+  color: white;
   text-decoration: none;
 }
 

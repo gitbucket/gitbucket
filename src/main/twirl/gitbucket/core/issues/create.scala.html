@@ -11,10 +11,10 @@
       <div class="row">
         <div class="col-md-10">
           <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
-          <div class="panel panel-default issue-box">
+          <div class="panel panel-default issue-box panelbackgrnd">
             <div class="panel-body">
               <span id="error-title" class="error"></span>
-              <input type="text" id="issue-title" name="title" class="form-control input-lg" value="" placeholder="Title" autofocus/>
+              <input type="text" id="issue-title" style="background-color:#616161; color:white;" name="title" class="form-control input-lg" value="" placeholder="Title" autofocus/>
               @helper.html.preview(
                 repository         = repository,
                 content            = "",

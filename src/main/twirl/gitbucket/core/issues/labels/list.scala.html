@@ -7,12 +7,12 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"Labels - ${repository.owner}/${repository.name}"){
   <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
        @dashboard.html.repopanel(userRepositories)
      </div>
     </div>
-    <div class="col-md-7">
+    <div class="col-md-9">
   @html.menu("issues", repository){
     @issues.html.navigation("labels", hasWritePermission, repository)
     <br>
@@ -33,7 +33,7 @@
         }
         @if(labels.isEmpty){
           <tr>
-            <td style="padding: 20px; background-color: #eee; text-align: center;">
+            <td style="padding: 20px; background-color: #464545; color:white; text-align: center;">
               No labels to show.
               @if(hasWritePermission){
                 Click on the "New Label" button above to create one.

@@ -24,12 +24,12 @@
     s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
   <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
         @dashboard.html.repopanel(userRepositories)
         </div>  
       </div>
-  <div class="col-md-8">
+  <div class="col-md-9">
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
       @if(pathList.isEmpty){
@@ -174,7 +174,7 @@
         <td class="mute">
           <a href="@url(repository)/commit/@file.commitId" class="commit-message shorten-text" title="@file.message">@link(file.message, repository)</a>
         </td>
-        <td style="text-align: right;">@helper.html.datetimeago(file.time, false)</td>
+        <td class="muted" style="text-align: right;">@helper.html.datetimeago(file.time, false)</td>
       </tr>
       }
     </table>
