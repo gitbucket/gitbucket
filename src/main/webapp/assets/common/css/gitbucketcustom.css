@@ -294,6 +294,7 @@ div.head div.forked {
 
 div.container {
   width: 80%; /*dynsim changes for style */
+  float:left;
 }
 
 div.container-wide {
@@ -311,6 +312,7 @@ div.pagination {
 div.body {
   /* dynsim modelergy changes  margin-top: 20px;*/
   margin-bottom: 40px;
+  margin-top: 15px;
 }
 
 span.error {
