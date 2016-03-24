@@ -5,7 +5,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 <div id="table-issues-control">
-  @helper.html.dropdown("Visibility", flat = true){
+  @helper.html.dropdown("Visibility"){
     <li>
       <a href="@(condition.copy(visibility = (if(condition.visibility == Some("private")) None else Some("private"))).toURL)">
         @helper.html.checkicon(condition.visibility == Some("private"))
@@ -19,7 +19,7 @@
       </a>
     </li>
   }
-  @helper.html.dropdown("Organization", flat = true){
+  @helper.html.dropdown("Organization"){
     @groups.map { group =>
       <li>
         <a href="@((if(condition.groups.contains(group)) condition.copy(groups = condition.groups - group) else condition.copy(groups = condition.groups + group)).toURL)">
@@ -29,7 +29,7 @@
       </li>
     }
   }
-  @helper.html.dropdown("Sort", flat = true){
+  @helper.html.dropdown("Sort"){
     <li>
       <a href="@condition.copy(sort="created",  direction="desc").toURL">
         @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest

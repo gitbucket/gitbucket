@@ -28,7 +28,7 @@
       <th style="background-color: #eee;">
         <input type="checkbox"/>
         <span id="table-issues-control">
-          @helper.html.dropdown("Author", flat = true) {
+          @helper.html.dropdown("Author") {
             @collaborators.map { collaborator =>
               <li>
                 <a href="@condition.copy(author = (if(condition.author == Some(collaborator)) None else Some(collaborator))).toURL">
@@ -38,7 +38,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Label", flat = true) {
+          @helper.html.dropdown("Label") {
             @labels.map { label =>
               <li>
                 <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL">
@@ -49,7 +49,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Milestone", flat = true) {
+          @helper.html.dropdown("Milestone") {
             <li>
               <a href="@condition.copy(milestone = Some(None)).toURL">
                 @helper.html.checkicon(condition.milestone == Some(None)) Issues with no milestone
@@ -63,7 +63,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Assignee", flat = true) {
+          @helper.html.dropdown("Assignee") {
             @collaborators.map { collaborator =>
               <li>
                 <a href="@condition.copy(assigned = Some(collaborator)).toURL">
@@ -73,7 +73,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Sort", flat = true){
+          @helper.html.dropdown("Sort"){
             <li>
               <a href="@condition.copy(sort="created",  direction="desc").toURL">
               @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
@@ -108,11 +108,11 @@
         </span>
         @if(hasWritePermission){
           <span id="table-issues-batchedit">
-            @helper.html.dropdown("Mark as", flat = true) {
+            @helper.html.dropdown("Mark as") {
               <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
               <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
             }
-            @helper.html.dropdown("Label", flat = true) {
+            @helper.html.dropdown("Label") {
               @labels.map { label =>
                 <li>
                   <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
@@ -123,13 +123,13 @@
                 </li>
               }
             }
-            @helper.html.dropdown("Milestone", flat = true) {
+            @helper.html.dropdown("Milestone") {
               <li><a href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a></li>
               @milestones.filter(_.closedDate.isEmpty).map { milestone =>
                 <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
               }
             }
-            @helper.html.dropdown("Assignee", flat = true) {
+            @helper.html.dropdown("Assignee") {
               <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
               @collaborators.map { collaborator =>
                 <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@avatar(collaborator, 20) @collaborator</a></li>
