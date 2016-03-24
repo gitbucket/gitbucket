@@ -517,6 +517,7 @@ div.repository-content {
 /****************************************************************************/
 /* Activity */
 /****************************************************************************/
+/*
 div.activity-icon-large {
   position: absolute;
   padding-top: 8px;
@@ -530,7 +531,7 @@ div.activity-icon-small {
 div.activity-content {
   margin-left: 40px;
 }
-
+*/
 div[class^="activity-icon"] i{
     color: #BBB;
 }

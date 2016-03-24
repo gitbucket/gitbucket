@@ -11,7 +11,7 @@
   <div class="body">
     @dashboard.html.tab("issues")
     <div class="container">
-      @issuesnavi(filter, "issues", condition)
+      @issuesnavi(filter, openCount, closedCount, condition)
       @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
     </div>
   </div>
