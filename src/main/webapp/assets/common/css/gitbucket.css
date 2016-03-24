@@ -883,7 +883,7 @@ div.issue-participants {
 div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
   margin-left: 70px;
-  max-width: 820px;
+  /*max-width: 820px;*/
   /*padding: 8px;*/
 }
 

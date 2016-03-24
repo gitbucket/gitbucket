@@ -12,7 +12,7 @@
   <span class="muted small strong">Labels</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown(right = true) {
+      @helper.html.dropdown("Edit", right = true) {
         @labels.map { label =>
           <li>
             <a href="#" class="toggle-label" data-label-id="@label.labelId">
@@ -37,7 +37,7 @@
   <span class="muted small strong">Milestone</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown(right = true) {
+      @helper.html.dropdown("Edit", right = true) {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="octicon octicon-x"></i> Clear this milestone</a></li>
         @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
           <li>
@@ -89,7 +89,7 @@
   <span class="muted small strong">Assignee</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown(right = true) {
+      @helper.html.dropdown("Edit", right = true) {
         <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
         @collaborators.map { collaborator =>
           <li>
