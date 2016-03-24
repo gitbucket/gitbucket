@@ -12,11 +12,9 @@
           <th style="background-color: #eee;">
             <span class="small">
               <a class="button-link@if(state == "open"){ selected}" href="?state=open">
-                <i class="octicon octicon-milestone @(if(state == "open"){"active"})"></i>
                 @milestones.count(_._1.closedDate.isEmpty) Open
               </a>&nbsp;&nbsp;
               <a class="button-link@if(state == "closed"){ selected}" href="?state=closed">
-                <i class="octicon octicon-milestone @(if(state == "closed"){"active"})"></i>
                 @milestones.count(_._1.closedDate.isDefined) Closed
               </a>
             </span>
