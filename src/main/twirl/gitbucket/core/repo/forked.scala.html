@@ -6,7 +6,7 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("fork", repository){
-    <h3>
+    <h1>
       Forked repositories
       @if(loginAccount.isEmpty){
         <a href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-success">Fork</a>
@@ -17,7 +17,7 @@
           <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-success" rel="facebox">Fork</a>
         }
       }
-    </h3>
+    </h1>
     @if(loginAccount.isDefined && groupNames.isEmpty){
       <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
         <input type="hidden" name="account" value="@loginAccount.get.userName"/>

@@ -21,7 +21,7 @@
   } else {
     s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
-  @html.menu("code", repository, Some(branch), info, error){
+  @html.menu("files", repository, Some(branch), info, error){
     <div class="head">
       <div class="pull-right pc">
         <div class="btn-group">

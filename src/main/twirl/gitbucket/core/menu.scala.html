@@ -21,6 +21,7 @@
   <div class="container">
     @helper.html.information(info)
     @helper.html.error(error)
+    @*
     <div class="pull-right">
       <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(repository.repository.defaultBranch))" class="header-link">
         <i class="octicon octicon-history"></i>
@@ -39,6 +40,7 @@
         <strong>@repository.tags.length</strong> releases
       </a>
     </div>
+    *@
     <div class="head">
       @helper.html.repositoryicon(repository, true)
       <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
@@ -55,7 +57,11 @@
       }
     </div>
     <ul class="nav nav-tabs">
-      @menuitem(""                   ,"code"       ,"Code")
+      @menuitem(""                   ,"files"      ,"Files")
+      @if(repository.commitCount != 0) {
+        @menuitem("/branches"        ,"branches"   ,"Branches", repository.branchList.length)
+        @menuitem("/tags"            ,"tags"       ,"Tags", repository.tags.length)
+      }
       @menuitem("/issues"            ,"issues"     ,"Issues", repository.issueCount)
       @menuitem("/pulls"             ,"pulls"      ,"Pull Requests", repository.pullCount)
       @menuitem("/issues/labels"     ,"labels"     ,"Labels")

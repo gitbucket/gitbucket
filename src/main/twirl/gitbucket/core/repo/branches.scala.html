@@ -4,7 +4,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
+  @html.menu("branches", repository){
     <h1>Branches</h1>
     <table class="table table-bordered table-hover table-issues branches">
       <thead>

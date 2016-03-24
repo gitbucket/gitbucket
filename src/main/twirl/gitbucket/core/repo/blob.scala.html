@@ -8,7 +8,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
+  @html.menu("files", repository){
     <div class="head">
       <div class="pull-right hide-if-blame"><div class="btn-group">
         <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
