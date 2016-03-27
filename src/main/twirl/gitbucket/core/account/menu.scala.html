@@ -1,6 +1,6 @@
 @(active: String, ssh: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import context._
-<div class="box">
+<div style="float: left; width: 250px;">
   <ul class="nav nav-pills nav-stacked">
     <li@if(active=="profile"){ class="active"}>
       <a href="@path/@loginAccount.get.userName/_edit">Profile</a>

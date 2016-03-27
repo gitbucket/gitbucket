@@ -10,23 +10,20 @@
 @import gitbucket.core.service.WikiService.{wikiHttpUrl, wikiSshUrl}
 @html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
-    <ul class="nav nav-tabs fill-width">
-      <li>
-        <h1 class="wiki-title">@pageName</h1>
-        <div>
-          <span class="muted"><strong>@page.committer</strong> edited this page @helper.html.datetimeago(page.time)</span>
+    <div>
+      @if(hasWritePermission){
+        <div class="pull-right">
+          <a class="btn btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
+          <a class="btn btn-success" href="@url(repository)/wiki/_new">New Page</a>
         </div>
-      </li>
-      <li class="pull-right">
-        @if(hasWritePermission){
-          <div>
-            <a class="btn btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
-            <a class="btn btn-success" href="@url(repository)/wiki/_new">New Page</a>
-          </div>
-        }
-      </li>
-    </ul>
-    <div style="width: 200px; margin-top: 20px;" class="pull-right pc">
+      }
+      <h1 class="wiki-title">@pageName</h1>
+      <div>
+        <span class="muted"><strong>@page.committer</strong> edited this page @helper.html.datetimeago(page.time)</span>
+      </div>
+      <hr>
+    </div>
+    <div style="width: 250px; margin-top: 20px;" class="pull-right pc">
       @defining(15){ max =>
         <div class="panel panel-default">
           <div class="panel-heading strong">
@@ -76,7 +73,7 @@
         </div>
       }
     </div>
-    <div style="width: 740px;" class="pull-left">
+    <div style="margin-right: 260px;">
       <div class="markdown-body">
         @markdown(
           markdown = page.content,

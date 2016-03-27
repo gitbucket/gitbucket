@@ -4,14 +4,11 @@
 @import gitbucket.core.view.helpers._
 @html.main("Edit your profile"){
 <div class="container body">
-  <div class="row">
-    <div class="col-md-3">
-      @menu("profile", settings.ssh)
-    </div>
-    <div class="col-md-9">
-      @helper.html.information(info)
-      @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
-      <form action="@url(account.userName)/_edit" method="POST" validate="true">
+  @menu("profile", settings.ssh)
+  <div style="margin-left: 260px;">
+    @helper.html.information(info)
+    @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
+    <form action="@url(account.userName)/_edit" method="POST" validate="true">
       <div class="panel panel-default">
         <div class="panel-heading strong">Profile</div>
         <div class="panel-body">

@@ -56,24 +56,27 @@
         }
       }
     </div>
-    <ul class="nav nav-tabs">
-      @menuitem(""                   ,"files"      ,"Files")
-      @if(repository.commitCount != 0) {
-        @menuitem("/branches"        ,"branches"   ,"Branches", repository.branchList.length)
-        @menuitem("/tags"            ,"tags"       ,"Tags", repository.tags.length)
-      }
-      @menuitem("/issues"            ,"issues"     ,"Issues", repository.issueCount)
-      @menuitem("/pulls"             ,"pulls"      ,"Pull Requests", repository.pullCount)
-      @menuitem("/issues/labels"     ,"labels"     ,"Labels")
-      @menuitem("/issues/milestones" ,"milestones" ,"Milestones")
-      @menuitem("/wiki"              ,"wiki"       ,"Wiki")
-      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-        @menuitem("/settings" , "settings" , "Settings")
-      }
-      @menuitem("/network/members", "fork", "Forks", repository.forkedCount)
-    </ul>
   </div>
 </div>
 <div class="container body">
-  @body
+  <ul class="nav nav-pills nav-stacked" style="width: 250px; float: left;">
+    @menuitem(""                   ,"files"      ,"Files")
+    @if(repository.commitCount != 0) {
+      @menuitem("/branches"        ,"branches"   ,"Branches", repository.branchList.length)
+      @menuitem("/tags"            ,"tags"       ,"Tags", repository.tags.length)
+    }
+    @menuitem("/issues"            ,"issues"     ,"Issues", repository.issueCount)
+    @menuitem("/pulls"             ,"pulls"      ,"Pull Requests", repository.pullCount)
+    @menuitem("/issues/labels"     ,"labels"     ,"Labels")
+    @menuitem("/issues/milestones" ,"milestones" ,"Milestones")
+    @menuitem("/wiki"              ,"wiki"       ,"Wiki")
+    @menuitem("/network/members", "fork", "Forks", repository.forkedCount)
+    @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+      @menuitem("/settings" , "settings" , "Settings")
+    }
+  </ul>
+  <div style="margin-left: 260px;">
+    @body
+  </div>
 </div>
+

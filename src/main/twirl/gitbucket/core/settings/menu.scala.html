@@ -1,31 +1,25 @@
 @(active: String, repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-<div class="row">
-  <div class="col-md-3">
-    <div class="box">
-      <ul class="nav nav-pills nav-stacked">
-        <li@if(active=="options"){ class="active"}>
-          <a href="@url(repository)/settings/options">Options</a>
-        </li>
-        <li@if(active=="collaborators"){ class="active"}>
-          <a href="@url(repository)/settings/collaborators">Collaborators</a>
-        </li>
-        @if(!repository.branchList.isEmpty){
-        <li@if(active=="branches"){ class="active"}>
-          <a href="@url(repository)/settings/branches">Branches</a>
-        </li>
-        }
-        <li@if(active=="hooks"){ class="active"}>
-          <a href="@url(repository)/settings/hooks">Service Hooks</a>
-        </li>
-        <li@if(active=="danger"){ class="active"}>
-          <a href="@url(repository)/settings/danger">Danger Zone</a>
-        </li>
-      </ul>
-    </div>
-  </div>
-  <div class="col-md-9">
-    @body
-  </div>
+<div  style="overflow: hidden;">
+  <ul class="nav nav-tabs" style="margin-bottom: 20px;">
+    <li@if(active=="options"){ class="active"}>
+      <a href="@url(repository)/settings/options">Options</a>
+    </li>
+    <li@if(active=="collaborators"){ class="active"}>
+      <a href="@url(repository)/settings/collaborators">Collaborators</a>
+    </li>
+    @if(!repository.branchList.isEmpty){
+    <li@if(active=="branches"){ class="active"}>
+      <a href="@url(repository)/settings/branches">Branches</a>
+    </li>
+    }
+    <li@if(active=="hooks"){ class="active"}>
+      <a href="@url(repository)/settings/hooks">Service Hooks</a>
+    </li>
+    <li@if(active=="danger"){ class="active"}>
+      <a href="@url(repository)/settings/danger">Danger Zone</a>
+    </li>
+  </ul>
+  @body
 </div>
