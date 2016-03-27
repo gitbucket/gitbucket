@@ -63,3 +63,11 @@
     @body
   </div>
 </div>
+<script>
+$(function(){
+  $('#show-more-repos, #show-more-recent-repos').click(function(e){
+    $(e.target).parents('ul.list-group').find('li.repo-link').show();
+    $(e.target).parents('li.show-more').remove();
+  });
+});
+</script>
