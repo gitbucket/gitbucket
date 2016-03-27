@@ -2,7 +2,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(if(account.isEmpty) "Create group" else "Edit group"){
-<div class="container body">
+<div class="body main-center">
   <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
       <div class="row">
         <div class="col-md-5">

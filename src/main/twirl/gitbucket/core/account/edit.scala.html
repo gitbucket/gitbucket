@@ -4,8 +4,7 @@
 @import gitbucket.core.view.helpers._
 @html.main("Edit your profile"){
 <div class="container body">
-  @menu("profile", settings.ssh)
-  <div style="margin-left: 260px;">
+  @menu("profile", settings.ssh){
     @helper.html.information(info)
     @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
     <form action="@url(account.userName)/_edit" method="POST" validate="true">
@@ -46,17 +45,17 @@
               </fieldset>
             </div>
           </div>
-          <div style="margin-top: 20px;">
-            <div class="pull-right">
-              <a href="@path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
-            </div>
-            <input type="submit" class="btn btn-success" value="Save"/>
-            @if(!LDAPUtil.isDummyMailAddress(account)){<a href="@url(account.userName)" class="btn btn-default">Cancel</a>}
-          </div>
         </div>
       </div>
+      <div>
+        <div class="pull-right">
+          <a href="@path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
+        </div>
+        <input type="submit" class="btn btn-success" value="Save"/>
+        @if(!LDAPUtil.isDummyMailAddress(account)){<a href="@url(account.userName)" class="btn btn-default">Cancel</a>}
+      </div>
     </form>
-  </div>
+  }
 </div>
 }
 <script>

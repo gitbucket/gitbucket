@@ -193,6 +193,20 @@ div.container-wide {
   padding-right: 10px;
 }
 
+div.main-sidebar {
+  width: 250px;
+  float: left;
+}
+
+div.main-content {
+  margin-left: 260px;
+}
+
+div.main-center {
+  width: 980px;
+  margin: 0 auto;
+}
+
 div.body {
   margin-top: 20px;
   margin-bottom: 40px;
@@ -244,10 +258,12 @@ div.show-more a {
   color: #7aa1d3;
 }
 
+/*
 span.count-right {
   float: right;
   font-weight: bold;
 }
+*/
 
 .monospace {
   font-family: Consolas, 'Courier New', Courier, Monaco, monospace;

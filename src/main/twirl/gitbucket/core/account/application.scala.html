@@ -5,8 +5,7 @@
 @import gitbucket.core.view.helpers._
 @html.main("Applications"){
 <div class="container body">
-  @menu("application", settings.ssh)
-  <div style="margin-left: 260px;">
+  @menu("application", settings.ssh){
     <div class="panel panel-default">
       <div class="panel-heading strong">Personal access tokens</div>
       <div class="panel-body">
@@ -51,6 +50,6 @@
         </div>
       </div>
     </form>
-  </div>
+  }
 </div>
 }

@@ -4,8 +4,7 @@
 @import gitbucket.core.view.helpers._
 @html.main("SSH Keys"){
 <div class="container body">
-  @menu("ssh", settings.ssh)
-  <div style="margin-left: 260px;">
+  @menu("ssh", settings.ssh){
     <div class="panel panel-default">
       <div class="panel-heading strong">SSH Keys</div>
       <div class="panel-body">
@@ -39,6 +38,6 @@
         </div>
       </div>
     </form>
-  </div>
+  }
 </div>
 }

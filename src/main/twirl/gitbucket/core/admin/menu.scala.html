@@ -1,7 +1,7 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
 <div class="container body">
-  <div style="width: 250px; float: left;">
+  <div class="main-sidebar">
     <ul class="nav nav-pills nav-stacked" id="system-admin-menu-container">
       <li@if(active=="users"){ class="active"}>
         <a href="@path/admin/users">User Management</a>
@@ -17,7 +17,7 @@
       </li>
    </ul>
   </div>
-  <div style="margin-left: 260px;">
+  <div class="main-content">
     @body
   </div>
 </div>
