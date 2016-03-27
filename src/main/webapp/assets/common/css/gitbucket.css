@@ -135,12 +135,13 @@ span.header-version {
   font-size: small;
 }
 
+/*
 div.input-group>span.fork {
   display: table;
   margin-left: 4px;
   margin-top: 1px;
 }
-
+*/
 /*
 div.input-group>span.fork>span.count {
   background-color: white;
@@ -205,6 +206,15 @@ div.main-content {
 div.main-center {
   width: 980px;
   margin: 0 auto;
+}
+
+div.dashboard-sidebar {
+  width: 300px;
+  float: left;
+}
+
+div.dashboard-content {
+  margin-left: 310px;
 }
 
 div.body {
@@ -602,7 +612,7 @@ table.blobview {
   table-layout: fixed;
 }
 */
-
+/*
 table.table-file-list {
   margin-bottom: 0px;
   border: 1px solid #ddd;
@@ -614,6 +624,7 @@ table.table-file-list th, table.table-file-list td {
   padding-top: 8px;
   padding-bottom: 8px;
 }
+*/
 
 table.table-file-list td.latest-commit {
   padding-top: 4px;
@@ -625,7 +636,7 @@ table.table-file-list td {
   background-color: #F8F8F8;
   font-size: small;
 }
-
+/*
 table.table-file-list .file-icon {
   padding-right: 1px;
 }
@@ -653,7 +664,7 @@ th, td, .table th, .table td {
   padding-bottom: 4px;
   line-height: 100%;
 }
-
+*/
 div.commit-avatar-image {
   float: left;
   margin-right: 4px;

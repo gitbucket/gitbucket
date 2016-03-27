@@ -57,7 +57,7 @@
           </a>
           @if(loginAccount.isDefined){
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
             }
@@ -66,7 +66,7 @@
           } else {
             @* TODO: merge with below *@
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
             }
