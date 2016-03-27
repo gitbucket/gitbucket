@@ -12,9 +12,6 @@
     <link rel="icon" href="@assets/common/images/gitbucket.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="@assets/vendors/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet">
-    @*
-    <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap-responsive.css" rel="stylesheet">
-    *@
     <link href="@assets/vendors/octicons/octicons.css" rel="stylesheet">
     <link href="@assets/vendors/datepicker/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
     <link href="@assets/vendors/colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
@@ -44,7 +41,7 @@
   <body>
     <form id="search" action="@path/search" method="POST" class="form-inline">
       <nav class="navbar navbar-default">
-        <div class="container" style="width: 980px;">
+        <div class="container">
           @* TODO: for plugi-ins?
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
@@ -60,7 +57,7 @@
           </a>
           @if(loginAccount.isDefined){
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
             }
@@ -69,7 +66,7 @@
           } else {
             @* TODO: merge with below *@
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
             }

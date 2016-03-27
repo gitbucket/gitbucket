@@ -108,7 +108,9 @@ trait DashboardControllerBase extends ControllerBase {
         case _           => condition.copy(author    = Some(userName))
       },
       filter,
-      getGroupNames(userName))
+      getGroupNames(userName),
+      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 
   private def searchPullRequests(filter: String) = {
@@ -131,7 +133,9 @@ trait DashboardControllerBase extends ControllerBase {
         case _           => condition.copy(author    = Some(userName))
       },
       filter,
-      getGroupNames(userName))
+      getGroupNames(userName),
+      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 
 

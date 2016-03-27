@@ -8,7 +8,7 @@
   <li class="@(if(condition.state == "open"){"active"})">
     <a href="@condition.copy(state = "open").toURL">Open <span class="badge">@openCount</span></a>
   </li>
-  <li class="@if(condition.state == "closed"){ selected}">
+  <li class="@(if(condition.state == "closed"){"active"})">
     <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
   </li>
   @*

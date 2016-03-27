@@ -21,26 +21,6 @@
   <div class="container">
     @helper.html.information(info)
     @helper.html.error(error)
-    @*
-    <div class="pull-right">
-      <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(repository.repository.defaultBranch))" class="header-link">
-        <i class="octicon octicon-history"></i>
-        @if(repository.commitCount > 10000){
-          <strong>10000+</strong> commits
-        } else {
-          <strong>@repository.commitCount</strong> commits
-        }
-      </a>
-      <a href="@url(repository)/branches" class="header-link" class="header-link">
-        <i class="octicon octicon-git-branch"></i>
-        <strong>@repository.branchList.length</strong> branches
-      </a>
-      <a href="@url(repository)/tags" class="header-link" class="header-link">
-        <i class="octicon octicon-tag"></i>
-        <strong>@repository.tags.length</strong> releases
-      </a>
-    </div>
-    *@
     <div class="head">
       @helper.html.repositoryicon(repository, true)
       <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
@@ -56,7 +36,11 @@
         }
       }
     </div>
-    <ul class="nav nav-tabs">
+  </div>
+</div>
+<div class="container body">
+  <div class="main-sidebar">
+    <ul class="nav nav-pills nav-stacked">
       @menuitem(""                   ,"files"      ,"Files")
       @if(repository.commitCount != 0) {
         @menuitem("/branches"        ,"branches"   ,"Branches", repository.branchList.length)
@@ -67,13 +51,14 @@
       @menuitem("/issues/labels"     ,"labels"     ,"Labels")
       @menuitem("/issues/milestones" ,"milestones" ,"Milestones")
       @menuitem("/wiki"              ,"wiki"       ,"Wiki")
+      @menuitem("/network/members", "fork", "Forks", repository.forkedCount)
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         @menuitem("/settings" , "settings" , "Settings")
       }
-      @menuitem("/network/members", "fork", "Forks", repository.forkedCount)
     </ul>
   </div>
+  <div class="main-content">
+    @body
+  </div>
 </div>
-<div class="container body">
-  @body
-</div>
+

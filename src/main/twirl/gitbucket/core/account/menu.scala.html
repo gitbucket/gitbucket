@@ -1,6 +1,6 @@
-@(active: String, ssh: Boolean)(implicit context: gitbucket.core.controller.Context)
+@(active: String, ssh: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
-<div class="box">
+<div class="main-sidebar">
   <ul class="nav nav-pills nav-stacked">
     <li@if(active=="profile"){ class="active"}>
       <a href="@path/@loginAccount.get.userName/_edit">Profile</a>
@@ -14,4 +14,7 @@
       <a href="@path/@loginAccount.get.userName/_application">Applications</a>
     </li>
   </ul>
+</div>
+<div class="main-content">
+  @body
 </div>
