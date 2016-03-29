@@ -178,7 +178,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           }
           val existIds = using(Git.open(Directory.getRepositoryDir(owner, name))) { git => JGitUtil.getAllCommitIds(git) }.toSet
           pullRemote(owner, name, pullreq.requestBranch, pullreq.userName, pullreq.repositoryName, pullreq.branch, loginAccount,
-                     "Merge branch '${alias}' into ${pullreq.requestBranch}") match {
+                     s"Merge branch '${alias}' into ${pullreq.requestBranch}") match {
             case None => // conflict
               flash += "error" -> s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}."
             case Some(oldId) =>
