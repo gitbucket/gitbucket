@@ -8,13 +8,22 @@
   closedCount: Int,
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasWritePermission: Boolean,
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
+ 
+  <div class="row">
+    <div class="col-md-3">
+      <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
+       @dashboard.html.repopanel(userRepositories)
+     </div>
+    </div>
+    <div class="col-md-9">
   @html.menu(target, repository){
     @navigation(target, true, repository, Some(condition))
-    @listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
+    <@listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
     @if(hasWritePermission){
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
@@ -23,6 +32,9 @@
       </form>
     }
   }
+  </div>
+  </div>
+
 }
 @if(hasWritePermission){
 <script>

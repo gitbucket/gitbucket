@@ -15,7 +15,7 @@
 @import gitbucket.core._
 @import gitbucket.core.view.helpers._
 <div class="tabbable">
-  <ul class="nav nav-tabs fill-width" style="margin-top: 12px; margin-bottom: 10px;">
+  <ul class="nav nav-tabs fill-width customtab" style="margin-top: 12px; margin-bottom: 10px;">
     <li class="active"><a href="#tab@uid" data-toggle="tab">Write</a></li>
     <li><a href="#tab@(uid+1)" data-toggle="tab" id="preview@uid">Preview</a></li>
   </ul>
@@ -23,7 +23,7 @@
     <div class="tab-pane active" style="margin-top: 4px;" id="tab@uid">
       <span id="error-content" class="error"></span>
       @textarea = {
-        <textarea id="content@uid" class="form-control" name="content" placeholder="@placeholder"
+        <textarea id="content@uid" class="form-control" style="background-color:#616161; color:white; " name="content" placeholder="@placeholder"
           @if(tabIndex > -2){ tabindex="@tabIndex"}
           @if(style.nonEmpty){ style="@style"}
           @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
