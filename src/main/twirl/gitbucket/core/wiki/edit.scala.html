@@ -7,7 +7,7 @@
   @html.menu("wiki", repository){
     <ul class="nav nav-tabs fill-width">
       <li>
-        <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
+        <h1 class="wiki-title"><span>Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
       </li>
       <li class="pull-right">
         <div>
@@ -21,7 +21,7 @@
     </ul>
     <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
       <span id="error-pageName" class="error"></span>
-      <input type="text" name="pageName" value="@pageName" class="form-control input-lg" style="font-weight: bold;" placeholder="Input a page name."/>
+      <input type="text" name="pageName" value="@pageName" class="form-control input-lg panelbackgrnd" style="font-weight: bold;" placeholder="Input a page name."/>
       @helper.html.preview(
         repository         = repository,
         content            = page.map(_.content).getOrElse(""),
@@ -35,8 +35,8 @@
         placeholder        = ""
       )
       <div class="form-group">
-        <label for="message">Edit Message</label>
-        <input type="text" id="message" name="message" value="" class="form-control" placeholder="Write a small message here explaining this change. (Optional)"/>
+        <label for="message" style="color:white;">Edit Message</label>
+        <input type="text" id="message" name="message" value="" class="form-control panelbackgrnd" placeholder="Write a small message here explaining this change. (Optional)"/>
       </div>
       <div class="form-group pull-right">
         <input type="hidden" name="currentPageName" value="@pageName"/>

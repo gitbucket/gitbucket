@@ -26,7 +26,7 @@
         <a class="strong" href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
           @if(i == pathList.length - 1){
-            <span class="strong">@section</span>
+            <span class="strong labeltxt">@section</span>
           } else {
             <a class="strong" href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
           }
@@ -35,12 +35,12 @@
     </div>
     <div class="commit-list">
       @commits.map { day =>
-        <div class="muted" style="background-color: white;">
+        <div class="muted">
           <i class="octicon octicon-git-commit"></i> Commits on @date(day.head.commitTime)
         </div>
         <div class="list-group box-commits">
           @day.map { commit =>
-            <div class="list-group-item">
+            <div class="list-group-item panelbackgrnd">
               <ul class="nav nav-pills pull-right">
                 <li><a href="@url(repository)/commit/@commit.id" class="link monospace" style="line-height: 16px;">@commit.id.substring(0, 7)</a></li>
                 <li><a href="@url(repository)/tree/@commit.id" style="line-height: 16px;"><i class="octicon octicon-code link"></i></a></li>

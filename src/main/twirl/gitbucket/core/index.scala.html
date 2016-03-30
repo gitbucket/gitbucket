@@ -25,7 +25,7 @@
           @if(loginAccount.isEmpty){
             <div id="dashboard-signin-form">@signinform(settings)</div>
           } else {
-            <div class="panel panel-default">
+            <div class="panel panelcustom">
               <div class="panel-heading strong">
                 <div class="pull-right">
                   <a href="@path/new" class="btn btn-success btn-sm">New repository</a>
@@ -57,7 +57,7 @@
               </ul>
             </div>
           }
-          <div class="panel panel-default">
+          <div class="panel panelcustom">
             <div class="panel-heading strong">Recent updated repositories</div>
             <ul class="list-group list-group-flush">
             @if(recentRepositories.isEmpty){

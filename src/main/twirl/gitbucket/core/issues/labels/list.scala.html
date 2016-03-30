@@ -7,12 +7,12 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"Labels - ${repository.owner}/${repository.name}"){
   <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-4">
       <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
        @dashboard.html.repopanel(userRepositories)
      </div>
     </div>
-    <div class="col-md-9">
+    <div class="col-md-8">
   @html.menu("issues", repository){
     @issues.html.navigation("labels", hasWritePermission, repository)
     <br>
@@ -22,7 +22,7 @@
     <table class="table table-bordered table-hover table-issues">
       <thead>
         <tr id="label-row-header">
-          <th style="background-color: #eee;">
+          <th style="background-color: #9e9e9e; color:white;">
             <span class="small">@labels.size labels</span>
           </th>
         </tr>

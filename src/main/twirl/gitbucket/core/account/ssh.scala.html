@@ -9,7 +9,7 @@
       @menu("ssh", settings.ssh)
     </div>
     <div class="col-md-9">
-      <div class="panel panel-default">
+      <div class="panel panelcustom">
         <div class="panel-heading strong">SSH Keys</div>
         <div class="panel-body">
           @if(sshKeys.isEmpty){
@@ -25,7 +25,7 @@
         </div>
       </div>
       <form method="POST" action="@path/@account.userName/_ssh" validate="true">
-        <div class="panel panel-default">
+        <div class="panel panelcustom">
           <div class="panel-heading strong">Add an SSH Key</div>
           <div class="panel-body">
             <fieldset class="form-group">
