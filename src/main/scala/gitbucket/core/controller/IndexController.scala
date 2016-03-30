@@ -2,7 +2,6 @@ package gitbucket.core.controller
 
 import gitbucket.core.api._
 import gitbucket.core.helper.xml
-import gitbucket.core.html
 import gitbucket.core.model.Account
 import gitbucket.core.service.{RepositoryService, ActivityService, AccountService, RepositorySearchService, IssuesService}
 import gitbucket.core.util.Implicits._
@@ -19,7 +18,7 @@ class IndexController extends IndexControllerBase
 
 trait IndexControllerBase extends ControllerBase {
   self: RepositoryService with ActivityService with AccountService with RepositorySearchService
-    with UsersAuthenticator with ReferrerAuthenticator =>
+    with UsersAuthenticator with ReferrerAuthenticator  =>
 
   case class SignInForm(userName: String, password: String)
 
@@ -35,7 +34,6 @@ trait IndexControllerBase extends ControllerBase {
   )(SearchForm.apply)
 
   case class SearchForm(query: String, owner: String, repository: String)
-
 
   get("/"){
     val loginAccount = context.loginAccount
@@ -75,7 +73,10 @@ trait IndexControllerBase extends ControllerBase {
     
   post("/signinoffline", signinForm){ form =>
     authenticate(context.settings, form.userName, form.password) match {
-      case Some(account) => signin(account)
+      case Some(account) => {
+        session.setAttribute(Keys.Session.LoginAccount, account)
+        updateLastLoginDate(account.userName)
+      }
       case None          => halt(405)
     }
   }
