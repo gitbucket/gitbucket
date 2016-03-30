@@ -41,7 +41,7 @@
       <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
       @pathList.zipWithIndex.map { case (section, i) =>
         @if(i == pathList.length - 1){
-          @section
+          <span class="labeltxt">@section</span>
         } else {
           <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }

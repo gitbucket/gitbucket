@@ -66,6 +66,7 @@
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong muted">
       @avatar(activity.activityUserName, 16)
+      @activity.activityUserName
       @activityMessage(activity.message)
     </div>
     @activity.additionalInfo.map { additionalInfo =>
@@ -80,6 +81,7 @@
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong muted">
       @avatar(activity.activityUserName, 16)
+      @activity.activityUserName
       @activityMessage(activity.message)
     </div>
     @additionalInfo
@@ -91,6 +93,7 @@
   <div class="activity-content">
     <div class="strong muted">
       @avatar(activity.activityUserName, 16)
+      @activity.activityUserName
       @activityMessage(activity.message)
       <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
     </div>

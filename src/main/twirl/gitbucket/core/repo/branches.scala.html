@@ -5,11 +5,11 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
-    <h1>Branches</h1>
+    <h1 class="wiki-title">Branches</h1>
     <table class="table table-bordered table-hover table-issues branches">
       <thead>
         <tr>
-          <th style="background: #f5f5f5;color: #666;">All branches</th>
+          <th style="background-color: grey;color: white;">All branches</th>
         </tr>
       </thead>
       <tbody>

@@ -16,7 +16,7 @@
       <tr>
         <th class="box-header">
           <div class="pull-right align-right">
-            <a href="@url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
+            <a href="@url(repository)/tree/@commit.id" class="btn btn-default">Browse code</a>
           </div>
           <div class="commit-log">@link(commit.summary, repository)</div>
           @if(commit.description.isDefined){
@@ -25,17 +25,17 @@
           <div class="small" style="font-weight: normal;">
             @if(branches.nonEmpty){
               <span class="muted">
-                  <i class="octicon octicon-git-branch"></i>
+                  <i class="octicon octicon-git-branch" style="color:white;"></i>
                 @branches.zipWithIndex.map { case (branch, i) =>
-                  <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
+                  <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" style="color:white;" id="branch-@i">@branch</a>
                 }
               </span>
             }
             @if(tags.nonEmpty){
               <span class="muted">
-                  <i class="octicon octicon-tag"></i>
+                  <i class="octicon octicon-tag" style="color:white;"></i>
                 @tags.zipWithIndex.map { case (tag, i) =>
-                  <a href="@url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
+                  <a href="@url(repository)/tree/@tag" class="tag" style="color:white;" id="tag-@i">@tag</a>
                 }
               </span>
             }
@@ -53,7 +53,7 @@
                 <span class="muted">1 parent</span>
                 <a href="@url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
               }
-              <span class="muted">commit</span> @commit.id
+              <span class="muted">commit @commit.id</span> 
             </div>
             @if(commit.parents.size > 1){
               <div>
@@ -69,13 +69,13 @@
           <div class="author-info">
             <div class="author">
               @avatar(commit, 20)
-              <span>@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
+              <span class="muted">@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
               <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
             </div>
             @if(commit.isDifferentFromAuthor) {
             <div class="committer">
               <span class="octicon octicon-arrow-right"></span>
-              <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
+              <span class="muted">@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
               <span class="muted"> committed @helper.html.datetimeago(commit.commitTime)</span>
             </div>
             }
@@ -84,7 +84,7 @@
       </tr>
     </table>
     @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, None, hasWritePermission, true)
-    <label class="checkbox">
+    <label class="checkbox labeltxt">
       <input type="checkbox" id="show-notes"> Show line notes below
     </label>
     <div id="comment-list">

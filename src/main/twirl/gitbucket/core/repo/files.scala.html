@@ -24,12 +24,12 @@
     s"${(repository.name :: pathList).mkString("/")} at ${encodeRefName(branch)} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
   <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-4">
         <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
         @dashboard.html.repopanel(userRepositories)
         </div>  
       </div>
-  <div class="col-md-9">
+  <div class="col-md-8">
   @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
     <div class="head">
       @if(pathList.isEmpty){
@@ -68,7 +68,7 @@
           </div>
         </div>
       }
-      <div class="pull-right">
+      <div class="pull-left">
         <div class="btn-group">
           <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here" @if(!hasWritePermission){disabled}>New file</i></a>
           <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-sm btn-default pc" data-hotkey="t">Find file</a>
@@ -179,7 +179,7 @@
       }
     </table>
     @readme.map { case(filePath, content) =>
-      <div id="readme" class="panel panel-default">
+      <div id="readme" class="panel panelcustom">
         <div class="panel-heading strong">@filePath.reverse.head</div>
         <div class="panel-body markdown-body" style="padding-left: 20px; padding-right: 20px;">@renderMarkup(filePath, content, branch, repository, false, false, true)</div>
       </div>

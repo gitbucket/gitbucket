@@ -13,7 +13,7 @@
       @helper.html.information(info)
       <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
       <form name="branchProtection" onsubmit="submitForm(event)">
-        <div class="panel panel-default">
+        <div class="panel panelcustom">
           <div class="panel-heading">Branch protection for <b>@branch</b></div>
           <div class="panel-body">
 
@@ -42,7 +42,7 @@
                   <p class="help-block">Enforce required status checks for repository administrators.</p>
                 </div>
 
-                <div class="panel panel-default">
+                <div class="panel panelcustom">
                   <div class="panel-heading">Status checks found in the last week for this repository</div>
                   <div class="panel-body">
                     @knownContexts.map { context =>

@@ -10,7 +10,7 @@
       @menu("application", settings.ssh)
     </div>
     <div class="col-md-9">
-      <div class="panel panel-default">
+      <div class="panel panelcustom">
         <div class="panel-heading strong">Personal access tokens</div>
         <div class="panel-body">
           @if(personalTokens.isEmpty && gneratedToken.isEmpty){
@@ -41,7 +41,7 @@
         </div>
       </div>
       <form method="POST" action="@path/@account.userName/_personalToken" validate="true">
-        <div class="panel panel-default">
+        <div class="panel panelcustom">
           <div class="panel-heading strong">Generate new token</div>
           <div class="panel-body">
             <fieldset>

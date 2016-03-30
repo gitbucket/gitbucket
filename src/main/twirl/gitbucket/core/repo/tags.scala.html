@@ -3,14 +3,14 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("code", repository){
-    <h1>Tags</h1>
+    <h1 class="labeltxt">Tags</h1>
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th width="40%">Tag</th>
-          <th width="20%">Date</th>
-          <th width="20%">Commit</th>
-          <th width="20%">Download</th>
+          <th width="40%" style="background-color:grey; color:white;">Tag</th>
+          <th width="20%" style="background-color:grey; color:white;">Date</th>
+          <th width="20%" style="background-color:grey; color:white;">Commit</th>
+          <th width="20%" style="background-color:grey; color:white;">Download</th>
         </tr>
       </thead>
       <tbody>

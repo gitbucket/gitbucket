@@ -7,12 +7,12 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-4">
       <div style="width:100%;height:100%; margin-left:5%;margin-top:10%">
        @dashboard.html.repopanel(userRepositories)
      </div>
     </div>
-    <div class="col-md-9">
+    <div class="col-md-8">
   @html.menu("issues", repository){
     @issues.html.navigation("milestones", hasWritePermission, repository)
     <br>
@@ -64,13 +64,14 @@
                   @progress(openCount + closedCount, closedCount)
                   <div>
                     <div>
-                      @if(closedCount == 0){
+                       <span class="muted">
+                        @if(closedCount == 0){
                         0%
                       } else {
                         @((closedCount.toDouble / (openCount + closedCount).toDouble * 100).toInt)%
-                      } <span class="muted">complete</span> &nbsp;&nbsp;
-                      @openCount <span class="muted">open</span> &nbsp;&nbsp;
-                      @closedCount <span class="muted">closed</span>
+                      } complete</span> &nbsp;&nbsp;
+                       <span class="muted">@openCount open</span> &nbsp;&nbsp;
+                       <span class="muted">@closedCount closed</span>
                     </div>
                     <div class="milestone-menu">
                       @if(hasWritePermission){
