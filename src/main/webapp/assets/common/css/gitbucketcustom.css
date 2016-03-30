@@ -455,7 +455,8 @@ div.box-commits {
 }
 
 div.box-content {
-  background-color: white;
+ /* dynsim dark theme change to change  background-color: white; to #464545 */
+ background-color: #464545;
   border: 1px solid #d8d8d8;
   padding: 4px;
   border-radius: 3px;

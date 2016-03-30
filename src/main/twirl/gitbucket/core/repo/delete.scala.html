@@ -22,7 +22,7 @@
         <th style="font-weight: normal;" class="box-header">
           @fileName
           <div class="pull-right align-right">
-            <a href="@url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-small">View</a>
+            <a href="@url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-default">View</a>
           </div>
         </th>
         <tr>
@@ -36,11 +36,11 @@
       <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
         <div class="box issue-comment-box">
         <div class="box-content">
-          <div>
+          <div class="labeltxt">
             <strong>Commit changes</strong>
           </div>
           <div>
-            <input type="text" name="message" style="width: 98%;"/>
+            <input type="text" name="message" style="width: 98%; background-color:#616161;color:white;"/>
           </div>
           <div style="text-align: right;">
             <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
