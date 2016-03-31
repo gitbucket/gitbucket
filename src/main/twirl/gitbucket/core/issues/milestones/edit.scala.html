@@ -27,7 +27,7 @@
       <hr>
       <div class="pull-right">
         @if(milestone.isEmpty){
-          <input type="submit" class="btn btn-default" value="Create milestone"/>
+          <input type="submit" class="btn btn-success" value="Create milestone"/>
         } else {
           @if(milestone.get.closedDate.isDefined){
             <input type="button" class="btn btn-default" value="Open" id="open"
@@ -36,7 +36,7 @@
             <input type="button" class="btn btn-default" value="Close" id="close"
                    onclick="location.href='@url(repository)/issues/milestones/@milestone.get.milestoneId/open';"/>
           }
-          <input type="submit" class="btn btn-default" value="Update milestone"/>
+          <input type="submit" class="btn btn-success" value="Update milestone"/>
         }
       </div>
     </form>

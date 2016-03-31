@@ -13,7 +13,24 @@
 @import gitbucket.core.view.helpers._
 @html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu(target, repository){
-    @navigation(target, true, repository, openCount, closedCount, condition)
+    <ul class="nav nav-pills pull-left" style="line-height: 14px; margin-bottom: 10px;">
+      <li class="@if(condition.state == "open"){active}">
+        <a href="@condition.copy(state = "open").toURL">Open <span class="badge">@openCount</span></a>
+      </li>
+      <li class="@if(condition.state == "closed"){active}">
+        <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
+      </li>
+    </ul>
+    <form method="GET" id="search-filter-form" class="form-inline pull-right">
+    @if(loginAccount.isDefined){
+      @if(target == "issues"){
+        <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
+      }
+      @if(target == "pulls"){
+        <a class="btn btn-success" href="@url(repository)/compare">New pull request</a>
+      }
+    }
+    </form>
     @listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
     @if(hasWritePermission){
       <form id="batcheditForm" method="POST">

@@ -6,6 +6,11 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"Labels - ${repository.owner}/${repository.name}"){
   @html.menu("labels", repository){
+    @if(loginAccount.isDefined){
+      <div class="pull-right" style="margin-bottom: 10px;">
+        <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
+      </div>
+    }
     <table class="table table-bordered table-hover table-issues" id="new-label-table" style="display: none;">
       <tr><td></td></tr>
     </table>

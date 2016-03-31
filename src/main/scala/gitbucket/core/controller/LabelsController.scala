@@ -23,6 +23,7 @@ trait LabelsControllerBase extends ControllerBase {
     "labelColor" -> trim(label("Color",      text(required, color)))
   )(LabelForm.apply)
 
+
   get("/:owner/:repository/issues/labels")(referrersOnly { repository =>
     html.list(
       getLabels(repository.owner, repository.name),
@@ -84,7 +85,11 @@ trait LabelsControllerBase extends ControllerBase {
     override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] = {
       val owner = params("owner")
       val repository = params("repository")
-      getLabel(owner, repository, value).map(_ => "Name has already been taken.")
+      params.get("labelId").map { labelId =>
+        getLabel(owner, repository, value).filter(_.labelId != labelId.toInt).map(_ => "Name has already been taken.")
+      }.getOrElse {
+        getLabel(owner, repository, value).map(_ => "Name has already been taken.")
+      }
     }
   }
 
