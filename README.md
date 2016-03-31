@@ -63,6 +63,12 @@ Support
 
 Release Notes
 --------
+### 3.13 - 1 Apr 2016
+- Refresh user interface for wide screen
+- Add `pull_request` key in list issues API for pull requests
+- Add `X-Hub-Signature` security to webhooks
+- Provide SHA-256 checksum for `gitbucket.war`
+
 ### 3.12 - 27 Feb 2016
 - New GitHub UI
 - Improve mobile view
