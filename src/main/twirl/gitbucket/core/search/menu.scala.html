@@ -1,4 +1,4 @@
-@(active: String, fileCount: Int, issueCount: Int, query: String,
+@(active: String, fileCount: Int, issueCount: Int, wikiCount: Int, query: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
@@ -18,6 +18,14 @@
         Issues
         @if(issueCount != 0){
           <span class="badge">@issueCount</span>
+        }
+      </a>
+    </li>
+    <li@if(active=="wiki"){ class="active"}>
+      <a href="@url(repository)/search?q=@urlEncode(query)&type=wiki">
+        Wiki
+        @if(wikiCount != 0){
+          <span class="badge">@wikiCount</span>
         }
       </a>
     </li>

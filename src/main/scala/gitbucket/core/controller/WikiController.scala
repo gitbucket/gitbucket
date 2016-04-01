@@ -12,7 +12,8 @@ import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
 
 class WikiController extends WikiControllerBase 
-  with WikiService with RepositoryService with AccountService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator
+  with WikiService with RepositoryService with AccountService with ActivityService
+  with CollaboratorsAuthenticator with ReferrerAuthenticator
 
 trait WikiControllerBase extends ControllerBase {
   self: WikiService with RepositoryService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator =>

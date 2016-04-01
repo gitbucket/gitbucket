@@ -1,9 +1,8 @@
 package gitbucket.core.controller
 
-import gitbucket.core.api._
 import gitbucket.core.helper.xml
 import gitbucket.core.model.Account
-import gitbucket.core.service.{RepositoryService, ActivityService, AccountService, RepositorySearchService, IssuesService}
+import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator, ReferrerAuthenticator, StringUtil}
@@ -138,13 +137,21 @@ trait IndexControllerBase extends ControllerBase {
 
       target.toLowerCase match {
         case "issue" => gitbucket.core.search.html.issues(
-          searchIssues(repository.owner, repository.name, query),
           countFiles(repository.owner, repository.name, query),
+          searchIssues(repository.owner, repository.name, query),
+          countWikiPages(repository.owner, repository.name, query),
+          query, page, repository)
+
+        case "wiki" => gitbucket.core.search.html.wiki(
+          countFiles(repository.owner, repository.name, query),
+          countIssues(repository.owner, repository.name, query),
+          searchWikiPages(repository.owner, repository.name, query),
           query, page, repository)
 
         case _ => gitbucket.core.search.html.code(
           searchFiles(repository.owner, repository.name, query),
           countIssues(repository.owner, repository.name, query),
+          countWikiPages(repository.owner, repository.name, query),
           query, page, repository)
       }
     }
