@@ -1,5 +1,8 @@
 package gitbucket.core.controller
 
+import gitbucket.core.model.Account
+import gitbucket.core.service.{AccountService, RepositoryService}
+import gitbucket.core.servlet.Database
 import gitbucket.core.util._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
@@ -15,7 +18,7 @@ import org.apache.commons.io.{IOUtils, FileUtils}
  *
  * This servlet saves uploaded file.
  */
-class FileUploadController extends ScalatraServlet with FileUploadSupport {
+class FileUploadController extends ScalatraServlet with FileUploadSupport with RepositoryService with AccountService {
 
   configureMultipartHandling(MultipartConfig(maxFileSize = Some(3 * 1024 * 1024)))
 
@@ -35,36 +38,51 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport {
   }
 
   post("/wiki/:owner/:repository"){
-    // TODO security
-    execute({ (file, fileId) =>
+    // Don't accept not logged-in users
+    session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
       val owner      = params("owner")
       val repository = params("repository")
-      val fileName   = file.getName
-      LockUtil.lock(s"${owner}/${repository}/wiki") {
-        using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
-          val builder  = DirCache.newInCore.builder()
-          val inserter = git.getRepository.newObjectInserter()
-          val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
 
-          if(headId != null){
-            JGitUtil.processTree(git, headId){ (path, tree) =>
-              if(path != fileName){
-                builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+      // Check whether logged-in user is collaborator
+      collaboratorsOnly(owner, repository, loginAccount){
+        execute({ (file, fileId) =>
+          val fileName   = file.getName
+          LockUtil.lock(s"${owner}/${repository}/wiki") {
+            using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
+              val builder  = DirCache.newInCore.builder()
+              val inserter = git.getRepository.newObjectInserter()
+              val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
+
+              if(headId != null){
+                JGitUtil.processTree(git, headId){ (path, tree) =>
+                  if(path != fileName){
+                    builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+                  }
+                }
               }
+
+              val bytes = IOUtils.toByteArray(file.getInputStream)
+              builder.add(JGitUtil.createDirCacheEntry(fileName, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes)))
+              builder.finish()
+
+              val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
+                Constants.HEAD, loginAccount.userName, loginAccount.mailAddress, s"Uploaded ${fileName}")
+
+              fileName
             }
           }
-
-          val bytes = IOUtils.toByteArray(file.getInputStream)
-          builder.add(JGitUtil.createDirCacheEntry(fileName, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes)))
-          builder.finish()
-
-          val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-            Constants.HEAD, "committer.fullName", "committer.mailAddress", s"Uploaded ${fileName}") // TODO committer
-
-          fileName
-        }
+        }, FileUtil.isImage)
       }
-    }, FileUtil.isImage)
+    } getOrElse BadRequest
+  }
+
+  private def collaboratorsOnly(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
+    implicit val session = Database.getSession(request)
+    loginAccount match {
+      case x if(x.isAdmin) => action
+      case x if(getCollaborators(owner, repository).contains(x.userName)) => action
+      case _ => BadRequest
+    }
   }
 
   private def execute(f: (FileItem, String) => Unit, mimeTypeChcker: (String) => Boolean) = fileParams.get("file") match {
