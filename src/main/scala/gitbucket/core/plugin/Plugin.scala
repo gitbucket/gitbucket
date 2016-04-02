@@ -1,7 +1,8 @@
 package gitbucket.core.plugin
 
 import javax.servlet.ServletContext
-import gitbucket.core.controller.ControllerBase
+import gitbucket.core.controller.{Context, ControllerBase}
+import gitbucket.core.model.Account
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Version
@@ -80,12 +81,22 @@ abstract class Plugin {
   /**
    * Override to add global menus.
    */
-  val globalMenus: Seq[GlobalMenu] = Nil
+  val globalMenus: Seq[(Context) => Option[Link]] = Nil
 
   /**
    * Override to add global menus.
    */
-  def globalMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[GlobalMenu] = Nil
+  def globalMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add profile tabs.
+   */
+  val profileTabs: Seq[(Account, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add profile tabs.
+   */
+  def profileTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Account, Context) => Option[Link]] = Nil
 
   /**
    * This method is invoked in initialization of plugin system.
@@ -110,8 +121,11 @@ abstract class Plugin {
     (receiveHooks ++ receiveHooks(registry, context, settings)).foreach { receiveHook =>
       registry.addReceiveHook(receiveHook)
     }
-    (globalMenus ++ globalMenus(registry, context, settings)).foreach { menu =>
-      registry.addGlobalMenu(menu)
+    (globalMenus ++ globalMenus(registry, context, settings)).foreach { globalMenu =>
+      registry.addGlobalMenu(globalMenu)
+    }
+    (profileTabs ++ profileTabs(registry, context, settings)).foreach { profileTab =>
+      registry.addProfileTab(profileTab)
     }
   }
 

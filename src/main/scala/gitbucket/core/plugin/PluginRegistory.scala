@@ -3,11 +3,10 @@ package gitbucket.core.plugin
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import javax.servlet.ServletContext
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.controller.{Context, ControllerBase}
+import gitbucket.core.model.Account
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
@@ -33,7 +32,8 @@ class PluginRegistry {
   private val receiveHooks = new ListBuffer[ReceiveHook]
   receiveHooks += new ProtectedBranchReceiveHook()
 
-  private val globalMenus = new ListBuffer[GlobalMenu]
+  private val globalMenus = new ListBuffer[(Context) => Option[Link]]
+  private val profileTabs = new ListBuffer[(Account, Context) => Option[Link]]
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -109,23 +109,17 @@ class PluginRegistry {
 
   def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
 
-  def addGlobalMenu(menu: GlobalMenu): Unit = {
+  def addGlobalMenu(menu: (Context) => Option[Link]): Unit = {
     globalMenus += menu
   }
 
-  def getGlobalMenus: Seq[GlobalMenu] = globalMenus.toSeq
+  def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.toSeq
 
-//  private case class GlobalAction(
-//    method: String,
-//    path: String,
-//    function: (HttpServletRequest, HttpServletResponse, Context) => Any
-//  )
-//
-//  private case class RepositoryAction(
-//    method: String,
-//    path: String,
-//    function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any
-//  )
+  def addProfileTab(tab: (Account, Context) => Option[Link]): Unit = {
+    profileTabs += tab
+  }
+
+  def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.toSeq
 
 }
 
@@ -209,9 +203,7 @@ object PluginRegistry {
 
 }
 
-abstract class GlobalMenu {
-  def createLink(context: Context): Option[(String, String)]
-}
+case class Link(id: String, label: String, path: String)
 
 case class PluginInfo(
   pluginId: String,

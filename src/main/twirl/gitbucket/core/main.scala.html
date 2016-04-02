@@ -72,8 +72,8 @@
             }
           }
           @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
-            @menu.createLink(context).map { case (label, link) =>
-              <a href="@path/@link" class="global-header-menu">@label</a>
+            @menu(context).map { link =>
+              <a href="@path/@link.path" class="global-header-menu">@link.label</a>
             }
           }
           @if(loginAccount.isDefined){

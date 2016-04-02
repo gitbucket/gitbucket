@@ -33,6 +33,11 @@
         } else {
           <li@if(active == "activity"){ class="active"}><a href="@url(account.userName)?tab=activity">Public Activity</a></li>
         }
+        @gitbucket.core.plugin.PluginRegistry().getProfileTabs.map { tab =>
+          @tab(account, context).map { link =>
+            <li@if(active == link.id){ class="active"}><a href="@path/@link.path">@link.label</a></li>
+          }
+        }
         @if(loginAccount.isDefined && loginAccount.get.userName == account.userName){
           <li class="pull-right">
             <div class="button-group">
