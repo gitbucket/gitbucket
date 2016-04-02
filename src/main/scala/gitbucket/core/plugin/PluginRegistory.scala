@@ -33,6 +33,8 @@ class PluginRegistry {
   private val receiveHooks = new ListBuffer[ReceiveHook]
   receiveHooks += new ProtectedBranchReceiveHook()
 
+  private val globalMenus = new ListBuffer[GlobalMenu]
+
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
   }
@@ -107,17 +109,23 @@ class PluginRegistry {
 
   def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
 
-  private case class GlobalAction(
-    method: String,
-    path: String,
-    function: (HttpServletRequest, HttpServletResponse, Context) => Any
-  )
+  def addGlobalMenu(menu: GlobalMenu): Unit = {
+    globalMenus += menu
+  }
 
-  private case class RepositoryAction(
-    method: String,
-    path: String,
-    function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any
-  )
+  def getGlobalMenus: Seq[GlobalMenu] = globalMenus.toSeq
+
+//  private case class GlobalAction(
+//    method: String,
+//    path: String,
+//    function: (HttpServletRequest, HttpServletResponse, Context) => Any
+//  )
+//
+//  private case class RepositoryAction(
+//    method: String,
+//    path: String,
+//    function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any
+//  )
 
 }
 
@@ -199,6 +207,10 @@ object PluginRegistry {
   }
 
 
+}
+
+abstract class GlobalMenu {
+  def createLink(context: Context): Option[(String, String)]
 }
 
 case class PluginInfo(

@@ -78,6 +78,16 @@ abstract class Plugin {
   def receiveHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[ReceiveHook] = Nil
 
   /**
+   * Override to add global menus.
+   */
+  val globalMenus: Seq[GlobalMenu] = Nil
+
+  /**
+   * Override to add global menus.
+   */
+  def globalMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[GlobalMenu] = Nil
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -99,6 +109,9 @@ abstract class Plugin {
     }
     (receiveHooks ++ receiveHooks(registry, context, settings)).foreach { receiveHook =>
       registry.addReceiveHook(receiveHook)
+    }
+    (globalMenus ++ globalMenus(registry, context, settings)).foreach { menu =>
+      registry.addGlobalMenu(menu)
     }
   }
 

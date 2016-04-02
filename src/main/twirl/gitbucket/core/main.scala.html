@@ -71,6 +71,11 @@
               <input type="hidden" name="repository" value="@repository.name"/>
             }
           }
+          @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
+            @menu.createLink(context).map { case (label, link) =>
+              <a href="@path/@link" class="global-header-menu">@label</a>
+            }
+          }
           @if(loginAccount.isDefined){
             <div class="pull-right" style="margin-top: 6px;">
               <div class="btn-group" style="margin-right: 8px;">
