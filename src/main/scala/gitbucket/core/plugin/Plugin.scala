@@ -8,9 +8,9 @@ import gitbucket.core.util.Version
 
 /**
  * Trait for define plugin interface.
- * To provide plugin, put Plugin class which mixed in this trait into the package root.
+ * To provide a plugin, put a Plugin class which extends this class into the package root.
  */
-trait Plugin {
+abstract class Plugin {
 
   val pluginId: String
   val pluginName: String
