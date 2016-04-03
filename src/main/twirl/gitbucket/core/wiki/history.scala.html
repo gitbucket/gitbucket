@@ -24,7 +24,7 @@
       <span class="muted">History for</span> @pageName.get
     }
     </h1>
-    <table class="table table-bordered fill-width pull-left">
+    <table class="table table-bordered">
       <thead>
         <tr>
           <th colspan="3">
@@ -38,9 +38,9 @@
       <tbody>
       @commits.map { commit =>
         <tr>
-          <td width="0%"><input type="checkbox" name="commitId" value="@commit.id"></td>
-          <td>@avatar(commit, 20)&nbsp;@user(commit.authorName, commit.authorEmailAddress)</td>
-          <td width="80%">
+          <td style="width: 32px; text-align: center ;"><input type="checkbox" name="commitId" value="@commit.id"></td>
+          <td style="width: 200px;">@avatar(commit, 20)&nbsp;@user(commit.authorName, commit.authorEmailAddress)</td>
+          <td>
             <span class="muted">@helper.html.datetimeago(commit.authorTime):</span>&nbsp;@commit.shortMessage
           </td>
         </tr>

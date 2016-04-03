@@ -12,7 +12,7 @@
       }
       <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
     </div>
-    <h1><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
+    <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
     <div style="overflow: hidden;">
       <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
         <span id="error-pageName" class="error"></span>
