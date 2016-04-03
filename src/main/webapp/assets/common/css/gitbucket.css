@@ -1204,7 +1204,8 @@ table.diff td.body{
 }
 
 table.diff th.line-num{
-  min-width: 20px;
+  /*min-width: 20px;*/
+  width: 20px;
 }
 
 table.diff .add-comment {
