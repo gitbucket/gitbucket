@@ -20,6 +20,13 @@
     <li@if(active=="danger"){ class="active"}>
       <a href="@url(repository)/settings/danger">Danger Zone</a>
     </li>
+    @gitbucket.core.plugin.PluginRegistry().getRepositorySettingTabs.map { tab =>
+      @tab(repository, context).map { link =>
+        <li@if(active==link.id){ class="active"}>
+          <a href="@url(repository)/@link.path">@link.label</a>
+        </li>
+      }
+    }
   </ul>
   @body
 </div>

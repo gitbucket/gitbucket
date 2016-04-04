@@ -100,6 +100,16 @@ abstract class Plugin {
   def repositoryMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
 
   /**
+   * Override to add repository setting tabs.
+   */
+  val repositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add repository setting tabs.
+   */
+  def repositorySettingTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
    * Override to add profile tabs.
    */
   val profileTabs: Seq[(Account, Context) => Option[Link]] = Nil
@@ -137,6 +147,9 @@ abstract class Plugin {
     }
     (repositoryMenus ++ repositoryMenus(registry, context, settings)).foreach { repositoryMenu =>
       registry.addRepositoryMenu(repositoryMenu)
+    }
+    (repositorySettingTabs ++ repositorySettingTabs(registry, context, settings)).foreach { repositorySettingTab =>
+      registry.addRepositorySettingTab(repositorySettingTab)
     }
     (profileTabs ++ profileTabs(registry, context, settings)).foreach { profileTab =>
       registry.addProfileTab(profileTab)

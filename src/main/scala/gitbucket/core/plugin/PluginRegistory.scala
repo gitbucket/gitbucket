@@ -35,6 +35,7 @@ class PluginRegistry {
 
   private val globalMenus = new ListBuffer[(Context) => Option[Link]]
   private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
+  private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
   private val profileTabs = new ListBuffer[(Account, Context) => Option[Link]]
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
@@ -122,6 +123,12 @@ class PluginRegistry {
   }
 
   def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.toSeq
+
+  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = {
+    repositorySettingTabs += repositorySettingTab
+  }
+
+  def getRepositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = repositorySettingTabs.toSeq
 
   def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = {
     profileTabs += profileTab
