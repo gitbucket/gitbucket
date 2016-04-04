@@ -7,6 +7,7 @@ import javax.servlet.ServletContext
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.Account
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
@@ -33,6 +34,7 @@ class PluginRegistry {
   receiveHooks += new ProtectedBranchReceiveHook()
 
   private val globalMenus = new ListBuffer[(Context) => Option[Link]]
+  private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
   private val profileTabs = new ListBuffer[(Account, Context) => Option[Link]]
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
@@ -109,14 +111,20 @@ class PluginRegistry {
 
   def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
 
-  def addGlobalMenu(menu: (Context) => Option[Link]): Unit = {
-    globalMenus += menu
+  def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = {
+    globalMenus += globalMenu
   }
 
   def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.toSeq
 
-  def addProfileTab(tab: (Account, Context) => Option[Link]): Unit = {
-    profileTabs += tab
+  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = {
+    repositoryMenus += repositoryMenu
+  }
+
+  def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.toSeq
+
+  def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = {
+    profileTabs += profileTab
   }
 
   def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.toSeq

@@ -3,6 +3,7 @@ package gitbucket.core.plugin
 import javax.servlet.ServletContext
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.Account
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Version
@@ -89,6 +90,16 @@ abstract class Plugin {
   def globalMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
 
   /**
+   * Override to add repository menus.
+   */
+  val repositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add repository menus.
+   */
+  def repositoryMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
    * Override to add profile tabs.
    */
   val profileTabs: Seq[(Account, Context) => Option[Link]] = Nil
@@ -123,6 +134,9 @@ abstract class Plugin {
     }
     (globalMenus ++ globalMenus(registry, context, settings)).foreach { globalMenu =>
       registry.addGlobalMenu(globalMenu)
+    }
+    (repositoryMenus ++ repositoryMenus(registry, context, settings)).foreach { repositoryMenu =>
+      registry.addRepositoryMenu(repositoryMenu)
     }
     (profileTabs ++ profileTabs(registry, context, settings)).foreach { profileTab =>
       registry.addProfileTab(profileTab)

@@ -55,6 +55,11 @@
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
         @menuitem("/settings" , "settings" , "Settings")
       }
+      @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
+        @menu(repository, context).map { link =>
+          @menuitem(link.path, link.id, link.label)
+        }
+      }
     </ul>
   </div>
   <div class="main-content">
