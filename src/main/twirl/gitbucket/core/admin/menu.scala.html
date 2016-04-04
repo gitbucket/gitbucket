@@ -15,6 +15,13 @@
       <li>
         <a href="@path/console/login.jsp">H2 Console</a>
       </li>
+      @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
+        @menu(context).map { link =>
+          <li@if(active==link.id){ class="active"}>
+            <a href="@path/@link.path">@link.label</a>
+          </li>
+        }
+      }
    </ul>
   </div>
   <div class="main-content">

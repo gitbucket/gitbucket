@@ -13,6 +13,13 @@
     <li@if(active=="application"){ class="active"}>
       <a href="@path/@loginAccount.get.userName/_application">Applications</a>
     </li>
+    @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
+      @menu(loginAccount.get, context).map { link =>
+        <li@if(active==link.id){ class="active"}>
+          <a href="@path/@link.path">@link.label</a>
+        </li>
+      }
+    }
   </ul>
 </div>
 <div class="main-content">

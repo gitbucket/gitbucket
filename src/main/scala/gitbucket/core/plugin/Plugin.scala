@@ -120,6 +120,26 @@ abstract class Plugin {
   def profileTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Account, Context) => Option[Link]] = Nil
 
   /**
+   * Override to add system setting menus.
+   */
+  val systemSettingMenus: Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add system setting menus.
+   */
+  def systemSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add account setting menus.
+   */
+  val accountSettingMenus: Seq[(Account, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add account setting menus.
+   */
+  def accountSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Account, Context) => Option[Link]] = Nil
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -153,6 +173,12 @@ abstract class Plugin {
     }
     (profileTabs ++ profileTabs(registry, context, settings)).foreach { profileTab =>
       registry.addProfileTab(profileTab)
+    }
+    (systemSettingMenus ++ systemSettingMenus(registry, context, settings)).foreach { systemSettingMenu =>
+      registry.addSystemSettingMenu(systemSettingMenu)
+    }
+    (accountSettingMenus ++ accountSettingMenus(registry, context, settings)).foreach { accountSettingMenu =>
+      registry.addAccountSettingMenu(accountSettingMenu)
     }
   }
 
