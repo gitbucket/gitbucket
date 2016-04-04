@@ -6,5 +6,10 @@
   @if(loginAccount.isDefined){
     <li @if(active == "pulls" ){ class="active"}><a href="@path/dashboard/pulls">Pull Requests</a></li>
     <li @if(active == "issues"){ class="active"}><a href="@path/dashboard/issues">Issues</a></li>
+    @gitbucket.core.plugin.PluginRegistry().getDashboardTabs.map { tab =>
+      @tab(context).map { link =>
+        <li @if(active == link.id){ class="active"}><a href="@path/@link.path">@link.label</a></li>
+      }
+    }
   }
 </ul>

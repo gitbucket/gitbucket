@@ -132,12 +132,22 @@ abstract class Plugin {
   /**
    * Override to add account setting menus.
    */
-  val accountSettingMenus: Seq[(Account, Context) => Option[Link]] = Nil
+  val accountSettingMenus: Seq[(Context) => Option[Link]] = Nil
 
   /**
    * Override to add account setting menus.
    */
-  def accountSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Account, Context) => Option[Link]] = Nil
+  def accountSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add dashboard tabs.
+   */
+  val dashboardTabs: Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add dashboard tabs.
+   */
+  def dashboardTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
 
   /**
    * This method is invoked in initialization of plugin system.
@@ -179,6 +189,9 @@ abstract class Plugin {
     }
     (accountSettingMenus ++ accountSettingMenus(registry, context, settings)).foreach { accountSettingMenu =>
       registry.addAccountSettingMenu(accountSettingMenu)
+    }
+    (dashboardTabs ++ dashboardTabs(registry, context, settings)).foreach { dashboardTab =>
+      registry.addDashboardTab(dashboardTab)
     }
   }
 
