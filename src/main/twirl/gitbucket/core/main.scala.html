@@ -3,6 +3,7 @@
 @import gitbucket.core.servlet.AutoUpdate
 @import context._
 @import gitbucket.core.view.helpers._
+@import gitbucket.core.util.schneider.ConsumerConfig
 <!DOCTYPE html>
 <html>
   <head>
@@ -41,7 +42,7 @@
       }
     }
   </head>
-  <body>
+  <body onload="parent.postMessage(document.body.scrollHeight, '@ConsumerConfig.consumerHost');">
     <form id="search" action="@path/search" method="POST" class="form-inline hidedisplay">
       <nav class="navbar navbar-default">
         <div class="container" style="width: 980px;">
