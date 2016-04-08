@@ -6,13 +6,16 @@
 @import context._
 @import gitbucket.core.view.helpers._
 
-@menuitem(path: String, name: String, label: String, count: Int = 0) = {
+@menuitem(path: String, name: String, label: String, icon: String, count: Int = 0) = {
   <li @if(active == name){class="active"}>
     <a href="@url(repository)@path">
-      @label
-      @if(count > 0){
-        <span class="badge">@count</span>
-      }
+      <i class="menu-icon octicon octicon-@icon"></i>
+      <span class="pc">
+        @label
+        @if(count > 0){
+          <span class="badge">@count</span>
+        }
+      </span>
     </a>
   </li>
 }
@@ -41,23 +44,23 @@
 <div class="container body">
   <div class="main-sidebar">
     <ul class="nav nav-pills nav-stacked">
-      @menuitem(""                   ,"files"      ,"Files")
+      @menuitem(""                   ,"files"      ,"Files", "code")
       @if(repository.commitCount != 0) {
-        @menuitem("/branches"        ,"branches"   ,"Branches", repository.branchList.length)
-        @menuitem("/tags"            ,"tags"       ,"Tags", repository.tags.length)
+        @menuitem("/branches"        ,"branches"   ,"Branches", "git-branch", repository.branchList.length)
+        @menuitem("/tags"            ,"tags"       ,"Tags", "tag", repository.tags.length)
       }
-      @menuitem("/issues"            ,"issues"     ,"Issues", repository.issueCount)
-      @menuitem("/pulls"             ,"pulls"      ,"Pull Requests", repository.pullCount)
-      @menuitem("/issues/labels"     ,"labels"     ,"Labels")
-      @menuitem("/issues/milestones" ,"milestones" ,"Milestones")
-      @menuitem("/wiki"              ,"wiki"       ,"Wiki")
-      @menuitem("/network/members", "fork", "Forks", repository.forkedCount)
+      @menuitem("/issues"            ,"issues"     ,"Issues", "issue-opened", repository.issueCount)
+      @menuitem("/pulls"             ,"pulls"      ,"Pull Requests", "git-pull-request", repository.pullCount)
+      @menuitem("/issues/labels"     ,"labels"     ,"Labels", "tag")
+      @menuitem("/issues/milestones" ,"milestones" ,"Milestones", "milestone")
+      @menuitem("/wiki"              ,"wiki"       ,"Wiki", "book")
+      @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
       @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-        @menuitem("/settings" , "settings" , "Settings")
+        @menuitem("/settings" , "settings" , "Settings", "tools")
       }
       @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
         @menu(repository, context).map { link =>
-          @menuitem(link.path, link.id, link.label)
+          @menuitem(link.path, link.id, link.label, link.icon.getOrElse("ruby"))
         }
       }
     </ul>

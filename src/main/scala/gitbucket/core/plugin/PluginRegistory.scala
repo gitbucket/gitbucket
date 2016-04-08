@@ -239,7 +239,7 @@ object PluginRegistry {
 
 }
 
-case class Link(id: String, label: String, path: String)
+case class Link(id: String, label: String, path: String, icon: Option[String] = None)
 
 case class PluginInfo(
   pluginId: String,
