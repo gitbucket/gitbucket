@@ -4,7 +4,7 @@
 @import gitbucket.core.view.helpers._
 @html.main(account.userName){
   <div class="container body">
-    <div style="float: left; width: 250px;">
+    <div class="main-sidebar">
       <div class="block">
         <div class="account-image">@avatar(account.userName, 240)</div>
         <div class="account-fullname">@account.fullName</div>
@@ -25,7 +25,7 @@
         </div>
       }
     </div>
-    <div style="margin-left: 260px; overflow: hidden;">
+    <div class="main-content">
       <ul class="nav nav-tabs" style="margin-bottom: 5px;">
         <li@if(active == "repositories"){ class="active"}><a href="@url(account.userName)?tab=repositories">Repositories</a></li>
         @if(account.isGroupAccount){

@@ -11,12 +11,10 @@
 @import gitbucket.core.view.helpers._
 @html.main("Pull Requests"){
   @sidebar(recentRepositories, userRepositories){
-    <div style="overflow: hidden;">
-      @dashboard.html.tab("pulls")
-      <div class="container">
-        @issuesnavi(filter, openCount, closedCount, condition)
-        @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
-      </div>
+    @dashboard.html.tab("pulls")
+    <div class="container">
+      @issuesnavi(filter, openCount, closedCount, condition)
+      @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
     </div>
   }
 }

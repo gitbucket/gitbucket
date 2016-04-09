@@ -3,7 +3,6 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.menu("", repository){
-<div style="overflow: hidden;">
   <ul class="nav nav-tabs" style="margin-bottom: 20px;">
     <li@if(active=="code"){ class="active"}>
       <a href="@url(repository)/search?q=@urlEncode(query)&type=code">
@@ -36,5 +35,4 @@
     <input type="hidden" name="type" value="@active"/>
   </form>
   @body
-</div>
 }

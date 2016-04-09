@@ -201,6 +201,7 @@ div.main-sidebar {
 
 div.main-content {
   margin-left: 260px;
+  overflow: hidden;
 }
 
 div.main-center {
@@ -215,6 +216,7 @@ div.dashboard-sidebar {
 
 div.dashboard-content {
   margin-left: 310px;
+  overflow: hidden;
 }
 
 div.body {

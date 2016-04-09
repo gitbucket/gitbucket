@@ -11,14 +11,12 @@
         @Html(information)
       </div>
     }
-    <div style="overflow: hidden;">
-      @dashboard.html.tab()
-      <div class="container">
-        <div class="pull-right">
-          <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
-        </div>
-        @helper.html.activities(activities)
+    @dashboard.html.tab()
+    <div class="container">
+      <div class="pull-right">
+        <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
       </div>
+      @helper.html.activities(activities)
     </div>
   }
 }
