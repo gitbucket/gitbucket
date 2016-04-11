@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"           % "jldap"                        % "2009-10-07",
   "com.h2database"            % "h2"                           % "1.4.190",
   "ch.qos.logback"            % "logback-classic"              % "1.1.1",
-  "com.mchange"               % "c3p0"                         % "0.9.5.2",
+  "com.zaxxer"                % "HikariCP"                     % "2.4.5",
   "com.typesafe"              % "config"                       % "1.3.0",
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.14",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"            % "1.0.0",

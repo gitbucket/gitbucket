@@ -1,5 +1,7 @@
 package gitbucket.core.model
 
+import gitbucket.core.util.DatabaseConfig
+
 
 trait Profile {
   val profile: slick.driver.JdbcProfile
@@ -29,11 +31,9 @@ trait Profile {
 
 trait ProfileProvider { self: Profile =>
 
-  private val url = System.getProperty("db.url")
-//  private val user = System.getProperty("db.user")
-//  private val password = System.getProperty("db.password")
+  private lazy val url = DatabaseConfig.url
 
-  val profile = if(url.indexOf("h2") >= 0){
+  lazy val profile = if(url.indexOf("h2") >= 0){
     slick.driver.H2Driver
   } else if(url.indexOf("mysql") >= 0) {
     slick.driver.MySQLDriver
