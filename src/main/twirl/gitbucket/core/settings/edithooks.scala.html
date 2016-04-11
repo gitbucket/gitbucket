@@ -136,9 +136,13 @@ $(function(){
     $("#test-modal-url").text(url)
     $("#test-report-modal").modal('show')
     $("#test-report").hide();
+    var targetUrl = '@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&token=';
+    if (token) {
+      targetUrl = targetUrl + encodeURIComponent(token);
+    }
     $.ajax({
       method:'POST',
-      url:'@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&token=' + encodeURIComponent(token),
+      url:targetUrl,
       success: function(e){
         //console.log(e);
         $('#test-report-tab a:first').tab('show');
