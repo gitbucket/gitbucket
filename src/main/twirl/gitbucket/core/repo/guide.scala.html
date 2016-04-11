@@ -4,7 +4,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
+  @html.menu("files", repository){
     @if(!hasWritePermission){
       <h3>This is an empty repository</h3>
     } else {

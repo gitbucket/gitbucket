@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
-import gitbucket.core.api._
-import gitbucket.core.model.{Account, CommitStatus, CommitState, Repository, PullRequest, Issue, WebHook}
+import gitbucket.core.model.WebHook
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
@@ -82,24 +81,6 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
-  /**
-   * https://developer.github.com/v3/pulls/#list-pull-requests
-   */
-  get("/api/v3/repos/:owner/:repository/pulls")(referrersOnly { repository =>
-    val page       = IssueSearchCondition.page(request)
-    // TODO: more api spec condition
-    val condition = IssueSearchCondition(request)
-    val baseOwner = getAccountByUserName(repository.owner).get
-    val issues:List[(Issue, Account, Int, PullRequest, Repository, Account)] = searchPullRequestByApi(condition, (page - 1) * PullRequestLimit, PullRequestLimit, repository.owner -> repository.name)
-    JsonFormat(issues.map{case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
-      ApiPullRequest(
-        issue,
-        pullRequest,
-        ApiRepository(headRepo, ApiUser(headOwner)),
-        ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)) })
-  })
-
   get("/:owner/:repository/pull/:id")(referrersOnly { repository =>
     params("id").toIntOpt.flatMap{ issueId =>
       val owner = repository.owner
@@ -121,47 +102,6 @@ trait PullRequestsControllerBase extends ControllerBase {
             hasWritePermission(owner, name, context.loginAccount),
             repository,
             flash.toMap.map(f => f._1 -> f._2.toString))
-        }
-      }
-    } getOrElse NotFound
-  })
-
-  /**
-   * https://developer.github.com/v3/pulls/#get-a-single-pull-request
-   */
-  get("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
-    (for{
-      issueId <- params("id").toIntOpt
-      (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
-      users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set())
-      baseOwner <- users.get(repository.owner)
-      headOwner <- users.get(pullRequest.requestUserName)
-      issueUser <- users.get(issue.openedUserName)
-      headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
-    } yield {
-      JsonFormat(ApiPullRequest(
-        issue,
-        pullRequest,
-        ApiRepository(headRepo, ApiUser(headOwner)),
-        ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)))
-    }).getOrElse(NotFound)
-  })
-
-  /**
-   * https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
-   */
-  get("/api/v3/repos/:owner/:repository/pulls/:id/commits")(referrersOnly { repository =>
-    val owner = repository.owner
-    val name = repository.name
-    params("id").toIntOpt.flatMap{ issueId =>
-      getPullRequest(owner, name, issueId) map { case(issue, pullreq) =>
-        using(Git.open(getRepositoryDir(owner, name))){ git =>
-          val oldId = git.getRepository.resolve(pullreq.commitIdFrom)
-          val newId = git.getRepository.resolve(pullreq.commitIdTo)
-          val repoFullName = RepositoryName(repository)
-          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => ApiCommitListItem(new CommitInfo(c), repoFullName)).toList
-          JsonFormat(commits)
         }
       }
     } getOrElse NotFound
@@ -238,7 +178,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           }
           val existIds = using(Git.open(Directory.getRepositoryDir(owner, name))) { git => JGitUtil.getAllCommitIds(git) }.toSet
           pullRemote(owner, name, pullreq.requestBranch, pullreq.userName, pullreq.repositoryName, pullreq.branch, loginAccount,
-                     "Merge branch '${alias}' into ${pullreq.requestBranch}") match {
+                     s"Merge branch '${alias}' into ${pullreq.requestBranch}") match {
             case None => // conflict
               flash += "error" -> s"Can't automatic merging branch '${alias}' into ${pullreq.requestBranch}."
             case Some(oldId) =>
@@ -523,7 +463,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
       getIssue(owner, name, issueId.toString) foreach { issue =>
         // extract references and create refer comment
-        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""))
+        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
 
         // notifications
         Notifier().toNotify(repository, issue, form.content.getOrElse("")){
@@ -534,19 +474,6 @@ trait PullRequestsControllerBase extends ControllerBase {
       redirect(s"/${owner}/${name}/pull/${issueId}")
     }
   })
-
-  // TODO Same method exists in IssueController. Should it moved to IssueService?
-  private def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String) = {
-    StringUtil.extractIssueId(message).foreach { issueId =>
-      val content = fromIssue.issueId + ":" + fromIssue.title
-      if(getIssue(owner, repository, issueId).isDefined){
-        // Not add if refer comment already exist.
-        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
-          createComment(owner, repository, context.loginAccount.get.userName, issueId.toInt, content, "refer")
-        }
-      }
-    }
-  }
 
   /**
    * Parses branch identifier and extracts owner and branch name as tuple.
@@ -611,14 +538,4 @@ trait PullRequestsControllerBase extends ControllerBase {
         hasWritePermission(owner, repoName, context.loginAccount))
     }
 
-  // TODO: same as gitbucket.core.servlet.CommitLogHook ...
-  private def createIssueComment(owner: String, repository: String, commit: CommitInfo) = {
-    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
-      if(getIssue(owner, repository, issueId).isDefined){
-        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
-          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
-        }
-      }
-    }
-  }
 }

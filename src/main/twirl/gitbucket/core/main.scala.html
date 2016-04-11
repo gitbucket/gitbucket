@@ -10,10 +10,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="icon" href="@assets/common/images/gitbucket.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap.css" rel="stylesheet">
-    @*
-    <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap-responsive.css" rel="stylesheet">
-    *@
+    <link href="@assets/vendors/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet">
     <link href="@assets/vendors/octicons/octicons.css" rel="stylesheet">
     <link href="@assets/vendors/datepicker/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
     <link href="@assets/vendors/colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
@@ -24,7 +21,7 @@
     <script src="@assets/vendors/dropzone/dropzone.js"></script>
     <script src="@assets/common/js/validation.js"></script>
     <script src="@assets/common/js/gitbucket.js"></script>
-    <script src="@assets/vendors/bootstrap-theme-github-3.1.1/js/bootstrap.js"></script>
+    <script src="@assets/vendors/bootstrap-3.3.6/js/bootstrap.js"></script>
     <script src="@assets/vendors/bootstrap3-typeahead/bootstrap3-typeahead.js"></script>
     <script src="@assets/vendors/datepicker/js/moment.js"></script>
     <script src="@assets/vendors/datepicker/js/bootstrap-datetimepicker.min.js"></script>
@@ -43,7 +40,7 @@
   <body>
     <form id="search" action="@path/search" method="POST" class="form-inline">
       <nav class="navbar navbar-default">
-        <div class="container" style="width: 980px;">
+        <div class="container">
           @* TODO: for plugi-ins?
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
@@ -52,12 +49,12 @@
           </button>
           *@
           <a class="navbar-brand" href="@path/">
-            <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px;"/>GitBucket
+            <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px; display: inline;"/>GitBucket
             <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.get(0).getVersion</span>
           </a>
           @if(loginAccount.isDefined){
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
             }
@@ -66,9 +63,14 @@
           } else {
             @* TODO: merge with below *@
             @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 6px; margin-bottom: 0px;" placeholder="Search this repository"/>
+              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
               <input type="hidden" name="owner" value="@repository.owner"/>
               <input type="hidden" name="repository" value="@repository.name"/>
+            }
+          }
+          @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
+            @menu(context).map { link =>
+              <a href="@path/@link.path" class="global-header-menu">@link.label</a>
             }
           }
           @if(loginAccount.isDefined){
@@ -97,7 +99,7 @@
               </div>
             </div>
           } else {
-            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 6px;" id="signin">Sign in</a>
+            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 3px; margin-bottom: 3px;" id="signin">Sign in</a>
           }
         </div>
       </nav>

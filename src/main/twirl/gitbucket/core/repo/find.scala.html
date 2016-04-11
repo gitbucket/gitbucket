@@ -1,12 +1,11 @@
 @(branch: String,
   treeId: String,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  groupNames: List[String]
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo
   )(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository, Some(branch), false, groupNames.isEmpty){
+  @html.menu("files", repository, Some(branch)){
 
 <div>
   <div class="find-input">

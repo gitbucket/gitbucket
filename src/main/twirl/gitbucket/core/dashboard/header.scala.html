@@ -4,18 +4,8 @@
   groups: List[String])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
-<span class="small">
-  <a class="button-link@if(condition.state == "open"){ selected}" href="@condition.copy(state = "open").toURL">
-    <i class="octicon octicon-issue-opened @(if(condition.state == "open"){"active"})"></i>
-    @openCount Open
-  </a>&nbsp;&nbsp;
-  <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">
-    <i class="octicon octicon-check @(if(condition.state == "closed"){"active"})"></i>
-    @closedCount Closed
-  </a>
-</span>
-<div class="pull-right" id="table-issues-control">
-  @helper.html.dropdown("Visibility", flat = true){
+<div id="table-issues-control">
+  @helper.html.dropdown("Visibility"){
     <li>
       <a href="@(condition.copy(visibility = (if(condition.visibility == Some("private")) None else Some("private"))).toURL)">
         @helper.html.checkicon(condition.visibility == Some("private"))
@@ -29,7 +19,7 @@
       </a>
     </li>
   }
-  @helper.html.dropdown("Organization", flat = true){
+  @helper.html.dropdown("Organization"){
     @groups.map { group =>
       <li>
         <a href="@((if(condition.groups.contains(group)) condition.copy(groups = condition.groups - group) else condition.copy(groups = condition.groups + group)).toURL)">
@@ -39,7 +29,7 @@
       </li>
     }
   }
-  @helper.html.dropdown("Sort", flat = true){
+  @helper.html.dropdown("Sort"){
     <li>
       <a href="@condition.copy(sort="created",  direction="desc").toURL">
         @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest

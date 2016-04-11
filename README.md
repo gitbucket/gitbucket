@@ -1,7 +1,10 @@
 GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
-GitBucket is a GitHub clone powered by Scala which has easy installation and high extensibility.
+GitBucket is a Git platform powered by Scala offering:
+- easy installation
+- high extensibility by plugins
+- API compatibility with Github
 
 Features
 --------
@@ -56,10 +59,16 @@ Support
 - Make sure check whether there is a same question or request in the past.
 - When raise a new issue, write subject in **English** at least.
 - We can also support in Japaneses other than English at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
-- First priority of GitBucket is easy installation and reproduce GitHub behavior, so we might reject if your request is against it.
+- First priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
 
 Release Notes
 --------
+### 3.13 - 1 Apr 2016
+- Refresh user interface for wide screen
+- Add `pull_request` key in list issues API for pull requests
+- Add `X-Hub-Signature` security to webhooks
+- Provide SHA-256 checksum for `gitbucket.war`
+
 ### 3.12 - 27 Feb 2016
 - New GitHub UI
 - Improve mobile view

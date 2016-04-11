@@ -142,22 +142,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     }
   })
 
-  /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
-  patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
-    import gitbucket.core.api._
-    (for{
-      branch <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
-      protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
-    } yield {
-      if(protection.enabled){
-        enableBranchProtection(repository.owner, repository.name, branch, protection.status.enforcement_level == ApiBranchProtection.Everyone, protection.status.contexts)
-      } else {
-        disableBranchProtection(repository.owner, repository.name, branch)
-      }
-      JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
-    }) getOrElse NotFound
-  })
-
   /**
    * Display the Collaborators page.
    */

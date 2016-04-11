@@ -1,6 +1,6 @@
 val Organization = "gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "3.12.0"
+val GitBucketVersion = "3.14.0-SNAPSHOT"
 val ScalatraVersion = "2.4.0"
 val JettyVersion = "9.3.6.v20151106"
 
@@ -10,7 +10,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 // dependency settings
 resolvers ++= Seq(
@@ -19,6 +19,7 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
+  "org.scala-lang.modules"   %% "scala-java8-compat"           % "0.7.0",
   "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % "4.1.1.201511131810-r",
   "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % "4.1.1.201511131810-r",
   "org.scalatra"             %% "scalatra"                     % ScalatraVersion,
@@ -27,7 +28,7 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"      %% "scalatra-forms"               % "1.0.0",
   "commons-io"                % "commons-io"                   % "2.4",
   "io.github.gitbucket"       % "solidbase"                    % "1.0.0-SNAPSHOT",
-  "io.github.gitbucket"       % "markedj"                      % "1.0.7-SNAPSHOT",
+  "io.github.gitbucket"       % "markedj"                      % "1.0.7",
   "org.apache.commons"        % "commons-compress"             % "1.10",
   "org.apache.commons"        % "commons-email"                % "1.4",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.1",
@@ -53,7 +54,7 @@ libraryDependencies ++= Seq(
 play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._"
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-Ybackend:GenBCode", "-Ydelambdafy:method", "-target:jvm-1.8")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console")

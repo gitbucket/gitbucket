@@ -2,8 +2,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
-    <h1>Tags</h1>
+  @html.menu("tags", repository){
     <table class="table table-bordered">
       <thead>
         <tr>

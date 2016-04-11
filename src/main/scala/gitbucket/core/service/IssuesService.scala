@@ -1,6 +1,8 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
+import gitbucket.core.util.JGitUtil.CommitInfo
+import gitbucket.core.util.StringUtil
 import profile.simple._
 
 import gitbucket.core.util.StringUtil._
@@ -12,6 +14,7 @@ import Q.interpolation
 
 
 trait IssuesService {
+  self: AccountService =>
   import IssuesService._
 
   def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session) =
@@ -394,6 +397,29 @@ trait IssuesService {
       }
     }
   }
+
+  def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String, loginAccount: Account)(implicit s: Session) = {
+    StringUtil.extractIssueId(message).foreach { issueId =>
+      val content = fromIssue.issueId + ":" + fromIssue.title
+      if(getIssue(owner, repository, issueId).isDefined){
+        // Not add if refer comment already exist.
+        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
+          createComment(owner, repository, loginAccount.userName, issueId.toInt, content, "refer")
+        }
+      }
+    }
+  }
+
+  def createIssueComment(owner: String, repository: String, commit: CommitInfo)(implicit s: Session) = {
+    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
+      if(getIssue(owner, repository, issueId).isDefined){
+        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
+          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
+        }
+      }
+    }
+  }
+
 }
 
 object IssuesService {

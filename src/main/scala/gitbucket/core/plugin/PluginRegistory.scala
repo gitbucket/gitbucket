@@ -3,9 +3,9 @@ package gitbucket.core.plugin
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import javax.servlet.ServletContext
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.controller.{Context, ControllerBase}
+import gitbucket.core.model.Account
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
@@ -33,6 +33,14 @@ class PluginRegistry {
   private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
   private val receiveHooks = new ListBuffer[ReceiveHook]
   receiveHooks += new ProtectedBranchReceiveHook()
+
+  private val globalMenus = new ListBuffer[(Context) => Option[Link]]
+  private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
+  private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
+  private val profileTabs = new ListBuffer[(Account, Context) => Option[Link]]
+  private val systemSettingMenus = new ListBuffer[(Context) => Option[Link]]
+  private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
+  private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -108,17 +116,47 @@ class PluginRegistry {
 
   def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
 
-  private case class GlobalAction(
-    method: String,
-    path: String,
-    function: (HttpServletRequest, HttpServletResponse, Context) => Any
-  )
+  def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = {
+    globalMenus += globalMenu
+  }
 
-  private case class RepositoryAction(
-    method: String,
-    path: String,
-    function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any
-  )
+  def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.toSeq
+
+  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = {
+    repositoryMenus += repositoryMenu
+  }
+
+  def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.toSeq
+
+  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = {
+    repositorySettingTabs += repositorySettingTab
+  }
+
+  def getRepositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = repositorySettingTabs.toSeq
+
+  def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = {
+    profileTabs += profileTab
+  }
+
+  def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.toSeq
+
+  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit = {
+    systemSettingMenus += systemSettingMenu
+  }
+
+  def getSystemSettingMenus: Seq[(Context) => Option[Link]] = systemSettingMenus.toSeq
+
+  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit = {
+    accountSettingMenus += accountSettingMenu
+  }
+
+  def getAccountSettingMenus: Seq[(Context) => Option[Link]] = accountSettingMenus.toSeq
+
+  def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = {
+    dashboardTabs += dashboardTab
+  }
+
+  def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
 
 }
 
@@ -186,6 +224,8 @@ object PluginRegistry {
 
 
 }
+
+case class Link(id: String, label: String, path: String, icon: Option[String] = None)
 
 case class PluginInfo(
   pluginId: String,

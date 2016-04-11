@@ -5,20 +5,21 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
-  @html.menu("issues", repository){
-    @issues.html.navigation("milestones", hasWritePermission, repository)
-    <br>
+  @html.menu("milestones", repository){
+    @if(loginAccount.isDefined){
+      <div class="pull-right" style="margin-bottom: 10px;">
+        <a class="btn btn-success" href="@url(repository)/issues/milestones/new">New milestone</a>
+      </div>
+    }
     <table class="table table-bordered table-hover table-issues">
       <thead>
         <tr>
           <th style="background-color: #eee;">
             <span class="small">
               <a class="button-link@if(state == "open"){ selected}" href="?state=open">
-                <i class="octicon octicon-milestone @(if(state == "open"){"active"})"></i>
                 @milestones.count(_._1.closedDate.isEmpty) Open
               </a>&nbsp;&nbsp;
               <a class="button-link@if(state == "closed"){ selected}" href="?state=closed">
-                <i class="octicon octicon-milestone @(if(state == "closed"){"active"})"></i>
                 @milestones.count(_._1.closedDate.isDefined) Closed
               </a>
             </span>

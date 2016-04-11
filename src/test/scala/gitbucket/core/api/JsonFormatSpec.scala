@@ -252,6 +252,12 @@ class JsonFormatSpec extends FunSuite {
     "user": $apiUserJson,
     "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
     "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
+    "pull_request": {
+      "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347",
+      "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347"
+      // "diff_url": "${context.baseUrl}/octocat/Hello-World/pull/1347.diff",
+      // "patch_url": "${context.baseUrl}/octocat/Hello-World/pull/1347.patch"
+    },
     "created_at": "2011-04-14T16:00:49Z",
     "updated_at": "2011-04-14T16:00:49Z"
   }"""

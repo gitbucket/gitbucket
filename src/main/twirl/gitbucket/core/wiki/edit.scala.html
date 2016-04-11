@@ -1,39 +1,37 @@
 @(pageName: String,
   page: Option[gitbucket.core.service.WikiService.WikiPageInfo],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
 @import gitbucket.core.view.helpers._
+@import gitbucket.core.util.FileUtil
 @html.main(s"${if(pageName.isEmpty) "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("wiki", repository){
-    <ul class="nav nav-tabs fill-width">
-      <li>
-        <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
-      </li>
-      <li class="pull-right">
-        <div>
-          @if(page.isDefined){
-            <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_delete" id="delete">Delete Page</a>
-            <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
-          }
-          <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
-        </div>
-      </li>
-    </ul>
+    <div class="pull-right">
+      @if(page.isDefined){
+        <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
+        <a class="btn btn-small btn-danger" href="@url(repository)/wiki/@urlEncode(pageName)/_delete" id="delete">Delete Page</a>
+      }
+      <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
+    </div>
+    <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
     <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
       <span id="error-pageName" class="error"></span>
-      <input type="text" name="pageName" value="@pageName" class="form-control input-lg" style="font-weight: bold;" placeholder="Input a page name."/>
-      @helper.html.preview(
-        repository         = repository,
-        content            = page.map(_.content).getOrElse(""),
-        enableWikiLink     = true,
-        enableRefsLink     = false,
-        enableLineBreaks   = false,
-        enableTaskList     = false,
-        hasWritePermission = false,
-        style              = "height: 400px;",
-        styleClass         = "monospace",
-        placeholder        = ""
-      )
+      <input type="text" name="pageName" value="@pageName" class="form-control" style="font-weight: bold; margin-bottom: 10px;" placeholder="Input a page name."/>
+      <div class="muted attachable">
+        @helper.html.preview(
+          repository         = repository,
+          content            = page.map(_.content).getOrElse(""),
+          enableWikiLink     = true,
+          enableRefsLink     = false,
+          enableLineBreaks   = false,
+          enableTaskList     = false,
+          hasWritePermission = false,
+          style              = "height: 400px;",
+          styleClass         = "monospace",
+          placeholder        = "",
+          uid                = 1
+        )
+        <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
+      </div>
       <div class="form-group">
         <label for="message">Edit Message</label>
         <input type="text" id="message" name="message" value="" class="form-control" placeholder="Write a small message here explaining this change. (Optional)"/>
@@ -41,13 +39,32 @@
       <div class="form-group pull-right">
         <input type="hidden" name="currentPageName" value="@pageName"/>
         <input type="hidden" name="id" value="@page.map(_.id)"/>
-        <input type="submit" value="Save" class="btn btn-success btn-lg">
+        <input type="submit" value="Save" class="btn btn-success">
       </div>
     </form>
   }
 }
 <script>
 $(function(){
+  try {
+    $('.clickable').dropzone({
+      url: '@context.path/upload/wiki/@repository.owner/@repository.name',
+      maxFilesize: 10,
+      acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
+      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
+      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+      success: function(file, id) {
+        var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) + '](' + file.name + ')';
+        $('#content1').val($('#content1').val() + attachFile);
+        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
+      }
+    });
+  } catch(e) {
+    if (e.message !== "Dropzone already attached.") {
+      throw e;
+    }
+  }
+
   $('#delete').click(function(){
     return confirm('Are you sure you want to delete this page?'); 
   });

@@ -3,13 +3,10 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"Milestones - ${repository.owner}/${repository.name}"){
-  @html.menu("issues", repository){
+  @html.menu("milestones", repository){
     @if(milestone.isEmpty){
       <h4>New milestone</h4>
       <div class="muted">Create a new milestone to help organize your issues and pull requests.</div>
-    } else {
-      @issues.html.navigation("milestones", false, repository)
-      <br><br>
     }
     <hr style="margin-top: 12px; margin-bottom: 18px;" class="fill-width"/>
     <form method="POST" action="@url(repository)/issues/milestones/@if(milestone.isEmpty){new}else{@milestone.get.milestoneId/edit}" validate="true">
@@ -30,7 +27,7 @@
       <hr>
       <div class="pull-right">
         @if(milestone.isEmpty){
-          <input type="submit" class="btn btn-default" value="Create milestone"/>
+          <input type="submit" class="btn btn-success" value="Create milestone"/>
         } else {
           @if(milestone.get.closedDate.isDefined){
             <input type="button" class="btn btn-default" value="Open" id="open"
@@ -39,7 +36,7 @@
             <input type="button" class="btn btn-default" value="Close" id="close"
                    onclick="location.href='@url(repository)/issues/milestones/@milestone.get.milestoneId/open';"/>
           }
-          <input type="submit" class="btn btn-default" value="Update milestone"/>
+          <input type="submit" class="btn btn-success" value="Update milestone"/>
         }
       </div>
     </form>

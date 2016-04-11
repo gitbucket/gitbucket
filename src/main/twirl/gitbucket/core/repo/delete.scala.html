@@ -6,7 +6,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"Deleting ${path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
+  @html.menu("files", repository){
     <form method="POST" action="@url(repository)/remove" validate="true">
       <div class="head">
         <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /

@@ -9,7 +9,6 @@
       @helper.html.information(info)
       <div class="panel panel-default">
         <div class="panel-heading strong">
-          <a href="@url(repository)/settings/hooks/new" class="btn btn-success btn-sm pull-right">Add webhook</a>
           Webhooks
         </div>
         <div class="panel-body">
@@ -18,8 +17,9 @@
             When the specified events happen, we’ll send a POST request to each of the URLs you provide.
             Learn more in <a href="https://github.com/takezoe/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki Webhook Page</a>.
           </p>
+          <a href="@url(repository)/settings/hooks/new" class="btn btn-success pull-right" style="margin-bottom: 10px;">Add webhook</a>
 
-          <table class="table table-condensed" style="margin-bottom:0">
+          <table class="table table-condensed" style="margin-bottom:0px;">
             @webHooks.map { case (webHook, events) =>
               <tr><td style="vertical-align: middle;">
                 <a href="@url(repository)/settings/hooks/edit?url=@urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">

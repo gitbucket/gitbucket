@@ -12,6 +12,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.service.IssuesService.IssueInfo
+@*
 @if(condition.nonEmpty){
   <div style="width: 100%; display: inline-block;">
     <a href="@gitbucket.core.service.IssuesService.IssueSearchCondition().toURL" class="header-link">
@@ -20,23 +21,14 @@
     </a>
   </div>
 }
+*@
 <table class="table table-bordered table-hover table-issues">
   <thead>
     <tr>
       <th style="background-color: #eee;">
         <input type="checkbox"/>
-        <span class="small">
-          <a class="button-link@if(condition.state == "open"){ selected}" href="@condition.copy(state = "open").toURL">
-            <i class="octicon octicon-issue-opened @(if(condition.state == "open"){"active"})"></i>
-            @openCount Open
-          </a>&nbsp;&nbsp;
-          <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">
-            <i class="octicon octicon-check @(if(condition.state == "closed"){"active"})"></i>
-            @closedCount Closed
-          </a>
-        </span>
-        <div class="pull-right" id="table-issues-control">
-          @helper.html.dropdown("Author", flat = true) {
+        <span id="table-issues-control">
+          @helper.html.dropdown("Author") {
             @collaborators.map { collaborator =>
               <li>
                 <a href="@condition.copy(author = (if(condition.author == Some(collaborator)) None else Some(collaborator))).toURL">
@@ -46,7 +38,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Label", flat = true) {
+          @helper.html.dropdown("Label") {
             @labels.map { label =>
               <li>
                 <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL">
@@ -57,7 +49,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Milestone", flat = true) {
+          @helper.html.dropdown("Milestone") {
             <li>
               <a href="@condition.copy(milestone = Some(None)).toURL">
                 @helper.html.checkicon(condition.milestone == Some(None)) Issues with no milestone
@@ -71,7 +63,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Assignee", flat = true) {
+          @helper.html.dropdown("Assignee") {
             @collaborators.map { collaborator =>
               <li>
                 <a href="@condition.copy(assigned = Some(collaborator)).toURL">
@@ -81,7 +73,7 @@
               </li>
             }
           }
-          @helper.html.dropdown("Sort", flat = true){
+          @helper.html.dropdown("Sort"){
             <li>
               <a href="@condition.copy(sort="created",  direction="desc").toURL">
               @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
@@ -113,14 +105,14 @@
               </a>
             </li>
           }
-        </div>
+        </span>
         @if(hasWritePermission){
-          <div class="pull-right" id="table-issues-batchedit">
-            @helper.html.dropdown("Mark as", flat = true) {
+          <span id="table-issues-batchedit">
+            @helper.html.dropdown("Mark as") {
               <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
               <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
             }
-            @helper.html.dropdown("Label", flat = true) {
+            @helper.html.dropdown("Label") {
               @labels.map { label =>
                 <li>
                   <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
@@ -131,19 +123,19 @@
                 </li>
               }
             }
-            @helper.html.dropdown("Milestone", flat = true) {
+            @helper.html.dropdown("Milestone") {
               <li><a href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a></li>
               @milestones.filter(_.closedDate.isEmpty).map { milestone =>
                 <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
               }
             }
-            @helper.html.dropdown("Assignee", flat = true) {
+            @helper.html.dropdown("Assignee") {
               <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
               @collaborators.map { collaborator =>
                 <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@avatar(collaborator, 20) @collaborator</a></li>
               }
             }
-          </div>
+          </span>
         }
       </th>
     </tr>
@@ -157,9 +149,11 @@
           } else {
             No pull requests to show.
           }
+          @*
           @if(condition.labels.nonEmpty || condition.milestone.isDefined){
             <a href="@condition.copy(labels = Set.empty, milestone = None).toURL">Clear active filters.</a>
           } else {
+          *@
             @if(repository.isDefined){
               @if(target == "issues"){
                 <a href="@url(repository.get)/issues/new">Create a new issue.</a>
@@ -167,7 +161,9 @@
                 <a href="@url(repository.get)/compare">Create a new pull request.</a>
               }
             }
+          @*
           }
+          *@
         </td>
       </tr>
     }
@@ -177,7 +173,9 @@
           @if(hasWritePermission){
             <input type="checkbox" value="@issue.issueId"/>
           }
+          @*
           <i class="octicon octicon-issue-@(if(issue.closed) "closed" else "opened")" style="margin-right: 3px;"></i>
+          *@
           @if(repository.isEmpty){
             <a href="@path/@issue.userName/@issue.repositoryName">@issue.repositoryName</a>&nbsp;&#xFF65;
           }
@@ -204,7 +202,7 @@
               </a>
             }
           </span>
-          <div class="small muted" style="margin-left: 40px; margin-top: 2px;">
+          <div class="small muted" style="margin-left: 12px; margin-top: 2px;">
             #@issue.issueId opened  @helper.html.datetimeago(issue.registeredDate) by @user(issue.openedUserName, styleClass="username")
             @milestone.map { milestone =>
               <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>

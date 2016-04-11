@@ -1,16 +1,18 @@
 package gitbucket.core.plugin
 
 import javax.servlet.ServletContext
-import gitbucket.core.controller.ControllerBase
+import gitbucket.core.controller.{Context, ControllerBase}
+import gitbucket.core.model.Account
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
 import io.github.gitbucket.solidbase.model.Version
 
 /**
  * Trait for define plugin interface.
- * To provide plugin, put Plugin class which mixed in this trait into the package root.
+ * To provide a plugin, put a Plugin class which extends this class into the package root.
  */
-trait Plugin {
+abstract class Plugin {
 
   val pluginId: String
   val pluginName: String
@@ -78,6 +80,76 @@ trait Plugin {
   def receiveHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[ReceiveHook] = Nil
 
   /**
+   * Override to add global menus.
+   */
+  val globalMenus: Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add global menus.
+   */
+  def globalMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add repository menus.
+   */
+  val repositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add repository menus.
+   */
+  def repositoryMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add repository setting tabs.
+   */
+  val repositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add repository setting tabs.
+   */
+  def repositorySettingTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add profile tabs.
+   */
+  val profileTabs: Seq[(Account, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add profile tabs.
+   */
+  def profileTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Account, Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add system setting menus.
+   */
+  val systemSettingMenus: Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add system setting menus.
+   */
+  def systemSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add account setting menus.
+   */
+  val accountSettingMenus: Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add account setting menus.
+   */
+  def accountSettingMenus(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add dashboard tabs.
+   */
+  val dashboardTabs: Seq[(Context) => Option[Link]] = Nil
+
+  /**
+   * Override to add dashboard tabs.
+   */
+  def dashboardTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -99,6 +171,27 @@ trait Plugin {
     }
     (receiveHooks ++ receiveHooks(registry, context, settings)).foreach { receiveHook =>
       registry.addReceiveHook(receiveHook)
+    }
+    (globalMenus ++ globalMenus(registry, context, settings)).foreach { globalMenu =>
+      registry.addGlobalMenu(globalMenu)
+    }
+    (repositoryMenus ++ repositoryMenus(registry, context, settings)).foreach { repositoryMenu =>
+      registry.addRepositoryMenu(repositoryMenu)
+    }
+    (repositorySettingTabs ++ repositorySettingTabs(registry, context, settings)).foreach { repositorySettingTab =>
+      registry.addRepositorySettingTab(repositorySettingTab)
+    }
+    (profileTabs ++ profileTabs(registry, context, settings)).foreach { profileTab =>
+      registry.addProfileTab(profileTab)
+    }
+    (systemSettingMenus ++ systemSettingMenus(registry, context, settings)).foreach { systemSettingMenu =>
+      registry.addSystemSettingMenu(systemSettingMenu)
+    }
+    (accountSettingMenus ++ accountSettingMenus(registry, context, settings)).foreach { accountSettingMenu =>
+      registry.addAccountSettingMenu(accountSettingMenu)
+    }
+    (dashboardTabs ++ dashboardTabs(registry, context, settings)).foreach { dashboardTab =>
+      registry.addDashboardTab(dashboardTab)
     }
   }
 

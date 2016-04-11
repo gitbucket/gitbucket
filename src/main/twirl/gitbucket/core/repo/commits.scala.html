@@ -8,7 +8,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
+  @html.menu("files", repository){
     <div class="head">
       @if(pathList.isEmpty){
         @helper.html.branchcontrol(
@@ -33,47 +33,47 @@
         }
       }
     </div>
-    <div class="commit-list">
-      @commits.map { day =>
-        <div class="muted" style="background-color: white;">
-          <i class="octicon octicon-git-commit"></i> Commits on @date(day.head.commitTime)
-        </div>
-        <div class="list-group box-commits">
-          @day.map { commit =>
-            <div class="list-group-item">
-              <ul class="nav nav-pills pull-right">
-                <li><a href="@url(repository)/commit/@commit.id" class="link monospace" style="line-height: 16px;">@commit.id.substring(0, 7)</a></li>
-                <li><a href="@url(repository)/tree/@commit.id" style="line-height: 16px;"><i class="octicon octicon-code link"></i></a></li>
-              </ul>
+
+    <table class="table table-bordered">
+    @commits.map { day =>
+      <tr>
+        <th rowspan="@day.size" width="100">@date(day.head.commitTime)</th>
+        @day.zipWithIndex.map { case (commit, i) =>
+          @if(i != 0){ <tr> }
+          <td>
+            <div class="pull-right text-right">
+              <a href="@url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
+              <a href="@url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
+            </div>
+            <div>
+              <div class="commit-avatar-image">@avatarLink(commit, 40)</div>
               <div>
-                <div class="commit-avatar-image">@avatarLink(commit, 40)</div>
+                <a href="@url(repository)/commit/@commit.id" class="commit-message strong">@link(commit.summary, repository)</a>
+                @if(commit.description.isDefined){
+                  <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
+                }
+                <br>
+                @if(commit.description.isDefined){
+                  <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
+                }
                 <div>
-                  <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
-                  @if(commit.description.isDefined){
-                    <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
+                  @user(commit.authorName, commit.authorEmailAddress, "username")
+                  <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+                  @if(commit.isDifferentFromAuthor) {
+                    <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
+                    @user(commit.committerName, commit.committerEmailAddress, "username")
+                    <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
                   }
-                  <br>
-                  @if(commit.description.isDefined){
-                    <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
-                  }
-                  <div style="margin-top: 2px;">
-                    @user(commit.authorName, commit.authorEmailAddress, "username")
-                    <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
-                    @if(commit.isDifferentFromAuthor) {
-                      <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
-                      @user(commit.committerName, commit.committerEmailAddress, "username")
-                      <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
-                    }
-                  </div>
                 </div>
               </div>
             </div>
-          }
-        </div>
-      }
-    </div>
+          </td>
+          </tr>
+        }
+    }
+    </table>
 
-    <nav style="text-align: center; margin-top: 30px">
+    <nav style="text-align: center; margin-top: 20px">
       <ul class="pagination">
         @if(page <= 1){
           <li class="disabled"><span>Newer</span></li>

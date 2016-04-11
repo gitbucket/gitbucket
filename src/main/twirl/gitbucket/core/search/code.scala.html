@@ -1,5 +1,6 @@
 @(files: List[gitbucket.core.service.RepositorySearchService.FileSearchResult],
   issueCount: Int,
+  wikiCount: Int,
   query: String,
   page: Int,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
@@ -7,7 +8,7 @@
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.service.RepositorySearchService._
 @html.main("Search Results", Some(repository)){
-  @menu("code", files.size, issueCount, query, repository){
+  @menu("code", files.size, issueCount, wikiCount, query, repository){
     @if(files.isEmpty){
       <h4>We couldn't find any code matching '@query'</h4>
     } else {

@@ -21,11 +21,6 @@
     @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
-          @if(issue.isPullRequest){
-            <i class="octicon octicon-git-pull-request @(if(issue.closed) "closed" else "open")"></i>
-          } else {
-            <i class="octicon octicon-issue-@(if(issue.closed) "closed" else "opened")"></i>
-          }
           <a href="@path/@issue.userName/@issue.repositoryName">@issue.userName/@issue.repositoryName</a>&nbsp;&#xFF65;
           @if(issue.isPullRequest){
             <a href="@path/@issue.userName/@issue.repositoryName/pull/@issue.issueId" class="issue-title">@issue.title</a>
@@ -50,7 +45,7 @@
               </a>
             }
           </span>
-          <div class="small muted" style="margin-left: 20px; margin-top: 2px;">
+          <div class="small muted" style="margin-top: 2px;">
             #@issue.issueId opened by @user(issue.openedUserName, styleClass="username") @datetime(issue.registeredDate)
             @milestone.map { milestone =>
               <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>

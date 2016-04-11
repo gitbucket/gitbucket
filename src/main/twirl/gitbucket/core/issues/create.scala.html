@@ -8,31 +8,26 @@
 @html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @html.menu("issues", repository){
     <form action="@url(repository)/issues/new" method="POST" validate="true" class="form-group">
-      <div class="row">
-        <div class="col-md-10">
-          <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
-          <div class="panel panel-default issue-box">
-            <div class="panel-body">
-              <span id="error-title" class="error"></span>
-              <input type="text" id="issue-title" name="title" class="form-control input-lg" value="" placeholder="Title" autofocus/>
-              @helper.html.preview(
-                repository         = repository,
-                content            = "",
-                enableWikiLink     = false,
-                enableRefsLink     = true,
-                enableLineBreaks   = true,
-                enableTaskList     = true,
-                hasWritePermission = hasWritePermission,
-                style              = "height: 200px; max-height: 250px;",
-                elastic            = true
-              )
-              <div class="align-right">
-                <input type="submit" class="btn btn-lg btn-success" value="Submit new issue"/>
-              </div>
-            </div>
+      <div class="row-fluid">
+        <div class="col-md-9">
+          <span id="error-title" class="error"></span>
+          <input type="text" id="issue-title" name="title" class="form-control" value="" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
+          @helper.html.preview(
+            repository         = repository,
+            content            = "",
+            enableWikiLink     = false,
+            enableRefsLink     = true,
+            enableLineBreaks   = true,
+            enableTaskList     = true,
+            hasWritePermission = hasWritePermission,
+            style              = "height: 200px; max-height: 250px;",
+            elastic            = true
+          )
+          <div class="align-right">
+            <input type="submit" class="btn btn-success" value="Submit new issue"/>
           </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           @issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, hasWritePermission, repository)
         </div>
       </div>

@@ -61,8 +61,10 @@
 }
 
 @detailActivity(activity: gitbucket.core.model.Activity, image: String) = {
+  @*
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
-  <div class="activity-content">
+  *@
+  <div>
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
@@ -75,8 +77,10 @@
 }
 
 @customActivity(activity: gitbucket.core.model.Activity, image: String)(additionalInfo: Any) = {
+  @*
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
-  <div class="activity-content">
+  *@
+  <div>
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @avatar(activity.activityUserName, 16)
@@ -87,12 +91,14 @@
 }
 
 @simpleActivity(activity: gitbucket.core.model.Activity, image: String) = {
+  @*
   <div class="activity-icon-small"><i class="octicon octicon-@image"></i></div>
-  <div class="activity-content">
+  *@
+  <div>
+    <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
     <div>
       @avatar(activity.activityUserName, 16)
       @activityMessage(activity.message)
-      <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
     </div>
   </div>
 }

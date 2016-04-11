@@ -18,7 +18,7 @@
         <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
       </div>
       <div class="edit-title pull-right" style="display: none;">
-        <a class="btn btn-default" href="#" id="update">Save</a>  <a href="#" id="cancel">Cancel</a>
+        <a class="btn btn-success" href="#" id="update">Save</a>  <a class="btn btn-default" href="#" id="cancel">Cancel</a>
       </div>
       <h1>
         <span class="show-title">
@@ -46,12 +46,12 @@
       </span>
     </div>
     <hr>
-    <div class="row" style="margin-top: 15px;">
-      <div class="col-md-10">
+    <div class="row-fluid" style="margin-top: 15px;">
+      <div class="col-md-9">
         @commentlist(Some(issue), comments, hasWritePermission, repository)
         @commentform(issue, true, hasWritePermission, repository)
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         @issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
       </div>
     </div>

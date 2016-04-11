@@ -1,25 +1,30 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
 <div class="container body">
-  <div class="row">
-    <div class="col-md-3">
-      <ul class="nav nav-tabs nav-stacked side-menu" id="system-admin-menu-container">
-        <li@if(active=="users"){ class="active"}>
-          <a href="@path/admin/users">User Management</a>
-        </li>
-        <li@if(active=="system"){ class="active"}>
-          <a href="@path/admin/system">System Settings</a>
-        </li>
-        <li@if(active=="plugins"){ class="active"}>
-          <a href="@path/admin/plugins">Plugins</a>
-        </li>
-        <li>
-          <a href="@path/console/login.jsp">H2 Console</a>
-        </li>
-     </ul>
-    </div>
-    <div class="col-md-9">
-      @body
-    </div>
+  <div class="main-sidebar">
+    <ul class="nav nav-pills nav-stacked" id="system-admin-menu-container">
+      <li@if(active=="users"){ class="active"}>
+        <a href="@path/admin/users">User Management</a>
+      </li>
+      <li@if(active=="system"){ class="active"}>
+        <a href="@path/admin/system">System Settings</a>
+      </li>
+      <li@if(active=="plugins"){ class="active"}>
+        <a href="@path/admin/plugins">Plugins</a>
+      </li>
+      <li>
+        <a href="@path/console/login.jsp">H2 Console</a>
+      </li>
+      @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
+        @menu(context).map { link =>
+          <li@if(active==link.id){ class="active"}>
+            <a href="@path/@link.path">@link.label</a>
+          </li>
+        }
+      }
+   </ul>
+  </div>
+  <div class="main-content">
+    @body
   </div>
 </div>

@@ -1,7 +1,7 @@
-@(active: String, ssh: Boolean)(implicit context: gitbucket.core.controller.Context)
+@(active: String, ssh: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
-<div class="box">
-  <ul class="nav nav-tabs nav-stacked side-menu">
+<div class="main-sidebar">
+  <ul class="nav nav-pills nav-stacked">
     <li@if(active=="profile"){ class="active"}>
       <a href="@path/@loginAccount.get.userName/_edit">Profile</a>
     </li>
@@ -13,5 +13,15 @@
     <li@if(active=="application"){ class="active"}>
       <a href="@path/@loginAccount.get.userName/_application">Applications</a>
     </li>
+    @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
+      @menu(context).map { link =>
+        <li@if(active==link.id){ class="active"}>
+          <a href="@path/@link.path">@link.label</a>
+        </li>
+      }
+    }
   </ul>
+</div>
+<div class="main-content">
+  @body
 </div>
