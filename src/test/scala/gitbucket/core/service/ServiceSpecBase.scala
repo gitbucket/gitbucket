@@ -1,11 +1,16 @@
 package gitbucket.core.service
 
-import gitbucket.core.servlet.AutoUpdate
+import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.util.{ControlUtil, DatabaseConfig, FileUtil}
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._
+import io.github.gitbucket.solidbase.Solidbase
+import liquibase.database.core.H2Database
+import liquibase.database.jvm.JdbcConnection
 import profile.simple._
+import scalaz._
+import Scalaz._
 
 import org.apache.commons.io.FileUtils
 
@@ -22,7 +27,9 @@ trait ServiceSpecBase {
       val (url, user, pass) = (DatabaseConfig.url(Some(dir.toString)), DatabaseConfig.user, DatabaseConfig.password)
       org.h2.Driver.load()
       using(DriverManager.getConnection(url, user, pass)){ conn =>
-        AutoUpdate.versions.reverse.foreach(_.update(conn, Thread.currentThread.getContextClassLoader))
+        val solidbase = new Solidbase()
+        val db = new H2Database() <| { _.setConnection(new JdbcConnection(conn)) } // TODO Remove setConnection in the future
+        solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, db, GitBucketCoreModule)
       }
       Database.forURL(url, user, pass).withSession { session =>
         action(session)
