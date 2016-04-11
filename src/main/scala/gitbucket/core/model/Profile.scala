@@ -28,7 +28,19 @@ trait Profile {
 }
 
 trait ProfileProvider { self: Profile =>
-  val profile = slick.driver.H2Driver
+
+  private val url = System.getProperty("db.url")
+//  private val user = System.getProperty("db.user")
+//  private val password = System.getProperty("db.password")
+
+  val profile = if(url.indexOf("h2") >= 0){
+    slick.driver.H2Driver
+  } else if(url.indexOf("mysql") >= 0) {
+    slick.driver.MySQLDriver
+  } else {
+    throw new ExceptionInInitializerError(s"${url} is not unsupported.")
+  }
+
 }
 
 trait CoreProfile extends ProfileProvider with Profile
