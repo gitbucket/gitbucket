@@ -46,8 +46,14 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
           logger.info("Migration to GitBucket 4.x start")
 
           // Backup current data
-          FileUtils.copyFile(new File(GitBucketHome, "data.mv.db"), new File(GitBucketHome, "data.mv.db_3.11"))
-          FileUtils.copyFile(new File(GitBucketHome, "data.trace.db"), new File(GitBucketHome, "data.trace.db_3.11"))
+          val dataMvFile = new File(GitBucketHome, "data.mv.db")
+          if(dataMvFile.exists) {
+            FileUtils.copyFile(dataMvFile, new File(GitBucketHome, "data.mv.db_3.13"))
+          }
+          val dataTraceFile = new File(GitBucketHome, "data.trace.db")
+          if(dataTraceFile.exists) {
+            FileUtils.copyFile(dataTraceFile, new File(GitBucketHome, "data.trace.db_3.13"))
+          }
 
           // Change form
           val manager = new JDBCVersionManager(conn)
