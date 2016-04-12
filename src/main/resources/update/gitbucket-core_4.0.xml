@@ -31,8 +31,8 @@
     <column name="URL" value="https://github.com/gitbucket/gitbucket"/>
     <column name="GROUP_ACCOUNT" valueBoolean="false"/>
     <column name="REMOVED" valueBoolean="false"/>
-    <column name="REGISTERED_DATE" valueDate="1979-01-01T00:00:00"/>
-    <column name="UPDATED_DATE" valueDate="1979-01-01T00:00:00"/>
+    <column name="REGISTERED_DATE" valueDate="${currentDateTime}"/>
+    <column name="UPDATED_DATE" valueDate="${currentDateTime}"/>
   </insert>
 
   <!--================================================================================================-->
