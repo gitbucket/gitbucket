@@ -48,7 +48,7 @@ object Database {
 
   private val dataSource: HikariDataSource = {
     val config = new HikariConfig()
-    config.setDriverClassName(DatabaseConfig.driver)
+    config.setDriverClassName(DatabaseConfig.jdbcDriver)
     config.setJdbcUrl(DatabaseConfig.url)
     config.setUsername(DatabaseConfig.user)
     config.setPassword(DatabaseConfig.password)

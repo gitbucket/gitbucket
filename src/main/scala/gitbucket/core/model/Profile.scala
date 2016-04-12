@@ -2,7 +2,6 @@ package gitbucket.core.model
 
 import gitbucket.core.util.DatabaseConfig
 
-
 trait Profile {
   val profile: slick.driver.JdbcProfile
   import profile.simple._
@@ -31,15 +30,7 @@ trait Profile {
 
 trait ProfileProvider { self: Profile =>
 
-  private lazy val url = DatabaseConfig.url
-
-  lazy val profile = if(url.indexOf("h2") >= 0){
-    slick.driver.H2Driver
-  } else if(url.indexOf("mysql") >= 0) {
-    slick.driver.MySQLDriver
-  } else {
-    throw new ExceptionInInitializerError(s"${url} is not unsupported.")
-  }
+  lazy val profile = DatabaseConfig.slickDriver
 
 }
 

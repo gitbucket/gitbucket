@@ -7,11 +7,11 @@ import com.typesafe.config.ConfigFactory
 import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
+import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.JDBCUtil._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
-import liquibase.database.core.H2Database
 import javax.servlet.{ServletContextListener, ServletContextEvent}
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
@@ -41,7 +41,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
       if(versionFile.exists()){
         val version = FileUtils.readFileToString(versionFile, "UTF-8")
-        if(version == "3.11"){
+        if(version == "3.13"){
           // Initialization for GitBucket 3.10
           logger.info("Migration to GitBucket 4.x start")
 
@@ -62,14 +62,14 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
           logger.info("Migration to GitBucket 4.x completed")
 
         } else {
-          throw new Exception("GitBucket can't migrate from this version. Please update to 3.11 at first.")
+          throw new Exception("GitBucket can't migrate from this version. Please update to 3.13 at first.")
         }
       }
 
       // Run normal migration
       logger.info("Start schema update")
       val solidbase = new Solidbase()
-      solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, new H2Database(), GitBucketCoreModule)
+      solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
 
       // Load plugins
       logger.info("Initialize plugins")
