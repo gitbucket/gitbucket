@@ -42,7 +42,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       if(versionFile.exists()){
         val version = FileUtils.readFileToString(versionFile, "UTF-8")
         if(version == "3.13"){
-          // Initialization for GitBucket 3.10
+          // Initialization for GitBucket 3.13
           logger.info("Migration to GitBucket 4.x start")
 
           // Backup current data
