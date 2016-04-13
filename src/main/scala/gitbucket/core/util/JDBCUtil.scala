@@ -60,46 +60,65 @@ object JDBCUtil {
       }
     }
 
-    def export(): Unit = {
+    def export(targetTables: Seq[String]): Unit = {
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
 
       using(new FileOutputStream("export.sql")) { out =>
         val dbMeta = conn.getMetaData
+        val allTablesInDatabase = allTablesOrderByDependencies(dbMeta)
 
-        allTables(dbMeta).foreach { tableName =>
-          val sb = new StringBuilder()
+        allTablesInDatabase.foreach { tableName =>
+          if (targetTables.contains(tableName)) {
+            val sb = new StringBuilder()
+            sb.append("DELETE FROM ACCOUNT WHERE USER_NAME = 'root';\n")
 
-          select(s"SELECT * FROM ${tableName}") { rs =>
-            sb.append(s"INSERT INTO ${tableName} (")
-            val rsMeta = rs.getMetaData
-            val columns = (1 to rsMeta.getColumnCount).map { i =>
-              (rsMeta.getColumnName(i), rsMeta.getColumnType(i))
-            }
-            sb.append(columns.map(_._1).mkString(", "))
-            sb.append(") VALUES (")
-            val values = columns.map { case (columnName, columnType) =>
-              columnType match {
-                case Types.BOOLEAN   => rs.getBoolean(columnName)
-                case Types.VARCHAR | Types.CLOB | Types.CHAR => rs.getString(columnName)
-                case Types.INTEGER   => rs.getInt(columnName)
-                case Types.TIMESTAMP => rs.getTimestamp(columnName)
+            select(s"SELECT * FROM ${tableName}") { rs =>
+              sb.append(s"INSERT INTO ${tableName} (")
+
+              val rsMeta = rs.getMetaData
+              val columns = (1 to rsMeta.getColumnCount).map { i =>
+                (rsMeta.getColumnName(i), rsMeta.getColumnType(i))
               }
+              sb.append(columns.map(_._1).mkString(", "))
+              sb.append(") VALUES (")
+
+              val values = columns.map { case (columnName, columnType) =>
+                columnType match {
+                  case Types.BOOLEAN   => rs.getBoolean(columnName)
+                  case Types.VARCHAR | Types.CLOB | Types.CHAR => rs.getString(columnName)
+                  case Types.INTEGER   => rs.getInt(columnName)
+                  case Types.TIMESTAMP => rs.getTimestamp(columnName)
+                }
+              }
+
+              val columnValues = values.map { value =>
+                value match {
+                  case x: String    => "'" + x.replace("'", "''") + "'"
+                  case x: Timestamp => "'" + dateFormat.format(x) + "'"
+                  case null         => "NULL"
+                  case x            => x
+                }
+              }
+              sb.append(columnValues.mkString(", "))
+              sb.append(");\n")
             }
 
-            val columnValues = values.map { value =>
-              value match {
-                case x: String    => "'" + x.replace("'", "''") + "'"
-                case x: Timestamp => "'" + dateFormat.format(x) + "'"
-                case null         => "NULL"
-                case x            => x
-              }
-            }
-            sb.append(columnValues.mkString(", "))
-            sb.append(");\n")
+            out.write(sb.toString.getBytes("UTF-8"))
           }
-
-          out.write(sb.toString.getBytes("UTF-8"))
         }
+      }
+    }
+
+    def allTableNames(): Seq[String] = {
+      using(conn.getMetaData.getTables(null, null, "%", Seq("TABLE").toArray)) { rs =>
+        val tableNames = new ListBuffer[String]
+        while (rs.next) {
+          val name = rs.getString("TABLE_NAME")
+          if (name != "VERSIONS") {
+            tableNames += name
+          }
+        }
+        tableNames.toSeq
       }
     }
 
@@ -111,23 +130,18 @@ object JDBCUtil {
           parents += tableName
           parents ++= parentTables(meta, tableName)
         }
-        parents.toSeq
+        parents.distinct.toSeq
       }
     }
 
-    private def allTables(meta: DatabaseMetaData): Seq[String] = {
-      using(meta.getTables(null, null, "%", Seq("TABLE").toArray)) { rs =>
-        val tables = new ListBuffer[(String, Seq[String])]
-        while (rs.next) {
-          val name = rs.getString("TABLE_NAME")
-          if(name != "VERSIONS") {
-            tables += ((name, parentTables(meta, name)))
-          }
-        }
-        tables.sortWith { (a, b) => b._2.contains(a._1) }.map(_._1).toSeq
+    private def allTablesOrderByDependencies(meta: DatabaseMetaData): Seq[String] = {
+      val tables = allTableNames.map { tableName =>
+        ((tableName, parentTables(meta, tableName)))
       }
+      tables.sortWith { (a, b) =>
+        b._2.contains(a._1) || !a._2.contains(b._1)
+      }.map(_._1)
     }
-
   }
 
 }
