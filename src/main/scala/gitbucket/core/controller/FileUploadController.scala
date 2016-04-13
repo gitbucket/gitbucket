@@ -76,6 +76,19 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     } getOrElse BadRequest
   }
 
+  post("/import") {
+    session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account if loginAccount.isAdmin =>
+      execute({ (file, fileId) =>
+        // TODO Import data here!!
+        println("********")
+        println(fileId)
+        println(file.getName)
+        println("********")
+      }, _ => true)
+    }
+    redirect("/admin/data")
+  }
+
   private def collaboratorsOnly(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
     implicit val session = Database.getSession(request)
     loginAccount match {
