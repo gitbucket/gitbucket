@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import java.io.FileOutputStream
+import java.io._
 import java.sql._
 import java.text.SimpleDateFormat
 import ControlUtil._
@@ -60,18 +60,17 @@ object JDBCUtil {
       }
     }
 
-    def export(targetTables: Seq[String]): Unit = {
+    def export(targetTables: Seq[String]): File = {
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+      val file = File.createTempFile("gitbucket-export-", ".sql")
 
-      using(new FileOutputStream("export.sql")) { out =>
+      using(new FileOutputStream(file)) { out =>
         val dbMeta = conn.getMetaData
         val allTablesInDatabase = allTablesOrderByDependencies(dbMeta)
 
         allTablesInDatabase.foreach { tableName =>
           if (targetTables.contains(tableName)) {
             val sb = new StringBuilder()
-            sb.append("DELETE FROM ACCOUNT WHERE USER_NAME = 'root';\n")
-
             select(s"SELECT * FROM ${tableName}") { rs =>
               sb.append(s"INSERT INTO ${tableName} (")
 
@@ -107,6 +106,8 @@ object JDBCUtil {
           }
         }
       }
+
+      file
     }
 
     def allTableNames(): Seq[String] = {

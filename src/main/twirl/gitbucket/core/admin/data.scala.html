@@ -1,0 +1,28 @@
+@(tableNames: Seq[String])(implicit context: gitbucket.core.controller.Context)
+@import context._
+@import gitbucket.core.view.helpers._
+@html.main("Data export / import"){
+  @admin.html.menu("data") {
+    <div class="panel panel-default">
+      <div class="panel-heading strong">Export</div>
+      <div class="panel-body">
+        <form class="form form-horizontal" action="@path/admin/data" method="POST">
+          @tableNames.map { tableName =>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="tableNames" id="@tableName" value="@tableName" checked/> @tableName
+              </label>
+            </div>
+          }
+          <input type="submit" class="btn btn-success pull-right" value="Export">
+        </form>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading strong">Import</div>
+      <div class="panel-body">
+      </div>
+    </div>
+  }
+}

@@ -1,5 +1,7 @@
 package gitbucket.core.controller
 
+import java.io.FileInputStream
+
 import gitbucket.core.admin.html
 import gitbucket.core.service.{AccountService, SystemSettingsService, RepositoryService}
 import gitbucket.core.util.AdminAuthenticator
@@ -11,7 +13,7 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.StringUtil._
 import io.github.gitbucket.scalatra.forms._
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{IOUtils, FileUtils}
 import org.scalatra.i18n.Messages
 
 class SystemSettingsController extends SystemSettingsControllerBase
@@ -74,6 +76,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   case class PluginForm(pluginIds: List[String])
 
+  case class DataExportForm(tableNames: List[String])
 
   case class NewUserForm(userName: String, password: String, fullName: String,
                          mailAddress: String, isAdmin: Boolean,
@@ -267,6 +270,29 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       } getOrElse NotFound
     }
   })
+
+  get("/admin/data")(adminOnly {
+    import gitbucket.core.util.JDBCUtil._
+    val session = request2Session(request)
+    html.data(session.conn.allTableNames())
+  })
+
+  post("/admin/data")(adminOnly {
+    import gitbucket.core.util.JDBCUtil._
+    val session = request2Session(request)
+    val file = session.conn.export(request.getParameterValues("tableNames").toSeq)
+
+    contentType = "application/octet-stream"
+    response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
+    response.setContentLength(file.length.toInt)
+
+    using(new FileInputStream(file)){ in =>
+      IOUtils.copy(in, response.outputStream)
+    }
+
+    ()
+  })
+
 
   private def members: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
