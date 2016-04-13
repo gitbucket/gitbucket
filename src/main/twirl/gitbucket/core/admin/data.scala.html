@@ -6,7 +6,7 @@
     <div class="panel panel-default">
       <div class="panel-heading strong">Export</div>
       <div class="panel-body">
-        <form class="form form-horizontal" action="@path/admin/data" method="POST">
+        <form class="form form-horizontal" action="@path/admin/export" method="POST">
           @tableNames.map { tableName =>
             <div class="checkbox">
               <label>
@@ -22,6 +22,10 @@
     <div class="panel panel-default">
       <div class="panel-heading strong">Import</div>
       <div class="panel-body">
+        <form class="form form-horizontal" action="@path/admin/import" method="POST" enctype="multipart/form-data">
+          <input type="file" name="importFile">
+          <input type="submit" class="btn btn-success pull-right" value="Import">
+        </form>
       </div>
     </div>
   }

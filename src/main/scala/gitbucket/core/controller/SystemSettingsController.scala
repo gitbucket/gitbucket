@@ -277,7 +277,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     html.data(session.conn.allTableNames())
   })
 
-  post("/admin/data")(adminOnly {
+  post("/admin/export")(adminOnly {
     import gitbucket.core.util.JDBCUtil._
     val session = request2Session(request)
     val file = session.conn.export(request.getParameterValues("tableNames").toSeq)
@@ -292,7 +292,6 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     ()
   })
-
 
   private def members: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
