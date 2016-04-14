@@ -38,6 +38,7 @@ libraryDependencies ++= Seq(
   "com.novell.ldap"           % "jldap"                        % "2009-10-07",
   "com.h2database"            % "h2"                           % "1.4.190",
   "mysql"                     % "mysql-connector-java"         % "5.1.38",
+  "org.postgresql"            % "postgresql"                   % "9.4.1208",
   "ch.qos.logback"            % "logback-classic"              % "1.1.1",
   "com.zaxxer"                % "HikariCP"                     % "2.4.5",
   "com.typesafe"              % "config"                       % "1.3.0",

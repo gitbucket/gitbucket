@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigFactory
 import java.io.File
 import Directory._
 import liquibase.database.AbstractJdbcDatabase
-import liquibase.database.core.{MySQLDatabase, H2Database}
+import liquibase.database.core.{PostgresDatabase, MySQLDatabase, H2Database}
 import org.apache.commons.io.FileUtils
 
 object DatabaseConfig {
@@ -50,6 +50,8 @@ object DatabaseType {
       H2
     } else if(url.indexOf("mysql") >= 0){
       MySQL
+    } else if(url.indexOf("postgresql") >= 0){
+      PostgreSQL
     } else {
       throw new IllegalArgumentException(s"${url} is not supported.")
     }
@@ -65,5 +67,11 @@ object DatabaseType {
     val jdbcDriver = "com.mysql.jdbc.Driver"
     val slickDriver = slick.driver.MySQLDriver
     val liquiDriver = new MySQLDatabase()
+  }
+
+  object PostgreSQL extends DatabaseType {
+    val jdbcDriver = "org.postgresql.Driver"
+    val slickDriver = slick.driver.PostgresDriver
+    val liquiDriver = new PostgresDatabase()
   }
 }
