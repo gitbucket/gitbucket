@@ -68,6 +68,12 @@ object JDBCUtil {
         val dbMeta = conn.getMetaData
         val allTablesInDatabase = allTablesOrderByDependencies(dbMeta)
 
+        allTablesInDatabase.reverse.foreach { tableName =>
+          if (targetTables.contains(tableName)) {
+            out.write(s"DELETE FROM ${tableName};\n".getBytes("UTF-8"))
+          }
+        }
+
         allTablesInDatabase.foreach { tableName =>
           if (targetTables.contains(tableName)) {
             val sb = new StringBuilder()

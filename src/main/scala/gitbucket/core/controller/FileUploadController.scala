@@ -6,6 +6,7 @@ import gitbucket.core.servlet.Database
 import gitbucket.core.util._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
+import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
@@ -79,11 +80,20 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
   post("/import") {
     session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account if loginAccount.isAdmin =>
       execute({ (file, fileId) =>
-        // TODO Import data here!!
-        println("********")
-        println(fileId)
-        println(file.getName)
-        println("********")
+        using(file.getInputStream){ in =>
+          import JDBCUtil._
+          val sql = IOUtils.toString(in, "UTF-8")
+          val conn = request2Session(request).conn
+          conn.setAutoCommit(false)
+          try {
+            conn.update(sql)
+            conn.commit()
+          } catch {
+            case e: Throwable =>
+              conn.rollback()
+              throw e
+          }
+        }
       }, _ => true)
     }
     redirect("/admin/data")

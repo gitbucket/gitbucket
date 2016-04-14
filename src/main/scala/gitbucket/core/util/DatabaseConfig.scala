@@ -1,13 +1,28 @@
 package gitbucket.core.util
 
 import com.typesafe.config.ConfigFactory
-import Directory.DatabaseHome
+import java.io.File
+import Directory._
 import liquibase.database.AbstractJdbcDatabase
 import liquibase.database.core.{MySQLDatabase, H2Database}
+import org.apache.commons.io.FileUtils
 
 object DatabaseConfig {
 
-  private lazy val config = ConfigFactory.load("database")
+  private lazy val config = {
+    val file = new File(GitBucketHome, "database.conf")
+    if(!file.exists){
+      FileUtils.write(file,
+        """db {
+          |  url = "jdbc:h2:${DatabaseHome};MVCC=true"
+          |  user = "sa"
+          |  password = "sa"
+          |}
+          |""".stripMargin, "UTF-8")
+    }
+    ConfigFactory.parseFile(file)
+  }
+
   private lazy val dbUrl = config.getString("db.url")
 
   def url(directory: Option[String]): String =

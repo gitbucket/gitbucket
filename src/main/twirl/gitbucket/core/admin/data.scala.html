@@ -24,9 +24,16 @@
       <div class="panel-body">
         <form class="form form-horizontal" action="@path/upload/import" method="POST" enctype="multipart/form-data">
           <input type="file" name="file">
-          <input type="submit" class="btn btn-success pull-right" value="Import">
+          <input type="submit" class="btn btn-success pull-right" value="Import" id="import">
         </form>
       </div>
     </div>
   }
 }
+<script>
+$(function(){
+  $('#import').click(function(){
+    return confirm('All existing data is deleted before importing.\nAre you sure?');
+  })
+})
+</script>
