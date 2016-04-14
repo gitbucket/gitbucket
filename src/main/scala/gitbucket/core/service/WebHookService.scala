@@ -109,10 +109,10 @@ trait WebHookService {
             def postContent = new UrlEncodedFormEntity(params, "UTF-8")
             httpPost.setEntity(postContent)
 
-            if (!webHook.token.isEmpty) {
+            if (webHook.token.exists(_.trim.nonEmpty)) {
               // TODO find a better way and see how to extract content from postContent
               val contentAsBytes = URLEncodedUtils.format(params, "UTF-8").getBytes("UTF-8")
-              httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.orNull, contentAsBytes))
+              httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.get, contentAsBytes))
             }
 
             val res = httpClient.execute(httpPost)
