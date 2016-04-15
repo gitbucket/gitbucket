@@ -6,6 +6,7 @@ import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
 import org.apache.commons.io.FileUtils
 import javax.servlet.{ServletContextListener, ServletContextEvent}
+import org.h2.tools.Server
 import org.slf4j.LoggerFactory
 import gitbucket.core.util.Versions
 import akka.actor.{Actor, Props, ActorSystem}
@@ -19,13 +20,22 @@ import AutoUpdate._
 class InitializeListener extends ServletContextListener with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
+  private var server: Server = null
 
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
     if(dataDir != null){
       System.setProperty("gitbucket.home", dataDir)
     }
-    org.h2.Driver.load()
+    //org.h2.Driver.load()
+    // Start H2 database
+    server = System.getProperty("h2.port") match {
+      case null => null
+      case port => {
+        logger.info("Start H2 server with port: " + port)
+        Server.createTcpServer("-tcpPort", port).start()
+      }
+    }
 
     Database() withTransaction { session =>
       val conn = session.conn
@@ -62,9 +72,17 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
   override def contextDestroyed(event: ServletContextEvent): Unit = {
     // Shutdown plugins
+    logger.info("Shutdown all plugins")
     PluginRegistry.shutdown(event.getServletContext, loadSystemSettings())
     // Close datasource
+    logger.info("Close data source")
     Database.closeDataSource()
+    // Shutdown H2 server
+    if(server != null){
+      logger.info("Shutdown H2 server")
+      server.stop()
+    }
+    logger.info("All shutdown completed.")
   }
 
 }

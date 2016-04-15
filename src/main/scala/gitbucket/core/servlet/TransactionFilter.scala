@@ -2,6 +2,7 @@ package gitbucket.core.servlet
 
 import javax.servlet._
 import javax.servlet.http.HttpServletRequest
+
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import gitbucket.core.util.DatabaseConfig
 import org.scalatra.ScalatraBase
@@ -52,12 +53,22 @@ object Database {
     ds.setJdbcUrl(DatabaseConfig.url)
     ds.setUser(DatabaseConfig.user)
     ds.setPassword(DatabaseConfig.password)
-    logger.debug("load database connection pool")
+    ds.setMaxIdleTime(30)
+    ds.setMaxIdleTimeExcessConnections(20)
+    ds.setTestConnectionOnCheckout(true)
+    ds.setPreferredTestQuery("SELECT 1;")
+    logger.info("setup database connection pool: " + DatabaseConfig.url)
     ds
   }
 
   private val db: SlickDatabase = {
     SlickDatabase.forDataSource(dataSource)
+//    SlickDatabase.forURL(
+//      url = DatabaseConfig.url,
+//      user = DatabaseConfig.user,
+//      password = DatabaseConfig.password,
+//      driver = DatabaseConfig.driver
+//    )
   }
 
   def apply(): SlickDatabase = db

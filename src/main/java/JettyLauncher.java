@@ -6,11 +6,13 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 
 public class JettyLauncher {
+
     public static void main(String[] args) throws Exception {
         String host = null;
         int port = 8080;
         String contextPath = "/";
         boolean forceHttps = false;
+        //int h2port = 9092;
 
         for(String arg: args) {
             if(arg.startsWith("--") && arg.contains("=")) {
@@ -24,6 +26,8 @@ public class JettyLauncher {
                         contextPath = dim[1];
                     } else if(dim[0].equals("--gitbucket.home")){
                         System.setProperty("gitbucket.home", dim[1]);
+                    } else if(dim[0].equals("--h2.port")){
+                        System.setProperty("h2.port", dim[1]);
                     }
                 }
             }
