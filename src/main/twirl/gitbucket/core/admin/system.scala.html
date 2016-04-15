@@ -9,11 +9,23 @@
       <div class="panel panel-default">
         <div class="panel-heading strong">System Settings</div>
         <div class="panel-body">
-          <!--====================================================================-->
-          <!-- GITBUCKET_HOME -->
-          <!--====================================================================-->
-          <label class="strong">GITBUCKET_HOME</label>
-          @GitBucketHome
+            <!--====================================================================-->
+            <!-- System properties -->
+            <!--====================================================================-->
+          <table class="table table-bordered">
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+              <td>GITBUCKET_HOME</td>
+              <td>@GitBucketHome</td>
+            </tr>
+            <tr>
+              <td>DATBASE_URL</td>
+              <td>@gitbucket.core.util.DatabaseConfig.url</td>
+            </tr>
+          </table>
           <!--====================================================================-->
           <!-- Base URL -->
           <!--====================================================================-->
