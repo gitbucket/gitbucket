@@ -21,6 +21,7 @@ object AutoUpdate {
    * The history of versions. A head of this sequence is the current GitBucket version.
    */
   val versions = Seq(
+    new Version(3, 14),
     new Version(3, 13),
     new Version(3, 12),
     new Version(3, 11),

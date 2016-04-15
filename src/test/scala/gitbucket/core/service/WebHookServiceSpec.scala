@@ -2,6 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.WebHook
 import org.scalatest.FunSuite
+import gitbucket.core.model.WebHookContentType
 
 
 class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
@@ -16,12 +17,12 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
     val (issue3, pullreq3) = generateNewPullRequest("user3/repo3/master3", "user2/repo2/master2", loginUser="root")
     val (issue32, pullreq32) = generateNewPullRequest("user3/repo3/master32", "user2/repo2/master2", loginUser="root")
     generateNewPullRequest("user2/repo2/master2", "user1/repo1/master2")
-    service.addWebHook("user1", "repo1", "webhook1-1", Set(WebHook.PullRequest), Some("key"))
-    service.addWebHook("user1", "repo1", "webhook1-2", Set(WebHook.PullRequest), Some("key"))
-    service.addWebHook("user2", "repo2", "webhook2-1", Set(WebHook.PullRequest), Some("key"))
-    service.addWebHook("user2", "repo2", "webhook2-2", Set(WebHook.PullRequest), Some("key"))
-    service.addWebHook("user3", "repo3", "webhook3-1", Set(WebHook.PullRequest), Some("key"))
-    service.addWebHook("user3", "repo3", "webhook3-2", Set(WebHook.PullRequest), Some("key"))
+    service.addWebHook("user1", "repo1", "webhook1-1", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
+    service.addWebHook("user1", "repo1", "webhook1-2", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
+    service.addWebHook("user2", "repo2", "webhook2-1", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
+    service.addWebHook("user2", "repo2", "webhook2-2", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
+    service.addWebHook("user3", "repo3", "webhook3-1", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
+    service.addWebHook("user3", "repo3", "webhook3-2", Set(WebHook.PullRequest), WebHookContentType.FORM, Some("key"))
 
     assert(service.getPullRequestsByRequestForWebhook("user1","repo1","master1") == Map.empty)
 
@@ -43,33 +44,36 @@ class WebHookServiceSpec extends FunSuite with ServiceSpecBase {
 
   test("add and get and update and delete") { withTestDB { implicit session =>
     val user1 = generateNewUserWithDBRepository("user1","repo1")
-    service.addWebHook("user1", "repo1", "http://example.com", Set(WebHook.PullRequest), Some("key"))
-    assert(service.getWebHooks("user1", "repo1") == List((WebHook("user1","repo1","http://example.com", Some("key")),Set(WebHook.PullRequest))))
-    assert(service.getWebHook("user1", "repo1", "http://example.com") == Some((WebHook("user1","repo1","http://example.com", Some("key")),Set(WebHook.PullRequest))))
-    assert(service.getWebHooksByEvent("user1", "repo1", WebHook.PullRequest) == List((WebHook("user1","repo1","http://example.com", Some("key")))))
+    val formType = WebHookContentType.FORM
+    val jsonType = WebHookContentType.JSON
+    service.addWebHook("user1", "repo1", "http://example.com", Set(WebHook.PullRequest), formType, Some("key"))
+    assert(service.getWebHooks("user1", "repo1") == List((WebHook("user1","repo1","http://example.com", formType, Some("key")),Set(WebHook.PullRequest))))
+    assert(service.getWebHook("user1", "repo1", "http://example.com") == Some((WebHook("user1","repo1","http://example.com", formType, Some("key")),Set(WebHook.PullRequest))))
+    assert(service.getWebHooksByEvent("user1", "repo1", WebHook.PullRequest) == List((WebHook("user1","repo1","http://example.com", formType, Some("key")))))
     assert(service.getWebHooksByEvent("user1", "repo1", WebHook.Push) == Nil)
     assert(service.getWebHook("user1", "repo1", "http://example.com2") == None)
     assert(service.getWebHook("user2", "repo1", "http://example.com") == None)
     assert(service.getWebHook("user1", "repo2", "http://example.com") == None)
-    service.updateWebHook("user1", "repo1", "http://example.com", Set(WebHook.Push, WebHook.Issues), Some("key"))
-    assert(service.getWebHook("user1", "repo1", "http://example.com") == Some((WebHook("user1","repo1","http://example.com", Some("key")),Set(WebHook.Push, WebHook.Issues))))
+    service.updateWebHook("user1", "repo1", "http://example.com", Set(WebHook.Push, WebHook.Issues), jsonType, Some("key"))
+    assert(service.getWebHook("user1", "repo1", "http://example.com") == Some((WebHook("user1","repo1","http://example.com", jsonType, Some("key")),Set(WebHook.Push, WebHook.Issues))))
     assert(service.getWebHooksByEvent("user1", "repo1", WebHook.PullRequest) == Nil)
-    assert(service.getWebHooksByEvent("user1", "repo1", WebHook.Push) == List((WebHook("user1","repo1","http://example.com", Some("key")))))
+    assert(service.getWebHooksByEvent("user1", "repo1", WebHook.Push) == List((WebHook("user1","repo1","http://example.com", jsonType, Some("key")))))
     service.deleteWebHook("user1", "repo1", "http://example.com")
     assert(service.getWebHook("user1", "repo1", "http://example.com") == None)
   } }
 
   test("getWebHooks, getWebHooksByEvent") { withTestDB { implicit session =>
     val user1 = generateNewUserWithDBRepository("user1","repo1")
-    service.addWebHook("user1", "repo1", "http://example.com/1", Set(WebHook.PullRequest), Some("key"))
-    service.addWebHook("user1", "repo1", "http://example.com/2", Set(WebHook.Push), Some("key"))
-    service.addWebHook("user1", "repo1", "http://example.com/3", Set(WebHook.PullRequest,WebHook.Push), Some("key"))
+    val ctype = WebHookContentType.FORM
+    service.addWebHook("user1", "repo1", "http://example.com/1", Set(WebHook.PullRequest), ctype, Some("key"))
+    service.addWebHook("user1", "repo1", "http://example.com/2", Set(WebHook.Push), ctype, Some("key"))
+    service.addWebHook("user1", "repo1", "http://example.com/3", Set(WebHook.PullRequest,WebHook.Push), ctype, Some("key"))
     assert(service.getWebHooks("user1", "repo1") == List(
-      WebHook("user1","repo1","http://example.com/1", Some("key"))->Set(WebHook.PullRequest),
-      WebHook("user1","repo1","http://example.com/2", Some("key"))->Set(WebHook.Push),
-      WebHook("user1","repo1","http://example.com/3", Some("key"))->Set(WebHook.PullRequest,WebHook.Push)))
+      WebHook("user1","repo1","http://example.com/1", ctype, Some("key"))->Set(WebHook.PullRequest),
+      WebHook("user1","repo1","http://example.com/2", ctype, Some("key"))->Set(WebHook.Push),
+      WebHook("user1","repo1","http://example.com/3", ctype, Some("key"))->Set(WebHook.PullRequest,WebHook.Push)))
     assert(service.getWebHooksByEvent("user1", "repo1", WebHook.PullRequest) == List(
-      WebHook("user1","repo1","http://example.com/1", Some("key")),
-      WebHook("user1","repo1","http://example.com/3", Some("key"))))
+      WebHook("user1","repo1","http://example.com/1", ctype, Some("key")),
+      WebHook("user1","repo1","http://example.com/3", ctype, Some("key"))))
   } }
 }

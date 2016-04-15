@@ -15,6 +15,7 @@ import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
+import gitbucket.core.model.WebHookContentType
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -49,13 +50,16 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )(CollaboratorForm.apply)
 
   // for web hook url addition
-  case class WebHookForm(url: String, events: Set[WebHook.Event], token: Option[String])
+  case class WebHookForm(url: String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])
 
   def webHookForm(update:Boolean) = mapping(
     "url"    -> trim(label("url", text(required, webHook(update)))),
     "events" -> webhookEvents,
+    "ctype" -> label("ctype", text()),
     "token" -> optional(trim(label("token", text(maxlength(100)))))
-  )(WebHookForm.apply)
+  )(
+    (url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
+  )
 
   // for transfer ownership
   case class TransferOwnerShipForm(newOwner: String)
@@ -183,7 +187,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = WebHook(repository.owner, repository.name, "", None)
+    val webhook = WebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
     html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
   })
 
@@ -191,7 +195,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Add the web hook URL.
    */
   post("/:owner/:repository/settings/hooks/new", webHookForm(false))(ownerOnly { (form, repository) =>
-    addWebHook(repository.owner, repository.name, form.url, form.events, form.token)
+    addWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
     flash += "info" -> s"Webhook ${form.url} created"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
@@ -221,7 +225,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
       val url = params("url")
       val token = Some(params("token"))
-      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, token)
+      val ctype = WebHookContentType.valueOf(params("ctype"))
+      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, ctype, token)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
         val commits = if(repository.commitCount == 0) List.empty else git.log
@@ -280,7 +285,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Update web hook settings.
    */
   post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(ownerOnly { (form, repository) =>
-    updateWebHook(repository.owner, repository.name, form.url, form.events, form.token)
+    updateWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
     flash += "info" -> s"webhook ${form.url} updated"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
