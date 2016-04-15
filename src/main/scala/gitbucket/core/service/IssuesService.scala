@@ -115,18 +115,18 @@ trait IssuesService {
          , PR.REPOSITORY_NAME
          , PR.ISSUE_ID
          , COUNT(CS.STATE) AS CS_ALL
-         , SUM(CS.STATE='success') AS CS_SUCCESS
+         , COUNT(CS.STATE = 'success') AS CS_SUCCESS
          , PR.COMMIT_ID_TO AS COMMIT_ID
           FROM PULL_REQUEST PR
           JOIN COMMIT_STATUS CS
-            ON PR.USER_NAME=CS.USER_NAME
-           AND PR.REPOSITORY_NAME=CS.REPOSITORY_NAME
-           AND PR.COMMIT_ID_TO=CS.COMMIT_ID
+            ON PR.USER_NAME       = CS.USER_NAME
+           AND PR.REPOSITORY_NAME = CS.REPOSITORY_NAME
+           AND PR.COMMIT_ID_TO    = CS.COMMIT_ID
          WHERE $issueIdQuery
          GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID) as SUMM
         LEFT OUTER JOIN COMMIT_STATUS CSD
           ON SUMM.CS_ALL = 1 AND SUMM.COMMIT_ID = CSD.COMMIT_ID""");
-      query(issueList).list.map{
+      query(issueList).list.map {
         case(userName, repositoryName, issueId, count, successCount, context, state, targetUrl, description) =>
           (userName, repositoryName, issueId) -> CommitStatusInfo(count, successCount, context, state, targetUrl, description)
         }.toMap

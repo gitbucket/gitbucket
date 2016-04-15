@@ -88,11 +88,16 @@ object JDBCUtil {
               sb.append(") VALUES (")
 
               val values = columns.map { case (columnName, columnType) =>
-                columnType match {
-                  case Types.BOOLEAN   => rs.getBoolean(columnName)
-                  case Types.VARCHAR | Types.CLOB | Types.CHAR => rs.getString(columnName)
-                  case Types.INTEGER   => rs.getInt(columnName)
-                  case Types.TIMESTAMP => rs.getTimestamp(columnName)
+                println(columnName)
+                if(rs.getObject(columnName) == null){
+                  null
+                } else {
+                  columnType match {
+                    case Types.BOOLEAN | Types.BIT  => rs.getBoolean(columnName)
+                    case Types.VARCHAR | Types.CLOB | Types.CHAR => rs.getString(columnName)
+                    case Types.INTEGER   => rs.getInt(columnName)
+                    case Types.TIMESTAMP => rs.getTimestamp(columnName)
+                  }
                 }
               }
 
@@ -120,7 +125,7 @@ object JDBCUtil {
       using(conn.getMetaData.getTables(null, null, "%", Seq("TABLE").toArray)) { rs =>
         val tableNames = new ListBuffer[String]
         while (rs.next) {
-          val name = rs.getString("TABLE_NAME")
+          val name = rs.getString("TABLE_NAME").toUpperCase
           if (name != "VERSIONS") {
             tableNames += name
           }
@@ -133,7 +138,7 @@ object JDBCUtil {
       using(meta.getImportedKeys(null, null, tableName)) { rs =>
         val parents = new ListBuffer[String]
         while (rs.next) {
-          val tableName = rs.getString("PKTABLE_NAME")
+          val tableName = rs.getString("PKTABLE_NAME").toUpperCase
           parents += tableName
           parents ++= parentTables(meta, tableName)
         }
