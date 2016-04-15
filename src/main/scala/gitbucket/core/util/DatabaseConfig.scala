@@ -46,11 +46,11 @@ sealed trait DatabaseType {
 object DatabaseType {
 
   def apply(url: String): DatabaseType = {
-    if(url.indexOf("h2") >= 0){
+    if(url.startsWith("jdbc:h2:")){
       H2
-    } else if(url.indexOf("mysql") >= 0){
+    } else if(url.startsWith("jdbc:mysql:")){
       MySQL
-    } else if(url.indexOf("postgresql") >= 0){
+    } else if(url.startsWith("jdbc:postgresql:")){
       PostgreSQL
     } else {
       throw new IllegalArgumentException(s"${url} is not supported.")
