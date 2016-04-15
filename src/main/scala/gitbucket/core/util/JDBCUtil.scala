@@ -88,12 +88,11 @@ object JDBCUtil {
               sb.append(") VALUES (")
 
               val values = columns.map { case (columnName, columnType) =>
-                println(columnName)
                 if(rs.getObject(columnName) == null){
                   null
                 } else {
                   columnType match {
-                    case Types.BOOLEAN | Types.BIT  => rs.getBoolean(columnName)
+                    case Types.BOOLEAN | Types.BIT => rs.getBoolean(columnName)
                     case Types.VARCHAR | Types.CLOB | Types.CHAR => rs.getString(columnName)
                     case Types.INTEGER   => rs.getInt(columnName)
                     case Types.TIMESTAMP => rs.getTimestamp(columnName)
@@ -134,26 +133,61 @@ object JDBCUtil {
       }
     }
 
-    private def parentTables(meta: DatabaseMetaData, tableName: String): Seq[String] = {
-      using(meta.getImportedKeys(null, null, tableName)) { rs =>
-        val parents = new ListBuffer[String]
-        while (rs.next) {
-          val tableName = rs.getString("PKTABLE_NAME").toUpperCase
-          parents += tableName
-          parents ++= parentTables(meta, tableName)
+//    private def parentTables(meta: DatabaseMetaData, tableName: String): Seq[String] = {
+//      val normalizedTableName =
+//        if(meta.getDatabaseProductName == "PostgreSQL"){
+//          tableName.toLowerCase
+//        } else {
+//          tableName
+//        }
+//
+//      using(meta.getImportedKeys(null, null, normalizedTableName)) { rs =>
+//        val parents = new ListBuffer[String]
+//        while (rs.next) {
+//          val parentTableName = rs.getString("PKTABLE_NAME").toUpperCase
+//          if(!parents.contains(parentTableName)){
+//            parents += parentTableName
+//            parents ++= parentTables(meta, parentTableName)
+//          }
+//        }
+//        parents.distinct.toSeq
+//      }
+//    }
+
+    private def childTables(meta: DatabaseMetaData, tableName: String): Seq[String] = {
+      val normalizedTableName =
+        if(meta.getDatabaseProductName == "PostgreSQL"){
+          tableName.toLowerCase
+        } else {
+          tableName
         }
-        parents.distinct.toSeq
+
+      using(meta.getExportedKeys(null, null, normalizedTableName)) { rs =>
+        val children = new ListBuffer[String]
+        while (rs.next) {
+          val childTableName = rs.getString("FKTABLE_NAME").toUpperCase
+          if(!children.contains(childTableName)){
+            children += childTableName
+            children ++= childTables(meta, childTableName)
+          }
+        }
+        children.distinct.toSeq
       }
     }
 
+
     private def allTablesOrderByDependencies(meta: DatabaseMetaData): Seq[String] = {
       val tables = allTableNames.map { tableName =>
-        ((tableName, parentTables(meta, tableName)))
+        val result = TableDependency(tableName, childTables(meta, tableName))
+        println(result)
+        result
       }
       tables.sortWith { (a, b) =>
-        b._2.contains(a._1) || !a._2.contains(b._1)
-      }.map(_._1)
+        a.children.contains(b.tableName)
+      }.map(_.tableName)
     }
+
+    case class TableDependency(tableName: String, children: Seq[String])
   }
 
 }
