@@ -108,22 +108,38 @@ trait IssuesService {
       }
       import gitbucket.core.model.Profile.commitStateColumnType
       val query = Q.query[Seq[(String, String, Int)], (String, String, Int, Int, Int, Option[String], Option[CommitState], Option[String], Option[String])](s"""
-        SELECT SUMM.USER_NAME, SUMM.REPOSITORY_NAME, SUMM.ISSUE_ID, CS_ALL, CS_SUCCESS
-             , CSD.CONTEXT, CSD.STATE, CSD.TARGET_URL, CSD.DESCRIPTION
-        FROM (SELECT
-           PR.USER_NAME
-         , PR.REPOSITORY_NAME
-         , PR.ISSUE_ID
-         , COUNT(CS.STATE) AS CS_ALL
-         , COUNT(CS.STATE = 'success') AS CS_SUCCESS
-         , PR.COMMIT_ID_TO AS COMMIT_ID
+        SELECT
+          SUMM.USER_NAME,
+          SUMM.REPOSITORY_NAME,
+          SUMM.ISSUE_ID,
+          CS_ALL,
+          CS_SUCCESS,
+          CSD.CONTEXT,
+          CSD.STATE,
+          CSD.TARGET_URL,
+          CSD.DESCRIPTION
+        FROM (
+          SELECT
+            PR.USER_NAME,
+            PR.REPOSITORY_NAME,
+            PR.ISSUE_ID,
+            COUNT(CS.STATE) AS CS_ALL,
+            CSS.CS_SUCCESS  AS CS_SUCCESS,
+            PR.COMMIT_ID_TO AS COMMIT_ID
           FROM PULL_REQUEST PR
           JOIN COMMIT_STATUS CS
-            ON PR.USER_NAME       = CS.USER_NAME
-           AND PR.REPOSITORY_NAME = CS.REPOSITORY_NAME
-           AND PR.COMMIT_ID_TO    = CS.COMMIT_ID
-         WHERE $issueIdQuery
-         GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID) as SUMM
+            ON PR.USER_NAME = CS.USER_NAME AND PR.REPOSITORY_NAME = CS.REPOSITORY_NAME AND PR.COMMIT_ID_TO = CS.COMMIT_ID
+          JOIN (
+            SELECT
+              COUNT(*) AS CS_SUCCESS,
+              USER_NAME,
+              REPOSITORY_NAME,
+              COMMIT_ID
+            FROM COMMIT_STATUS WHERE STATE = 'success' GROUP BY USER_NAME, REPOSITORY_NAME, COMMIT_ID
+          ) CSS ON PR.USER_NAME = CSS.USER_NAME AND PR.REPOSITORY_NAME = CSS.REPOSITORY_NAME AND PR.COMMIT_ID_TO = CSS.COMMIT_ID
+          WHERE $issueIdQuery
+          GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID
+        ) as SUMM
         LEFT OUTER JOIN COMMIT_STATUS CSD
           ON SUMM.CS_ALL = 1 AND SUMM.COMMIT_ID = CSD.COMMIT_ID""");
       query(issueList).list.map {
