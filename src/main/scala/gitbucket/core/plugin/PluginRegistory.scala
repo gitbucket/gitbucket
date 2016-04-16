@@ -10,6 +10,7 @@ import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
@@ -189,7 +190,7 @@ object PluginRegistry {
 
           // Migration
           val solidbase = new Solidbase()
-          solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, new H2Database(), new Module(plugin.pluginId, plugin.versions: _*))
+          solidbase.migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
 
           // Initialize
           plugin.initialize(instance, context, settings)
