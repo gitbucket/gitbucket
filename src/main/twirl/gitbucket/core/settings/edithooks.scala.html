@@ -6,6 +6,7 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.model.WebHook._
+@import gitbucket.core.model.WebHookContentType
 @check(name: String, event: Event)={
   name="@(name).@event.name" value="on" @if(events(event)){checked}
 }
@@ -29,6 +30,14 @@
                 <input type="hidden" value="@webHook.url" name="url" />
               }
               <button class="btn btn-default" id="test">Test Hook</button>
+            </fieldset>
+            <fieldset class="form-group">
+              <label class="strong">Content type</label>
+              <div></div>
+              <select name="ctype">
+              	<option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>	
+              	<option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>	
+               </select>
             </fieldset>
             <fieldset class="form-group">
               <label class="strong">Security Token</label>
@@ -129,6 +138,7 @@ $(function(){
     e.preventDefault();
     var url = this.form.url.value;
     var token = this.form.token.value;
+    var ctype = this.form.ctype.value;
     if(!/^https?:\/\/.+/.test(url)){
       alert("invalid url");
       return;
@@ -136,9 +146,13 @@ $(function(){
     $("#test-modal-url").text(url)
     $("#test-report-modal").modal('show')
     $("#test-report").hide();
+    var targetUrl = '@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&token=';
+    if (token) {
+      targetUrl = targetUrl + encodeURIComponent(token);
+    }
     $.ajax({
       method:'POST',
-      url:'@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&token=' + encodeURIComponent(token),
+      url:targetUrl,
       success: function(e){
         //console.log(e);
         $('#test-report-tab a:first').tab('show');

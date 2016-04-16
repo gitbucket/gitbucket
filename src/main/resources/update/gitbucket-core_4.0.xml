@@ -303,6 +303,7 @@
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="URL" type="varchar(200)" nullable="false"/>
     <column name="TOKEN" type="varchar(100)" nullable="true"/>
+    <column name="CTYPE" type="varchar(10)" nullable="true"/>
   </createTable>
 
   <addPrimaryKey constraintName="IDX_WEB_HOOK_PK" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL"/>

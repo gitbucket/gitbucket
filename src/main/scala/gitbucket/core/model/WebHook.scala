@@ -3,21 +3,42 @@ package gitbucket.core.model
 trait WebHookComponent extends TemplateComponent { self: Profile =>
   import profile.simple._
 
+  implicit val whContentTypeColumnType = MappedColumnType.base[WebHookContentType, String](whct => whct.code , code => WebHookContentType.valueOf(code))
+  
   lazy val WebHooks = TableQuery[WebHooks]
 
   class WebHooks(tag: Tag) extends Table[WebHook](tag, "WEB_HOOK") with BasicTemplate {
     val url = column[String]("URL")
     val token = column[Option[String]]("TOKEN", O.Nullable)
-    def * = (userName, repositoryName, url, token) <> ((WebHook.apply _).tupled, WebHook.unapply)
+    val ctype = column[WebHookContentType]("CTYPE", O.NotNull)
+    def * = (userName, repositoryName, url, ctype, token) <> ((WebHook.apply _).tupled, WebHook.unapply)
 
     def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url === url.bind)
   }
+}
+
+case class WebHookContentType(val code: String, val ctype: String)
+
+object WebHookContentType {
+  object JSON extends WebHookContentType("json", "application/json")
+
+  object FORM extends WebHookContentType("form", "application/x-www-form-urlencoded")
+
+  val values: Vector[WebHookContentType] = Vector(JSON, FORM)
+
+  private val map: Map[String, WebHookContentType] = values.map(enum => enum.code -> enum).toMap
+
+  def apply(code: String): WebHookContentType = map(code)
+
+  def valueOf(code: String): WebHookContentType = map(code)
+  def valueOpt(code: String): Option[WebHookContentType] = map.get(code)
 }
 
 case class WebHook(
   userName: String,
   repositoryName: String,
   url: String,
+  ctype: WebHookContentType,
   token: Option[String]
 )
 
