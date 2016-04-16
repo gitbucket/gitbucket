@@ -41,18 +41,18 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
       if(versionFile.exists()){
         val version = FileUtils.readFileToString(versionFile, "UTF-8")
-        if(version == "3.13"){
-          // Initialization for GitBucket 3.13
+        if(version == "3.14"){
+          // Initialization for GitBucket 3.14
           logger.info("Migration to GitBucket 4.x start")
 
           // Backup current data
           val dataMvFile = new File(GitBucketHome, "data.mv.db")
           if(dataMvFile.exists) {
-            FileUtils.copyFile(dataMvFile, new File(GitBucketHome, "data.mv.db_3.13"))
+            FileUtils.copyFile(dataMvFile, new File(GitBucketHome, "data.mv.db_3.14"))
           }
           val dataTraceFile = new File(GitBucketHome, "data.trace.db")
           if(dataTraceFile.exists) {
-            FileUtils.copyFile(dataTraceFile, new File(GitBucketHome, "data.trace.db_3.13"))
+            FileUtils.copyFile(dataTraceFile, new File(GitBucketHome, "data.trace.db_3.14"))
           }
 
           // Change form
@@ -68,7 +68,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
           logger.info("Migration to GitBucket 4.x completed")
 
         } else {
-          throw new Exception("GitBucket can't migrate from this version. Please update to 3.13 at first.")
+          throw new Exception("GitBucket can't migrate from this version. Please update to 3.14 at first.")
         }
       }
 
