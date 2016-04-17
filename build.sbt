@@ -15,6 +15,7 @@ scalaVersion := "2.11.8"
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
+  "amateras" at "http://amateras.sourceforge.jp/mvn/",
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
@@ -27,7 +28,7 @@ libraryDependencies ++= Seq(
   "org.json4s"               %% "json4s-jackson"               % "3.3.0",
   "io.github.gitbucket"      %% "scalatra-forms"               % "1.0.0",
   "commons-io"                % "commons-io"                   % "2.4",
-  "io.github.gitbucket"       % "solidbase"                    % "1.0.0-SNAPSHOT",
+  "io.github.gitbucket"       % "solidbase"                    % "1.0.0",
   "io.github.gitbucket"       % "markedj"                      % "1.0.7",
   "org.apache.commons"        % "commons-compress"             % "1.10",
   "org.apache.commons"        % "commons-email"                % "1.4",
