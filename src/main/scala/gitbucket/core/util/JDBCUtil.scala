@@ -125,7 +125,7 @@ object JDBCUtil {
         val tableNames = new ListBuffer[String]
         while (rs.next) {
           val name = rs.getString("TABLE_NAME").toUpperCase
-          if (name != "VERSIONS") {
+          if (name != "VERSIONS" && name != "PLUGIN") {
             tableNames += name
           }
         }
