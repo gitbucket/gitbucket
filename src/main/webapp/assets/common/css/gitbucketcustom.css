@@ -1463,6 +1463,11 @@ table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delet
     width: 900px;
 }
 
+//Custom
+table.inlinediff td.equal {
+    background-color: whitesmoke;
+}
+
 td.insert, td.equal, td.delete, td.empty {
     width: 50%;
 }
