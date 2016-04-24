@@ -164,11 +164,10 @@ object JDBCUtil {
                   (null, null)
                 } else {
                   rsMeta.getColumnType(i) match {
-                    case Types.BOOLEAN | Types.BIT => ("boolean"  , rs.getBoolean(columnName))
-                    case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR
-                                                   => ("string"   , rs.getString(columnName))
-                    case Types.INTEGER             => ("int"      , rs.getInt(columnName))
-                    case Types.TIMESTAMP           => ("timestamp", dateFormat.format(rs.getTimestamp(columnName)))
+                    case Types.BOOLEAN | Types.BIT => ("boolean", rs.getBoolean(columnName))
+                    case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR => ("string", rs.getString(columnName))
+                    case Types.INTEGER => ("int", rs.getInt(columnName))
+                    case Types.TIMESTAMP => ("timestamp", dateFormat.format(rs.getTimestamp(columnName)))
                   }
                 }
                 writer.writeStartElement("column")
@@ -188,6 +187,66 @@ object JDBCUtil {
 
         writer.writeEndElement()
         writer.writeEndDocument()
+      }
+
+      file
+    }
+
+    def exportAsSQL(targetTables: Seq[String]): File = {
+      val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+      val file = File.createTempFile("gitbucket-export-", ".sql")
+
+      using(new FileOutputStream(file)) { out =>
+        val dbMeta = conn.getMetaData
+        val allTablesInDatabase = allTablesOrderByDependencies(dbMeta)
+
+        allTablesInDatabase.reverse.foreach { tableName =>
+          if (targetTables.contains(tableName)) {
+            out.write(s"DELETE FROM ${tableName};\n".getBytes("UTF-8"))
+          }
+        }
+
+        allTablesInDatabase.foreach { tableName =>
+          if (targetTables.contains(tableName)) {
+            val sb = new StringBuilder()
+            select(s"SELECT * FROM ${tableName}") { rs =>
+              sb.append(s"INSERT INTO ${tableName} (")
+
+              val rsMeta = rs.getMetaData
+              val columns = (1 to rsMeta.getColumnCount).map { i =>
+                (rsMeta.getColumnName(i), rsMeta.getColumnType(i))
+              }
+              sb.append(columns.map(_._1).mkString(", "))
+              sb.append(") VALUES (")
+
+              val values = columns.map { case (columnName, columnType) =>
+                if(rs.getObject(columnName) == null){
+                  null
+                } else {
+                  columnType match {
+                    case Types.BOOLEAN | Types.BIT => rs.getBoolean(columnName)
+                    case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR => rs.getString(columnName)
+                    case Types.INTEGER   => rs.getInt(columnName)
+                    case Types.TIMESTAMP => rs.getTimestamp(columnName)
+                  }
+                }
+              }
+
+              val columnValues = values.map { value =>
+                value match {
+                  case x: String    => "'" + x.replace("'", "''") + "'"
+                  case x: Timestamp => "'" + dateFormat.format(x) + "'"
+                  case null         => "NULL"
+                  case x            => x
+                }
+              }
+              sb.append(columnValues.mkString(", "))
+              sb.append(");\n")
+            }
+
+            out.write(sb.toString.getBytes("UTF-8"))
+          }
+        }
       }
 
       file

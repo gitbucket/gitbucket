@@ -280,7 +280,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/export")(adminOnly {
     import gitbucket.core.util.JDBCUtil._
     val session = request2Session(request)
-    val file = session.conn.exportAsXML(request.getParameterValues("tableNames").toSeq)
+    val file = if(params("type") == "sql"){
+      session.conn.exportAsSQL(request.getParameterValues("tableNames").toSeq)
+    } else {
+      session.conn.exportAsXML(request.getParameterValues("tableNames").toSeq)
+    }
 
     contentType = "application/octet-stream"
     response.setHeader("Content-Disposition", "attachment; filename=" + file.getName)
