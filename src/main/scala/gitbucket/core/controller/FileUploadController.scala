@@ -80,20 +80,9 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
   post("/import") {
     session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account if loginAccount.isAdmin =>
       execute({ (file, fileId) =>
-        using(file.getInputStream){ in =>
-          import JDBCUtil._
-          val sql = IOUtils.toString(in, "UTF-8")
-          val conn = request2Session(request).conn
-          conn.setAutoCommit(false)
-          try {
-            conn.update(sql)
-            conn.commit()
-          } catch {
-            case e: Throwable =>
-              conn.rollback()
-              throw e
-          }
-        }
+        import JDBCUtil._
+        val conn = request2Session(request).conn
+        conn.importAsXML(file.getInputStream)
       }, _ => true)
     }
     redirect("/admin/data")
