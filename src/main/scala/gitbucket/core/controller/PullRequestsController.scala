@@ -15,6 +15,7 @@ import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
+import gitbucket.core.service.{RepositoryService, PullRequestService, AccountService, IssuesService}
 
 import io.github.gitbucket.scalatra.forms._
 import org.eclipse.jgit.api.Git
@@ -608,7 +609,8 @@ trait PullRequestsControllerBase extends ControllerBase {
         countIssue(condition.copy(state = "closed"), true, owner -> repoName),
         condition,
         repository,
-        hasWritePermission(owner, repoName, context.loginAccount))
+        hasWritePermission(owner, repoName, context.loginAccount),
+        context.loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil))
     }
 
   // TODO: same as gitbucket.core.servlet.CommitLogHook ...

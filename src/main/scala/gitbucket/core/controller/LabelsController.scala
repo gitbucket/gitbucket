@@ -6,6 +6,7 @@ import gitbucket.core.service.{RepositoryService, AccountService, IssuesService,
 import gitbucket.core.util.{LockUtil, RepositoryName, ReferrerAuthenticator, CollaboratorsAuthenticator}
 import gitbucket.core.util.Implicits._
 import io.github.gitbucket.scalatra.forms._
+//import gitbucket.core.service.{RepositoryService, PullRequestService, AccountService, IssuesService}
 import org.scalatra.i18n.Messages
 import org.scalatra.{NoContent, UnprocessableEntity, Created, Ok}
 
@@ -25,13 +26,16 @@ trait LabelsControllerBase extends ControllerBase {
   )(LabelForm.apply)
 
   get("/:owner/:repository/issues/labels")(referrersOnly { repository =>
+    val loginAccount = context.loginAccount
+    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
     html.list(
       getLabels(repository.owner, repository.name),
       countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      hasWritePermission(repository.owner, repository.name, context.loginAccount),
+      userRepositories)
   })
-
+html.list
   /**
     * List all labels for this repository
     * https://developer.github.com/v3/issues/labels/#list-all-labels-for-this-repository

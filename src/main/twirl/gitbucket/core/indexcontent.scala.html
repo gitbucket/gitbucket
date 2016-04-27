@@ -7,14 +7,7 @@
   <div class="body">
     @dashboard.html.tab()
     <div class="container">
-      <div class="row">
-        <div class="col-md-8">
-          <div class="pull-right">
-            <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
-          </div>
-          @helper.html.activities(activities)
-        </div>
-
+      <div class="row">      
         <div class="col-md-4">
           @settings.information.map { information =>
             <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
@@ -23,10 +16,13 @@
             </div>
           }
           @if(loginAccount.isEmpty){
-            <div id="dashboard-signin-form">@signinform(settings)</div>
+            <div id="dashboard-signin-form">@signincontentform(settings)</div>
           } else {
-            <div class="panel panelcustom">
-              <div class="panel-heading strong">
+                  @dashboard.html.repopanel(userRepositories)
+          
+                 }
+            <!--<div class="panel panelbackgrnd panelborder">
+              <div class="panel-heading strong panelbackgrnd">
                 <div class="pull-right">
                   <a href="@path/new" class="btn btn-success btn-sm">New repository</a>
                 </div>
@@ -55,23 +51,23 @@
                   }
                 }
               </ul>
-            </div>
-          }
-          <div class="panel panelcustom">
-            <div class="panel-heading strong">Recent updated repositories</div>
+            </div> -->
+          
+          <div class="panel panelbackgrnd panelborder">
+            <div class="panel-heading strong panelbackgrnd">Recent updated repositories</div>
             <ul class="list-group list-group-flush">
             @if(recentRepositories.isEmpty){
               <li class="list-group-item">No repositories</li>
             } else {
               @defining(20){ max =>
                 @recentRepositories.zipWithIndex.map { case (repository, i) =>
-                  <li class="list-group-item repo-link" style="@if(i > max - 1){display:none;}">
+                <li class="list-group-item repo-link panelbackgrnd" style="@if(i > max - 1){display:none;}">
                     @helper.html.repositoryicon(repository, false)
                     <a href="@url(repository)">@repository.owner/<span class="strong">@repository.name</span></a>
                   </li>
                 }
                 @if(recentRepositories.size > max){
-                  <li class="list-group-item show-more">
+                  <li class="list-group-item show-more panelbackgrnd">
                     <a href="javascript:void(0);" id="show-more-recent-repos">Show @{recentRepositories.size - max} more repositories...</a>
                   </li>
                 }
@@ -79,6 +75,12 @@
             }
             </ul>
           </div>
+        </div>
+         <div class="col-md-8">
+          <div class="pull-right hidedisplay">
+            <a href="@path/activities.atom"><img src="@assets/common/images/feed.png" alt="activities"></a>
+          </div>
+          @helper.html.activities(activities)
         </div>
       </div>
     </div>

@@ -2,7 +2,9 @@
 /* Common */
 /****************************************************************************/
 body {
+  overflow-x:hidden;
   color: #333;
+  background-color: #222222; /*dynsim modelergy changes*/
 }
 
 li p {
@@ -70,6 +72,135 @@ blockquote p {
   font-size: 15px;
 }
 
+/* start custom styles for dynsim modelergy */
+
+.hidedisplay{
+  display: none;
+}
+
+.commonbackgrnd{
+ background-color: grey;
+ color:#FFF;
+}
+
+.panelbackgrnd{
+ background-color: #464545;
+ color:white;
+}
+
+.panelborder{
+
+  border-color: #ddd;
+}
+
+.panelborder > strong {
+   color: white;
+}
+
+.badgeblue{
+
+  background-color: #5cb85c;
+  color: white;
+}
+
+.panel-default > .panel-heading-custom {
+  color: white;
+  background-color: grey;
+  border-color: #dddddd;
+}
+
+.panelrepoartifacts 
+{
+  background-color: #5cb85c;
+}
+
+.panelrepoartifacts table
+{
+  background-color: #5cb85c;
+} 
+
+.customtab
+{
+
+}
+
+ul.customtab li.active {
+
+  background-color: silver;
+  color:black;
+}
+
+ul.customtab li {
+
+  background-color: #9e9e9e;
+  color: white;
+}
+
+.labeltxt{
+
+  color: white;
+}
+
+.panelcustom {
+
+  background-color: grey;
+  color:white;
+}
+
+/* end custom styles for dynsim modelergy */
+
+
+/*
+.nav {
+  margin-bottom: 12px;
+}
+
+.table-bordered {
+  border-collapse: inherit;
+  border: none;
+}
+
+.table-bordered > thead > tr > th,
+.table-bordered > tbody > tr > th,
+.table-bordered > tbody > tr > td {
+  border-bottom: none;
+}
+
+.table-bordered > thead > tr:first-child > th:nth-of-type(1),
+.table-bordered > tbody > tr:first-child > th:nth-of-type(1),
+.table-bordered > tbody > tr:first-child > td:nth-of-type(1) {
+  border-top-left-radius: 4px;
+}
+
+.table-bordered > thead > tr:first-child > th:nth-last-of-type(1),
+.table-bordered > tbody > tr:first-child > th:nth-last-of-type(1),
+.table-bordered > tbody > tr:first-child > td:nth-last-of-type(1) {
+  border-top-right-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td:nth-of-type(1) {
+  border-bottom-left-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td:nth-last-of-type(1) {
+  border-bottom-right-radius: 4px;
+}
+
+.table-bordered > tbody > tr:last-child > td {
+  border-bottom: 1px solid #dddddd;
+}
+*/
+/*
+.table-bordered > thead > tr > th,
+.table-bordered > thead > tr > td {
+  border-bottom-width: 1px;
+}
+*/
+/*
+.tab-content {
+  margin-top: 20px;
+}
+*/
 .danger {
   color: #900;
 }
@@ -79,7 +210,7 @@ blockquote p {
 }
 
 .muted {
-  color: #777;
+  color: #a8a8a8;    /* dynsim modelergy changes  color:#777; */
 }
 
 dl {
@@ -174,7 +305,8 @@ div.head div.forked {
 }
 
 div.container {
-  width: 980px;
+  width: 80%; /*dynsim changes for style */
+  float:left;
 }
 
 div.container-wide {
@@ -190,8 +322,9 @@ div.pagination {
 */
 
 div.body {
-  margin-top: 20px;
+  /* dynsim modelergy changes  margin-top: 20px;*/
   margin-bottom: 40px;
+  margin-top: 15px;
 }
 
 span.error {
@@ -217,7 +350,7 @@ span.error {
 }
 
 a.commit-message, a.commit-id, a.username, a.issue-comment-count {
-  color: #333333;
+  color: #a8a8a8; /* dynsim modelergy changes #333333;*/
 }
 
 a.omit {
@@ -269,13 +402,14 @@ h3 {
 }
 
 div.box-header {
-  background-color: #f5f5f5;
+  background-color: #a8a8a8; /*dynsim changes background-color: #f5f5f5;*/
   margin: 0;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
   border: 1px solid #d8d8d8;
   border-bottom: none;
   padding: 8px 8px 8px 8px;
+  color: white; /*dynsim changes added*/
 }
 
 .inline-comment div.box-header-small {
@@ -321,7 +455,8 @@ div.box-commits {
 }
 
 div.box-content {
-  background-color: white;
+ /* dynsim dark theme change to change  background-color: white; to #464545 */
+ background-color: #464545;
   border: 1px solid #d8d8d8;
   padding: 4px;
   border-radius: 3px;
@@ -349,8 +484,10 @@ div.box-content-bottom img {
 }
 
 table.table th.box-header {
-  background-color: #f5f5f5;
-}
+  /*dynsim dark theme changes background-color: #f5f5f5 to grey */
+  background-color: grey;
+  color:white;
+}   
 
 th.box-header .octicon {
   display: inline;
@@ -383,8 +520,11 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+/*dynsim changes for dark theme */
 ul.dropdown-menu {
   padding: 2px 0;
+  background-color: #E0E0E0;
+  color: white
 }
 
 ul.dropdown-menu li {
@@ -437,12 +577,13 @@ a.btn-danger:hover .octicon {
 }
 
 /****************************************************************************/
-/* Head Menu */
+/* Head Menu (Modified for dynsim modelergy)*/
 /****************************************************************************/
 div.headbar {
-  background-color: #fafafa;
+  /*background-color: #fafafa;*/
+  /*background-color: #464545;*/
   padding-top: 19px;
-  border-bottom: 1px solid #eee;
+  /*border-bottom: 1px solid #4183C4;*/
   margin-bottom: 20px;
 }
 
@@ -456,7 +597,7 @@ ul.headmenu {
 
 ul.headmenu a:hover {
   text-decoration: none;
-  color: black;
+  color: white;
 }
 
 ul.headmenu li {
@@ -466,13 +607,13 @@ ul.headmenu li {
 }
 
 ul.headmenu li a {
-  color: #9e9e9e;
+  color: #ddd;
   padding: 8px 10px;
   display: block;
 }
 
 ul.headmenu li.active a {
-  color: black;
+  color: white;
 }
 
 ul.headmenu li.active {
@@ -480,11 +621,12 @@ ul.headmenu li.active {
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   border-bottom: none;
-  background-color: white;
+  background-color: #616161;
 }
 
 ul.headmenu li.active a {
-  background-color: #fff;
+  background-color: #616161;
+  color: white;
 }
 
 /****************************************************************************/
@@ -598,7 +740,8 @@ div.repository-content {
   display: inline-block;
   padding: 2px 6px;
   font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  background-color: rgba(209,227,237,0.5);
+  /* dynsim changes to remove the backgroun-color for dark theme */
+  /*background-color: rgba(209,227,237,0.5);*/
   border-radius: 3px;
 }
 .branches .branch-meta{
@@ -666,16 +809,18 @@ p.description {
 }
 
 a.header-link {
-  color: #616161;
+  /*dynsim changes color: #888;*/
+  color: #ddd;
   font-size: 90%;
 }
 
 a.header-link strong {
-  color: black;
+  /*dynsim changes color: black;*/
 }
 
 a.header-link:hover {
-  color: white;
+  /* dynsim changes color: #4183c4; */
+  color : white;
   text-decoration: none;
 }
 
@@ -716,14 +861,22 @@ table.table-file-list th, table.table-file-list td {
   padding-bottom: 8px;
 }
 
+/* dynsim modelergy changes */
+table.table-file-list th {
+ 
+  background-color: grey;
+  color: white;
+}
+
 table.table-file-list td.latest-commit {
   padding-top: 4px;
-  padding-bottom: 4px;
-  background-color: white;
+  padding-bottom: 4px;  
+  background-color: #46 ;/* dynsim modelergy changes */
+  color: white;
 }
 
 table.table-file-list td {
-  background-color: #F8F8F8;
+  background-color: #464545; /*background-color: #F8F8F8;*/
   font-size: small;
 }
 
@@ -741,6 +894,7 @@ table.table-file-list .content-name {
 table.table-file-list .commit-message {
   max-width: 415px;
   display: inline-block;
+  color: white; /* dynsim modelergy changes */
 }
 
 table.table-file-list .commit-author {
@@ -772,10 +926,11 @@ pre.commit-description {
   margin: 0px;
 }
 
+/*dynsim changes made to suit the dark theme */
 #repository-url {
-  background-color: white;
-  cursor: default;
-  color: silver;
+  background-color: #616161;
+  color: white;
+  cursor: default;  
   font-size: 8pt;
   font-family: monospace;
 }
@@ -850,6 +1005,8 @@ span.simplified-path {
   border: solid 1px #ccc;
   margin: 4px;
   width: 96%;
+  background-color: #616161;
+  color:white;
 }
 
 .new-branch-name {
@@ -869,6 +1026,8 @@ span.simplified-path {
 /****************************************************************************/
 #search-filter-box {
   font-size: 100%;
+  color: white;
+  background-color: #616161;
 }
 
 .btn-group.open .dropdown-toggle.flat {
@@ -965,7 +1124,8 @@ div.milestone-description {
 }
 
 a.milestone-title {
-  color: #333;
+  /*dynsim style changes for dark theme color: #333 to #ddd*/
+  color: #9e9e9e;
 }
 
 div.milestone-menu {
@@ -1085,7 +1245,8 @@ div.attachable div.clickable {
   border-left: 1px solid #ccc;
   border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
-  background-color: white;
+  /*dynsim dark theme changes background-color: white; is removed 
+  background-color: white; */
 }
 
 ul.task-list {
@@ -1173,9 +1334,11 @@ pre.reset.discussion-item-content-text{
 /****************************************************************************/
 /* Pull Request */
 /****************************************************************************/
+
+/*background-color changed for dynsim */
 div.pullreq-info {
   border: 1px solid #ddd;
-  background-color: #f8f8f8;
+  background-color: #616161;
   margin-bottom: 10px;
   padding: 8px;
 }
@@ -1185,6 +1348,8 @@ div.pullreq-info {
 /****************************************************************************/
 h1.wiki-title {
   margin-top: 0px;
+  /*dynsim changes for dark theme color : white is added*/
+  color: white;
 }
 
 a.absent {
@@ -1192,7 +1357,9 @@ a.absent {
 }
 
 div.wiki-sidebar {
-  background-color: white;
+  /*dynsim changes for dark theme color : white; background-color:grey is added*/
+  background-color: grey;
+  color:white;
   border: 1px solid #d8d8d8;
   padding: 8px 10px 0px 10px;
   border-radius: 3px;
@@ -1205,7 +1372,9 @@ div.wiki-sidebar img {
 }
 
 div.wiki-sidebar-dotted {
-  background-color: white;
+  /*dynsim changes for dark theme color : white; background-color:grey is added*/
+  background-color: grey;
+  color:white;
   border: 1px dashed #ddd;
   padding: 10px 15px;
   margin-bottom: 20px;
@@ -1292,6 +1461,11 @@ table.diff thead {
 
 table.inlinediff td.insert, table.inlinediff td.equal, table.inlinediff td.delete {
     width: 900px;
+}
+
+//Custom
+table.inlinediff td.equal {
+    background-color: whitesmoke;
 }
 
 td.insert, td.equal, td.delete, td.empty {
@@ -1574,6 +1748,8 @@ div.markdown-body {
   line-height: 1.7;
   font: 15px Helvetica, arial, freesans, clean, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   word-wrap: break-word;
+  background-color: #464545;/*dynsim modelergy changes */
+  color: white;/*dynsim modelergy changes */
 }
 
 div.markdown-body h1 {
@@ -1826,8 +2002,10 @@ a.markdown-anchor-link span.octicon {
 #tree-finder-results .tree-browser-result.navigation-focus .icon-chevron-right{
   visibility: visible;
 }
+
+/*dynsim changes for dark theme change background-color : #fff to #ddd */
 #tree-finder-results .navigation-focus td{
-  background: #fff;
+  background: #ddd;
 }
 
 /****************************************************************************/
@@ -1976,8 +2154,11 @@ div.container.blame-container{
   }
 
   /* Adjust issue / comment form */
+  /*background-color and color styles aaded for dynsim */
   #issue-title {
     width: 100% !important;
+    background-color: #616161;
+    color:white;
   }
   div.attachable>textarea,
   div.attachable>div.clickable {

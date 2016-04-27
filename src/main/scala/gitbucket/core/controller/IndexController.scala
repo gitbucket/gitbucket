@@ -18,7 +18,7 @@ class IndexController extends IndexControllerBase
 
 trait IndexControllerBase extends ControllerBase {
   self: RepositoryService with ActivityService with AccountService with RepositorySearchService
-    with UsersAuthenticator with ReferrerAuthenticator =>
+    with UsersAuthenticator with ReferrerAuthenticator  =>
 
   case class SignInForm(userName: String, password: String)
 
@@ -35,11 +35,10 @@ trait IndexControllerBase extends ControllerBase {
 
   case class SearchForm(query: String, owner: String, repository: String)
 
-
   get("/"){
     val loginAccount = context.loginAccount
     if(loginAccount.isEmpty) {
-        gitbucket.core.html.index(getRecentActivities(),
+        gitbucket.core.html.indexcontent(getRecentActivities(),
             getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
@@ -50,7 +49,7 @@ trait IndexControllerBase extends ControllerBase {
         
         visibleOwnerSet ++= loginUserGroups
 
-        gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet),
+        gitbucket.core.html.indexcontent(getRecentActivitiesByOwners(visibleOwnerSet),
             getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil) 
         )
@@ -69,6 +68,16 @@ trait IndexControllerBase extends ControllerBase {
     authenticate(context.settings, form.userName, form.password) match {
       case Some(account) => signin(account)
       case None          => redirect("/signin")
+    }
+  }
+    
+  post("/signinoffline", signinForm){ form =>
+    authenticate(context.settings, form.userName, form.password) match {
+      case Some(account) => {
+        session.setAttribute(Keys.Session.LoginAccount, account)
+        updateLastLoginDate(account.userName)
+      }
+      case None          => halt(405)
     }
   }
 

@@ -22,7 +22,7 @@
         case "delete_tag"        => simpleActivity(activity, "circle-slash")
         case "fork"              => simpleActivity(activity, "repo-forked")
         case "push"  => customActivity(activity, "git-commit"){
-          <div class="small activity-message">
+          <div class="small activity-message muted">
             {activity.additionalInfo.get.split("\n").reverse.take(4).zipWithIndex.map{ case (commit, i) =>
               if(i == 3){
                 <div>...</div>
@@ -38,19 +38,19 @@
           </div>
         }
         case "create_wiki" => customActivity(activity, "book"){
-          <div class="small activity-message">
+          <div class="small activity-message muted">
             Created <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
           </div>
         }
         case "edit_wiki" => customActivity(activity, "book"){
           activity.additionalInfo.get.split(":") match {
             case Array(pageName, commitId) =>
-              <div class="small activity-message">
+              <div class="small activity-message muted">
                 Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
                 <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}/_compare/${commitId.substring(0, 7)}^...${commitId.substring(0, 7)}"}>View the diff »</a>
               </div>
             case Array(pageName) =>
-              <div class="small activity-message">
+              <div class="small activity-message muted">
                 Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
               </div>
           }
@@ -64,8 +64,9 @@
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   <div class="activity-content">
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
-    <div class="strong">
+    <div class="strong muted">
       @avatar(activity.activityUserName, 16)
+      @activity.activityUserName
       @activityMessage(activity.message)
     </div>
     @activity.additionalInfo.map { additionalInfo =>
@@ -78,8 +79,9 @@
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   <div class="activity-content">
     <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
-    <div class="strong">
+    <div class="strong muted">
       @avatar(activity.activityUserName, 16)
+      @activity.activityUserName
       @activityMessage(activity.message)
     </div>
     @additionalInfo
@@ -89,8 +91,9 @@
 @simpleActivity(activity: gitbucket.core.model.Activity, image: String) = {
   <div class="activity-icon-small"><i class="octicon octicon-@image"></i></div>
   <div class="activity-content">
-    <div>
+    <div class="strong muted">
       @avatar(activity.activityUserName, 16)
+      @activity.activityUserName
       @activityMessage(activity.message)
       <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
     </div>
