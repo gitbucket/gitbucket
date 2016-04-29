@@ -43,7 +43,7 @@
 <script>
 $(function(){
   $('#import-form').submit(function(){
-    if(!$('#file').val() == ''){
+    if($('#file').val() == ''){
       alert('Choose an import XML file.');
       return false;
     } else if(!$('#file').val().endsWith(".xml")){
