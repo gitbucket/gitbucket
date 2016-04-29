@@ -67,7 +67,7 @@ object JDBCUtil {
       conn.setAutoCommit(false)
       try {
         val factory = XMLInputFactory.newInstance()
-        using(factory.createXMLStreamReader(in)){ reader =>
+        using(factory.createXMLStreamReader(in, "UTF-8")){ reader =>
           // stateful objects
           var elementName   = ""
           var insertTable   = ""
@@ -137,7 +137,7 @@ object JDBCUtil {
       val file = File.createTempFile("gitbucket-export-", ".xml")
 
       val factory = XMLOutputFactory.newInstance()
-      using(factory.createXMLStreamWriter(new FileOutputStream(file))){ writer =>
+      using(factory.createXMLStreamWriter(new FileOutputStream(file), "UTF-8")){ writer =>
         val dbMeta = conn.getMetaData
         val allTablesInDatabase = allTablesOrderByDependencies(dbMeta)
 
