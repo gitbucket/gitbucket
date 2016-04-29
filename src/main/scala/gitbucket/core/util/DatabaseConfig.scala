@@ -70,7 +70,7 @@ object DatabaseType {
   }
 
   object PostgreSQL extends DatabaseType {
-    val jdbcDriver = "org.postgresql.Driver"
+    val jdbcDriver = "org.postgresql.Driver2"
     val slickDriver = new slick.driver.PostgresDriver {
       override def quoteIdentifier(id: String): String = {
         val s = new StringBuilder(id.length + 4) append '"'
