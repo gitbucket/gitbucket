@@ -30,10 +30,10 @@
     </div>
 
     <div class="panel panel-default">
-      <div class="panel-heading strong">Import</div>
+      <div class="panel-heading strong">Import (only XML)</div>
       <div class="panel-body">
-        <form class="form form-horizontal" action="@path/upload/import" method="POST" enctype="multipart/form-data">
-          <input type="file" name="file">
+        <form class="form form-horizontal" action="@path/upload/import" method="POST" enctype="multipart/form-data" id="import-form">
+          <input type="file" name="file" id="file">
           <input type="submit" class="btn btn-success pull-right" value="Import" id="import">
         </form>
       </div>
@@ -42,7 +42,14 @@
 }
 <script>
 $(function(){
-  $('#import').click(function(){
+  $('#import-form').submit(function(){
+    if(!$('#file').val() == ''){
+      alert('Choose an import XML file.');
+      return false;
+    } else if(!$('#file').val().endsWith(".xml")){
+      alert('Import is available for only the XML file.');
+      return false;
+    }
     return confirm('All existing data is deleted before importing.\nAre you sure?');
   })
 })
