@@ -10,9 +10,11 @@ import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.JDBCUtil._
-import gitbucket.core.util.{Version, Versions}
+import io.github.gitbucket.solidbase.Solidbase
+import io.github.gitbucket.solidbase.model.Module
+import liquibase.database.core.H2Database
 import org.apache.commons.codec.binary.{Base64, StringUtils}
 import org.slf4j.LoggerFactory
 
@@ -187,30 +189,15 @@ object PluginRegistry {
           val plugin = classLoader.loadClass("Plugin").newInstance().asInstanceOf[Plugin]
 
           // Migration
-          val headVersion = plugin.versions.head
-          val currentVersion = conn.find("SELECT * FROM PLUGIN WHERE PLUGIN_ID = ?", plugin.pluginId)(_.getString("VERSION")) match {
-            case Some(x) => {
-              val dim = x.split("\\.")
-              Version(dim(0).toInt, dim(1).toInt)
-            }
-            case None => Version(0, 0)
-          }
-
-          Versions.update(conn, headVersion, currentVersion, plugin.versions, new URLClassLoader(Array(pluginJar.toURI.toURL))){ conn =>
-            currentVersion.versionString match {
-              case "0.0" =>
-                conn.update("INSERT INTO PLUGIN (PLUGIN_ID, VERSION) VALUES (?, ?)", plugin.pluginId, headVersion.versionString)
-              case _ =>
-                conn.update("UPDATE PLUGIN SET VERSION = ? WHERE PLUGIN_ID = ?", headVersion.versionString, plugin.pluginId)
-            }
-          }
+          val solidbase = new Solidbase()
+          solidbase.migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
 
           // Initialize
           plugin.initialize(instance, context, settings)
           instance.addPlugin(PluginInfo(
             pluginId    = plugin.pluginId,
             pluginName  = plugin.pluginName,
-            version     = plugin.versions.head.versionString,
+            version     = plugin.versions.head.getVersion,
             description = plugin.description,
             pluginClass = plugin
           ))

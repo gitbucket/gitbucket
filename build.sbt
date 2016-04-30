@@ -1,6 +1,10 @@
 val Organization = "gitbucket"
 val Name = "gitbucket"
+<<<<<<< HEAD
+val GitBucketVersion = "4.0.0-SNAPSHOT"
+=======
 val GitBucketVersion = "3.14.0"
+>>>>>>> master
 val ScalatraVersion = "2.4.0"
 val JettyVersion = "9.3.6.v20151106"
 
@@ -15,7 +19,9 @@ scalaVersion := "2.11.8"
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
-  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/"
+  "amateras" at "http://amateras.sourceforge.jp/mvn/",
+  "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
+  "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
   "org.scala-lang.modules"   %% "scala-java8-compat"           % "0.7.0",
@@ -26,6 +32,7 @@ libraryDependencies ++= Seq(
   "org.json4s"               %% "json4s-jackson"               % "3.3.0",
   "io.github.gitbucket"      %% "scalatra-forms"               % "1.0.0",
   "commons-io"                % "commons-io"                   % "2.4",
+  "io.github.gitbucket"       % "solidbase"                    % "1.0.0",
   "io.github.gitbucket"       % "markedj"                      % "1.0.8",
   "org.apache.commons"        % "commons-compress"             % "1.10",
   "org.apache.commons"        % "commons-email"                % "1.4",
@@ -35,8 +42,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick"       %% "slick"                        % "2.1.0",
   "com.novell.ldap"           % "jldap"                        % "2009-10-07",
   "com.h2database"            % "h2"                           % "1.4.190",
+  "mysql"                     % "mysql-connector-java"         % "5.1.38",
+  "org.postgresql"            % "postgresql"                   % "9.4.1208",
   "ch.qos.logback"            % "logback-classic"              % "1.1.1",
-  "com.mchange"               % "c3p0"                         % "0.9.5.2",
+  "com.zaxxer"                % "HikariCP"                     % "2.4.5",
   "com.typesafe"              % "config"                       % "1.3.0",
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.14",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"            % "1.0.0",
