@@ -1,6 +1,10 @@
 val Organization = "gitbucket"
 val Name = "gitbucket"
+<<<<<<< HEAD
 val GitBucketVersion = "4.0.0-SNAPSHOT"
+=======
+val GitBucketVersion = "3.14.0"
+>>>>>>> master
 val ScalatraVersion = "2.4.0"
 val JettyVersion = "9.3.6.v20151106"
 
@@ -29,7 +33,7 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"      %% "scalatra-forms"               % "1.0.0",
   "commons-io"                % "commons-io"                   % "2.4",
   "io.github.gitbucket"       % "solidbase"                    % "1.0.0",
-  "io.github.gitbucket"       % "markedj"                      % "1.0.7",
+  "io.github.gitbucket"       % "markedj"                      % "1.0.8",
   "org.apache.commons"        % "commons-compress"             % "1.10",
   "org.apache.commons"        % "commons-email"                % "1.4",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.1",

@@ -63,6 +63,18 @@ Support
 
 Release Notes
 --------
+### 4.0 - 30 Apr 2016
+
+- MySQL and PostgreSQL support
+- Data export and import
+- Migration system has been switched to [solidbase](https://github.com/gitbucket/solidbase)
+
+### 3.14 - 30 Apr 2016
+
+- File attachment and search for wiki pages
+- New extension points to add menus
+- Content-Type of webhooks has been choosable
+
 ### 3.13 - 1 Apr 2016
 - Refresh user interface for wide screen
 - Add `pull_request` key in list issues API for pull requests
