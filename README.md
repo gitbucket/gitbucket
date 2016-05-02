@@ -69,6 +69,8 @@ Release Notes
 - Data export and import
 - Migration system has been switched to [solidbase](https://github.com/gitbucket/solidbase)
 
+**Note:** You can upgrade to GitBucket 4.0 from 3.14. If your GitBucket is 3.13 or before, you must upgrade 3.14 at first.
+
 ### 3.14 - 30 Apr 2016
 
 - File attachment and search for wiki pages
