@@ -78,7 +78,8 @@ $(function(){
 
     // check existence
     $.post('@path/_user/existence', {
-      'userName': userName
+      'userName': userName,
+      'userOnly': true
     }, function(data, status){
       if(data == 'true'){
         addMemberHTML(userName, false);

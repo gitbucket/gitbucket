@@ -117,7 +117,9 @@ trait IndexControllerBase extends ControllerBase {
    * JSON API for checking user existence.
    */
   post("/_user/existence")(usersOnly {
-    getAccountByUserName(params("userName")).isDefined
+    getAccountByUserName(params("userName")).map { account =>
+      if(params.get("userOnly").isDefined) !account.isGroupAccount else true
+    } getOrElse false
   })
 
   // TODO Move to RepositoryViwerController?
