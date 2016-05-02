@@ -234,9 +234,8 @@ trait IssuesService {
         .map { case (owner, repository) => t1.byRepository(owner, repository) }
         .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           === (condition.state == "closed").bind) &&
-      //(t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
-      (t1.milestoneId.?    isEmpty, condition.milestone == Some(None)) &&
-      (t1.assignedUserName === condition.assigned.get.bind, condition.assigned.isDefined) &&
+      (t1.milestoneId.?      isEmpty, condition.milestone == Some(None)) &&
+      (t1.assignedUserName.? isEmpty, condition.assigned  == Some(None)) &&
       (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
       (t1.pullRequest      === pullRequest.bind) &&
       // Milestone filter
@@ -244,6 +243,8 @@ trait IssuesService {
         (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
         (t2.title === condition.milestone.get.get.bind)
       } exists, condition.milestone.flatten.isDefined) &&
+      // Assignee filter
+      (t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined) &&
       // Label filter
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
@@ -447,7 +448,7 @@ object IssuesService {
       labels: Set[String] = Set.empty,
       milestone: Option[Option[String]] = None,
       author: Option[String] = None,
-      assigned: Option[String] = None,
+      assigned: Option[Option[String]] = None,
       mentioned: Option[String] = None,
       state: String = "open",
       sort: String = "created",
@@ -491,12 +492,15 @@ object IssuesService {
     def toURL: String =
       "?" + List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(","))),
-        milestone.map { _ match {
+        milestone.map {
           case Some(x) => "milestone=" + urlEncode(x)
           case None    => "milestone=none"
-        }},
+        },
         author   .map(x => "author="    + urlEncode(x)),
-        assigned .map(x => "assigned="  + urlEncode(x)),
+        assigned.map {
+          case Some(x) => "assigned="  + urlEncode(x)
+          case None    => "assigned=none"
+        },
         mentioned.map(x => "mentioned=" + urlEncode(x)),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
@@ -541,10 +545,14 @@ object IssuesService {
         conditions.get("milestone").flatMap(_.headOption) match {
           case None         => None
           case Some("none") => Some(None)
-          case Some(x)      => Some(Some(x)) //milestones.get(x).map(x => Some(x))
+          case Some(x)      => Some(Some(x))
         },
         conditions.get("author").flatMap(_.headOption),
-        conditions.get("assignee").flatMap(_.headOption),
+        conditions.get("assignee").flatMap(_.headOption) match {
+          case None         => None
+          case Some("none") => Some(None)
+          case Some(x)      => Some(Some(x))
+        },
         conditions.get("mentions").flatMap(_.headOption),
         conditions.get("is").getOrElse(Seq.empty).find(x => x == "open" || x == "closed").getOrElse("open"),
         sort,
@@ -565,7 +573,10 @@ object IssuesService {
           case x      => Some(x)
         },
         param(request, "author"),
-        param(request, "assigned"),
+        param(request, "assigned").map {
+          case "none" => None
+          case x      => Some(x)
+        },
         param(request, "mentioned"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),

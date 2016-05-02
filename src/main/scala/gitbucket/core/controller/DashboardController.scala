@@ -83,9 +83,9 @@ trait DashboardControllerBase extends ControllerBase {
     } else session.getAs[IssueSearchCondition](key).getOrElse(IssueSearchCondition()))
 
     filter match {
-      case "assigned"  => condition.copy(assigned = Some(userName), author = None          , mentioned = None)
-      case "mentioned" => condition.copy(assigned = None          , author = None          , mentioned = Some(userName))
-      case _           => condition.copy(assigned = None          , author = Some(userName), mentioned = None)
+      case "assigned"  => condition.copy(assigned = Some(Some(userName)), author = None, mentioned = None)
+      case "mentioned" => condition.copy(assigned = None, author = None, mentioned = Some(userName))
+      case _           => condition.copy(assigned = None, author = Some(userName), mentioned = None)
     }
   }
 
@@ -103,7 +103,7 @@ trait DashboardControllerBase extends ControllerBase {
       countIssue(condition.copy(state = "open"  ), false, userRepos: _*),
       countIssue(condition.copy(state = "closed"), false, userRepos: _*),
       filter match {
-        case "assigned"  => condition.copy(assigned  = Some(userName))
+        case "assigned"  => condition.copy(assigned  = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
         case _           => condition.copy(author    = Some(userName))
       },
@@ -128,7 +128,7 @@ trait DashboardControllerBase extends ControllerBase {
       countIssue(condition.copy(state = "open"  ), true, allRepos: _*),
       countIssue(condition.copy(state = "closed"), true, allRepos: _*),
       filter match {
-        case "assigned"  => condition.copy(assigned  = Some(userName))
+        case "assigned"  => condition.copy(assigned  = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
         case _           => condition.copy(author    = Some(userName))
       },

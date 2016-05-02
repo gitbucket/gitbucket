@@ -51,23 +51,28 @@
           }
           @helper.html.dropdown("Milestone") {
             <li>
-              <a href="@condition.copy(milestone = Some(None)).toURL">
+              <a href="@condition.copy(milestone = (if(condition.milestone == Some(None)) None else Some(None))).toURL">
                 @helper.html.checkicon(condition.milestone == Some(None)) Issues with no milestone
               </a>
             </li>
             @milestones.filter(_.closedDate.isEmpty).map { milestone =>
               <li>
-                <a href="@condition.copy(milestone = Some(Some(milestone.title))).toURL">
+                <a href="@condition.copy(milestone = (if(condition.milestone == Some(Some(milestone.title))) None else Some(Some(milestone.title)))).toURL">
                   @helper.html.checkicon(condition.milestone == Some(Some(milestone.title))) @milestone.title
                 </a>
               </li>
             }
           }
           @helper.html.dropdown("Assignee") {
+            <li>
+              <a href="@condition.copy(assigned = (if(condition.assigned == Some(None)) None else Some(None))).toURL">
+                @helper.html.checkicon(condition.assigned == Some(None)) Assigned to nobody
+              </a>
+            </li>
             @collaborators.map { collaborator =>
               <li>
-                <a href="@condition.copy(assigned = Some(collaborator)).toURL">
-                  @helper.html.checkicon(condition.assigned == Some(collaborator))
+                <a href="@condition.copy(assigned = (if(condition.assigned == Some(Some(collaborator))) None else Some(Some(collaborator)))).toURL">
+                  @helper.html.checkicon(condition.assigned == Some(Some(collaborator)))
                   @avatar(collaborator, 20) @collaborator
                 </a>
               </li>
