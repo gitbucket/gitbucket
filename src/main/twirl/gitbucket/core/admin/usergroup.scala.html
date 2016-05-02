@@ -102,20 +102,20 @@ $(function(){
   }
 
   function addMemberHTML(userName, isManager){
-    var memberButton = $('<button type="button" class="btn btn-default btn-mini" value="false">Member</button>').data('name', userName);
+    var memberButton = $('<input type="radio" value="false" checked>Member</input>').data('name', userName);
     if(!isManager){
       memberButton.addClass('active');
     }
-    var managerButton = $('<button type="button" class="btn btn-default btn-mini" value="true">Manager</button>').data('name', userName);
+    var managerButton = $('<input type="radio" value="true">Manager</input>').data('name', userName);
     if(isManager){
       managerButton.addClass('active');
     }
 
     $('#member-list').append($('<li>')
       .data('name', userName)
-      .append($('<div class="btn-group is_manager" data-toggle="buttons-radio">')
-        .append(memberButton)
-        .append(managerButton))
+      .append($('<div class="btn-group is_manager" data-toggle="buttons">')
+        .append($('<label class="btn btn-default btn-mini active">').append(memberButton))
+        .append($('<label class="btn btn-default btn-mini">').append(managerButton)))
       .append(' ')
       .append($('<a>').attr('href', '@path/' + userName).text(userName))
       .append(' ')
@@ -125,7 +125,7 @@ $(function(){
   function updateMembers(){
     var members = $('#member-list li').map(function(i, e){
       var userName = $(e).data('name');
-      return userName + ':' + $('button.active').filter(function(i, e){
+      return userName + ':' + $('label.active > input[type=radio]').filter(function(i, e){
         return $(e).data('name') == userName;
       }).attr('value');
     }).get().join(',');
