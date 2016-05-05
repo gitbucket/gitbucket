@@ -33,13 +33,13 @@
                     urlEncode(parent) + ":" + encodeRefName(repository.repository.defaultBranch)
                   }.getOrElse {
                     encodeRefName(repository.repository.defaultBranch)
-                  }}...@{encodeRefName(branch.name)}?expand=1" class="btn btn-default">New Pull Request</a>
+                  }}...@{encodeRefName(branch.name)}?expand=1" class="btn btn-success">New Pull Request</a>
                 } else {
                   <a href="@url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
                     urlEncode(parent) + ":" + encodeRefName(repository.repository.defaultBranch)
                   }.getOrElse {
                     encodeRefName(repository.repository.defaultBranch)
-                  }}...@{encodeRefName(branch.name)}" class="btn btn-default">Compare</a>
+                  }}...@{encodeRefName(branch.name)}" class="btn btn-success">Compare</a>
                 }
               }
               @if(hasWritePermission){
@@ -68,7 +68,7 @@
           </div>
           <div class="branch-a-b-count">
             @if(branch.mergeInfo.isEmpty){
-              <span class="label">Default</span>
+              <span class="badge">Default</span>
             }else{
               @branch.mergeInfo.map{ info =>
                 <div data-toggle="tooltip" title="@info.ahead commits ahead, @info.behind commits behind @repository.repository.defaultBranch">
