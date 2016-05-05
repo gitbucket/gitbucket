@@ -43,10 +43,9 @@ public class JettyLauncher {
         WebAppContext context = new WebAppContext();
 
         File tmpDir = new File(getGitBucketHome(), "tmp");
-        if(tmpDir.exists()){
-            deleteDirectory(tmpDir);
+        if(!tmpDir.exists()){
+            tmpDir.mkdirs();
         }
-        tmpDir.mkdirs();
         context.setTempDirectory(tmpDir);
 
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
