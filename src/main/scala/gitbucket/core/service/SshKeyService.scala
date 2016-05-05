@@ -13,7 +13,7 @@ trait SshKeyService {
     SshKeys.filter(_.userName === userName.bind).sortBy(_.sshKeyId).list
 
   def getAllKeys()(implicit s: Session): List[SshKey] =
-  	SshKeys.list
+    SshKeys.filter(_.publicKey.trim =!= "").list
 
   def deletePublicKey(userName: String, sshKeyId: Int)(implicit s: Session): Unit =
     SshKeys filter (_.byPrimaryKey(userName, sshKeyId)) delete

@@ -51,10 +51,7 @@ class PublicKeyAuthenticator(genericUser:String) extends PublickeyAuthenticator 
       Database()
       .withSession { implicit dbSession => getAllKeys() }
       .filter { sshKey =>
-        Option(sshKey.publicKey)
-        .filter(_.trim.nonEmpty)
-        .flatMap(SshUtil.str2PublicKey)
-        .exists(_ == key)
+        SshUtil.str2PublicKey(sshKey.publicKey).exists(_ == key)
       }
       .map(_.userName)
       .distinct
