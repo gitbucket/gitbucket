@@ -223,6 +223,10 @@ div.body {
   margin-bottom: 40px;
 }
 
+div.tabbable {
+  overflow: hidden;
+}
+
 span.error {
   color: red;
 }
