@@ -201,7 +201,6 @@ div.main-sidebar {
 
 div.main-content {
   margin-left: 260px;
-  overflow: hidden;
 }
 
 div.main-center {
@@ -216,7 +215,6 @@ div.dashboard-sidebar {
 
 div.dashboard-content {
   margin-left: 310px;
-  overflow: hidden;
 }
 
 div.body {
@@ -316,6 +314,10 @@ div.box-header {
 
 .inline-comment div.box-content-bottom {
   margin-bottom: 0px;
+}
+
+ul.nav-tabs {
+  height: 42px;
 }
 
 ul.nav-pills .link {
