@@ -10,43 +10,40 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.model._
-
-<div class="row">
-  <div class="col-md-9">
-    <div id="comment-list">
-      @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
-    </div>
-    @defining(comments.flatMap {
-      case comment: gitbucket.core.model.IssueComment => Some(comment)
-      case other => None
-    }.exists(_.action == "merge")){ merged =>
-      @if(!issue.closed){
-        <div class="check-conflict" style="display: none;">
-          <div class="box issue-comment-box" style="background-color: #fbeed5">
-            <div class="box-content"class="issue-content" style="border: 1px solid #c09853; padding: 10px;">
-              <img src="@assets/common/images/indicator.gif"/> Checking...
-            </div>
+<div class="col-md-9">
+  <div id="comment-list">
+    @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
+  </div>
+  @defining(comments.flatMap {
+    case comment: gitbucket.core.model.IssueComment => Some(comment)
+    case other => None
+  }.exists(_.action == "merge")){ merged =>
+    @if(!issue.closed){
+      <div class="check-conflict" style="display: none;">
+        <div class="box issue-comment-box" style="background-color: #fbeed5">
+          <div class="box-content"class="issue-content" style="border: 1px solid #c09853; padding: 10px;">
+            <img src="@assets/common/images/indicator.gif"/> Checking...
           </div>
         </div>
-      }
-      @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
-        pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
-        <div class="box issue-comment-box" style="background-color: #d0eeff;">
-          <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
-            <a href="@url(repository)/pull/@issue.issueId/delete/@encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
-            <div>
-              <span class="strong">Pull request successfully merged and closed</span>
-            </div>
-            <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
-          </div>
-        </div>
-      }
-      @issues.html.commentform(issue, !merged, hasWritePermission, repository)
+      </div>
     }
-  </div>
-  <div class="col-md-3">
-    @issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
-  </div>
+    @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
+      pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
+      <div class="box issue-comment-box" style="background-color: #d0eeff;">
+        <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
+          <a href="@url(repository)/pull/@issue.issueId/delete/@encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+          <div>
+            <span class="strong">Pull request successfully merged and closed</span>
+          </div>
+          <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
+        </div>
+      </div>
+    }
+    @issues.html.commentform(issue, !merged, hasWritePermission, repository)
+  }
+</div>
+<div class="col-md-3">
+  @issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
 </div>
 <script>
 $(function(){
