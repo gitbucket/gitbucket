@@ -447,8 +447,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   private def validPublicKey: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = SshUtil.str2PublicKey(value) match {
-     case Some(_) => None
-     case None => Some("Key is invalid.")
+     case Some(_) if !getAllKeys().exists(_.publicKey == value) => None
+     case _ => Some("Key is invalid.")
     }
   }
 
