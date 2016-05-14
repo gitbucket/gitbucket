@@ -179,36 +179,39 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   get("/admin/users/:userName/_edituser")(adminOnly {
     val userName = params("userName")
-    html.user(getAccountByUserName(userName, true))
+    html.user(getAccountByUserName(userName, true), flash.get("error"))
   })
 
   post("/admin/users/:name/_edituser", editUserForm)(adminOnly { form =>
     val userName = params("userName")
     getAccountByUserName(userName, true).map { account =>
+      if(account.isAdmin && (form.isRemoved || !form.isAdmin) && isLastAdministrator(account)){
+        flash += "error" -> "Account can't be turned off because this is last one administrator."
+        redirect(s"/admin/users/${userName}/_edituser")
+      } else {
+        if(form.isRemoved){
+          // Remove repositories
+          //        getRepositoryNamesOfUser(userName).foreach { repositoryName =>
+          //          deleteRepository(userName, repositoryName)
+          //          FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
+          //          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
+          //          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
+          //        }
+          // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+          removeUserRelatedData(userName)
+        }
 
-      if(form.isRemoved){
-        // Remove repositories
-        //        getRepositoryNamesOfUser(userName).foreach { repositoryName =>
-        //          deleteRepository(userName, repositoryName)
-        //          FileUtils.deleteDirectory(getRepositoryDir(userName, repositoryName))
-        //          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
-        //          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
-        //        }
-        // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
-        removeUserRelatedData(userName)
+        updateAccount(account.copy(
+          password     = form.password.map(sha1).getOrElse(account.password),
+          fullName     = form.fullName,
+          mailAddress  = form.mailAddress,
+          isAdmin      = form.isAdmin,
+          url          = form.url,
+          isRemoved    = form.isRemoved))
+
+        updateImage(userName, form.fileId, form.clearImage)
+        redirect("/admin/users")
       }
-
-      updateAccount(account.copy(
-        password     = form.password.map(sha1).getOrElse(account.password),
-        fullName     = form.fullName,
-        mailAddress  = form.mailAddress,
-        isAdmin      = form.isAdmin,
-        url          = form.url,
-        isRemoved    = form.isRemoved))
-
-      updateImage(userName, form.fileId, form.clearImage)
-      redirect("/admin/users")
-
     } getOrElse NotFound
   })
 

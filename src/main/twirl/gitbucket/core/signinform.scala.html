@@ -1,14 +1,7 @@
 @(systemSettings: gitbucket.core.service.SystemSettingsService.SystemSettings)(implicit context: gitbucket.core.controller.Context)
 @import context._
 <div class="panel panel-default">
-  <div class="panel-heading strong">
-    @if(systemSettings.allowAccountRegistration){
-      <div class="pull-right">
-        <a href="@path/register" class="btn btn-mini">Create new account</a>
-      </div>
-    }
-    Sign in
-  </div>
+  <div class="panel-heading strong">Sign in</div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <form action="@path/signin" method="POST" validate="true">
@@ -23,6 +16,9 @@
           <input type="password" name="password" id="password" class="form-control"/>
         </div>
         <input type="submit" class="btn btn-success" value="Sign in"/>
+        @if(systemSettings.allowAccountRegistration){
+          or <a href="@path/register">Create new account</a>
+        }
       </form>
     </li>
   </ul>

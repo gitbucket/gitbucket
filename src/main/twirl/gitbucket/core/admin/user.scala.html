@@ -1,7 +1,8 @@
-@(account: Option[gitbucket.core.model.Account])(implicit context: gitbucket.core.controller.Context)
+@(account: Option[gitbucket.core.model.Account], error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @html.main(if(account.isEmpty) "New User" else "Update User"){
   @admin.html.menu("users"){
+    @helper.html.error(error)
     <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newuser} else {@path/admin/users/@account.get.userName/_edituser}" validate="true">
       <div class="row">
         <div class="col-md-6">

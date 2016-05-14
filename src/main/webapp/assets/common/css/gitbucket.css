@@ -316,6 +316,11 @@ div.box-header {
   margin-bottom: 0px;
 }
 
+div.row {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
 ul.nav-tabs {
   height: 42px;
 }

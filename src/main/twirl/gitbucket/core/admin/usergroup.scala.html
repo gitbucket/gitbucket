@@ -5,7 +5,7 @@
   @admin.html.menu("users"){
     <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newgroup} else {@path/admin/users/@account.get.userName/_editgroup}" validate="true">
       <div class="row">
-        <div class="col-md-5">
+        <div class="col-md-6">
           <fieldset class="form-group">
             <label for="groupName" class="strong">Group name</label>
             <div>
@@ -31,7 +31,7 @@
             @helper.html.uploadavatar(account)
           </fieldset>
         </div>
-        <div class="col-md-7">
+        <div class="col-md-6">
           <fieldset class="form-group">
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">

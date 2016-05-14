@@ -97,10 +97,10 @@ trait AccountService {
       Accounts filter (_.removed === false.bind) sortBy(_.userName) list
     }
 
-  def isLastAdministrator(userName: String)(implicit s: Session): Boolean = {
-    getAccountByUserName(userName).collect { case account if account.isAdmin =>
+  def isLastAdministrator(account: Account)(implicit s: Session): Boolean = {
+    if(account.isAdmin){
       (Accounts filter (_.removed === false.bind) filter (_.isAdmin === true.bind) map (_.userName.length)).first == 1
-    } getOrElse false
+    } else false
   }
 
   def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])

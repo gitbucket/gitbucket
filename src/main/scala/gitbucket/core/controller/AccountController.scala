@@ -179,8 +179,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
 
     getAccountByUserName(userName, true).map { account =>
-      if(isLastAdministrator(userName)){
-        flash += "error" -> "Account can't be removed because this is the last administrator."
+      if(isLastAdministrator(account)){
+        flash += "error" -> "Account can't be removed because this is last one administrator."
         redirect(s"/${userName}/_edit")
       } else {
 //      // Remove repositories
