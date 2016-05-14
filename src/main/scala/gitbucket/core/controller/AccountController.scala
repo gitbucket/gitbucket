@@ -155,7 +155,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
-      html.edit(x, flash.get("info"))
+      html.edit(x, flash.get("info"), flash.get("error"))
     } getOrElse NotFound
   })
 
@@ -178,7 +178,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
-    getAccountByUserName(userName, true).foreach { account =>
+    getAccountByUserName(userName, true).map { account =>
+      if(isLastAdministrator(userName)){
+        flash += "error" -> "Account can't be removed because this is the last administrator."
+        redirect(s"/${userName}/_edit")
+      } else {
 //      // Remove repositories
 //      getRepositoryNamesOfUser(userName).foreach { repositoryName =>
 //        deleteRepository(userName, repositoryName)
@@ -187,14 +191,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
 //      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
-//      removeUserRelatedData(userName)
-
-      removeUserRelatedData(userName)
-      updateAccount(account.copy(isRemoved = true))
-    }
-
-    session.invalidate
-    redirect("/")
+        removeUserRelatedData(userName)
+        updateAccount(account.copy(isRemoved = true))
+        session.invalidate
+        redirect("/")
+      }
+    } getOrElse NotFound
   })
 
   get("/:userName/_ssh")(oneselfOnly {
