@@ -146,7 +146,7 @@ $(function(){
     $("#test-modal-url").text(url)
     $("#test-report-modal").modal('show')
     $("#test-report").hide();
-    var targetUrl = '@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&token=';
+    var targetUrl = '@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&ctype=' + ctype + '&token=';
     if (token) {
       targetUrl = targetUrl + encodeURIComponent(token);
     }
