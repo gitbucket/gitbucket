@@ -27,13 +27,13 @@
               <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
             }
             <div>
-              @user(commit.authorName, commit.authorEmailAddress, "username")
-              <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
               @if(commit.isDifferentFromAuthor) {
+                @user(commit.authorName, commit.authorEmailAddress, "username")
+                <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
                 <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
-                @user(commit.committerName, commit.committerEmailAddress, "username")
-                <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
               }
+              @user(commit.committerName, commit.committerEmailAddress, "username")
+              <span class="muted">committed @helper.html.datetimeago(commit.commitTime)</span>
             </div>
           </div>
         </div>
