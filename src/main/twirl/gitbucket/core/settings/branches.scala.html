@@ -7,63 +7,65 @@
 @html.main("Branches", Some(repository)){
   @html.menu("settings", repository){
     @menu("branches", repository){
-      @if(repository.branchList.isEmpty){
-        <div class="well">
-          <center>
-            <p><i class="octicon octicon-git-branch" style="font-size:300%"></i></p>
-            <p>You don’t have any branches</p>
-            <p>Before you can edit branch settings, you need to add a branch.</p>
-          </center>
-        </div>
-      }else{
-        @helper.html.information(info)
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Default branch</div>
-          <div class="panel-body">
-            <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made, unless you specify a different branch.</p>
-            <form id="form" method="post" action="@url(repository)/settings/update_default_branch" validate="true" class="form-inline">
-              <span class="error" id="error-defaultBranch"></span>
-              <select name="defaultBranch" id="defaultBranch" class="form-control">
-                @repository.branchList.map { branch =>
-                  <option @if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
-                }
-              </select>
-              <input type="submit" class="btn btn-default" value="Update" />
-            </form>
+      <div style="overflow: hidden;">
+        @if(repository.branchList.isEmpty){
+          <div class="well">
+            <center>
+              <p><i class="octicon octicon-git-branch" style="font-size:300%"></i></p>
+              <p>You don’t have any branches</p>
+              <p>Before you can edit branch settings, you need to add a branch.</p>
+            </center>
           </div>
-        </div>
-
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Protected branches</div>
-          <div class="panel-body">
-            <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally require status checks before merging. New to protected branches?
-              <form class="form-inline">
-                <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control">
-                  <option>Choose a branch...</option>
+        } else {
+          @helper.html.information(info)
+          <div class="panel panel-default">
+            <div class="panel-heading strong">Default branch</div>
+            <div class="panel-body">
+              <p>The default branch is considered the “base” branch in your repository, against which all pull requests and code commits are automatically made, unless you specify a different branch.</p>
+              <form id="form" method="post" action="@url(repository)/settings/update_default_branch" validate="true" class="form-inline">
+                <span class="error" id="error-defaultBranch"></span>
+                <select name="defaultBranch" id="defaultBranch" class="form-control">
                   @repository.branchList.map { branch =>
-                    <option value="@url(repository)/settings/branches/@encodeRefName(branch)">@branch</option>
+                    <option @if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
                   }
                 </select>
-                <span class="error" id="error-protectBranch"></span>
+                <input type="submit" class="btn btn-default" value="Update" />
               </form>
-            </p>
-
-            <table class="table table-bordered table-hover branches">
-              @protectedBranchList.map { branch =>
-                <tr>
-                  <td>
-                    <span class="branch-name">@branch</span>
-                    <span class="branch-action">
-                      <a href="@url(repository)/settings/branches/@encodeRefName(branch)" class="btn btn-small btn-default">Edit</a>
-                    </span>
-                  </td>
-                </tr>
-              }
-            </table>
+            </div>
           </div>
 
-        </div>
-      }
+          <div class="panel panel-default">
+            <div class="panel-heading strong">Protected branches</div>
+            <div class="panel-body">
+              <p>Protect branches to disable force pushing, prevent branches from being deleted, and optionally require status checks before merging. New to protected branches?
+                <form class="form-inline">
+                  <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control">
+                    <option>Choose a branch...</option>
+                    @repository.branchList.map { branch =>
+                      <option value="@url(repository)/settings/branches/@encodeRefName(branch)">@branch</option>
+                    }
+                  </select>
+                  <span class="error" id="error-protectBranch"></span>
+                </form>
+              </p>
+
+              <table class="table table-bordered table-hover branches">
+                @protectedBranchList.map { branch =>
+                  <tr>
+                    <td>
+                      <span class="branch-name">@branch</span>
+                      <span class="branch-action">
+                        <a href="@url(repository)/settings/branches/@encodeRefName(branch)" class="btn btn-small btn-default">Edit</a>
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </table>
+            </div>
+
+          </div>
+        }
+      </div>
     }
   }
 }

@@ -13,7 +13,7 @@
       @helper.html.information(info)
       <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
       <form name="branchProtection" onsubmit="submitForm(event)">
-        <div class="panel panel-default">
+        <div class="panel panel-default" style="overflow: hidden;">
           <div class="panel-heading">Branch protection for <b>@branch</b></div>
           <div class="panel-body">
 
@@ -24,7 +24,6 @@
               </label>
               <p class="help-block">Disables force-pushes to this branch and prevents it from being deleted.</p>
             </div>
-
             <div class="checkbox js-enabled" style="display:none">
               <label>
                 <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off")>
