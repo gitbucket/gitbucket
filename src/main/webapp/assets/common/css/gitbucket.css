@@ -1950,6 +1950,11 @@ div.container.blame-container{
   div.input-group>span.fork {
     display: none;
   }
+  /* allow wrapping on raw/mobile/history buttons */ 
+  div.main-content>div.box-header>div.btn-group.pull-right 
+  { 
+    float: none !important; 
+  } 
 }
 
 /****************************************************************************/
