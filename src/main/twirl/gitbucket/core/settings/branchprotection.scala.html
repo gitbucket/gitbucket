@@ -26,23 +26,19 @@
             </div>
             <div class="checkbox js-enabled" style="display:none">
               <label>
-                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off")>
+                <input type="checkbox" name="has_required_statuses" onclick="update()" @check(protection.status.enforcement_level.name!="off") @if(knownContexts.isEmpty){disabled }>
                 <span class="strong">Require status checks to pass before merging</span>
               </label>
-              <p class="help-block">Choose which status checks must pass before branches can be merged into test.
-              When enabled, commits must first be pushed to another branch, then merged or pushed directly to test after status checks have passed.</p>
-
-              <div class="js-has_required_statuses" style="display:none">
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
-                    <span class="strong">Include administrators</span>
-                  </label>
-                  <p class="help-block">Enforce required status checks for repository administrators.</p>
+              <p class="help-block">When enabled, commits must first be pushed to another branch, then merged or pushed directly to <b>@branch</b> after status checks have passed.</p>
+              @if( knownContexts.isEmpty ){
+                <div class="alert alert-warning">
+                  Sorry, we couldn’t find any status checks in the last week for this repository.<br />
+                  Please create a commit status by API (<a href="https://developer.github.com/v3/repos/statuses/">Learn more about status checks on GitHub</a>)
                 </div>
-
+              }else{
+              <div class="js-has_required_statuses" style="display:none">
                 <div class="panel panel-default">
-                  <div class="panel-heading">Status checks found in the last week for this repository</div>
+                  <div class="panel-heading">Choose which status checks must pass before branches can be merged into <b>@branch</b>.</div>
                   <div class="panel-body">
                     @knownContexts.map { context =>
                       <div class="checkbox">
@@ -54,9 +50,18 @@
                     }
                   </div>
                 </div>
+
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
+                    <span class="strong">Include administrators</span>
+                  </label>
+                  <p class="help-block">Enforce required status checks for repository administrators.</p>
+                </div>
               </div>
+              }
             </div>
-            <input class="btn btn-success" type="submit" value="Save changes" />
+            <input class="btn btn-success js-submit-btn" type="submit" value="Save changes" />
           </div>
         </div>
       </form>
@@ -94,6 +99,7 @@ function getValue(){
 function updateView(protection){
   $('.js-enabled').toggle(protection.enabled);
   $('.js-has_required_statuses').toggle(protection.required_status_checks.enforcement_level != 'off');
+  $('.js-submit-btn').attr('disabled',protection.required_status_checks.enforcement_level != 'off' && protection.required_status_checks.contexts.length == 0);
 }
 function update(){
   var protection = getValue();
