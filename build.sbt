@@ -78,12 +78,13 @@ assemblyMergeStrategy in assembly := {
 }
 
 // JRebel
+Seq(jrebelSettings: _*)
+
 jrebel.webLinks += (target in webappPrepare).value
 jrebel.enabled := System.getenv().get("JREBEL") != null
 javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { path =>
   Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
 }
-jrebelSettings
 
 // Create executable war file
 val executableConfig = config("executable").hide
