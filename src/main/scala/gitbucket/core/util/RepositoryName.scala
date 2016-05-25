@@ -1,5 +1,6 @@
 package gitbucket.core.util
 
+// TODO Should this class is moved to gitbucket.core.api package?
 case class RepositoryName(owner:String, name:String){
   val fullName = s"${owner}/${name}"
 }
