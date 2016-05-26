@@ -50,7 +50,9 @@ libraryDependencies ++= Seq(
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                     % "junit"                        % "4.12"           % "test",
   "org.scalatra"             %% "scalatra-scalatest"           % ScalatraVersion  % "test",
-  "org.scalaz"               %% "scalaz-core"                  % "7.2.0"          % "test"
+  "org.scalaz"               %% "scalaz-core"                  % "7.2.0"          % "test",
+  "com.wix"                   % "wix-embedded-mysql"           % "1.0.3"          % "test",
+  "ru.yandex.qatools.embed"   % "postgresql-embedded"          % "1.14"           % "test"
 )
 
 // Twirl settings
