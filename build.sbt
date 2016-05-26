@@ -62,10 +62,14 @@ play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._"
 scalacOptions := Seq("-deprecation", "-language:postfixOps", "-Ybackend:GenBCode", "-Ydelambdafy:method", "-target:jvm-1.8")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
-testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "junitxml", "console")
+
+// Test settings
+//testOptions in Test += Tests.Argument("-l", "ExternalDBTest")
 javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test"
 testOptions in Test += Tests.Setup( () => new java.io.File("target/gitbucket_home_for_test").mkdir() )
 fork in Test := true
+
+// Packaging options
 packageOptions += Package.MainClass("JettyLauncher")
 
 // Assembly settings
