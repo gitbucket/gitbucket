@@ -1139,22 +1139,21 @@ div.author-info div.committer {
   font-size: 12px;
 }
 
-.text-pending{
+.text-pending {
   color: #cea61b;
 }
-.text-failure{
+.text-failure {
   color: #bd2c00;
 }
 
-.build-statuses{
-  margin: -10px -10px 10px -10px;
-}
-.build-statuses .build-status-item{
-  padding: 10px 15px 10px 64px;
+.build-statuses {
+  padding: 10px 15px 10px 15px;
   border-bottom: 1px solid #eee;
 }
-.build-statuses-list .build-status-item{
+.build-statuses-list .build-status-item {
   background-color: #fafafa;
+  padding: 10px 15px 10px 15px;
+  border-bottom: 1px solid #eee;
 }
 
 .merge-indicator{

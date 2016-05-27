@@ -13,13 +13,12 @@
       @if(!status.statuses.isEmpty){
         <div class="build-statuses">
           @defining(status.commitStateSummary){ case (summaryState, summary) =>
-            <div class="build-status-item-header">
-              <a class="pull-right" id="toggle-all-checks"></a>
-              <span class="build-status-icon text-@{summaryState.name}">@commitStateIcon(summaryState)</span>
-              <strong class="text-@{summaryState.name}">@commitStateText(summaryState, pullreq.commitIdTo)</strong>
-              <span class="text-@{summaryState.name}">— @summary checks</span>
-            </div>
+            <a class="pull-right" id="toggle-all-checks"></a>
+            <span class="build-status-icon text-@{summaryState.name}">@commitStateIcon(summaryState)</span>
+            <strong class="text-@{summaryState.name}">@commitStateText(summaryState, pullreq.commitIdTo)</strong>
+            <span class="text-@{summaryState.name}">— @summary checks</span>
           }
+        </div>
           <div class="build-statuses-list" style="@if(status.isAllSuccess){ display:none; }else{ }">
             @status.statusesAndRequired.map{ case (status, required) =>
             <div class="build-status-item">
@@ -33,7 +32,6 @@
             </div>
             }
           </div>
-        </div>
       }
       <div style="padding:15px">
         @if(status.hasConflict){
