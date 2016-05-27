@@ -5,9 +5,6 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
 @html.main("Create a New Repository"){
 <div class="body main-center">
   <h2>Create a new repository</h2>
-  <p class="muted">
-    A repository contains all the files for your project, including the revision history.
-  </p>
   <form id="form" method="post" action="@path/new" validate="true">
     <fieldset class="margin form-group">
       <dl style="float: left;">
@@ -45,25 +42,18 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
       <label class="radio">
         <input type="radio" name="isPrivate" value="false" @if(isCreateRepoOptionPublic){checked}>
         <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;</i>&nbsp;Public</span>
-        <div class="normal muted">
-          Anyone can see this repository. You choose who can commit.
-        </div>
+        <span class="normal muted">(anyone can see this repository)</span>
       </label>
       <label class="radio">
         <input type="radio" name="isPrivate" value="true" @if(!isCreateRepoOptionPublic){checked}>
         <span class="strong"><i class="octicon octicon-lock"></i>&nbsp;</i>&nbsp;Private</span>
-        <div class="normal muted">
-          You choose who can see and commit to this repository.
-        </div>
+        <span class="normal muted">(only committer can see this repository)</span>
       </label>
     </fieldset>
     <fieldset class="margin">
       <label for="createReadme" class="checkbox">
         <input type="checkbox" name="createReadme" id="createReadme"/>
-        <span class="strong">Initialize this repository with a README</span>
-        <div class="normal muted">
-          This will let you immediately clone the repository to your computer. Skip this step if you’re importing an existing repository.
-        </div>
+        <span class="strong">Create README with this repository</span>
       </label>
     </fieldset>
     <fieldset class="margin form-actions">

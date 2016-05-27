@@ -36,8 +36,8 @@
       <div style="padding:15px">
         @if(status.hasConflict){
           <div class="merge-indicator merge-indicator-alert"><span class="octicon octicon-alert"></span></div>
-          <span class="strong">This branch has conflicts that must be resolved</span>
-          <div class="small">
+          <span class="strong large">This branch has conflicts that must be resolved</span>
+          <div>
             @if(status.hasMergePermission){
               <a href="#" class="show-command-line">Use the command line</a> to resolve conflicts before continuing.
             } else {
@@ -54,26 +54,26 @@
             </div>
           }
           <div class="merge-indicator merge-indicator-alert"><span class="octicon octicon-alert"></span></div>
-          <span class="strong">This branch is out-of-date with the base branch</span>
-          <div class="small">
+          <span class="strong large">This branch is out-of-date with the base branch</span>
+          <div>
             Merge the latest changes from <code>@pullreq.branch</code> into this branch.
           </div>
         } else { @if(status.hasRequiredStatusProblem) {
           <div class="merge-indicator merge-indicator-warning"><span class="octicon octicon-primitive-dot"></span></div>
-          <span class="strong">Required statuses must pass before merging.</span>
-          <div class="small">
+          <span class="strong large">Required statuses must pass before merging.</span>
+          <div>
             All required status checks on this pull request must run successfully to enable automatic merging.
           </div>
         } else {
           <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
           @if(status.hasMergePermission){
-            <span class="strong">Merging can be performed automatically.</span>
-            <div class="small">
+            <span class="strong large">Merging can be performed automatically.</span>
+            <div>
               Merging can be performed automatically.
             </div>
           } else {
-            <span class="strong">This branch has no conflicts with the base branch.</span>
-            <div class="small">
+            <span class="strong large">This branch has no conflicts with the base branch.</span>
+            <div>
               Only those with write access to this repository can merge pull requests.
             </div>
           }
@@ -85,31 +85,10 @@
           &nbsp;&nbsp;You can also merge branches on the <a href="#" class="show-command-line">command line</a>.
           <div id="command-line" style="display: none;margin-top: 15px;">
             <hr />
-            @if(status.hasConflict){
-              <span class="strong">Checkout via command line</span>
-              <p>
-                If you cannot merge a pull request automatically here, you have the option of checking
-                it out via command line to resolve conflicts and perform a manual merge.
-              </p>
-            } else {
-              <span class="strong">Merging via command line</span>
-              <p>
-                If you do not want to use the merge button or an automatic merge cannot be performed,
-                you can perform a manual merge on the command line.
-              </p>
-            }
-            @helper.html.copy("repository-url-copy", forkedRepository.httpUrl){
-              <div class="input-group-btn" data-toggle="buttons">
-                <label class="btn btn-sm btn-default active" id="repository-url-http"><input type="radio" checked>HTTP</label>
-                @if(settings.ssh && loginAccount.isDefined){
-                  <label class="btn btn-sm btn-default" id="repository-url-ssh"><input type="radio">SSH</label>
-                }
-              </div>
-              <input type="text" class="form-control input-sm" value="@forkedRepository.httpUrl" id="repository-url" readonly />
-            }
+            <span class="strong large">Command line instructions</span>
             <div style="margin-top: 10px;">
               <p>
-                <span class="strong">Step 1:</span> From your project repository, check out a new branch and test the changes.
+                <span class="strong">Step 1:</span> Pull the changes into a new branch on your local repository.
               </p>
               @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
                         s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
@@ -119,7 +98,7 @@
             </div>
             <div>
               <p>
-                <span class="strong">Step 2:</span> Merge the changes and update on the server.
+                <span class="strong">Step 2:</span> Merge the changes and push to the server.
               </p>
               @defining(s"git checkout ${pullreq.branch}\ngit merge --no-ff ${pullreq.requestUserName}-${pullreq.requestBranch}\n" +
                         s"git push origin ${pullreq.branch}"){ command =>
