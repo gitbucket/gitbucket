@@ -119,7 +119,9 @@ trait ApiControllerBase extends ControllerBase {
     }) getOrElse NotFound
   })
 
-  /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
+  /**
+   * https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection
+   */
   patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
     import gitbucket.core.api._
     (for{
@@ -261,18 +263,28 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/pulls/#list-pull-requests
    */
   get("/api/v3/repos/:owner/:repository/pulls")(referrersOnly { repository =>
-    val page       = IssueSearchCondition.page(request)
+    val page = IssueSearchCondition.page(request)
     // TODO: more api spec condition
     val condition = IssueSearchCondition(request)
     val baseOwner = getAccountByUserName(repository.owner).get
-    val issues:List[(Issue, Account, Int, PullRequest, Repository, Account)] = searchPullRequestByApi(condition, (page - 1) * PullRequestLimit, PullRequestLimit, repository.owner -> repository.name)
-    JsonFormat(issues.map{case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
+
+    val issues: List[(Issue, Account, Int, PullRequest, Repository, Account)] =
+      searchPullRequestByApi(
+        condition = condition,
+        offset    = (page - 1) * PullRequestLimit,
+        limit     = PullRequestLimit,
+        repos     = repository.owner -> repository.name
+      )
+
+    JsonFormat(issues.map { case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
       ApiPullRequest(
         issue,
         pullRequest,
         ApiRepository(headRepo, ApiUser(headOwner)),
         ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)) })
+        ApiUser(issueUser)
+      )
+    })
   })
 
   /**
