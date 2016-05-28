@@ -19,19 +19,19 @@
             <span class="text-@{summaryState.name}">— @summary checks</span>
           }
         </div>
-          <div class="build-statuses-list" style="@if(status.isAllSuccess){ display:none; }else{ }">
-            @status.statusesAndRequired.map{ case (status, required) =>
+        <div class="build-statuses-list" style="@if(status.isAllSuccess){ display:none; }">
+          @status.statusesAndRequired.map { case (status, required) =>
             <div class="build-status-item">
               <div class="pull-right">
                 @if(required){ <span class="label">Required</span> }
-                @status.targetUrl.map{ url => <a href="@url">Details</a> }
+                @status.targetUrl.map { url => <a href="@url">Details</a> }
               </div>
               <span class="build-status-icon text-@{status.state.name}">@commitStateIcon(status.state)</span>
               <strong>@status.context</strong>
-              @status.description.map{ desc => <span class="muted">— @desc</span> }
+              @status.description.map { desc => <span class="muted">— @desc</span> }
             </div>
-            }
-          </div>
+          }
+        </div>
       }
       <div style="padding:15px">
         @if(status.hasConflict){
@@ -44,40 +44,44 @@
               Only those with write access to this repository can merge pull requests.
             }
           </div>
-        } else { @if(status.branchIsOutOfDate){
-          @if(status.hasUpdatePermission){
-            <div class="pull-right">
-              <form method="POST" action="@url(originRepository)/pull/@pullreq.issueId/update_branch">
-                <input type="hidden" name="expected_head_oid" value="@pullreq.commitIdFrom">
-                <button class="btn btn-default"@if(!status.canUpdate){ disabled="true"} id="update-branch-button">Update branch</button>
-              </form>
-            </div>
-          }
+        } else {
+          @if(status.branchIsOutOfDate){
+            @if(status.hasUpdatePermission){
+              <div class="pull-right">
+                <form method="POST" action="@url(originRepository)/pull/@pullreq.issueId/update_branch">
+                  <input type="hidden" name="expected_head_oid" value="@pullreq.commitIdFrom">
+                  <button class="btn btn-default"@if(!status.canUpdate){ disabled="true"} id="update-branch-button">Update branch</button>
+                </form>
+              </div>
+            }
           <div class="merge-indicator merge-indicator-alert"><span class="octicon octicon-alert"></span></div>
           <span class="strong">This branch is out-of-date with the base branch</span>
           <div class="small">
             Merge the latest changes from <code>@pullreq.branch</code> into this branch.
           </div>
-        } else { @if(status.hasRequiredStatusProblem) {
-          <div class="merge-indicator merge-indicator-warning"><span class="octicon octicon-primitive-dot"></span></div>
-          <span class="strong">Required statuses must pass before merging.</span>
-          <div class="small">
-            All required status checks on this pull request must run successfully to enable automatic merging.
-          </div>
         } else {
-          <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
-          @if(status.hasMergePermission){
-            <span class="strong">Merging can be performed automatically.</span>
+          @if(status.hasRequiredStatusProblem) {
+            <div class="merge-indicator merge-indicator-warning"><span class="octicon octicon-primitive-dot"></span></div>
+            <span class="strong">Required statuses must pass before merging.</span>
             <div class="small">
-              Merging can be performed automatically.
+              All required status checks on this pull request must run successfully to enable automatic merging.
             </div>
           } else {
-            <span class="strong">This branch has no conflicts with the base branch.</span>
-            <div class="small">
-              Only those with write access to this repository can merge pull requests.
-            </div>
+            <div class="merge-indicator merge-indicator-success"><span class="octicon octicon-check"></span></div>
+            @if(status.hasMergePermission){
+              <span class="strong">Merging can be performed automatically.</span>
+              <div class="small">
+                Merging can be performed automatically.
+              </div>
+            } else {
+              <span class="strong">This branch has no conflicts with the base branch.</span>
+              <div class="small">
+                Only those with write access to this repository can merge pull requests.
+              </div>
+            }
           }
-        } } }
+        }
+      }
       </div>
       @if(status.hasMergePermission){
         <div style="padding:15px;border-top:solid 1px #e5e5e5;background:#fafafa">
