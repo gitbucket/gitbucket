@@ -1,11 +1,9 @@
 language: scala
-sudo: false
+sudo: true
 script:
-  - sbt "test-only -- -l ExternalDBTest"
+  - sbt test
 jdk:
   - oraclejdk8
-#before_script:
-#  - psql -c "CREATE ROLE sa WITH SUPERUSER LOGIN PASSWORD 'sa';" -U postgres
-#  - psql -c "CREATE DATABASE gitbucket;" -U postgres
-#  - mysql -e 'GRANT ALL ON *.* TO sa@"localhost"IDENTIFIED BY "sa";FLUSH PRIVILEGES;' -uroot
-#  - mysql -e "CREATE DATABASE gitbucket;" -usa -psa
+before_script:
+  - sudo apt-get install libaio1
+  - sudo /etc/init.d/mysql stop
