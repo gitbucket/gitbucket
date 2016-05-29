@@ -6,7 +6,7 @@
 @import gitbucket.core.view.helpers._
 @html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @html.menu("fork", repository){
-    <h1>
+    <h1 class="body-title">
       Forked repositories
       @if(loginAccount.isEmpty){
         <a href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-success">Fork</a>
