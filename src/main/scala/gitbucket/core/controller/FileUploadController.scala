@@ -73,7 +73,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
               fileName
             }
           }
-        }, FileUtil.isImage)
+        }, FileUtil.isUploadableType)
       }
     } getOrElse BadRequest
   }
