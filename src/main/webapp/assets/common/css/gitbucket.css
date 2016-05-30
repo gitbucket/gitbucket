@@ -833,7 +833,6 @@ a.issue-title {
   font-size: 120%;
 }
 
-/*
 .label-success {
   background-color: #6cc644;
 }
@@ -841,7 +840,6 @@ a.issue-title {
 .label-important {
   background-color: #bd2c00;
 }
-*/
 
 ul.label-list {
   list-style-type: none;
