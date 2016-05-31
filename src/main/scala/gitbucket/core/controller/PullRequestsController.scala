@@ -354,7 +354,15 @@ trait PullRequestsControllerBase extends ControllerBase {
               originRepository.owner, originRepository.name, oldId.getName,
               forkedRepository.owner, forkedRepository.name, newId.getName)
 
+            val title = if(commits.flatten.length == 1){
+              commits.flatten.head.shortMessage
+            } else {
+              val text = forkedId.replaceAll("[\\-_]", " ")
+              text.substring(0, 1).toUpperCase + text.substring(1)
+            }
+
             html.compare(
+              title,
               commits,
               diffs,
               (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {

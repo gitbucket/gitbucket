@@ -1,4 +1,5 @@
-@(commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
+@(title: String,
+  commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
   members: List[(String, String)],
   comments: List[gitbucket.core.model.Comment],
@@ -56,7 +57,7 @@
           <div class="row">
             <div class="col-md-9">
               <span class="error" id="error-title"></span>
-              <input type="text" name="title" class="form-control" style="margin-bottom: 6px;" placeholder="Title"/>
+              <input type="text" name="title" value="@title" class="form-control" style="margin-bottom: 6px;" placeholder="Title"/>
               @helper.html.preview(
                 repository         = repository,
                 content            = "",
