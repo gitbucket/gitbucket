@@ -97,7 +97,7 @@ trait WebHookService {
             }
           }
           try{
-            val httpClient = HttpClientBuilder.create.addInterceptorLast(itcp).build
+            val httpClient = HttpClientBuilder.create.useSystemProperties.addInterceptorLast(itcp).build
             logger.debug(s"start web hook invocation for ${webHook.url}")
             val httpPost = new HttpPost(webHook.url)
             logger.info(s"Content-Type: ${webHook.ctype.ctype}")
