@@ -202,7 +202,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
                 // close issue by commit message
                 if(pullreq.requestBranch == repository.repository.defaultBranch){
-                  commits.map{ commit =>
+                  commits.map { commit =>
                     closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
                   }
                 }
@@ -255,10 +255,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               commits.flatten.foreach { commit =>
                 closeIssuesFromMessage(commit.fullMessage, loginAccount.userName, owner, name)
               }
-              issue.content match {
-                case Some(content) => closeIssuesFromMessage(content, loginAccount.userName, owner, name)
-                case _ =>
-              }
+              closeIssuesFromMessage(issue.title + " " + issue.content.getOrElse(""), loginAccount.userName, owner, name)
               closeIssuesFromMessage(form.message, loginAccount.userName, owner, name)
             }
 
