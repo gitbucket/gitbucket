@@ -22,6 +22,6 @@
       </div>
     }
     @helper.html.paginator(page, wikis.size, CodeLimit, 10,
-      s"${url(repository)}/search?q=${urlEncode(query)}&type=code")
+      s"${url(repository)}/search?q=${urlEncode(query)}&type=wiki")
   }
 }
