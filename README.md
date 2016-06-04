@@ -62,7 +62,13 @@ Support
 - First priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
 
 Release Notes
---------
+-------------
+### 4.1 - 4 Jun 2016
+
+- Generic ssh user
+- Improve branch protection UI
+- Default value of pull request title
+
 ### 4.0 - 30 Apr 2016
 
 - MySQL and PostgreSQL support
