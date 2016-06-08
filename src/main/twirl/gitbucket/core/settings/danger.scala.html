@@ -1,9 +1,10 @@
-@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main("Danger Zone", Some(repository)){
   @html.menu("settings", repository){
     @menu("danger", repository){
+      @helper.html.information(info)
       <div class="panel panel-default" style="overflow: hidden;">
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">

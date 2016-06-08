@@ -294,7 +294,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the danger zone.
    */
   get("/:owner/:repository/settings/danger")(ownerOnly {
-    html.danger(_)
+    html.danger(_, flash.get("info"))
   })
 
   /**
@@ -342,7 +342,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         git.gc();
       }
     }
-    redirect(s"/${repository.owner}/${repository.name}/danger")
+    flash += "info" -> "Garbage collection has been executed."
+    redirect(s"/${repository.owner}/${repository.name}/settings/danger")
   })
 
   /**
