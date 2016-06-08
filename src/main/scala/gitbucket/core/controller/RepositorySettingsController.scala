@@ -334,6 +334,18 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   })
 
   /**
+   * Run GC
+   */
+  post("/:owner/:repository/settings/gc")(ownerOnly { repository =>
+    LockUtil.lock(s"${repository.owner}/${repository.name}") {
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        git.gc();
+      }
+    }
+    redirect(s"/${repository.owner}/${repository.name}/danger")
+  })
+
+  /**
    * Provides duplication check for web hook url.
    */
   private def webHook(needExists: Boolean): Constraint = new Constraint(){

@@ -4,7 +4,7 @@
 @html.main("Danger Zone", Some(repository)){
   @html.menu("settings", repository){
     @menu("danger", repository){
-      <div class="panel panel-default">
+      <div class="panel panel-default" style="overflow: hidden;">
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
           <form id="transfer-form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
@@ -28,6 +28,15 @@
               <div>
                 Once you delete a repository, there is no going back.
                 <input type="submit" class="btn btn-danger pull-right" value="Delete this repository"/>
+              </div>
+            </fieldset>
+          </form>
+          <form id="gc-form" method="post" action="@url(repository)/settings/gc">
+            <fieldset class="margin form-group">
+              <label class="strong">Garbage collection</label>
+              <div>
+                Run garbage collection for this git repository immediately.
+                <input type="submit" class="btn btn-danger pull-right" value="Garbage collection"/>
               </div>
             </fieldset>
           </form>
