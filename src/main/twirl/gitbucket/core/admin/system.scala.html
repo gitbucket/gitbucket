@@ -97,10 +97,15 @@
           <!--====================================================================-->
           <hr>
           <label><span class="strong">Limit of activity logs</span> (Unlimited if it's not specified or zero)</label>
-          <div class="controls">
-            <input type="text" id="activityLogLimit" name="activityLogLimit" class="form-control input-mini" value="@settings.activityLogLimit"/>
-            <span id="error-activityLogLimit" class="error"></span>
-          </div>
+          <fieldset>
+            <div class="form-group">
+              <label class="control-label col-md-3" for="activityLogLimit">Limit</label>
+              <div class="col-md-9">
+                <input type="text" id="activityLogLimit" name="activityLogLimit" class="form-control input-mini" value="@settings.activityLogLimit"/>
+                <span id="error-activityLogLimit" class="error"></span>
+              </div>
+            </div>
+          </fieldset>
           <!--====================================================================-->
           <!-- Services -->
           <!--====================================================================-->
@@ -304,6 +309,11 @@
                 <input type="text" id="fromName" name="smtp.fromName" class="form-control" value="@settings.smtp.map(_.fromName)"/>
               </div>
             </div>
+            <div class="pull-right">
+              <input type="text" class="form-control"/>
+              <input type="button" class="btn btn-default" value="Send test email"/>
+            </div>
+
             <p class="muted">
               Enable notification not only SMTP configuration if you want to send notification email.
             </p>
