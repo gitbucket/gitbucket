@@ -294,7 +294,7 @@
             <div class="form-group">
               <label class="control-label col-md-3" for="smtpPassword">Enable SSL</label>
               <div class="col-md-9">
-                <input type="checkbox" name="smtp.ssl"@if(settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
+                <input type="checkbox" id="smtpSsl" name="smtp.ssl"@if(settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
@@ -309,9 +309,10 @@
                 <input type="text" id="fromName" name="smtp.fromName" class="form-control" value="@settings.smtp.map(_.fromName)"/>
               </div>
             </div>
-            <div class="pull-right">
-              <input type="text" class="form-control"/>
-              <input type="button" class="btn btn-default" value="Send test email"/>
+            <div class="text-right">
+              Send test mail to:
+              <input type="text" id="testAddress" size="30"/>
+              <input type="button" id="sendTestMail" value="Send"/>
             </div>
 
             <p class="muted">
@@ -328,6 +329,40 @@
 }
 <script>
 $(function(){
+  $('#sendTestMail').click(function(){
+    var host        = $('#smtpHost'    ).val();
+    var port        = $('#smtpPort'    ).val();
+    var user        = $('#smtpUser'    ).val();
+    var password    = $('#smtpPassword').val();
+    var ssl         = $('#smtpSsl'     ).prop('checked');
+    var fromAddress = $('#fromAddress' ).val();
+    var fromName    = $('#fromName'    ).val();
+    var testAddress = $('#testAddress' ).val();
+
+    if(host == ''){
+      alert('SMTP Host is required.');
+      $('#smtpHost').focus();
+    } else if(testAddress == ''){
+      alert('Destination is required.');
+      $('#testAddress').focus();
+    } else {
+      $.post('@path/admin/system/sendmail', {
+        'smtp.host': host,
+        'smtp.port': port,
+        'smtp.user': user,
+        'smtp.password': password,
+        'smtp.ssl': ssl,
+        'smtp.fromAddress': fromAddress,
+        'smtp.fromName': fromName,
+        'testAddress': testAddress
+      }, function(data, status){
+        if(data != ''){
+          alert(data);
+        }
+      });
+    }
+  });
+
   $('#ssh').change(function(){
     $('.ssh input').prop('disabled', !$(this).prop('checked'));
   }).change();

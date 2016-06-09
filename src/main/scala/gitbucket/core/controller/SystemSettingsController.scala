@@ -3,8 +3,8 @@ package gitbucket.core.controller
 import java.io.FileInputStream
 
 import gitbucket.core.admin.html
-import gitbucket.core.service.{AccountService, SystemSettingsService, RepositoryService}
-import gitbucket.core.util.AdminAuthenticator
+import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
+import gitbucket.core.util.{AdminAuthenticator, Mailer}
 import gitbucket.core.ssh.SshServer
 import gitbucket.core.plugin.PluginRegistry
 import SystemSettingsService._
@@ -13,7 +13,8 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.StringUtil._
 import io.github.gitbucket.scalatra.forms._
-import org.apache.commons.io.{IOUtils, FileUtils}
+import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import org.scalatra.i18n.Messages
 
 class SystemSettingsController extends SystemSettingsControllerBase
@@ -70,11 +71,20 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     ).flatten
   }
 
-  private val pluginForm = mapping(
-    "pluginId" -> list(trim(label("", text())))
-  )(PluginForm.apply)
+  private val sendMailForm = mapping(
+    "smtp"        -> mapping(
+      "host"        -> trim(label("SMTP Host", text(required))),
+      "port"        -> trim(label("SMTP Port", optional(number()))),
+      "user"        -> trim(label("SMTP User", optional(text()))),
+      "password"    -> trim(label("SMTP Password", optional(text()))),
+      "ssl"         -> trim(label("Enable SSL", optional(boolean()))),
+      "fromAddress" -> trim(label("FROM Address", optional(text()))),
+      "fromName"    -> trim(label("FROM Name", optional(text())))
+    )(Smtp.apply),
+    "testAddress" -> trim(label("", text(required)))
+  )(SendMailForm.apply)
 
-  case class PluginForm(pluginIds: List[String])
+  case class SendMailForm(smtp: Smtp, testAddress: String)
 
   case class DataExportForm(tableNames: List[String])
 
@@ -150,6 +160,18 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
     flash += "info" -> "System settings has been updated."
     redirect("/admin/system")
+  })
+
+  post("/admin/system/sendmail", sendMailForm)(adminOnly { form =>
+    try {
+      new Mailer(form.smtp).send(form.testAddress,
+        "Test message from GitBucket", "This is a test message from GitBucket.")
+
+      "Test mail has been sent to: " + form.testAddress
+
+    } catch {
+      case e: Exception => "[Error] " + e.toString
+    }
   })
 
   get("/admin/plugins")(adminOnly {
