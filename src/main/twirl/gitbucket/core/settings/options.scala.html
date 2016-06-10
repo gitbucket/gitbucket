@@ -5,8 +5,8 @@
   @html.menu("settings", repository){
     @menu("options", repository){
       @helper.html.information(info)
-      <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
-        <div class="panel panel-default" style="overflow: hidden;">
+      <form id="form" method="post" action="@url(repository)/settings/options" validate="true" style="overflow: hidden;">
+        <div class="panel panel-default">
           <div class="panel-heading strong">Settings</div>
           <div class="panel-body">
             <fieldset class="form-group">
@@ -42,6 +42,35 @@
             </fieldset>
           </div>
         </div>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Features</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
+              <label class="checkbox" for="enableIssues">
+                <input type="checkbox" id="enableIssues" name="enableIssues"@if(repository.repository.enableIssues){ checked}/>
+                Issues<br>
+                <div class="normal muted">
+                  Provides Lightweight issue tracking integrated with this repository. Add issues to milestones, label issues, and close & reference issues from commit messages.
+                  If you use external issue tracking system, turn off the checkbox above and put that URL into the following box:
+                </div>
+              </label>
+              <label for="externalIssuesUrl" class="strong">External URL:</label>
+              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.externalIssuesUrl"/>
+            </fieldset>
+            <fieldset class="form-group margin">
+              <label class="checkbox" for="enableWiki">
+                <input type="checkbox" id="enableWiki" name="enableWiki"@if(repository.repository.enableWiki){ checked}/>
+                Wiki<br>
+                <div class="normal muted">
+                  Provides a simple solution to manage documents. All users who can look this repository can read and collaborators can edit pages.
+                  If you have documents at the outside of GitBucket, turn off the checkbox above and put that URL into the following box:
+                </div>
+              </label>
+              <label for="externalWikiUrl" class="strong">External URL:</label>
+              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.externalWikiUrl"/>
+            </fieldset>
+          </div>
+        </div>
         <div class="align-right" style="margin-top: 20px;">
           <input type="submit" class="btn btn-success" value="Apply changes"/>
         </div>
@@ -49,3 +78,17 @@
     }
   }
 }
+<script>
+$(function(){
+  updateFeatures();
+
+  $('#enableIssues, #enableWiki').click(function(){
+    updateFeatures();
+  });
+});
+
+function updateFeatures() {
+  $('#externalIssuesUrl').prop('disabled', $('#enableIssues').prop('checked'));
+  $('#externalWikiUrl').prop('disabled', $('#enableWiki').prop('checked'));
+}
+</script>

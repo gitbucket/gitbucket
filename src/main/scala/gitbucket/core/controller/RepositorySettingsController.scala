@@ -27,12 +27,24 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
-  case class OptionsForm(repositoryName: String, description: Option[String], isPrivate: Boolean)
+  case class OptionsForm(
+    repositoryName: String,
+    description: Option[String],
+    isPrivate: Boolean,
+    enableIssues: Boolean,
+    enableWiki: Boolean,
+    externalIssuesUrl: Option[String],
+    externalWikiUrl: Option[String]
+  )
   
   val optionsForm = mapping(
-    "repositoryName" -> trim(label("Repository Name", text(required, maxlength(40), identifier, renameRepositoryName))),
-    "description"    -> trim(label("Description"    , optional(text()))),
-    "isPrivate"      -> trim(label("Repository Type", boolean()))
+    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(40), identifier, renameRepositoryName))),
+    "description"       -> trim(label("Description"        , optional(text()))),
+    "isPrivate"         -> trim(label("Repository Type"    , boolean())),
+    "enableIssues"      -> trim(label("Enable Issues"      , boolean())),
+    "enableWiki"        -> trim(label("Enable Wiki"        , boolean())),
+    "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
+    "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200)))))
   )(OptionsForm.apply)
 
   // for default branch
@@ -92,7 +104,11 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.description,
       repository.repository.parentUserName.map { _ =>
         repository.repository.isPrivate
-      } getOrElse form.isPrivate
+      } getOrElse form.isPrivate,
+      form.enableIssues,
+      form.enableWiki,
+      form.externalIssuesUrl,
+      form.externalWikiUrl
     )
     // Change repository name
     if(repository.name != form.repositoryName){
