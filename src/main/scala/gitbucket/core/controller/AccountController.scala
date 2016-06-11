@@ -504,10 +504,29 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName, true) match {
       case Some(account) => {
-        if(account.isRemoved)
-          org.scalatra.Ok(s"""{"message": "user with username $userName is found, but is disabled"}""")
-        else
-          org.scalatra.Ok(s"""{"message": "user with username $userName is found"}""")
+
+
+        val body = org.json4s.jackson.Serialization.write(
+          Map("userName" -> account.userName,
+              "fullName" -> account.fullName,
+              "mailAddress" -> account.mailAddress,
+              "password" -> account.password,
+              "isAdmin" -> account.isAdmin,
+              "url" -> account.url.getOrElse(""),
+              "registeredDate" -> account.registeredDate,
+              "updatedDate" -> account.updatedDate,
+              "lastLoginDate" -> account.lastLoginDate,
+              "image" -> account.image.getOrElse(""),
+              "isGroupAccount" -> account.isGroupAccount,
+              "isRemoved" -> account.isRemoved
+          )
+        )
+
+        org.scalatra.Ok(body = body)
+//        if(account.isRemoved)
+//          org.scalatra.Ok(s"""{"message": "user with username $userName is found, but is disabled"}""")
+//        else
+//          org.scalatra.Ok(s"""{"message": "user with username $userName is found"}""")
       }
       case None => {
         getAccountByMailAddress(userName, true) match {
