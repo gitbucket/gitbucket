@@ -37,10 +37,10 @@ trait RepositoryService { self: AccountService =>
         originRepositoryName = originRepositoryName,
         parentUserName       = parentUserName,
         parentRepositoryName = parentRepositoryName,
-        enableWiki           = true,
         enableIssues         = true,
-        externalWikiUrl      = None,
-        externalIssuesUrl    = None
+        enableWiki           = true,
+        externalIssuesUrl    = None,
+        externalWikiUrl      = None
       )
 
     IssueId insert (userName, repositoryName, 0)
@@ -318,8 +318,8 @@ trait RepositoryService { self: AccountService =>
    * Save repository options.
    */
   def saveRepositoryOptions(userName: String, repositoryName: String,
-      description: Option[String], isPrivate: Boolean, enableIssues: Boolean,
-      enableWiki: Boolean, externalIssuesUrl: Option[String], externalWikiUrl: Option[String])(implicit s: Session): Unit =
+      description: Option[String], isPrivate: Boolean,
+      enableIssues: Boolean, enableWiki: Boolean, externalIssuesUrl: Option[String], externalWikiUrl: Option[String])(implicit s: Session): Unit =
     Repositories.filter(_.byRepository(userName, repositoryName))
       .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.enableWiki, r.externalIssuesUrl.?, r.externalWikiUrl.?, r.updatedDate) }
       .update (description, isPrivate, enableIssues, enableWiki, externalIssuesUrl, externalWikiUrl, currentDate)
