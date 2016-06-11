@@ -20,13 +20,13 @@ val JettyVersion = "9.3.6.v20151106"
 
 ```scala
 object GitBucketCoreModule extends Module("gitbucket-core",
-  // add new version definition
-  new Version("4.1.0",
-    new LiquibaseMigration("update/gitbucket-core_4.1.xml")
-  ),
   new Version("4.0.0",
     new LiquibaseMigration("update/gitbucket-core_4.0.xml"),
     new SqlMigration("update/gitbucket-core_4.0.sql")
+  ),
+  // add new version definition
+  new Version("4.1.0",
+    new LiquibaseMigration("update/gitbucket-core_4.1.xml")
   )
 )
 ```
