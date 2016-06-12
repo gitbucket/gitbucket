@@ -32,8 +32,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     description: Option[String],
     isPrivate: Boolean,
     enableIssues: Boolean,
-    enableWiki: Boolean,
     externalIssuesUrl: Option[String],
+    enableWiki: Boolean,
+    allowWikiEditing: Boolean,
     externalWikiUrl: Option[String]
   )
   
@@ -42,8 +43,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
     "enableIssues"      -> trim(label("Enable Issues"      , boolean())),
-    "enableWiki"        -> trim(label("Enable Wiki"        , boolean())),
     "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
+    "enableWiki"        -> trim(label("Enable Wiki"        , boolean())),
+    "allowWikiEditing"  -> trim(label("Allow Wiki Editing" , boolean())),
     "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200)))))
   )(OptionsForm.apply)
 
@@ -106,8 +108,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         repository.repository.isPrivate
       } getOrElse form.isPrivate,
       form.enableIssues,
-      form.enableWiki,
       form.externalIssuesUrl,
+      form.enableWiki,
+      form.allowWikiEditing,
       form.externalWikiUrl
     )
     // Change repository name

@@ -691,8 +691,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
-
-
   override protected def renderUncaughtException(e: Throwable)(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
     e.printStackTrace()
   }

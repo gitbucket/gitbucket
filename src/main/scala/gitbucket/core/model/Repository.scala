@@ -18,10 +18,13 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
     val parentUserName = column[String]("PARENT_USER_NAME")
     val parentRepositoryName = column[String]("PARENT_REPOSITORY_NAME")
     val enableIssues = column[Boolean]("ENABLE_ISSUES")
-    val enableWiki = column[Boolean]("ENABLE_WIKI")
     val externalIssuesUrl = column[String]("EXTERNAL_ISSUES_URL")
+    val enableWiki = column[Boolean]("ENABLE_WIKI")
+    val allowWikiEditing = column[Boolean]("ALLOW_WIKI_EDITING")
     val externalWikiUrl = column[String]("EXTERNAL_WIKI_URL")
-    def * = (userName, repositoryName, isPrivate, description.?, defaultBranch, registeredDate, updatedDate, lastActivityDate, originUserName.?, originRepositoryName.?, parentUserName.?, parentRepositoryName.?, enableIssues, enableWiki, externalIssuesUrl.?, externalWikiUrl.?) <> (Repository.tupled, Repository.unapply)
+    def * = (userName, repositoryName, isPrivate, description.?, defaultBranch,
+      registeredDate, updatedDate, lastActivityDate, originUserName.?, originRepositoryName.?, parentUserName.?, parentRepositoryName.?,
+      enableIssues, externalIssuesUrl.?, enableWiki, allowWikiEditing, externalWikiUrl.?) <> (Repository.tupled, Repository.unapply)
 
     def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
   }
@@ -41,7 +44,8 @@ case class Repository(
   parentUserName: Option[String],
   parentRepositoryName: Option[String],
   enableIssues: Boolean,
-  enableWiki: Boolean,
   externalIssuesUrl: Option[String],
+  enableWiki: Boolean,
+  allowWikiEditing: Boolean,
   externalWikiUrl: Option[String]
 )
