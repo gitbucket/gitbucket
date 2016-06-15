@@ -626,9 +626,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/api/v3/newgroup")(adminOnly {
+
     (for {
       data <- extractFromJsonBody[CreateAGroup] if data.isValid
     } yield {
+
       //check if the members
       val temp =
         for {
@@ -645,11 +647,16 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       val _nMembers = temp.flatten
 
       if(_nMembers.size == data.members.size) {
-        createGroup(data.groupName, data.url)
-        updateGroupMembers(data.groupName,
-          data.members.map ( m => (m, m.equalsIgnoreCase( data.manager ))))
+        getAccountByUserName(data.groupName, true) match {
+          case Some(group) => updateGroup(data.groupName, data.url, false)
+
+          case None => createGroup(data.groupName, data.url)
+        }
+
+        updateGroupMembers(data.groupName, data.members.map ( m => (m, m.equalsIgnoreCase( data.manager ))))
 
         updateImage(data.groupName, data.fileId, false)
+
         org.scalatra.Accepted(s"""{"message": "${data.groupName} is added"}""")
       }
       else
@@ -682,13 +689,16 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     defining(params("groupName")){ groupName =>
       getAccountByUserName(groupName, true) match {
         case Some(account) => {
+
+          val repo = getRepositoryNamesOfUser(groupName)
+          val member = getGroupMembers(groupName) map {
+            m => if(m.isManager) (m.userName -> true) else (m.userName -> false)
+          }
           val body = org.json4s.jackson.Serialization.write(
             Map("userName" -> account.userName,
               "fullName" -> account.fullName,
-              "mailAddress" -> account.mailAddress,
-              //"password" -> account.password,
-              "isAdmin" -> account.isAdmin,
-              "url" -> account.url.getOrElse(""),
+              "repositories" -> repo,
+              "memebers" -> member,
               "registeredDate" -> account.registeredDate,
               "updatedDate" -> account.updatedDate,
               "lastLoginDate" -> account.lastLoginDate,
@@ -699,10 +709,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           )
 
           org.scalatra.Ok(body = body)
-//          if(account.isRemoved)
-//            org.scalatra.Ok(s"""{"message": "group with name $groupName is found, but is disabled"}""")
-//          else
-//            org.scalatra.Ok(s"""{"message": "group with name $groupName is found"}""")
         }
         case None => org.scalatra.NotFound(s"""{"message": "group with name $groupName is not found"}""")
       }
@@ -712,18 +718,32 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   delete("/api/v3/group/:groupName")(adminOnly{
     defining(params("groupName")) { groupName => {
       getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, None, true)
+        // Check if the group is empty
+        val repos = getRepositoryNamesOfUser(groupName)
 
-        // Remove from GROUP_MEMBER
-        updateGroupMembers(groupName, Nil)
-        // Remove repositories
-        getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-          deleteRepository(groupName, repositoryName)
-          FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-          FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-          FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+        if(repos.isEmpty) {
+          updateGroup(groupName, None, true)
+
+          // Remove from GROUP_MEMBER
+          updateGroupMembers(groupName, Nil)
+          org.scalatra.Accepted( s"""{"message": "$groupName is disabled" }""")
+
         }
-        org.scalatra.Accepted( s"""{"message": "$groupName is disabled" }""")
+        else {
+          org.scalatra.NotAcceptable(
+            s"""{"message": "Cannot disabled $groupName
+               | because it's not empty" }""".stripMargin)
+
+        }
+
+
+        // Remove repositories
+//        getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+//          deleteRepository(groupName, repositoryName)
+//          FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+//          FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+//          FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+//        }
       } getOrElse org.scalatra.NotFound(s"""{"message": "$groupName is not found" }""")
     }}})
 
