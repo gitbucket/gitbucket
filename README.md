@@ -49,6 +49,7 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 - [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
 - [gitbucket-commitgraphs-plugin](https://github.com/yoshiyoshifujii/gitbucket-commitgraphs-plugin)
 - [gitbucket-asciidoctor-plugin](https://github.com/lefou/gitbucket-asciidoctor-plugin)
+- [gitbucket-network-plugin](https://github.com/mrkm4ntr/gitbucket-network-plugin)
 
 You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
 
