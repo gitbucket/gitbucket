@@ -11,14 +11,15 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
-
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.lib.{FileMode, Constants}
+import org.eclipse.jgit.lib.{Constants, FileMode}
 import org.scalatra
 import org.scalatra.i18n.Messages
+
+import scala.util.{Failure, Success, Try}
 
 
 class AccountController extends AccountControllerBase
@@ -510,8 +511,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           Map("userName" -> account.userName,
               "fullName" -> account.fullName,
               "mailAddress" -> account.mailAddress,
-              "password" -> account.password,
-              "isAdmin" -> account.isAdmin,
               "url" -> account.url.getOrElse(""),
               "registeredDate" -> account.registeredDate,
               "updatedDate" -> account.updatedDate,
@@ -523,10 +522,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         )
 
         org.scalatra.Ok(body = body)
-//        if(account.isRemoved)
-//          org.scalatra.Ok(s"""{"message": "user with username $userName is found, but is disabled"}""")
-//        else
-//          org.scalatra.Ok(s"""{"message": "user with username $userName is found"}""")
       }
       case None => {
         getAccountByMailAddress(userName, true) match {
@@ -551,29 +546,68 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         if(context.settings.allowAccountRegistration){
           getAccountByUserName(data.userName,true) match {
             case Some(acc) => {
-              updateAccount(acc.copy(
+              Try(updateAccount(acc.copy(
                 password     = sha1(data.password),
                 fullName     = data.fullName,
                 mailAddress  = data.mailAddress,
                 isAdmin      = false,
                 url          = data.url,
-                isRemoved    = false))
+                isRemoved    = false))) match {
+                case Success(v) => {
+                  updateImage(data.userName, data.fileId, false)
 
-              updateImage(data.userName, data.fileId, false)
-              org.scalatra.Accepted(s"""{ "message": "${data.userName} is re-activated"} """)
+                  val body = org.json4s.jackson.Serialization.write(
+                    Map("userName" -> data.userName,
+                      "fullName" -> data.fullName,
+                      "mailAddress" -> data.mailAddress,
+                      "url" -> data.url,
+                      "isGroupAccount" -> false,
+                      "isRemoved" -> false
+                    )
+                  )
+
+                  org.scalatra.Accepted(body = body)
+                }
+                case Failure (ex) => org.scalatra.NotAcceptable(
+                  s"""{ "message": "Failed to create a user account:
+                    | ${ex.getMessage}" }""".stripMargin)
+
+              }
+
+
             }
             case None => {
-              createAccount(data.userName, sha1(data.password), data.fullName, data.mailAddress, false, data.url)
-              updateImage(data.userName, data.fileId, false)
-              org.scalatra.Accepted(s"""{ "message": "${data.userName} is added"} """)
+              Try(createAccount(data.userName, sha1(data.password),
+                data.fullName, data.mailAddress, false, data.url)) match {
+                case Success(v) => {
+                  updateImage(data.userName, data.fileId, false)
+
+                  val body = org.json4s.jackson.Serialization.write(
+                    Map("userName" -> data.userName,
+                      "fullName" -> data.fullName,
+                      "mailAddress" -> data.mailAddress,
+                      "url" -> data.url,
+                      "isGroupAccount" -> false,
+                      "isRemoved" -> false
+                    )
+                  )
+
+                  org.scalatra.Accepted(body = body)
+                }
+                case Failure (ex) => org.scalatra.NotAcceptable(
+                  s"""{ "message": "Failed to create a user account:
+                      | ${ex.getMessage}" }""".stripMargin)
+
+              }
             }
           }
+
 
         }
         else org.scalatra.NotAcceptable("""{ "message": "user creation is not allowed" }""")
 
       }) getOrElse
-      org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
+      org.scalatra.NotAcceptable("""{ "message": "json body is not valid"}""")
   })
 
   put("/api/v3/user/:userName") (adminOnly {
@@ -592,7 +626,18 @@ trait AccountControllerBase extends AccountManagementControllerBase {
               url          = data.url))
 
             updateImage(data.userName, data.fileId, false)
-            org.scalatra.Accepted(s"""{ "message": "${data.userName} is updated"} """)
+
+            val body = org.json4s.jackson.Serialization.write(
+              Map("userName" -> data.userName,
+                "fullName" -> data.fullName,
+                "mailAddress" -> data.mailAddress,
+                "url" -> data.url,
+                "isGroupAccount" -> false,
+                "isRemoved" -> false
+              )
+            )
+
+            org.scalatra.Accepted(body = body)
           }
           else org.scalatra.NotAcceptable("""{ "message": "user creation is not allowed" }""")
 
@@ -634,7 +679,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       //check if the members
       val temp =
         for {
-        member <- data.members.map ( m => (m, m.equalsIgnoreCase( data.manager )))
+        member <- data.members.map ( m => (m.name, m.isManager))
       } yield {
         getAccountByUserName(member._1, true) match {
           case Some(account) => {
@@ -653,7 +698,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           case None => createGroup(data.groupName, data.url)
         }
 
-        updateGroupMembers(data.groupName, data.members.map ( m => (m, m.equalsIgnoreCase( data.manager ))))
+        updateGroupMembers(data.groupName, data.members.map ( m => (m.name, m.isManager)))
 
         updateImage(data.groupName, data.fileId, false)
 
@@ -692,13 +737,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
           val repo = getRepositoryNamesOfUser(groupName)
           val member = getGroupMembers(groupName) map {
-            m => if(m.isManager) (m.userName -> true) else (m.userName -> false)
+            m => new gMember(m.userName, m.isManager)
           }
           val body = org.json4s.jackson.Serialization.write(
             Map("userName" -> account.userName,
               "fullName" -> account.fullName,
               "repositories" -> repo,
-              "memebers" -> member,
+              "members" -> member,
               "registeredDate" -> account.registeredDate,
               "updatedDate" -> account.updatedDate,
               "lastLoginDate" -> account.lastLoginDate,
@@ -755,7 +800,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         getAccountByUserName(groupName, true).map {account =>
           val temp =
             for {
-              member <- data.members.map ( m => (m, m.equalsIgnoreCase( data.manager )))
+              member <- data.members.map ( m => (m.name, m.isManager))
             } yield {
               getAccountByUserName(member._1, true) match {
                 case Some(account) => {
@@ -766,6 +811,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             }
 
           val _nMembers = temp.flatten
+          val _fMembers = _nMembers map (m => new gMember(m._1, m._2))
 
           if(_nMembers.size == data.members.size)
           {
@@ -776,7 +822,23 @@ trait AccountControllerBase extends AccountManagementControllerBase {
               _nMembers.foreach { case (userName, isManager) =>
                 addCollaborator(groupName, repositoryName, userName)}}
 
-            org.scalatra.Accepted(s"""{"message": "${data.groupName} is modified"}""")
+            val repo = getRepositoryNamesOfUser(groupName)
+
+            val body = org.json4s.jackson.Serialization.write(
+              Map("userName" -> account.userName,
+                "fullName" -> account.fullName,
+                "repositories" -> repo,
+                "members" -> _fMembers,
+                "registeredDate" -> account.registeredDate,
+                "updatedDate" -> account.updatedDate,
+                "lastLoginDate" -> account.lastLoginDate,
+                "image" -> account.image.getOrElse(""),
+                "isGroupAccount" -> account.isGroupAccount,
+                "isRemoved" -> account.isRemoved
+              )
+            )
+
+            org.scalatra.Ok(body = body)
 
           }
           else
@@ -812,7 +874,23 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             _cMembers.foreach { case (userName, isManager) =>
               addCollaborator(groupName, repositoryName, userName)}}
 
-          org.scalatra.Accepted(s"""{"message": "$groupName is modified"}""")
+          val repo = getRepositoryNamesOfUser(groupName)
+
+          val body = org.json4s.jackson.Serialization.write(
+            Map("userName" -> account.userName,
+              "fullName" -> account.fullName,
+              "repositories" -> repo,
+              "members" -> (_cMembers map (m => new gMember(m._1, m._2))),
+              "registeredDate" -> account.registeredDate,
+              "updatedDate" -> account.updatedDate,
+              "lastLoginDate" -> account.lastLoginDate,
+              "image" -> account.image.getOrElse(""),
+              "isGroupAccount" -> account.isGroupAccount,
+              "isRemoved" -> account.isRemoved
+            )
+          )
+
+          org.scalatra.Ok(body = body)
 
         } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
 
@@ -843,7 +921,23 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             _cMembers.foreach { case (userName, isManager) =>
               addCollaborator(groupName, repositoryName, userName)}}
 
-          org.scalatra.Accepted(s"""{"message": "$groupName is modified"}""")
+          val repo = getRepositoryNamesOfUser(groupName)
+
+          val body = org.json4s.jackson.Serialization.write(
+            Map("userName" -> account.userName,
+              "fullName" -> account.fullName,
+              "repositories" -> repo,
+              "members" -> (_cMembers map (m => new gMember(m._1, m._2))),
+              "registeredDate" -> account.registeredDate,
+              "updatedDate" -> account.updatedDate,
+              "lastLoginDate" -> account.lastLoginDate,
+              "image" -> account.image.getOrElse(""),
+              "isGroupAccount" -> account.isGroupAccount,
+              "isRemoved" -> account.isRemoved
+            )
+          )
+
+          org.scalatra.Ok(body = body)
 
         } getOrElse org.scalatra.NotFound(s"""{ "message": "$groupName is not found" }""")
 
