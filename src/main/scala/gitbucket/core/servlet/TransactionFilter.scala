@@ -28,23 +28,7 @@ class TransactionFilter extends Filter {
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     if(req.asInstanceOf[HttpServletRequest].getServletPath().startsWith("/assets/")){
       // assets don't need transaction
-      Try(chain.doFilter(req, res)) match {
-        case Success(s) =>
-        case Failure(ex) => {
-          res.asInstanceOf[HttpServletResponse].setStatus(500)
-          res.setContentType("text/plain")
-          val ps = new PrintStream(res.getOutputStream)
-          val pw = new PrintWriter(ps)
-          pw.print(
-            s"""{
-               |"message" : "Internal Service Error"
-               |}
-             """.stripMargin)
-          pw.close
-          ps.close
-          res.getOutputStream.close
-        }
-       }
+      chain.doFilter(req, res)
     } else {
       Database() withTransaction { session =>
         // Register Scalatra error callback to rollback transaction
@@ -55,23 +39,7 @@ class TransactionFilter extends Filter {
 
         logger.debug("begin transaction")
         req.setAttribute(Keys.Request.DBSession, session)
-        Try(chain.doFilter(req, res)) match {
-          case Success(s) =>
-          case Failure(ex) => {
-            res.asInstanceOf[HttpServletResponse].setStatus(500)
-            res.setContentType("text/plain")
-            val ps = new PrintStream(res.getOutputStream)
-            val pw = new PrintWriter(ps)
-            pw.print(
-              s"""{
-                  |"message" : "Internal Service Error"
-                  |}
-             """.stripMargin)
-            pw.close
-            ps.close
-            res.getOutputStream.close
-          }
-        }
+        chain.doFilter(req, res)
         logger.debug("end transaction")
       }
     }
