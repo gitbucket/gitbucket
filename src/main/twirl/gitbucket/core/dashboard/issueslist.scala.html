@@ -20,7 +20,7 @@
   <tbody>
     @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
       <tr>
-        <td style="padding-top: 12px; padding-bottom: 12px;">
+        <td style="padding-top: 12px; padding-bottom: 12px;background-color:#616161; color:white;">
           @if(issue.isPullRequest){
             <i class="octicon octicon-git-pull-request @(if(issue.closed) "closed" else "open")"></i>
           } else {
@@ -61,7 +61,7 @@
     }
     @if(issues.isEmpty){
       <tr>
-        <td style="padding: 20px; background-color: #eee; text-align: center;">
+        <td style="padding: 20px; background-color:#616161; color:white; text-align: center;">
           No results matched your search.
         </td>
       </tr>

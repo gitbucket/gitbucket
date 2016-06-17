@@ -618,9 +618,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           data <- extractFromJsonBody[ModifyAUser] if data.isValid
         } yield {
           if(context.settings.allowAccountRegistration){
+            val newPassword = data.password match {
+              case Some(p) => sha1(p)
+              case None => acc.password
+            }
 
             updateAccount(acc.copy(
-              password     = sha1(data.password.getOrElse(acc.password)),
+              password     = newPassword,
               fullName     = data.fullName.getOrElse(acc.fullName),
               mailAddress  = data.mailAddress,
               url          = data.url))

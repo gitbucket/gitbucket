@@ -151,7 +151,7 @@
   <tbody>
     @if(issues.isEmpty){
       <tr>
-        <td style="padding: 20px; background-color: #eee; text-align: center;">
+        <td style="padding: 20px; background-color: #464545; color:white; text-align: center;">
           @if(target == "issues"){
             No issues to show.
           } else {
@@ -173,7 +173,7 @@
     }
     @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
       <tr>
-        <td style="padding-top: 12px; padding-bottom: 12px;">
+        <td style="padding-top: 12px; padding-bottom: 12px; background-color: #464545; color:white;">
           @if(hasWritePermission){
             <input type="checkbox" value="@issue.issueId"/>
           }

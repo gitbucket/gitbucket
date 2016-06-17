@@ -4,15 +4,23 @@
   closedCount: Int,
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   filter: String,
-  groups: List[String])(implicit context: gitbucket.core.controller.Context)
+  groups: List[String],
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main("Issues"){
   <div class="body">
     @dashboard.html.tab("issues")
     <div class="container">
-      @issuesnavi(filter, "issues", condition)
-      @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
+      <div class="row">
+	     <div class="col-md-4">
+	      @dashboard.html.repopanel(userRepositories)
+	     </div>
+	     <div class="col-md-8">
+	      @issuesnavi(filter, "issues", condition)
+	      @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
+	     </div>
     </div>
+   </div>
   </div>
 }

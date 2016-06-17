@@ -1,7 +1,7 @@
 @(systemSettings: gitbucket.core.service.SystemSettingsService.SystemSettings)(implicit context: gitbucket.core.controller.Context)
 @import context._
-<div class="panel panelcustom">
-  <div class="panel-heading strong">
+<div class="panel panelbackgrnd panelborder">
+  <div class="panel-heading strong panelbackgrnd">
     @if(systemSettings.allowAccountRegistration){
       <div class="pull-right">
         <a href="@path/register" class="btn btn-mini">Create new account</a>
@@ -10,7 +10,7 @@
     Sign in
   </div>
   <ul class="list-group list-group-flush">
-    <li class="list-group-item">
+    <li class="list-group-item panelbackgrnd">
       <form action="@path/signin" method="POST" validate="true">
         <div class="form-group">
           <label for="userName">Username:</label>

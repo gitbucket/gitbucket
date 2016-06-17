@@ -12,7 +12,7 @@
       @helper.html.information(info)
       @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
       <form action="@url(account.userName)/_edit" method="POST" validate="true">
-      <div class="panel panel-default">
+      <div class="panel panelcustom">
         <div class="panel-heading strong">Profile</div>
         <div class="panel-body">
           <div class="row">
