@@ -1,13 +1,18 @@
 package gitbucket.core.servlet
 
+import java.io.{PrintStream, PrintWriter}
 import javax.servlet._
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import gitbucket.core.util.DatabaseConfig
 import org.scalatra.ScalatraBase
 import org.slf4j.LoggerFactory
-import slick.jdbc.JdbcBackend.{Database => SlickDatabase, Session}
+
+import slick.jdbc.JdbcBackend.{Session, Database => SlickDatabase}
 import gitbucket.core.util.Keys
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * Controls the transaction with the open session in view pattern.
@@ -23,7 +28,23 @@ class TransactionFilter extends Filter {
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     if(req.asInstanceOf[HttpServletRequest].getServletPath().startsWith("/assets/")){
       // assets don't need transaction
-      chain.doFilter(req, res)
+      Try(chain.doFilter(req, res)) match {
+        case Success(s) =>
+        case Failure(ex) => {
+          res.asInstanceOf[HttpServletResponse].setStatus(500)
+          res.setContentType("text/plain")
+          val ps = new PrintStream(res.getOutputStream)
+          val pw = new PrintWriter(ps)
+          pw.print(
+            s"""{
+               |"message" : "Internal Service Error"
+               |}
+             """.stripMargin)
+          pw.close
+          ps.close
+          res.getOutputStream.close
+        }
+       }
     } else {
       Database() withTransaction { session =>
         // Register Scalatra error callback to rollback transaction
@@ -34,7 +55,23 @@ class TransactionFilter extends Filter {
 
         logger.debug("begin transaction")
         req.setAttribute(Keys.Request.DBSession, session)
-        chain.doFilter(req, res)
+        Try(chain.doFilter(req, res)) match {
+          case Success(s) =>
+          case Failure(ex) => {
+            res.asInstanceOf[HttpServletResponse].setStatus(500)
+            res.setContentType("text/plain")
+            val ps = new PrintStream(res.getOutputStream)
+            val pw = new PrintWriter(ps)
+            pw.print(
+              s"""{
+                  |"message" : "Internal Service Error"
+                  |}
+             """.stripMargin)
+            pw.close
+            ps.close
+            res.getOutputStream.close
+          }
+        }
         logger.debug("end transaction")
       }
     }
