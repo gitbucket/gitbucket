@@ -48,7 +48,7 @@
             <div>
               <div class="commit-avatar-image">@avatarLink(commit, 40)</div>
               <div>
-                <a href="@url(repository)/commit/@commit.id" class="commit-message strong">@link(commit.summary, repository)</a>
+                @link(commit.summary, repository)
                 @if(commit.description.isDefined){
                   <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
                 }
