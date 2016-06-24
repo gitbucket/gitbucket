@@ -69,13 +69,13 @@ abstract class ControllerBase extends ScalatraFilter
       Try(super.doFilter(request, response, chain)) match {
         case Success(s) =>
         case Failure(ex) => {
-          response.asInstanceOf[HttpServletResponse].setStatus(500)
+          response.asInstanceOf[HttpServletResponse].setStatus(400)
           response.setContentType("text/plain")
           val ps = new PrintStream(response.getOutputStream)
           val pw = new PrintWriter(ps)
           pw.print(
             s"""{
-                |"message" : "Internal Service Error"
+                |"message" : "400 Bad Request"
                 |}
              """.stripMargin)
           pw.close
