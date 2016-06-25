@@ -10,15 +10,13 @@
 @import gitbucket.core.view.helpers._
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @if(showIndex){
-  <div style="overflow: hidden;">
-    <div class="pull-right" style="margin-bottom: 10px;">
-      <div class="btn-group" data-toggle="buttons-radio">
-        <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
-        <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
-      </div>
+  <div class="pull-right" style="margin-bottom: 10px;">
+    <div class="btn-group" data-toggle="buttons-radio">
+      <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
+      <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
     </div>
-    Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @plural(diffs.size, "file")</a>
   </div>
+  Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @plural(diffs.size, "file")</a>
   <ul id="commit-file-list" style="display: none;">
   @diffs.zipWithIndex.map { case (diff, i) =>
     <li@if(i > 0){ class="border"}>

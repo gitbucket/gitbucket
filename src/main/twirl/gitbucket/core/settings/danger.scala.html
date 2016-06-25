@@ -5,7 +5,7 @@
   @html.menu("settings", repository){
     @menu("danger", repository){
       @helper.html.information(info)
-      <div class="panel panel-default" style="overflow: hidden;">
+      <div class="panel panel-default">
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
           <form id="transfer-form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
