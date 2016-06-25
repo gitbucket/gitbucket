@@ -16,6 +16,8 @@
     <link href="@assets/vendors/colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
     <link href="@assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
     <link href="@assets/vendors/facebox/facebox.css" rel="stylesheet"/>
+    <link href="@assets/vendors/AdminLTE-2.2.3/css/AdminLTE.min.css" rel="stylesheet">
+    <link href="@assets/vendors/AdminLTE-2.2.3/css/skins/skin-blue.min.css" rel="stylesheet">
     <link href="@assets/common/css/gitbucket.css" rel="stylesheet">
     <script src="@assets/vendors/jquery/jquery-1.11.1.js"></script>
     <script src="@assets/vendors/dropzone/dropzone.js"></script>
@@ -36,55 +38,64 @@
         <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
       }
     }
+    <script>
+        var AdminLTEOptions = {
+          //Enable sidebar expand on hover effect for sidebar mini
+          //This option is forced to true if both the fixed layout and sidebar mini
+          //are used together
+          sidebarExpandOnHover: true,
+          //BoxRefresh Plugin
+          enableBoxRefresh: true,
+          //Bootstrap.js tooltip
+          enableBSToppltip: true
+        };
+    </script>
+    <script src="@assets/vendors/AdminLTE-2.2.3/js/app.js" type="text/javascript"></script>
   </head>
-  <body>
-    <form id="search" action="@path/search" method="POST" class="form-inline">
-      <nav class="navbar navbar-default">
-        <div class="container">
-          @* TODO: for plugi-ins?
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          *@
-          <a class="navbar-brand" href="@path/">
-            <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px; display: inline;"/>GitBucket
-            <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.get(0).getVersion</span>
-          </a>
+  <body class="skin-blue">
+    <header class="main-header">
+      <a href="@path/" class="logo">
+        <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px; display: inline;"/>
+        GitBucket
+        <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.get(0).getVersion</span>
+      </a>
+      <nav class="navbar navbar-static-top" role="navigation">
+        @repository.map { repository =>
+          <form id="search" action="@path/search" method="POST" class="navbar-form navbar-left" role="search">
+            <div class="form-group">
+              @*
+              <input type="text" class="form-control" id="navbar-search-input" placeholder="Search">
+              *@
+              <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search this repository"/>
+              <input type="hidden" name="owner" value="@repository.owner"/>
+              <input type="hidden" name="repository" value="@repository.name"/>
+            </div>
+          </form>
+        }
+        <ul class="nav navbar-nav">
           @if(loginAccount.isDefined){
-            @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
-              <input type="hidden" name="owner" value="@repository.owner"/>
-              <input type="hidden" name="repository" value="@repository.name"/>
-            }
-            <a href="@path/dashboard/pulls" class="global-header-menu">Pull requests</a>
-            <a href="@path/dashboard/issues" class="global-header-menu">Issues</a>
-          } else {
-            @* TODO: merge with below *@
-            @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 400px; margin-top: 3px; margin-bottom: 3px;" placeholder="Search this repository"/>
-              <input type="hidden" name="owner" value="@repository.owner"/>
-              <input type="hidden" name="repository" value="@repository.name"/>
-            }
+            <li><a href="@path/dashboard/pulls">Pull requests</a></li>
+            <li><a href="@path/dashboard/issues">Issues</a></li>
           }
           @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
             @menu(context).map { link =>
-              <a href="@path/@link.path" class="global-header-menu">@link.label</a>
+              <li><a href="@path/@link.path">@link.label</a></li>
             }
           }
-          @if(loginAccount.isDefined){
-            <div class="pull-right" style="margin-top: 6px;">
-              <div class="btn-group" style="margin-right: 8px;">
+        </ul>
+        <div class="navbar-custom-menu">
+          <ul class="nav navbar-nav">
+            @if(loginAccount.isDefined){
+              <li class="dropdown">
                 <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
-                  <i class="octicon octicon-plus" style="color: black; font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
+                  <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
                 </a>
                 <ul class="dropdown-menu pull-right">
                   <li><a href="@path/new">New repository</a></li>
                   <li><a href="@path/groups/new">New group</a></li>
                 </ul>
-              </div>
-              <div class="btn-group">
+              </li>
+              <li class="dropdown">
                 <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">
                   @avatar(loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
                 </a>
@@ -96,14 +107,16 @@
                   }
                   <li><a href="@path/signout">Sign out</a></li>
                 </ul>
-              </div>
-            </div>
-          } else {
-            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 3px; margin-bottom: 3px;" id="signin">Sign in</a>
-          }
+              </li>
+            } else {
+              <li>
+                <a href="@path/signin?redirect=@urlEncode(currentPath)" class="pull-right" id="signin">Sign in</a>
+              </li>
+            }
+          </ul>
         </div>
       </nav>
-    </form>
+    </header>
     @body
     <script>
       $(function(){

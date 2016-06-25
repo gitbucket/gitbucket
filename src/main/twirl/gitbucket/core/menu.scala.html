@@ -20,65 +20,68 @@
   </li>
 }
 
-<div class="headbar">
-  <div class="container">
-    @helper.html.information(info)
-    @helper.html.error(error)
-    <div class="head">
-      @helper.html.repositoryicon(repository, true)
-      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
-
-      @defining(repository.repository){ x =>
-        @if(repository.repository.originRepositoryName.isDefined){
-          <div class="forked">
-            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
-          </div>
+  <div class="main-sidebar">
+    <div class="sidebar">
+      <ul class="sidebar-menu">
+        @menuitem("", "files", "Files", "code")
+        @if(repository.commitCount != 0) {
+          @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
+          @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
         }
-        @x.description.map { description =>
-          <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@detectAndRenderLinks(description)</div>
+        @if(repository.repository.enableIssues) {
+          @menuitem("/issues", "issues", "Issues", "issue-opened", repository.issueCount)
+          @menuitem("/pulls", "pulls", "Pull Requests", "git-pull-request", repository.pullCount)
+          @menuitem("/issues/labels", "labels", "Labels", "tag")
+          @menuitem("/issues/milestones", "milestones", "Milestones", "milestone")
+        } else {
+          @repository.repository.externalIssuesUrl.map { externalIssuesUrl =>
+            @menuitem(externalIssuesUrl, "issues", "Issues", "issue-opened")
+          }
         }
-      }
+        @if(repository.repository.enableWiki) {
+          @menuitem("/wiki", "wiki", "Wiki", "book")
+        } else {
+          @repository.repository.externalWikiUrl.map { externalWikiUrl =>
+            @menuitem(externalWikiUrl, "wiki", "Wiki", "book")
+          }
+        }
+        @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
+        @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+          @menuitem("/settings", "settings", "Settings", "tools")
+        }
+        @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
+          @menu(repository, context).map { link =>
+            @menuitem(link.path, link.id, link.label, link.icon.getOrElse("ruby"))
+          }
+        }
+      </ul>
     </div>
   </div>
-</div>
-<div class="container body">
-  <div class="main-sidebar">
-    <ul class="nav nav-pills nav-stacked">
-      @menuitem("", "files", "Files", "code")
-      @if(repository.commitCount != 0) {
-        @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
-        @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
-      }
-      @if(repository.repository.enableIssues) {
-        @menuitem("/issues", "issues", "Issues", "issue-opened", repository.issueCount)
-        @menuitem("/pulls", "pulls", "Pull Requests", "git-pull-request", repository.pullCount)
-        @menuitem("/issues/labels", "labels", "Labels", "tag")
-        @menuitem("/issues/milestones", "milestones", "Milestones", "milestone")
-      } else {
-        @repository.repository.externalIssuesUrl.map { externalIssuesUrl =>
-          @menuitem(externalIssuesUrl, "issues", "Issues", "issue-opened")
-        }
-      }
-      @if(repository.repository.enableWiki) {
-        @menuitem("/wiki", "wiki", "Wiki", "book")
-      } else {
-        @repository.repository.externalWikiUrl.map { externalWikiUrl =>
-          @menuitem(externalWikiUrl, "wiki", "Wiki", "book")
-        }
-      }
-      @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
-      @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-        @menuitem("/settings", "settings", "Settings", "tools")
-      }
-      @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
-        @menu(repository, context).map { link =>
-          @menuitem(link.path, link.id, link.label, link.icon.getOrElse("ruby"))
-        }
-      }
-    </ul>
-  </div>
-  <div class="main-content">
-    @body
+  <div class="content-wrapper">
+    <div class="content body">
+      <div class="headbar">
+        <div class="container">
+          @helper.html.information(info)
+          @helper.html.error(error)
+          <div class="head">
+            @helper.html.repositoryicon(repository, true)
+            <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+
+            @defining(repository.repository){ x =>
+              @if(repository.repository.originRepositoryName.isDefined){
+                <div class="forked">
+                  forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+                </div>
+              }
+              @x.description.map { description =>
+                <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@detectAndRenderLinks(description)</div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+      @body
+    </div>
   </div>
 </div>
 
