@@ -9,7 +9,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
     A repository contains all the files for your project, including the revision history.
   </p>
   <form id="form" method="post" action="@path/new" validate="true">
-    <fieldset class="margin form-group">
+    <fieldset class="border-top form-group">
       <dl style="float: left;">
         <dt>Owner</dt>
         <dd style="margin-left: 0px;">
@@ -41,7 +41,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
       <label for="description" class="strong">Description (optional):</label>
       <input type="text" name="description" id="description" class="form-control" style="width: 95%;"/>
     </fieldset>
-    <fieldset class="margin">
+    <fieldset class="border-top">
       <label class="radio">
         <input type="radio" name="isPrivate" value="false" @if(isCreateRepoOptionPublic){checked}>
         <span class="strong"><i class="octicon octicon-repo"></i>&nbsp;</i>&nbsp;Public</span>
@@ -57,7 +57,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
         </div>
       </label>
     </fieldset>
-    <fieldset class="margin">
+    <fieldset class="border-top">
       <label for="createReadme" class="checkbox">
         <input type="checkbox" name="createReadme" id="createReadme"/>
         <span class="strong">Initialize this repository with a README</span>
@@ -66,7 +66,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
         </div>
       </label>
     </fieldset>
-    <fieldset class="margin form-actions">
+    <fieldset class="border-top form-actions">
       <input type="submit" class="btn btn-success" value="Create repository"/>
     </fieldset>
   </form>

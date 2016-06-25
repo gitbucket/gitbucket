@@ -14,11 +14,11 @@
               <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
               <span id="error-repositoryName" class="error"></span>
             </fieldset>
-            <fieldset class="margin form-group">
+            <fieldset class="border-top form-group">
               <label for="description" class="strong">Description:</label>
               <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
             </fieldset>
-            <fieldset class="margin">
+            <fieldset class="border-top">
               <label class="radio">
                 <input type="radio" name="isPrivate" value="false"
                   @if(!repository.repository.isPrivate              ){ checked  }
