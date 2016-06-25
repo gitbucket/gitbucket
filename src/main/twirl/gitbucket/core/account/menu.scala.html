@@ -1,27 +1,31 @@
 @(active: String, ssh: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
 <div class="main-sidebar">
-  <ul class="nav nav-pills nav-stacked">
-    <li@if(active=="profile"){ class="active"}>
-      <a href="@path/@loginAccount.get.userName/_edit">Profile</a>
-    </li>
-    @if(ssh){
-    <li@if(active=="ssh"){ class="active"}>
-      <a href="@path/@loginAccount.get.userName/_ssh">SSH Keys</a>
-    </li>
-    }
-    <li@if(active=="application"){ class="active"}>
-      <a href="@path/@loginAccount.get.userName/_application">Applications</a>
-    </li>
-    @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
-      @menu(context).map { link =>
-        <li@if(active==link.id){ class="active"}>
-          <a href="@path/@link.path">@link.label</a>
-        </li>
+  <div class="sidebar">
+    <ul class="sidebar-menu">
+      <li@if(active=="profile"){ class="active"}>
+        <a href="@path/@loginAccount.get.userName/_edit">Profile</a>
+      </li>
+      @if(ssh){
+      <li@if(active=="ssh"){ class="active"}>
+        <a href="@path/@loginAccount.get.userName/_ssh">SSH Keys</a>
+      </li>
       }
-    }
-  </ul>
+      <li@if(active=="application"){ class="active"}>
+        <a href="@path/@loginAccount.get.userName/_application">Applications</a>
+      </li>
+      @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
+        @menu(context).map { link =>
+          <li@if(active==link.id){ class="active"}>
+            <a href="@path/@link.path">@link.label</a>
+          </li>
+        }
+      }
+    </ul>
+  </div>
 </div>
-<div class="main-content">
-  @body
+<div class="content-wrapper">
+  <div class="content body">
+    @body
+  </div>
 </div>

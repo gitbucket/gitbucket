@@ -3,29 +3,37 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(account.userName){
-  <div class="container body">
-    <div class="main-sidebar">
-      <div class="block">
-        <div class="account-image">@avatar(account.userName, 240)</div>
-        <div class="account-fullname">@account.fullName</div>
-        <div class="account-username">@account.userName</div>
+  <div class="main-sidebar">
+    <div class="sidebar">
+      <div class="user-panel">
+        <div class="pull-left image">@avatar(account.userName, 40)</div>
+        <div class="pull-left info">
+          <p>@account.userName</p>
+          @account.fullName
+        </div>
       </div>
-      <div class="block">
+      <div style="padding-left: 10px; padding-right: 10px;">
         @if(account.url.isDefined){
-          <div><i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a></div>
+          <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a>
+          </p>
         }
-        <div><i class="octicon octicon-clock"></i> <span class="muted">Joined on</span> @date(account.registeredDate)</div>
+        <p style="color: white;">
+          <i class="octicon octicon-clock"></i> Joined on @date(account.registeredDate)
+        </p>
       </div>
       @if(groupNames.nonEmpty){
-        <div>
-          <div>Groups</div>
+        <ul class="sidebar-menu">
+          <li class="header">Groups</li>
           @groupNames.map { groupName =>
-            @avatarLink(groupName, 36, tooltip = true)
+            <li>@avatarLink(groupName, 20, tooltip = true, label = true)</li>
           }
         </div>
       }
     </div>
-    <div class="main-content">
+  </div>
+  <div class="content-wrapper">
+    <div class="content body">
       <ul class="nav nav-tabs" style="margin-bottom: 5px;">
         <li@if(active == "repositories"){ class="active"}><a href="@url(account.userName)?tab=repositories">Repositories</a></li>
         @if(account.isGroupAccount){

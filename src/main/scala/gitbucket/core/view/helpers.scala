@@ -222,8 +222,14 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Generates the avatar link to the account page.
    * If user does not exist or disabled, this method returns avatar image without link.
    */
-  def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false)(implicit context: Context): Html =
-    userWithContent(userName, mailAddress)(avatar(userName, size, tooltip, mailAddress))
+  def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false, label: Boolean = false)
+                (implicit context: Context): Html = {
+
+    val avatarHtml = avatar(userName, size, tooltip, mailAddress)
+    val contentHtml = if(label == true) Html(avatarHtml.body + " " + userName) else avatarHtml
+
+    userWithContent(userName, mailAddress)(contentHtml)
+  }
 
   /**
     * Generates the avatar link to the account page.
@@ -232,7 +238,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def avatarLink(commit: JGitUtil.CommitInfo, size: Int)(implicit context: Context): Html =
     userWithContent(commit.authorName, commit.authorEmailAddress)(avatar(commit, size))
 
-  private def userWithContent(userName: String, mailAddress: String = "", styleClass: String = "")(content: Html)(implicit context: Context): Html =
+  private def userWithContent(userName: String, mailAddress: String = "", styleClass: String = "")(content: Html)
+                             (implicit context: Context): Html =
     (if(mailAddress.isEmpty){
       getAccountByUserName(userName)
     } else {
