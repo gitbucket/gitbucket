@@ -2,56 +2,58 @@
 @import context._
 @import gitbucket.core.view.helpers._
 @html.main(if(account.isEmpty) "Create group" else "Edit group"){
-<div class="body main-center">
-  <h2>@{if(account.isEmpty) "Create group" else "Edit group"}</h2>
-  <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
-    <div class="row">
-      <div class="col-md-5">
-        <fieldset class="form-group">
-          <label for="groupName" class="strong">Group name</label>
-          <div>
-            <span id="error-groupName" class="error"></span>
-          </div>
-          <input type="text" name="groupName" id="groupName" class="form-control" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
-        </fieldset>
-        <fieldset class="form-group">
-          <label class="strong">URL (Optional)</label>
-          <div>
-            <span id="error-url" class="error"></span>
-          </div>
-          <input type="text" name="url" id="url" class="form-control" value="@account.map(_.url)"/>
-        </fieldset>
-        <fieldset class="form-group">
-          <label for="avatar" class="strong">Image (Optional)</label>
-          @helper.html.uploadavatar(account)
-        </fieldset>
-      </div>
-      <div class="col-md-7">
-        <fieldset class="form-group">
-          <label class="strong">Members</label>
-          <ul id="member-list" class="collaborator">
-          </ul>
-          @helper.html.account("memberName", 200)
-          <input type="button" class="btn btn-default" value="Add" id="addMember"/>
-          <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
-          <div>
-            <span class="error" id="error-members"></span>
-          </div>
-        </fieldset>
-      </div>
-    </div>
-    <fieldset class="border-top">
-      @if(account.isDefined){
-        <div class="pull-right">
-          <a href="@url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete Group</a>
+<div class="content-wrapper main-center">
+  <div class="content body">
+    <h2>@{if(account.isEmpty) "Create group" else "Edit group"}</h2>
+    <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
+      <div class="row">
+        <div class="col-md-5">
+          <fieldset class="form-group">
+            <label for="groupName" class="strong">Group name</label>
+            <div>
+              <span id="error-groupName" class="error"></span>
+            </div>
+            <input type="text" name="groupName" id="groupName" class="form-control" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+          </fieldset>
+          <fieldset class="form-group">
+            <label class="strong">URL (Optional)</label>
+            <div>
+              <span id="error-url" class="error"></span>
+            </div>
+            <input type="text" name="url" id="url" class="form-control" value="@account.map(_.url)"/>
+          </fieldset>
+          <fieldset class="form-group">
+            <label for="avatar" class="strong">Image (Optional)</label>
+            @helper.html.uploadavatar(account)
+          </fieldset>
         </div>
-      }
-      <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
-      @if(account.isDefined){
-        <a href="@url(account.get.userName)" class="btn btn-default">Cancel</a>
-      }
-    </fieldset>
-  </form>
+        <div class="col-md-7">
+          <fieldset class="form-group">
+            <label class="strong">Members</label>
+            <ul id="member-list" class="collaborator">
+            </ul>
+            @helper.html.account("memberName", 200)
+            <input type="button" class="btn btn-default" value="Add" id="addMember"/>
+            <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
+            <div>
+              <span class="error" id="error-members"></span>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <fieldset class="border-top">
+        @if(account.isDefined){
+          <div class="pull-right">
+            <a href="@url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete Group</a>
+          </div>
+        }
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
+        @if(account.isDefined){
+          <a href="@url(account.get.userName)" class="btn btn-default">Cancel</a>
+        }
+      </fieldset>
+    </form>
+  </div>
 </div>
 }
 <script>

@@ -359,7 +359,7 @@ div.activity-message {
   margin-left: 20px;
 }
 
-fieldset.margin {
+fieldset.border-top {
   border-top: 1px solid #eee;
   margin-top: 10px;
   padding-top: 10px;
@@ -1448,6 +1448,7 @@ ul.collaborator li:hover {
 ul.collaborator a.remove {
   color: #dd0000;
   text-decoration: underline;
+  padding-top: 4px;
 }
 
 /****************************************************************************/
