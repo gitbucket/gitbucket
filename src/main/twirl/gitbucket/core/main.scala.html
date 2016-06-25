@@ -57,7 +57,7 @@
       <a href="@path/" class="logo">
         <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px; display: inline;"/>
         GitBucket
-        <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.get(0).getVersion</span>
+        <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span>
       </a>
       <nav class="navbar navbar-static-top" role="navigation">
         @repository.map { repository =>
