@@ -85,7 +85,7 @@ abstract class ControllerBase extends ScalatraFilter
       }
     }
   } finally {
-    contextCache.remove();
+    contextCache.remove()
   }
 
   private val contextCache = new java.lang.ThreadLocal[Context]()
