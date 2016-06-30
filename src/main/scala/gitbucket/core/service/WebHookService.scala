@@ -119,7 +119,7 @@ trait WebHookService {
               }
               case WebHookContentType.JSON => {
             	  httpPost.setEntity(EntityBuilder.create().setText(json).build())
-                if (!webHook.token.isEmpty) {
+                if (webHook.token.exists(_.trim.nonEmpty)) {
                   httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.orNull, json.getBytes("UTF-8")))
                 }
               }
