@@ -40,69 +40,71 @@
     }
     <script src="@assets/vendors/AdminLTE-2.2.3/js/app.js" type="text/javascript"></script>
   </head>
-  <body class="skin-blue fixed">
-    <header class="main-header">
-      <a href="@path/" class="logo">
-        <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px; display: inline;"/>
-        GitBucket
-        <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span>
-      </a>
-      <nav class="navbar navbar-static-top" role="navigation">
-        @repository.map { repository =>
-          <form id="search" action="@path/search" method="POST" class="navbar-form navbar-left" role="search">
-            <div class="form-group">
-              <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search this repository"/>
-              <input type="hidden" name="owner" value="@repository.owner"/>
-              <input type="hidden" name="repository" value="@repository.name"/>
-            </div>
-          </form>
-        }
-        <ul class="nav navbar-nav">
-          @if(loginAccount.isDefined){
-            <li><a href="@path/dashboard/pulls">Pull requests</a></li>
-            <li><a href="@path/dashboard/issues">Issues</a></li>
+  <body class="skin-blue">
+    <div class="wrapper">
+      <header class="main-header">
+        <a href="@path/" class="logo">
+          <img src="@assets/common/images/gitbucket.png" style="width: 24px; height: 24px; display: inline;"/>
+          GitBucket
+          <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span>
+        </a>
+        <nav class="navbar navbar-static-top" role="navigation">
+          @repository.map { repository =>
+            <form id="search" action="@path/search" method="POST" class="navbar-form navbar-left" role="search">
+              <div class="form-group">
+                <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search this repository"/>
+                <input type="hidden" name="owner" value="@repository.owner"/>
+                <input type="hidden" name="repository" value="@repository.name"/>
+              </div>
+            </form>
           }
-          @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
-            @menu(context).map { link =>
-              <li><a href="@path/@link.path">@link.label</a></li>
-            }
-          }
-        </ul>
-        <div class="navbar-custom-menu">
           <ul class="nav navbar-nav">
             @if(loginAccount.isDefined){
-              <li class="dropdown">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
-                  <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                  <li><a href="@path/new">New repository</a></li>
-                  <li><a href="@path/groups/new">New group</a></li>
-                </ul>
-              </li>
-              <li class="dropdown">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">
-                  @avatar(loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                  <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
-                  <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
-                  @if(loginAccount.get.isAdmin){
-                    <li><a href="@path/admin/users">System administration</a></li>
-                  }
-                  <li><a href="@path/signout">Sign out</a></li>
-                </ul>
-              </li>
-            } else {
-              <li>
-                <a href="@path/signin?redirect=@urlEncode(currentPath)" class="pull-right" id="signin">Sign in</a>
-              </li>
+              <li><a href="@path/dashboard/pulls">Pull requests</a></li>
+              <li><a href="@path/dashboard/issues">Issues</a></li>
+            }
+            @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
+              @menu(context).map { link =>
+                <li><a href="@path/@link.path">@link.label</a></li>
+              }
             }
           </ul>
-        </div>
-      </nav>
-    </header>
-    @body
+          <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+              @if(loginAccount.isDefined){
+                <li class="dropdown">
+                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
+                    <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
+                  </a>
+                  <ul class="dropdown-menu pull-right">
+                    <li><a href="@path/new">New repository</a></li>
+                    <li><a href="@path/groups/new">New group</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown">
+                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">
+                    @avatar(loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
+                  </a>
+                  <ul class="dropdown-menu pull-right">
+                    <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
+                    <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
+                    @if(loginAccount.get.isAdmin){
+                      <li><a href="@path/admin/users">System administration</a></li>
+                    }
+                    <li><a href="@path/signout">Sign out</a></li>
+                  </ul>
+                </li>
+              } else {
+                <li>
+                  <a href="@path/signin?redirect=@urlEncode(currentPath)" class="pull-right" id="signin">Sign in</a>
+                </li>
+              }
+            </ul>
+          </div>
+        </nav>
+      </header>
+      @body
+    </div>
     <script>
       $(function(){
         $('#search').submit(function(){
