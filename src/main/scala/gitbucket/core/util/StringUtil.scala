@@ -5,6 +5,7 @@ import org.mozilla.universalchardet.UniversalDetector
 import ControlUtil._
 import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
+import scala.util.control.Exception._
 
 object StringUtil {
 
@@ -25,6 +26,8 @@ object StringUtil {
   def urlDecode(value: String): String = URLDecoder.decode(value, "UTF-8")
 
   def splitWords(value: String): Array[String] = value.split("[ \\t　]+")
+
+  def isInteger(value: String): Boolean = allCatch opt { value.toInt } map(_ => true) getOrElse(false)
 
   def escapeHtml(value: String): String =
     value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")

@@ -18,7 +18,7 @@ trait IssuesService {
   import IssuesService._
 
   def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session) =
-    if (issueId forall (_.isDigit))
+    if (isInteger(issueId))
       Issues filter (_.byPrimaryKey(owner, repository, issueId.toInt)) firstOption
     else None
 
