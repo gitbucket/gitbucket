@@ -64,6 +64,13 @@ Support
 
 Release Notes
 -------------
+### 4.2 - 2 Jul 2016
+
+- New UI based on [AdminLTE](https://github.com/almasaeed2010/AdminLTE)
+- git gc
+- Issues and Wiki have been possible to be disabled
+- SMTP configuration test mail
+
 ### 4.1 - 4 Jun 2016
 
 - Generic ssh user
