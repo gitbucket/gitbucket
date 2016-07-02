@@ -41,7 +41,7 @@ Note: Release operation requires [Ant](http://ant.apache.org/) and [Maven](https
 Run `sbt executable`. The release war file and fingerprint are generated into `target/executable/gitbucket.war`.
 
 ```bash
-$sbt executable
+$ sbt executable
 ```
 
 ### Deploy assembly jar file
