@@ -35,6 +35,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
     Database() withTransaction { session =>
       val conn = session.conn
+      val manager = new JDBCVersionManager(conn)
 
       // Check version
       val versionFile = new File(GitBucketHome, "version")
@@ -56,9 +57,8 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
           }
 
           // Change form
-          val manager = new JDBCVersionManager(conn)
           manager.initialize()
-          manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0")
+          manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
           conn.select("SELECT PLUGIN_ID, VERSION FROM PLUGIN"){ rs =>
             manager.updateVersion(rs.getString("PLUGIN_ID"), rs.getString("VERSION"))
           }
@@ -70,6 +70,13 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
         } else {
           throw new Exception("GitBucket can't migrate from this version. Please update to 3.14 at first.")
         }
+      }
+
+      // Rescue code for users who updated from 3.14 to 4.0.0
+      // https://github.com/gitbucket/gitbucket/issues/1227
+      val currentVersion = manager.getCurrentVersion(GitBucketCoreModule.getModuleId)
+      if(currentVersion == "4.0"){
+        manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
       }
 
       // Run normal migration
