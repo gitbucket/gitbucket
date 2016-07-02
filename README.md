@@ -64,6 +64,12 @@ Support
 
 Release Notes
 -------------
+### 4.2.1 - 3 Jul 2016
+
+- Fix migration bug
+
+This bug is relevant to users who updated to 4.0 from 3.14. If your GitBucket had been updated from 3.14 to 4.0 or 4.1 then you must use this version instead of 4.2.
+
 ### 4.2 - 2 Jul 2016
 
 - New UI based on [AdminLTE](https://github.com/almasaeed2010/AdminLTE)
