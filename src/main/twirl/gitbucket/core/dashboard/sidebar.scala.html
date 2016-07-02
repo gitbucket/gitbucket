@@ -6,7 +6,10 @@
   <div class="sidebar">
   <ul class="nav sidebar-menu">
   @if(loginAccount.isDefined){
-    <li class="header">Your repositories <span class="label label-primary pull-right">@userRepositories.size</span></li>
+    <li class="header">
+      <span class="label label-primary pull-right">@userRepositories.size</span>
+      Your repositories
+    </li>
     @if(userRepositories.isEmpty){
       <li>No repositories</li>
     } else {
