@@ -68,7 +68,7 @@ Release Notes
 
 - Fix migration bug
 
-This bug is relevant to users who updated to 4.0 from 3.14. If your GitBucket had been updated from 3.14 to 4.0 or 4.1 then you must use this version instead of 4.2.
+This is hotfix for a critical bug in migration. If your GitBucket had been updated to 4.0 from 3.x, you must update to 4.2.1, not 4.2. Of course, even if your GitBucket is not matched with this condition, it's no problem updating to 4.2.1.
 
 ### 4.2 - 2 Jul 2016
 
