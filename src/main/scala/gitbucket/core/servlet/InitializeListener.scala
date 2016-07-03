@@ -72,17 +72,17 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
         }
       }
 
+      // Run normal migration
+      logger.info("Start schema update")
+      val solidbase = new Solidbase()
+      solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
+
       // Rescue code for users who updated from 3.14 to 4.0.0
       // https://github.com/gitbucket/gitbucket/issues/1227
       val currentVersion = manager.getCurrentVersion(GitBucketCoreModule.getModuleId)
       if(currentVersion == "4.0"){
         manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
       }
-
-      // Run normal migration
-      logger.info("Start schema update")
-      val solidbase = new Solidbase()
-      solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
 
       // Load plugins
       logger.info("Initialize plugins")
