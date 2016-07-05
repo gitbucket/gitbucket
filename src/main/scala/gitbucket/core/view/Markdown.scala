@@ -6,7 +6,7 @@ import java.util.Locale
 
 import gitbucket.core.controller.Context
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.StringUtil
+import gitbucket.core.util.{EmojiConverter, StringUtil}
 import io.github.gitbucket.markedj._
 import io.github.gitbucket.markedj.Utils._
 
@@ -58,7 +58,7 @@ object Markdown {
                                 enableTaskList: Boolean,
                                 hasWritePermission: Boolean,
                                 pages: List[String])
-                               (implicit val context: Context) extends Renderer(options) with LinkConverter with RequestCache {
+                               (implicit val context: Context) extends Renderer(options) with LinkConverter with EmojiConverter with RequestCache {
 
     override  def heading(text: String, level: Int, raw: String): String = {
       val id = generateAnchorName(text)
@@ -113,7 +113,10 @@ object Markdown {
       // convert task list to checkbox.
       val t2 = if(enableTaskList) convertCheckBox(t1, hasWritePermission) else t1
 
-      t2
+      // convert emoji to image
+      val t3 = convertEmojis(t2)
+
+      t3
     }
 
     override def link(href: String, title: String, text: String): String = {
