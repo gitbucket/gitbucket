@@ -1,10 +1,11 @@
-@(owner: String, repository: String)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
+@(owner: String, repository: String, generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
 @import context._
 @import gitbucket.core.util.FileUtil
 <div class="muted attachable">
   @textarea
   <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
 </div>
+@if(generateScript){
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
@@ -29,4 +30,5 @@ $(function(){
   }
 });
 </script>
+}
 }

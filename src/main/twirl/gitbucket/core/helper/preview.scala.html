@@ -28,11 +28,7 @@
           @if(style.nonEmpty){ style="@style"}
           @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
       }
-      @if(enableWikiLink){
-        @textarea
-      } else {
-        @helper.html.attached(repository.owner, repository.name)(textarea)
-      }
+      @helper.html.attached(repository.owner, repository.name, enableWikiLink)(textarea)
     </div>
     <div class="tab-pane" id="tab@(uid+1)">
       <div class="markdown-body" id="preview-area@uid">
