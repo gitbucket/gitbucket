@@ -5,10 +5,9 @@ import java.util.{Date, Locale, TimeZone}
 
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
-import gitbucket.core.plugin.{RenderRequest, PluginRegistry}
+import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
-
+import gitbucket.core.util.{EmojiUtil, FileUtil, JGitUtil, StringUtil}
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -151,7 +150,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts commit id, issue id and username to the link.
    */
   def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: Context): Html =
-    Html(convertRefsLinks(value, repository))
+    Html(EmojiUtil.convertEmojis(convertRefsLinks(value, repository)))
 
   def cut(value: String, length: Int): String =
     if(value.length > length){
