@@ -1,11 +1,9 @@
 package gitbucket.core.util
 
-import gitbucket.core.service.RequestCache
-
 /**
  * Converts an Emoji like :smiley: to its related image
  */
-trait EmojiConverter { self: RequestCache =>
+trait EmojiConverter {
 
   private val emojis = Set(
     "+1",
