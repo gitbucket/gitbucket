@@ -3,7 +3,7 @@ package gitbucket.core.util
 /**
  * Converts an Emoji like :smiley: to its related image
  */
-trait EmojiConverter {
+object EmojiUtil {
 
   private val emojis = Set(
     "+1",
@@ -895,7 +895,7 @@ trait EmojiConverter {
 
   private val emojiPattern = """\:[a-z0-9_\-\+]+\:""".r
 
-  protected def convertEmojis(text: String)(implicit context: gitbucket.core.controller.Context): String =
+  def convertEmojis(text: String)(implicit context: gitbucket.core.controller.Context): String =
     emojiPattern replaceAllIn(text, e => {
       val emoji = e.group(0) replaceAll(":", "")
       if (!emojis.contains(emoji)) s":$emoji:"
