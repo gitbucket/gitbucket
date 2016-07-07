@@ -1941,3 +1941,8 @@ div.container.blame-container{
     display: none;
   }
 }
+
+.emoji {
+  width: 20px;
+  height: 20px;
+}
