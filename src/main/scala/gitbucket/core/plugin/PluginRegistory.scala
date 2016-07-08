@@ -42,6 +42,8 @@ class PluginRegistry {
   private val systemSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
+  private val textDecorators = new ListBuffer[TextDecorator]
+  textDecorators += new EmojiDecorator()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -158,6 +160,12 @@ class PluginRegistry {
   }
 
   def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
+
+  def addTextDecorator(textDecorator: TextDecorator): Unit = {
+    textDecorators += textDecorator
+  }
+
+  def getTextDecorators: Seq[TextDecorator] = textDecorators.toSeq
 
 }
 

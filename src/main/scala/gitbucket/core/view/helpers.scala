@@ -7,7 +7,9 @@ import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.{EmojiUtil, FileUtil, JGitUtil, StringUtil}
+import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
+import org.jsoup.Jsoup
+import org.jsoup.nodes.{Element, Node}
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -150,7 +152,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts commit id, issue id and username to the link.
    */
   def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: Context): Html =
-    Html(EmojiUtil.convertEmojis(convertRefsLinks(value, repository)))
+    Html(decorateHtml(convertRefsLinks(value, repository)))
 
   def cut(value: String, length: Int): String =
     if(value.length > length){
@@ -333,5 +335,34 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
 
     HtmlFormat.fill(out)
+  }
+
+  /**
+   * Decorate text in HTML by TextDecorator.
+   *
+   * TODO Move to the other place.
+   */
+  def decorateHtml(text: String)(implicit context: Context): String = {
+    val textDecorators = PluginRegistry().getTextDecorators
+
+    def processNode(n: Node): Unit = {
+      n match {
+        case x: Element  => {
+          if(x.hasText && x.ownText.nonEmpty){
+            val text = textDecorators.foldLeft(x.ownText){ case (text, textDecorator) =>
+                textDecorator.decorate(text)
+            }
+            x.html(text)
+          }
+          x.children.toArray.foreach { c =>
+            processNode(c.asInstanceOf[Node])
+          }
+        }
+        case _ => ()
+      }
+    }
+    val body = Jsoup.parseBodyFragment(text).getElementsByTag("body").get(0)
+    processNode(body)
+    body.html
   }
 }

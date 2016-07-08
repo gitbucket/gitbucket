@@ -6,7 +6,7 @@ import java.util.Locale
 
 import gitbucket.core.controller.Context
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.{EmojiUtil, StringUtil}
+import gitbucket.core.util.StringUtil
 import io.github.gitbucket.markedj._
 import io.github.gitbucket.markedj.Utils._
 
@@ -44,7 +44,7 @@ object Markdown {
     val renderer = new GitBucketMarkedRenderer(options, repository,
       enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
 
-    EmojiUtil.convertEmojis(Marked.marked(source, options, renderer))
+    helpers.decorateHtml(Marked.marked(source, options, renderer))
   }
 
   /**
