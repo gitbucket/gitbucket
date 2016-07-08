@@ -113,9 +113,6 @@ object Markdown {
       // convert task list to checkbox.
       val t2 = if(enableTaskList) convertCheckBox(t1, hasWritePermission) else t1
 
-//      // convert emoji to image
-//      val t3 = EmojiUtil.convertEmojis(t2)
-
       t2
     }
 
