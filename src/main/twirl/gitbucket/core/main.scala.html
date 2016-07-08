@@ -33,6 +33,7 @@
     <script src="@assets/vendors/elastic/jquery.elastic.source.js"></script>
     <script src="@assets/vendors/facebox/facebox.js"></script>
     <script src="@assets/vendors/jquery-hotkeys/jquery.hotkeys.js"></script>
+    <script src="@assets/vendors/jquery-textcomplete-1.6.2/jquery.textcomplete.js"></script>
     @repository.map { repository =>
       @if(!repository.repository.isPrivate){
         <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />

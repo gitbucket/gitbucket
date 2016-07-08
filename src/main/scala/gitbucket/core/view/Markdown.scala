@@ -44,7 +44,7 @@ object Markdown {
     val renderer = new GitBucketMarkedRenderer(options, repository,
       enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
 
-    Marked.marked(source, options, renderer)
+    EmojiUtil.convertEmojis(Marked.marked(source, options, renderer))
   }
 
   /**
@@ -113,10 +113,10 @@ object Markdown {
       // convert task list to checkbox.
       val t2 = if(enableTaskList) convertCheckBox(t1, hasWritePermission) else t1
 
-      // convert emoji to image
-      val t3 = EmojiUtil.convertEmojis(t2)
+//      // convert emoji to image
+//      val t3 = EmojiUtil.convertEmojis(t2)
 
-      t3
+      t2
     }
 
     override def link(href: String, title: String, text: String): String = {

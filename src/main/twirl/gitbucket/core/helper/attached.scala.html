@@ -5,30 +5,71 @@
   @textarea
   <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
 </div>
-@if(generateScript){
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
-  try {
-    $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
-      url: '@path/upload/file/@owner/@repository',
-      maxFilesize: 10,
-      acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
-      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-      success: function(file, id) {
-        var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
-          '](@baseUrl/@owner/@repository/_attached/' + id + ')';
-        $('#@textareaId').val($('#@textareaId').val() + attachFile);
-        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
+  var emojis = @Html(gitbucket.core.util.EmojiUtil.emojis.map("\"" + _ + "\"").mkString("[", ", ", "]"));
+
+  $('#@textareaId').textcomplete([
+    { // emoji strategy
+      id: 'emoji',
+      match: /\B:([\-+\w]*)$/,
+      search: function (term, callback) {
+        callback($.map(emojis, function (emoji) {
+          return emoji.indexOf(term) === 0 ? emoji : null;
+        }));
+      },
+      template: function (value) {
+        return '<img src="@path/assets/common/images/emojis/' + value + '.png" class="emoji"></img>' + value;
+      },
+      replace: function (value) {
+        return ':' + value + ': ';
+      },
+      index: 1
+    }//,
+//    { // tech companies
+//      id: 'tech-companies',
+//      words: ['apple', 'google', 'facebook', 'github'],
+//      match: /\b(\w{2,})$/,
+//      search: function (term, callback) {
+//        callback($.map(this.words, function (word) {
+//          return word.indexOf(term) === 0 ? word : null;
+//        }));
+//      },
+//      index: 1,
+//      replace: function (word) {
+//        return word + ' ';
+//      }
+//    }
+  ], {
+    onKeydown: function (e, commands) {
+      if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
+        return commands.KEY_ENTER;
       }
-    });
-  } catch(e) {
-    if (e.message !== "Dropzone already attached.") {
-      throw e;
+    }
+  });
+
+  @if(generateScript){
+    try {
+      $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
+        url: '@path/upload/file/@owner/@repository',
+        maxFilesize: 10,
+        acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
+        dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
+        previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+        success: function(file, id) {
+          var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
+            '](@baseUrl/@owner/@repository/_attached/' + id + ')';
+          $('#@textareaId').val($('#@textareaId').val() + attachFile);
+          $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
+        }
+      });
+    } catch(e) {
+      if (e.message !== "Dropzone already attached.") {
+        throw e;
+      }
     }
   }
 });
 </script>
-}
 }

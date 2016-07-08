@@ -5,7 +5,7 @@ package gitbucket.core.util
  */
 object EmojiUtil {
 
-  private val emojis = Set(
+  val emojis = Set(
     "+1",
     "-1",
     "100",
