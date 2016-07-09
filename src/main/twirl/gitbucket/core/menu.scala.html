@@ -3,8 +3,7 @@
   id: Option[String] = None,
   info: Option[Any] = None,
   error: Option[Any] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 
 @menuitem(path: String, name: String, label: String, icon: String, count: Int = 0) = {
   <li @if(active == name){class="active"}>
@@ -13,7 +12,7 @@
         <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right">@count</span> }
       </a>
     } else {
-      <a href="@url(repository)@path">
+      <a href="@helpers.url(repository)@path">
         <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right">@count</span> }
       </a>
     }
@@ -46,7 +45,7 @@
           }
         }
         @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
-        @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
+        @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
           @menuitem("/settings", "settings", "Settings", "tools")
         }
         @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
@@ -61,20 +60,20 @@
     <div class="content body">
       <div class="headbar">
         <div class="container">
-          @helper.html.information(info)
-          @helper.html.error(error)
+          @gitbucket.core.helper.html.information(info)
+          @gitbucket.core.helper.html.error(error)
           <div class="head">
-            @helper.html.repositoryicon(repository, true)
-            <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
+            @gitbucket.core.helper.html.repositoryicon(repository, true)
+            <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
 
             @defining(repository.repository){ x =>
               @if(repository.repository.originRepositoryName.isDefined){
                 <div class="forked">
-                  forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+                  forked from <a href="@context.path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
                 </div>
               }
               @x.description.map { description =>
-                <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@detectAndRenderLinks(description)</div>
+                <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@helpers.detectAndRenderLinks(description)</div>
               }
             }
           </div>
