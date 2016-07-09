@@ -153,7 +153,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts commit id, issue id and username to the link.
    */
   def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: Context): Html =
-    Html(decorateHtml(convertRefsLinks(value, repository), repository))
+    Html(EmojiUtil.convertEmojis(convertRefsLinks(value, repository)))
 
   def cut(value: String, length: Int): String =
     if(value.length > length){
@@ -321,7 +321,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   // This pattern comes from: http://stackoverflow.com/a/4390768/1771641 (extract-url-from-string)
   private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 
-  def detectAndRenderLinks(text: String): Html = {
+  def detectAndRenderLinks(text: String)(implicit context: Context): String = {
     val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toSeq
 
     val (x, pos) = matches.foldLeft((collection.immutable.Seq.empty[Html], 0)){ case ((x, pos), m) =>
@@ -335,36 +335,38 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     // append rest fragment
     val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
 
-    HtmlFormat.fill(out)
+    EmojiUtil.convertEmojis(HtmlFormat.fill(out).toString)
+    //HtmlFormat.fill(out).toString
   }
 
-  /**
-   * Decorate text in HTML by TextDecorator.
-   *
-   * TODO Move to the other place.
-   */
-  def decorateHtml(text: String, repository: RepositoryInfo)(implicit context: Context): String = {
-//    val textDecorators = PluginRegistry().getTextDecorators
-
-    def processNode(n: Node): Unit = {
-      n match {
-        case x: Element  => {
-          if(x.hasText && x.ownText.nonEmpty){
-            val text = EmojiUtil.convertEmojis(x.ownText)
-//            val text = textDecorators.foldLeft(x.ownText){ case (text, textDecorator) =>
-//                textDecorator.decorate(text, repository)
-//            }
-            x.html(text)
-          }
-          x.children.toArray.foreach { c =>
-            processNode(c.asInstanceOf[Node])
-          }
-        }
-        case _ => ()
-      }
-    }
-    val body = Jsoup.parseBodyFragment(text).getElementsByTag("body").get(0)
-    processNode(body)
-    body.html
-  }
+//  /**
+//   * Decorate text in HTML by TextDecorator.
+//   *
+//   * TODO Move to the other place.
+//   */
+//  def decorateHtml(text: String, repository: RepositoryInfo)(implicit context: Context): String = {
+//
+////    val textDecorators = PluginRegistry().getTextDecorators
+//
+//    def processNode(n: Node): Unit = {
+//      n match {
+//        case x: Element  => {
+//          if(x.hasText && x.ownText.nonEmpty){
+//            val text = EmojiUtil.convertEmojis(x.ownText)
+////            val text = textDecorators.foldLeft(x.ownText){ case (text, textDecorator) =>
+////                textDecorator.decorate(text, repository)
+////            }
+//            x.html(text)
+//          }
+//          x.children.toArray.foreach { c =>
+//            processNode(c.asInstanceOf[Node])
+//          }
+//        }
+//        case _ => ()
+//      }
+//    }
+//    val body = Jsoup.parseBodyFragment(text).getElementsByTag("body").get(0)
+//    processNode(body)
+//    body.html
+//  }
 }
