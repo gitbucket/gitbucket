@@ -1,9 +1,7 @@
 @(account: Option[gitbucket.core.model.Account], members: List[gitbucket.core.model.GroupMember])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(if(account.isEmpty) "New Group" else "Update Group"){
-  @admin.html.menu("users"){
-    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newgroup} else {@path/admin/users/@account.get.userName/_editgroup}" validate="true">
+@gitbucket.core.html.main(if(account.isEmpty) "New Group" else "Update Group"){
+  @gitbucket.core.admin.html.menu("users"){
+    <form method="POST" action="@if(account.isEmpty){@context.path/admin/users/_newgroup} else {@context.path/admin/users/@account.get.userName/_editgroup}" validate="true">
       <div class="row">
         <div class="col-md-6">
           <fieldset class="form-group">
@@ -28,7 +26,7 @@
           </fieldset>
           <fieldset class="form-group">
             <label for="avatar" class="strong">Image (Optional)</label>
-            @helper.html.uploadavatar(account)
+            @gitbucket.core.helper.html.uploadavatar(account)
           </fieldset>
         </div>
         <div class="col-md-6">
@@ -36,7 +34,7 @@
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">
             </ul>
-            @helper.html.account("memberName", 200)
+            @gitbucket.core.helper.html.account("memberName", 200)
             <input type="button" class="btn btn-default" value="Add" id="addMember"/>
             <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
             <div>
@@ -47,7 +45,7 @@
       </div>
       <fieldset class="border-top">
         <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
-        <a href="@path/admin/users" class="btn btn-default">Cancel</a>
+        <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
       </fieldset>
     </form>
   }
@@ -77,7 +75,7 @@ $(function(){
     }
 
     // check existence
-    $.post('@path/_user/existence', {
+    $.post('@context.path/_user/existence', {
       'userName': userName,
       'userOnly': true
     }, function(data, status){
@@ -118,7 +116,7 @@ $(function(){
         .append(memberButton)
         .append(managerButton))
       .append(' ')
-      .append($('<a>').attr('href', '@path/' + userName).text(userName))
+      .append($('<a>').attr('href', '@context.path/' + userName).text(userName))
       .append(' ')
       .append($('<a href="#" class="remove pull-right">(remove)</a>')));
   }

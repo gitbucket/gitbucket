@@ -7,14 +7,12 @@
   groups: List[String],
   recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
   userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Pull Requests"){
-  @sidebar(recentRepositories, userRepositories){
-    @dashboard.html.tab("pulls")
+@gitbucket.core.html.main("Pull Requests"){
+  @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
+    @gitbucket.core.dashboard.html.tab("pulls")
     <div class="container">
-      @issuesnavi(filter, openCount, closedCount, condition)
-      @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
+      @gitbucket.core.dashboard.html.issuesnavi(filter, openCount, closedCount, condition)
+      @gitbucket.core.dashboard.html.issueslist(issues, page, openCount, closedCount, condition, filter, groups)
     </div>
   }
 }

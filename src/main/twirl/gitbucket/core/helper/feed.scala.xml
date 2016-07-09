@@ -1,6 +1,5 @@
 @(activities: List[gitbucket.core.model.Activity])(implicit context: gitbucket.core.controller.Context)<?xml version="1.0" encoding="UTF-8"?>
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
   <id>tag:@context.host,2013:gitbucket</id>
   <title>Gitbucket's activities</title>
@@ -9,19 +8,19 @@
     <name>Gitbucket</name>
     <uri>@context.baseUrl</uri>
   </author>
-  <updated>@datetimeRFC3339(if(activities.isEmpty) new java.util.Date else activities.map(_.activityDate).max)</updated>
+  <updated>@helpers.datetimeRFC3339(if(activities.isEmpty) new java.util.Date else activities.map(_.activityDate).max)</updated>
   @activities.map { activity =>
   <entry>
-    <id>tag:@context.host,@date(activity.activityDate):activity:@activity.activityId</id>
-    <published>@datetimeRFC3339(activity.activityDate)</published>
-    <updated>@datetimeRFC3339(activity.activityDate)</updated>
+    <id>tag:@context.host,@helpers.date(activity.activityDate):activity:@activity.activityId</id>
+    <published>@helpers.datetimeRFC3339(activity.activityDate)</published>
+    <updated>@helpers.datetimeRFC3339(activity.activityDate)</updated>
     <link type="text/html" rel="alternate" href="@context.baseUrl/@activity.userName/@activity.repositoryName" />
-    <title type="html">@removeHtml(activityMessage(activity.message))</title>
+    <title type="html">@helpers.removeHtml(helpers.activityMessage(activity.message))</title>
     <author>
       <name>@activity.activityUserName</name>
-      <uri>@url(activity.activityUserName)</uri>
+      <uri>@helpers.url(activity.activityUserName)</uri>
     </author>
-    <content type="html">@activityMessage(activity.message)</content>
+    <content type="html">@helpers.activityMessage(activity.message)</content>
   </entry>
   }
 </feed>

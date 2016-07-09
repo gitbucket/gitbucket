@@ -1,6 +1,6 @@
 @(activities: List[gitbucket.core.model.Activity])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
+@import gitbucket.core.helper.html.datetimeago
 
 @if(activities.isEmpty){
   No activity
@@ -29,7 +29,7 @@
               } else {
                 if(commit.nonEmpty){
                   <div>
-                     <a href={s"${path}/${activity.userName}/${activity.repositoryName}/commit/${commit. substring(0, 40)}"} class="monospace">{commit.substring(0, 7)}</a>
+                     <a href={s"${context.path}/${activity.userName}/${activity.repositoryName}/commit/${commit. substring(0, 40)}"} class="monospace">{commit.substring(0, 7)}</a>
                      <span>{commit.substring(41)}</span>
                   </div>
                 }
@@ -39,19 +39,19 @@
         }
         case "create_wiki" => customActivity(activity, "book"){
           <div class="small activity-message">
-            Created <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
+            Created <a href={s"${context.path}/${activity.userName}/${activity.repositoryName}/wiki/${activity.additionalInfo.get}"}>{activity.additionalInfo.get}</a>.
           </div>
         }
         case "edit_wiki" => customActivity(activity, "book"){
           activity.additionalInfo.get.split(":") match {
             case Array(pageName, commitId) =>
               <div class="small activity-message">
-                Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
-                <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}/_compare/${commitId.substring(0, 7)}^...${commitId.substring(0, 7)}"}>View the diff »</a>
+                Edited <a href={s"${context.path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
+                <a href={s"${context.path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}/_compare/${commitId.substring(0, 7)}^...${commitId.substring(0, 7)}"}>View the diff »</a>
               </div>
             case Array(pageName) =>
               <div class="small activity-message">
-                Edited <a href={s"${path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
+                Edited <a href={s"${context.path}/${activity.userName}/${activity.repositoryName}/wiki/${pageName}"}>{pageName}</a>.
               </div>
           }
         }
@@ -65,10 +65,10 @@
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   *@
   <div>
-    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
+    <div class="muted small">@datetimeago(activity.activityDate)</div>
     <div class="strong">
-      @avatar(activity.activityUserName, 16)
-      @activityMessage(activity.message)
+      @helpers.avatar(activity.activityUserName, 16)
+      @helpers.activityMessage(activity.message)
     </div>
     @activity.additionalInfo.map { additionalInfo =>
       <div class=" activity-message">@additionalInfo</div>
@@ -81,10 +81,10 @@
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   *@
   <div>
-    <div class="muted small">@helper.html.datetimeago(activity.activityDate)</div>
+    <div class="muted small">@datetimeago(activity.activityDate)</div>
     <div class="strong">
-      @avatar(activity.activityUserName, 16)
-      @activityMessage(activity.message)
+      @helpers.avatar(activity.activityUserName, 16)
+      @helpers.activityMessage(activity.message)
     </div>
     @additionalInfo
   </div>
@@ -95,10 +95,10 @@
   <div class="activity-icon-small"><i class="octicon octicon-@image"></i></div>
   *@
   <div>
-    <span class="muted small">@helper.html.datetimeago(activity.activityDate)</span>
+    <span class="muted small">@datetimeago(activity.activityDate)</span>
     <div>
-      @avatar(activity.activityUserName, 16)
-      @activityMessage(activity.message)
+      @helpers.avatar(activity.activityUserName, 16)
+      @helpers.activityMessage(activity.message)
     </div>
   </div>
 }

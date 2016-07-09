@@ -1,7 +1,4 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, large: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.service.RepositoryService
-@import context._
-@import gitbucket.core.view.helpers._
 @if(repository.repository.isPrivate){
   <i class="@{if(large){"mega-"}}octicon octicon-lock"></i>
 } else {

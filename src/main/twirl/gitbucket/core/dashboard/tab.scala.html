@@ -1,14 +1,12 @@
 @(active: String = "")(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
 <ul class="nav nav-tabs" style="margin-bottom: 20px;">
-  <li @if(active == ""){ class="active"}><a href="@path/">News Feed</a></li>
-  @if(loginAccount.isDefined){
-    <li @if(active == "pulls" ){ class="active"}><a href="@path/dashboard/pulls">Pull Requests</a></li>
-    <li @if(active == "issues"){ class="active"}><a href="@path/dashboard/issues">Issues</a></li>
+  <li @if(active == ""){ class="active"}><a href="@context.path/">News Feed</a></li>
+  @if(context.loginAccount.isDefined){
+    <li @if(active == "pulls" ){ class="active"}><a href="@context.path/dashboard/pulls">Pull Requests</a></li>
+    <li @if(active == "issues"){ class="active"}><a href="@context.path/dashboard/issues">Issues</a></li>
     @gitbucket.core.plugin.PluginRegistry().getDashboardTabs.map { tab =>
       @tab(context).map { link =>
-        <li @if(active == link.id){ class="active"}><a href="@path/@link.path">@link.label</a></li>
+        <li @if(active == link.id){ class="active"}><a href="@context.path/@link.path">@link.label</a></li>
       }
     }
   }

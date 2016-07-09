@@ -1,6 +1,4 @@
 @(owner: String, repository: String, completion: Seq[String], generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
-@import context.path
-@import context.baseUrl
 @import gitbucket.core.util.{FileUtil, EmojiUtil}
 <div class="muted attachable">
   @textarea
@@ -14,7 +12,7 @@ $(function(){
   }
   @if(completion.contains("user")){
     var users  = [];
-    $.get('@path/_user/proposals', { query: '' }, function (data) { users = data.options; });
+    $.get('@context.path/_user/proposals', { query: '' }, function (data) { users = data.options; });
   }
 
   $('#@textareaId').textcomplete([
@@ -28,7 +26,7 @@ $(function(){
           }));
         },
         template: function (value) {
-          return '<img src="@path/assets/common/images/emojis/' + value + '.png" class="emoji"></img>' + value;
+          return '<img src="@context.path/assets/common/images/emojis/' + value + '.png" class="emoji"></img>' + value;
         },
         replace: function (value) {
           return ':' + value + ': ';
@@ -62,14 +60,14 @@ $(function(){
   @if(generateScript){
     try {
       $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
-        url: '@path/upload/file/@owner/@repository',
+        url: '@context.path/upload/file/@owner/@repository',
         maxFilesize: 10,
         acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
         dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
         previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
         success: function(file, id) {
           var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
-            '](@baseUrl/@owner/@repository/_attached/' + id + ')';
+            '](@context.baseUrl/@owner/@repository/_attached/' + id + ')';
           $('#@textareaId').val($('#@textareaId').val() + attachFile);
           $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
         }

@@ -1,9 +1,8 @@
 @(account: Option[gitbucket.core.model.Account], error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@html.main(if(account.isEmpty) "New User" else "Update User"){
-  @admin.html.menu("users"){
-    @helper.html.error(error)
-    <form method="POST" action="@if(account.isEmpty){@path/admin/users/_newuser} else {@path/admin/users/@account.get.userName/_edituser}" validate="true">
+@gitbucket.core.html.main(if(account.isEmpty) "New User" else "Update User"){
+  @gitbucket.core.admin.html.menu("users"){
+    @gitbucket.core.helper.html.error(error)
+    <form method="POST" action="@if(account.isEmpty){@context.path/admin/users/_newuser} else {@context.path/admin/users/@account.get.userName/_edituser}" validate="true">
       <div class="row">
         <div class="col-md-6">
           <fieldset class="form-group">
@@ -71,13 +70,13 @@
         <div class="col-md-6">
           <fieldset class="form-group">
             <label for="avatar" class="strong">Image (Optional)</label>
-            @helper.html.uploadavatar(account)
+            @gitbucket.core.helper.html.uploadavatar(account)
           </fieldset>
         </div>
       </div>
       <fieldset class="border-top">
         <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create User} else {Update User}"/>
-        <a href="@path/admin/users" class="btn btn-default">Cancel</a>
+        <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
       </fieldset>
     </form>
   }

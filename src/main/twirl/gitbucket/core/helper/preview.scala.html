@@ -12,7 +12,7 @@
   elastic: Boolean = false,
   tabIndex: Int = -2,
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.view.helpers.{assets, url}
+@import gitbucket.core.view.helpers
 <div class="tabbable">
   <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
     <li class="active"><a href="#tab@uid" data-toggle="tab">Write</a></li>
@@ -40,8 +40,8 @@
     </div>
   </div>
 </div>
-<link  href="@assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
-<script src="@assets/vendors/google-code-prettify/prettify.js"></script>
+<link  href="@helpers.assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
+<script src="@helpers.assets/vendors/google-code-prettify/prettify.js"></script>
 <script>
 $(function(){
   @if(elastic){
@@ -49,8 +49,8 @@ $(function(){
   }
 
   $('#preview@uid').click(function(){
-    $('#preview-area@uid').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
-    $.post('@url(repository)/_preview', {
+    $('#preview-area@uid').html('<img src="@helpers.assets/common/images/indicator.gif"> Previewing...');
+    $.post('@helpers.url(repository)/_preview', {
       content          : $('#content@uid').val(),
       enableWikiLink   : @enableWikiLink,
       enableRefsLink   : @enableRefsLink,

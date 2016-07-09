@@ -1,8 +1,6 @@
 @(plugins: List[gitbucket.core.plugin.PluginInfo])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Plugins"){
-  @admin.html.menu("plugins") {
+@gitbucket.core.html.main("Plugins"){
+  @gitbucket.core.admin.html.menu("plugins") {
     <h1>Installed plugins</h1>
 
     @if(plugins.size > 0) {
