@@ -9,10 +9,9 @@
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.menu(target, repository){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu(target, repository){
     <ul class="nav nav-pills pull-left" style="line-height: 14px; margin-bottom: 10px;">
       <li class="@if(condition.state == "open"){active}">
         <a href="@condition.copy(state = "open").toURL">Open <span class="badge">@openCount</span></a>
@@ -22,16 +21,16 @@
       </li>
     </ul>
     <form method="GET" id="search-filter-form" class="form-inline pull-right">
-    @if(loginAccount.isDefined){
+    @if(context.loginAccount.isDefined){
       @if(target == "issues"){
-        <a class="btn btn-success" href="@url(repository)/issues/new">New issue</a>
+        <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
       }
       @if(target == "pulls"){
-        <a class="btn btn-success" href="@url(repository)/compare">New pull request</a>
+        <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
       }
     }
     </form>
-    @listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
+    @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
     @if(hasWritePermission){
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
@@ -99,16 +98,16 @@ $(function(){
   };
 
   $('a.toggle-state').click(function(){
-    submitBatchEdit('@url(repository)/issues/batchedit/state', $(this).data('id'));
+    submitBatchEdit('@helpers.url(repository)/issues/batchedit/state', $(this).data('id'));
   });
   $('a.toggle-label').click(function(){
-    submitBatchEdit('@url(repository)/issues/batchedit/label', $(this).data('id'));
+    submitBatchEdit('@helpers.url(repository)/issues/batchedit/label', $(this).data('id'));
   });
   $('a.toggle-assign').click(function(){
-    submitBatchEdit('@url(repository)/issues/batchedit/assign', $(this).data('name'));
+    submitBatchEdit('@helpers.url(repository)/issues/batchedit/assign', $(this).data('name'));
   });
   $('a.toggle-milestone').click(function(){
-    submitBatchEdit('@url(repository)/issues/batchedit/milestone', $(this).data('id'));
+    submitBatchEdit('@helpers.url(repository)/issues/batchedit/milestone', $(this).data('id'));
   });
 });
 </script>

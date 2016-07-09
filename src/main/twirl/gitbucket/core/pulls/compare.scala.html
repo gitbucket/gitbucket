@@ -14,10 +14,8 @@
   collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
   labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
-@import context.loginAccount
-@import context.path
+@import gitbucket.core.view.helpers
 @import gitbucket.core.helper.html._
-@import gitbucket.core.view.helpers._
 @gitbucket.core.html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
     <div class="pullreq-info">
@@ -29,7 +27,7 @@
         }
         @dropdown(originId, "base") {
           @originRepository.branchList.map { branch =>
-            <li><a href="#" class="origin-branch" data-branch="@encodeRefName(branch)">@checkicon(branch == originId) @branch</a></li>
+            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@checkicon(branch == originId) @branch</a></li>
           }
         }
         ...
@@ -40,22 +38,22 @@
         }
         @dropdown(forkedId, "compare") {
           @forkedRepository.branchList.map { branch =>
-            <li><a href="#" class="forked-branch" data-branch="@encodeRefName(branch)">@checkicon(branch == forkedId) @branch</a></li>
+            <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@checkicon(branch == forkedId) @branch</a></li>
           }
         }
       </div>
       <div class="check-conflict" style="display: none;">
-        <img src="@assets/common/images/indicator.gif"/> Checking...
+        <img src="@helpers.assets/common/images/indicator.gif"/> Checking...
       </div>
     </div>
-    @if(commits.nonEmpty && loginAccount.isDefined){
+    @if(commits.nonEmpty && context.loginAccount.isDefined){
       <div style="margin-bottom: 10px; padding: 8px; background-color: #fff9ea" id="create-pull-request" class="box-content">
         <a href="#" class="btn btn-success" id="show-form">Create pull request</a>
         &nbsp;&nbsp;
         <span class="muted">Discuss and review the changes in this comparison with others.</span>
       </div>
       <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
-        <form method="POST" action="@path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
+        <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
           <div class="row">
             <div class="col-md-9">
               <span class="error" id="error-title"></span>
@@ -111,23 +109,23 @@
             <td style="width: 25%; text-align: center;">
               <i class="octicon octicon-commit"></i>
               @defining(commits.flatten){ commits =>
-                <strong>@commits.size</strong> @plural(commits.size, "commit")
+                <strong>@commits.size</strong> @helpers.plural(commits.size, "commit")
               }
             </td>
             <td style="width: 25%; text-align: center;">
               <i class="octicon octicon-diff"></i>
-              <strong>@diffs.size</strong> @plural(diffs.size, "file") changed
+              <strong>@diffs.size</strong> @helpers.plural(diffs.size, "file") changed
             </td>
             <td style="width: 25%; text-align: center;">
               <i class="octicon octicon-comment"></i>
               @defining(comments.collect { case c: gitbucket.core.model.CommitComment => c }){ comments =>
-                <strong>@comments.size</strong> commit @plural(comments.size, "comment")
+                <strong>@comments.size</strong> commit @helpers.plural(comments.size, "comment")
               }
             </td>
             <td style="width: 25%; text-align: center;">
               <i class="octicon octicon-organization"></i>
               @defining(commits.flatMap(_.map(_.authorEmailAddress)).distinct){ contributors =>
-                <strong>@contributors.size</strong> @plural(contributors.size, "contributor")
+                <strong>@contributors.size</strong> @helpers.plural(contributors.size, "contributor")
               }
             </td>
           </tr>
@@ -136,16 +134,16 @@
       <div class="box" style="margin-bottom: 20px;">
         @commits.map { day =>
           <div style="margin-top: 8px; margin-bottom: 8px;" class="muted">
-            Commits on @date(day.head.commitTime)
+            Commits on @helpers.date(day.head.commitTime)
           </div>
           <table style="width: 100%;">
           @day.map { commit =>
             <tr>
               <td style="width: 20%;">
                 <i class="octicon octicon-git-commit"></i>
-                @avatar(commit, 20)
-                @user(commit.authorName, commit.authorEmailAddress, "username strong")
-                </td>
+                @helpers.avatar(commit, 20)
+                @helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")
+              </td>
               <td><span class="monospace">@commit.shortMessage</span></td>
               @*
               <span class="badge" style="display: inline">@if(comments.isDefined){
@@ -156,7 +154,7 @@
               }</span>
               *@
               <td style="width: 10%; text-align: right;">
-                <a href="@url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
+                <a href="@helpers.url(repository)/commit/@commit.id" class="monospace">@commit.id.substring(0, 7)</a>
               </td>
             </tr>
           }
@@ -178,11 +176,11 @@ $(function(){
     e.parents('div.btn-group').find('button span.strong').text(e.text());
 
     @if(members.isEmpty){
-      location.href = '@url(repository)/compare/' +
+      location.href = '@helpers.url(repository)/compare/' +
         $.trim($('i.octicon-check').parents('a.origin-branch').data('branch')) + '...' +
         $.trim($('i.octicon-check').parents('a.forked-branch').data('branch'));
     } else {
-      location.href = '@path/' +
+      location.href = '@context.path/' +
         $.trim($('i.octicon-check').parents('a.forked-owner' ).data('owner')) + '/' +
         $.trim($('i.octicon-check').parents('a.forked-owner' ).data('name')) +'/compare/' +
         $.trim($('i.octicon-check').parents('a.origin-owner' ).data('owner')) + ':' +
@@ -200,10 +198,10 @@ $(function(){
     $('#show-form').click();
   }
 
-  @if(loginAccount.isDefined){
+  @if(context.loginAccount.isDefined){
     function checkConflict(from, to){
       $('.check-conflict').show();
-      $.get('@url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',
+      $.get('@helpers.url(forkedRepository)/compare/' + from + '...' + to + '/mergecheck',
         function(data){ $('.check-conflict').html(data); });
     }
 

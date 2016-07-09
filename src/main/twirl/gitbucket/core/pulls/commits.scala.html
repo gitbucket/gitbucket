@@ -1,39 +1,38 @@
 @(commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   comments: Option[List[gitbucket.core.model.Comment]] = None,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@import gitbucket.core.model._
+@import gitbucket.core.view.helpers
+@import gitbucket.core.helper.html.datetimeago
 <table class="table table-bordered">
 @commits.map { day =>
   <tr>
-    <th rowspan="@day.size" width="100">@date(day.head.commitTime)</th>
+    <th rowspan="@day.size" width="100">@helpers.date(day.head.commitTime)</th>
     @day.zipWithIndex.map { case (commit, i) =>
       @if(i != 0){ <tr> }
       <td>
         <div class="pull-right text-right">
-          <a href="@url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
-          <a href="@url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
+          <a href="@helpers.url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
+          <a href="@helpers.url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
         </div>
         <div>
-          <div class="commit-avatar-image">@avatarLink(commit, 40)</div>
+          <div class="commit-avatar-image">@helpers.avatarLink(commit, 40)</div>
           <div>
-            <a href="@url(repository)/commit/@commit.id" class="commit-message strong">@link(commit.summary, repository)</a>
+            <a href="@helpers.url(repository)/commit/@commit.id" class="commit-message strong">@helpers.link(commit.summary, repository)</a>
             @if(commit.description.isDefined){
               <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
             }
             <br>
             @if(commit.description.isDefined){
-              <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
+              <pre id="description-@commit.id" style="display: none;" class="commit-description">@helpers.link(commit.description.get, repository)</pre>
             }
             <div>
               @if(commit.isDifferentFromAuthor) {
-                @user(commit.authorName, commit.authorEmailAddress, "username")
-                <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+                @helpers.user(commit.authorName, commit.authorEmailAddress, "username")
+                <span class="muted">authored @datetimeago(commit.authorTime)</span>
                 <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
               }
-              @user(commit.committerName, commit.committerEmailAddress, "username")
-              <span class="muted">committed @helper.html.datetimeago(commit.commitTime)</span>
+              @helpers.user(commit.committerName, commit.committerEmailAddress, "username")
+              <span class="muted">committed @datetimeago(commit.commitTime)</span>
             </div>
           </div>
         </div>

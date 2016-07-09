@@ -3,10 +3,7 @@
   pullreq: gitbucket.core.model.PullRequest,
   originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.service.SystemSettingsService
-@import context._
-@import gitbucket.core.view.helpers._
-@import model.CommitState
+@import gitbucket.core.view.helpers
 <div class="box issue-comment-box" style="background-color: @if(status.hasProblem){ #fbeed5 }else{ #d8f5cd };">
   <div class="box-content issue-content" style="border: 1px solid @if(status.hasProblem){ #c09853 }else{ #95c97e };padding:0">
     <div id="merge-pull-request">
@@ -14,8 +11,8 @@
         <div class="build-statuses">
           @defining(status.commitStateSummary){ case (summaryState, summary) =>
             <a class="pull-right" id="toggle-all-checks"></a>
-            <span class="build-status-icon text-@{summaryState.name}">@commitStateIcon(summaryState)</span>
-            <strong class="text-@{summaryState.name}">@commitStateText(summaryState, pullreq.commitIdTo)</strong>
+            <span class="build-status-icon text-@{summaryState.name}">@helpers.commitStateIcon(summaryState)</span>
+            <strong class="text-@{summaryState.name}">@helpers.commitStateText(summaryState, pullreq.commitIdTo)</strong>
             <span class="text-@{summaryState.name}">— @summary checks</span>
           }
         </div>
@@ -26,7 +23,7 @@
                 @if(required){ <span class="label">Required</span> }
                 @status.targetUrl.map { url => <a href="@url">Details</a> }
               </div>
-              <span class="build-status-icon text-@{status.state.name}">@commitStateIcon(status.state)</span>
+              <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
               <strong>@status.context</strong>
               @status.description.map { desc => <span class="muted">— @desc</span> }
             </div>
@@ -48,7 +45,7 @@
           @if(status.branchIsOutOfDate){
             @if(status.hasUpdatePermission){
               <div class="pull-right">
-                <form method="POST" action="@url(originRepository)/pull/@pullreq.issueId/update_branch">
+                <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/update_branch">
                   <input type="hidden" name="expected_head_oid" value="@pullreq.commitIdFrom">
                   <button class="btn btn-default"@if(!status.canUpdate){ disabled="true"} id="update-branch-button">Update branch</button>
                 </form>
@@ -102,10 +99,10 @@
                 you can perform a manual merge on the command line.
               </p>
             }
-            @helper.html.copy("repository-url-copy", forkedRepository.httpUrl){
+            @gitbucket.core.helper.html.copy("repository-url-copy", forkedRepository.httpUrl){
               <div class="input-group-btn" data-toggle="buttons">
                 <label class="btn btn-sm btn-default active" id="repository-url-http"><input type="radio" checked>HTTP</label>
-                @if(settings.ssh && loginAccount.isDefined){
+                @if(context.settings.ssh && context.loginAccount.isDefined){
                   <label class="btn btn-sm btn-default" id="repository-url-ssh"><input type="radio">SSH</label>
                 }
               </div>
@@ -117,7 +114,7 @@
               </p>
               @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
                         s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
-                @helper.html.copy("merge-command-copy-1", command, "position: absolute; right: 31px;")()
+                @gitbucket.core.helper.html.copy("merge-command-copy-1", command, "position: absolute; right: 31px;")()
                 <pre style="font-size: 12px; border-radius: 3px;" id="merge-command">@Html(command)</pre>
               }
             </div>
@@ -127,7 +124,7 @@
               </p>
               @defining(s"git checkout ${pullreq.branch}\ngit merge --no-ff ${pullreq.requestUserName}-${pullreq.requestBranch}\n" +
                         s"git push origin ${pullreq.branch}"){ command =>
-                @helper.html.copy("merge-command-copy-2", command, "position: absolute; right: 31px;")()
+                @gitbucket.core.helper.html.copy("merge-command-copy-2", command, "position: absolute; right: 31px;")()
                 <pre style="font-size: 12px; border-radius: 3px;">@command</pre>
               }
             </div>
@@ -136,7 +133,7 @@
       }
     </div>
     <div id="confirm-merge-form" style="display: none; padding: 12px;">
-      <form method="POST" action="@url(originRepository)/pull/@pullreq.issueId/merge">
+      <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/merge">
         <div class="strong">
           Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
         </div>

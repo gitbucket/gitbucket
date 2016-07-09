@@ -7,12 +7,10 @@
   labels: List[gitbucket.core.model.Label],
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@import gitbucket.core.model._
+@import gitbucket.core.view.helpers
 <div class="col-md-9">
   <div id="comment-list">
-    @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
+    @gitbucket.core.issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
   </div>
   @defining(comments.flatMap {
     case comment: gitbucket.core.model.IssueComment => Some(comment)
@@ -22,7 +20,7 @@
       <div class="check-conflict" style="display: none;">
         <div class="box issue-comment-box" style="background-color: #fbeed5">
           <div class="box-content"class="issue-content" style="border: 1px solid #c09853; padding: 10px;">
-            <img src="@assets/common/images/indicator.gif"/> Checking...
+            <img src="@helpers.assets/common/images/indicator.gif"/> Checking...
           </div>
         </div>
       </div>
@@ -31,7 +29,7 @@
       pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
       <div class="box issue-comment-box" style="background-color: #d0eeff;">
         <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
-          <a href="@url(repository)/pull/@issue.issueId/delete/@encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+          <a href="@helpers.url(repository)/pull/@issue.issueId/delete/@helpers.encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
           <div>
             <span class="strong">Pull request successfully merged and closed</span>
           </div>
@@ -39,11 +37,11 @@
         </div>
       </div>
     }
-    @issues.html.commentform(issue, !merged, hasWritePermission, repository)
+    @gitbucket.core.issues.html.commentform(issue, !merged, hasWritePermission, repository)
   }
 </div>
 <div class="col-md-3">
-  @issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+  @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
 </div>
 <script>
 $(function(){
@@ -54,7 +52,7 @@ $(function(){
 
   var checkConflict = $('.check-conflict').show();
   if(checkConflict.length){
-    $.get('@url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+    $.get('@helpers.url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
   }
 
   @if(hasWritePermission){

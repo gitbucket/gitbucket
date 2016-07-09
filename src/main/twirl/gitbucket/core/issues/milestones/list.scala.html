@@ -2,13 +2,13 @@
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"Milestones - ${repository.owner}/${repository.name}"){
-  @html.menu("milestones", repository){
-    @if(loginAccount.isDefined){
+@import gitbucket.core.view.helpers
+@import gitbucket.core.helper.html.datetimeago
+@gitbucket.core.html.main(s"Milestones - ${repository.owner}/${repository.name}"){
+  @gitbucket.core.html.menu("milestones", repository){
+    @if(context.loginAccount.isDefined){
       <div class="pull-right" style="margin-bottom: 10px;">
-        <a class="btn btn-success" href="@url(repository)/issues/milestones/new">New milestone</a>
+        <a class="btn btn-success" href="@helpers.url(repository)/issues/milestones/new">New milestone</a>
       </div>
     }
     <table class="table table-bordered table-hover table-issues">
@@ -35,17 +35,17 @@
             <td style="padding-top: 15px; padding-bottom: 15px;">
               <div class="milestone row">
                 <div class="col-md-4">
-                  <a href="@url(repository)/issues?milestone=@milestone.title&state=open" class="milestone-title">@milestone.title</a>
+                  <a href="@helpers.url(repository)/issues?milestone=@milestone.title&state=open" class="milestone-title">@milestone.title</a>
                   <div>
                     @if(milestone.closedDate.isDefined){
-                      <span class="muted">Closed @helper.html.datetimeago(milestone.closedDate.get)</span>
+                      <span class="muted">Closed @datetimeago(milestone.closedDate.get)</span>
                     } else {
                       @milestone.dueDate.map { dueDate =>
-                        @if(isPast(dueDate)){
+                        @if(helpers.isPast(dueDate)){
                           <i class="octicon octicon-alert" style="color:#BD2C00;"></i>
-                          <span class="muted milestone-alert">Due by @date(dueDate)</span>
+                          <span class="muted milestone-alert">Due by @helpers.date(dueDate)</span>
                         } else {
-                          <span class="muted">Due by @date(dueDate)</span>
+                          <span class="muted">Due by @helpers.date(dueDate)</span>
                         }
                       }.getOrElse {
                         <span class="muted">No due date</span>
@@ -54,7 +54,7 @@
                   </div>
                 </div>
                 <div class="col-md-8">
-                  @progress(openCount + closedCount, closedCount)
+                  @gitbucket.core.issues.milestones.html.progress(openCount + closedCount, closedCount)
                   <div>
                     <div>
                       @if(closedCount == 0){
@@ -67,13 +67,13 @@
                     </div>
                     <div class="milestone-menu">
                       @if(hasWritePermission){
-                        <a href="@url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit</a> &nbsp;&nbsp;
+                        <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/edit">Edit</a> &nbsp;&nbsp;
                         @if(milestone.closedDate.isDefined){
-                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a> &nbsp;&nbsp;
+                          <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/open">Open</a> &nbsp;&nbsp;
                         } else {
-                          <a href="@url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a> &nbsp;&nbsp;
+                          <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/close">Close</a> &nbsp;&nbsp;
                         }
-                        <a href="@url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
+                        <a href="@helpers.url(repository)/issues/milestones/@milestone.milestoneId/delete" class="delete">Delete</a>
                       }
                     </div>
                   </div>
@@ -81,7 +81,7 @@
               </div>
               @if(milestone.description.isDefined){
                 <div class="milestone-description markdown-body">
-                  @markdown(
+                  @helpers.markdown(
                     markdown = milestone.description.get,
                     repository = repository,
                     enableWikiLink = false,
@@ -98,7 +98,7 @@
             <td style="padding: 20px; background-color: #eee; text-align: center;">
               No milestones to show.
               @if(hasWritePermission){
-                <a href="@url(repository)/issues/milestones/new">Create a new milestone.</a>
+                <a href="@helpers.url(repository)/issues/milestones/new">Create a new milestone.</a>
               }
             </td>
           </tr>

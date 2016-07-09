@@ -6,17 +6,18 @@
   labels: List[gitbucket.core.model.Label],
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
+@import gitbucket.core.helper.html.dropdown
+@import gitbucket.core.helper.html.checkicon
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Labels</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown("Edit", right = true) {
+      @dropdown("Edit", right = true) {
         @labels.map { label =>
           <li>
             <a href="#" class="toggle-label" data-label-id="@label.labelId">
-              @helper.html.checkicon(issueLabels.exists(_.labelId == label.labelId))
+              @checkicon(issueLabels.exists(_.labelId == label.labelId))
               <span class="label" style="background-color: #@label.color;">&nbsp;</span>
               @label.labelName
             </a>
@@ -30,29 +31,29 @@
   }
 </div>
 <ul class="label-list nav nav-pills nav-stacked">
-  @labellist(issueLabels)
+  @gitbucket.core.issues.html.labellist(issueLabels)
 </ul>
 <hr/>
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Milestone</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown("Edit", right = true) {
+      @dropdown("Edit", right = true) {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="octicon octicon-x"></i> Clear this milestone</a></li>
         @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
           <li>
             <a href="javascript:void(0);" class="milestone" data-id="@milestone.milestoneId" data-title="@milestone.title">
               @issue.map { issue =>
-                @helper.html.checkicon(Some(milestone.milestoneId) == issue.milestoneId)
+                @checkicon(Some(milestone.milestoneId) == issue.milestoneId)
               }
               @milestone.title
               <div class="small" style="padding-left: 20px;">
                 @milestone.dueDate.map { dueDate =>
-                  @if(isPast(dueDate)){
+                  @if(helpers.isPast(dueDate)){
                     <i class="octicon octicon-alert" style="color:#BD2C00;"></i>
-                    <span class="milestone-alert">Due by @date(dueDate)</span>
+                    <span class="milestone-alert">Due by @helpers.date(dueDate)</span>
                   } else {
-                    <span class="muted">Due by @date(dueDate)</span>
+                    <span class="muted">Due by @helpers.date(dueDate)</span>
                   }
                 }.getOrElse {
                   <span class="muted">No due date</span>
@@ -68,7 +69,7 @@
 <div id="milestone-progress-area">
   @issue.flatMap(_.milestoneId).map { milestoneId =>
     @milestones.collect { case (milestone, openCount, closeCount) if(milestone.milestoneId == milestoneId) =>
-      @issues.milestones.html.progress(openCount + closeCount, closeCount)
+      @gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
     }
   }
 </div>
@@ -89,12 +90,12 @@
   <span class="muted small strong">Assignee</span>
   @if(hasWritePermission){
     <div class="pull-right">
-      @helper.html.dropdown("Edit", right = true) {
+      @dropdown("Edit", right = true) {
         <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
         @collaborators.map { collaborator =>
           <li>
             <a href="javascript:void(0);" class="assign" data-name="@collaborator">
-              @helper.html.checkicon(issue.exists(_.assignedUserName.exists(_ == collaborator)))@avatar(collaborator, 20) @collaborator
+              @checkicon(issue.exists(_.assignedUserName.exists(_ == collaborator)))@helpers.avatar(collaborator, 20) @collaborator
             </a>
           </li>
         }
@@ -104,7 +105,7 @@
 </div>
 <span id="label-assigned">
   @issue.flatMap(_.assignedUserName).map { userName =>
-    @avatar(userName, 20) @user(userName, styleClass="username strong small")
+    @helpers.avatar(userName, 20) @helpers.user(userName, styleClass="username strong small")
   }.getOrElse{
     <span class="muted small">No one</span>
   }
@@ -116,12 +117,12 @@
   <hr/>
   <div style="margin-bottom: 14px;">
     @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
-      <div class="muted small strong">@participants.size @plural(participants.size, "participant")</div>
+      <div class="muted small strong">@participants.size @helpers.plural(participants.size, "participant")</div>
     }
   </div>
   @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>
     @participants.map { participant =>
-      @avatarLink(participant, 20, tooltip = true)
+      @helpers.avatarLink(participant, 20, tooltip = true)
     }
   }
 }
@@ -130,7 +131,7 @@ $(function(){
 @issue.map { issue =>
   $('a.toggle-label').click(function(){
     var path = switchLabel($(this));
-    $.post('@url(repository)/issues/@issue.issueId/label/' + path,
+    $.post('@helpers.url(repository)/issues/@issue.issueId/label/' + path,
       { labelId : $(this).data('label-id') },
       function(data){
         $('ul.label-list').empty().html(data);
@@ -142,7 +143,7 @@ $(function(){
   $('a.milestone').click(function(){
     var title = $(this).data('title');
     var milestoneId = $(this).data('id');
-    $.post('@url(repository)/issues/@issue.issueId/milestone',
+    $.post('@helpers.url(repository)/issues/@issue.issueId/milestone',
       { milestoneId: milestoneId },
       function(data){
         displayMilestone(title, milestoneId, data);
@@ -153,7 +154,7 @@ $(function(){
   $('a.assign').click(function(){
     var $this = $(this);
     var userName = $this.data('name');
-    $.post('@url(repository)/issues/@issue.issueId/assign',
+    $.post('@helpers.url(repository)/issues/@issue.issueId/assign',
       { assignedUserName: userName },
       function(){
         displayAssignee($this, userName);
@@ -171,7 +172,7 @@ $(function(){
     });
     $('input[name=labelNames]').val(labelNames.join(','));
 
-    $.post('@url(repository)/issues/new/label',
+    $.post('@helpers.url(repository)/issues/new/label',
       { labelNames : labelNames.join(',') },
       function(data){
         $('ul.label-list').empty().html(data);

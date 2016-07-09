@@ -2,11 +2,10 @@
   counts: Map[String, Int],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"Labels - ${repository.owner}/${repository.name}"){
-  @html.menu("labels", repository){
-    @if(loginAccount.isDefined){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"Labels - ${repository.owner}/${repository.name}"){
+  @gitbucket.core.html.menu("labels", repository){
+    @if(context.loginAccount.isDefined){
       <div class="pull-right" style="margin-bottom: 10px;">
         <a class="btn btn-success" href="javascript:void(0);" id="new-label-button">New label</a>
       </div>
@@ -47,7 +46,7 @@ $(function(){
       $('div#edit-label-area-new').remove();
       $('#new-label-table').hide();
     } else {
-      $.get('@url(repository)/issues/labels/new',
+      $.get('@helpers.url(repository)/issues/labels/new',
         function(data){
           $('#new-label-table').show().find('tr td').append(data);
         }
@@ -58,14 +57,14 @@ $(function(){
 
 function deleteLabel(labelId){
   if(confirm('Once you delete this label, there is no going back.\nAre you sure?')){
-    $.post('@url(repository)/issues/labels/' + labelId + '/delete', function(){
+    $.post('@helpers.url(repository)/issues/labels/' + labelId + '/delete', function(){
       $('tr#label-row-' + labelId).remove();
     });
   }
 }
 
 function editLabel(labelId){
-  $.get('@url(repository)/issues/labels/' + labelId + '/edit',
+  $.get('@helpers.url(repository)/issues/labels/' + labelId + '/edit',
     function(data){
       $('#label-' + labelId).hide().parent().append(data);
     }

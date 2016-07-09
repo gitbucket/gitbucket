@@ -3,10 +3,10 @@
   labels: List[gitbucket.core.model.Label],
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("issues", repository){
-    <form action="@url(repository)/issues/new" method="POST" validate="true" class="form-group">
+    <form action="@helpers.url(repository)/issues/new" method="POST" validate="true" class="form-group">
       <div class="row-fluid">
         <div class="col-md-9">
           <span id="error-title" class="error"></span>

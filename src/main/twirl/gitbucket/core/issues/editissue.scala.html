@@ -1,5 +1,4 @@
 @(content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
-@import context.path
 @gitbucket.core.helper.html.attached(owner, repository, Seq("emoji", "user")){
   <textarea id="edit-content" class="form-control">@content.getOrElse("")</textarea>
 }
@@ -17,7 +16,7 @@ $(function(){
   $('#update-issue').click(function(){
     $('#update, #cancel').attr('disabled', 'disabled');
     $.ajax({
-      url: '@path/@owner/@repository/issues/edit/@issueId',
+      url: '@context.path/@owner/@repository/issues/edit/@issueId',
       type: 'POST',
       data: {
         content : $('#edit-content').val()
@@ -31,7 +30,7 @@ $(function(){
 
   $('#cancel-issue').click(function(){
     $('#update, #cancel').attr('disabled', 'disabled');
-    $.get('@path/@owner/@repository/issues/_data/@issueId', callback);
+    $.get('@context.path/@owner/@repository/issues/_data/@issueId', callback);
     return false;
   });
 });
