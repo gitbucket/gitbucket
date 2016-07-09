@@ -1,11 +1,10 @@
 @(active: String, fileCount: Int, issueCount: Int, wikiCount: Int, query: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.menu("", repository){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.menu("", repository){
   <ul class="nav nav-tabs" style="margin-bottom: 20px;">
     <li@if(active=="code"){ class="active"}>
-      <a href="@url(repository)/search?q=@urlEncode(query)&type=code">
+      <a href="@helpers.url(repository)/search?q=@helpers.urlEncode(query)&type=code">
         Files
         @if(fileCount != 0){
           <span class="badge">@fileCount</span>
@@ -13,7 +12,7 @@
       </a>
     </li>
     <li@if(active=="issue"){ class="active"}>
-      <a href="@url(repository)/search?q=@urlEncode(query)&type=issue">
+      <a href="@helpers.url(repository)/search?q=@helpers.urlEncode(query)&type=issue">
         Issues
         @if(issueCount != 0){
           <span class="badge">@issueCount</span>
@@ -21,7 +20,7 @@
       </a>
     </li>
     <li@if(active=="wiki"){ class="active"}>
-      <a href="@url(repository)/search?q=@urlEncode(query)&type=wiki">
+      <a href="@helpers.url(repository)/search?q=@helpers.urlEncode(query)&type=wiki">
         Wiki
         @if(wikiCount != 0){
           <span class="badge">@wikiCount</span>
@@ -29,7 +28,7 @@
       </a>
     </li>
   </ul>
-  <form action="@url(repository)/search" method="GET" class="form-inline">
+  <form action="@helpers.url(repository)/search" method="GET" class="form-inline">
     <input type="text" name="q" value="@query" class="form-control" style="width: 400px; margin-bottom: 0px;"/>
     <input type="submit" value="Search" class="btn btn-default"/>
     <input type="hidden" name="type" value="@active"/>

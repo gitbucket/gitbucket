@@ -5,13 +5,12 @@
   issueId: Option[Int] = None,
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context.loginAccount
-@import gitbucket.core.view.helpers._
-@if(loginAccount.isDefined){
+@import gitbucket.core.view.helpers
+@if(context.loginAccount.isDefined){
   @if(!fileName.isDefined){<hr/><br/>}
   <form method="POST" validate="true" style="max-width: 874px;">
     @if(!fileName.isDefined){
-      <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
+      <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
     }
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
@@ -31,13 +30,13 @@
       @if(fileName.isDefined){
         <div class="pull-right" style="margin-top: 10px;">
           <input type="button" class="btn btn-default" value="Cancel"/>
-          <input type="submit" class="btn btn-success btn-inline-comment" formaction="@url(repository)/commit/@commitId/comment/new" value="Comment"/>
+          <input type="submit" class="btn btn-success btn-inline-comment" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment"/>
         </div>
       }
     </div>
     @if(!fileName.isDefined){
       <div class="pull-right">
-        <input type="submit" class="btn btn-success" formaction="@url(repository)/commit/@commitId/comment/new" value="Comment on this commit"/>
+        <input type="submit" class="btn btn-success" formaction="@helpers.url(repository)/commit/@commitId/comment/new" value="Comment on this commit"/>
       </div>
     }
     @issueId.map { issueId => <input type="hidden" name="issueId" value="@issueId"> }
@@ -54,7 +53,7 @@
         param[v.name] = v.value;
       });
       $.ajax({
-        url: '@url(repository)/commit/@commitId/comment/_data/new',
+        url: '@helpers.url(repository)/commit/@commitId/comment/_data/new',
         type: 'POST',
         data: param
       }).done(function(data) {

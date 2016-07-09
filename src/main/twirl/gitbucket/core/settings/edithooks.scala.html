@@ -3,17 +3,16 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   info: Option[Any],
   create: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 @import gitbucket.core.model.WebHook._
 @import gitbucket.core.model.WebHookContentType
-@check(name: String, event: Event)={
+@check(name: String, event: Event) = {
   name="@(name).@event.name" value="on" @if(events(event)){checked}
 }
-@html.main("Settings", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("hooks", repository){
-      @helper.html.information(info)
+@gitbucket.core.html.main("Settings", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("hooks", repository){
+      @gitbucket.core.helper.html.information(info)
       <div class="panel panel-default">
         <div class="panel-heading strong">Webhook / Manage webhook</div>
         <div class="panel-body">
@@ -72,12 +71,12 @@
             <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <span class="help-block normal">Git push to a repository. </span> </label>
             <div class="text-right">
               @if(!create){
-                <input type="submit" class="btn btn-success" value="Update webhook" formaction="@url(repository)/settings/hooks/edit" />
-                <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+                <input type="submit" class="btn btn-success" value="Update webhook" formaction="@helpers.url(repository)/settings/hooks/edit" />
+                <a href="@helpers.url(repository)/settings/hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
                   Delete webhook
                 </a>
               } else {
-                <input type="submit" class="btn btn-success" value="Add webhook" formaction="@url(repository)/settings/hooks/new" />
+                <input type="submit" class="btn btn-success" value="Add webhook" formaction="@helpers.url(repository)/settings/hooks/new" />
               }
             </div>
           </form>
@@ -146,7 +145,7 @@ $(function(){
     $("#test-modal-url").text(url)
     $("#test-report-modal").modal('show')
     $("#test-report").hide();
-    var targetUrl = '@url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&ctype=' + ctype + '&token=';
+    var targetUrl = '@helpers.url(repository)/settings/hooks/test?url=' + encodeURIComponent(url) + '&ctype=' + ctype + '&token=';
     if (token) {
       targetUrl = targetUrl + encodeURIComponent(token);
     }

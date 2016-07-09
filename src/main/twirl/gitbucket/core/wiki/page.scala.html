@@ -5,21 +5,20 @@
   hasWritePermission: Boolean,
   sidebar: Option[gitbucket.core.service.WikiService.WikiPageInfo],
   footer: Option[gitbucket.core.service.WikiService.WikiPageInfo])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@import gitbucket.core.service.WikiService.{wikiHttpUrl, wikiSshUrl}
-@html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.menu("wiki", repository){
+@import gitbucket.core.view.helpers
+@import gitbucket.core.service.WikiService
+@gitbucket.core.html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("wiki", repository){
     <div>
       @if(hasWritePermission){
         <div class="pull-right">
-          <a class="btn btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_edit">Edit Page</a>
-          <a class="btn btn-success" href="@url(repository)/wiki/_new">New Page</a>
+          <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
+          <a class="btn btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
         </div>
       }
       <h1 class="body-title">@pageName</h1>
       <div>
-        <span class="muted"><strong>@page.committer</strong> edited this page @helper.html.datetimeago(page.time)</span>
+        <span class="muted"><strong>@page.committer</strong> edited this page @gitbucket.core.helper.html.datetimeago(page.time)</span>
       </div>
       <hr>
     </div>
@@ -36,7 +35,7 @@
           <ul id="pages-index" class="list-group list-group-flush">
             @pages.zipWithIndex.map { case (page, i) =>
               <li class="list-group-item page-link" style="border: none; @if(i > max - 1){display:none;}">
-                <a href="@url(repository)/wiki/@urlEncode(page)" class="strong">@page</a>
+                <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(page)" class="strong">@page</a>
               </li>
             }
             @if(pages.size > max){
@@ -50,13 +49,13 @@
       @sidebar.map { sidebarPage =>
         <div class="wiki-sidebar">
           @if(hasWritePermission){
-            <a href="@url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
+            <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
-          @markdown(sidebarPage.content, repository, true, false, false, false, pages)
+          @helpers.markdown(sidebarPage.content, repository, true, false, false, false, pages)
         </div>
       }.getOrElse{
         @if(hasWritePermission){
-          <a class="button-link" href="@url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;">
+          <a class="button-link" href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;">
             <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom sidebar</div>
           </a>
         }
@@ -64,10 +63,10 @@
       <div>
         <strong>Clone this wiki locally</strong>
       </div>
-      @helper.html.copy("repository-url-copy", wikiHttpUrl(repository)){
-        <input type="text" value="@wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
+      @gitbucket.core.helper.html.copy("repository-url-copy", WikiService.wikiHttpUrl(repository)){
+        <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
       }
-      @if(wikiSshUrl(repository).isDefined) {
+      @if(WikiService.wikiSshUrl(repository).isDefined) {
         <div class="small">
           <span class="mute">You can clone <a href="javascript:void(0);" id="repository-url-http">HTTP</a> or <a href="javascript:void(0);" id="repository-url-ssh">SSH</a>.</span>
         </div>
@@ -75,7 +74,7 @@
     </div>
     <div style="margin-right: 260px;">
       <div class="markdown-body">
-        @markdown(
+        @helpers.markdown(
           markdown = page.content,
           repository = repository,
           enableWikiLink = true,
@@ -89,13 +88,13 @@
       @footer.map { footerPage =>
         <div class="wiki-sidebar wiki-footer">
           @if(hasWritePermission){
-            <a href="@url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
+            <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
-          @markdown(footerPage.content, repository, true, false, false, false, pages)
+          @helpers.markdown(footerPage.content, repository, true, false, false, false, pages)
         </div>
       }.getOrElse{
         @if(hasWritePermission){
-          <a class="button-link" href="@url(repository)/wiki/_Footer/_edit" style="text-decoration: none;">
+          <a class="button-link" href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;">
             <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom footer</div>
           </a>
         }
@@ -128,9 +127,9 @@ $(function(){
     $('#triangle-right').show();
   }
 
-  @wikiSshUrl(repository).map { sshUrl =>
+  @WikiService.wikiSshUrl(repository).map { sshUrl =>
     $('#repository-url-http').click(function(){
-      $('#repository-url').val('@wikiHttpUrl(repository)');
+      $('#repository-url').val('@WikiService.wikiHttpUrl(repository)');
       $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
     });
     $('#repository-url-ssh').click(function(){

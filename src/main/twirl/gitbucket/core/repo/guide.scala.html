@@ -1,10 +1,8 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.service.SystemSettingsService
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("files", repository){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+  @gitbucket.core.html.menu("files", repository){
     @if(!hasWritePermission){
       <h3>This is an empty repository</h3>
     } else {
@@ -17,7 +15,7 @@
       }
       </div>
       <h3 style="margin-top: 30px;">Create a new repository on the command line</h3>
-      @pre {
+      @helpers.pre {
         touch README.md
         git init
         git add README.md
@@ -26,7 +24,7 @@
         git push -u origin master
       }
       <h3 style="margin-top: 30px;">Push an existing repository from the command line</h3>
-      @pre {
+      @helpers.pre {
         git remote add origin <span class="live-clone-url">@repository.httpUrl</span>
         git push -u origin master
       }

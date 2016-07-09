@@ -7,27 +7,26 @@
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
   oldCommitId: Option[String],
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.util.Implicits._
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(commit.shortMessage, Some(repository)){
-  @html.menu("files", repository){
+@import gitbucket.core.view.helpers
+@import gitbucket.core.view.helpers.RichHtmlSeq
+@gitbucket.core.html.main(commit.shortMessage, Some(repository)){
+  @gitbucket.core.html.menu("files", repository){
     <table class="table table-bordered">
       <tr>
         <th class="box-header">
           <div class="pull-right align-right">
-            <a href="@url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
+            <a href="@helpers.url(repository)/tree/@commit.id" class="btn btn-small">Browse code</a>
           </div>
-          <div class="commit-log">@link(commit.summary, repository)</div>
+          <div class="commit-log">@helpers.link(commit.summary, repository)</div>
           @if(commit.description.isDefined){
-            <pre class="commit-description">@link(commit.description.get, repository)</pre>
+            <pre class="commit-description">@helpers.link(commit.description.get, repository)</pre>
           }
           <div class="small" style="font-weight: normal;">
             @if(branches.nonEmpty){
               <span class="muted">
                   <i class="octicon octicon-git-branch"></i>
                 @branches.zipWithIndex.map { case (branch, i) =>
-                  <a href="@url(repository)/tree/@encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
+                  <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch" id="branch-@i">@branch</a>
                 }
               </span>
             }
@@ -35,7 +34,7 @@
               <span class="muted">
                   <i class="octicon octicon-tag"></i>
                 @tags.zipWithIndex.map { case (tag, i) =>
-                  <a href="@url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
+                  <a href="@helpers.url(repository)/tree/@tag" class="tag" id="tag-@i">@tag</a>
                 }
               </span>
             }
@@ -51,7 +50,7 @@
               }
               @if(commit.parents.size == 1){
                 <span class="muted">1 parent</span>
-                <a href="@url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
+                <a href="@helpers.url(repository)/commit/@commit.parents(0)" class="commit-id">@commit.parents(0).substring(0, 7)</a>
               }
               <span class="muted">commit</span> @commit.id
             </div>
@@ -59,7 +58,7 @@
               <div>
                 <span class="muted">@commit.parents.size parents
                 @commit.parents.map { parent =>
-                  <a href="@url(repository)/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
+                  <a href="@helpers.url(repository)/commit/@parent" class="commit-id">@parent.substring(0, 7)</a>
                 }.mkHtml(" + ")
                 </span>
               </div>
@@ -68,29 +67,29 @@
 
           <div class="author-info">
             <div class="author">
-              @avatar(commit, 20)
-              <span>@user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
-              <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+              @helpers.avatar(commit, 20)
+              <span>@helpers.user(commit.authorName, commit.authorEmailAddress, "username strong")</span>
+              <span class="muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
             </div>
             @if(commit.isDifferentFromAuthor) {
             <div class="committer">
               <span class="octicon octicon-arrow-right"></span>
-              <span>@user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
-              <span class="muted"> committed @helper.html.datetimeago(commit.commitTime)</span>
+              <span>@helpers.user(commit.committerName, commit.committerEmailAddress, "username strong")</span>
+              <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
             </div>
             }
           </div>
         </td>
       </tr>
     </table>
-    @helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, None, hasWritePermission, true)
+    @gitbucket.core.helper.html.diff(diffs, repository, Some(commit.id), oldCommitId, true, None, hasWritePermission, true)
     <label class="checkbox">
       <input type="checkbox" id="show-notes"> Show line notes below
     </label>
     <div id="comment-list">
-      @issues.html.commentlist(None, comments, hasWritePermission, repository, None)
+      @gitbucket.core.issues.html.commentlist(None, comments, hasWritePermission, repository, None)
     </div>
-    @commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
+    @gitbucket.core.repo.html.commentform(commitId = commitId, hasWritePermission = hasWritePermission, repository = repository)
   }
 }
 <script>

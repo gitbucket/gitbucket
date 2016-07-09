@@ -1,19 +1,19 @@
 @(pageName: String,
   page: Option[gitbucket.core.service.WikiService.WikiPageInfo],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 @import gitbucket.core.util.FileUtil
 @gitbucket.core.html.main(s"${if(pageName.isEmpty) "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("wiki", repository){
     <div class="pull-right">
       @if(page.isDefined){
-        <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
-        <a class="btn btn-small btn-danger" href="@url(repository)/wiki/@urlEncode(pageName)/_delete" id="delete">Delete Page</a>
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
+        <a class="btn btn-small btn-danger" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_delete" id="delete">Delete Page</a>
       }
-      <a class="btn btn-small btn-success" href="@url(repository)/wiki/_new">New Page</a>
+      <a class="btn btn-small btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
     </div>
     <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
-    <form action="@url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
+    <form action="@helpers.url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
       <span id="error-pageName" class="error"></span>
       <input type="text" name="pageName" value="@pageName" class="form-control" style="font-weight: bold; margin-bottom: 10px;" placeholder="Input a page name."/>
       <div class="muted attachable">

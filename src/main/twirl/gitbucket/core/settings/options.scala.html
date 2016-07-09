@@ -1,11 +1,10 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Settings", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("options", repository){
-      @helper.html.information(info)
-      <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Settings", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("options", repository){
+      @gitbucket.core.helper.html.information(info)
+      <form id="form" method="post" action="@helpers.url(repository)/settings/options" validate="true">
         <div class="panel panel-default">
           <div class="panel-heading strong">Settings</div>
           <div class="panel-body">

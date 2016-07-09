@@ -3,14 +3,12 @@
   protection: gitbucket.core.api.ApiBranchProtection,
   knownContexts: Seq[String],
   info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@import gitbucket.core.model.WebHook._
+@import gitbucket.core.view.helpers
 @check(bool:Boolean)={@if(bool){ checked}}
-@html.main(s"Branch protection for ${branch}", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("branches", repository){
-      @helper.html.information(info)
+@gitbucket.core.html.main(s"Branch protection for ${branch}", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("branches", repository){
+      @gitbucket.core.helper.html.information(info)
       <div class="alert alert-info" style="display:none" id="saved-info">Branch protection options saved</div>
       <form name="branchProtection" onsubmit="submitForm(event)">
         <div class="panel panel-default">
@@ -112,7 +110,7 @@ function submitForm(e){
   var protection = getValue();
   $.ajax({
     method:'PATCH',
-    url:'@path/api/v3/repos/@repository.owner/@repository.name/branches/@encodeRefName(branch)',
+    url:'@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.encodeRefName(branch)',
     contentType: 'application/json',
     dataType: 'json',
     data:JSON.stringify({protection:protection}),

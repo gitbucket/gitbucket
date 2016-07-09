@@ -1,28 +1,27 @@
 @(active: String, repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 <ul class="nav nav-tabs" style="margin-bottom: 20px;">
   <li@if(active=="options"){ class="active"}>
-    <a href="@url(repository)/settings/options">Options</a>
+    <a href="@helpers.url(repository)/settings/options">Options</a>
   </li>
   <li@if(active=="collaborators"){ class="active"}>
-    <a href="@url(repository)/settings/collaborators">Collaborators</a>
+    <a href="@helpers.url(repository)/settings/collaborators">Collaborators</a>
   </li>
   @if(!repository.branchList.isEmpty){
   <li@if(active=="branches"){ class="active"}>
-    <a href="@url(repository)/settings/branches">Branches</a>
+    <a href="@helpers.url(repository)/settings/branches">Branches</a>
   </li>
   }
   <li@if(active=="hooks"){ class="active"}>
-    <a href="@url(repository)/settings/hooks">Service Hooks</a>
+    <a href="@helpers.url(repository)/settings/hooks">Service Hooks</a>
   </li>
   <li@if(active=="danger"){ class="active"}>
-    <a href="@url(repository)/settings/danger">Danger Zone</a>
+    <a href="@helpers.url(repository)/settings/danger">Danger Zone</a>
   </li>
   @gitbucket.core.plugin.PluginRegistry().getRepositorySettingTabs.map { tab =>
     @tab(repository, context).map { link =>
       <li@if(active==link.id){ class="active"}>
-        <a href="@url(repository)/@link.path">@link.label</a>
+        <a href="@helpers.url(repository)/@link.path">@link.label</a>
       </li>
     }
   }
