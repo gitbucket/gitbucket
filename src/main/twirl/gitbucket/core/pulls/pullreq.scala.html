@@ -11,7 +11,6 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   flash: Map[String, String])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html.datetimeago
 @import gitbucket.core.model.IssueComment
 @import gitbucket.core.model.CommitComment
 @gitbucket.core.html.main(s"${issue.title} - Pull Request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
@@ -50,7 +49,7 @@
             <span class="muted">
               @helpers.user(comment.commentedUserName, styleClass="username strong") merged @commits.size @helpers.plural(commits.size, "commit")
               into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
-              @datetimeago(comment.registeredDate)
+              @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
             </span>
           }.getOrElse {
             <span class="label label-important issue-status">Closed</span>

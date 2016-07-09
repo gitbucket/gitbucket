@@ -15,30 +15,29 @@
   milestones: List[gitbucket.core.model.Milestone],
   labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html._
 @gitbucket.core.html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
     <div class="pullreq-info">
       <div id="compare-edit">
-        @dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
+        @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
           @members.map { case (owner, name) =>
-            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@checkicon(owner == originRepository.owner) @owner/@name</a></li>
+            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
           }
         }
-        @dropdown(originId, "base") {
+        @gitbucket.core.helper.html.dropdown(originId, "base") {
           @originRepository.branchList.map { branch =>
-            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@checkicon(branch == originId) @branch</a></li>
+            <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a></li>
           }
         }
         ...
-        @dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork") {
+        @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork") {
           @members.map { case (owner, name) =>
-            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name">@checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
+            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
           }
         }
-        @dropdown(forkedId, "compare") {
+        @gitbucket.core.helper.html.dropdown(forkedId, "compare") {
           @forkedRepository.branchList.map { branch =>
-            <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@checkicon(branch == forkedId) @branch</a></li>
+            <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a></li>
           }
         }
       </div>

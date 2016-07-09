@@ -6,8 +6,6 @@
   hasWritePermission: Boolean,
   isBlame: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html.datetimeago
-@import gitbucket.core.helper.html.checkicon
 @gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${helpers.encodeRefName(branch)} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
     <div class="head">
@@ -36,7 +34,7 @@
         hasWritePermission
       ){
         @repository.branchList.map { x =>
-          <li><a href="@helpers.url(repository)/blob/@helpers.encodeRefName(x)/@pathList.mkString("/")">@checkicon(x == branch) @x</a></li>
+          <li><a href="@helpers.url(repository)/blob/@helpers.encodeRefName(x)/@pathList.mkString("/")">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
         }
       }
       <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
@@ -51,7 +49,7 @@
     <div class="box-header">
       @helpers.avatar(latestCommit, 28)
       @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
-      <span class="muted">@datetimeago(latestCommit.commitTime)</span>
+      <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
       <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
       <div class="btn-group pull-right">
         @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){

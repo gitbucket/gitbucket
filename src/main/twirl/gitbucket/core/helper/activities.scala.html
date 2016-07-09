@@ -1,6 +1,5 @@
 @(activities: List[gitbucket.core.model.Activity])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html.datetimeago
 
 @if(activities.isEmpty){
   No activity
@@ -65,7 +64,7 @@
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   *@
   <div>
-    <div class="muted small">@datetimeago(activity.activityDate)</div>
+    <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @helpers.avatar(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
@@ -81,7 +80,7 @@
   <div class="activity-icon-large"><i class="mega-octicon octicon-@image"></i></div>
   *@
   <div>
-    <div class="muted small">@datetimeago(activity.activityDate)</div>
+    <div class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</div>
     <div class="strong">
       @helpers.avatar(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)
@@ -95,7 +94,7 @@
   <div class="activity-icon-small"><i class="octicon octicon-@image"></i></div>
   *@
   <div>
-    <span class="muted small">@datetimeago(activity.activityDate)</span>
+    <span class="muted small">@gitbucket.core.helper.html.datetimeago(activity.activityDate)</span>
     <div>
       @helpers.avatar(activity.activityUserName, 16)
       @helpers.activityMessage(activity.message)

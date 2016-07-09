@@ -3,7 +3,6 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html.datetimeago
 @gitbucket.core.html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("milestones", repository){
     @if(context.loginAccount.isDefined){
@@ -38,7 +37,7 @@
                   <a href="@helpers.url(repository)/issues?milestone=@milestone.title&state=open" class="milestone-title">@milestone.title</a>
                   <div>
                     @if(milestone.closedDate.isDefined){
-                      <span class="muted">Closed @datetimeago(milestone.closedDate.get)</span>
+                      <span class="muted">Closed @gitbucket.core.helper.html.datetimeago(milestone.closedDate.get)</span>
                     } else {
                       @milestone.dueDate.map { dueDate =>
                         @if(helpers.isPast(dueDate)){

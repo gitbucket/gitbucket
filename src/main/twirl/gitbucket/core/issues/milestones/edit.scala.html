@@ -1,7 +1,6 @@
 @(milestone: Option[gitbucket.core.model.Milestone],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html.datepicker
 @gitbucket.core.html.main(s"Milestones - ${repository.owner}/${repository.name}"){
   @gitbucket.core.html.menu("milestones", repository){
     @if(milestone.isEmpty){
@@ -21,7 +20,7 @@
       </fieldset>
       <fieldset class="form-group">
         <label for="dueDate" class="strong">Due Date</label>
-        @datepicker("dueDate", milestone.flatMap(_.dueDate))
+        @gitbucket.core.helper.html.datepicker("dueDate", milestone.flatMap(_.dueDate))
         <span id="error-dueDate" class="error"></span>
       </fieldset>
       <hr>

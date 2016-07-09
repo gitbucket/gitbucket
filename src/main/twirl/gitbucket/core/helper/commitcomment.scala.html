@@ -3,7 +3,6 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   latestCommitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html.datetimeago
 <div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}"
     id="discussion_r@comment.commentId"
     @if(comment.fileName.isDefined){filename="@comment.fileName.get"}
@@ -23,7 +22,7 @@
             }
             in <a href="@context.path/@repository.owner/@repository.name/commit/@comment.commitId">@comment.commitId.substring(0, 7)</a>
           }
-          @datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </span>
       <span class="pull-right">
         @if(hasWritePermission || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){

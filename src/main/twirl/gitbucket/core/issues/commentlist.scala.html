@@ -4,13 +4,12 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pullreq: Option[gitbucket.core.model.PullRequest] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.helper.html.datetimeago
 @import gitbucket.core.model.CommitComment
 @if(issue.isDefined){
   <div class="issue-avatar-image">@helpers.avatarLink(issue.get.openedUserName, 48)</div>
   <div class="panel panel-default issue-comment-box">
     <div class="panel-heading">
-      @helpers.user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @datetimeago(issue.get.registeredDate)</span>
+      @helpers.user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @gitbucket.core.helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
         @if(hasWritePermission || context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
           <a href="#" data-issue-id="@issue.get.issueId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
@@ -46,7 +45,7 @@
             } else {
               referenced the @issueOrPullRequest()
             }
-            @datetimeago(comment.registeredDate)
+            @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </span>
           @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
                 && (hasWritePermission || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
@@ -83,7 +82,7 @@
             @helpers.avatar(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             added a commit that referenced this @issueOrPullRequest()
-            @datetimeago(comment.registeredDate)
+            @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </div>
           <div style="discussion-item-content">
             @commitId.map{ id =>
@@ -106,7 +105,7 @@
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           referenced the @issueOrPullRequest()
-          @datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
         <div style="discussion-item-content">
           @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
@@ -128,7 +127,7 @@
           } else {
             <code>@pullreq.map(_.userName):@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</code>
           }
-          @datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
@@ -139,7 +138,7 @@
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           closed this @issueOrPullRequest()
-          @datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
@@ -150,7 +149,7 @@
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           reopened the @issueOrPullRequest()
-          @datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
@@ -161,7 +160,7 @@
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           deleted the <code>@pullreq.map(_.requestBranch)</code> branch
-          @datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
