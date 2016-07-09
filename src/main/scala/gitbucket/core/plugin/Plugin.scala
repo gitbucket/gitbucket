@@ -150,16 +150,6 @@ abstract class Plugin {
   def dashboardTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
 
   /**
-   * Override to add text decorators.
-   */
-  val textDecorators: Seq[TextDecorator] = Nil
-
-  /**
-   * Override to add text decorators.
-   */
-  def textDecorators(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[TextDecorator] = Nil
-
-  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -202,9 +192,6 @@ abstract class Plugin {
     }
     (dashboardTabs ++ dashboardTabs(registry, context, settings)).foreach { dashboardTab =>
       registry.addDashboardTab(dashboardTab)
-    }
-    (textDecorators ++ textDecorators(registry, context, settings)).foreach { textDecorator =>
-      registry.addTextDecorator(textDecorator)
     }
   }
 

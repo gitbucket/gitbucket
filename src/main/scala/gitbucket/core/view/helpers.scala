@@ -6,8 +6,9 @@ import java.util.{Date, Locale, TimeZone}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
+import gitbucket.core.util.{EmojiUtil, FileUtil, JGitUtil, StringUtil}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, Node}
 import play.twirl.api.{Html, HtmlFormat}
@@ -152,7 +153,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts commit id, issue id and username to the link.
    */
   def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: Context): Html =
-    Html(decorateHtml(convertRefsLinks(value, repository)))
+    Html(decorateHtml(convertRefsLinks(value, repository), repository))
 
   def cut(value: String, length: Int): String =
     if(value.length > length){
@@ -342,16 +343,17 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    *
    * TODO Move to the other place.
    */
-  def decorateHtml(text: String)(implicit context: Context): String = {
-    val textDecorators = PluginRegistry().getTextDecorators
+  def decorateHtml(text: String, repository: RepositoryInfo)(implicit context: Context): String = {
+//    val textDecorators = PluginRegistry().getTextDecorators
 
     def processNode(n: Node): Unit = {
       n match {
         case x: Element  => {
           if(x.hasText && x.ownText.nonEmpty){
-            val text = textDecorators.foldLeft(x.ownText){ case (text, textDecorator) =>
-                textDecorator.decorate(text)
-            }
+            val text = EmojiUtil.convertEmojis(x.ownText)
+//            val text = textDecorators.foldLeft(x.ownText){ case (text, textDecorator) =>
+//                textDecorator.decorate(text, repository)
+//            }
             x.html(text)
           }
           x.children.toArray.foreach { c =>
