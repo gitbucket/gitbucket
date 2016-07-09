@@ -5,7 +5,7 @@
   issueId: Option[Int] = None,
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
+@import context.loginAccount
 @import gitbucket.core.view.helpers._
 @if(loginAccount.isDefined){
   @if(!fileName.isDefined){<hr/><br/>}
@@ -15,7 +15,7 @@
     }
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
-        @helper.html.preview(
+        @gitbucket.core.helper.html.preview(
           repository         = repository,
           content            = "",
           enableWikiLink     = false,
@@ -23,6 +23,7 @@
           enableLineBreaks   = true,
           enableTaskList     = true,
           hasWritePermission = hasWritePermission,
+          completion         = Seq("emoji", "user"),
           style              = "height: 100px; max-height: 150px;",
           elastic            = true
         )

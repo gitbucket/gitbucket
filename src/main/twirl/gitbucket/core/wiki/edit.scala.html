@@ -3,8 +3,8 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers._
 @import gitbucket.core.util.FileUtil
-@html.main(s"${if(pageName.isEmpty) "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.menu("wiki", repository){
+@gitbucket.core.html.main(s"${if(pageName.isEmpty) "New Page" else pageName} - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("wiki", repository){
     <div class="pull-right">
       @if(page.isDefined){
         <a class="btn btn-small btn-default" href="@url(repository)/wiki/@urlEncode(pageName)/_history">Page History</a>
@@ -17,7 +17,7 @@
       <span id="error-pageName" class="error"></span>
       <input type="text" name="pageName" value="@pageName" class="form-control" style="font-weight: bold; margin-bottom: 10px;" placeholder="Input a page name."/>
       <div class="muted attachable">
-        @helper.html.preview(
+        @gitbucket.core.helper.html.preview(
           repository         = repository,
           content            = page.map(_.content).getOrElse(""),
           enableWikiLink     = true,
@@ -25,6 +25,7 @@
           enableLineBreaks   = false,
           enableTaskList     = false,
           hasWritePermission = false,
+          completion         = Seq("emoji"),
           style              = "height: 400px;",
           styleClass         = "monospace",
           placeholder        = "",

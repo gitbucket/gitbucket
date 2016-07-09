@@ -1,6 +1,6 @@
 @(content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@helper.html.attached(owner, repository){
+@import context.path
+@gitbucket.core.helper.html.attached(owner, repository, Seq("emoji", "user")){
   <textarea id="edit-content" class="form-control">@content.getOrElse("")</textarea>
 }
 <div>

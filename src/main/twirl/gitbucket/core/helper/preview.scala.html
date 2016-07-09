@@ -5,15 +5,14 @@
   enableLineBreaks: Boolean,
   enableTaskList: Boolean,
   hasWritePermission: Boolean,
+  completion: Seq[String],
   style: String = "",
   styleClass: String = "",
   placeholder: String = "Leave a comment",
   elastic: Boolean = false,
   tabIndex: Int = -2,
   uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers.{assets, url}
 <div class="tabbable">
   <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
     <li class="active"><a href="#tab@uid" data-toggle="tab">Write</a></li>
@@ -28,7 +27,12 @@
           @if(style.nonEmpty){ style="@style"}
           @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
       }
-      @helper.html.attached(repository.owner, repository.name, enableWikiLink)(textarea)
+      @gitbucket.core.helper.html.attached(
+        owner          = repository.owner,
+        repository     = repository.name,
+        completion     = completion,
+        generateScript = enableWikiLink
+      )(textarea)
     </div>
     <div class="tab-pane" id="tab@(uid+1)">
       <div class="markdown-body" id="preview-area@uid">

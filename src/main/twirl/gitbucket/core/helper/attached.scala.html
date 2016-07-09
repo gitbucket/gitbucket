@@ -1,6 +1,7 @@
-@(owner: String, repository: String, generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.util.FileUtil
+@(owner: String, repository: String, completion: Seq[String], generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
+@import context.path
+@import context.baseUrl
+@import gitbucket.core.util.{FileUtil, EmojiUtil}
 <div class="muted attachable">
   @textarea
   <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
@@ -8,41 +9,47 @@
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
-  var emojis = @Html(gitbucket.core.util.EmojiUtil.emojis.map("\"" + _ + "\"").mkString("[", ", ", "]"));
-  var users  = [];
-
-  $.get('@path/_user/proposals', { query: '' }, function (data) { users = data.options; });
+  @if(completion.contains("emoji")){
+    var emojis = @Html(EmojiUtil.emojis.map("\"" + _ + "\"").mkString("[", ", ", "]"));
+  }
+  @if(completion.contains("user")){
+    var users  = [];
+    $.get('@path/_user/proposals', { query: '' }, function (data) { users = data.options; });
+  }
 
   $('#@textareaId').textcomplete([
-    { // emoji strategy
-      id: 'emoji',
-      match: /\B:([\-+\w]*)$/,
-      search: function (term, callback) {
-        callback($.map(emojis, function (emoji) {
-          return emoji.indexOf(term) === 0 ? emoji : null;
-        }));
+    @if(completion.contains("emoji")){
+      {
+        id: 'emoji',
+        match: /\B:([\-+\w]*)$/,
+        search: function (term, callback) {
+          callback($.map(emojis, function (emoji) {
+            return emoji.indexOf(term) === 0 ? emoji : null;
+          }));
+        },
+        template: function (value) {
+          return '<img src="@path/assets/common/images/emojis/' + value + '.png" class="emoji"></img>' + value;
+        },
+        replace: function (value) {
+          return ':' + value + ': ';
+        },
+        index: 1
       },
-      template: function (value) {
-        return '<img src="@path/assets/common/images/emojis/' + value + '.png" class="emoji"></img>' + value;
+    }
+    @if(completion.contains("user")){
+      {
+        id: 'user',
+        match: /\B@@([\-+\w]*)$/,
+        search: function (term, callback) {
+          callback($.map(users, function (word) {
+            return word.indexOf(term) === 0 ? word : null;
+          }));
+        },
+        index: 1,
+        replace: function (word) {
+          return '@@' + word + ' ';
+        }
       },
-      replace: function (value) {
-        return ':' + value + ': ';
-      },
-      index: 1
-    },
-    { // users
-      id: 'user',
-      //words: users,
-      match: /\B@@([\-+\w]*)$/,
-      search: function (term, callback) {
-        callback($.map(users, function (word) {
-          return word.indexOf(term) === 0 ? word : null;
-        }));
-      },
-      index: 1,
-      replace: function (word) {
-        return '@@' + word + ' ';
-      }
     }
   ], {
     onKeydown: function (e, commands) {

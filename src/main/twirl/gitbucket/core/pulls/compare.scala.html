@@ -14,31 +14,33 @@
   collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
   labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
-@import context._
+@import context.loginAccount
+@import context.path
+@import gitbucket.core.helper.html._
 @import gitbucket.core.view.helpers._
-@html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.menu("pulls", repository){
+@gitbucket.core.html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("pulls", repository){
     <div class="pullreq-info">
       <div id="compare-edit">
-        @helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
+        @dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
           @members.map { case (owner, name) =>
-            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
+            <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@checkicon(owner == originRepository.owner) @owner/@name</a></li>
           }
         }
-        @helper.html.dropdown(originId, "base") {
+        @dropdown(originId, "base") {
           @originRepository.branchList.map { branch =>
-            <li><a href="#" class="origin-branch" data-branch="@encodeRefName(branch)">@helper.html.checkicon(branch == originId) @branch</a></li>
+            <li><a href="#" class="origin-branch" data-branch="@encodeRefName(branch)">@checkicon(branch == originId) @branch</a></li>
           }
         }
         ...
-        @helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork") {
+        @dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork") {
           @members.map { case (owner, name) =>
-            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name">@helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
+            <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name">@checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
           }
         }
-        @helper.html.dropdown(forkedId, "compare") {
+        @dropdown(forkedId, "compare") {
           @forkedRepository.branchList.map { branch =>
-            <li><a href="#" class="forked-branch" data-branch="@encodeRefName(branch)">@helper.html.checkicon(branch == forkedId) @branch</a></li>
+            <li><a href="#" class="forked-branch" data-branch="@encodeRefName(branch)">@checkicon(branch == forkedId) @branch</a></li>
           }
         }
       </div>
@@ -58,7 +60,7 @@
             <div class="col-md-9">
               <span class="error" id="error-title"></span>
               <input type="text" name="title" value="@title" class="form-control" style="margin-bottom: 6px;" placeholder="Title"/>
-              @helper.html.preview(
+              @gitbucket.core.helper.html.preview(
                 repository         = repository,
                 content            = "",
                 enableWikiLink     = false,
@@ -66,6 +68,7 @@
                 enableLineBreaks   = true,
                 enableTaskList     = true,
                 hasWritePermission = true,
+                completion         = Seq("emoji", "user"),
                 style              = "height: 200px;"
               )
               <input type="hidden" name="targetUserName" value="@originRepository.owner"/>
@@ -80,7 +83,7 @@
               </div>
             </div>
             <div class="col-md-3">
-              @issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
+              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
             </div>
           </div>
         </form>
@@ -160,13 +163,13 @@
           </table>
         }
       </div>
-      @helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
+      @gitbucket.core.helper.html.diff(diffs, repository, Some(commitId), Some(sourceId), true, None, false, false)
       <p>Showing you all comments on commits in this comparison.</p>
-      @issues.html.commentlist(None, comments, false, repository, None)
+      @gitbucket.core.issues.html.commentlist(None, comments, false, repository, None)
     }
   }
 }
-<script>
+<script><script>
 $(function(){
   $('a.origin-owner, a.forked-owner, a.origin-branch, a.forked-branch').click(function(){
     var e = $(this);

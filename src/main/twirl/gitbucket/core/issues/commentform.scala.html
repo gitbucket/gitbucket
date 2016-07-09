@@ -2,15 +2,15 @@
   reopenable: Boolean,
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import context.loginAccount
+@import gitbucket.core.view.helpers.{avatarLink, url}
 @if(loginAccount.isDefined){
   <hr/><br/>
   <form method="POST" validate="true">
     <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
-        @helper.html.preview(
+        @gitbucket.core.helper.html.preview(
           repository         = repository,
           content            = "",
           enableWikiLink     = false,
@@ -18,6 +18,7 @@
           enableLineBreaks   = true,
           enableTaskList     = true,
           hasWritePermission = hasWritePermission,
+          completion         = Seq("emoji", "user"),
           style              = "",
           elastic            = true,
           tabIndex           = 1

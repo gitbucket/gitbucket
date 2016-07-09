@@ -1,7 +1,6 @@
 @(content: String, commentId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
-@import context._
 <span id="error-edit-content-@commentId" class="error"></span>
-@helper.html.attached(owner, repository){
+@gitbucket.core.helper.html.attached(owner, repository, completion = Seq("emoji", "user")){
   <textarea id="edit-content-@commentId" class="form-control">@content</textarea>
 }
 <div>
@@ -19,7 +18,7 @@ $(function(){
   $('#update-comment-@commentId').click(function(){
     $('#update-comment-@commentId, #cancel-comment-@commentId').attr('disabled', 'disabled');
     $.ajax({
-      url: '@path/@owner/@repository/issue_comments/edit/@commentId',
+      url: '@context.path/@owner/@repository/issue_comments/edit/@commentId',
       type: 'POST',
       data: {
         issueId : 0,	// TODO
@@ -35,7 +34,7 @@ $(function(){
 
   $('#cancel-comment-@commentId').click(function(){
     $('#update-comment-@commentId, #cancel-comment-@commentId').attr('disabled', 'disabled');
-    $.get('@path/@owner/@repository/issue_comments/_data/@commentId', callback);
+    $.get('@context.path/@owner/@repository/issue_comments/_data/@commentId', callback);
     return false;
   });
 });

@@ -3,16 +3,15 @@
   labels: List[gitbucket.core.model.Label],
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
 @import gitbucket.core.view.helpers._
-@html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
-  @html.menu("issues", repository){
+@gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("issues", repository){
     <form action="@url(repository)/issues/new" method="POST" validate="true" class="form-group">
       <div class="row-fluid">
         <div class="col-md-9">
           <span id="error-title" class="error"></span>
           <input type="text" id="issue-title" name="title" class="form-control" value="" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
-          @helper.html.preview(
+          @gitbucket.core.helper.html.preview(
             repository         = repository,
             content            = "",
             enableWikiLink     = false,
@@ -20,6 +19,7 @@
             enableLineBreaks   = true,
             enableTaskList     = true,
             hasWritePermission = hasWritePermission,
+            completion         = Seq("emoji", "user"),
             style              = "height: 200px; max-height: 250px;",
             elastic            = true
           )
@@ -28,7 +28,7 @@
           </div>
         </div>
         <div class="col-md-3">
-          @issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, hasWritePermission, repository)
+          @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, hasWritePermission, repository)
         </div>
       </div>
     </form>

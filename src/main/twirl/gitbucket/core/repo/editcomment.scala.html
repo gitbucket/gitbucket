@@ -1,7 +1,7 @@
 @(content: String, commentId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
-@import context._
+@import context.path
 <span class="error-edit-content-@commentId error"></span>
-@helper.html.attached(owner, repository){
+@gitbucket.core.helper.html.attached(owner, repository, Seq("emoji", "user")){
   <textarea style="height: 100px;" id="edit-content-@commentId" class="form-control">@content</textarea>
 }
 <div>
