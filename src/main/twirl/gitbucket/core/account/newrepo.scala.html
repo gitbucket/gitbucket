@@ -1,31 +1,30 @@
 @(groupNames: List[String],
 isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Create a New Repository"){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Create a New Repository"){
 <div class="content-wrapper main-center">
   <div class="content body">
     <h2>Create a new repository</h2>
     <p class="muted">
       A repository contains all the files for your project, including the revision history.
     </p>
-    <form id="form" method="post" action="@path/new" validate="true">
+    <form id="form" method="post" action="@context.path/new" validate="true">
       <fieldset class="border-top form-group">
         <dl style="float: left;">
           <dt>Owner</dt>
           <dd style="margin-left: 0px;">
             <div class="btn-group" id="owner-dropdown">
               <button class="btn dropdown-toggle btn-default" data-toggle="dropdown">
-                <span class="strong">@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span>
+                <span class="strong">@helpers.avatar(context.loginAccount.get.userName, 20) @context.loginAccount.get.userName</span>
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li><a href="javascript:void(0);" data-name="@loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@avatar(loginAccount.get.userName, 20) @loginAccount.get.userName</span></a></li>
+                <li><a href="javascript:void(0);" data-name="@context.loginAccount.get.userName"><i class="octicon octicon-check"></i> <span>@helpers.avatar(context.loginAccount.get.userName, 20) @context.loginAccount.get.userName</span></a></li>
                 @groupNames.map { groupName =>
-                  <li><a href="javascript:void(0);" data-name="@groupName"><i class="octicon"></i> <span>@avatar(groupName, 20) @groupName</span></a></li>
+                  <li><a href="javascript:void(0);" data-name="@groupName"><i class="octicon"></i> <span>@helpers.avatar(groupName, 20) @groupName</span></a></li>
                 }
               </ul>
-              <input type="hidden" name="owner" id="owner" value="@loginAccount.get.userName"/>
+              <input type="hidden" name="owner" id="owner" value="@context.loginAccount.get.userName"/>
             </div>
           </dd>
         </dl>

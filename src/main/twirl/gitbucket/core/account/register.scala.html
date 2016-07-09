@@ -1,11 +1,9 @@
 @()(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Create your account"){
+@gitbucket.core.html.main("Create your account"){
 <div class="content-wrapper main-center">
   <div class="content body">
     <h2>Create your account</h2>
-    <form action="@path/register" method="POST" validate="true">
+    <form action="@context.path/register" method="POST" validate="true">
       <div class="row">
         <div class="col-md-6">
           <fieldset>
@@ -39,7 +37,7 @@
         <div class="col-md-6">
           <fieldset>
             <label for="avatar" class="strong">Image (optional):</label>
-            @helper.html.uploadavatar(None)
+            @gitbucket.core.helper.html.uploadavatar(None)
           </fieldset>
         </div>
       </div>

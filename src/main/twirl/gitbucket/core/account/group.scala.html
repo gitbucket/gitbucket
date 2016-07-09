@@ -1,11 +1,10 @@
 @(account: Option[gitbucket.core.model.Account], members: List[gitbucket.core.model.GroupMember])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(if(account.isEmpty) "Create group" else "Edit group"){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(if(account.isEmpty) "Create group" else "Edit group"){
 <div class="content-wrapper main-center">
   <div class="content body">
     <h2>@{if(account.isEmpty) "Create group" else "Edit group"}</h2>
-    <form id="form" method="post" action="@if(account.isEmpty){@path/groups/new} else {@path/@account.get.userName/_editgroup}" validate="true">
+    <form id="form" method="post" action="@if(account.isEmpty){@context.path/groups/new} else {@context.path/@account.get.userName/_editgroup}" validate="true">
       <div class="row">
         <div class="col-md-5">
           <fieldset class="form-group">
@@ -24,7 +23,7 @@
           </fieldset>
           <fieldset class="form-group">
             <label for="avatar" class="strong">Image (Optional)</label>
-            @helper.html.uploadavatar(account)
+            @gitbucket.core.helper.html.uploadavatar(account)
           </fieldset>
         </div>
         <div class="col-md-7">
@@ -32,7 +31,7 @@
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">
             </ul>
-            @helper.html.account("memberName", 200)
+            @gitbucket.core.helper.html.account("memberName", 200)
             <input type="button" class="btn btn-default" value="Add" id="addMember"/>
             <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
             <div>
@@ -44,12 +43,12 @@
       <fieldset class="border-top">
         @if(account.isDefined){
           <div class="pull-right">
-            <a href="@url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete Group</a>
+            <a href="@helpers.url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete Group</a>
           </div>
         }
         <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
         @if(account.isDefined){
-          <a href="@url(account.get.userName)" class="btn btn-default">Cancel</a>
+          <a href="@helpers.url(account.get.userName)" class="btn btn-default">Cancel</a>
         }
       </fieldset>
     </form>
@@ -81,7 +80,7 @@ $(function(){
     }
 
     // check existence
-    $.post('@path/_user/existence', {
+    $.post('@context.path/_user/existence', {
       'userName': userName
     }, function(data, status){
       if(data == 'true'){
@@ -125,7 +124,7 @@ $(function(){
         .append(memberButton)
         .append(managerButton))
       .append(' ')
-      .append($('<a>').attr('href', '@path/' + userName).text(userName))
+      .append($('<a>').attr('href', '@context.path/' + userName).text(userName))
       .append(' ')
       .append($('<a href="#" class="remove pull-right">(remove)</a>')));
   }
