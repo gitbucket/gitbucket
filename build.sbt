@@ -56,9 +56,6 @@ libraryDependencies ++= Seq(
   "ru.yandex.qatools.embed"   % "postgresql-embedded"          % "1.14"           % "test"
 )
 
-// Twirl settings
-play.twirl.sbt.Import.TwirlKeys.templateImports += "gitbucket.core._"
-
 // Compiler settings
 scalacOptions := Seq("-deprecation", "-language:postfixOps", "-Ybackend:GenBCode", "-Ydelambdafy:method", "-target:jvm-1.8")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
