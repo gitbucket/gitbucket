@@ -6,11 +6,8 @@ import java.util.{Date, Locale, TimeZone}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{EmojiUtil, FileUtil, JGitUtil, StringUtil}
-import org.jsoup.Jsoup
-import org.jsoup.nodes.{Element, Node}
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
