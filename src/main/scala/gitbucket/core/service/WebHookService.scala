@@ -1,6 +1,5 @@
 package gitbucket.core.service
 
-import java.io.ByteArrayInputStream
 import fr.brouillard.oss.security.xhub.XHub
 import fr.brouillard.oss.security.xhub.XHub.{XHubDigest, XHubConverter}
 import gitbucket.core.api._

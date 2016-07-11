@@ -14,7 +14,6 @@ import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
-import liquibase.database.core.H2Database
 import org.apache.commons.codec.binary.{Base64, StringUtils}
 import org.slf4j.LoggerFactory
 
