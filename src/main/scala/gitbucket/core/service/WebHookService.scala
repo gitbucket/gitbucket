@@ -22,6 +22,7 @@ import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
 import org.apache.http.client.entity.EntityBuilder
+import org.apache.http.entity.ContentType
 
 
 trait WebHookService {
@@ -118,7 +119,7 @@ trait WebHookService {
                 }
               }
               case WebHookContentType.JSON => {
-            	  httpPost.setEntity(EntityBuilder.create().setText(json).build())
+            	  httpPost.setEntity(EntityBuilder.create().setContentType(ContentType.APPLICATION_JSON).setText(json).build())
                 if (webHook.token.exists(_.trim.nonEmpty)) {
                   httpPost.addHeader("X-Hub-Signature", XHub.generateHeaderXHubToken(XHubConverter.HEXA_LOWERCASE, XHubDigest.SHA1, webHook.token.orNull, json.getBytes("UTF-8")))
                 }
