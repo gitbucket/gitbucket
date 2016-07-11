@@ -1,6 +1,6 @@
 val Organization = "gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.2.1"
+val GitBucketVersion = "4.3.0-SNAPSHOT"
 val ScalatraVersion = "2.4.1"
 val JettyVersion = "9.3.9.v20160517"
 

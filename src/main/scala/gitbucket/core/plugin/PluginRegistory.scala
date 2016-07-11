@@ -41,6 +41,7 @@ class PluginRegistry {
   private val systemSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
+  private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
 
   def addPlugin(pluginInfo: PluginInfo): Unit = {
     plugins += pluginInfo
@@ -157,6 +158,12 @@ class PluginRegistry {
   }
 
   def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
+
+  def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = {
+    assetsMappings += assetsMapping
+  }
+
+  def getAssetsMappings: Seq[(String, String, ClassLoader)] = assetsMappings.toSeq
 
 }
 

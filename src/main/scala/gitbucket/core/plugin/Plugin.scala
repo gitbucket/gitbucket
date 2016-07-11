@@ -150,6 +150,16 @@ abstract class Plugin {
   def dashboardTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
 
   /**
+   * Override to add assets mappings.
+   */
+  val assetsMappings: Seq[(String, String)] = Nil
+
+  /**
+   * Override to add assets mappings.
+   */
+  def assetsMappings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, String)] = Nil
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -192,6 +202,9 @@ abstract class Plugin {
     }
     (dashboardTabs ++ dashboardTabs(registry, context, settings)).foreach { dashboardTab =>
       registry.addDashboardTab(dashboardTab)
+    }
+    (assetsMappings ++ assetsMappings(registry, context, settings)).foreach { assetMapping =>
+      registry.addAssetsMapping((assetMapping._1, assetMapping._2, getClass.getClassLoader))
     }
   }
 

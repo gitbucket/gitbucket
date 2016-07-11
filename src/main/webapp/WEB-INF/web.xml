@@ -45,7 +45,20 @@
     <servlet-name>GitRepositoryServlet</servlet-name>
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
- 
+
+  <!-- ===================================================================== -->
+  <!-- Supply assets which are provided by plugins -->
+  <!-- ===================================================================== -->
+  <servlet>
+    <servlet-name>PluginAssetsServlet</servlet-name>
+    <servlet-class>gitbucket.core.servlet.PluginAssetsServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>PluginAssetsServlet</servlet-name>
+    <url-pattern>/plugin-assets/*</url-pattern>
+  </servlet-mapping>
+
   <!-- ===================================================================== -->
   <!-- H2 console configuration -->
   <!-- ===================================================================== -->
