@@ -332,38 +332,41 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     // append rest fragment
     val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
 
-    EmojiUtil.convertEmojis(HtmlFormat.fill(out).toString)
-    //HtmlFormat.fill(out).toString
+    decorateHtml(HtmlFormat.fill(out).toString, EmojiUtil.convertEmojis)
   }
 
-//  /**
-//   * Decorate text in HTML by TextDecorator.
-//   *
-//   * TODO Move to the other place.
-//   */
-//  def decorateHtml(text: String, repository: RepositoryInfo)(implicit context: Context): String = {
-//
-////    val textDecorators = PluginRegistry().getTextDecorators
-//
-//    def processNode(n: Node): Unit = {
-//      n match {
-//        case x: Element  => {
-//          if(x.hasText && x.ownText.nonEmpty){
-//            val text = EmojiUtil.convertEmojis(x.ownText)
-////            val text = textDecorators.foldLeft(x.ownText){ case (text, textDecorator) =>
-////                textDecorator.decorate(text, repository)
-////            }
-//            x.html(text)
-//          }
-//          x.children.toArray.foreach { c =>
-//            processNode(c.asInstanceOf[Node])
-//          }
-//        }
-//        case _ => ()
-//      }
-//    }
-//    val body = Jsoup.parseBodyFragment(text).getElementsByTag("body").get(0)
-//    processNode(body)
-//    body.html
-//  }
+  private def decorateHtml(html: String, decorator: String => String)(implicit context: Context): String = {
+    val text = new StringBuilder()
+    val result = new StringBuilder()
+    var tag = false
+
+    html.foreach { c =>
+      c match {
+        case '<' if tag == false => {
+          tag = true
+          if(text.nonEmpty){
+            result.append(decorator(text.toString))
+            text.setLength(0)
+          }
+          result.append(c)
+        }
+        case '>' if tag == true => {
+          tag = false
+          result.append(c)
+        }
+        case _ if tag == false => {
+          text.append(c)
+        }
+        case _ if tag == true => {
+          result.append(c)
+        }
+      }
+    }
+    if(text.nonEmpty){
+      result.append(decorator(text.toString))
+    }
+
+    result.toString
+  }
+
 }
