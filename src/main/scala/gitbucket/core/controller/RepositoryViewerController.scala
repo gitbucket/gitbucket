@@ -376,8 +376,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     getCommitComment(repository.owner, repository.name, params("id")) map { x =>
       if(isEditable(x.userName, x.repositoryName, x.commentedUserName)){
         params.get("dataType") collect {
-          case t if t == "html" => html.editcomment(
-            x.content, x.commentId, x.userName, x.repositoryName)
+          case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
         } getOrElse {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(

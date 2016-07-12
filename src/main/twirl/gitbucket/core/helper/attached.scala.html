@@ -1,4 +1,5 @@
-@(owner: String, repository: String, completionContext: String, generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  completionContext: String, generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.util.{FileUtil, EmojiUtil}
 @import gitbucket.core.view.helpers
 <div class="muted attachable">
@@ -10,7 +11,7 @@
 $(function(){
   @gitbucket.core.plugin.PluginRegistry().getCompletionProposalProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
-      var @provider.id = @Html(helpers.json(provider.values));
+      var @provider.id = @Html(helpers.json(provider.values(repository)));
       @Html(provider.additionalScript)
     }
   }
@@ -46,14 +47,14 @@ $(function(){
   @if(generateScript){
     try {
       $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
-        url: '@context.path/upload/file/@owner/@repository',
+        url: '@context.path/upload/file/@repository.owner/@repository.name',
         maxFilesize: 10,
         acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
         dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
         previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
         success: function(file, id) {
           var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
-            '](@context.baseUrl/@owner/@repository/_attached/' + id + ')';
+            '](@context.baseUrl/@repository.owner/@repository.name/_attached/' + id + ')';
           $('#@textareaId').val($('#@textareaId').val() + attachFile);
           $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
         }

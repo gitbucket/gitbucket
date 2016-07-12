@@ -28,8 +28,7 @@
           @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
       }
       @gitbucket.core.helper.html.attached(
-        owner             = repository.owner,
-        repository        = repository.name,
+        repository        = repository,
         completionContext = completionContext,
         generateScript    = enableWikiLink
       )(textarea)

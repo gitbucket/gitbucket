@@ -1,6 +1,7 @@
-@(content: String, commentId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
+@(content: String, commentId: Int,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 <span id="error-edit-content-@commentId" class="error"></span>
-@gitbucket.core.helper.html.attached(owner, repository, "issues"){
+@gitbucket.core.helper.html.attached(repository, "issues"){
   <textarea id="edit-content-@commentId" class="form-control">@content</textarea>
 }
 <div>
@@ -18,7 +19,7 @@ $(function(){
   $('#update-comment-@commentId').click(function(){
     $('#update-comment-@commentId, #cancel-comment-@commentId').attr('disabled', 'disabled');
     $.ajax({
-      url: '@context.path/@owner/@repository/issue_comments/edit/@commentId',
+      url: '@context.path/@repository.owner/@repository.name/issue_comments/edit/@commentId',
       type: 'POST',
       data: {
         issueId : 0,	// TODO
@@ -34,7 +35,7 @@ $(function(){
 
   $('#cancel-comment-@commentId').click(function(){
     $('#update-comment-@commentId, #cancel-comment-@commentId').attr('disabled', 'disabled');
-    $.get('@context.path/@owner/@repository/issue_comments/_data/@commentId', callback);
+    $.get('@context.path/@repository.owner/@repository.name/issue_comments/_data/@commentId', callback);
     return false;
   });
 });
