@@ -27,16 +27,16 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     if(dataDir != null){
       System.setProperty("gitbucket.home", dataDir)
     }
-    //org.h2.Driver.load()
+    org.h2.Driver.load()
 
     Database() withTransaction { session =>
       val conn = session.conn
 
       //TODO: Disable it when we push to master Migration
-//      logger.debug("Start schema update")
-//      Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
-//        FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
-//      }
+      logger.debug("Start schema update")
+      Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
+        FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
+      }
 
       // Load plugins
       logger.debug("Initialize plugins")
