@@ -315,6 +315,14 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     case CommitState.FAILURE => "Failed"
   }
 
+  /**
+   * Render a given object as the JSON string.
+   */
+  def json(obj: AnyRef): String = {
+    implicit val formats = org.json4s.DefaultFormats
+    org.json4s.jackson.Serialization.write(obj)
+  }
+
   // This pattern comes from: http://stackoverflow.com/a/4390768/1771641 (extract-url-from-string)
   private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 

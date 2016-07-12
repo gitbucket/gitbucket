@@ -1,5 +1,6 @@
 @(owner: String, repository: String, completion: Seq[String], generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.util.{FileUtil, EmojiUtil}
+@import gitbucket.core.view.helpers
 <div class="muted attachable">
   @textarea
   <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
@@ -7,47 +8,32 @@
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
-  @if(completion.contains("emoji")){
-    var emojis = @Html(EmojiUtil.emojis.map("\"" + _ + "\"").mkString("[", ", ", "]"));
-  }
-  @if(completion.contains("user")){
-    var users  = [];
-    $.get('@context.path/_user/proposals', { query: '' }, function (data) { users = data.options; });
-  }
-
-  $('#@textareaId').textcomplete([
-    @if(completion.contains("emoji")){
-      {
-        id: 'emoji',
-        match: /\B:([\-+\w]*)$/,
-        search: function (term, callback) {
-          callback($.map(emojis, function (emoji) {
-            return emoji.indexOf(term) === 0 ? emoji : null;
-          }));
-        },
-        template: function (value) {
-          return '<img src="@context.path/assets/common/images/emojis/' + value + '.png" class="emoji"></img>' + value;
-        },
-        replace: function (value) {
-          return ':' + value + ': ';
-        },
-        index: 1
-      },
+  @gitbucket.core.plugin.PluginRegistry().getCompletionProposalProviders.map { provider =>
+    @if(completion.contains(provider.id)){ // TODO Filter by context
+      var @provider.id = @Html(helpers.json(provider.values));
+      @Html(provider.additionalScript)
     }
-    @if(completion.contains("user")){
-      {
-        id: 'user',
-        match: /\B@@([\-+\w]*)$/,
-        search: function (term, callback) {
-          callback($.map(users, function (word) {
-            return word.indexOf(term) === 0 ? word : null;
-          }));
+  }
+  $('#@textareaId').textcomplete([
+    @gitbucket.core.plugin.PluginRegistry().getCompletionProposalProviders.map { provider =>
+      @if(completion.contains(provider.id)){ // TODO Filter by context
+        {
+          id: '@{provider.id}',
+          match: /\B@{provider.prefix}([\-+\w]*)$/,
+          search: function (term, callback) {
+            callback($.map(@{provider.id}, function (proposal) {
+              return proposal.indexOf(term) === 0 ? proposal : null;
+            }));
+          },
+          template: function (value) {
+            return @{Html(provider.template)};
+          },
+          replace: function (value) {
+            return '@{provider.prefix}' + value + '@{provider.suffix}';
+          },
+          index: 1
         },
-        index: 1,
-        replace: function (word) {
-          return '@@' + word + ' ';
-        }
-      },
+      }
     }
   ], {
     onKeydown: function (e, commands) {

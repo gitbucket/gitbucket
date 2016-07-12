@@ -43,9 +43,13 @@ class PluginRegistry {
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
   private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
   private val textDecorators = new ListBuffer[TextDecorator]
+  // TODO
   textDecorators += new TextDecorator {
     override def decorate(text: String)(implicit context: Context): String = EmojiUtil.convertEmojis(text)
   }
+  private val completionProposalProviders = new ListBuffer[CompletionProposalProvider]
+  completionProposalProviders += new EmojiCompletionProposalProvider()
+  completionProposalProviders += new UserCompletionProposalProvider()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
 
@@ -136,6 +140,10 @@ class PluginRegistry {
   def addTextDecorator(textDecorator: TextDecorator): Unit = textDecorators += textDecorator
 
   def getTextDecorators: Seq[TextDecorator] = textDecorators.toSeq
+
+  def addCompletionProposalProvider(completionProposalProvider: CompletionProposalProvider): Unit = completionProposalProviders += completionProposalProvider
+
+  def getCompletionProposalProviders: Seq[CompletionProposalProvider] = completionProposalProviders.toSeq
 }
 
 /**
