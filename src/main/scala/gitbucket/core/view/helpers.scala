@@ -332,41 +332,43 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     // append rest fragment
     val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
 
-    decorateHtml(HtmlFormat.fill(out).toString, EmojiUtil.convertEmojis)
+    decorateHtml(HtmlFormat.fill(out).toString)
   }
 
-  private def decorateHtml(html: String, decorator: String => String)(implicit context: Context): String = {
-    val text = new StringBuilder()
-    val result = new StringBuilder()
-    var tag = false
+  private def decorateHtml(html: String)(implicit context: Context): String = {
+    PluginRegistry().getTextDecorators.foldLeft(html){ case (html, decorator) =>
+      val text = new StringBuilder()
+      val result = new StringBuilder()
+      var tag = false
 
-    html.foreach { c =>
-      c match {
-        case '<' if tag == false => {
-          tag = true
-          if(text.nonEmpty){
-            result.append(decorator(text.toString))
-            text.setLength(0)
+      html.foreach { c =>
+        c match {
+          case '<' if tag == false => {
+            tag = true
+            if(text.nonEmpty){
+              result.append(decorator.decorate(text.toString))
+              text.setLength(0)
+            }
+            result.append(c)
           }
-          result.append(c)
-        }
-        case '>' if tag == true => {
-          tag = false
-          result.append(c)
-        }
-        case _ if tag == false => {
-          text.append(c)
-        }
-        case _ if tag == true => {
-          result.append(c)
+          case '>' if tag == true => {
+            tag = false
+            result.append(c)
+          }
+          case _ if tag == false => {
+            text.append(c)
+          }
+          case _ if tag == true => {
+            result.append(c)
+          }
         }
       }
-    }
-    if(text.nonEmpty){
-      result.append(decorator(text.toString))
-    }
+      if(text.nonEmpty){
+        result.append(decorator.decorate(text.toString))
+      }
 
-    result.toString
+      result.toString
+    }
   }
 
 }

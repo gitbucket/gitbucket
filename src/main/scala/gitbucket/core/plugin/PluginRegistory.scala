@@ -10,7 +10,7 @@ import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.DatabaseConfig
+import gitbucket.core.util.{DatabaseConfig, EmojiUtil}
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
@@ -42,10 +42,12 @@ class PluginRegistry {
   private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
   private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
-
-  def addPlugin(pluginInfo: PluginInfo): Unit = {
-    plugins += pluginInfo
+  private val textDecorators = new ListBuffer[TextDecorator]
+  textDecorators += new TextDecorator {
+    override def decorate(text: String)(implicit context: Context): String = EmojiUtil.convertEmojis(text)
   }
+
+  def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
 
   def getPlugins(): List[PluginInfo] = plugins.toList
 
@@ -66,42 +68,26 @@ class PluginRegistry {
 
   def getImage(id: String): String = images(id)
 
-  def addController(path: String, controller: ControllerBase): Unit = {
-    controllers += ((controller, path))
-  }
+  def addController(path: String, controller: ControllerBase): Unit = controllers += ((controller, path))
 
   @deprecated("Use addController(path: String, controller: ControllerBase) instead", "3.4.0")
-  def addController(controller: ControllerBase, path: String): Unit = {
-    addController(path, controller)
-  }
+  def addController(controller: ControllerBase, path: String): Unit = addController(path, controller)
 
   def getControllers(): Seq[(ControllerBase, String)] = controllers.toSeq
 
-  def addJavaScript(path: String, script: String): Unit = {
-    javaScripts += ((path, script))
-  }
+  def addJavaScript(path: String, script: String): Unit = javaScripts += ((path, script))
 
-  def getJavaScript(currentPath: String): List[String] = {
-    javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
-  }
+  def getJavaScript(currentPath: String): List[String] = javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
 
-  def addRenderer(extension: String, renderer: Renderer): Unit = {
-    renderers += ((extension, renderer))
-  }
+  def addRenderer(extension: String, renderer: Renderer): Unit = renderers += ((extension, renderer))
 
-  def getRenderer(extension: String): Renderer = {
-    renderers.get(extension).getOrElse(DefaultRenderer)
-  }
+  def getRenderer(extension: String): Renderer = renderers.get(extension).getOrElse(DefaultRenderer)
 
   def renderableExtensions: Seq[String] = renderers.keys.toSeq
 
-  def addRepositoryRouting(routing: GitRepositoryRouting): Unit = {
-    repositoryRoutings += routing
-  }
+  def addRepositoryRouting(routing: GitRepositoryRouting): Unit = repositoryRoutings += routing
 
-  def getRepositoryRoutings(): Seq[GitRepositoryRouting] = {
-    repositoryRoutings.toSeq
-  }
+  def getRepositoryRoutings(): Seq[GitRepositoryRouting] = repositoryRoutings.toSeq
 
   def getRepositoryRouting(repositoryPath: String): Option[GitRepositoryRouting] = {
     PluginRegistry().getRepositoryRoutings().find {
@@ -111,60 +97,45 @@ class PluginRegistry {
     }
   }
 
-  def addReceiveHook(commitHook: ReceiveHook): Unit = {
-    receiveHooks += commitHook
-  }
+  def addReceiveHook(commitHook: ReceiveHook): Unit = receiveHooks += commitHook
 
   def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
 
-  def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = {
-    globalMenus += globalMenu
-  }
+  def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus += globalMenu
 
   def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.toSeq
 
-  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = {
-    repositoryMenus += repositoryMenu
-  }
+  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = repositoryMenus += repositoryMenu
 
   def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.toSeq
 
-  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = {
-    repositorySettingTabs += repositorySettingTab
-  }
+  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = repositorySettingTabs += repositorySettingTab
 
   def getRepositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = repositorySettingTabs.toSeq
 
-  def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = {
-    profileTabs += profileTab
-  }
+  def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = profileTabs += profileTab
 
   def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.toSeq
 
-  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit = {
-    systemSettingMenus += systemSettingMenu
-  }
+  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit = systemSettingMenus += systemSettingMenu
 
   def getSystemSettingMenus: Seq[(Context) => Option[Link]] = systemSettingMenus.toSeq
 
-  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit = {
-    accountSettingMenus += accountSettingMenu
-  }
+  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit = accountSettingMenus += accountSettingMenu
 
   def getAccountSettingMenus: Seq[(Context) => Option[Link]] = accountSettingMenus.toSeq
 
-  def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = {
-    dashboardTabs += dashboardTab
-  }
+  def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = dashboardTabs += dashboardTab
 
   def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
 
-  def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = {
-    assetsMappings += assetsMapping
-  }
+  def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = assetsMappings += assetsMapping
 
   def getAssetsMappings: Seq[(String, String, ClassLoader)] = assetsMappings.toSeq
 
+  def addTextDecorator(textDecorator: TextDecorator): Unit = textDecorators += textDecorator
+
+  def getTextDecorators: Seq[TextDecorator] = textDecorators.toSeq
 }
 
 /**
