@@ -73,7 +73,7 @@
                 </div>
               }
               @x.description.map { description =>
-                <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@Html(helpers.detectAndRenderLinks(description))</div>
+                <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@Html(helpers.detectAndRenderLinks(description, repository))</div>
               }
             }
           </div>

@@ -6,6 +6,7 @@ import java.util.{Date, Locale, TimeZone}
 import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{EmojiUtil, FileUtil, JGitUtil, StringUtil}
 import play.twirl.api.{Html, HtmlFormat}
@@ -326,7 +327,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   // This pattern comes from: http://stackoverflow.com/a/4390768/1771641 (extract-url-from-string)
   private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 
-  def detectAndRenderLinks(text: String)(implicit context: Context): String = {
+  def detectAndRenderLinks(text: String, repository: RepositoryInfo)(implicit context: Context): String = {
     val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toSeq
 
     val (x, pos) = matches.foldLeft((collection.immutable.Seq.empty[Html], 0)){ case ((x, pos), m) =>
@@ -340,10 +341,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     // append rest fragment
     val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
 
-    decorateHtml(HtmlFormat.fill(out).toString)
+    decorateHtml(HtmlFormat.fill(out).toString, repository)
   }
 
-  private def decorateHtml(html: String)(implicit context: Context): String = {
+  private def decorateHtml(html: String, repository: RepositoryInfo)(implicit context: Context): String = {
     PluginRegistry().getTextDecorators.foldLeft(html){ case (html, decorator) =>
       val text = new StringBuilder()
       val result = new StringBuilder()
@@ -354,7 +355,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
           case '<' if tag == false => {
             tag = true
             if(text.nonEmpty){
-              result.append(decorator.decorate(text.toString))
+              result.append(decorator.decorate(text.toString, repository))
               text.setLength(0)
             }
             result.append(c)
@@ -372,7 +373,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
         }
       }
       if(text.nonEmpty){
-        result.append(decorator.decorate(text.toString))
+        result.append(decorator.decorate(text.toString, repository))
       }
 
       result.toString

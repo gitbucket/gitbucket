@@ -43,9 +43,8 @@ class PluginRegistry {
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
   private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
   private val textDecorators = new ListBuffer[TextDecorator]
-  // TODO
   textDecorators += new TextDecorator {
-    override def decorate(text: String)(implicit context: Context): String = EmojiUtil.convertEmojis(text)
+    override def decorate(text: String, repository: RepositoryInfo)(implicit context: Context): String = EmojiUtil.convertEmojis(text)
   }
   private val completionProposalProviders = new ListBuffer[CompletionProposalProvider]
   completionProposalProviders += new EmojiCompletionProposalProvider()
