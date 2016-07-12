@@ -5,7 +5,7 @@
   enableLineBreaks: Boolean,
   enableTaskList: Boolean,
   hasWritePermission: Boolean,
-  completion: Seq[String],
+  completionContext: String,
   style: String = "",
   styleClass: String = "",
   placeholder: String = "Leave a comment",
@@ -28,10 +28,10 @@
           @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
       }
       @gitbucket.core.helper.html.attached(
-        owner          = repository.owner,
-        repository     = repository.name,
-        completion     = completion,
-        generateScript = enableWikiLink
+        owner             = repository.owner,
+        repository        = repository.name,
+        completionContext = completionContext,
+        generateScript    = enableWikiLink
       )(textarea)
     </div>
     <div class="tab-pane" id="tab@(uid+1)">
