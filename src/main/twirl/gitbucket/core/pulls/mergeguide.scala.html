@@ -133,7 +133,7 @@
       }
     </div>
     <div id="confirm-merge-form" style="display: none; padding: 12px;">
-      <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/merge">
+      <form method="POST" action="@helpers.url(originRepository)/pull/@pullreq.issueId/merge" validate="true">
         <div class="strong">
           Merge pull request #@issue.issueId from @{pullreq.requestUserName}/@{pullreq.requestBranch}
         </div>
