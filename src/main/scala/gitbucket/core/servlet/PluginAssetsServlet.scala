@@ -19,7 +19,7 @@ class PluginAssetsServlet extends HttpServlet {
       .find    { case (prefix, _, _) => path.startsWith("/plugin-assets" + prefix) }
       .flatMap { case (prefix, resourcePath, classLoader) =>
         val resourceName = path.substring(("/plugin-assets" + prefix).length)
-        Option(classLoader.getResourceAsStream(resourcePath + resourceName))
+        Option(classLoader.getResourceAsStream(resourcePath.replaceFirst("^/", "") + resourceName))
       }
       .map { in =>
         try {
