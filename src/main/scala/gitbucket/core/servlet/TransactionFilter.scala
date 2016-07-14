@@ -1,13 +1,18 @@
 package gitbucket.core.servlet
 
+import java.io.{PrintStream, PrintWriter}
 import javax.servlet._
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import com.mchange.v2.c3p0.ComboPooledDataSource
 import gitbucket.core.util.DatabaseConfig
 import org.scalatra.ScalatraBase
 import org.slf4j.LoggerFactory
-import slick.jdbc.JdbcBackend.{Database => SlickDatabase, Session}
+
+import slick.jdbc.JdbcBackend.{Session, Database => SlickDatabase}
 import gitbucket.core.util.Keys
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * Controls the transaction with the open session in view pattern.

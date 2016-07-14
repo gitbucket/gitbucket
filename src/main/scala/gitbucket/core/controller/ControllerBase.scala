@@ -1,5 +1,7 @@
 package gitbucket.core.controller
 
+import java.io.{PrintStream, PrintWriter}
+
 import gitbucket.core.api.ApiError
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, SystemSettingsService}
@@ -7,18 +9,16 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
-
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.json4s._
 import org.scalatra._
 import org.scalatra.i18n._
 import org.scalatra.json._
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
 
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
-
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 
 /**
@@ -65,10 +65,27 @@ abstract class ControllerBase extends ScalatraFilter
         httpRequest.setAttribute(Keys.Request.APIv3, true)
       }
       // Scalatra actions
-      super.doFilter(request, response, chain)
+
+      Try(super.doFilter(request, response, chain)) match {
+        case Success(s) =>
+        case Failure(ex) => {
+          response.asInstanceOf[HttpServletResponse].setStatus(400)
+          response.setContentType("text/plain")
+          val ps = new PrintStream(response.getOutputStream)
+          val pw = new PrintWriter(ps)
+          pw.print(
+            s"""{
+                |"message" : "400 Bad Request"
+                |}
+             """.stripMargin)
+          pw.close
+          ps.close
+          response.getOutputStream.close
+        }
+      }
     }
   } finally {
-    contextCache.remove();
+    contextCache.remove()
   }
 
   private val contextCache = new java.lang.ThreadLocal[Context]()
