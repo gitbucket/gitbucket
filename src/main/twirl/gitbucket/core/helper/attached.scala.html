@@ -1,6 +1,6 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   completionContext: String, generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.util.{FileUtil, EmojiUtil}
+@import gitbucket.core.util.FileUtil
 @import gitbucket.core.view.helpers
 <div class="muted attachable">
   @textarea

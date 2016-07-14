@@ -10,7 +10,7 @@ import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.{DatabaseConfig, EmojiUtil}
+import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.model.Module
@@ -43,11 +43,8 @@ class PluginRegistry {
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
   private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
   private val textDecorators = new ListBuffer[TextDecorator]
-  textDecorators += new TextDecorator {
-    override def decorate(text: String, repository: RepositoryInfo)(implicit context: Context): String = EmojiUtil.convertEmojis(text)
-  }
+
   private val completionProposalProviders = new ListBuffer[CompletionProposalProvider]
-  completionProposalProviders += new EmojiCompletionProposalProvider()
   completionProposalProviders += new UserCompletionProposalProvider()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo

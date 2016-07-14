@@ -8,7 +8,7 @@ import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.{EmojiUtil, FileUtil, JGitUtil, StringUtil}
+import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -151,7 +151,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Converts commit id, issue id and username to the link.
    */
   def link(value: String, repository: RepositoryService.RepositoryInfo)(implicit context: Context): Html =
-    Html(EmojiUtil.convertEmojis(convertRefsLinks(value, repository)))
+    Html(decorateHtml(convertRefsLinks(value, repository), repository))
 
   def cut(value: String, length: Int): String =
     if(value.length > length){
@@ -344,7 +344,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     decorateHtml(HtmlFormat.fill(out).toString, repository)
   }
 
-  private def decorateHtml(html: String, repository: RepositoryInfo)(implicit context: Context): String = {
+  def decorateHtml(html: String, repository: RepositoryInfo)(implicit context: Context): String = {
     PluginRegistry().getTextDecorators.foldLeft(html){ case (html, decorator) =>
       val text = new StringBuilder()
       val result = new StringBuilder()

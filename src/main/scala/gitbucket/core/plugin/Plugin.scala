@@ -172,12 +172,12 @@ abstract class Plugin {
   /**
    * Override to add completion proposal provider.
    */
-  val completionProposalProvider: Seq[CompletionProposalProvider] = Nil
+  val completionProposalProviders: Seq[CompletionProposalProvider] = Nil
 
   /**
    * Override to add completion proposal provider.
    */
-  def completionProposalProvider(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[CompletionProposalProvider] = Nil
+  def completionProposalProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[CompletionProposalProvider] = Nil
 
   /**
    * This method is invoked in initialization of plugin system.
@@ -229,7 +229,7 @@ abstract class Plugin {
     (textDecorators ++ textDecorators(registry, context, settings)).foreach { textDecorator =>
       registry.addTextDecorator(textDecorator)
     }
-    (completionProposalProvider ++ completionProposalProvider(registry, context, settings)).foreach { completionProposalProvider =>
+    (completionProposalProviders ++ completionProposalProviders(registry, context, settings)).foreach { completionProposalProvider =>
       registry.addCompletionProposalProvider(completionProposalProvider)
     }
   }
