@@ -44,8 +44,8 @@ class PluginRegistry {
   private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
   private val textDecorators = new ListBuffer[TextDecorator]
 
-  private val completionProposalProviders = new ListBuffer[CompletionProposalProvider]
-  completionProposalProviders += new UserCompletionProposalProvider()
+  private val suggestionProviders = new ListBuffer[SuggestionProvider]
+  suggestionProviders += new UserNameSuggestionProvider()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
 
@@ -137,9 +137,9 @@ class PluginRegistry {
 
   def getTextDecorators: Seq[TextDecorator] = textDecorators.toSeq
 
-  def addCompletionProposalProvider(completionProposalProvider: CompletionProposalProvider): Unit = completionProposalProviders += completionProposalProvider
+  def addSuggestionProvider(suggestionProvider: SuggestionProvider): Unit = suggestionProviders += suggestionProvider
 
-  def getCompletionProposalProviders: Seq[CompletionProposalProvider] = completionProposalProviders.toSeq
+  def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.toSeq
 }
 
 /**

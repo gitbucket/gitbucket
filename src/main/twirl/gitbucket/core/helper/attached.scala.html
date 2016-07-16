@@ -9,14 +9,14 @@
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
-  @gitbucket.core.plugin.PluginRegistry().getCompletionProposalProviders.map { provider =>
+  @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
       var @provider.id = @Html(helpers.json(provider.values(repository)));
       @Html(provider.additionalScript)
     }
   }
   $('#@textareaId').textcomplete([
-    @gitbucket.core.plugin.PluginRegistry().getCompletionProposalProviders.map { provider =>
+    @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
       @if(provider.context.contains(completionContext)){
         {
           id: '@{provider.id}',

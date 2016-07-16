@@ -3,7 +3,7 @@ package gitbucket.core.plugin
 import gitbucket.core.controller.Context
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 
-trait CompletionProposalProvider {
+trait SuggestionProvider {
 
   val id: String
   val prefix: String
@@ -16,7 +16,7 @@ trait CompletionProposalProvider {
 
 }
 
-class UserCompletionProposalProvider extends CompletionProposalProvider {
+class UserNameSuggestionProvider extends SuggestionProvider {
   override val id: String = "user"
   override val prefix: String = "@"
   override val context: Seq[String] = Seq("issues")

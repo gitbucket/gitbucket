@@ -170,14 +170,14 @@ abstract class Plugin {
   def textDecorators(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[TextDecorator] = Nil
 
   /**
-   * Override to add completion proposal provider.
+   * Override to add suggestion provider.
    */
-  val completionProposalProviders: Seq[CompletionProposalProvider] = Nil
+  val suggestionProviders: Seq[SuggestionProvider] = Nil
 
   /**
-   * Override to add completion proposal provider.
+   * Override to add suggestion provider.
    */
-  def completionProposalProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[CompletionProposalProvider] = Nil
+  def suggestionProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[SuggestionProvider] = Nil
 
   /**
    * This method is invoked in initialization of plugin system.
@@ -229,8 +229,8 @@ abstract class Plugin {
     (textDecorators ++ textDecorators(registry, context, settings)).foreach { textDecorator =>
       registry.addTextDecorator(textDecorator)
     }
-    (completionProposalProviders ++ completionProposalProviders(registry, context, settings)).foreach { completionProposalProvider =>
-      registry.addCompletionProposalProvider(completionProposalProvider)
+    (suggestionProviders ++ suggestionProviders(registry, context, settings)).foreach { suggestionProvider =>
+      registry.addSuggestionProvider(suggestionProvider)
     }
   }
 
