@@ -39,7 +39,7 @@
                 <select name="protectBranch" id="protectBranch" onchange="location=$(this).val()" class="form-control">
                   <option>Choose a branch...</option>
                   @repository.branchList.map { branch =>
-                    <option value="@helpers.url(repository)/settings/branches/@helpers.encodeRefName(branch)">@branch</option>
+                    <option value="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)">@branch</option>
                   }
                 </select>
                 <span class="error" id="error-protectBranch"></span>

@@ -110,7 +110,7 @@ function submitForm(e){
   var protection = getValue();
   $.ajax({
     method:'PATCH',
-    url:'@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.encodeRefName(branch)',
+    url:'@context.path/api/v3/repos/@repository.owner/@repository.name/branches/@helpers.urlEncode(branch)',
     contentType: 'application/json',
     dataType: 'json',
     data:JSON.stringify({protection:protection}),
