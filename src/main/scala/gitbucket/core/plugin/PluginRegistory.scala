@@ -178,7 +178,7 @@ object PluginRegistry {
           instance.addPlugin(PluginInfo(
             pluginId    = plugin.pluginId,
             pluginName  = plugin.pluginName,
-            version     = plugin.versions.head.getVersion,
+            version     = plugin.versions.last.getVersion,
             description = plugin.description,
             pluginClass = plugin
           ))
