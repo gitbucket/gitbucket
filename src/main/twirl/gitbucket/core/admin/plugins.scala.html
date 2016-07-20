@@ -6,7 +6,7 @@
     @if(plugins.size > 0) {
       <ul>
       @plugins.map { case (plugin, migrationVersion) =>
-        <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
+        <li><a href="#@plugin.pluginId">@plugin.pluginId:@migrationVersion</a></li>
       }
       </ul>
 
@@ -20,7 +20,7 @@
             </div>
             <div class="row">
               <label class="col-md-2">Version</label>
-              <span class="col-md-10">@plugin.pluginVersion @if(plugin.pluginVersion != migrationVersion){ <span class="error">(Migration failed, current migrated version is @migrationVersion)</span> }</span>
+              <span class="col-md-10">@migrationVersion @if(plugin.pluginVersion != migrationVersion){ <span class="error">(Migration is failed, installed version is @plugin.pluginVersion)</span> }</span>
             </div>
             <div class="row">
               <label class="col-md-2">Name</label>
