@@ -176,11 +176,11 @@ object PluginRegistry {
           // Initialize
           plugin.initialize(instance, context, settings)
           instance.addPlugin(PluginInfo(
-            pluginId    = plugin.pluginId,
-            pluginName  = plugin.pluginName,
-            version     = plugin.versions.last.getVersion,
-            description = plugin.description,
-            pluginClass = plugin
+            pluginId      = plugin.pluginId,
+            pluginName    = plugin.pluginName,
+            pluginVersion = plugin.versions.last.getVersion,
+            description   = plugin.description,
+            pluginClass   = plugin
           ))
 
         } catch {
@@ -212,7 +212,7 @@ case class Link(id: String, label: String, path: String, icon: Option[String] = 
 case class PluginInfo(
   pluginId: String,
   pluginName: String,
-  version: String,
+  pluginVersion: String,
   description: String,
   pluginClass: Plugin
 )

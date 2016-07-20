@@ -13,6 +13,7 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.StringUtil._
 import io.github.gitbucket.scalatra.forms._
+import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import org.scalatra.i18n.Messages
@@ -175,7 +176,11 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    html.plugins(PluginRegistry().getPlugins())
+    val manager = new JDBCVersionManager(request2Session(request).conn)
+    val plugins = PluginRegistry().getPlugins().map { plugin =>
+      (plugin, manager.getCurrentVersion(plugin.pluginId))
+    }
+    html.plugins(plugins)
   })
 
 
