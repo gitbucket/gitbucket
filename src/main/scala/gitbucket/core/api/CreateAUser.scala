@@ -11,7 +11,7 @@ case class CreateAUser (
   fileId: Option[String] = None
   ) {
   def isValid: Boolean = {
-    val pattern = new Regex("/^.*(?=.{8,})(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_+-]).*$/")
+    val pattern = new Regex("^.*(?=.{8,})(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\d\\W]).*$")
     userName.length <= 40 &&
       userName.matches("[a-zA-Z0-9\\@\\-\\+_.]+") &&
       !userName.startsWith("_") &&
