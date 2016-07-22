@@ -37,7 +37,8 @@ class JsonFormatSpec extends FunSuite {
     "site_admin":false,
     "created_at":"2011-04-14T16:00:49Z",
     "url":"http://gitbucket.exmple.com/api/v3/users/octocat",
-    "html_url":"http://gitbucket.exmple.com/octocat"
+    "html_url":"http://gitbucket.exmple.com/octocat",
+    "avatar_url":"http://gitbucket.exmple.com/octocat/_avatar"
   }"""
 
   val repository = ApiRepository(

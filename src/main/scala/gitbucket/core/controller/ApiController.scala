@@ -7,7 +7,7 @@ import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.JGitUtil.CommitInfo
+import gitbucket.core.util.JGitUtil.{CommitInfo, getFileList, getBranches, getDefaultBranch}
 import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
@@ -54,13 +54,102 @@ trait ApiControllerBase extends ControllerBase {
     with CollaboratorsAuthenticator =>
 
   /**
-   * https://developer.github.com/v3/users/#get-a-single-user
-   */
-  get("/api/v3/users/:userName") {
-    getAccountByUserName(params("userName")).map { account =>
+    * https://developer.github.com/v3/#root-endpoint
+    */
+  get("/api/v3/") {
+    JsonFormat(ApiEndPoint())
+  }
+
+  /**
+    * https://developer.github.com/v3/orgs/#get-an-organization
+    */
+  get("/api/v3/orgs/:groupName") {
+    getAccountByUserName(params("groupName")).filter(account => account.isGroupAccount).map { account =>
       JsonFormat(ApiUser(account))
     } getOrElse NotFound
   }
+
+  /**
+   * https://developer.github.com/v3/users/#get-a-single-user
+   */
+  get("/api/v3/users/:userName") {
+    getAccountByUserName(params("userName")).filterNot(account => account.isGroupAccount).map { account =>
+      JsonFormat(ApiUser(account))
+    } getOrElse NotFound
+  }
+
+  /**
+    * https://developer.github.com/v3/repos/#list-organization-repositories
+    */
+  get("/api/v3/orgs/:orgName/repos") {
+    JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("orgName"))).map{ r => ApiRepository(r, getAccountByUserName(r.owner).get)})
+  }
+  /**
+   * https://developer.github.com/v3/repos/#list-user-repositories
+   */
+  get("/api/v3/users/:userName/repos") {
+    JsonFormat(getVisibleRepositories(context.loginAccount, Some(params("userName"))).map{ r => ApiRepository(r, getAccountByUserName(r.owner).get)})
+  }
+
+  /*
+   * https://developer.github.com/v3/repos/branches/#list-branches
+   */
+  get ("/api/v3/repos/:owner/:repo/branches")(referrersOnly { repository =>
+    JsonFormat(JGitUtil.getBranches(
+      owner         = repository.owner,
+      name          = repository.name,
+      defaultBranch = repository.repository.defaultBranch,
+      origin        = repository.repository.originUserName.isEmpty
+    ).map { br =>
+        ApiBranchForList(br.name, ApiBranchCommit(br.commitId))
+    })
+  })
+
+  // copy code
+  private def splitPath(repository: RepositoryService.RepositoryInfo, path: String): (String, String) = {
+    val id = repository.branchList.collectFirst {
+      case branch if(path == branch || path.startsWith(branch + "/")) => branch
+    } orElse repository.tags.collectFirst {
+      case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
+    } getOrElse path.split("/")(0)
+
+    (id, path.substring(id.length).stripPrefix("/"))
+  }
+
+  /*
+   * https://developer.github.com/v3/repos/contents/#get-contents
+   */
+  get("/api/v3/repos/:owner/:repo/contents/*")(referrersOnly { repository =>
+    val (id, path) = splitPath(repository, multiParams("splat").head)
+    val refStr = params("ref")
+    using(Git.open(getRepositoryDir(params("owner"), params("repo")))){ git =>
+      if (path.isEmpty) {
+        JsonFormat(getFileList(git, refStr, ".").map{f => ApiContents(f)})
+      } else {
+        JsonFormat(getFileList(git, refStr, path).map{f => ApiContents(f)})
+      }
+    }
+  })
+
+  /*
+   * https://developer.github.com/v3/git/refs/#get-a-reference
+   */
+  get("/api/v3/repos/:owner/:repo/git/*") (referrersOnly { repository =>
+    val revstr = multiParams("splat").head
+    using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
+      //JsonFormat( (revstr, git.getRepository().resolve(revstr)) )
+      // getRef is deprecated by jgit-4.2. use exactRef() or findRef()
+      val sha = git.getRepository().getRef(revstr).getObjectId().name()
+      JsonFormat(ApiRef(revstr, ApiObject(sha)))
+    }
+  })
+
+  /**
+   * https://developer.github.com/v3/repos/collaborators/#list-collaborators
+   */
+  get("/api/v3/repos/:owner/:repo/collaborators") (referrersOnly { repository =>
+    JsonFormat(getCollaborators(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
+  })
 
   /**
    * https://developer.github.com/v3/users/#get-the-authenticated-user
@@ -70,6 +159,16 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(ApiUser(account))
     } getOrElse Unauthorized
   }
+
+  /**
+   * List user's own repository
+   * https://developer.github.com/v3/repos/#list-your-repositories
+   */
+  get("/api/v3/user/repos")(usersOnly{
+    JsonFormat(getVisibleRepositories(context.loginAccount, Option(context.loginAccount.get.userName)).map{
+      r => ApiRepository(r, getAccountByUserName(r.owner).get)
+    })
+  })
 
   /**
    * Create user repository
