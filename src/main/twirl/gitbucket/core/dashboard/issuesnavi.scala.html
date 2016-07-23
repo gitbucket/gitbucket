@@ -1,9 +1,15 @@
 @(filter: String,
-  active: String,
+  openCount: Int,
+  closedCount: Int,
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-<ul class="nav nav-pills pull-left" style="line-height: 14px;">
+<ul class="nav nav-pills pull-left" style="line-height: 14px; margin-bottom: 10px;">
+  <li class="@(if(condition.state == "open"){"active"})">
+    <a href="@condition.copy(state = "open").toURL">Open <span class="badge">@openCount</span></a>
+  </li>
+  <li class="@(if(condition.state == "closed"){"active"})">
+    <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
+  </li>
+  @*
   <li class="@if(filter == "created_by"){active}">
     <a href="@path/dashboard/@active/created_by@condition.copy(author = None, assigned = None).toURL">Created</a>
   </li>
@@ -13,8 +19,5 @@
   <li class="@if(filter == "mentioned"){active}">
     <a href="@path/dashboard/@active/mentioned@condition.copy(author = None, assigned = None).toURL">Mentioned</a>
   </li>
+  *@
 </ul>
-<form method="GET" id="search-filter-form" action="@path/dashboard/@active" class="pull-right">
-  <input type="text" id="search-filter-box" class="form-control input-lg" name="q" style="width: 400px;"
-         value="is:@{if(active == "issues") "issue" else "pr"} @condition.toFilterString"/>
-</form>

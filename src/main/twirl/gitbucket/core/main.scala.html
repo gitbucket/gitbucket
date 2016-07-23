@@ -1,112 +1,110 @@
 @(title: String, repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.plugin.PluginRegistry
-@import gitbucket.core.servlet.AutoUpdate
-@import context._
-@import gitbucket.core.view.helpers._
-@import gitbucket.core.util.schneider.ConsumerConfig
+@import gitbucket.core.view.helpers
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <title>@title</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="icon" href="@assets/common/images/se_logo_white-1.png" type="image/vnd.microsoft.icon" />
+    <link rel="icon" href="@helpers.assets/common/images/gitbucket.png" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap.css" rel="stylesheet">
-    @*
-    <link href="@assets/vendors/bootstrap-theme-github-3.1.1/css/bootstrap-responsive.css" rel="stylesheet">
-    *@
-    <link href="@assets/vendors/octicons/octicons.css" rel="stylesheet">
-    <link href="@assets/vendors/datepicker/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
-    <link href="@assets/vendors/colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
-    <link href="@assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
-    <link href="@assets/vendors/facebox/facebox.css" rel="stylesheet"/>
-    <link href="@assets/common/css/gitbucketcustom.css" rel="stylesheet">
-    <script src="@assets/vendors/jquery/jquery-1.11.1.js"></script>
-    <script src="@assets/vendors/dropzone/dropzone.js"></script>
-    <script src="@assets/common/js/validation.js"></script>
-    <script src="@assets/common/js/gitbucket.js"></script>
-    <script src="@assets/vendors/bootstrap-theme-github-3.1.1/js/bootstrap.js"></script>
-    <script src="@assets/vendors/bootstrap3-typeahead/bootstrap3-typeahead.js"></script>
-    <script src="@assets/vendors/datepicker/js/moment.js"></script>
-    <script src="@assets/vendors/datepicker/js/bootstrap-datetimepicker.min.js"></script>
-    <script src="@assets/vendors/colorpicker/js/bootstrap-colorpicker.js"></script>
-    <script src="@assets/vendors/google-code-prettify/prettify.js"></script>
-    <script src="@assets/vendors/zclip/ZeroClipboard.min.js"></script>
-    <script src="@assets/vendors/elastic/jquery.elastic.source.js"></script>
-    <script src="@assets/vendors/facebox/facebox.js"></script>
-    <script src="@assets/vendors/jquery-hotkeys/jquery.hotkeys.js"></script>
+    <link href="@helpers.assets/vendors/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="@helpers.assets/vendors/octicons-4.2.0/octicons.css" rel="stylesheet">
+    <link href="@helpers.assets/vendors/datepicker/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <link href="@helpers.assets/vendors/colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet">
+    <link href="@helpers.assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
+    <link href="@helpers.assets/vendors/facebox/facebox.css" rel="stylesheet"/>
+    <link href="@helpers.assets/vendors/AdminLTE-2.2.3/css/AdminLTE.min.css" rel="stylesheet">
+    <link href="@helpers.assets/vendors/AdminLTE-2.2.3/css/skins/skin-blue.min.css" rel="stylesheet">
+    <link href="@helpers.assets/common/css/gitbucket.css" rel="stylesheet">
+    <script src="@helpers.assets/vendors/jquery/jquery-1.11.1.js"></script>
+    <script src="@helpers.assets/vendors/dropzone/dropzone.js"></script>
+    <script src="@helpers.assets/common/js/validation.js"></script>
+    <script src="@helpers.assets/common/js/gitbucket.js"></script>
+    <script src="@helpers.assets/vendors/bootstrap-3.3.6/js/bootstrap.js"></script>
+    <script src="@helpers.assets/vendors/bootstrap3-typeahead/bootstrap3-typeahead.js"></script>
+    <script src="@helpers.assets/vendors/datepicker/js/moment.js"></script>
+    <script src="@helpers.assets/vendors/datepicker/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="@helpers.assets/vendors/colorpicker/js/bootstrap-colorpicker.js"></script>
+    <script src="@helpers.assets/vendors/google-code-prettify/prettify.js"></script>
+    <script src="@helpers.assets/vendors/zclip/ZeroClipboard.min.js"></script>
+    <script src="@helpers.assets/vendors/elastic/jquery.elastic.source.js"></script>
+    <script src="@helpers.assets/vendors/facebox/facebox.js"></script>
+    <script src="@helpers.assets/vendors/jquery-hotkeys/jquery.hotkeys.js"></script>
+    <script src="@helpers.assets/vendors/jquery-textcomplete-1.6.2/jquery.textcomplete.js"></script>
     @repository.map { repository =>
       @if(!repository.repository.isPrivate){
         <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
       }
     }
+    <script src="@helpers.assets/vendors/AdminLTE-2.2.3/js/app.js" type="text/javascript"></script>
   </head>
-  <body onload="parent.postMessage(document.body.scrollHeight, '@ConsumerConfig.consumerHost');">
-    <form id="search" action="@path/search" method="POST" class="form-inline hidedisplay">
-      <nav class="navbar navbar-default">
-        <div class="container" style="width: 980px;">
-          @* TODO: for plugi-ins?
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          *@
-          <a class="navbar-brand" href="@path/">
-            <img src="@assets/common/images/se_logo_white-1.png" style="width: 108px; height: 32px;"/>  Model Repository
-            @defining(AutoUpdate.getCurrentVersion){ version =>
-              <span class="header-version">@version.majorVersion.@version.minorVersion</span>
-            }
-          </a>
-          @if(loginAccount.isDefined){
-            @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-bottom: 0px;" placeholder="Search this repository"/>
-              <input type="hidden" name="owner" value="@repository.owner"/>
-              <input type="hidden" name="repository" value="@repository.name"/>
-            }
-            <a href="@path/dashboard/pulls" class="global-header-menu">Pull requests</a>
-            <a href="@path/dashboard/issues" class="global-header-menu">Issues</a>
-          } else {
-            @* TODO: merge with below *@
-            @repository.map { repository =>
-              <input type="text" name="query" class="form-control" style="width: 200px; margin-top: 6px; margin-bottom: 0px;" placeholder="Search this repository"/>
-              <input type="hidden" name="owner" value="@repository.owner"/>
-              <input type="hidden" name="repository" value="@repository.name"/>
-            }
-          }
-          @if(loginAccount.isDefined){
-            <div class="pull-right" style="margin-top: 6px;">
-              <div class="btn-group" style="margin-right: 8px;">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
-                  <i class="octicon octicon-plus" style="color: black; font-size: 20px; vertical-align: middle;height:20px !important;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                  <li><a href="@path/new">New repository</a></li>
-                  <li><a href="@path/groups/new">New group</a></li>
-                </ul>
+  <body class="skin-blue">
+    <div class="wrapper">
+      <header class="main-header">
+        <a href="@context.path/" class="logo">
+          <img src="@helpers.assets/common/images/se_logo_white-1.png" style="width: 108px; height: 32px;"/>
+          <!---GitBucket-->
+          <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span>
+        </a>
+        <nav class="navbar navbar-static-top" role="navigation">
+          @repository.map { repository =>
+            <form id="search" action="@context.path/search" method="POST" class="navbar-form navbar-left" role="search">
+              <div class="form-group">
+                <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search this repository"/>
+                <input type="hidden" name="owner" value="@repository.owner"/>
+                <input type="hidden" name="repository" value="@repository.name"/>
               </div>
-              <div class="btn-group">
-                <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @loginAccount.get.userName">
-                  @avatar(loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                  <li><a href="@url(loginAccount.get.userName)">Your profile</a></li>
-                  <li><a href="@url(loginAccount.get.userName)/_edit">Account settings</a></li>
-                  @if(loginAccount.get.isAdmin){
-                    <li><a href="@path/admin/users">System administration</a></li>
-                  }
-                  <li><a href="@path/signout">Sign out</a></li>
-                </ul>
-              </div>
-            </div>
-          } else {
-            <a href="@path/signin?redirect=@urlEncode(currentPath)" class="btn btn-default pull-right" style="margin-top: 6px;" id="signin">Sign in</a>
+            </form>
           }
-        </div>
-      </nav>
-    </form>
-    @body
+          <ul class="nav navbar-nav">
+            @if(context.loginAccount.isDefined){
+              <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>
+              <li><a href="@context.path/dashboard/issues">Issues</a></li>
+            }
+            @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
+              @menu(context).map { link =>
+                <li><a href="@context.path/@link.path">@link.label</a></li>
+              }
+            }
+          </ul>
+          <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+              @if(context.loginAccount.isDefined){
+                <li class="dropdown">
+                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
+                    <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
+                  </a>
+                  <ul class="dropdown-menu pull-right">
+                    <li><a href="@context.path/new">New repository</a></li>
+                    <li><a href="@context.path/groups/new">New group</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown">
+                  <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @context.loginAccount.get.userName">
+                    @helpers.avatar(context.loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
+                  </a>
+                  <ul class="dropdown-menu pull-right">
+                    <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
+                    <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
+                    @if(context.loginAccount.get.isAdmin){
+                      <li><a href="@context.path/admin/users">System administration</a></li>
+                    }
+                    <li><a href="@context.path/signout">Sign out</a></li>
+                  </ul>
+                </li>
+              } else {
+                <li>
+                  <a href="@context.path/signin?redirect=@helpers.urlEncode(context.currentPath)" class="pull-right" id="signin">Sign in</a>
+                </li>
+              }
+            </ul>
+          </div>
+        </nav>
+      </header>
+      @body
+    </div>
     <script>
       $(function(){
         $('#search').submit(function(){
@@ -114,7 +112,7 @@
         });
       });
     </script>
-    @PluginRegistry().getJavaScript(request.getRequestURI).map { script =>
+    @PluginRegistry().getJavaScript(context.request.getRequestURI).map { script =>
       <script>
         @Html(script)
       </script>

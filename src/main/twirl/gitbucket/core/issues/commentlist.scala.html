@@ -3,22 +3,21 @@
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pullreq: Option[gitbucket.core.model.PullRequest] = None)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 @import gitbucket.core.model.CommitComment
 @if(issue.isDefined){
-  <div class="issue-avatar-image">@avatarLink(issue.get.openedUserName, 48)</div>
+  <div class="issue-avatar-image">@helpers.avatarLink(issue.get.openedUserName, 48)</div>
   <div class="panel panel-default issue-comment-box">
     <div class="panel-heading">
-      @user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @helper.html.datetimeago(issue.get.registeredDate)</span>
+      @helpers.user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @gitbucket.core.helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
-        @if(hasWritePermission || loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
+        @if(hasWritePermission || context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
           <a href="#" data-issue-id="@issue.get.issueId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
         }
       </span>
     </div>
     <div class="panel-body issue-content markdown-body" id="issueContent">
-      @markdown(
+      @helpers.markdown(
         markdown = issue.get.content getOrElse "No description provided.",
         repository = repository,
         enableWikiLink = false,
@@ -36,20 +35,20 @@
   case comment: gitbucket.core.model.IssueComment => {
     @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"
       && comment.action != "commit" && comment.action != "refer"){
-      <div class="issue-avatar-image">@avatarLink(comment.commentedUserName, 48)</div>
+      <div class="issue-avatar-image">@helpers.avatarLink(comment.commentedUserName, 48)</div>
       <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
         <div class="panel-heading">
-          @user(comment.commentedUserName, styleClass="username strong")
+          @helpers.user(comment.commentedUserName, styleClass="username strong")
           <span class="muted">
             @if(comment.action == "comment"){
               commented
             } else {
               referenced the @issueOrPullRequest()
             }
-            @helper.html.datetimeago(comment.registeredDate)
+            @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </span>
           @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
-                && (hasWritePermission || loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+                && (hasWritePermission || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
             <span class="pull-right">
               <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
               <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
@@ -57,7 +56,7 @@
           }
           </div>
         <div class="panel-body issue-content markdown-body" id="commentContent-@comment.commentId">
-          @markdown(
+          @helpers.markdown(
             markdown = comment.content,
             repository = repository,
             enableWikiLink = false,
@@ -80,20 +79,20 @@
         <div class="discussion-item discussion-item-commit">
           <div class="discussion-item-header">
             <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
-            @avatar(comment.commentedUserName, 16)
-            @user(comment.commentedUserName, styleClass="username strong")
+            @helpers.avatar(comment.commentedUserName, 16)
+            @helpers.user(comment.commentedUserName, styleClass="username strong")
             added a commit that referenced this @issueOrPullRequest()
-            @helper.html.datetimeago(comment.registeredDate)
+            @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </div>
           <div style="discussion-item-content">
             @commitId.map{ id =>
-              <span class="pull-right"><a href="@path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></span>
+              <span class="pull-right"><a href="@context.path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></span>
             }
             <span class="discussion-item-content-head"><i class="octicon octicon-git-commit"></i></span>
-            @link(head, repository)
+            @helpers.link(head, repository)
             @rest.map{ content =>
               <a href="javascript:void(0)" class="omit" onclick="$(this.parentNode).find('.discussion-item-content-text').toggle()">...</a>
-              <pre class="reset discussion-item-content-text" style="display:none">@link(content, repository)</pre>
+              <pre class="reset discussion-item-content-text" style="display:none">@helpers.link(content, repository)</pre>
             }
           </div>
         </div>
@@ -103,14 +102,14 @@
       <div class="discussion-item discussion-item-refer">
         <div class="discussion-item-header">
           <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
-          @avatar(comment.commentedUserName, 16)
-          @user(comment.commentedUserName, styleClass="username strong")
+          @helpers.avatar(comment.commentedUserName, 16)
+          @helpers.user(comment.commentedUserName, styleClass="username strong")
           referenced the @issueOrPullRequest()
-          @helper.html.datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
         <div style="discussion-item-content">
           @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
-            <strong>@issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
+            <strong>@helpers.issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
           }
         </div>
       </div>
@@ -119,8 +118,8 @@
       <div class="discussion-item discussion-item-merge">
         <div class="discussion-item-header">
           <span class="discussion-item-icon"><i class="octicon octicon-git-merge"></i></span>
-          @avatar(comment.commentedUserName, 16)
-          @user(comment.commentedUserName, styleClass="username strong")
+          @helpers.avatar(comment.commentedUserName, 16)
+          @helpers.user(comment.commentedUserName, styleClass="username strong")
           merged commit
           <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
           @if(pullreq.get.requestUserName == repository.owner){
@@ -128,7 +127,7 @@
           } else {
             <code>@pullreq.map(_.userName):@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</code>
           }
-          @helper.html.datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
@@ -136,10 +135,10 @@
       <div class="discussion-item discussion-item-close">
         <div class="discussion-item-header">
           <span class="discussion-item-icon"><i class="octicon octicon-circle-slash"></i></span>
-          @avatar(comment.commentedUserName, 16)
-          @user(comment.commentedUserName, styleClass="username strong")
+          @helpers.avatar(comment.commentedUserName, 16)
+          @helpers.user(comment.commentedUserName, styleClass="username strong")
           closed this @issueOrPullRequest()
-          @helper.html.datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
@@ -147,10 +146,10 @@
       <div class="discussion-item discussion-item-reopen">
         <div class="discussion-item-header">
           <span class="discussion-item-icon"><i class="octicon octicon-primitive-dot"></i></span>
-          @avatar(comment.commentedUserName, 16)
-          @user(comment.commentedUserName, styleClass="username strong")
+          @helpers.avatar(comment.commentedUserName, 16)
+          @helpers.user(comment.commentedUserName, styleClass="username strong")
           reopened the @issueOrPullRequest()
-          @helper.html.datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
@@ -158,16 +157,16 @@
       <div class="discussion-item discussion-item-delete_branch">
         <div class="discussion-item-header">
           <span class="discussion-item-icon"><i class="octicon octicon-git-branch"></i></span>
-          @avatar(comment.commentedUserName, 16)
-          @user(comment.commentedUserName, styleClass="username strong")
+          @helpers.avatar(comment.commentedUserName, 16)
+          @helpers.user(comment.commentedUserName, styleClass="username strong")
           deleted the <code>@pullreq.map(_.requestBranch)</code> branch
-          @helper.html.datetimeago(comment.registeredDate)
+          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </div>
       </div>
     }
   }
   case comment: CommitComment => {
-    @helper.html.commitcomment(comment, hasWritePermission, repository, pullreq.map(_.commitIdTo))
+    @gitbucket.core.helper.html.commitcomment(comment, hasWritePermission, repository, pullreq.map(_.commitIdTo))
   }
 }
 <script>
@@ -175,12 +174,12 @@ $(function(){
 @if(issue.isDefined){
   $('.issue-comment-box i.octicon-pencil').click(function(){
     var id  = $(this).closest('a').data('comment-id');
-    var url = '@url(repository)/issue_comments/_data/' + id;
+    var url = '@helpers.url(repository)/issue_comments/_data/' + id;
     var $content = $('#commentContent-' + id);
 
     if(!id){
       id  = $(this).closest('a').data('issue-id');
-      url = '@url(repository)/issues/_data/' + id;
+      url = '@helpers.url(repository)/issues/_data/' + id;
       $content = $('#issueContent');
     }
 
@@ -196,7 +195,7 @@ $(function(){
   $('.issue-comment-box i.octicon-x').click(function(){
     if(confirm('Are you sure you want to delete this?')) {
       var id = $(this).closest('a').data('comment-id');
-      $.post('@url(repository)/issue_comments/delete/' + id,
+      $.post('@helpers.url(repository)/issue_comments/delete/' + id,
       function(data){
         if(data > 0) {
           $('#comment-' + id).prev('div.issue-avatar-image').remove();
@@ -209,7 +208,7 @@ $(function(){
 }
   $(document).on('click', '.commit-comment-box i.octicon-pencil', function(){
     var id  = $(this).closest('a').data('comment-id');
-    var url = '@url(repository)/commit_comments/_data/' + id;
+    var url = '@helpers.url(repository)/commit_comments/_data/' + id;
     var $content = $('.commit-commentContent-' + id, $(this).closest('.commit-comment-box'));
 
     $.get(url,
@@ -224,7 +223,7 @@ $(function(){
   $(document).on('click', '.commit-comment-box i.octicon-x', function(){
     if(confirm('Are you sure you want to delete this?')) {
       var id = $(this).closest('a').data('comment-id');
-      $.post('@url(repository)/commit_comments/delete/' + id,
+      $.post('@helpers.url(repository)/commit_comments/delete/' + id,
       function(data){
         if(data > 0) {
           $('.commit-comment-' + id).closest('.not-diff').remove();
@@ -260,13 +259,13 @@ $(function(){
     var $commentContent = $(ev.target).parents('div[class*=commit-commentContent-]'),
         commentId = $commentContent.attr('class').match(/commit-commentContent-.+/)[0].replace(/commit-commentContent-/, ''),
         checkboxes = $commentContent.find(':checkbox');
-    $.get('@url(repository)/commit_comments/_data/' + commentId,
+    $.get('@helpers.url(repository)/commit_comments/_data/' + commentId,
       {
         dataType : 'html'
       },
       function(responseContent){
         $.ajax({
-          url: '@url(repository)/commit_comments/edit/' + commentId,
+          url: '@helpers.url(repository)/commit_comments/edit/' + commentId,
           type: 'POST',
           data: {
             issueId : 0,
@@ -283,13 +282,13 @@ $(function(){
   @if(issue.isDefined){
   $('#issueContent').on('click', ':checkbox', function(ev){
     var checkboxes = $('#issueContent :checkbox');
-    $.get('@url(repository)/issues/_data/@issue.get.issueId',
+    $.get('@helpers.url(repository)/issues/_data/@issue.get.issueId',
       {
         dataType : 'html'
       },
       function(responseContent){
         $.ajax({
-          url: '@url(repository)/issues/edit/@issue.get.issueId',
+          url: '@helpers.url(repository)/issues/edit/@issue.get.issueId',
           type: 'POST',
           data: {
             title   : $('#issueTitle').text(),
@@ -304,13 +303,13 @@ $(function(){
     var $commentContent = $(ev.target).parents('div[id^=commentContent-]'),
         commentId = $commentContent.attr('id').replace(/commentContent-/, ''),
         checkboxes = $commentContent.find(':checkbox');
-    $.get('@url(repository)/issue_comments/_data/' + commentId,
+    $.get('@helpers.url(repository)/issue_comments/_data/' + commentId,
       {
         dataType : 'html'
       },
       function(responseContent){
         $.ajax({
-          url: '@url(repository)/issue_comments/edit/' + commentId,
+          url: '@helpers.url(repository)/issue_comments/edit/' + commentId,
           type: 'POST',
           data: {
             issueId : 0,

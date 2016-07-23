@@ -2,7 +2,6 @@ package gitbucket.core.controller
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
-import gitbucket.core.api._
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
@@ -13,7 +12,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.{Account, CommitState, WebHook}
+import gitbucket.core.model.{Account, WebHook}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -28,14 +27,6 @@ import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
 import org.scalatra._
-
-
-import gitbucket.core.helper.xml
-import gitbucket.core.model.Account
-import gitbucket.core.service.{RepositoryService, ActivityService, AccountService}
-import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator}
-
-
 
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
@@ -131,13 +122,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   /**
-   * https://developer.github.com/v3/repos/#get
-   */
-  get("/api/v3/repos/:owner/:repository")(referrersOnly { repository =>
-    JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(repository.owner).get)))
-  })
-
-  /**
    * Displays the file list of the specified path and branch.
    */
   get("/:owner/:repository/tree/*")(referrersOnly { repository =>
@@ -166,65 +150,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         case Left(_) => NotFound
       }
     }
-  })
-
-  /**
-   * https://developer.github.com/v3/repos/statuses/#create-a-status
-   */
-  post("/api/v3/repos/:owner/:repo/statuses/:sha")(collaboratorsOnly { repository =>
-    (for{
-      ref <- params.get("sha")
-      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
-      data <- extractFromJsonBody[CreateAStatus] if data.isValid
-      creator <- context.loginAccount
-      state <- CommitState.valueOf(data.state)
-      statusId = createCommitStatus(repository.owner, repository.name, sha, data.context.getOrElse("default"),
-                                    state, data.target_url, data.description, new java.util.Date(), creator)
-      status <- getCommitStatus(repository.owner, repository.name, statusId)
-    } yield {
-      JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
-    }) getOrElse NotFound
-  })
-
-  /**
-   * https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
-   *
-   * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
-   */
-  val listStatusesRoute = get("/api/v3/repos/:owner/:repo/commits/:ref/statuses")(referrersOnly { repository =>
-    (for{
-      ref <- params.get("ref")
-      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
-    } yield {
-      JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
-        ApiCommitStatus(status, ApiUser(creator))
-      })
-    }) getOrElse NotFound
-  })
-
-  /**
-   * https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref
-   *
-   * legacy route
-   */
-  get("/api/v3/repos/:owner/:repo/statuses/:ref"){
-    listStatusesRoute.action()
-  }
-
-  /**
-   * https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref
-   *
-   * ref is Ref to list the statuses from. It can be a SHA, a branch name, or a tag name.
-   */
-  get("/api/v3/repos/:owner/:repo/commits/:ref/status")(referrersOnly { repository =>
-    (for{
-      ref <- params.get("ref")
-      owner <- getAccountByUserName(repository.owner)
-      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
-    } yield {
-      val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
-      JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
-    }) getOrElse NotFound
   })
 
   get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
@@ -451,8 +376,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     getCommitComment(repository.owner, repository.name, params("id")) map { x =>
       if(isEditable(x.userName, x.repositoryName, x.commentedUserName)){
         params.get("dataType") collect {
-          case t if t == "html" => html.editcomment(
-            x.content, x.commentId, x.userName, x.repositoryName)
+          case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
         } getOrElse {
           contentType = formats("json")
           org.json4s.jackson.Serialization.write(
@@ -572,6 +496,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getForkedRepositories(
         repository.repository.originUserName.getOrElse(repository.owner),
         repository.repository.originRepositoryName.getOrElse(repository.name)),
+      context.loginAccount match {
+        case None => List()
+        case account: Option[Account] => getGroupsByUserName(account.get.userName)
+      }, // groups of current user
       repository)
   })
 
@@ -582,13 +510,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val ref = multiParams("splat").head
       JGitUtil.getTreeId(git, ref).map{ treeId =>
-        html.find(ref,
-                  treeId,
-                  repository,
-                  context.loginAccount match {
-                    case None => List()
-                    case account: Option[Account] => getGroupsByUserName(account.get.userName)
-                  })
+        html.find(ref, treeId, repository)
       } getOrElse NotFound
     }
   })
@@ -628,14 +550,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * @return HTML of the file list
    */
   private def fileList(repository: RepositoryService.RepositoryInfo, revstr: String = "", path: String = ".") = {
-      
-     val loginAccount = context.loginAccount
     if(repository.commitCount == 0){
-        
-       
-    
-        
-      html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount),loginAccount.map{ account => getUserRepositories(account.userName,withoutPhysicalInfo = true) }.getOrElse(Nil))
+      html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
     } else {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
         // get specified commit
@@ -656,14 +572,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
             html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
-              context.loginAccount match {
-                case None => List()
-                case account: Option[Account] => getGroupsByUserName(account.get.userName)
-              }, // groups of current user
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
               files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount),
               getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),
-              loginAccount.map{ account => getUserRepositories(account.userName,withoutPhysicalInfo = true) }.getOrElse(Nil),
               flash.get("info"), flash.get("error"))
           }
         } getOrElse NotFound
@@ -778,8 +689,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
-
-
 
   override protected def renderUncaughtException(e: Throwable)(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
     e.printStackTrace()

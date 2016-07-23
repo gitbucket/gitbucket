@@ -1,7 +1,10 @@
 GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
-GitBucket is a GitHub clone powered by Scala which has easy installation and high extensibility.
+GitBucket is a Git platform powered by Scala offering:
+- easy installation
+- high extensibility by plugins
+- API compatibility with Github
 
 Features
 --------
@@ -46,6 +49,7 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 - [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
 - [gitbucket-commitgraphs-plugin](https://github.com/yoshiyoshifujii/gitbucket-commitgraphs-plugin)
 - [gitbucket-asciidoctor-plugin](https://github.com/lefou/gitbucket-asciidoctor-plugin)
+- [gitbucket-network-plugin](https://github.com/mrkm4ntr/gitbucket-network-plugin)
 
 You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
 
@@ -56,10 +60,49 @@ Support
 - Make sure check whether there is a same question or request in the past.
 - When raise a new issue, write subject in **English** at least.
 - We can also support in Japaneses other than English at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
-- First priority of GitBucket is easy installation and reproduce GitHub behavior, so we might reject if your request is against it.
+- First priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
 
 Release Notes
---------
+-------------
+### 4.2.1 - 3 Jul 2016
+
+- Fix migration bug
+
+This is hotfix for a critical bug in migration. If you are new installation, use 4.2.0. But if you have an exisiting installation and it had been updated to 4.0 from 3.x, you must update to 4.2.1.
+
+### 4.2 - 2 Jul 2016
+
+- New UI based on [AdminLTE](https://github.com/almasaeed2010/AdminLTE)
+- git gc
+- Issues and Wiki have been possible to be disabled
+- SMTP configuration test mail
+
+### 4.1 - 4 Jun 2016
+
+- Generic ssh user
+- Improve branch protection UI
+- Default value of pull request title
+
+### 4.0 - 30 Apr 2016
+
+- MySQL and PostgreSQL support
+- Data export and import
+- Migration system has been switched to [solidbase](https://github.com/gitbucket/solidbase)
+
+**Note:** You can upgrade to GitBucket 4.0 from 3.14. If your GitBucket is 3.13 or before, you have to upgrade 3.14 at first.
+
+### 3.14 - 30 Apr 2016
+
+- File attachment and search for wiki pages
+- New extension points to add menus
+- Content-Type of webhooks has been choosable
+
+### 3.13 - 1 Apr 2016
+- Refresh user interface for wide screen
+- Add `pull_request` key in list issues API for pull requests
+- Add `X-Hub-Signature` security to webhooks
+- Provide SHA-256 checksum for `gitbucket.war`
+
 ### 3.12 - 27 Feb 2016
 - New GitHub UI
 - Improve mobile view

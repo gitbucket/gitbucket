@@ -1,12 +1,10 @@
 @(value : String  = "",
   prefix: String  = "",
   style : String  = "",
-  right : Boolean = false,
-  flat  : Boolean = false)(body: Html)
+  right : Boolean = false)(body: Html)
 <div class="btn-group" @if(style.nonEmpty){style="@style"}>
   <button
-      @if(flat){style="border: none; background-color: #eee;"}
-      class="dropdown-toggle @if(!flat){btn btn-default} else {flat} btn-sm" data-toggle="dropdown">
+      class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
     @if(value.isEmpty){
       <i class="octicon octicon-gear"></i>
     } else {

@@ -21,7 +21,7 @@ object SshServer {
     provider.setAlgorithm("RSA")
     provider.setOverwriteAllowed(false)
     server.setKeyPairProvider(provider)
-    server.setPublickeyAuthenticator(new PublicKeyAuthenticator)
+    server.setPublickeyAuthenticator(new PublicKeyAuthenticator(sshAddress.genericUser))
     server.setCommandFactory(new GitCommandFactory(baseUrl))
     server.setShellFactory(new NoShell(sshAddress))
   }

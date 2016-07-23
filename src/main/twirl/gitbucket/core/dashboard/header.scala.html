@@ -2,72 +2,61 @@
   closedCount: Int,
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   groups: List[String])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-<span class="small">
-  <a class="button-link@if(condition.state == "open"){ selected}" href="@condition.copy(state = "open").toURL">
-    <i class="octicon octicon-issue-opened @(if(condition.state == "open"){"active"})"></i>
-    @openCount Open
-  </a>&nbsp;&nbsp;
-  <a class="button-link@if(condition.state == "closed"){ selected}" href="@condition.copy(state = "closed").toURL">
-    <i class="octicon octicon-check @(if(condition.state == "closed"){"active"})"></i>
-    @closedCount Closed
-  </a>
-</span>
-<div class="pull-right" id="table-issues-control">
-  @helper.html.dropdown("Visibility", flat = true){
+@import gitbucket.core.view.helpers
+<div id="table-issues-control">
+  @gitbucket.core.helper.html.dropdown("Visibility"){
     <li>
       <a href="@(condition.copy(visibility = (if(condition.visibility == Some("private")) None else Some("private"))).toURL)">
-        @helper.html.checkicon(condition.visibility == Some("private"))
+        @gitbucket.core.helper.html.checkicon(condition.visibility == Some("private"))
         Private repository only
       </a>
     </li>
     <li>
       <a href="@(condition.copy(visibility = (if(condition.visibility == Some("public")) None else Some("public"))).toURL)">
-        @helper.html.checkicon(condition.visibility == Some("public"))
+        @gitbucket.core.helper.html.checkicon(condition.visibility == Some("public"))
         Public repository only
       </a>
     </li>
   }
-  @helper.html.dropdown("Organization", flat = true){
+  @gitbucket.core.helper.html.dropdown("Organization"){
     @groups.map { group =>
       <li>
         <a href="@((if(condition.groups.contains(group)) condition.copy(groups = condition.groups - group) else condition.copy(groups = condition.groups + group)).toURL)">
-          @helper.html.checkicon(condition.groups.contains(group))
-          @avatar(group, 20) @group
+          @gitbucket.core.helper.html.checkicon(condition.groups.contains(group))
+          @helpers.avatar(group, 20) @group
         </a>
       </li>
     }
   }
-  @helper.html.dropdown("Sort", flat = true){
+  @gitbucket.core.helper.html.dropdown("Sort"){
     <li>
       <a href="@condition.copy(sort="created",  direction="desc").toURL">
-        @helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
+        @gitbucket.core.helper.html.checkicon(condition.sort == "created"  && condition.direction == "desc") Newest
       </a>
     </li>
     <li>
       <a href="@condition.copy(sort="created",  direction="asc" ).toURL">
-        @helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
+        @gitbucket.core.helper.html.checkicon(condition.sort == "created"  && condition.direction == "asc") Oldest
       </a>
     </li>
     <li>
       <a href="@condition.copy(sort="comments", direction="desc").toURL">
-       @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
+       @gitbucket.core.helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
       </a>
     </li>
     <li>
       <a href="@condition.copy(sort="comments", direction="asc" ).toURL">
-        @helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
+        @gitbucket.core.helper.html.checkicon(condition.sort == "comments"  && condition.direction == "asc") Least commented
       </a>
     </li>
     <li>
       <a href="@condition.copy(sort="updated",  direction="desc").toURL">
-        @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
+        @gitbucket.core.helper.html.checkicon(condition.sort == "updated"  && condition.direction == "desc") Recently updated
       </a>
     </li>
     <li>
       <a href="@condition.copy(sort="updated",  direction="asc" ).toURL">
-        @helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
+        @gitbucket.core.helper.html.checkicon(condition.sort == "updated"  && condition.direction == "asc") Least recently updated
       </a>
     </li>
   }

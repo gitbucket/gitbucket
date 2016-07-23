@@ -2,15 +2,14 @@
   reopenable: Boolean,
   hasWritePermission: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@if(loginAccount.isDefined){
+@import gitbucket.core.view.helpers
+@if(context.loginAccount.isDefined){
   <hr/><br/>
   <form method="POST" validate="true">
-    <div class="issue-avatar-image">@avatarLink(loginAccount.get.userName, 48)</div>
+    <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
     <div class="panel panel-default issue-comment-box">
-      <div class="panel-body panelbackgrnd">
-        @helper.html.preview(
+      <div class="panel-body">
+        @gitbucket.core.helper.html.preview(
           repository         = repository,
           content            = "",
           enableWikiLink     = false,
@@ -18,16 +17,17 @@
           enableLineBreaks   = true,
           enableTaskList     = true,
           hasWritePermission = hasWritePermission,
+          completionContext  = "issues",
           style              = "",
           elastic            = true,
           tabIndex           = 1
         )
         <div class="text-right">
           <input type="hidden" name="issueId" value="@issue.issueId"/>
-          @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == loginAccount.get.userName)){
-            <input type="submit" class="btn btn-lg btn-default" tabindex="3" formaction="@url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
+          @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == context.loginAccount.get.userName)){
+            <input type="submit" class="btn btn-default" tabindex="3" formaction="@helpers.url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
           }
-          <input type="submit" class="btn btn-lg btn-success" tabindex="2" formaction="@url(repository)/issue_comments/new" value="Comment"/>
+          <input type="submit" class="btn btn-success" tabindex="2" formaction="@helpers.url(repository)/issue_comments/new" value="Comment"/>
         </div>
       </div>
     </div>

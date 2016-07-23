@@ -65,7 +65,6 @@ abstract class ControllerBase extends ScalatraFilter
         httpRequest.setAttribute(Keys.Request.APIv3, true)
       }
       // Scalatra actions
-
       Try(super.doFilter(request, response, chain)) match {
         case Success(s) =>
         case Failure(ex) => {
@@ -85,7 +84,7 @@ abstract class ControllerBase extends ScalatraFilter
       }
     }
   } finally {
-    contextCache.remove()
+    contextCache.remove();
   }
 
   private val contextCache = new java.lang.ThreadLocal[Context]()

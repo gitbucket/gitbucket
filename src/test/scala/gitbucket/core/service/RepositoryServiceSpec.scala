@@ -6,7 +6,7 @@ import org.scalatest.FunSuite
 class RepositoryServiceSpec extends FunSuite with ServiceSpecBase with RepositoryService with AccountService{
   test("renameRepository can rename CommitState, ProtectedBranches") { withTestDB { implicit session =>
     val tester = generateNewAccount("tester")
-    createRepository("repo", "root", None, false)
+    insertRepository("repo", "root", None, false)
     val service = new CommitStatusService with ProtectedBranchService {}
     val id = service.createCommitStatus(
       userName    = "root",

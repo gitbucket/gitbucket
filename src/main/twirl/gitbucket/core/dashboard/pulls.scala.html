@@ -5,22 +5,14 @@
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   filter: String,
   groups: List[String],
+  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
   userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Pull Requests"){
-  <div class="body">
-    @dashboard.html.tab("pulls")
-   <div class="container">
-     <div class="row">
-	     <div class="col-md-4">
-	      @dashboard.html.repopanel(userRepositories)
-	     </div>	
-	     <div class="col-md-8">
-	      @issuesnavi(filter, "pulls", condition)
-	      @issueslist(issues, page, openCount, closedCount, condition, filter, groups)
-	    </div>
-  </div>
-</div>
-  </div>
+@gitbucket.core.html.main("Pull Requests"){
+  @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
+    @gitbucket.core.dashboard.html.tab("pulls")
+    <div class="container">
+      @gitbucket.core.dashboard.html.issuesnavi(filter, openCount, closedCount, condition)
+      @gitbucket.core.dashboard.html.issueslist(issues, page, openCount, closedCount, condition, filter, groups)
+    </div>
+  }
 }

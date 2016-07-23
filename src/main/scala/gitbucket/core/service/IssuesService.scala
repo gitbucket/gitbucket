@@ -1,6 +1,8 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
+import gitbucket.core.util.JGitUtil.CommitInfo
+import gitbucket.core.util.StringUtil
 import profile.simple._
 
 import gitbucket.core.util.StringUtil._
@@ -12,10 +14,11 @@ import Q.interpolation
 
 
 trait IssuesService {
+  self: AccountService =>
   import IssuesService._
 
   def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session) =
-    if (issueId forall (_.isDigit))
+    if (isInteger(issueId))
       Issues filter (_.byPrimaryKey(owner, repository, issueId.toInt)) firstOption
     else None
 
@@ -105,25 +108,41 @@ trait IssuesService {
       }
       import gitbucket.core.model.Profile.commitStateColumnType
       val query = Q.query[Seq[(String, String, Int)], (String, String, Int, Int, Int, Option[String], Option[CommitState], Option[String], Option[String])](s"""
-        SELECT SUMM.USER_NAME, SUMM.REPOSITORY_NAME, SUMM.ISSUE_ID, CS_ALL, CS_SUCCESS
-             , CSD.CONTEXT, CSD.STATE, CSD.TARGET_URL, CSD.DESCRIPTION
-        FROM (SELECT
-           PR.USER_NAME
-         , PR.REPOSITORY_NAME
-         , PR.ISSUE_ID
-         , COUNT(CS.STATE) AS CS_ALL
-         , SUM(CS.STATE='success') AS CS_SUCCESS
-         , PR.COMMIT_ID_TO AS COMMIT_ID
+        SELECT
+          SUMM.USER_NAME,
+          SUMM.REPOSITORY_NAME,
+          SUMM.ISSUE_ID,
+          CS_ALL,
+          CS_SUCCESS,
+          CSD.CONTEXT,
+          CSD.STATE,
+          CSD.TARGET_URL,
+          CSD.DESCRIPTION
+        FROM (
+          SELECT
+            PR.USER_NAME,
+            PR.REPOSITORY_NAME,
+            PR.ISSUE_ID,
+            COUNT(CS.STATE) AS CS_ALL,
+            CSS.CS_SUCCESS  AS CS_SUCCESS,
+            PR.COMMIT_ID_TO AS COMMIT_ID
           FROM PULL_REQUEST PR
           JOIN COMMIT_STATUS CS
-            ON PR.USER_NAME=CS.USER_NAME
-           AND PR.REPOSITORY_NAME=CS.REPOSITORY_NAME
-           AND PR.COMMIT_ID_TO=CS.COMMIT_ID
-         WHERE $issueIdQuery
-         GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID) as SUMM
+            ON PR.USER_NAME = CS.USER_NAME AND PR.REPOSITORY_NAME = CS.REPOSITORY_NAME AND PR.COMMIT_ID_TO = CS.COMMIT_ID
+          JOIN (
+            SELECT
+              COUNT(*) AS CS_SUCCESS,
+              USER_NAME,
+              REPOSITORY_NAME,
+              COMMIT_ID
+            FROM COMMIT_STATUS WHERE STATE = 'success' GROUP BY USER_NAME, REPOSITORY_NAME, COMMIT_ID
+          ) CSS ON PR.USER_NAME = CSS.USER_NAME AND PR.REPOSITORY_NAME = CSS.REPOSITORY_NAME AND PR.COMMIT_ID_TO = CSS.COMMIT_ID
+          WHERE $issueIdQuery
+          GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID, CSS.CS_SUCCESS
+        ) as SUMM
         LEFT OUTER JOIN COMMIT_STATUS CSD
           ON SUMM.CS_ALL = 1 AND SUMM.COMMIT_ID = CSD.COMMIT_ID""");
-      query(issueList).list.map{
+      query(issueList).list.map {
         case(userName, repositoryName, issueId, count, successCount, context, state, targetUrl, description) =>
           (userName, repositoryName, issueId) -> CommitStatusInfo(count, successCount, context, state, targetUrl, description)
         }.toMap
@@ -215,9 +234,8 @@ trait IssuesService {
         .map { case (owner, repository) => t1.byRepository(owner, repository) }
         .foldLeft[Column[Boolean]](false) ( _ || _ ) &&
       (t1.closed           === (condition.state == "closed").bind) &&
-      //(t1.milestoneId      === condition.milestoneId.get.get.bind, condition.milestoneId.flatten.isDefined) &&
-      (t1.milestoneId.?    isEmpty, condition.milestone == Some(None)) &&
-      (t1.assignedUserName === condition.assigned.get.bind, condition.assigned.isDefined) &&
+      (t1.milestoneId.?      isEmpty, condition.milestone == Some(None)) &&
+      (t1.assignedUserName.? isEmpty, condition.assigned  == Some(None)) &&
       (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
       (t1.pullRequest      === pullRequest.bind) &&
       // Milestone filter
@@ -225,6 +243,8 @@ trait IssuesService {
         (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
         (t2.title === condition.milestone.get.get.bind)
       } exists, condition.milestone.flatten.isDefined) &&
+      // Assignee filter
+      (t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined) &&
       // Label filter
       (IssueLabels filter { t2 =>
         (t2.byIssue(t1.userName, t1.repositoryName, t1.issueId)) &&
@@ -394,6 +414,29 @@ trait IssuesService {
       }
     }
   }
+
+  def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String, loginAccount: Account)(implicit s: Session) = {
+    StringUtil.extractIssueId(message).foreach { issueId =>
+      val content = fromIssue.issueId + ":" + fromIssue.title
+      if(getIssue(owner, repository, issueId).isDefined){
+        // Not add if refer comment already exist.
+        if(!getComments(owner, repository, issueId.toInt).exists { x => x.action == "refer" && x.content == content }) {
+          createComment(owner, repository, loginAccount.userName, issueId.toInt, content, "refer")
+        }
+      }
+    }
+  }
+
+  def createIssueComment(owner: String, repository: String, commit: CommitInfo)(implicit s: Session) = {
+    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
+      if(getIssue(owner, repository, issueId).isDefined){
+        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
+          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
+        }
+      }
+    }
+  }
+
 }
 
 object IssuesService {
@@ -405,7 +448,7 @@ object IssuesService {
       labels: Set[String] = Set.empty,
       milestone: Option[Option[String]] = None,
       author: Option[String] = None,
-      assigned: Option[String] = None,
+      assigned: Option[Option[String]] = None,
       mentioned: Option[String] = None,
       state: String = "open",
       sort: String = "created",
@@ -449,12 +492,15 @@ object IssuesService {
     def toURL: String =
       "?" + List(
         if(labels.isEmpty) None else Some("labels=" + urlEncode(labels.mkString(","))),
-        milestone.map { _ match {
+        milestone.map {
           case Some(x) => "milestone=" + urlEncode(x)
           case None    => "milestone=none"
-        }},
+        },
         author   .map(x => "author="    + urlEncode(x)),
-        assigned .map(x => "assigned="  + urlEncode(x)),
+        assigned.map {
+          case Some(x) => "assigned="  + urlEncode(x)
+          case None    => "assigned=none"
+        },
         mentioned.map(x => "mentioned=" + urlEncode(x)),
         Some("state="     + urlEncode(state)),
         Some("sort="      + urlEncode(sort)),
@@ -499,10 +545,14 @@ object IssuesService {
         conditions.get("milestone").flatMap(_.headOption) match {
           case None         => None
           case Some("none") => Some(None)
-          case Some(x)      => Some(Some(x)) //milestones.get(x).map(x => Some(x))
+          case Some(x)      => Some(Some(x))
         },
         conditions.get("author").flatMap(_.headOption),
-        conditions.get("assignee").flatMap(_.headOption),
+        conditions.get("assignee").flatMap(_.headOption) match {
+          case None         => None
+          case Some("none") => Some(None)
+          case Some(x)      => Some(Some(x))
+        },
         conditions.get("mentions").flatMap(_.headOption),
         conditions.get("is").getOrElse(Seq.empty).find(x => x == "open" || x == "closed").getOrElse("open"),
         sort,
@@ -523,7 +573,10 @@ object IssuesService {
           case x      => Some(x)
         },
         param(request, "author"),
-        param(request, "assigned"),
+        param(request, "assigned").map {
+          case "none" => None
+          case x      => Some(x)
+        },
         param(request, "mentioned"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
         param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),

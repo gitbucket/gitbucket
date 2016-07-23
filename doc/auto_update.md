@@ -1,37 +1,54 @@
 Automatic Schema Updating
 ========
-GitBucket uses H2 database to manage project and account data. GitBucket updates database schema automatically in the first run after the upgrading.
+GitBucket updates database schema automatically using [Solidbase](https://github.com/gitbucket/solidbase) in the first run after the upgrading.
 
-To release a new version of GitBucket, add the version definition to the [gitbucket.core.servlet.AutoUpdate](https://github.com/gitbucket/gitbucket/blob/master/src/main/scala/gitbucket/core/servlet/AutoUpdate.scala) at first.
+To release a new version of GitBucket, add the version definition to the [gitbucket.core.GitBucketCoreModule](https://github.com/gitbucket/gitbucket/blob/master/src/main/scala/gitbucket/core/GitBucketCoreModule.scala) at first.
 
 ```scala
-object AutoUpdate {
-  ...
-  /**
-   * The history of versions. A head of this sequence is the current GitBucket version.
-   */
-  val versions = Seq(
-      Version(1, 0)
+object GitBucketCoreModule extends Module("gitbucket-core",
+  new Version("4.0.0",
+    new LiquibaseMigration("update/gitbucket-core_4.0.xml"),
+    new SqlMigration("update/gitbucket-core_4.0.sql")
+  ),
+  new Version("4.1.0"),
+  new Version("4.2.0",
+    new LiquibaseMigration("update/gitbucket-core_4.2.xml")
   )
-  ...
-```
-
-Next, add a SQL file which updates database schema into [/src/main/resources/update/](https://github.com/gitbucket/gitbucket/tree/master/src/main/resources/update) as ```MAJOR_MINOR.sql```.
-
-GitBucket stores the current version to ```GITBUCKET_HOME/version``` and checks it at start-up. If the stored version differs from the actual version, it executes differences of SQL files between the stored version and the actual version. And ```GITBUCKET_HOME/version``` is updated by the actual version.
-
-We can also add any Scala code for upgrade GitBucket which modifies resources other than database. Override ```Version.update``` like below:
-
-```scala
-val versions = Seq(
-  new Version(1, 3){
-    override def update(conn: Connection): Unit = {
-      super.update(conn)
-      // Add any code here!
-    }
-  },
-  Version(1, 2),
-  Version(1, 1),
-  Version(1, 0)
 )
 ```
+
+Next, add a XML file which updates database schema into [/src/main/resources/update/](https://github.com/gitbucket/gitbucket/tree/master/src/main/resources/update) with a filenane defined in `GitBucketCoreModule`.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+    <addColumn tableName="REPOSITORY">
+        <column name="ENABLE_WIKI" type="boolean" nullable="false" defaultValueBoolean="true"/>
+        <column name="ENABLE_ISSUES" type="boolean" nullable="false" defaultValueBoolean="true"/>
+        <column name="EXTERNAL_WIKI_URL" type="varchar(200)" nullable="true"/>
+        <column name="EXTERNAL_ISSUES_URL" type="varchar(200)" nullable="true"/>
+    </addColumn>
+</changeSet>
+```
+
+Solidbase stores the current version to `VERSIONS` table and checks it at start-up. If the stored version differs from the actual version, it executes differences between the stored version and the actual version.
+
+We can add the SQL file instead of the XML file using `SqlMigration`. It try to load a SQL file from classpath as following order:
+
+1. Specified path (if specified)
+2. `${moduleId}_${version}_${database}.sql`
+3. `${moduleId}_${version}.sql`
+
+Also we can add any code by extending `Migration`:
+
+```scala
+object GitBucketCoreModule extends Module("gitbucket-core",
+  new Version("4.0.0", new Migration(){
+    override def migrate(moduleId: String, version: String, context: java.util.Map[String, String]): Unit = {
+      ...
+    }
+  })
+)
+```
+
+See more details [README of Solidbase](https://github.com/gitbucket/solidbase).

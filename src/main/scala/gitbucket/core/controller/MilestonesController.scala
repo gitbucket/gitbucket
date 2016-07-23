@@ -4,7 +4,6 @@ import gitbucket.core.issues.milestones.html
 import gitbucket.core.service.{RepositoryService, MilestonesService, AccountService}
 import gitbucket.core.util.{ReferrerAuthenticator, CollaboratorsAuthenticator}
 import gitbucket.core.util.Implicits._
-//import gitbucket.core.service.{RepositoryService, PullRequestService, AccountService, IssuesService}
 import io.github.gitbucket.scalatra.forms._
 
 class MilestonesController extends MilestonesControllerBase
@@ -24,14 +23,11 @@ trait MilestonesControllerBase extends ControllerBase {
   )(MilestoneForm.apply)
 
   get("/:owner/:repository/issues/milestones")(referrersOnly { repository =>
-    val loginAccount = context.loginAccount
-    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
     html.list(
       params.getOrElse("state", "open"),
       getMilestonesWithIssueCount(repository.owner, repository.name),
       repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount),
-      userRepositories)
+      hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
   get("/:owner/:repository/issues/milestones/new")(collaboratorsOnly {
