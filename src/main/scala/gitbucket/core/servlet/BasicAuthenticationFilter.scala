@@ -5,7 +5,7 @@ import javax.servlet.http._
 import gitbucket.core.plugin.{GitRepositoryFilter, GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
-import gitbucket.core.util.{Keys, Implicits}
+import gitbucket.core.util.{Keys, Implicits, AuthUtil}
 import org.slf4j.LoggerFactory
 import Implicits._
 
@@ -43,7 +43,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     } catch {
       case ex: Exception => {
         logger.error("error", ex)
-        requireAuth(response)
+        AuthUtil.requireAuth(response)
       }
     }
   }
@@ -54,7 +54,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
 
     val account = for {
       auth <- Option(request.getHeader("Authorization"))
-      Array(username, password) = decodeAuthHeader(auth).split(":", 2)
+      Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
       account <- authenticate(settings, username, password)
     } yield {
       request.setAttribute(Keys.Request.UserName, account.userName)
@@ -64,7 +64,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
     if(filter.filter(request.gitRepositoryPath, account.map(_.userName), settings, isUpdating)){
       chain.doFilter(request, response)
     } else {
-      requireAuth(response)
+      AuthUtil.requireAuth(response)
     }
   }
 
@@ -81,7 +81,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
             } else {
               val passed = for {
                 auth <- Option(request.getHeader("Authorization"))
-                Array(username, password) = decodeAuthHeader(auth).split(":", 2)
+                Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
                 account <- authenticate(settings, username, password)
               } yield if(isUpdating || repository.repository.isPrivate){
                   if(hasWritePermission(repository.owner, repository.name, Some(account))){
@@ -93,7 +93,7 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
               if(passed.getOrElse(false)){
                 chain.doFilter(request, response)
               } else {
-                requireAuth(response)
+                AuthUtil.requireAuth(response)
               }
             }
           }
@@ -106,19 +106,6 @@ class BasicAuthenticationFilter extends Filter with RepositoryService with Accou
         logger.debug(s"Not enough path arguments: ${request.paths}")
         response.sendError(HttpServletResponse.SC_NOT_FOUND)
       }
-    }
-  }
-
-  private def requireAuth(response: HttpServletResponse): Unit = {
-    response.setHeader("WWW-Authenticate", "BASIC realm=\"GitBucket\"")
-    response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
-  }
-  
-  private def decodeAuthHeader(header: String): String = {
-    try {
-      new String(new sun.misc.BASE64Decoder().decodeBuffer(header.substring(6)))
-    } catch {
-      case _: Throwable => ""
     }
   }
 }

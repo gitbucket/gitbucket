@@ -4,14 +4,14 @@ import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.model.Account
-import gitbucket.core.service.AccessTokenService
-import gitbucket.core.util.Keys
-
+import gitbucket.core.service.SystemSettingsService.SystemSettings
+import gitbucket.core.service.{AccessTokenService, AccountService, SystemSettingsService}
+import gitbucket.core.util.{AuthUtil, Keys}
 import org.scalatra.servlet.ServletApiImplicits._
 import org.scalatra._
 
 
-class AccessTokenAuthenticationFilter extends Filter with AccessTokenService {
+class AccessTokenAuthenticationFilter extends Filter with AccessTokenService with AccountService with SystemSettingsService {
   private val tokenHeaderPrefix = "token "
 
   override def init(filterConfig: FilterConfig): Unit = {}
@@ -24,7 +24,7 @@ class AccessTokenAuthenticationFilter extends Filter with AccessTokenService {
     val response = res.asInstanceOf[HttpServletResponse]
     Option(request.getHeader("Authorization")).map{
       case auth if auth.startsWith("token ") => AccessTokenService.getAccountByAccessToken(auth.substring(6).trim).toRight(Unit)
-      // TODO Basic Authentication Support
+      case auth if auth.startsWith("Basic ") => doBasicAuth(auth, loadSystemSettings(), request).toRight(Unit)
       case _ => Left(Unit)
     }.orElse{
       Option(request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]).map(Right(_))
@@ -39,5 +39,11 @@ class AccessTokenAuthenticationFilter extends Filter with AccessTokenService {
         w.close()
       }
     }
+  }
+
+  def doBasicAuth(auth: String, settings: SystemSettings, request: HttpServletRequest): Option[Account] = {
+    implicit val session = request.getAttribute(Keys.Request.DBSession).asInstanceOf[slick.jdbc.JdbcBackend#Session]
+    val Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
+    authenticate(settings, username, password)
   }
 }
