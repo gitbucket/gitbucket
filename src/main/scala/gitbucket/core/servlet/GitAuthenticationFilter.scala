@@ -12,9 +12,9 @@ import Implicits._
 /**
  * Provides BASIC Authentication for [[GitRepositoryServlet]].
  */
-class BasicAuthenticationFilter extends Filter with RepositoryService with AccountService with SystemSettingsService {
+class GitAuthenticationFilter extends Filter with RepositoryService with AccountService with SystemSettingsService {
 
-  private val logger = LoggerFactory.getLogger(classOf[BasicAuthenticationFilter])
+  private val logger = LoggerFactory.getLogger(classOf[GitAuthenticationFilter])
 
   def init(config: FilterConfig) = {}
   

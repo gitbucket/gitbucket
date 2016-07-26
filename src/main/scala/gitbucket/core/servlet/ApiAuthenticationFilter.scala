@@ -11,8 +11,7 @@ import org.scalatra.servlet.ServletApiImplicits._
 import org.scalatra._
 
 
-class AccessTokenAuthenticationFilter extends Filter with AccessTokenService with AccountService with SystemSettingsService {
-  private val tokenHeaderPrefix = "token "
+class ApiAuthenticationFilter extends Filter with AccessTokenService with AccountService with SystemSettingsService {
 
   override def init(filterConfig: FilterConfig): Unit = {}
 
@@ -23,9 +22,9 @@ class AccessTokenAuthenticationFilter extends Filter with AccessTokenService wit
     implicit val session = req.getAttribute(Keys.Request.DBSession).asInstanceOf[slick.jdbc.JdbcBackend#Session]
     val response = res.asInstanceOf[HttpServletResponse]
     Option(request.getHeader("Authorization")).map{
-      case auth if auth.startsWith("token ") => AccessTokenService.getAccountByAccessToken(auth.substring(6).trim).toRight(Unit)
-      case auth if auth.startsWith("Basic ") => doBasicAuth(auth, loadSystemSettings(), request).toRight(Unit)
-      case _ => Left(Unit)
+      case auth if auth.startsWith("token ") => AccessTokenService.getAccountByAccessToken(auth.substring(6).trim).toRight(())
+      case auth if auth.startsWith("Basic ") => doBasicAuth(auth, loadSystemSettings(), request).toRight(())
+      case _ => Left(())
     }.orElse{
       Option(request.getSession.getAttribute(Keys.Session.LoginAccount).asInstanceOf[Account]).map(Right(_))
     } match {

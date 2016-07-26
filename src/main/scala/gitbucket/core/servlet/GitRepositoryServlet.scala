@@ -27,7 +27,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
  * Provides Git repository via HTTP.
  * 
  * This servlet provides only Git repository functionality.
- * Authentication is provided by [[BasicAuthenticationFilter]].
+ * Authentication is provided by [[GitAuthenticationFilter]].
  */
 class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
