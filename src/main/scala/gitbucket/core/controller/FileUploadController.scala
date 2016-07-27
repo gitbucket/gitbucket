@@ -39,45 +39,6 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     }, FileUtil.isUploadableType)
   }
 
-  post("/testfile/:owner/:repository"){
-    // Don't accept not logged-in users
-    session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
-      val owner      = params("owner")
-      val repository = params("repository")
-
-      // Check whether logged-in user is collaborator
-      collaboratorsOnly(owner, repository, loginAccount){
-        execute({ (file, fileId) =>
-          val fileName   = file.getName
-          LockUtil.lock(s"${owner}/${repository}/wiki") {
-            using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
-              val builder  = DirCache.newInCore.builder()
-              val inserter = git.getRepository.newObjectInserter()
-              val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-
-              if(headId != null){
-                JGitUtil.processTree(git, headId){ (path, tree) =>
-                  if(path != fileName){
-                    builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-                  }
-                }
-              }
-
-              val bytes = IOUtils.toByteArray(file.getInputStream)
-              builder.add(JGitUtil.createDirCacheEntry(fileName, FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes)))
-              builder.finish()
-
-              val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-                Constants.HEAD, loginAccount.userName, loginAccount.mailAddress, s"Uploaded ${fileName}")
-
-              fileName
-            }
-          }
-        }, FileUtil.isUploadableType)
-      }
-    } getOrElse BadRequest
-  }
-
   post("/wiki/:owner/:repository"){
     // Don't accept not logged-in users
     session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
@@ -149,41 +110,6 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
         Ok(fileId)
       }
     case _ => BadRequest
-  }
-
-  private def commitFile(loginAccount: Account, repository: RepositoryService.RepositoryInfo,
-                         file: FileItem, newFileName: Option[String], oldFileName: Option[String],
-                         branch: String, path: String, message: String) = {
-
-    val fileName = file.getName
-    val newPath = newFileName.map { newFileName => if (path.length == 0) newFileName else s"${path}/${newFileName}" }
-    val oldPath = oldFileName.map { oldFileName => if (path.length == 0) oldFileName else s"${path}/${oldFileName}" }
-
-    LockUtil.lock(s"${repository.owner}/${repository.name}") {
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-
-        val builder = DirCache.newInCore.builder()
-        val inserter = git.getRepository.newObjectInserter()
-        val headName = s"refs/heads/${branch}"
-        val headTip = git.getRepository.resolve(headName)
-
-        JGitUtil.processTree(git, headTip) { (path, tree) =>
-          if (!newPath.exists(_ == path) && !oldPath.exists(_ == path)) {
-            builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-          }
-        }
-
-        newPath.foreach { newPath =>
-          val bytes = IOUtils.toByteArray(file.getInputStream)
-          builder.add(JGitUtil.createDirCacheEntry(fileName, FileMode.REGULAR_FILE,
-            inserter.insert(Constants.OBJ_BLOB, bytes)))
-          builder.finish()
-
-
-        }
-
-      }
-    }
   }
 
 }

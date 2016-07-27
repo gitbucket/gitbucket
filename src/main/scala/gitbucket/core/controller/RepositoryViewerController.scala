@@ -1,7 +1,8 @@
 package gitbucket.core.controller
 
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
+import gitbucket.core.api.UploadFiles
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
 import gitbucket.core.helper
@@ -16,7 +17,6 @@ import gitbucket.core.model.{Account, WebHook}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
-
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
@@ -525,6 +525,119 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       Map("paths" -> JGitUtil.getAllFileListByTreeId(git, treeId))
     }
   })
+
+
+  /**
+    * Upload file to a branch.
+    */
+  post("/:owner/:repository/files/upload")(collaboratorsOnly { repository =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      (for {
+        data <- extractFromJsonBody[UploadFiles] if data.isValid
+      } yield {
+        Directory.getAttachedDir(owner, name) match {
+          case dir if (dir.exists && dir.isDirectory) =>
+            val _commitFiles = data.fileIds.map { case (fileName, id) =>
+              dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
+                val s = scala.io.Source.fromFile(file) // Codec ????
+              val byteArray = s.map(_.toByte).toArray
+
+                CommitFile(id, fileName, byteArray)
+              }
+            }.toList
+
+            val finalCommitFiles = _commitFiles.flatten
+            if(finalCommitFiles.size == data.fileIds.size) {
+              commitFiles(
+                repository,
+                files = finalCommitFiles,
+                branch = data.branch,
+                path = data.path,
+                message = data.message)
+            }
+            else {
+              org.scalatra.NotAcceptable(
+                s"""{"message":
+                    |"$repository doesn't contain all the files you specified in the body"}""".stripMargin)
+            }
+
+          case _ => org.scalatra.NotFound(s"""{"message": "$repository doesn't contain any attached files"}""")
+        }
+
+      }) getOrElse
+        org.scalatra.NotAcceptable("""{"message": "FileIds can't be an empty list"}""")
+
+    }
+  })
+
+  /*
+Roy Li modification
+ */
+
+  case class CommitFile(fileId: String, name: String, fileBytes: Array[Byte])
+
+  private def commitFiles(repository: RepositoryService.RepositoryInfo,
+                          files: List[CommitFile],
+                          branch: String, path: String, message: String) = {
+
+
+    LockUtil.lock(s"${repository.owner}/${repository.name}") {
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+
+        val loginAccount = context.loginAccount.get
+        val builder = DirCache.newInCore.builder()
+        val inserter = git.getRepository.newObjectInserter()
+        val headName = s"refs/heads/${branch}"
+        val headTip = git.getRepository.resolve(headName)
+
+        if(headTip != null){
+          JGitUtil.processTree(git, headTip) { (path, tree) =>
+            builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+          }
+        }
+
+        files.foreach{item =>
+          val fileName = item.name
+          val bytes = item.fileBytes
+          builder.add(JGitUtil.createDirCacheEntry(fileName,
+            FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes)))
+          builder.finish()
+        }
+
+        val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
+          headName, loginAccount.userName, loginAccount.mailAddress, message)
+
+        inserter.flush()
+        inserter.close()
+
+        // update refs
+        val refUpdate = git.getRepository.updateRef(headName)
+        refUpdate.setNewObjectId(commitId)
+        refUpdate.setForceUpdate(false)
+        refUpdate.setRefLogIdent(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+        //refUpdate.setRefLogMessage("merged", true)
+        refUpdate.update()
+
+        // update pull request
+        updatePullRequests(repository.owner, repository.name, branch)
+
+        // record activity
+        recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch,
+          List(new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))))
+
+        //call web hook
+        callPullRequestWebHookByRequestBranch("synchronize", repository, branch, context.baseUrl, loginAccount)
+        val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+        callWebHookOf(repository.owner, repository.name, WebHook.Push) {
+          getAccountByUserName(repository.owner).map{ ownerAccount =>
+            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount,
+              oldId = headTip, newId = commitId)
+          }
+        }
+
+      }
+    }
+  }
 
   private def splitPath(repository: RepositoryService.RepositoryInfo, path: String): (String, String) = {
     val id = repository.branchList.collectFirst {
