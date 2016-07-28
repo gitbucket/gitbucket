@@ -45,9 +45,12 @@
     <div class="wrapper">
       <header class="main-header">
         <a href="@context.path/" class="logo">
-          <img src="@helpers.assets/common/images/se_logo_white-1.png" style="width: 108px; height: 32px;"/>
-          <!---GitBucket-->          
+          <!-- Schneider 
+          <img src="@helpers.assets/common/images/se_logo_white-1.png" style="width: 108px; height: 32px;"/>          
           <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span>
+           -->
+          <img src="@helpers.assets/common/images/ic_home_white_24dp.png" style="width: 24px; height: 24px;"/>
+          <span class="header-version">Content Store</span>           
         </a>
         <nav class="navbar navbar-static-top" role="navigation">
           @repository.map { repository =>
@@ -63,6 +66,7 @@
             @if(context.loginAccount.isDefined){
               <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>
               <li><a href="@context.path/dashboard/issues">Issues</a></li>
+              <li><a href="@context.path/new">New Repository</a></li>
             }
             @gitbucket.core.plugin.PluginRegistry().getGlobalMenus.map { menu =>
               @menu(context).map { link =>
@@ -73,7 +77,7 @@
           <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
               @if(context.loginAccount.isDefined){
-                <li class="dropdown">
+                <li class="dropdown" style="display:none;">
                   <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
                     <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
                   </a>
@@ -82,7 +86,7 @@
                     <li><a href="@context.path/groups/new">New group</a></li>
                   </ul>
                 </li>
-                <li class="dropdown">
+                <li class="dropdown" style="display:none;">
                   <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @context.loginAccount.get.userName">
                     @helpers.avatar(context.loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
                   </a>
@@ -96,7 +100,7 @@
                   </ul>
                 </li>
               } else {
-                <li>
+                <li style="display:none;">
                   <a href="@context.path/signin?redirect=@helpers.urlEncode(context.currentPath)" class="pull-right" id="signin">Sign in</a>
                 </li>
               }
