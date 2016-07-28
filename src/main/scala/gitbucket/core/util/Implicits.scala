@@ -4,6 +4,8 @@ import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.servlet.Database
 
+import java.util.regex.Pattern.quote
+
 import javax.servlet.http.{HttpSession, HttpServletRequest}
 
 import scala.util.matching.Regex
@@ -73,7 +75,7 @@ object Implicits {
 
     def hasAttribute(name: String): Boolean = request.getAttribute(name) != null
 
-    def gitRepositoryPath: String = request.getRequestURI.replaceFirst("^/git/", "/")
+    def gitRepositoryPath: String = request.getRequestURI.replaceFirst("^" + quote(request.getContextPath) + "/git/", "/")
 
     def baseUrl:String = {
       val url = request.getRequestURL.toString
