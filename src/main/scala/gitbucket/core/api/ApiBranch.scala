@@ -14,3 +14,10 @@ case class ApiBranch(
    "self" -> ApiPath(s"/api/v3/repos/${repositoryName.fullName}/branches/${name}"),
    "html" -> ApiPath(s"/${repositoryName.fullName}/tree/${name}"))
 }
+
+case class ApiBranchCommit(sha: String)
+
+case class ApiBranchForList(
+  name: String,
+  commit: ApiBranchCommit
+)
