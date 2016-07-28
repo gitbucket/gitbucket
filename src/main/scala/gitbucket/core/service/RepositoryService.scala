@@ -420,6 +420,17 @@ object RepositoryService {
 
     def httpUrl(implicit context: Context): String = RepositoryService.httpUrl(owner, name)
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)
+
+    def splitPath(path: String): (String, String) = {
+      val id = branchList.collectFirst {
+        case branch if(path == branch || path.startsWith(branch + "/")) => branch
+      } orElse tags.collectFirst {
+        case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
+      } getOrElse path.split("/")(0)
+
+      (id, path.substring(id.length).stripPrefix("/"))
+    }
+
   }
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"

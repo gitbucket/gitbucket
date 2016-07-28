@@ -105,22 +105,11 @@ trait ApiControllerBase extends ControllerBase {
     })
   })
 
-  // copy code
-  private def splitPath(repository: RepositoryService.RepositoryInfo, path: String): (String, String) = {
-    val id = repository.branchList.collectFirst {
-      case branch if(path == branch || path.startsWith(branch + "/")) => branch
-    } orElse repository.tags.collectFirst {
-      case tag if(path == tag.name || path.startsWith(tag.name + "/")) => tag.name
-    } getOrElse path.split("/")(0)
-
-    (id, path.substring(id.length).stripPrefix("/"))
-  }
-
   /*
    * https://developer.github.com/v3/repos/contents/#get-contents
    */
   get("/api/v3/repos/:owner/:repo/contents/*")(referrersOnly { repository =>
-    val (id, path) = splitPath(repository, multiParams("splat").head)
+    val (id, path) = repository.splitPath(multiParams("splat").head)
     val refStr = params("ref")
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))){ git =>
       if (path.isEmpty) {
