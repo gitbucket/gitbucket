@@ -50,6 +50,7 @@ GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. 
 - [gitbucket-commitgraphs-plugin](https://github.com/yoshiyoshifujii/gitbucket-commitgraphs-plugin)
 - [gitbucket-asciidoctor-plugin](https://github.com/lefou/gitbucket-asciidoctor-plugin)
 - [gitbucket-network-plugin](https://github.com/mrkm4ntr/gitbucket-network-plugin)
+- [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
 
 You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
 
@@ -64,27 +65,41 @@ Support
 
 Release Notes
 -------------
-### 4.2.1 - 3 Jul 2016
+### 4.3 - 30 Jul 2016
+- Emoji support by [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
+- User name suggestion
+- Add new web APIs and basic authentication support for API access
+- Root Endpoint
+  - [List endpoints](https://developer.github.com/v3/#root-endpoint)
+  - [List Branches](https://developer.github.com/v3/repos/branches/#list-branches)
+  - [Get contents](https://developer.github.com/v3/repos/contents/#get-contents)
+  - [Get a Reference](https://developer.github.com/v3/git/refs/#get-a-reference)
+  - [List Collaborators](https://developer.github.com/v3/repos/collaborators/#list-collaborators)
+  - [List user repositories](https://developer.github.com/v3/repos/#list-user-repositories)
+  - [Get a group](https://developer.github.com/v3/orgs/#get-an-organization)
+  - [List group repositories](https://developer.github.com/v3/repos/#list-organization-repositories)
+- Add new extension points
+  - `assetsMapping` : Supplies resources in plugin classpath as web assets
+  - `suggestionProvider` : Provides suggestion in the Markdown editing textarea 
+  - `textDecorator` : Decorate text nodes in HTML which is converted from Markdown
 
+### 4.2.1 - 3 Jul 2016
 - Fix migration bug
 
 This is hotfix for a critical bug in migration. If you are new installation, use 4.2.0. But if you have an exisiting installation and it had been updated to 4.0 from 3.x, you must update to 4.2.1.
 
 ### 4.2 - 2 Jul 2016
-
 - New UI based on [AdminLTE](https://github.com/almasaeed2010/AdminLTE)
 - git gc
 - Issues and Wiki have been possible to be disabled
 - SMTP configuration test mail
 
 ### 4.1 - 4 Jun 2016
-
 - Generic ssh user
 - Improve branch protection UI
 - Default value of pull request title
 
 ### 4.0 - 30 Apr 2016
-
 - MySQL and PostgreSQL support
 - Data export and import
 - Migration system has been switched to [solidbase](https://github.com/gitbucket/solidbase)
@@ -92,7 +107,6 @@ This is hotfix for a critical bug in migration. If you are new installation, use
 **Note:** You can upgrade to GitBucket 4.0 from 3.14. If your GitBucket is 3.13 or before, you have to upgrade 3.14 at first.
 
 ### 3.14 - 30 Apr 2016
-
 - File attachment and search for wiki pages
 - New extension points to add menus
 - Content-Type of webhooks has been choosable
