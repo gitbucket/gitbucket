@@ -1,6 +1,6 @@
-val Organization = "gitbucket"
+val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.3.0"
+val GitBucketVersion = "4.4.0"
 val ScalatraVersion = "2.4.1"
 val JettyVersion = "9.3.9.v20160517"
 
@@ -170,3 +170,55 @@ Keys.artifact in (Compile, executableKey) ~= {
 }
 addArtifact(Keys.artifact in (Compile, executableKey), executableKey)
 */
+publishTo <<= version { (v: String) =>
+  val nexus = "https://oss.sonatype.org/"
+  if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else                             Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+publishMavenStyle := true
+pomIncludeRepository := { _ => false }
+pomExtra := (
+  <url>https://github.com/gitbucket/gitbucket</url>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <scm>
+    <url>https://github.com/gitbucket/gitbucket</url>
+    <connection>scm:git:https://github.com/gitbucket/gitbucket.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>takezoe</id>
+      <name>Naoki Takezoe</name>
+      <url>https://github.com/takezoe</url>
+    </developer>
+    <developer>
+      <id>shimamoto</id>
+      <name>Takako Shimamoto</name>
+      <url>https://github.com/shimamoto</url>
+    </developer>
+    <developer>
+      <id>tanacasino</id>
+      <name>Tomofumi Tanaka</name>
+      <url>https://github.com/tanacasino</url>
+    </developer>
+    <developer>
+      <id>mrkm4ntr</id>
+      <name>Shintaro Murakami</name>
+      <url>https://github.com/mrkm4ntr</url>
+    </developer>
+    <developer>
+      <id>nazoking</id>
+      <name>nazoking</name>
+      <url>https://github.com/nazoking</url>
+    </developer>
+    <developer>
+      <id>McFoggy</id>
+      <name>Matthieu Brouillard</name>
+      <url>https://github.com/McFoggy</url>
+    </developer>
+  </developers>
+)
