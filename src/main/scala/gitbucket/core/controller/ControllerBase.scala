@@ -244,4 +244,12 @@ trait AccountManagementControllerBase extends ControllerBase {
         .map    { _ => "Mail address is already registered." }
   }
 
+  protected def reservedNames(): Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] = if(value == "git"){
+      Some(s"${value} is reserved")
+    }else{
+      None
+    }
+  }
+
 }

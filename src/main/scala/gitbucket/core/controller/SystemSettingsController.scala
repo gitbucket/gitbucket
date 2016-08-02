@@ -105,7 +105,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
 
   val newUserForm = mapping(
-    "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "password"    -> trim(label("Password"     ,text(required, maxlength(20)))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress()))),
@@ -127,7 +127,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   )(EditUserForm.apply)
 
   val newGroupForm = mapping(
-    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
     "fileId"    -> trim(label("File ID"    ,optional(text()))),
     "members"   -> trim(label("Members"    ,text(required, members)))
