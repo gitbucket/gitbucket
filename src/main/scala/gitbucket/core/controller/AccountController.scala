@@ -38,7 +38,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class PersonalTokenForm(note: String)
 
   val newForm = mapping(
-    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
+    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
@@ -68,7 +68,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
 
   val newGroupForm = mapping(
-    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
     "fileId"    -> trim(label("File ID"    ,optional(text()))),
     "members"   -> trim(label("Members"    ,text(required, members)))
