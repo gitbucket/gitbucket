@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons"        % "commons-compress"             % "1.11",
   "org.apache.commons"        % "commons-email"                % "1.4",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.1",
-  "org.apache.sshd"           % "apache-sshd"                  % "1.0.0",
+  "org.apache.sshd"           % "apache-sshd"                  % "1.2.0",
   "org.apache.tika"           % "tika-core"                    % "1.13",
   "com.typesafe.slick"       %% "slick"                        % "2.1.0",
   "com.novell.ldap"           % "jldap"                        % "2009-10-07",
