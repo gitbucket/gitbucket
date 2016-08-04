@@ -150,7 +150,7 @@ $(window).load(function(){
     var mode = m[1];
     $('.blame-action').toggleClass("active", mode=='blame').attr('href', repository + (m[1] == 'blame' ? '/blob' : '/blame') + m[2]);
     if(pre.parents("div.box-content-bottom").find(".blame").length){
-      pre.parents("div.container").toggleClass("blame-container", mode == 'blame');
+      pre.parent().toggleClass("blame-container", mode == 'blame');
       updateSourceLineNum();
       return;
     }
@@ -161,7 +161,7 @@ $(window).load(function(){
     $(document.body).toggleClass('no-box-shadow', document.body.style.boxShadow===undefined);
     $('.blame-action').addClass("active");
     var base = $('<div class="blame">').css({height: pre.height()}).prependTo(pre.parents("div.box-content-bottom"));
-    base.parents("div.container").addClass("blame-container");
+    base.parent().addClass("blame-container");
     updateSourceLineNum();
     $.get($('.blame-action').data('url')).done(function(data){
       var blame = data.blame;
