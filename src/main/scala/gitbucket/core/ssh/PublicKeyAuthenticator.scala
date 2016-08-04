@@ -7,12 +7,12 @@ import gitbucket.core.service.SshKeyService
 import gitbucket.core.servlet.Database
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator
 import org.apache.sshd.server.session.ServerSession
-import org.apache.sshd.common.session.Session
+import org.apache.sshd.common.AttributeStore
 import org.slf4j.LoggerFactory
 
 object PublicKeyAuthenticator {
   // put in the ServerSession here to be read by GitCommand later
-  private val userNameSessionKey = new Session.AttributeKey[String]
+  private val userNameSessionKey = new AttributeStore.AttributeKey[String]
 
   def putUserName(serverSession:ServerSession, userName:String):Unit =
     serverSession.setAttribute(userNameSessionKey, userName)

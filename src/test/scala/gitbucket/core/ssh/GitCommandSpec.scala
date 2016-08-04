@@ -1,6 +1,6 @@
 package gitbucket.core.ssh
 
-import org.apache.sshd.server.command.UnknownCommand
+import org.apache.sshd.server.scp.UnknownCommand
 import org.scalatest.FunSpec
 
 class GitCommandFactorySpec extends FunSpec {
