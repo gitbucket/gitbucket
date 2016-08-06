@@ -52,6 +52,6 @@ trait MilestonesService {
   }
 
   def getMilestones(owner: String, repository: String)(implicit s: Session): List[Milestone] =
-    Milestones.filter(_.byRepository(owner, repository)).sortBy(t => (t.dueDate.asc, t.closedDate.desc)).list
+    Milestones.filter(_.byRepository(owner, repository)).sortBy(t => (t.dueDate.asc, t.closedDate.desc, t.milestoneId.desc)).list
 
 }
