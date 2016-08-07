@@ -13,6 +13,7 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase
+import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.codec.binary.{Base64, StringUtils}
 import org.slf4j.LoggerFactory
@@ -161,6 +162,8 @@ object PluginRegistry {
    */
   def initialize(context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = {
     val pluginDir = new File(PluginHome)
+    val manager = new JDBCVersionManager(conn)
+
     if(pluginDir.exists && pluginDir.isDirectory){
       pluginDir.listFiles(new FilenameFilter {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
@@ -172,6 +175,13 @@ object PluginRegistry {
           // Migration
           val solidbase = new Solidbase()
           solidbase.migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
+
+          // Check version
+          val databaseVersion = manager.getCurrentVersion(plugin.pluginId)
+          val pluginVersion = plugin.versions.last.getVersion
+          if(databaseVersion != pluginVersion){
+            throw new IllegalStateException(s"Plugin version is ${pluginVersion}, but database version is ${databaseVersion}")
+          }
 
           // Initialize
           plugin.initialize(instance, context, settings)
@@ -185,7 +195,7 @@ object PluginRegistry {
 
         } catch {
           case e: Throwable => {
-            logger.error(s"Error during plugin initialization", e)
+            logger.error(s"Error during plugin initialization: ${pluginJar.getAbsolutePath}", e)
           }
         }
       }
