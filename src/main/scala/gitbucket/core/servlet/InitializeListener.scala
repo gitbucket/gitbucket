@@ -17,6 +17,7 @@ import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import akka.actor.{Actor, Props, ActorSystem}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+import scala.collection.JavaConverters._
 
 /**
  * Initialize GitBucket system.
@@ -80,8 +81,14 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       // Rescue code for users who updated from 3.14 to 4.0.0
       // https://github.com/gitbucket/gitbucket/issues/1227
       val currentVersion = manager.getCurrentVersion(GitBucketCoreModule.getModuleId)
-      if(currentVersion == "4.0"){
+      val databaseVersion = if(currentVersion == "4.0"){
         manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
+        "4.0.0"
+      } else currentVersion
+
+      val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+      if(databaseVersion != gitbucketVersion){
+        throw new IllegalStateException(s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}.")
       }
 
       // Load plugins
