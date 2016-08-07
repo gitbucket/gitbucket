@@ -1,16 +1,16 @@
-@(plugins: List[(gitbucket.core.plugin.PluginInfo, String)])(implicit context: gitbucket.core.controller.Context)
+@(plugins: List[gitbucket.core.plugin.PluginInfo])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
     <h1>Installed plugins</h1>
 
     @if(plugins.size > 0) {
       <ul>
-      @plugins.map { case (plugin, migrationVersion) =>
-        <li><a href="#@plugin.pluginId">@plugin.pluginId:@migrationVersion</a></li>
+      @plugins.map { plugin =>
+        <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
       }
       </ul>
 
-      @plugins.map { case (plugin, migrationVersion) =>
+      @plugins.map { plugin =>
         <div class="panel panel-default">
           <div class="panel-heading strong">@plugin.pluginName</div>
           <div class="panel-body">
@@ -20,7 +20,7 @@
             </div>
             <div class="row">
               <label class="col-md-2">Version</label>
-              <span class="col-md-10">@migrationVersion @if(plugin.pluginVersion != migrationVersion){ <span class="error">(Migration is failed, installed version is @plugin.pluginVersion)</span> }</span>
+              <span class="col-md-10">@plugin.pluginVersion</span>
             </div>
             <div class="row">
               <label class="col-md-2">Name</label>
