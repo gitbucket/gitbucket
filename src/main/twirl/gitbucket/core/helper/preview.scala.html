@@ -30,7 +30,7 @@
       @gitbucket.core.helper.html.attached(
         repository        = repository,
         completionContext = completionContext,
-        generateScript    = enableWikiLink
+        generateScript    = !enableWikiLink
       )(textarea)
     </div>
     <div class="tab-pane" id="tab@(uid+1)">
