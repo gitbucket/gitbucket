@@ -186,7 +186,7 @@ trait AccountService {
 
   def getGroupNames(userName: String)(implicit s: Session): List[String] = {
     List(userName) ++
-      Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list
+      Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list.distinct
   }
 
 }
