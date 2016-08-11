@@ -117,9 +117,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Displays the file list of the repository root and the default branch.
    */
-  get("/:owner/:repository")(referrersOnly {
-    fileList(_)
-  })
+  get("/:owner/:repository") {
+    params.get("go-get") match {
+      case Some("1") => defining(request.paths){ paths =>
+        getRepository(paths(0), paths(1)).map(gitbucket.core.html.goget(_))getOrElse NotFound()
+      }
+      case _ => referrersOnly(fileList(_))
+    }
+  }
 
   /**
    * Displays the file list of the specified path and branch.

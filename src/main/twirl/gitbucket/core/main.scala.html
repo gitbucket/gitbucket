@@ -34,9 +34,7 @@
     <script src="@helpers.assets/vendors/jquery-hotkeys/jquery.hotkeys.js"></script>
     <script src="@helpers.assets/vendors/jquery-textcomplete-1.6.2/jquery.textcomplete.js"></script>
     @repository.map { repository =>
-      @if(!repository.repository.isPrivate){
-        <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
-      }
+      <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
     }
     <script src="@helpers.assets/vendors/AdminLTE-2.2.3/js/app.js" type="text/javascript"></script>
   </head>
