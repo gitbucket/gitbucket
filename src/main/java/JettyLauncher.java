@@ -60,6 +60,8 @@ public class JettyLauncher {
         }
 
         server.setHandler(context);
+        server.setStopAtShutdown(true);
+        server.setStopTimeout(7_000);
         server.start();
         server.join();
     }
