@@ -98,4 +98,19 @@ object StringUtil {
   def extractCloseId(message: String): Iterator[String] =
     "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r.findAllIn(message).matchData.map(_.group(1))
 
+
+  /**
+   * Encode search string for LIKE condition.
+   * This method has been copied from Slick's SqlUtilsComponent.
+   */
+  def likeEncode(s: String) = {
+    val b = new StringBuilder
+    for(c <- s) c match {
+      case '%' | '_' | '^' => b append '^' append c
+      case _ => b append c
+    }
+    b.toString
+  }
+
+
 }

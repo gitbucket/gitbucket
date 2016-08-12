@@ -2,18 +2,16 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil.CommitInfo
-import gitbucket.core.util.StringUtil
 import profile._
 import profile.api._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.model.{Account, CommitState, Issue, IssueComment, IssueLabel, Label, PullRequest, Repository}
-import slick.profile.SqlUtilsComponent
 
 //import scala.slick.jdbc.{StaticQuery => Q}
 
 
-trait IssuesService extends SqlUtilsComponent {
+trait IssuesService {
   self: AccountService =>
   import IssuesService._
 
@@ -192,6 +190,7 @@ trait IssuesService extends SqlUtilsComponent {
   }
 
   /** for api
+   *
    * @return (issue, issueUser, commentCount, pullRequest, headRepo, headOwner)
    */
   def searchPullRequestByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)
@@ -272,30 +271,31 @@ trait IssuesService extends SqlUtilsComponent {
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
                   assignedUserName: Option[String], milestoneId: Option[Int],
-                  isPullRequest: Boolean = false)(implicit s: Session) =
-    // next id number
-    sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
-        .firstOption.filter { id =>
-      Issues unsafeInsert Issue(
-          owner,
-          repository,
-          id,
-          loginUser,
-          milestoneId,
-          assignedUserName,
-          title,
-          content,
-          false,
-          currentDate,
-          currentDate,
-          isPullRequest)
-
-      // increment issue id
-      IssueId
-        .filter (_.byPrimaryKey(owner, repository))
-        .map (_.issueId)
-        .unsafeUpdate (id) > 0
-    } get
+                  isPullRequest: Boolean = false)(implicit s: Session) = 0
+// TODO [Slick3]
+//    // next id number
+//    sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
+//        .firstOption.filter { id =>
+//      Issues unsafeInsert Issue(
+//          owner,
+//          repository,
+//          id,
+//          loginUser,
+//          milestoneId,
+//          assignedUserName,
+//          title,
+//          content,
+//          false,
+//          currentDate,
+//          currentDate,
+//          isPullRequest)
+//
+//      // increment issue id
+//      IssueId
+//        .filter (_.byPrimaryKey(owner, repository))
+//        .map (_.issueId)
+//        .unsafeUpdate (id) > 0
+//    } get
 
   def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int)(implicit s: Session) =
     IssueLabels unsafeInsert IssueLabel(owner, repository, issueId, labelId)
@@ -304,16 +304,17 @@ trait IssuesService extends SqlUtilsComponent {
     IssueLabels filter(_.byPrimaryKey(owner, repository, issueId, labelId)) unsafeDelete
 
   def createComment(owner: String, repository: String, loginUser: String,
-      issueId: Int, content: String, action: String)(implicit s: Session): Int =
-    IssueComments.autoInc insert IssueComment(
-        userName          = owner,
-        repositoryName    = repository,
-        issueId           = issueId,
-        action            = action,
-        commentedUserName = loginUser,
-        content           = content,
-        registeredDate    = currentDate,
-        updatedDate       = currentDate)
+      issueId: Int, content: String, action: String)(implicit s: Session): Int = {
+    IssueComments returningId IssueComments.map(_.commentId) unsafeInsert IssueComment(
+      userName          = owner,
+      repositoryName    = repository,
+      issueId           = issueId,
+      action            = action,
+      commentedUserName = loginUser,
+      content           = content,
+      registeredDate    = currentDate,
+      updatedDate       = currentDate)
+  }
 
   def updateIssue(owner: String, repository: String, issueId: Int,
       title: String, content: Option[String])(implicit s: Session) =
@@ -418,7 +419,7 @@ trait IssuesService extends SqlUtilsComponent {
   }
 
   def createReferComment(owner: String, repository: String, fromIssue: Issue, message: String, loginAccount: Account)(implicit s: Session) = {
-    StringUtil.extractIssueId(message).foreach { issueId =>
+    extractIssueId(message).foreach { issueId =>
       val content = fromIssue.issueId + ":" + fromIssue.title
       if(getIssue(owner, repository, issueId).isDefined){
         // Not add if refer comment already exist.
@@ -430,7 +431,7 @@ trait IssuesService extends SqlUtilsComponent {
   }
 
   def createIssueComment(owner: String, repository: String, commit: CommitInfo)(implicit s: Session) = {
-    StringUtil.extractIssueId(commit.fullMessage).foreach { issueId =>
+    extractIssueId(commit.fullMessage).foreach { issueId =>
       if(getIssue(owner, repository, issueId).isDefined){
         getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
           createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")

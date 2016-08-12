@@ -30,7 +30,7 @@ trait CommitsService {
   def createCommitComment(owner: String, repository: String, commitId: String, loginUser: String,
                           content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int],
                           issueId: Option[Int])(implicit s: Session): Int =
-    CommitComments.autoInc insert CommitComment(
+    CommitComments returningId CommitComments.map(_.commentId) unsafeInsert CommitComment(
       userName          = owner,
       repositoryName    = repository,
       commitId          = commitId,
