@@ -1,7 +1,8 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
-import profile.simple._
+import profile._
+import profile.api._
 
 import gitbucket.core.model.{CommitState, CommitStatus, Account}
 import gitbucket.core.util.Implicits._
@@ -49,7 +50,7 @@ trait CommitStatusService {
     CommitStatuses.filter(t => t.byRepository(userName, repositoryName)).filter(t => t.updatedDate > time.bind).groupBy(_.context).map(_._1).list
 
   def getCommitStatuesWithCreator(userName: String, repositoryName: String, sha: String)(implicit s: Session) :List[(CommitStatus, Account)] =
-    byCommitStatues(userName, repositoryName, sha).innerJoin(Accounts).filter { case (t, a) => t.creator === a.userName }.list
+    byCommitStatues(userName, repositoryName, sha).join(Accounts).filter { case (t, a) => t.creator === a.userName }.list
 
   protected def byCommitStatues(userName: String, repositoryName: String, sha: String)(implicit s: Session) = 
     CommitStatuses.filter(t => t.byCommit(userName, repositoryName, sha)).sortBy(_.updatedDate desc)

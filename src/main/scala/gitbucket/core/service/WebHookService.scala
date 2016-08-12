@@ -6,7 +6,8 @@ import gitbucket.core.api._
 import gitbucket.core.model.{WebHook, Account, Issue, PullRequest, IssueComment, WebHookEvent, CommitComment}
 import gitbucket.core.model.Profile._
 import org.apache.http.client.utils.URLEncodedUtils
-import profile.simple._
+import profile._
+import profile.api._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.service.RepositoryService.RepositoryInfo
@@ -32,14 +33,14 @@ trait WebHookService {
   /** get All WebHook informations of repository */
   def getWebHooks(owner: String, repository: String)(implicit s: Session): List[(WebHook, Set[WebHook.Event])] =
     WebHooks.filter(_.byRepository(owner, repository))
-      .innerJoin(WebHookEvents).on { (w, t) => t.byWebHook(w) }
+      .join(WebHookEvents).on { (w, t) => t.byWebHook(w) }
       .map{ case (w,t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).toList.sortBy(_._1.url)
 
   /** get All WebHook informations of repository event */
   def getWebHooksByEvent(owner: String, repository: String, event: WebHook.Event)(implicit s: Session): List[WebHook] =
      WebHooks.filter(_.byRepository(owner, repository))
-       .innerJoin(WebHookEvents).on { (wh, whe) => whe.byWebHook(wh) }
+       .join(WebHookEvents).on { (wh, whe) => whe.byWebHook(wh) }
        .filter{ case (wh, whe) => whe.event === event.bind}
        .map{ case (wh, whe) => wh }
        .list.distinct
@@ -48,27 +49,27 @@ trait WebHookService {
   def getWebHook(owner: String, repository: String, url: String)(implicit s: Session): Option[(WebHook, Set[WebHook.Event])] =
     WebHooks
       .filter(_.byPrimaryKey(owner, repository, url))
-      .innerJoin(WebHookEvents).on { (w, t) => t.byWebHook(w) }
+      .join(WebHookEvents).on { (w, t) => t.byWebHook(w) }
       .map{ case (w,t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).headOption
 
   def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType,  token: Option[String])(implicit s: Session): Unit = {
-    WebHooks insert WebHook(owner, repository, url, ctype, token)
-    events.toSet.map{ event: WebHook.Event =>
-      WebHookEvents insert WebHookEvent(owner, repository, url, event)
+    WebHooks unsafeInsert WebHook(owner, repository, url, ctype, token)
+    events.toSet.map { event: WebHook.Event =>
+      WebHookEvents unsafeInsert WebHookEvent(owner, repository, url, event)
     }
   }
 
   def updateWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])(implicit s: Session): Unit = {
-    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => (w.ctype, w.token)).update((ctype, token))
-    WebHookEvents.filter(_.byWebHook(owner, repository, url)).delete
-    events.toSet.map{ event: WebHook.Event =>
-      WebHookEvents insert WebHookEvent(owner, repository, url, event)
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => (w.ctype, w.token)).unsafeUpdate((ctype, token))
+    WebHookEvents.filter(_.byWebHook(owner, repository, url)).unsafeDelete
+    events.toSet.map { event: WebHook.Event =>
+      WebHookEvents unsafeInsert WebHookEvent(owner, repository, url, event)
     }
   }
 
   def deleteWebHook(owner: String, repository: String, url :String)(implicit s: Session): Unit =
-    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).delete
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).unsafeDelete
 
   def callWebHookOf(owner: String, repository: String, event: WebHook.Event)(makePayload: => Option[WebHookPayload])
                    (implicit s: Session, c: JsonFormat.Context): Unit = {

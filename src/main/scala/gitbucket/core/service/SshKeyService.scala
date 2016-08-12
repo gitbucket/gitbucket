@@ -2,12 +2,13 @@ package gitbucket.core.service
 
 import gitbucket.core.model.SshKey
 import gitbucket.core.model.Profile._
-import profile.simple._
+import profile._
+import profile.api._
 
 trait SshKeyService {
 
   def addPublicKey(userName: String, title: String, publicKey: String)(implicit s: Session): Unit =
-    SshKeys insert SshKey(userName = userName, title = title, publicKey = publicKey)
+    SshKeys unsafeInsert SshKey(userName = userName, title = title, publicKey = publicKey)
 
   def getPublicKeys(userName: String)(implicit s: Session): List[SshKey] =
     SshKeys.filter(_.userName === userName.bind).sortBy(_.sshKeyId).list

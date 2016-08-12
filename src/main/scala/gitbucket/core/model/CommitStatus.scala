@@ -1,10 +1,10 @@
 package gitbucket.core.model
 
-import scala.slick.lifted.MappedTo
-import scala.slick.jdbc._
+//import scala.slick.lifted.MappedTo
+//import scala.slick.jdbc._
 
 trait CommitStatusComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
   import self._
 
   implicit val commitStateColumnType = MappedColumnType.base[CommitState, String](b => b.name , i => CommitState(i))
@@ -90,7 +90,7 @@ object CommitState {
     }
   }
 
-  implicit val getResult: GetResult[CommitState] = GetResult(r => CommitState(r.<<))
-  implicit val getResultOpt: GetResult[Option[CommitState]] = GetResult(r => r.<<?[String].map(CommitState(_)))
+//  implicit val getResult: GetResult[CommitState] = GetResult(r => CommitState(r.<<))
+//  implicit val getResultOpt: GetResult[Option[CommitState]] = GetResult(r => r.<<?[String].map(CommitState(_)))
 }
 

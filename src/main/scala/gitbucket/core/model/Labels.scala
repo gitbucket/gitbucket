@@ -1,7 +1,7 @@
 package gitbucket.core.model
 
 trait LabelComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
 
   lazy val Labels = TableQuery[Labels]
 
@@ -12,7 +12,7 @@ trait LabelComponent extends TemplateComponent { self: Profile =>
     def * = (userName, repositoryName, labelId, labelName, color) <> (Label.tupled, Label.unapply)
 
     def byPrimaryKey(owner: String, repository: String, labelId: Int) = byLabel(owner, repository, labelId)
-    def byPrimaryKey(userName: Column[String], repositoryName: Column[String], labelId: Column[Int]) = byLabel(userName, repositoryName, labelId)
+    def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], labelId: Rep[Int]) = byLabel(userName, repositoryName, labelId)
   }
 }
 

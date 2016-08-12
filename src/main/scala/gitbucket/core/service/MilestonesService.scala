@@ -2,7 +2,8 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Milestone
 import gitbucket.core.model.Profile._
-import profile.simple._
+import profile._
+import profile.api._
 // TODO Why is direct import required?
 import gitbucket.core.model.Profile.dateColumnType
 
@@ -10,7 +11,7 @@ trait MilestonesService {
 
   def createMilestone(owner: String, repository: String, title: String, description: Option[String],
                       dueDate: Option[java.util.Date])(implicit s: Session): Unit =
-    Milestones insert Milestone(
+    Milestones unsafeInsert Milestone(
       userName       = owner,
       repositoryName = repository,
       title          = title,
@@ -44,6 +45,7 @@ trait MilestonesService {
       .filter  { t => t.byRepository(owner, repository) && (t.milestoneId.? isDefined) }
       .groupBy { t => t.milestoneId -> t.closed }
       .map     { case (t1, t2) => t1._1 -> t1._2 -> t2.length }
+      .list
       .toMap
 
     getMilestones(owner, repository).map { milestone =>

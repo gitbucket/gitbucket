@@ -1,7 +1,7 @@
 package gitbucket.core.model
 
 trait CollaboratorComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
 
   lazy val Collaborators = TableQuery[Collaborators]
 

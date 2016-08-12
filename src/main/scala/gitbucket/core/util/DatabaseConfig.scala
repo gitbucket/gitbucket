@@ -2,9 +2,11 @@ package gitbucket.core.util
 
 import com.typesafe.config.ConfigFactory
 import java.io.File
+
 import Directory._
+import com.github.takezoe.slick.blocking.{BlockingH2Driver, BlockingMySQLDriver, SlickBlockingAPI}
 import liquibase.database.AbstractJdbcDatabase
-import liquibase.database.core.{PostgresDatabase, MySQLDatabase, H2Database}
+import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
 import org.apache.commons.io.FileUtils
 
 object DatabaseConfig {
@@ -32,14 +34,14 @@ object DatabaseConfig {
   lazy val user: String = config.getString("db.user")
   lazy val password: String = config.getString("db.password")
   lazy val jdbcDriver: String = DatabaseType(url).jdbcDriver
-  lazy val slickDriver: slick.driver.JdbcProfile = DatabaseType(url).slickDriver
+  lazy val slickDriver: SlickBlockingAPI = DatabaseType(url).slickDriver
   lazy val liquiDriver: AbstractJdbcDatabase = DatabaseType(url).liquiDriver
 
 }
 
 sealed trait DatabaseType {
   val jdbcDriver: String
-  val slickDriver: slick.driver.JdbcProfile
+  val slickDriver: SlickBlockingAPI
   val liquiDriver: AbstractJdbcDatabase
 }
 
@@ -59,13 +61,13 @@ object DatabaseType {
 
   object H2 extends DatabaseType {
     val jdbcDriver = "org.h2.Driver"
-    val slickDriver = slick.driver.H2Driver
+    val slickDriver = BlockingH2Driver
     val liquiDriver = new H2Database()
   }
 
   object MySQL extends DatabaseType {
     val jdbcDriver = "com.mysql.jdbc.Driver"
-    val slickDriver = slick.driver.MySQLDriver
+    val slickDriver = BlockingMySQLDriver
     val liquiDriver = new MySQLDatabase()
   }
 

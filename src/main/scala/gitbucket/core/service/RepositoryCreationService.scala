@@ -8,7 +8,7 @@ import gitbucket.core.model.Account
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
-import profile.simple._
+import profile.api._
 
 trait RepositoryCreationService {
   self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService =>

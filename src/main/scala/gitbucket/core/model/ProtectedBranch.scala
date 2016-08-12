@@ -1,10 +1,10 @@
 package gitbucket.core.model
 
-import scala.slick.lifted.MappedTo
-import scala.slick.jdbc._
+//import scala.slick.lifted.MappedTo
+//import scala.slick.jdbc._
 
 trait ProtectedBranchComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
   import self._
 
   lazy val ProtectedBranches = TableQuery[ProtectedBranches]
@@ -12,7 +12,7 @@ trait ProtectedBranchComponent extends TemplateComponent { self: Profile =>
     val statusCheckAdmin = column[Boolean]("STATUS_CHECK_ADMIN")
     def * = (userName, repositoryName, branch, statusCheckAdmin) <> (ProtectedBranch.tupled, ProtectedBranch.unapply)
     def byPrimaryKey(userName: String, repositoryName: String, branch: String) = byBranch(userName, repositoryName, branch)
-    def byPrimaryKey(userName: Column[String], repositoryName: Column[String], branch: Column[String]) = byBranch(userName, repositoryName, branch)
+    def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], branch: Rep[String]) = byBranch(userName, repositoryName, branch)
   }
 
   lazy val ProtectedBranchContexts = TableQuery[ProtectedBranchContexts]

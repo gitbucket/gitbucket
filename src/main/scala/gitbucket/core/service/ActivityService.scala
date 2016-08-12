@@ -3,19 +3,20 @@ package gitbucket.core.service
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
-import profile.simple._
+import profile._
+import profile.api._
 
 trait ActivityService {
 
   def deleteOldActivities(limit: Int)(implicit s: Session): Int = {
     Activities.map(_.activityId).sortBy(_ desc).drop(limit).firstOption.map { id =>
-      Activities.filter(_.activityId <= id.bind).delete
+      Activities.filter(_.activityId <= id.bind).unsafeDelete
     } getOrElse 0
   }
 
   def getActivitiesByUser(activityUserName: String, isPublic: Boolean)(implicit s: Session): List[Activity] =
     Activities
-      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .join(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
       .filter { case (t1, t2) =>
         if(isPublic){
           (t1.activityUserName === activityUserName.bind) && (t2.isPrivate === false.bind)
@@ -30,7 +31,7 @@ trait ActivityService {
 
   def getRecentActivities()(implicit s: Session): List[Activity] =
     Activities
-      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .join(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
       .filter { case (t1, t2) =>  t2.isPrivate === false.bind }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }
@@ -39,7 +40,7 @@ trait ActivityService {
 
   def getRecentActivitiesByOwners(owners : Set[String])(implicit s: Session): List[Activity] =
     Activities
-      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .join(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
       .filter { case (t1, t2) => (t2.isPrivate === false.bind) || (t2.userName inSetBind owners) }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }
@@ -48,7 +49,7 @@ trait ActivityService {
 
   def recordCreateRepositoryActivity(userName: String, repositoryName: String, activityUserName: String)
                                     (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "create_repository",
       s"[user:${activityUserName}] created [repo:${userName}/${repositoryName}]",
       None,
@@ -56,7 +57,7 @@ trait ActivityService {
 
   def recordCreateIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String)
                                (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "open_issue",
       s"[user:${activityUserName}] opened issue [issue:${userName}/${repositoryName}#${issueId}]",
       Some(title), 
@@ -64,7 +65,7 @@ trait ActivityService {
 
   def recordCloseIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String)
                               (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "close_issue",
       s"[user:${activityUserName}] closed issue [issue:${userName}/${repositoryName}#${issueId}]",
       Some(title),
@@ -72,7 +73,7 @@ trait ActivityService {
 
   def recordClosePullRequestActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String)
                                     (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "close_issue",
       s"[user:${activityUserName}] closed pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
       Some(title),
@@ -80,7 +81,7 @@ trait ActivityService {
 
   def recordReopenIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String)
                                (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "reopen_issue",
       s"[user:${activityUserName}] reopened issue [issue:${userName}/${repositoryName}#${issueId}]",
       Some(title),
@@ -88,7 +89,7 @@ trait ActivityService {
 
   def recordCommentIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, comment: String)
                                 (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "comment_issue",
       s"[user:${activityUserName}] commented on issue [issue:${userName}/${repositoryName}#${issueId}]",
       Some(cut(comment, 200)),
@@ -96,7 +97,7 @@ trait ActivityService {
 
   def recordCommentPullRequestActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, comment: String)
                                       (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "comment_issue",
       s"[user:${activityUserName}] commented on pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
       Some(cut(comment, 200)),
@@ -104,7 +105,7 @@ trait ActivityService {
 
   def recordCommentCommitActivity(userName: String, repositoryName: String, activityUserName: String, commitId: String, comment: String)
                                  (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "comment_commit",
       s"[user:${activityUserName}] commented on commit [commit:${userName}/${repositoryName}@${commitId}]",
       Some(cut(comment, 200)),
@@ -113,7 +114,7 @@ trait ActivityService {
 
   def recordCreateWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String)
                                   (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "create_wiki",
       s"[user:${activityUserName}] created the [repo:${userName}/${repositoryName}] wiki",
       Some(pageName),
@@ -121,7 +122,7 @@ trait ActivityService {
 
   def recordEditWikiPageActivity(userName: String, repositoryName: String, activityUserName: String, pageName: String, commitId: String)
                                 (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "edit_wiki",
       s"[user:${activityUserName}] edited the [repo:${userName}/${repositoryName}] wiki",
       Some(pageName + ":" + commitId),
@@ -129,7 +130,7 @@ trait ActivityService {
 
   def recordPushActivity(userName: String, repositoryName: String, activityUserName: String,
       branchName: String, commits: List[JGitUtil.CommitInfo])(implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "push",
       s"[user:${activityUserName}] pushed to [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
       Some(commits.map { commit => commit.id + ":" + commit.shortMessage }.mkString("\n")),
@@ -137,7 +138,7 @@ trait ActivityService {
 
   def recordCreateTagActivity(userName: String, repositoryName: String, activityUserName: String, 
       tagName: String, commits: List[JGitUtil.CommitInfo])(implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "create_tag",
       s"[user:${activityUserName}] created tag [tag:${userName}/${repositoryName}#${tagName}] at [repo:${userName}/${repositoryName}]",
       None,
@@ -145,7 +146,7 @@ trait ActivityService {
 
   def recordDeleteTagActivity(userName: String, repositoryName: String, activityUserName: String,
                               tagName: String, commits: List[JGitUtil.CommitInfo])(implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "delete_tag",
       s"[user:${activityUserName}] deleted tag ${tagName} at [repo:${userName}/${repositoryName}]",
       None,
@@ -153,7 +154,7 @@ trait ActivityService {
 
   def recordCreateBranchActivity(userName: String, repositoryName: String, activityUserName: String, branchName: String)
                                 (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "create_branch",
       s"[user:${activityUserName}] created branch [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
       None,
@@ -161,14 +162,14 @@ trait ActivityService {
 
   def recordDeleteBranchActivity(userName: String, repositoryName: String, activityUserName: String, branchName: String)
                                 (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "delete_branch",
       s"[user:${activityUserName}] deleted branch ${branchName} at [repo:${userName}/${repositoryName}]",
       None,
       currentDate)
 
   def recordForkActivity(userName: String, repositoryName: String, activityUserName: String, forkedUserName: String)(implicit s: Session): Unit = 
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "fork",
       s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${forkedUserName}/${repositoryName}]",
       None,
@@ -176,7 +177,7 @@ trait ActivityService {
 
   def recordPullRequestActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String)
                                (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "open_pullreq",
       s"[user:${activityUserName}] opened pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
       Some(title),
@@ -184,7 +185,7 @@ trait ActivityService {
 
   def recordMergeActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, message: String)
                          (implicit s: Session): Unit =
-    Activities insert Activity(userName, repositoryName, activityUserName,
+    Activities unsafeInsert Activity(userName, repositoryName, activityUserName,
       "merge_pullreq",
       s"[user:${activityUserName}] merged pull request [pullreq:${userName}/${repositoryName}#${issueId}]",
       Some(message),

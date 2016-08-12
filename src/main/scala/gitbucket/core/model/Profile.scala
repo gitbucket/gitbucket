@@ -1,10 +1,11 @@
 package gitbucket.core.model
 
 import gitbucket.core.util.DatabaseConfig
+import com.github.takezoe.slick.blocking.SlickBlockingAPI
 
 trait Profile {
-  val profile: slick.driver.JdbcProfile
-  import profile.simple._
+  val profile: SlickBlockingAPI
+  import profile.api._
 
   /**
    * java.util.Date Mapped Column Types
@@ -17,8 +18,8 @@ trait Profile {
   /**
    * Extends Column to add conditional condition
    */
-  implicit class RichColumn(c1: Column[Boolean]){
-    def &&(c2: => Column[Boolean], guard: => Boolean): Column[Boolean] = if(guard) c1 && c2 else c1
+  implicit class RichColumn(c1: Rep[Boolean]){
+    def &&(c2: => Rep[Boolean], guard: => Boolean): Rep[Boolean] = if(guard) c1 && c2 else c1
   }
 
   /**
