@@ -7,6 +7,7 @@ trait Comment {
 
 trait IssueCommentComponent extends TemplateComponent { self: Profile =>
   import profile.api._
+  import self._
 
   lazy val IssueComments = TableQuery[IssueComments]
 
@@ -37,6 +38,7 @@ case class IssueComment (
 
 trait CommitCommentComponent extends TemplateComponent { self: Profile =>
   import profile.api._
+  import self._
 
   lazy val CommitComments = TableQuery[CommitComments]
 

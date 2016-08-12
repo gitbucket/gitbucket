@@ -90,63 +90,25 @@ trait IssuesService {
       .list.toMap
   }
 
-  def getCommitStatues(issueList:Seq[(String, String, Int)])(implicit s: Session) :Map[(String, String, Int), CommitStatusInfo] = {
-    Map.empty
-// TODO [Slick3]
-//    if(issueList.isEmpty){
-//      Map.empty
-//    } else {
-//      import scala.slick.jdbc._
-//      val issueIdQuery = issueList.map(i => "(PR.USER_NAME=? AND PR.REPOSITORY_NAME=? AND PR.ISSUE_ID=?)").mkString(" OR ")
-//      implicit val qset = SetParameter[Seq[(String, String, Int)]] {
-//        case (seq, pp) =>
-//          for (a <- seq) {
-//            pp.setString(a._1)
-//            pp.setString(a._2)
-//            pp.setInt(a._3)
-//          }
-//      }
-//      import gitbucket.core.model.Profile.commitStateColumnType
-//      val query = Q.query[Seq[(String, String, Int)], (String, String, Int, Int, Int, Option[String], Option[CommitState], Option[String], Option[String])](s"""
-//        SELECT
-//          SUMM.USER_NAME,
-//          SUMM.REPOSITORY_NAME,
-//          SUMM.ISSUE_ID,
-//          CS_ALL,
-//          CS_SUCCESS,
-//          CSD.CONTEXT,
-//          CSD.STATE,
-//          CSD.TARGET_URL,
-//          CSD.DESCRIPTION
-//        FROM (
-//          SELECT
-//            PR.USER_NAME,
-//            PR.REPOSITORY_NAME,
-//            PR.ISSUE_ID,
-//            COUNT(CS.STATE) AS CS_ALL,
-//            CSS.CS_SUCCESS  AS CS_SUCCESS,
-//            PR.COMMIT_ID_TO AS COMMIT_ID
-//          FROM PULL_REQUEST PR
-//          JOIN COMMIT_STATUS CS
-//            ON PR.USER_NAME = CS.USER_NAME AND PR.REPOSITORY_NAME = CS.REPOSITORY_NAME AND PR.COMMIT_ID_TO = CS.COMMIT_ID
-//          JOIN (
-//            SELECT
-//              COUNT(*) AS CS_SUCCESS,
-//              USER_NAME,
-//              REPOSITORY_NAME,
-//              COMMIT_ID
-//            FROM COMMIT_STATUS WHERE STATE = 'success' GROUP BY USER_NAME, REPOSITORY_NAME, COMMIT_ID
-//          ) CSS ON PR.USER_NAME = CSS.USER_NAME AND PR.REPOSITORY_NAME = CSS.REPOSITORY_NAME AND PR.COMMIT_ID_TO = CSS.COMMIT_ID
-//          WHERE $issueIdQuery
-//          GROUP BY PR.USER_NAME, PR.REPOSITORY_NAME, PR.ISSUE_ID, CSS.CS_SUCCESS
-//        ) as SUMM
-//        LEFT OUTER JOIN COMMIT_STATUS CSD
-//          ON SUMM.CS_ALL = 1 AND SUMM.COMMIT_ID = CSD.COMMIT_ID""");
-//      query(issueList).list.map {
-//        case(userName, repositoryName, issueId, count, successCount, context, state, targetUrl, description) =>
-//          (userName, repositoryName, issueId) -> CommitStatusInfo(count, successCount, context, state, targetUrl, description)
-//        }.toMap
-//    }
+  def getCommitStatues(userName: String, repositoryName: String, issueId: Int)(implicit s: Session): Option[CommitStatusInfo] = {
+    val status = PullRequests
+      .filter { pr => (pr.userName === userName.bind) && (pr.repositoryName === repositoryName.bind) && (pr.issueId === issueId.bind) }
+      .join(CommitStatuses).on((pr, cs) => pr.userName === cs.userName && pr.repositoryName === cs.repositoryName && pr.commitIdTo === cs.commitId)
+      .list
+
+    if(status.nonEmpty){
+      val (_, cs) = status.head
+      Some(CommitStatusInfo(
+        count        = status.length,
+        successCount = status.filter(_._2.state == CommitState.SUCCESS).length,
+        context      = (if(status.length == 1) Some(cs.context) else None),
+        state        = (if(status.length == 1) Some(cs.state)   else None),
+        targetUrl    = (if(status.length == 1) cs.targetUrl     else None),
+        description  = (if(status.length == 1) cs.description   else None)
+      ))
+    } else {
+      None
+    }
   }
 
   /**
@@ -175,18 +137,17 @@ trait IssuesService {
           c1._1.repositoryName == c2._1.repositoryName &&
           c1._1.issueId        == c2._1.issueId
         }
-    val status = getCommitStatues(result.map(_.head._1).map(is => (is.userName, is.repositoryName, is.issueId)))
 
     result.map { issues => issues.head match {
-          case (issue, commentCount, _, _, _, milestone) =>
-            IssueInfo(issue,
-             issues.flatMap { t => t._3.map (
-                 Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
-             )} toList,
-             milestone,
-             commentCount,
-             status.get(issue.userName, issue.repositoryName, issue.issueId))
-        }} toList
+      case (issue, commentCount, _, _, _, milestone) =>
+        IssueInfo(issue,
+         issues.flatMap { t => t._3.map (
+             Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
+         )} toList,
+         milestone,
+         commentCount,
+         getCommitStatues(issue.userName, issue.repositoryName, issue.issueId))
+    }} toList
   }
 
   /** for api
@@ -271,31 +232,30 @@ trait IssuesService {
 
   def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
                   assignedUserName: Option[String], milestoneId: Option[Int],
-                  isPullRequest: Boolean = false)(implicit s: Session) = 0
-// TODO [Slick3]
-//    // next id number
-//    sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
-//        .firstOption.filter { id =>
-//      Issues unsafeInsert Issue(
-//          owner,
-//          repository,
-//          id,
-//          loginUser,
-//          milestoneId,
-//          assignedUserName,
-//          title,
-//          content,
-//          false,
-//          currentDate,
-//          currentDate,
-//          isPullRequest)
-//
-//      // increment issue id
-//      IssueId
-//        .filter (_.byPrimaryKey(owner, repository))
-//        .map (_.issueId)
-//        .unsafeUpdate (id) > 0
-//    } get
+                  isPullRequest: Boolean = false)(implicit s: Session) =
+    // next id number
+    sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
+        .firstOption.filter { id =>
+      Issues unsafeInsert Issue(
+          owner,
+          repository,
+          id,
+          loginUser,
+          milestoneId,
+          assignedUserName,
+          title,
+          content,
+          false,
+          currentDate,
+          currentDate,
+          isPullRequest)
+
+      // increment issue id
+      IssueId
+        .filter (_.byPrimaryKey(owner, repository))
+        .map (_.issueId)
+        .unsafeUpdate (id) > 0
+    } get
 
   def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int)(implicit s: Session) =
     IssueLabels unsafeInsert IssueLabel(owner, repository, issueId, labelId)
@@ -316,14 +276,13 @@ trait IssuesService {
       updatedDate       = currentDate)
   }
 
-  def updateIssue(owner: String, repository: String, issueId: Int,
-      title: String, content: Option[String])(implicit s: Session) =
+  def updateIssue(owner: String, repository: String, issueId: Int, title: String, content: Option[String])(implicit s: Session) = {
+    import gitbucket.core.model.Profile.dateColumnType
     Issues
       .filter (_.byPrimaryKey(owner, repository, issueId))
-      .map { t =>
-        (t.title, t.content.?, t.updatedDate)
-      }
+      .map { t => (t.title, t.content.?, t.updatedDate) }
       .unsafeUpdate (title, content, currentDate)
+  }
 
   def updateAssignedUserName(owner: String, repository: String, issueId: Int,
                              assignedUserName: Option[String])(implicit s: Session) =
@@ -333,24 +292,18 @@ trait IssuesService {
                         milestoneId: Option[Int])(implicit s: Session) =
     Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.milestoneId?).unsafeUpdate (milestoneId)
 
-  def updateComment(commentId: Int, content: String)(implicit s: Session) =
-    IssueComments
-      .filter (_.byPrimaryKey(commentId))
-      .map { t =>
-        t.content -> t.updatedDate
-      }
-      .unsafeUpdate (content, currentDate)
+  def updateComment(commentId: Int, content: String)(implicit s: Session) = {
+    import gitbucket.core.model.Profile.dateColumnType
+    IssueComments.filter (_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).unsafeUpdate(content, currentDate)
+  }
 
   def deleteComment(commentId: Int)(implicit s: Session) =
     IssueComments filter (_.byPrimaryKey(commentId)) unsafeDelete
 
-  def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean)(implicit s: Session) =
-    Issues
-      .filter (_.byPrimaryKey(owner, repository, issueId))
-      .map { t =>
-        t.closed -> t.updatedDate
-      }
-      .usnafeUpdate (closed, currentDate)
+  def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean)(implicit s: Session) = {
+    import gitbucket.core.model.Profile.dateColumnType
+    (Issues filter (_.byPrimaryKey(owner, repository, issueId)) map(t => (t.closed, t.updatedDate))).unsafeUpdate((closed, currentDate))
+  }
 
   /**
    * Search issues by keyword.

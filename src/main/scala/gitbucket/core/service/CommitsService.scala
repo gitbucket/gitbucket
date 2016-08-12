@@ -43,13 +43,14 @@ trait CommitsService {
       updatedDate       = currentDate,
       issueId           = issueId)
 
-  def updateCommitComment(commentId: Int, content: String)(implicit s: Session) =
+  def updateCommitComment(commentId: Int, content: String)(implicit s: Session) = {
+    import gitbucket.core.model.Profile.dateColumnType
     CommitComments
       .filter (_.byPrimaryKey(commentId))
-      .map { t =>
-      t.content -> t.updatedDate
-    }.update (content, currentDate)
+      .map { t => (t.content, t.updatedDate) }
+      .unsafeUpdate (content, currentDate)
+  }
 
   def deleteCommitComment(commentId: Int)(implicit s: Session) =
-    CommitComments filter (_.byPrimaryKey(commentId)) delete
+    CommitComments filter (_.byPrimaryKey(commentId)) unsafeDelete
 }
