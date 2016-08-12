@@ -26,15 +26,16 @@ trait AccessTokenService {
   def generateAccessToken(userName: String, note: String)(implicit s: Session): (Int, String) = {
     var token: String = null
     var hash: String = null
-    do{
+
+    do {
       token = makeAccessTokenString
       hash = tokenToHash(token)
-    } while (AccessTokens.filter(_.tokenHash === hash.bind).exists.run)
+    } while (Query(AccessTokens.filter(_.tokenHash === hash.bind).exists).first)
     val newToken = AccessToken(
         userName = userName,
         note = note,
         tokenHash = hash)
-    val tokenId = (AccessTokens returning AccessTokens.map(_.accessTokenId)) += newToken
+    val tokenId = (AccessTokens returningId AccessTokens.map(_.accessTokenId)) unsafeInsert newToken
     (tokenId, token)
   }
 

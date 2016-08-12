@@ -73,13 +73,15 @@ object DatabaseType {
 
   object PostgreSQL extends DatabaseType {
     val jdbcDriver = "org.postgresql.Driver2"
-    val slickDriver = new slick.driver.PostgresDriver {
-      override def quoteIdentifier(id: String): String = {
-        val s = new StringBuilder(id.length + 4) append '"'
-        for(c <- id) if(c == '"') s append "\"\"" else s append c.toLower
-        (s append '"').toString
-      }
-    }
+    val slickDriver = BlockingPostgresDriver
     val liquiDriver = new PostgresDatabase()
+  }
+
+  object BlockingPostgresDriver extends slick.driver.PostgresDriver with SlickBlockingAPI {
+    override def quoteIdentifier(id: String): String = {
+      val s = new StringBuilder(id.length + 4) append '"'
+      for(c <- id) if(c == '"') s append "\"\"" else s append c.toLower
+      (s append '"').toString
+    }
   }
 }

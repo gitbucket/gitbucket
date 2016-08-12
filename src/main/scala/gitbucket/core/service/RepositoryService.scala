@@ -86,47 +86,52 @@ trait RepositoryService { self: AccountService =>
 
         deleteRepository(oldUserName, oldRepositoryName)
 
-//        WebHooks     .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        WebHookEvents.insertAll(webHookEvents .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        Milestones   .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        IssueId      .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
-//
-//        val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
-//        Issues.insertAll(issues.map { x => x.copy(
-//          userName       = newUserName,
-//          repositoryName = newRepositoryName,
-//          milestoneId    = x.milestoneId.map { id =>
-//            newMilestones.find(_.title == milestones.find(_.milestoneId == id).get.title).get.milestoneId
-//          }
-//        )} :_*)
-//
-//        PullRequests           .insertAll(pullRequests  .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        IssueComments          .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        Labels                 .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        CommitComments         .insertAll(commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        CommitStatuses         .insertAll(commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        ProtectedBranches      .insertAll(protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        ProtectedBranchContexts.insertAll(protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        WebHooks     .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        WebHookEvents.insertAll(webHookEvents .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Milestones   .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        IssueId      .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
+
+        val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
+        Issues.insertAll(issues.map { x => x.copy(
+          userName       = newUserName,
+          repositoryName = newRepositoryName,
+          milestoneId    = x.milestoneId.map { id =>
+            newMilestones.find(_.title == milestones.find(_.milestoneId == id).get.title).get.milestoneId
+          }
+        )} :_*)
+
+        PullRequests           .insertAll(pullRequests  .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        IssueComments          .insertAll(issueComments .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Labels                 .insertAll(labels        .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        CommitComments         .insertAll(commitComments.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        CommitStatuses         .insertAll(commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        ProtectedBranches      .insertAll(protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        ProtectedBranchContexts.insertAll(protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update source repository of pull requests
         PullRequests.filter { t =>
           (t.requestUserName === oldUserName.bind) && (t.requestRepositoryName === oldRepositoryName.bind)
         }.map { t => t.requestUserName -> t.requestRepositoryName }.unsafeUpdate(newUserName, newRepositoryName)
 
-//        // Convert labelId
-//        val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
-//        val newLabelMap = Labels.filter(_.byRepository(newUserName, newRepositoryName)).map(x => (x.labelName, x.labelId)).list.toMap
-//        IssueLabels.insertAll(issueLabels.map(x => x.copy(
-//          labelId        = newLabelMap(oldLabelMap(x.labelId)),
-//          userName       = newUserName,
-//          repositoryName = newRepositoryName
-//        )) :_*)
-//
-//        if(account.isGroupAccount){
-//          Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
-//        } else {
-//          Collaborators.insertAll(collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-//        }
+        // Convert labelId
+        val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
+        val newLabelMap = Labels.filter(_.byRepository(newUserName, newRepositoryName)).map(x => (x.labelName, x.labelId)).list.toMap
+        IssueLabels.insertAll(issueLabels.map(x => x.copy(
+          labelId        = newLabelMap(oldLabelMap(x.labelId)),
+          userName       = newUserName,
+          repositoryName = newRepositoryName
+        )) :_*)
+        IssueLabels.insertAll(issueLabels.map(x => x.copy(
+          labelId        = newLabelMap(oldLabelMap(x.labelId)),
+          userName       = newUserName,
+          repositoryName = newRepositoryName
+        )) :_*)
+
+        if(account.isGroupAccount){
+          Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
+        } else {
+          Collaborators.insertAll(collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        }
 
         // Update activity messages
         Activities.filter { t =>
