@@ -45,7 +45,20 @@
     <servlet-name>GitRepositoryServlet</servlet-name>
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
- 
+
+  <!-- ===================================================================== -->
+  <!-- Supply assets which are provided by plugins -->
+  <!-- ===================================================================== -->
+  <servlet>
+    <servlet-name>PluginAssetsServlet</servlet-name>
+    <servlet-class>gitbucket.core.servlet.PluginAssetsServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>PluginAssetsServlet</servlet-name>
+    <url-pattern>/plugin-assets/*</url-pattern>
+  </servlet-mapping>
+
   <!-- ===================================================================== -->
   <!-- H2 console configuration -->
   <!-- ===================================================================== -->
@@ -86,5 +99,30 @@
     <param-value>PATH_TO_DATADIR</param-value>
   </context-param>
   -->
+
+
+   <filter>
+      <filter-name>cross-origin</filter-name>
+      <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
+      <init-param>
+          <param-name>allowedOrigins</param-name>
+          <param-value>*</param-value>
+      </init-param>
+      <init-param>
+          <param-name>allowedMethods</param-name>
+          <param-value>*</param-value>
+      </init-param>
+      <init-param>
+          <param-name>allowedHeaders</param-name>
+          <param-value>*</param-value>
+      </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>cross-origin</filter-name>
+        <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+
+
 
 </web-app>

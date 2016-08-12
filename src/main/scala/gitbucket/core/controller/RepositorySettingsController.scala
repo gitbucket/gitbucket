@@ -15,6 +15,7 @@ import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
+import gitbucket.core.model.WebHookContentType
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -26,12 +27,26 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
-  case class OptionsForm(repositoryName: String, description: Option[String], isPrivate: Boolean)
+  case class OptionsForm(
+    repositoryName: String,
+    description: Option[String],
+    isPrivate: Boolean,
+    enableIssues: Boolean,
+    externalIssuesUrl: Option[String],
+    enableWiki: Boolean,
+    allowWikiEditing: Boolean,
+    externalWikiUrl: Option[String]
+  )
   
   val optionsForm = mapping(
-    "repositoryName" -> trim(label("Repository Name", text(required, maxlength(40), identifier, renameRepositoryName))),
-    "description"    -> trim(label("Description"    , optional(text()))),
-    "isPrivate"      -> trim(label("Repository Type", boolean()))
+    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(40), identifier, renameRepositoryName))),
+    "description"       -> trim(label("Description"        , optional(text()))),
+    "isPrivate"         -> trim(label("Repository Type"    , boolean())),
+    "enableIssues"      -> trim(label("Enable Issues"      , boolean())),
+    "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
+    "enableWiki"        -> trim(label("Enable Wiki"        , boolean())),
+    "allowWikiEditing"  -> trim(label("Allow Wiki Editing" , boolean())),
+    "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200)))))
   )(OptionsForm.apply)
 
   // for default branch
@@ -49,13 +64,16 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )(CollaboratorForm.apply)
 
   // for web hook url addition
-  case class WebHookForm(url: String, events: Set[WebHook.Event], token: Option[String])
+  case class WebHookForm(url: String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])
 
   def webHookForm(update:Boolean) = mapping(
     "url"    -> trim(label("url", text(required, webHook(update)))),
     "events" -> webhookEvents,
+    "ctype" -> label("ctype", text()),
     "token" -> optional(trim(label("token", text(maxlength(100)))))
-  )(WebHookForm.apply)
+  )(
+    (url, events, ctype, token) => WebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
+  )
 
   // for transfer ownership
   case class TransferOwnerShipForm(newOwner: String)
@@ -88,7 +106,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.description,
       repository.repository.parentUserName.map { _ =>
         repository.repository.isPrivate
-      } getOrElse form.isPrivate
+      } getOrElse form.isPrivate,
+      form.enableIssues,
+      form.externalIssuesUrl,
+      form.enableWiki,
+      form.allowWikiEditing,
+      form.externalWikiUrl
     )
     // Change repository name
     if(repository.name != form.repositoryName){
@@ -142,22 +165,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     }
   })
 
-  /** https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection */
-  patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
-    import gitbucket.core.api._
-    (for{
-      branch <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
-      protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
-    } yield {
-      if(protection.enabled){
-        enableBranchProtection(repository.owner, repository.name, branch, protection.status.enforcement_level == ApiBranchProtection.Everyone, protection.status.contexts)
-      } else {
-        disableBranchProtection(repository.owner, repository.name, branch)
-      }
-      JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
-    }) getOrElse NotFound
-  })
-
   /**
    * Display the Collaborators page.
    */
@@ -199,7 +206,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = WebHook(repository.owner, repository.name, "", None)
+    val webhook = WebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
     html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
   })
 
@@ -207,7 +214,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Add the web hook URL.
    */
   post("/:owner/:repository/settings/hooks/new", webHookForm(false))(ownerOnly { (form, repository) =>
-    addWebHook(repository.owner, repository.name, form.url, form.events, form.token)
+    addWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
     flash += "info" -> s"Webhook ${form.url} created"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
@@ -237,7 +244,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
       val url = params("url")
       val token = Some(params("token"))
-      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, token)
+      val ctype = WebHookContentType.valueOf(params("ctype"))
+      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, ctype, token)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
         val commits = if(repository.commitCount == 0) List.empty else git.log
@@ -296,7 +304,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Update web hook settings.
    */
   post("/:owner/:repository/settings/hooks/edit", webHookForm(true))(ownerOnly { (form, repository) =>
-    updateWebHook(repository.owner, repository.name, form.url, form.events, form.token)
+    updateWebHook(repository.owner, repository.name, form.url, form.events, form.ctype, form.token)
     flash += "info" -> s"webhook ${form.url} updated"
     redirect(s"/${repository.owner}/${repository.name}/settings/hooks")
   })
@@ -305,7 +313,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the danger zone.
    */
   get("/:owner/:repository/settings/danger")(ownerOnly {
-    html.danger(_)
+    html.danger(_, flash.get("info"))
   })
 
   /**
@@ -342,6 +350,19 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
     }
     redirect(s"/${repository.owner}")
+  })
+
+  /**
+   * Run GC
+   */
+  post("/:owner/:repository/settings/gc")(ownerOnly { repository =>
+    LockUtil.lock(s"${repository.owner}/${repository.name}") {
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        git.gc();
+      }
+    }
+    flash += "info" -> "Garbage collection has been executed."
+    redirect(s"/${repository.owner}/${repository.name}/settings/danger")
   })
 
   /**

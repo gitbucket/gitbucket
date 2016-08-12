@@ -13,10 +13,6 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.lib.{Constants, FileMode}
-import org.scalatra
 import org.scalatra.i18n.Messages
 
 import scala.util.{Failure, Success, Try}
@@ -25,14 +21,13 @@ import scala.util.{Failure, Success, Try}
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService with AdminAuthenticator
+  with AccessTokenService with WebHookService with RepositoryCreationService with AdminAuthenticator
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AdminAuthenticator
-    with AccessTokenService with WebHookService =>
+    with AccessTokenService with WebHookService with RepositoryCreationService with AdminAuthenticator =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
@@ -159,28 +154,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   }
 
-  /**
-   * https://developer.github.com/v3/users/#get-a-single-user
-   */
-  get("/api/v3/users/:userName") {
-    getAccountByUserName(params("userName")).map { account =>
-      JsonFormat(ApiUser(account))
-    } getOrElse NotFound
-  }
-
-  /**
-   * https://developer.github.com/v3/users/#get-the-authenticated-user
-   */
-  get("/api/v3/user") {
-    context.loginAccount.map { account =>
-      JsonFormat(ApiUser(account))
-    } getOrElse Unauthorized
-  }
-
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
-      html.edit(x, flash.get("info"))
+      html.edit(x, flash.get("info"), flash.get("error"))
     } getOrElse NotFound
   })
 
@@ -203,7 +180,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
-    getAccountByUserName(userName, true).foreach { account =>
+    getAccountByUserName(userName, true).map { account =>
+      if(isLastAdministrator(account)){
+        flash += "error" -> "Account can't be removed because this is last one administrator."
+        redirect(s"/${userName}/_edit")
+      } else {
 //      // Remove repositories
 //      getRepositoryNamesOfUser(userName).foreach { repositoryName =>
 //        deleteRepository(userName, repositoryName)
@@ -212,14 +193,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
 //      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
-//      removeUserRelatedData(userName)
-
-      removeUserRelatedData(userName)
-      updateAccount(account.copy(isRemoved = true))
-    }
-
-    session.invalidate
-    redirect("/")
+        removeUserRelatedData(userName)
+        updateAccount(account.copy(isRemoved = true))
+        session.invalidate
+        redirect("/")
+      }
+    } getOrElse NotFound
   })
 
   get("/:userName/_ssh")(oneselfOnly {
@@ -369,60 +348,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
-        createRepository(form.owner, form.name, form.description, form.isPrivate, form.createReadme)
+        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme)
       }
 
       // redirect to the repository
       redirect(s"/${form.owner}/${form.name}")
     }
-  })
-
-  /**
-   * Create user repository
-   * https://developer.github.com/v3/repos/#create
-   */
-  post("/api/v3/user/repos")(usersOnly {
-    val owner = context.loginAccount.get.userName
-    (for {
-      data <- extractFromJsonBody[CreateARepository] if data.isValid
-    } yield {
-      LockUtil.lock(s"${owner}/${data.name}") {
-        if(getRepository(owner, data.name).isEmpty){
-          createRepository(owner, data.name, data.description, data.`private`, data.auto_init)
-          val repository = getRepository(owner, data.name).get
-          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
-        } else {
-          ApiError(
-            "A repository with this name already exists on this account", 
-            Some("https://developer.github.com/v3/repos/#create")
-          )
-        }
-      }
-    }) getOrElse NotFound
-  })
-
-  /**
-   * Create group repository
-   * https://developer.github.com/v3/repos/#create
-   */
-  post("/api/v3/orgs/:org/repos")(managersOnly {
-    val groupName = params("org")
-    (for {
-      data <- extractFromJsonBody[CreateARepository] if data.isValid
-    } yield {
-      LockUtil.lock(s"${groupName}/${data.name}") {
-        if(getRepository(groupName, data.name).isEmpty){
-          createRepository(groupName, data.name, data.description, data.`private`, data.auto_init)
-          val repository = getRepository(groupName, data.name).get
-          JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
-        } else {
-          ApiError(
-            "A repository with this name already exists for this group", 
-            Some("https://developer.github.com/v3/repos/#create")
-          )
-        }
-      }
-    }) getOrElse NotFound
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
@@ -458,7 +389,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
         val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
 
-        createRepository(
+        insertRepository(
           repositoryName       = repository.name,
           userName             = accountName,
           description          = repository.repository.description,
@@ -509,15 +440,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
         val body = org.json4s.jackson.Serialization.write(
           Map("userName" -> account.userName,
-              "fullName" -> account.fullName,
-              "mailAddress" -> account.mailAddress,
-              "url" -> account.url.getOrElse(""),
-              "registeredDate" -> account.registeredDate,
-              "updatedDate" -> account.updatedDate,
-              "lastLoginDate" -> account.lastLoginDate,
-              "image" -> account.image.getOrElse(""),
-              "isGroupAccount" -> account.isGroupAccount,
-              "isRemoved" -> account.isRemoved
+            "fullName" -> account.fullName,
+            "mailAddress" -> account.mailAddress,
+            "url" -> account.url.getOrElse(""),
+            "registeredDate" -> account.registeredDate,
+            "updatedDate" -> account.updatedDate,
+            "lastLoginDate" -> account.lastLoginDate,
+            "image" -> account.image.getOrElse(""),
+            "isGroupAccount" -> account.isGroupAccount,
+            "isRemoved" -> account.isRemoved
           )
         )
 
@@ -570,7 +501,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
                 }
                 case Failure (ex) => org.scalatra.NotAcceptable(
                   s"""{ "message": "Failed to create a user account:
-                    | ${ex.getMessage}" }""".stripMargin)
+                      | ${ex.getMessage}" }""".stripMargin)
 
               }
 
@@ -646,7 +577,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           else org.scalatra.NotAcceptable("""{ "message": "user creation is not allowed" }""")
 
         }) getOrElse
-        org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
+          org.scalatra.NotAcceptable("""{ "message': "json body is not valid"}""")
 
       }
       case None => org.scalatra.NotFound(s"""{"message": "user with username $userName is not found"}""")
@@ -683,15 +614,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       //check if the members
       val temp =
         for {
-        member <- data.members.map ( m => (m.name, m.isManager))
-      } yield {
-        getAccountByUserName(member._1, true) match {
-          case Some(account) => {
-            if(!account.isRemoved) Some(member) else None
+          member <- data.members.map ( m => (m.name, m.isManager))
+        } yield {
+          getAccountByUserName(member._1, true) match {
+            case Some(account) => {
+              if(!account.isRemoved) Some(member) else None
+            }
+            case None => None
           }
-          case None => None
         }
-      }
 
       val _nMembers = temp.flatten
 
@@ -715,7 +646,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
 
     }) getOrElse
-    org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
+      org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
 
   })
 
@@ -725,7 +656,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       val groups = getGroupsByUserName(user)
       val body  =  org.json4s.jackson.Serialization.write(
         Map("userName" -> user,
-            "groups" -> groups
+          "groups" -> groups
         )
       )
 
@@ -781,18 +712,18 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         else {
           org.scalatra.NotAcceptable(
             s"""{"message": "Cannot disabled $groupName
-               | because it's not empty" }""".stripMargin)
+                | because it's not empty" }""".stripMargin)
 
         }
 
 
         // Remove repositories
-//        getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-//          deleteRepository(groupName, repositoryName)
-//          FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-//          FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-//          FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
-//        }
+        //        getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+        //          deleteRepository(groupName, repositoryName)
+        //          FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+        //          FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+        //          FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+        //        }
       } getOrElse org.scalatra.NotFound(s"""{"message": "$groupName is not found" }""")
     }}})
 
@@ -952,69 +883,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       org.scalatra.NotAcceptable("""{"message": "json body is not valid"}""")
   })
 
-
-  private def createRepository(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean) {
-    val ownerAccount  = getAccountByUserName(owner).get
-    val loginAccount  = context.loginAccount.get
-    val loginUserName = loginAccount.userName
-
-    // Insert to the database at first
-    createRepository(name, owner, description, isPrivate)
-
-    // Add collaborators for group repository
-    if(ownerAccount.isGroupAccount){
-      getGroupMembers(owner).foreach { member =>
-        addCollaborator(owner, name, member.userName)
-      }
-    }
-
-    // Insert default labels
-    insertDefaultLabels(owner, name)
-
-    // Create the actual repository
-    val gitdir = getRepositoryDir(owner, name)
-    JGitUtil.initRepository(gitdir)
-
-    if(createReadme){
-      using(Git.open(gitdir)){ git =>
-        val builder  = DirCache.newInCore.builder()
-        val inserter = git.getRepository.newObjectInserter()
-        val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-        val content  = if(description.nonEmpty){
-          name + "\n" +
-          "===============\n" +
-          "\n" +
-          description.get
-        } else {
-          name + "\n" +
-          "===============\n"
-        }
-
-        builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
-          inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
-        builder.finish()
-
-        JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-          Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
-      }
-    }
-
-    // Create Wiki repository
-    createWikiRepository(loginAccount, owner, name)
-
-    // Record activity
-    recordCreateRepositoryActivity(owner, name, loginUserName)
-  }
-
-  private def insertDefaultLabels(userName: String, repositoryName: String): Unit = {
-    createLabel(userName, repositoryName, "bug", "fc2929")
-    createLabel(userName, repositoryName, "duplicate", "cccccc")
-    createLabel(userName, repositoryName, "enhancement", "84b6eb")
-    createLabel(userName, repositoryName, "invalid", "e6e6e6")
-    createLabel(userName, repositoryName, "question", "cc317c")
-    createLabel(userName, repositoryName, "wontfix", "ffffff")
-  }
-
   private def existsAccount: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if(getAccountByUserName(value).isEmpty) Some("User or group does not exist.") else None
@@ -1037,8 +905,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   private def validPublicKey: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = SshUtil.str2PublicKey(value) match {
-     case Some(_) => None
-     case None => Some("Key is invalid.")
+     case Some(_) if !getAllKeys().exists(_.publicKey == value) => None
+     case _ => Some("Key is invalid.")
     }
   }
 

@@ -1,13 +1,16 @@
 @()(implicit context: gitbucket.core.controller.Context)
-@import context._
-@main("Sign in"){
-  <div class="signin-form">
-    @settings.information.map { information =>
-      <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        @Html(information)
+@gitbucket.core.html.main("Sign in"){
+  <div class="content-wrapper main-center">
+    <div class="content body">
+      <div class="signin-form">
+        @context.settings.information.map { information =>
+          <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @Html(information)
+          </div>
+        }
+        @gitbucket.core.html.signinform(context.settings)
       </div>
-    }
-    @signincontentform(settings)
+    </div>
   </div>
 }

@@ -6,35 +6,32 @@
   issueId: Option[Int],
   hasWritePermission: Boolean,
   showLineNotes: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @if(showIndex){
-  <div style="overflow: hidden;">
-    <div class="pull-right" style="margin-bottom: 10px;">
-      <div class="btn-group" data-toggle="buttons-radio">
-        <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
-        <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
-      </div>
+  <div class="pull-right" style="margin-bottom: 10px;">
+    <div class="btn-group" data-toggle="buttons-radio">
+      <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
+      <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
     </div>
-    <span class="muted">Showing<span><a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @plural(diffs.size, "file")</a>
   </div>
+  Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
   <ul id="commit-file-list" style="display: none;">
   @diffs.zipWithIndex.map { case (diff, i) =>
     <li@if(i > 0){ class="border"}>
       <span class="pull-right diffstat" data-diff-id="@i"></span>
       <a href="#diff-@i">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
-          <i class="octicon octicon-diff-renamed" style="color:white"></i> @diff.oldPath -> @diff.newPath
+          <i class="octicon octicon-diff-renamed"></i> @diff.oldPath -> @diff.newPath
         }
         @if(diff.changeType == ChangeType.ADD){
-          <i class="octicon octicon-diff-added" style="color:white"></i> @diff.newPath
+          <i class="octicon octicon-diff-added"></i> @diff.newPath
         }
         @if(diff.changeType == ChangeType.MODIFY){
-          <i class="octicon octicon-diff-modified" style="color:white"></i> @diff.newPath
+          <i class="octicon octicon-diff-modified"></i> @diff.newPath
         }
         @if(diff.changeType == ChangeType.DELETE){
-          <i class="octicon octicon-diff-removed" style="color:white"></i> @diff.oldPath
+          <i class="octicon octicon-diff-removed"></i> @diff.oldPath
         }
       </a>
     </li>
@@ -49,27 +46,27 @@
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
-              <label class="checkbox no-margin" style="display: inline-block;"><input type="checkbox" class="ignore-whitespace" value="1"/>Ignore Space</label>
-              <label class="checkbox no-margin" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
-              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+              <label class="no-margin"><input type="checkbox" class="ignore-whitespace" value="1"/> Ignore Space</label>
+              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
+              <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
             </div>
           }
-          <span class="diffstat"><i class="octicon octicon-diff-renamed" style="color:white"></i></span>
-          <span class="monospace">@diff.oldPath → @diff.newPath</span>  
+          <span class="diffstat"><i class="octicon octicon-diff-renamed"></i></span>
+          <span class="monospace">@diff.oldPath → @diff.newPath</span>
         }
         @if(diff.changeType == ChangeType.ADD || diff.changeType == ChangeType.MODIFY){
           @if(newCommitId.isDefined){
             <div class="pull-right align-right">
-              <label class="checkbox no-margin" style="display: inline-block;"><input type="checkbox" class="ignore-whitespace" value="1"/>Ignore Space</label>
-              <label class="checkbox no-margin" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
-              <a href="@url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+              <label class="no-margin"><input type="checkbox" class="ignore-whitespace" value="1"/> Ignore Space</label>
+              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
+              <a href="@helpers.url(repository)/blob/@newCommitId.get/@diff.newPath" class="btn btn-default btn-sm" title="View the whole file at version @newCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
             </div>
           }
           <span class="diffstat">
           @if(diff.changeType == ChangeType.ADD){
-            <i class="octicon octicon-diff-added" style="color:white"></i>
-          }else{
-            <i class="octicon octicon-diff-modified" style="color:white"></i>
+            <i class="octicon octicon-diff-added"></i>
+          } else {
+            <i class="octicon octicon-diff-modified"></i>
           }
           </span>
           <span class="monospace">@diff.newPath</span>
@@ -77,11 +74,11 @@
         @if(diff.changeType == ChangeType.DELETE){
           @if(oldCommitId.isDefined){
             <div class="pull-right align-right">
-              <label class="checkbox no-margin" style="display: inline-block;"><input type="checkbox" class="toggle-notes" checked><span>Show notes</span></label>
-              <a href="@url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-default btn-sm" title="View the whole file at version @oldCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
+              <label class="no-margin"><input type="checkbox" class="toggle-notes" checked> Show notes</label>
+              <a href="@helpers.url(repository)/blob/@oldCommitId.get/@diff.oldPath" class="btn btn-default btn-sm" title="View the whole file at version @oldCommitId.get.substring(0, 10)" data-toggle="tooltip">View</a>
             </div>
           }
-          <span class="diffstat"><i class="octicon octicon-diff-removed" style="color:white"></i></span>
+          <span class="diffstat"><i class="octicon octicon-diff-removed"></i></span>
           <span class="monospace">@diff.oldPath</span>
         }
         @if(diff.oldMode != diff.newMode){
@@ -90,7 +87,7 @@
       </th>
     </tr>
     <tr>
-      <td style="padding: 0;" class="muted">
+      <td style="padding: 0;">
         @if(diff.oldObjectId == diff.newObjectId){
           @if(diff.oldPath != diff.newPath){
             <div class="diff-same">File renamed without changes</div>
@@ -106,14 +103,14 @@
             @if(diff.newIsImage || diff.oldIsImage){
               <div class="diff-image-render diff2up">
               @if(oldCommitId.isDefined && diff.oldIsImage){
-                <div class="diff-image-frame diff-old"><img src="@url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+                <div class="diff-image-frame diff-old"><img src="@helpers.url(repository)/raw/@oldCommitId.get/@diff.oldPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
               } else {
                 @if(diff.changeType != ChangeType.ADD){
                   <div style="padding: 12px;">Not supported</div>
                 }
               }
               @if(newCommitId.isDefined && diff.newIsImage){
-                <div class="diff-image-frame diff-new"><img src="@url(repository)/raw/@newCommitId.get/@diff.newPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
+                <div class="diff-image-frame diff-new"><img src="@helpers.url(repository)/raw/@newCommitId.get/@diff.newPath" class="diff-image" onload="onLoadedDiffImages(this)" style="display:none" /></div>
               } else {
                 @if(diff.changeType != ChangeType.DELETE){
                   <div style="padding: 12px;">Not supported</div>
@@ -133,8 +130,8 @@
     </tr>
   </table>
 }
-<script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
-<link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="@helpers.assets/vendors/jsdifflib/difflib.js"></script>
+<link href="@helpers.assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   @if(showIndex){
@@ -205,7 +202,7 @@ $(function(){
       var commitId = $this.closest('.table-bordered').attr('commitId'),
       fileName = $this.closest('.table-bordered').attr('fileName'),
       oldLineNumber, newLineNumber,
-      url = '@url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
+      url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
       if (viewType == 0) {
         oldLineNumber = $this.parent().prev('.oldline').attr('line-number');
         newLineNumber = $this.parent().prev('.newline').attr('line-number');

@@ -53,7 +53,30 @@ trait RepositorySearchService { self: IssuesService =>
       }
     }
 
-  private def searchRepositoryFiles(git: Git, query: String): List[(String, String)] = {
+  def countWikiPages(owner: String, repository: String, query: String): Int =
+    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
+      if(JGitUtil.isEmpty(git)) 0 else searchRepositoryFiles(git, query).length
+    }
+
+  def searchWikiPages(owner: String, repository: String, query: String): List[FileSearchResult] =
+    using(Git.open(Directory.getWikiRepositoryDir(owner, repository))){ git =>
+      if(JGitUtil.isEmpty(git)){
+        Nil
+      } else {
+        val files = searchRepositoryFiles(git, query)
+        val commits = JGitUtil.getLatestCommitFromPaths(git, files.map(_._1), "HEAD")
+        files.map { case (path, text) =>
+          val (highlightText, lineNumber) = getHighlightText(text, query)
+          FileSearchResult(
+            path.replaceFirst("\\.md$", ""),
+            commits(path).getCommitterIdent.getWhen,
+            highlightText,
+            lineNumber)
+        }
+      }
+    }
+
+  def searchRepositoryFiles(git: Git, query: String): List[(String, String)] = {
     val revWalk   = new RevWalk(git.getRepository)
     val objectId  = git.getRepository.resolve("HEAD")
     val revCommit = revWalk.parseCommit(objectId)

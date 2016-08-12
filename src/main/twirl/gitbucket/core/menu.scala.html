@@ -1,147 +1,86 @@
 @(active: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   id: Option[String] = None,
-  isRepoTop: Boolean = false,
-  isNoGroup: Boolean = true,
   info: Option[Any] = None,
   error: Option[Any] = None)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 
-@menuitem(path: String, name: String, icon: String, label: String, count: Int = 0) = {
+@menuitem(path: String, name: String, label: String, icon: String, count: Int = 0) = {
   <li @if(active == name){class="active"}>
-    <a href="@url(repository)@path">
-      <i class="menu-icon @if(active == name){menu-icon-active} octicon octicon-@{icon} "></i> <span class="pc">@label</span>
-      @if(count > 0){
-        <span class="badge">@count</span>
-      }
-    </a>
+    @if(path.startsWith("http")){
+      <a href="@path" target="_blank">
+        <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right">@count</span> }
+      </a>
+    } else {
+      <a href="@helpers.url(repository)@path">
+        <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right">@count</span> }
+      </a>
+    }
   </li>
 }
 
-<div class="headbar">
-  <div class="container">
-    @helper.html.information(info)
-    @helper.html.error(error)
-    <div class="head">
-      @if(repository.commitCount > 0){
-        <div class="input-group pull-right hidedisplay">
-          <span class="fork">
-            <span class="input-group-btn">
-            @if(loginAccount.isEmpty){
-              <a title="You must be signed in to fork a repository" href="@path/signin?redirect=@urlEncode(s"${path}/${repository.owner}/${repository.name}")" class="btn btn-default">Fork</a>
-            } else {
-              @if(isNoGroup) {
-                <a id="fork-link" href="javascript:void(0);" class="btn btn-default">Fork</a>
-              } else {
-                <a href="@path/@repository.owner/@repository.name/fork" class="btn btn-default" rel="facebox">Fork</a>
+  <div class="main-sidebar">
+    <div class="sidebar">
+      <ul class="sidebar-menu">
+        @menuitem("", "files", "Files", "code")
+        @if(repository.commitCount != 0) {
+          @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
+          @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
+        }
+        @if(repository.repository.enableIssues) {
+          @menuitem("/issues", "issues", "Issues", "issue-opened", repository.issueCount)
+          @menuitem("/pulls", "pulls", "Pull Requests", "git-pull-request", repository.pullCount)
+          @menuitem("/issues/labels", "labels", "Labels", "tag")
+          @menuitem("/issues/milestones", "milestones", "Milestones", "milestone")
+        } else {
+          @repository.repository.externalIssuesUrl.map { externalIssuesUrl =>
+            @menuitem(externalIssuesUrl, "issues", "Issues", "issue-opened")
+          }
+        }
+        @if(repository.repository.enableWiki) {
+          @menuitem("/wiki", "wiki", "Wiki", "book")
+        } else {
+          @repository.repository.externalWikiUrl.map { externalWikiUrl =>
+            @menuitem(externalWikiUrl, "wiki", "Wiki", "book")
+          }
+        }
+        @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
+        @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
+          @menuitem("/settings", "settings", "Settings", "tools")
+        }
+        @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
+          @menu(repository, context).map { link =>
+            @menuitem(link.path, link.id, link.label, link.icon.getOrElse("ruby"))
+          }
+        }
+      </ul>
+    </div>
+  </div>
+  <div class="content-wrapper">
+    <div class="content body clearfix">
+      <div class="headbar">
+        <div class="container">
+          @gitbucket.core.helper.html.information(info)
+          @gitbucket.core.helper.html.error(error)
+          <div class="head">
+            @gitbucket.core.helper.html.repositoryicon(repository, true)
+            <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
+
+            @defining(repository.repository){ x =>
+              @if(repository.repository.originRepositoryName.isDefined){
+                <div class="forked">
+                  forked from <a href="@context.path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
+                </div>
+              }
+              @x.description.map { description =>
+                <div class="normal muted" style="margin-left: 36px; font-size: 80%;">@Html(helpers.detectAndRenderLinks(description, repository))</div>
               }
             }
-            </span>
-            <span class="count"><a href="@url(repository)/network/members">@repository.forkedCount</a></span>
-          </span>
-        </div>
-        @if(loginAccount.isDefined && isNoGroup){
-          <form id="fork-form" method="post" action="@path/@repository.owner/@repository.name/fork" style="display: none;">
-            <input type="hidden" name="account" value="@loginAccount.get.userName"/>
-          </form>
-        }
-      }
-      @helper.html.repositoryicon(repository, true)
-      <a href="@url(repository.owner)">@repository.owner</a> / <a href="@url(repository)" class="strong">@repository.name</a>
-
-      @defining(repository.repository){ x =>
-        @if(repository.repository.originRepositoryName.isDefined){
-          <div class="forked">
-            forked from <a href="@path/@x.parentUserName/@x.parentRepositoryName">@x.parentUserName/@x.parentRepositoryName</a>
           </div>
-        }
-      }
+        </div>
+      </div>
+      @body
     </div>
-    <ul class="headmenu panelbackgrnd panelborder">
-      @menuitem(""       , "code"   , "code" , "Code")
-      @menuitem("/issues", "issues" , "issue-opened" , "Issues", repository.issueCount)
-      @menuitem("/pulls" , "pulls"  , "git-pull-request" , "Pull Requests", repository.pullCount)
-      @menuitem("/wiki"  , "wiki"   , "book"  , "Wiki")
-     <!-- @if(loginAccount.isDefined && (loginAccount.get.isAdmin || repository.managers.contains(loginAccount.get.userName))){
-        @menuitem("/settings" , "settings" , "tools", "Settings")
-      }-->
-    </ul>
   </div>
 </div>
-<div class="container body">
-  @if(isRepoTop){
-    @repository.repository.description.map { description =>
-      <p class="description">@detectAndRenderLinks(description)</p>
-    }
-    <div style="margin-bottom: 10px; padding: 4px;" class="panel panelbackgrnd">
-      <table class="fill-width">
-        <tr>
-          <td style="width: 33%; text-align: center;">
-            <a href="@url(repository)/commits/@encodeRefName(id.getOrElse(""))" class="header-link">
-              <i class="octicon octicon-history"></i>
-              @if(repository.commitCount > 10000){
-                <strong>10000+</strong> commits
-              } else {
-                <strong>@repository.commitCount</strong> commits
-              }
-            </a>
-          </td>
-          <td style="width: 33%; text-align: center;">
-            <a href="@url(repository)/branches" class="header-link" class="header-link">
-              <i class="octicon octicon-git-branch"></i>
-              <strong>@repository.branchList.length</strong> branches
-            </a>
-          </td>
-          <td style="width: 33%; text-align: center;">
-            <a href="@url(repository)/tags" class="header-link" class="header-link">
-              <i class="octicon octicon-tag"></i>
-              <strong>@repository.tags.length</strong> releases
-            </a>
-          </td>
-        </tr>
-      </table>
-    </div>
-  }
-  @body
-</div>
-<script>
-$(function(){
 
-  $('ul.sidemenu a').mouseover(function(e){
-    var target = e.target;
-    if(e.target.tagName == "I"){
-      target = e.target.parentElement;
-    }
-    $(target).prev('div.gradient').css('border-left', '1px solid silver');
-  });
-
-  $('ul.sidemenu a').mouseout(function(e){
-    var target = e.target;
-    if(e.target.tagName == "I"){
-      target = e.target.parentElement;
-    }
-    $(target).prev('div.gradient').css('border-left', '1px solid #eee');
-  });
-
-  $('a[rel*=facebox]').facebox({
-    'loadingImage': '@assets/vendors/facebox/loading.gif',
-    'closeImage': '@assets/vendors/facebox/closelabel.png'
-  });
-
-  $(document).on("click", ".js-fork-owner-select-target", function() {
-    if (!$(this).hasClass("disabled")) {
-      var account = $(this).text().replace("@@", "");
-      $("#account").val(account);
-      $("#fork").submit();
-    }
-  });
-
-  @if(loginAccount.isDefined){
-    $(document).on("click", "a#fork-link", function(e) {
-      e.preventDefault();
-      $('#fork-form').submit();
-    });
-  }
-});
-</script>

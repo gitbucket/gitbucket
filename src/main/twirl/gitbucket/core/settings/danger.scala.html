@@ -1,19 +1,19 @@
-@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Danger Zone", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("danger", repository){
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Danger Zone", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("danger", repository){
+      @gitbucket.core.helper.html.information(info)
       <div class="panel panel-default">
         <div class="panel-heading strong">Danger Zone</div>
         <div class="panel-body">
-          <form id="transfer-form" method="post" action="@url(repository)/settings/transfer" validate="true" autocomplete="off">
+          <form id="transfer-form" method="post" action="@helpers.url(repository)/settings/transfer" validate="true" autocomplete="off">
             <fieldset class="form-group">
               <label class="strong">Transfer Ownership</label>
               <div>
                 Transfer this repo to another user or to group.
                 <div class="pull-right">
-                  @helper.html.account("newOwner", 200)
+                  @gitbucket.core.helper.html.account("newOwner", 200)
                   <input type="submit" class="btn btn-danger" value="Transfer"/>
                   <div>
                     <span id="error-newOwner" class="error"></span>
@@ -22,12 +22,21 @@
               </div>
             </fieldset>
           </form>
-          <form id="delete-form" method="post" action="@url(repository)/settings/delete">
-            <fieldset class="margin form-group">
+          <form id="delete-form" method="post" action="@helpers.url(repository)/settings/delete">
+            <fieldset class="border-top form-group">
               <label class="strong">Delete repository</label>
               <div>
                 Once you delete a repository, there is no going back.
                 <input type="submit" class="btn btn-danger pull-right" value="Delete this repository"/>
+              </div>
+            </fieldset>
+          </form>
+          <form id="gc-form" method="post" action="@helpers.url(repository)/settings/gc">
+            <fieldset class="border-top form-group">
+              <label class="strong">Garbage collection</label>
+              <div>
+                Run garbage collection for this git repository immediately.
+                <input type="submit" class="btn btn-danger pull-right" value="Garbage collection"/>
               </div>
             </fieldset>
           </form>

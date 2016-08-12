@@ -31,7 +31,8 @@ case class ApiPullRequest(
 }
 
 object ApiPullRequest{
-  def apply(issue: Issue, pullRequest: PullRequest, headRepo: ApiRepository, baseRepo: ApiRepository, user: ApiUser): ApiPullRequest = ApiPullRequest(
+  def apply(issue: Issue, pullRequest: PullRequest, headRepo: ApiRepository, baseRepo: ApiRepository, user: ApiUser): ApiPullRequest =
+    ApiPullRequest(
       number     = issue.issueId,
       updated_at = issue.updatedDate,
       created_at = issue.registeredDate,

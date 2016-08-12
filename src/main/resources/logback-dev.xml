@@ -20,7 +20,7 @@
   <!--
   <logger name="service.WebHookService" level="DEBUG" />
   <logger name="servlet" level="DEBUG" />
-  -->
   <logger name="scala.slick.jdbc.JdbcBackend.statement" level="DEBUG" />
+  -->
 
 </configuration>

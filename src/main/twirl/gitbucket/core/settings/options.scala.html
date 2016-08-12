@@ -1,11 +1,10 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Settings", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("options", repository){
-      @helper.html.information(info)
-      <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Settings", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("options", repository){
+      @gitbucket.core.helper.html.information(info)
+      <form id="form" method="post" action="@helpers.url(repository)/settings/options" validate="true">
         <div class="panel panel-default">
           <div class="panel-heading strong">Settings</div>
           <div class="panel-body">
@@ -14,11 +13,11 @@
               <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
               <span id="error-repositoryName" class="error"></span>
             </fieldset>
-            <fieldset class="margin form-group">
+            <fieldset class="border-top form-group">
               <label for="description" class="strong">Description:</label>
               <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
             </fieldset>
-            <fieldset class="margin">
+            <fieldset class="border-top">
               <label class="radio">
                 <input type="radio" name="isPrivate" value="false"
                   @if(!repository.repository.isPrivate              ){ checked  }
@@ -42,6 +41,41 @@
             </fieldset>
           </div>
         </div>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Features</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
+              <label class="checkbox" for="enableIssues">
+                <input type="checkbox" id="enableIssues" name="enableIssues"@if(repository.repository.enableIssues){ checked}/>
+                Issues<br>
+                <div class="normal muted">
+                  Provides Lightweight issue tracking integrated with this repository. Add issues to milestones, label issues, and close & reference issues from commit messages.
+                </div>
+              </label>
+              <label for="externalIssuesUrl" class="strong">External URL:
+                <span class="normal muted">(Put if you have the external issue tracking system for this project)</span>
+              </label>
+              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.externalIssuesUrl"/>
+            </fieldset>
+            <fieldset class="form-group margin">
+              <label class="checkbox" for="enableWiki">
+                <input type="checkbox" id="enableWiki" name="enableWiki"@if(repository.repository.enableWiki){ checked}/>
+                Wiki<br>
+                <div class="normal muted">
+                  Provides a simple solution to manage documents. All users who can look this repository can read and collaborators can edit pages.
+                </div>
+              </label>
+              <label class="checkbox" for="allowWikiEditing">
+                <input type="checkbox" id="allowWikiEditing" name="allowWikiEditing"@if(repository.repository.allowWikiEditing){ checked}/>
+                Allow read-only users to edit Wiki pages<br>
+              </label>
+              <label for="externalWikiUrl" class="strong">External URL:
+                <span class="normal muted">(Put if you have the external Wiki for this project)</span>
+              </label>
+              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.externalWikiUrl"/>
+            </fieldset>
+          </div>
+        </div>
         <div class="align-right" style="margin-top: 20px;">
           <input type="submit" class="btn btn-success" value="Apply changes"/>
         </div>
@@ -49,3 +83,18 @@
     }
   }
 }
+<script>
+$(function(){
+  updateFeatures();
+
+  $('#enableIssues, #enableWiki').click(function(){
+    updateFeatures();
+  });
+});
+
+function updateFeatures() {
+  $('#externalIssuesUrl').prop('disabled', $('#enableIssues').prop('checked'));
+  $('#allowWikiEditing').prop('disabled', !$('#enableWiki').prop('checked'));
+  $('#externalWikiUrl').prop('disabled', $('#enableWiki').prop('checked'));
+}
+</script>

@@ -1,19 +1,28 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@import gitbucket.core.util.Directory._
-@html.main("System Settings"){
-  @menu("system"){
-    @helper.html.information(info)
-    <form action="@path/admin/system" method="POST" validate="true" class="form-horizontal">
-      <div class="panel panelcustom">
+@gitbucket.core.html.main("System Settings"){
+  @gitbucket.core.admin.html.menu("system"){
+    @gitbucket.core.helper.html.information(info)
+    <form action="@context.path/admin/system" method="POST" validate="true" class="form-horizontal">
+      <div class="panel panel-default">
         <div class="panel-heading strong">System Settings</div>
         <div class="panel-body">
-          <!--====================================================================-->
-          <!-- GITBUCKET_HOME -->
-          <!--====================================================================-->
-          <label class="strong">GITBUCKET_HOME</label>
-          @GitBucketHome
+            <!--====================================================================-->
+            <!-- System properties -->
+            <!--====================================================================-->
+          <table class="table table-bordered">
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+              <td>GITBUCKET_HOME</td>
+              <td>@gitbucket.core.util.Directory.GitBucketHome</td>
+            </tr>
+            <tr>
+              <td>DATABASE_URL</td>
+              <td>@gitbucket.core.util.DatabaseConfig.url</td>
+            </tr>
+          </table>
           <!--====================================================================-->
           <!-- Base URL -->
           <!--====================================================================-->
@@ -21,7 +30,7 @@
           <label><span class="strong">Base URL</span> (e.g. <code>http://example.com/gitbucket</code>)</label>
           <fieldset>
               <div class="controls">
-                <input type="text" name="baseUrl" id="baseUrl" class="form-control" value="@settings.baseUrl"/>
+                <input type="text" name="baseUrl" id="baseUrl" class="form-control" value="@context.settings.baseUrl"/>
                 <span id="error-baseUrl" class="error"></span>
               </div>
           </fieldset>
@@ -36,7 +45,7 @@
           <hr>
           <label><span class="strong">Information</span> (HTML is available)</label>
           <fieldset>
-            <textarea name="information" class="form-control" style="height: 100px;">@settings.information</textarea>
+            <textarea name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
           </fieldset>
           <!--====================================================================-->
           <!-- Account registration -->
@@ -45,11 +54,11 @@
           <label class="strong">Account registration</label>
           <fieldset>
             <label class="radio">
-              <input type="radio" name="allowAccountRegistration" value="true"@if(settings.allowAccountRegistration){ checked}>
+              <input type="radio" name="allowAccountRegistration" value="true"@if(context.settings.allowAccountRegistration){ checked}>
               <span class="strong">Allow</span> <span class="normal">- Users can create accounts by themselves.</span>
             </label>
             <label class="radio">
-              <input type="radio" name="allowAccountRegistration" value="false"@if(!settings.allowAccountRegistration){ checked}>
+              <input type="radio" name="allowAccountRegistration" value="false"@if(!context.settings.allowAccountRegistration){ checked}>
               <span class="strong">Deny</span> - <span class="normal">Only administrators can create accounts.</span>
             </label>
           </fieldset>
@@ -57,11 +66,11 @@
           <label class="strong">Default option to create a new repository</label>
           <fieldset>
             <label class="radio">
-              <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(settings.isCreateRepoOptionPublic){ checked}>
+              <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
               <span class="strong">Public</span> <span class="normal">- All users and guests can read that repository.</span>
             </label>
             <label class="radio">
-              <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!settings.isCreateRepoOptionPublic){ checked}>
+              <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
               <span class="strong">Private</span> <span class="normal">- Only collaborators can read that repository.</span>
             </label>
           </fieldset>
@@ -72,11 +81,11 @@
           <label class="strong">Anonymous access</label>
           <fieldset>
             <label class="radio">
-              <input type="radio" name="allowAnonymousAccess" value="true"@if(settings.allowAnonymousAccess){ checked}>
+              <input type="radio" name="allowAnonymousAccess" value="true"@if(context.settings.allowAnonymousAccess){ checked}>
               <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories, user/group profiles.</span>
             </label>
             <label class="radio">
-              <input type="radio" name="allowAnonymousAccess" value="false"@if(!settings.allowAnonymousAccess){ checked}>
+              <input type="radio" name="allowAnonymousAccess" value="false"@if(!context.settings.allowAnonymousAccess){ checked}>
               <span class="strong">Deny</span> <span class="normal">- Users must authenticate before viewing any information.</span>
             </label>
           </fieldset>
@@ -85,10 +94,15 @@
           <!--====================================================================-->
           <hr>
           <label><span class="strong">Limit of activity logs</span> (Unlimited if it's not specified or zero)</label>
-          <div class="controls">
-            <input type="text" id="activityLogLimit" name="activityLogLimit" class="form-control input-mini" value="@settings.activityLogLimit"/>
-            <span id="error-activityLogLimit" class="error"></span>
-          </div>
+          <fieldset>
+            <div class="form-group">
+              <label class="control-label col-md-3" for="activityLogLimit">Limit</label>
+              <div class="col-md-9">
+                <input type="text" id="activityLogLimit" name="activityLogLimit" class="form-control input-mini" value="@context.settings.activityLogLimit"/>
+                <span id="error-activityLogLimit" class="error"></span>
+              </div>
+            </div>
+          </fieldset>
           <!--====================================================================-->
           <!-- Services -->
           <!--====================================================================-->
@@ -96,7 +110,7 @@
           <label class="strong">Services</label>
           <fieldset>
             <label class="checkbox">
-              <input type="checkbox" name="gravatar"@if(settings.gravatar){ checked}/>
+              <input type="checkbox" name="gravatar"@if(context.settings.gravatar){ checked}/>
               Use Gravatar for Profile-Images
             </label>
           </fieldset>
@@ -107,7 +121,7 @@
           <label class="strong">SSH access</label>
           <fieldset>
             <label class="checkbox">
-              <input type="checkbox" id="ssh" name="ssh"@if(settings.ssh){ checked}/>
+              <input type="checkbox" id="ssh" name="ssh"@if(context.settings.ssh){ checked}/>
               Enable SSH access to git repository
             </label>
           </fieldset>
@@ -115,14 +129,14 @@
             <div class="form-group">
               <label class="control-label col-md-3" for="sshHost">SSH Host</label>
               <div class="col-md-9">
-                <input type="text" id="sshHost" name="sshHost" class="form-control" value="@settings.sshHost"/>
+                <input type="text" id="sshHost" name="sshHost" class="form-control" value="@context.settings.sshHost"/>
                 <span id="error-sshHost" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="sshPort">SSH Port</label>
               <div class="col-md-9">
-                <input type="text" id="sshPort" name="sshPort" class="form-control" value="@settings.sshPort"/>
+                <input type="text" id="sshPort" name="sshPort" class="form-control" value="@context.settings.sshPort"/>
                 <span id="error-sshPort" class="error"></span>
               </div>
             </div>
@@ -137,7 +151,7 @@
           <label class="strong">Authentication</label>
           <fieldset>
             <label class="checkbox">
-              <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(settings.ldap){ checked} />
+              <input type="checkbox" id="ldapAuthentication" name="ldapAuthentication"@if(context.settings.ldap){ checked} />
               LDAP
             </label>
           </fieldset>
@@ -145,82 +159,82 @@
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapHost">LDAP Host</label>
               <div class="col-md-9">
-                <input type="text" id="ldapHost" name="ldap.host" class="form-control" value="@settings.ldap.map(_.host)"/>
+                <input type="text" id="ldapHost" name="ldap.host" class="form-control" value="@context.settings.ldap.map(_.host)"/>
                 <span id="error-ldap_host" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapPort">LDAP Port</label>
               <div class="col-md-9">
-                <input type="text" id="ldapPort" name="ldap.port" class="form-control input-mini" value="@settings.ldap.map(_.port)"/>
+                <input type="text" id="ldapPort" name="ldap.port" class="form-control input-mini" value="@context.settings.ldap.map(_.port)"/>
                 <span id="error-ldap_port" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapBindDN">Bind DN</label>
               <div class="col-md-9">
-                <input type="text" id="ldapBindDN" name="ldap.bindDN" class="form-control" value="@settings.ldap.map(_.bindDN)"/>
+                <input type="text" id="ldapBindDN" name="ldap.bindDN" class="form-control" value="@context.settings.ldap.map(_.bindDN)"/>
                 <span id="error-ldap_bindDN" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapBindPassword">Bind Password</label>
               <div class="col-md-9">
-                <input type="password" id="ldapBindPassword" name="ldap.bindPassword" class="form-control" value="@settings.ldap.map(_.bindPassword)"/>
+                <input type="password" id="ldapBindPassword" name="ldap.bindPassword" class="form-control" value="@context.settings.ldap.map(_.bindPassword)"/>
                 <span id="error-ldap_bindPassword" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapBaseDN">Base DN</label>
               <div class="col-md-9">
-                <input type="text" id="ldapBaseDN" name="ldap.baseDN" class="form-control" value="@settings.ldap.map(_.baseDN)"/>
+                <input type="text" id="ldapBaseDN" name="ldap.baseDN" class="form-control" value="@context.settings.ldap.map(_.baseDN)"/>
                 <span id="error-ldap_baseDN" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapUserNameAttribute">User name attribute</label>
               <div class="col-md-9">
-                <input type="text" id="ldapUserNameAttribute" name="ldap.userNameAttribute" class="form-control" value="@settings.ldap.map(_.userNameAttribute)"/>
+                <input type="text" id="ldapUserNameAttribute" name="ldap.userNameAttribute" class="form-control" value="@context.settings.ldap.map(_.userNameAttribute)"/>
                 <span id="error-ldap_userNameAttribute" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapAdditionalFilterCondition">Additional filter condition</label>
               <div class="col-md-9">
-                <input type="text" id="ldapAdditionalFilterCondition" name="ldap.additionalFilterCondition" class="form-control" value="@settings.ldap.map(_.additionalFilterCondition)"/>
+                <input type="text" id="ldapAdditionalFilterCondition" name="ldap.additionalFilterCondition" class="form-control" value="@context.settings.ldap.map(_.additionalFilterCondition)"/>
                 <span id="error-ldap_additionalFilterCondition" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapFullNameAttribute">Full name attribute</label>
               <div class="col-md-9">
-                <input type="text" id="ldapFullNameAttribute" name="ldap.fullNameAttribute" class="form-control" value="@settings.ldap.map(_.fullNameAttribute)"/>
+                <input type="text" id="ldapFullNameAttribute" name="ldap.fullNameAttribute" class="form-control" value="@context.settings.ldap.map(_.fullNameAttribute)"/>
                 <span id="error-ldap_fullNameAttribute" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapMailAttribute">Mail address attribute</label>
               <div class="col-md-9">
-                <input type="text" id="ldapMailAttribute" name="ldap.mailAttribute" class="form-control" value="@settings.ldap.map(_.mailAttribute)"/>
+                <input type="text" id="ldapMailAttribute" name="ldap.mailAttribute" class="form-control" value="@context.settings.ldap.map(_.mailAttribute)"/>
                 <span id="error-ldap_mailAttribute" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3">Enable TLS</label>
               <div class="col-md-9">
-                <input type="checkbox" name="ldap.tls"@if(settings.ldap.flatMap(_.tls).getOrElse(false)){ checked}/>
+                <input type="checkbox" name="ldap.tls"@if(context.settings.ldap.flatMap(_.tls).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3">Enable SSL</label>
               <div class="col-md-9">
-                <input type="checkbox" name="ldap.ssl"@if(settings.ldap.flatMap(_.ssl).getOrElse(false)){ checked}/>
+                <input type="checkbox" name="ldap.ssl"@if(context.settings.ldap.flatMap(_.ssl).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="ldapBindDN">Keystore</label>
               <div class="col-md-9">
-                <input type="text" id="ldapKeystore" name="ldap.keystore" class="form-control" value="@settings.ldap.map(_.keystore)"/>
+                <input type="text" id="ldapKeystore" name="ldap.keystore" class="form-control" value="@context.settings.ldap.map(_.keystore)"/>
                 <span id="error-ldap_keystore" class="error"></span>
               </div>
             </div>
@@ -232,7 +246,7 @@
           <label class="strong">Notifications</label>
           <fieldset>
             <label class="checkbox">
-              <input type="checkbox" id="notification" name="notification"@if(settings.notification){ checked}/>
+              <input type="checkbox" id="notification" name="notification"@if(context.settings.notification){ checked}/>
               Send notifications
             </label>
           </fieldset>
@@ -243,7 +257,7 @@
           <label class="strong">Communication</label>
           <fieldset>
             <label class="checkbox">
-              <input type="checkbox" id="useSMTP" name="useSMTP" @if(settings.useSMTP){ checked}/>
+              <input type="checkbox" id="useSMTP" name="useSMTP" @if(context.settings.useSMTP){ checked}/>
               SMTP
             </label>
           </fieldset>
@@ -251,47 +265,53 @@
             <div class="form-group">
               <label class="control-label col-md-3" for="smtpHost">SMTP Host</label>
               <div class="col-md-9">
-                <input type="text" id="smtpHost" name="smtp.host" class="form-control" value="@settings.smtp.map(_.host)"/>
+                <input type="text" id="smtpHost" name="smtp.host" class="form-control" value="@context.settings.smtp.map(_.host)"/>
                 <span id="error-smtp_host" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="smtpPort">SMTP Port</label>
               <div class="col-md-9">
-                <input type="text" id="smtpPort" name="smtp.port" class="form-control input-mini" value="@settings.smtp.map(_.port)"/>
+                <input type="text" id="smtpPort" name="smtp.port" class="form-control input-mini" value="@context.settings.smtp.map(_.port)"/>
                 <span id="error-smtp_port" class="error"></span>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="smtpUser">SMTP User</label>
               <div class="col-md-9">
-                <input type="text" id="smtpUser" name="smtp.user" class="form-control" value="@settings.smtp.map(_.user)"/>
+                <input type="text" id="smtpUser" name="smtp.user" class="form-control" value="@context.settings.smtp.map(_.user)"/>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="smtpPassword">SMTP Password</label>
               <div class="col-md-9">
-                <input type="password" id="smtpPassword" name="smtp.password" class="form-control" value="@settings.smtp.map(_.password)"/>
+                <input type="password" id="smtpPassword" name="smtp.password" class="form-control" value="@context.settings.smtp.map(_.password)"/>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="smtpPassword">Enable SSL</label>
               <div class="col-md-9">
-                <input type="checkbox" name="smtp.ssl"@if(settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
+                <input type="checkbox" id="smtpSsl" name="smtp.ssl"@if(context.settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="fromAddress">FROM Address</label>
               <div class="col-md-9">
-                <input type="text" id="fromAddress" name="smtp.fromAddress" class="form-control" value="@settings.smtp.map(_.fromAddress)"/>
+                <input type="text" id="fromAddress" name="smtp.fromAddress" class="form-control" value="@context.settings.smtp.map(_.fromAddress)"/>
               </div>
             </div>
             <div class="form-group">
               <label class="control-label col-md-3" for="fromName">FROM Name</label>
               <div class="col-md-9">
-                <input type="text" id="fromName" name="smtp.fromName" class="form-control" value="@settings.smtp.map(_.fromName)"/>
+                <input type="text" id="fromName" name="smtp.fromName" class="form-control" value="@context.settings.smtp.map(_.fromName)"/>
               </div>
             </div>
+            <div class="text-right">
+              Send test mail to:
+              <input type="text" id="testAddress" size="30"/>
+              <input type="button" id="sendTestMail" value="Send"/>
+            </div>
+
             <p class="muted">
               Enable notification not only SMTP configuration if you want to send notification email.
             </p>
@@ -306,6 +326,40 @@
 }
 <script>
 $(function(){
+  $('#sendTestMail').click(function(){
+    var host        = $('#smtpHost'    ).val();
+    var port        = $('#smtpPort'    ).val();
+    var user        = $('#smtpUser'    ).val();
+    var password    = $('#smtpPassword').val();
+    var ssl         = $('#smtpSsl'     ).prop('checked');
+    var fromAddress = $('#fromAddress' ).val();
+    var fromName    = $('#fromName'    ).val();
+    var testAddress = $('#testAddress' ).val();
+
+    if(host == ''){
+      alert('SMTP Host is required.');
+      $('#smtpHost').focus();
+    } else if(testAddress == ''){
+      alert('Destination is required.');
+      $('#testAddress').focus();
+    } else {
+      $.post('@context.path/admin/system/sendmail', {
+        'smtp.host': host,
+        'smtp.port': port,
+        'smtp.user': user,
+        'smtp.password': password,
+        'smtp.ssl': ssl,
+        'smtp.fromAddress': fromAddress,
+        'smtp.fromName': fromName,
+        'testAddress': testAddress
+      }, function(data, status){
+        if(data != ''){
+          alert(data);
+        }
+      });
+    }
+  });
+
   $('#ssh').change(function(){
     $('.ssh input').prop('disabled', !$(this).prop('checked'));
   }).change();

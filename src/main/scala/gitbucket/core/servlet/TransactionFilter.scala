@@ -1,18 +1,13 @@
 package gitbucket.core.servlet
 
-import java.io.{PrintStream, PrintWriter}
 import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
-import com.mchange.v2.c3p0.ComboPooledDataSource
+import javax.servlet.http.HttpServletRequest
+import com.zaxxer.hikari._
 import gitbucket.core.util.DatabaseConfig
 import org.scalatra.ScalatraBase
 import org.slf4j.LoggerFactory
-
-import slick.jdbc.JdbcBackend.{Session, Database => SlickDatabase}
+import slick.jdbc.JdbcBackend.{Database => SlickDatabase, Session}
 import gitbucket.core.util.Keys
-
-import scala.util.{Failure, Success, Try}
 
 /**
  * Controls the transaction with the open session in view pattern.
@@ -51,31 +46,14 @@ object Database {
 
   private val logger = LoggerFactory.getLogger(Database.getClass)
 
-  private val dataSource: ComboPooledDataSource = {
-    val ds = new ComboPooledDataSource
-    ds.setDriverClass(DatabaseConfig.driver)
-    //ds.setJdbcUrl("jdbc:h2:tcp://H2-ELB-Public-1985951393.us-west-2.elb.amazonaws.com:1521//opt/h2-data/.gitbucket/data")
-    ds.setJdbcUrl(DatabaseConfig.url)
-    ds.setUser(DatabaseConfig.user)
-    ds.setPassword(DatabaseConfig.password)
-    ds.setPreferredTestQuery("SELECT 1;")
-    ds.setTestConnectionOnCheckout(true)
-
-    //--- setting to keep the connection alive
-    /**
-    ds.setInitialPoolSize(10)
-    ds.setMinPoolSize(1)
-    ds.setMaxPoolSize(25)
-    ds.setAcquireRetryAttempts(10)
-    ds.setIdleConnectionTestPeriod(3600)
-    ds.setPreferredTestQuery("SELECT 1;")
-    ds.setTestConnectionOnCheckin(false)
-    ds.setMaxConnectionAge(14400)
-    ds.setMaxIdleTime(10800) */
-
-
+  private val dataSource: HikariDataSource = {
+    val config = new HikariConfig()
+    config.setDriverClassName(DatabaseConfig.jdbcDriver)
+    config.setJdbcUrl(DatabaseConfig.url)
+    config.setUsername(DatabaseConfig.user)
+    config.setPassword(DatabaseConfig.password)
     logger.debug("load database connection pool")
-    ds
+    new HikariDataSource(config)
   }
 
   private val db: SlickDatabase = {

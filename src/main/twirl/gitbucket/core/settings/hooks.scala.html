@@ -1,15 +1,13 @@
 @(webHooks: List[(gitbucket.core.model.WebHook, Set[gitbucket.core.model.WebHook.Event])],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Settings", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("hooks", repository){
-      @helper.html.information(info)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Settings", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("hooks", repository){
+      @gitbucket.core.helper.html.information(info)
       <div class="panel panel-default">
         <div class="panel-heading strong">
-          <a href="@url(repository)/settings/hooks/new" class="btn btn-success btn-sm pull-right">Add webhook</a>
           Webhooks
         </div>
         <div class="panel-body">
@@ -18,20 +16,21 @@
             When the specified events happen, we’ll send a POST request to each of the URLs you provide.
             Learn more in <a href="https://github.com/takezoe/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki Webhook Page</a>.
           </p>
+          <a href="@helpers.url(repository)/settings/hooks/new" class="btn btn-success pull-right" style="margin-bottom: 10px;">Add webhook</a>
 
-          <table class="table table-condensed" style="margin-bottom:0">
+          <table class="table table-condensed" style="margin-bottom:0px;">
             @webHooks.map { case (webHook, events) =>
               <tr><td style="vertical-align: middle;">
-                <a href="@url(repository)/settings/hooks/edit?url=@urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
+                <a href="@helpers.url(repository)/settings/hooks/edit?url=@helpers.urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
                   <span class="css-truncate-target">@webHook.url</span>
                 </a>
                 <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
               </td><td>
                 <div class="btn-group pull-right">
-                  <a href="@url(repository)/settings/hooks/edit?url=@urlEncode(webHook.url)" class="btn btn-default">
+                  <a href="@helpers.url(repository)/settings/hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
                     <span class="octicon octicon-pencil"></span>
                   </a>
-                  <a href="@url(repository)/settings/hooks/delete?url=@urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+                  <a href="@helpers.url(repository)/settings/hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
                     <span class="octicon octicon-x"></span>
                   </a>
                 </div>

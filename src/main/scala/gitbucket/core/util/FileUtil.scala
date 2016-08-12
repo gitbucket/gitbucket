@@ -30,6 +30,8 @@ object FileUtil {
 
   def isUploadableType(name: String): Boolean = mimeTypeWhiteList contains getMimeType(name)
 
+  def acceptAllMimeType(name: String): Boolean = true
+
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 
   def isText(content: Array[Byte]): Boolean = !content.contains(0)
@@ -61,5 +63,6 @@ object FileUtil {
       "image/gif",
       "image/jpeg",
       "image/png",
-      "text/plain")
+      "text/plain",
+      "application/zip")
 }

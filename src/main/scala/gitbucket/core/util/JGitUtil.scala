@@ -896,17 +896,13 @@ object JGitUtil {
       git.branchList.call.asScala.map { ref =>
         val walk = new RevWalk(repo)
         try {
-          val defaultCommit = walk.parseCommit(defaultObject)
-          val branchName = ref.getName.stripPrefix("refs/heads/")
-          val branchCommit = if(branchName == defaultBranch){
-            defaultCommit
-          } else {
-            walk.parseCommit(ref.getObjectId)
-          }
-          val when = branchCommit.getCommitterIdent.getWhen
-          val committer = branchCommit.getCommitterIdent.getName
+          val defaultCommit  = walk.parseCommit(defaultObject)
+          val branchName     = ref.getName.stripPrefix("refs/heads/")
+          val branchCommit   = walk.parseCommit(ref.getObjectId)
+          val when           = branchCommit.getCommitterIdent.getWhen
+          val committer      = branchCommit.getCommitterIdent.getName
           val committerEmail = branchCommit.getCommitterIdent.getEmailAddress
-          val mergeInfo = if(origin && branchName == defaultBranch){
+          val mergeInfo      = if(origin && branchName == defaultBranch){
             None
           } else {
             walk.reset()

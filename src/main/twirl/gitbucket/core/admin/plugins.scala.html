@@ -1,36 +1,34 @@
-@(plugins: List[gitbucket.core.plugin.PluginInfo])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Plugins"){
-  @admin.html.menu("plugins") {
+@(plugins: List[(gitbucket.core.plugin.PluginInfo, String)])(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Plugins"){
+  @gitbucket.core.admin.html.menu("plugins") {
     <h1>Installed plugins</h1>
 
     @if(plugins.size > 0) {
       <ul>
-      @plugins.map {plugin =>
-        <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.version</a></li>
+      @plugins.map { case (plugin, migrationVersion) =>
+        <li><a href="#@plugin.pluginId">@plugin.pluginId:@migrationVersion</a></li>
       }
       </ul>
 
-      @plugins.map {plugin =>
-        <div class="panel panelcustom">
+      @plugins.map { case (plugin, migrationVersion) =>
+        <div class="panel panel-default">
           <div class="panel-heading strong">@plugin.pluginName</div>
           <div class="panel-body">
             <div class="row">
               <label class="col-md-2">Id</label>
-              <span class="col-md-8">@plugin.pluginId</span>
+              <span class="col-md-10">@plugin.pluginId</span>
             </div>
             <div class="row">
               <label class="col-md-2">Version</label>
-              <span class="col-md-8">@plugin.version</span>
+              <span class="col-md-10">@migrationVersion @if(plugin.pluginVersion != migrationVersion){ <span class="error">(Migration is failed, installed version is @plugin.pluginVersion)</span> }</span>
             </div>
             <div class="row">
               <label class="col-md-2">Name</label>
-              <span class="col-md-8">@plugin.pluginName</span>
+              <span class="col-md-10">@plugin.pluginName</span>
             </div>
             <div class="row">
               <label class="col-md-2">Description</label>
-              <span class="col-md-8 muted">@plugin.description</span>
+              <span class="col-md-10 muted">@plugin.description</span>
             </div>
           </div>
         </div>

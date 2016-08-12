@@ -1,11 +1,9 @@
 @(pages: List[String],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean,
-  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"Pages - ${repository.owner}/${repository.name}", Some(repository)){  
-  @html.menu("wiki", repository){
+  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"Pages - ${repository.owner}/${repository.name}", Some(repository)){
+  @gitbucket.core.html.menu("wiki", repository){
     <ul class="nav nav-tabs fill-width">
       <li>
         <h1 class="wiki-title"><span class="muted">Pages</span></h1>
@@ -13,16 +11,15 @@
       <li class="pull-right">
         <div class="btn-group">
           @if(hasWritePermission){
-            <a class="btn btn-small btn-default" href="@url(repository)/wiki/_new">New Page</a>
+            <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/_new">New Page</a>
           }
         </div>
       </li>
     </ul>
     <ul class="pull-left">
       @pages.map { page =>
-        <li><a href="@url(repository)/wiki/@urlEncode(page)">@page</a></li>
+        <li><a href="@helpers.url(repository)/wiki/@helpers.urlEncode(page)">@page</a></li>
       }
     </ul>
   }
-
 }

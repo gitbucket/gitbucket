@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+
+  <!--================================================================================================-->
+  <!-- ACCOUNT -->
+  <!--================================================================================================-->
+  <createTable tableName="ACCOUNT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="MAIL_ADDRESS" type="varchar(100)" nullable="false"/>
+    <column name="PASSWORD" type="varchar(40)" nullable="false"/>
+    <column name="ADMINISTRATOR" type="boolean" nullable="false"/>
+    <column name="URL" type="varchar(200)" nullable="true"/>
+    <column name="REGISTERED_DATE" type="datetime" nullable="false"/>
+    <column name="UPDATED_DATE" type="datetime" nullable="false"/>
+    <column name="LAST_LOGIN_DATE" type="datetime" nullable="true"/>
+    <column name="IMAGE" type="varchar(100)" nullable="true"/>
+    <column name="GROUP_ACCOUNT" type="boolean" nullable="false"/>
+    <column name="FULL_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REMOVED" type="boolean" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ACCOUNT_PK" tableName="ACCOUNT" columnNames="USER_NAME"/>
+  <addUniqueConstraint constraintName="IDX_ACCOUNT_1" tableName="ACCOUNT" columnNames="MAIL_ADDRESS"/>
+
+  <insert tableName="ACCOUNT">
+    <column name="USER_NAME" value="root"/>
+    <column name="FULL_NAME" value="root"/>
+    <column name="MAIL_ADDRESS" value="root@localhost"/>
+    <column name="PASSWORD" value="dc76e9f0c0006e8f919e0c515c66dbba3982f785"/>
+    <column name="ADMINISTRATOR" valueBoolean="true"/>
+    <column name="URL" value="https://github.com/gitbucket/gitbucket"/>
+    <column name="GROUP_ACCOUNT" valueBoolean="false"/>
+    <column name="REMOVED" valueBoolean="false"/>
+    <column name="REGISTERED_DATE" valueDate="${currentDateTime}"/>
+    <column name="UPDATED_DATE" valueDate="${currentDateTime}"/>
+  </insert>
+
+  <!--================================================================================================-->
+  <!-- REPOSITORY -->
+  <!--================================================================================================-->
+  <createTable tableName="REPOSITORY">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="PRIVATE" type="boolean" nullable="false"/>
+    <column name="DESCRIPTION" type="text" nullable="true"/>
+    <column name="DEFAULT_BRANCH" type="varchar(100)" nullable="true"/>
+    <column name="REGISTERED_DATE" type="datetime" nullable="false"/>
+    <column name="UPDATED_DATE" type="datetime" nullable="false"/>
+    <column name="LAST_ACTIVITY_DATE" type="datetime" nullable="false"/>
+    <column name="ORIGIN_USER_NAME" type="varchar(100)" nullable="true"/>
+    <column name="ORIGIN_REPOSITORY_NAME" type="varchar(100)" nullable="true"/>
+    <column name="PARENT_USER_NAME" type="varchar(100)" nullable="true"/>
+    <column name="PARENT_REPOSITORY_NAME" type="varchar(100)" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_REPOSITORY_PK" tableName="REPOSITORY" columnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_REPOSITORY_FK0" baseTableName="REPOSITORY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- ACCESS_TOKEN -->
+  <!--================================================================================================-->
+  <createTable tableName="ACCESS_TOKEN">
+    <column name="ACCESS_TOKEN_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="TOKEN_HASH" type="varchar(40)" nullable="false"/>
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="NOTE" type="text" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ACCESS_TOKEN_PK" tableName="ACCESS_TOKEN" columnNames="ACCESS_TOKEN_ID"/>
+  <addUniqueConstraint constraintName="IDX_ACCESS_TOKEN_TOKEN_HASH" tableName="ACCESS_TOKEN" columnNames="TOKEN_HASH"/>
+  <addForeignKeyConstraint constraintName="IDX_ACCESS_TOKEN_FK0" baseTableName="ACCESS_TOKEN" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <!--================================================================================================-->
+  <!-- ACTIVITY -->
+  <!--================================================================================================-->
+  <createTable tableName="ACTIVITY">
+    <column name="ACTIVITY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ACTIVITY_USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ACTIVITY_TYPE" type="varchar(100)" nullable="false"/>
+    <column name="MESSAGE" type="text" nullable="false"/>
+    <column name="ADDITIONAL_INFO" type="text" nullable="true"/>
+    <column name="ACTIVITY_DATE" type="datetime" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ACTIVITY_PK" tableName="ACTIVITY" columnNames="ACTIVITY_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_ACTIVITY_FK1" baseTableName="ACTIVITY" baseColumnNames="ACTIVITY_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ACTIVITY_FK0" baseTableName="ACTIVITY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- COLLABORATOR -->
+  <!--================================================================================================-->
+  <createTable tableName="COLLABORATOR">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="COLLABORATOR_NAME" type="varchar(100)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_COLLABORATOR_PK" tableName="COLLABORATOR" columnNames="USER_NAME, REPOSITORY_NAME, COLLABORATOR_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK1" baseTableName="COLLABORATOR" baseColumnNames="COLLABORATOR_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_COLLABORATOR_FK0" baseTableName="COLLABORATOR" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- COMMIT_COMMENT -->
+  <!--================================================================================================-->
+  <createTable tableName="COMMIT_COMMENT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="COMMIT_ID" type="varchar(100)" nullable="false"/>
+    <column name="COMMENT_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="COMMENTED_USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="CONTENT" type="text" nullable="false"/>
+    <column name="FILE_NAME" type="varchar(260)" nullable="true"/>
+    <column name="OLD_LINE_NUMBER" type="int" nullable="true"/>
+    <column name="NEW_LINE_NUMBER" type="int" nullable="true"/>
+    <column name="REGISTERED_DATE" type="datetime" nullable="false"/>
+    <column name="UPDATED_DATE" type="datetime" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_COMMIT_COMMENT_PK" tableName="COMMIT_COMMENT" columnNames="COMMENT_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_COMMENT_FK0" baseTableName="COMMIT_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- COMMIT_STATUS -->
+  <!--================================================================================================-->
+  <createTable tableName="COMMIT_STATUS">
+    <column name="COMMIT_STATUS_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="COMMIT_ID" type="varchar(40)" nullable="false"/>
+    <column name="CONTEXT" type="varchar(255)" nullable="false"/>
+    <column name="STATE" type="varchar(10)" nullable="false"/>
+    <column name="TARGET_URL" type="varchar(200)" nullable="true"/>
+    <column name="DESCRIPTION" type="text" nullable="true"/>
+    <column name="CREATOR" type="varchar(100)" nullable="false"/>
+    <column name="REGISTERED_DATE" type="datetime" nullable="false"/>
+    <column name="UPDATED_DATE" type="datetime" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_COMMIT_STATUS_PK" tableName="COMMIT_STATUS" columnNames="COMMIT_STATUS_ID"/>
+  <addUniqueConstraint constraintName="IDX_COMMIT_STATUS_1" tableName="COMMIT_STATUS" columnNames="USER_NAME, REPOSITORY_NAME, COMMIT_ID, CONTEXT"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK3" baseTableName="COMMIT_STATUS" baseColumnNames="CREATOR" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK2" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+  <addForeignKeyConstraint constraintName="IDX_COMMIT_STATUS_FK1" baseTableName="COMMIT_STATUS" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <!--================================================================================================-->
+  <!-- GROUP_MEMBER -->
+  <!--================================================================================================-->
+  <createTable tableName="GROUP_MEMBER">
+    <column name="GROUP_NAME" type="varchar(100)" nullable="false"/>
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="MANAGER" type="boolean" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_GROUP_MEMBER_PK" tableName="GROUP_MEMBER" columnNames="GROUP_NAME, USER_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_GROUP_MEMBER_FK1" baseTableName="GROUP_MEMBER" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_GROUP_MEMBER_FK0" baseTableName="GROUP_MEMBER" baseColumnNames="GROUP_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- LABEL -->
+  <!--================================================================================================-->
+  <createTable tableName="LABEL">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="LABEL_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="LABEL_NAME" type="varchar(100)" nullable="false"/>
+    <column name="COLOR" type="char(6)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_LABEL_PK" tableName="LABEL" columnNames="USER_NAME, REPOSITORY_NAME, LABEL_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_LABEL_FK0" baseTableName="LABEL" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- MILESTONE -->
+  <!--================================================================================================-->
+  <createTable tableName="MILESTONE">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="MILESTONE_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="TITLE" type="varchar(100)" nullable="false"/>
+    <column name="DESCRIPTION" type="text" nullable="true"/>
+    <column name="DUE_DATE" type="datetime" nullable="true"/>
+    <column name="CLOSED_DATE" type="datetime" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_MILESTONE_PK" tableName="MILESTONE" columnNames="USER_NAME, REPOSITORY_NAME, MILESTONE_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_MILESTONE_FK0" baseTableName="MILESTONE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- ISSUE -->
+  <!--================================================================================================-->
+  <createTable tableName="ISSUE">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="false"/>
+    <column name="OPENED_USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="MILESTONE_ID" type="int" nullable="true"/>
+    <column name="ASSIGNED_USER_NAME" type="varchar(100)" nullable="true"/>
+    <column name="TITLE" type="text" nullable="false"/>
+    <column name="CONTENT" type="text" nullable="true"/>
+    <column name="CLOSED" type="boolean" nullable="false"/>
+    <column name="REGISTERED_DATE" type="datetime" nullable="false"/>
+    <column name="UPDATED_DATE" type="datetime" nullable="false"/>
+    <column name="PULL_REQUEST" type="boolean" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ISSUE_PK" tableName="ISSUE" columnNames="ISSUE_ID, USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK0" baseTableName="ISSUE" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK2" baseTableName="ISSUE" baseColumnNames="MILESTONE_ID" referencedTableName="MILESTONE" referencedColumnNames="MILESTONE_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_FK1" baseTableName="ISSUE" baseColumnNames="OPENED_USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- ISSUE_COMMENT -->
+  <!--================================================================================================-->
+  <createTable tableName="ISSUE_COMMENT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="false"/>
+    <column name="COMMENT_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="ACTION" type="varchar(20)" nullable="false"/>
+    <column name="COMMENTED_USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="CONTENT" type="text" nullable="false"/>
+    <column name="REGISTERED_DATE" type="datetime" nullable="false"/>
+    <column name="UPDATED_DATE" type="datetime" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ISSUE_COMMENT_PK" tableName="ISSUE_COMMENT" columnNames="COMMENT_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_COMMENT_FK0" baseTableName="ISSUE_COMMENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
+
+  <!--================================================================================================-->
+  <!-- ISSUE_ID -->
+  <!--================================================================================================-->
+  <createTable tableName="ISSUE_ID">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ISSUE_ID_PK" tableName="ISSUE_ID" columnNames="USER_NAME, REPOSITORY_NAME"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_ID_FK1" baseTableName="ISSUE_ID" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- ISSUE_ID -->
+  <!--================================================================================================-->
+  <createTable tableName="ISSUE_LABEL">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="false"/>
+    <column name="LABEL_ID" type="int" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ISSUE_LABEL_PK" tableName="ISSUE_LABEL" columnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID, LABEL_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_ISSUE_LABEL_FK0" baseTableName="ISSUE_LABEL" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
+
+  <!--================================================================================================-->
+  <!-- PLUGIN -->
+  <!--================================================================================================-->
+  <createTable tableName="PLUGIN">
+    <column name="PLUGIN_ID" type="varchar(100)" nullable="false"/>
+    <column name="VERSION" type="varchar(100)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_PLUGIN_PK" tableName="PLUGIN" columnNames="PLUGIN_ID"/>
+
+  <!--================================================================================================-->
+  <!-- PULL_REQUEST -->
+  <!--================================================================================================-->
+  <createTable tableName="PULL_REQUEST">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="ISSUE_ID" type="int" nullable="false"/>
+    <column name="BRANCH" type="varchar(100)" nullable="false"/>
+    <column name="REQUEST_USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REQUEST_REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REQUEST_BRANCH" type="varchar(100)" nullable="false"/>
+    <column name="COMMIT_ID_FROM" type="varchar(40)" nullable="false"/>
+    <column name="COMMIT_ID_TO" type="varchar(40)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_PULL_REQUEST_PK" tableName="PULL_REQUEST" columnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_PULL_REQUEST_FK0" baseTableName="PULL_REQUEST" baseColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID" referencedTableName="ISSUE" referencedColumnNames="USER_NAME, REPOSITORY_NAME, ISSUE_ID"/>
+
+  <!--================================================================================================-->
+  <!-- SSH_KEY -->
+  <!--================================================================================================-->
+  <createTable tableName="SSH_KEY">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="SSH_KEY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="TITLE" type="varchar(100)" nullable="false"/>
+    <column name="PUBLIC_KEY" type="text" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_SSH_KEY_PK" tableName="SSH_KEY" columnNames="USER_NAME, SSH_KEY_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_SSH_KEY_FK0" baseTableName="SSH_KEY" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- WEB_HOOK -->
+  <!--================================================================================================-->
+  <createTable tableName="WEB_HOOK">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="URL" type="varchar(200)" nullable="false"/>
+    <column name="TOKEN" type="varchar(100)" nullable="true"/>
+    <column name="CTYPE" type="varchar(10)" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_WEB_HOOK_PK" tableName="WEB_HOOK" columnNames="USER_NAME, REPOSITORY_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_FK0" baseTableName="WEB_HOOK" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+
+  <!--================================================================================================-->
+  <!-- WEB_HOOK_EVENT -->
+  <!--================================================================================================-->
+  <createTable tableName="WEB_HOOK_EVENT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="URL" type="varchar(200)" nullable="false"/>
+    <column name="EVENT" type="varchar(30)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_WEB_HOOK_EVENT_PK" tableName="WEB_HOOK_EVENT" columnNames="USER_NAME, REPOSITORY_NAME, URL, EVENT"/>
+  <addForeignKeyConstraint constraintName="IDX_WEB_HOOK_EVENT_FK0" baseTableName="WEB_HOOK_EVENT" baseColumnNames="USER_NAME, REPOSITORY_NAME, URL" referencedTableName="WEB_HOOK" referencedColumnNames="USER_NAME, REPOSITORY_NAME, URL" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <!--================================================================================================-->
+  <!-- PROTECTED_BRANCH -->
+  <!--================================================================================================-->
+  <createTable tableName="PROTECTED_BRANCH">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="BRANCH" type="varchar(100)" nullable="false"/>
+    <column name="STATUS_CHECK_ADMIN" type="boolean" nullable="false" defaultValueBoolean="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_PK" tableName="PROTECTED_BRANCH" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_FK0" baseTableName="PROTECTED_BRANCH" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+  <!--================================================================================================-->
+  <!-- PROTECTED_BRANCH_REQUIRE_CONTEXT -->
+  <!--================================================================================================-->
+  <createTable tableName="PROTECTED_BRANCH_REQUIRE_CONTEXT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="BRANCH" type="varchar(100)" nullable="false"/>
+    <column name="CONTEXT" type="varchar(255)" nullable="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_PK" tableName="PROTECTED_BRANCH_REQUIRE_CONTEXT" columnNames="USER_NAME, REPOSITORY_NAME, BRANCH, CONTEXT"/>
+  <addForeignKeyConstraint constraintName="IDX_PROTECTED_BRANCH_REQUIRE_CONTEXT_FK0" baseTableName="PROTECTED_BRANCH_REQUIRE_CONTEXT" baseColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" referencedTableName="PROTECTED_BRANCH" referencedColumnNames="USER_NAME, REPOSITORY_NAME, BRANCH" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+</changeSet>

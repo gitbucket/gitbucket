@@ -1,6 +1,11 @@
 language: scala
-sudo: false
+sudo: true
 script:
   - sbt test
 jdk:
   - oraclejdk8
+before_script:
+  - sudo apt-get install libaio1
+  - sudo /etc/init.d/mysql stop
+  - sudo /etc/init.d/postgresql stop
+

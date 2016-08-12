@@ -1,11 +1,11 @@
-@(content: Option[String], issueId: Int, owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@helper.html.attached(owner, repository){
+@(content: Option[String], issueId: Int,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.helper.html.attached(repository, "issues"){
   <textarea id="edit-content" class="form-control">@content.getOrElse("")</textarea>
 }
 <div>
-  <input type="button" id="cancel-issue" class="btn btn-lg btn-danger" value="Cancel"/>
-  <input type="button" id="update-issue" class="btn btn-lg btn-default pull-right" value="Update comment"/>
+  <input type="button" id="cancel-issue" class="btn btn-danger" value="Cancel"/>
+  <input type="button" id="update-issue" class="btn btn-default pull-right" value="Update comment"/>
 </div>
 <script>
 $(function(){
@@ -17,7 +17,7 @@ $(function(){
   $('#update-issue').click(function(){
     $('#update, #cancel').attr('disabled', 'disabled');
     $.ajax({
-      url: '@path/@owner/@repository/issues/edit/@issueId',
+      url: '@context.path/@repository.owner/@repository.name/issues/edit/@issueId',
       type: 'POST',
       data: {
         content : $('#edit-content').val()
@@ -31,7 +31,7 @@ $(function(){
 
   $('#cancel-issue').click(function(){
     $('#update, #cancel').attr('disabled', 'disabled');
-    $.get('@path/@owner/@repository/issues/_data/@issueId', callback);
+    $.get('@context.path/@repository.owner/@repository.name/issues/_data/@issueId', callback);
     return false;
   });
 });

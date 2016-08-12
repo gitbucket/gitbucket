@@ -1,18 +1,14 @@
-@(account: gitbucket.core.model.Account, info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@(account: gitbucket.core.model.Account, info: Option[Any], error: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.util.LDAPUtil
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Edit your profile"){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Edit your profile"){
 <div class="container body">
-  <div class="row">
-    <div class="col-md-3">
-      @menu("profile", settings.ssh)
-    </div>
-    <div class="col-md-9">
-      @helper.html.information(info)
-      @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
-      <form action="@url(account.userName)/_edit" method="POST" validate="true">
-      <div class="panel panelcustom">
+  @gitbucket.core.account.html.menu("profile", context.settings.ssh){
+    @gitbucket.core.helper.html.information(info)
+    @gitbucket.core.helper.html.error(error)
+    @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}
+    <form action="@helpers.url(account.userName)/_edit" method="POST" validate="true">
+      <div class="panel panel-default">
         <div class="panel-heading strong">Profile</div>
         <div class="panel-body">
           <div class="row">
@@ -45,21 +41,21 @@
             <div class="col-md-6">
               <fieldset class="form-group">
                 <label for="avatar" class="strong">Image (optional):</label>
-                @helper.html.uploadavatar(Some(account))
+                @gitbucket.core.helper.html.uploadavatar(Some(account))
               </fieldset>
             </div>
           </div>
-          <div style="margin-top: 20px;">
-            <div class="pull-right">
-              <a href="@path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
-            </div>
-            <input type="submit" class="btn btn-success" value="Save"/>
-            @if(!LDAPUtil.isDummyMailAddress(account)){<a href="@url(account.userName)" class="btn btn-default">Cancel</a>}
-          </div>
         </div>
       </div>
+      <div>
+        <div class="pull-right">
+          <a href="@context.path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
+        </div>
+        <input type="submit" class="btn btn-success" value="Save"/>
+        @if(!LDAPUtil.isDummyMailAddress(account)){<a href="@helpers.url(account.userName)" class="btn btn-default">Cancel</a>}
+      </div>
     </form>
-  </div>
+  }
 </div>
 }
 <script>

@@ -1,9 +1,8 @@
 package gitbucket.core.controller
 
-import gitbucket.core.api._
 import gitbucket.core.helper.xml
 import gitbucket.core.model.Account
-import gitbucket.core.service.{RepositoryService, ActivityService, AccountService, RepositorySearchService, IssuesService}
+import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator, ReferrerAuthenticator, StringUtil}
@@ -18,7 +17,7 @@ class IndexController extends IndexControllerBase
 
 trait IndexControllerBase extends ControllerBase {
   self: RepositoryService with ActivityService with AccountService with RepositorySearchService
-    with UsersAuthenticator with ReferrerAuthenticator  =>
+    with UsersAuthenticator with ReferrerAuthenticator =>
 
   case class SignInForm(userName: String, password: String)
 
@@ -35,10 +34,11 @@ trait IndexControllerBase extends ControllerBase {
 
   case class SearchForm(query: String, owner: String, repository: String)
 
+
   get("/"){
     val loginAccount = context.loginAccount
     if(loginAccount.isEmpty) {
-        gitbucket.core.html.indexcontent(getRecentActivities(),
+        gitbucket.core.html.index(getRecentActivities(),
             getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
@@ -49,7 +49,7 @@ trait IndexControllerBase extends ControllerBase {
         
         visibleOwnerSet ++= loginUserGroups
 
-        gitbucket.core.html.indexcontent(getRecentActivitiesByOwners(visibleOwnerSet),
+        gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet),
             getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
             loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil) 
         )
@@ -70,7 +70,7 @@ trait IndexControllerBase extends ControllerBase {
       case None          => redirect("/signin")
     }
   }
-    
+
   post("/signinoffline", signinForm){ form =>
     authenticate(context.settings, form.userName, form.password) match {
       case Some(account) => {
@@ -127,18 +127,10 @@ trait IndexControllerBase extends ControllerBase {
    * JSON API for checking user existence.
    */
   post("/_user/existence")(usersOnly {
-    getAccountByUserName(params("userName")).isDefined
+    getAccountByUserName(params("userName")).map { account =>
+      if(params.get("userOnly").isDefined) !account.isGroupAccount else true
+    } getOrElse false
   })
-
-  /**
-   * @see https://developer.github.com/v3/rate_limit/#get-your-current-rate-limit-status
-   * but not enabled.
-   */
-  get("/api/v3/rate_limit"){
-    contentType = formats("json")
-    // this message is same as github enterprise...
-    org.scalatra.NotFound(ApiError("Rate limiting is not enabled."))
-  }
 
   // TODO Move to RepositoryViwerController?
   post("/search", searchForm){ form =>
@@ -157,13 +149,21 @@ trait IndexControllerBase extends ControllerBase {
 
       target.toLowerCase match {
         case "issue" => gitbucket.core.search.html.issues(
-          searchIssues(repository.owner, repository.name, query),
           countFiles(repository.owner, repository.name, query),
+          searchIssues(repository.owner, repository.name, query),
+          countWikiPages(repository.owner, repository.name, query),
+          query, page, repository)
+
+        case "wiki" => gitbucket.core.search.html.wiki(
+          countFiles(repository.owner, repository.name, query),
+          countIssues(repository.owner, repository.name, query),
+          searchWikiPages(repository.owner, repository.name, query),
           query, page, repository)
 
         case _ => gitbucket.core.search.html.code(
           searchFiles(repository.owner, repository.name, query),
           countIssues(repository.owner, repository.name, query),
+          countWikiPages(repository.owner, repository.name, query),
           query, page, repository)
       }
     }

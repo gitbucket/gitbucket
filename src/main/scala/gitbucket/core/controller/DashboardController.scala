@@ -83,9 +83,9 @@ trait DashboardControllerBase extends ControllerBase {
     } else session.getAs[IssueSearchCondition](key).getOrElse(IssueSearchCondition()))
 
     filter match {
-      case "assigned"  => condition.copy(assigned = Some(userName), author = None          , mentioned = None)
-      case "mentioned" => condition.copy(assigned = None          , author = None          , mentioned = Some(userName))
-      case _           => condition.copy(assigned = None          , author = Some(userName), mentioned = None)
+      case "assigned"  => condition.copy(assigned = Some(Some(userName)), author = None, mentioned = None)
+      case "mentioned" => condition.copy(assigned = None, author = None, mentioned = Some(userName))
+      case _           => condition.copy(assigned = None, author = Some(userName), mentioned = None)
     }
   }
 
@@ -97,23 +97,20 @@ trait DashboardControllerBase extends ControllerBase {
     val userRepos = getUserRepositories(userName, true).map(repo => repo.owner -> repo.name)
     val page      = IssueSearchCondition.page(request)
 
-    val loginAccount = context.loginAccount
-    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
-    
-
     html.issues(
       searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, userRepos: _*),
       page,
       countIssue(condition.copy(state = "open"  ), false, userRepos: _*),
       countIssue(condition.copy(state = "closed"), false, userRepos: _*),
       filter match {
-        case "assigned"  => condition.copy(assigned  = Some(userName))
+        case "assigned"  => condition.copy(assigned  = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
         case _           => condition.copy(author    = Some(userName))
       },
       filter,
       getGroupNames(userName),
-      userRepositories)
+      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 
   private def searchPullRequests(filter: String) = {
@@ -124,8 +121,6 @@ trait DashboardControllerBase extends ControllerBase {
     val condition = getOrCreateCondition(Keys.Session.DashboardPulls, filter, userName)
     val allRepos  = getAllRepositories(userName)
     val page      = IssueSearchCondition.page(request)
-    val loginAccount = context.loginAccount
-    val userRepositories = loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
 
     html.pulls(
       searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, allRepos: _*),
@@ -133,13 +128,14 @@ trait DashboardControllerBase extends ControllerBase {
       countIssue(condition.copy(state = "open"  ), true, allRepos: _*),
       countIssue(condition.copy(state = "closed"), true, allRepos: _*),
       filter match {
-        case "assigned"  => condition.copy(assigned  = Some(userName))
+        case "assigned"  => condition.copy(assigned  = Some(Some(userName)))
         case "mentioned" => condition.copy(mentioned = Some(userName))
         case _           => condition.copy(author    = Some(userName))
       },
       filter,
       getGroupNames(userName),
-      userRepositories)
+      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 
 

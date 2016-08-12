@@ -1,11 +1,10 @@
 @(users: List[gitbucket.core.model.Account], members: Map[String, List[String]], includeRemoved: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Manage Users"){
-  @admin.html.menu("users"){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Manage Users"){
+  @gitbucket.core.admin.html.menu("users"){
     <div class="pull-right" style="margin-bottom: 4px;">
-      <a href="@path/admin/users/_newuser" class="btn btn-default">New User</a>
-      <a href="@path/admin/users/_newgroup" class="btn btn-default">New Group</a>
+      <a href="@context.path/admin/users/_newuser" class="btn btn-default">New User</a>
+      <a href="@context.path/admin/users/_newgroup" class="btn btn-default">New Group</a>
     </div>
     <label for="includeRemoved">
       <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
@@ -17,14 +16,14 @@
           <td @if(account.isRemoved){style="background-color: #dddddd;"}>
             <div class="pull-right">
               @if(account.isGroupAccount){
-                <a href="@path/admin/users/@account.userName/_editgroup">Edit</a>
+                <a href="@context.path/admin/users/@account.userName/_editgroup">Edit</a>
               } else {
-                <a href="@path/admin/users/@account.userName/_edituser">Edit</a>
+                <a href="@context.path/admin/users/@account.userName/_edituser">Edit</a>
               }
             </div>
             <div class="strong">
-              @avatar(account.userName, 20)
-              <a href="@url(account.userName)">@account.userName</a>
+              @helpers.avatar(account.userName, 20)
+              <a href="@helpers.url(account.userName)">@account.userName</a>
               @if(account.isGroupAccount){
                 (Group)
               } else {
@@ -36,7 +35,7 @@
               }
               @if(account.isGroupAccount){
                 @members(account.userName).map { userName =>
-                  @avatar(userName, 20, tooltip = true)
+                  @helpers.avatar(userName, 20, tooltip = true)
                 }
               }
             </div>
@@ -50,10 +49,10 @@
               }
             </div>
             <div>
-              <span class="muted">Registered:</span> @datetime(account.registeredDate)
-              <span class="muted">Updated:</span> @datetime(account.updatedDate)
+              <span class="muted">Registered:</span> @helpers.datetime(account.registeredDate)
+              <span class="muted">Updated:</span> @helpers.datetime(account.updatedDate)
               @if(!account.isGroupAccount){
-                <span class="muted">Last Login:</span> @account.lastLoginDate.map(datetime)
+                <span class="muted">Last Login:</span> @account.lastLoginDate.map(helpers.datetime)
               }
             </div>
           </td>
@@ -65,7 +64,7 @@
 <script>
 $(function(){
   $('#includeRemoved').click(function(){
-    location.href = '@path/admin/users?includeRemoved=' + this.checked;
+    location.href = '@context.path/admin/users?includeRemoved=' + this.checked;
   });
 });
 </script>

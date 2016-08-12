@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+    <addColumn tableName="REPOSITORY">
+        <column name="ENABLE_ISSUES" type="boolean" nullable="false" defaultValueBoolean="true"/>
+        <column name="EXTERNAL_ISSUES_URL" type="varchar(200)" nullable="true"/>
+        <column name="ENABLE_WIKI" type="boolean" nullable="false" defaultValueBoolean="true"/>
+        <column name="ALLOW_WIKI_EDITING" type="boolean" nullable="false" defaultValueBoolean="false"/>
+        <column name="EXTERNAL_WIKI_URL" type="varchar(200)" nullable="true"/>
+    </addColumn>
+</changeSet>
