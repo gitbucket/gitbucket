@@ -24,7 +24,7 @@ trait CommitStatusService {
           }.update((state, targetUrl, now, creator.userName, description))
           id
         }
-        case None => (CommitStatuses returningId CommitStatuses.map(_.commitStatusId)) unsafeInsert CommitStatus(
+        case None => (CommitStatuses returning CommitStatuses.map(_.commitStatusId)) unsafeInsert CommitStatus(
             userName       = userName,
             repositoryName = repositoryName,
             commitId       = sha,

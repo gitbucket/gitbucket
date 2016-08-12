@@ -35,7 +35,7 @@ trait AccessTokenService {
         userName = userName,
         note = note,
         tokenHash = hash)
-    val tokenId = (AccessTokens returningId AccessTokens.map(_.accessTokenId)) unsafeInsert newToken
+    val tokenId = (AccessTokens returning AccessTokens.map(_.accessTokenId)) unsafeInsert newToken
     (tokenId, token)
   }
 

@@ -1,15 +1,9 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.CommitComment
-import gitbucket.core.util.{StringUtil, Implicits}
-
-//import slick.jdbc.{StaticQuery => Q}
-//import Q.interpolation
 import gitbucket.core.model.Profile._
 import profile._
 import profile.api._
-//import Implicits._
-//import StringUtil._
 
 
 trait CommitsService {
@@ -30,7 +24,7 @@ trait CommitsService {
   def createCommitComment(owner: String, repository: String, commitId: String, loginUser: String,
                           content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int],
                           issueId: Option[Int])(implicit s: Session): Int =
-    CommitComments returningId CommitComments.map(_.commentId) unsafeInsert CommitComment(
+    CommitComments returning CommitComments.map(_.commentId) unsafeInsert CommitComment(
       userName          = owner,
       repositoryName    = repository,
       commitId          = commitId,

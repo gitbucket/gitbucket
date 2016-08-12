@@ -265,7 +265,7 @@ trait IssuesService {
 
   def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String, action: String)(implicit s: Session): Int = {
-    IssueComments returningId IssueComments.map(_.commentId) unsafeInsert IssueComment(
+    IssueComments returning IssueComments.map(_.commentId) unsafeInsert IssueComment(
       userName          = owner,
       repositoryName    = repository,
       issueId           = issueId,
