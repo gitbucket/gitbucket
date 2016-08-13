@@ -8,7 +8,8 @@ import gitbucket.core.model.Profile._
 import io.github.gitbucket.solidbase.Solidbase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
-import profile.simple._
+import profile._
+import profile.blockingApi._
 import scalaz._
 import Scalaz._
 
