@@ -172,14 +172,18 @@ trait IssuesService {
     searchIssueQuery(repos, condition, pullRequest)
         .join(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
         .sortBy { case (t1, t2) =>
-          (condition.sort match {
-            case "created"  => t1.registeredDate
-            case "comments" => t2.commentCount
-            case "updated"  => t1.updatedDate
-          }) match {
-            case sort: slick.lifted.ColumnOrdered[_] => condition.direction match {
-              case "asc"  => sort asc
-              case "desc" => sort desc
+          condition.sort match {
+            case "created" => condition.direction match {
+              case "asc"  => t1.registeredDate asc
+              case "desc" => t1.registeredDate desc
+            }
+            case "comments" => condition.direction match {
+              case "asc"  => t2.commentCount asc
+              case "desc" => t2.commentCount desc
+            }
+            case "updated" => condition.direction match {
+              case "asc"  => t1.updatedDate asc
+              case "desc" => t1.updatedDate desc
             }
           }
         }
