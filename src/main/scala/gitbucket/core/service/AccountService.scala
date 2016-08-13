@@ -7,7 +7,7 @@ import gitbucket.core.util.{StringUtil, LDAPUtil}
 import StringUtil._
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import profile._
-import profile.api._
+import profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 trait AccountService {
@@ -105,7 +105,7 @@ trait AccountService {
 
   def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
                    (implicit s: Session): Unit =
-    Accounts unsafeInsert Account(
+    Accounts insert Account(
       userName       = userName,
       password       = password,
       fullName       = fullName,
@@ -123,7 +123,7 @@ trait AccountService {
     Accounts
       .filter { a =>  a.userName === account.userName.bind }
       .map    { a => (a.password, a.fullName, a.mailAddress, a.isAdmin, a.url.?, a.registeredDate, a.updatedDate, a.lastLoginDate.?, a.removed) }
-      .unsafeUpdate (
+      .update (
         account.password,
         account.fullName,
         account.mailAddress,
@@ -135,13 +135,13 @@ trait AccountService {
         account.isRemoved)
 
   def updateAvatarImage(userName: String, image: Option[String])(implicit s: Session): Unit =
-    Accounts.filter(_.userName === userName.bind).map(_.image.?).unsafeUpdate(image)
+    Accounts.filter(_.userName === userName.bind).map(_.image.?).update(image)
 
   def updateLastLoginDate(userName: String)(implicit s: Session): Unit =
-    Accounts.filter(_.userName === userName.bind).map(_.lastLoginDate).unsafeUpdate(currentDate)
+    Accounts.filter(_.userName === userName.bind).map(_.lastLoginDate).update(currentDate)
 
   def createGroup(groupName: String, url: Option[String])(implicit s: Session): Unit =
-    Accounts unsafeInsert Account(
+    Accounts insert Account(
       userName       = groupName,
       password       = "",
       fullName       = groupName,
@@ -156,12 +156,12 @@ trait AccountService {
       isRemoved      = false)
 
   def updateGroup(groupName: String, url: Option[String], removed: Boolean)(implicit s: Session): Unit =
-    Accounts.filter(_.userName === groupName.bind).map(t => t.url.? -> t.removed).unsafeUpdate(url, removed)
+    Accounts.filter(_.userName === groupName.bind).map(t => t.url.? -> t.removed).update(url, removed)
 
   def updateGroupMembers(groupName: String, members: List[(String, Boolean)])(implicit s: Session): Unit = {
     GroupMembers.filter(_.groupName === groupName.bind).delete
     members.foreach { case (userName, isManager) =>
-      GroupMembers unsafeInsert GroupMember (groupName, userName, isManager)
+      GroupMembers insert GroupMember (groupName, userName, isManager)
     }
   }
 
@@ -179,9 +179,9 @@ trait AccountService {
       .list
 
   def removeUserRelatedData(userName: String)(implicit s: Session): Unit = {
-    GroupMembers.filter(_.userName === userName.bind).unsafeDelete
-    Collaborators.filter(_.collaboratorName === userName.bind).unsafeDelete
-    Repositories.filter(_.userName === userName.bind).unsafeDelete
+    GroupMembers.filter(_.userName === userName.bind).delete
+    Collaborators.filter(_.collaboratorName === userName.bind).delete
+    Repositories.filter(_.userName === userName.bind).delete
   }
 
   def getGroupNames(userName: String)(implicit s: Session): List[String] = {

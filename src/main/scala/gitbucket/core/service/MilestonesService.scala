@@ -3,14 +3,14 @@ package gitbucket.core.service
 import gitbucket.core.model.Milestone
 import gitbucket.core.model.Profile._
 import profile._
-import profile.api._
+import profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 trait MilestonesService {
 
   def createMilestone(owner: String, repository: String, title: String, description: Option[String],
                       dueDate: Option[java.util.Date])(implicit s: Session): Unit =
-    Milestones unsafeInsert Milestone(
+    Milestones insert Milestone(
       userName       = owner,
       repositoryName = repository,
       title          = title,

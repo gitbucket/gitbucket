@@ -4,7 +4,7 @@ import gitbucket.core.model.{Account, Issue, PullRequest, WebHook, CommitStatus,
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile._
-import profile.api._
+import profile.blockingApi._
 
 
 trait PullRequestService { self: IssuesService =>
@@ -60,7 +60,7 @@ trait PullRequestService { self: IssuesService =>
   def createPullRequest(originUserName: String, originRepositoryName: String, issueId: Int,
         originBranch: String, requestUserName: String, requestRepositoryName: String, requestBranch: String,
         commitIdFrom: String, commitIdTo: String)(implicit s: Session): Unit =
-    PullRequests unsafeInsert PullRequest(
+    PullRequests insert PullRequest(
       originUserName,
       originRepositoryName,
       issueId,

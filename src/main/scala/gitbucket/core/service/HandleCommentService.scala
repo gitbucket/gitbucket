@@ -6,7 +6,7 @@ import gitbucket.core.model.Profile._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Notifier
-import profile.api._
+import profile.blockingApi._
 
 trait HandleCommentService {
   self: RepositoryService with IssuesService with ActivityService

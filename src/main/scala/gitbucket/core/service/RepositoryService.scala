@@ -5,7 +5,7 @@ import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.{Collaborator, Repository, Account}
 import gitbucket.core.model.Profile._
 import profile._
-import profile.api._
+import profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 trait RepositoryService { self: AccountService =>
@@ -25,7 +25,7 @@ trait RepositoryService { self: AccountService =>
                        originRepositoryName: Option[String] = None, originUserName: Option[String] = None,
                        parentRepositoryName: Option[String] = None, parentUserName: Option[String] = None)
                       (implicit s: Session): Unit = {
-    Repositories unsafeInsert
+    Repositories insert
       Repository(
         userName             = userName,
         repositoryName       = repositoryName,
@@ -46,14 +46,14 @@ trait RepositoryService { self: AccountService =>
         externalWikiUrl      = None
       )
 
-    IssueId unsafeInsert (userName, repositoryName, 0)
+    IssueId insert (userName, repositoryName, 0)
   }
 
   def renameRepository(oldUserName: String, oldRepositoryName: String, newUserName: String, newRepositoryName: String)
                       (implicit s: Session): Unit = {
     getAccountByUserName(newUserName).foreach { account =>
       (Repositories filter { t => t.byRepository(oldUserName, oldRepositoryName) } firstOption).map { repository =>
-        Repositories unsafeInsert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
+        Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
         val webHooks                = WebHooks               .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val webHookEvents           = WebHookEvents          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
@@ -72,17 +72,17 @@ trait RepositoryService { self: AccountService =>
 
         Repositories.filter { t =>
           (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
-        }.map { t => t.originUserName -> t.originRepositoryName }.unsafeUpdate(newUserName, newRepositoryName)
+        }.map { t => t.originUserName -> t.originRepositoryName }.update(newUserName, newRepositoryName)
 
         Repositories.filter { t =>
           (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
-        }.map { t => t.originUserName -> t.originRepositoryName }.unsafeUpdate(newUserName, newRepositoryName)
+        }.map { t => t.originUserName -> t.originRepositoryName }.update(newUserName, newRepositoryName)
 
         // Updates activity fk before deleting repository because activity is sorted by activityId
         // and it can't be changed by deleting-and-inserting record.
         Activities.filter(_.byRepository(oldUserName, oldRepositoryName)).list.foreach { activity =>
           Activities.filter(_.activityId === activity.activityId.bind)
-            .map(x => (x.userName, x.repositoryName)).unsafeUpdate(newUserName, newRepositoryName)
+            .map(x => (x.userName, x.repositoryName)).update(newUserName, newRepositoryName)
         }
 
         deleteRepository(oldUserName, oldRepositoryName)
@@ -112,7 +112,7 @@ trait RepositoryService { self: AccountService =>
         // Update source repository of pull requests
         PullRequests.filter { t =>
           (t.requestUserName === oldUserName.bind) && (t.requestRepositoryName === oldRepositoryName.bind)
-        }.map { t => t.requestUserName -> t.requestRepositoryName }.unsafeUpdate(newUserName, newRepositoryName)
+        }.map { t => t.requestUserName -> t.requestRepositoryName }.update(newUserName, newRepositoryName)
 
         // Convert labelId
         val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
@@ -140,7 +140,7 @@ trait RepositoryService { self: AccountService =>
           (t.message like s"%:${oldUserName}/${oldRepositoryName}#%") ||
           (t.message like s"%:${oldUserName}/${oldRepositoryName}@%")
         }.map { t => t.activityId -> t.message }.list.foreach { case (activityId, message) =>
-          Activities.filter(_.activityId === activityId.bind).map(_.message).unsafeUpdate(
+          Activities.filter(_.activityId === activityId.bind).map(_.message).update(
             message
               .replace(s"[repo:${oldUserName}/${oldRepositoryName}]"   ,s"[repo:${newUserName}/${newRepositoryName}]")
               .replace(s"[branch:${oldUserName}/${oldRepositoryName}#" ,s"[branch:${newUserName}/${newRepositoryName}#")
@@ -155,19 +155,19 @@ trait RepositoryService { self: AccountService =>
   }
 
   def deleteRepository(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    Activities    .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    Collaborators .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    CommitComments.filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    IssueLabels   .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    Labels        .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    IssueComments .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    PullRequests  .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    Issues        .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    IssueId       .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    Milestones    .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    WebHooks      .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    WebHookEvents .filter(_.byRepository(userName, repositoryName)).unsafeDelete
-    Repositories  .filter(_.byRepository(userName, repositoryName)).unsafeDelete
+    Activities    .filter(_.byRepository(userName, repositoryName)).delete
+    Collaborators .filter(_.byRepository(userName, repositoryName)).delete
+    CommitComments.filter(_.byRepository(userName, repositoryName)).delete
+    IssueLabels   .filter(_.byRepository(userName, repositoryName)).delete
+    Labels        .filter(_.byRepository(userName, repositoryName)).delete
+    IssueComments .filter(_.byRepository(userName, repositoryName)).delete
+    PullRequests  .filter(_.byRepository(userName, repositoryName)).delete
+    Issues        .filter(_.byRepository(userName, repositoryName)).delete
+    IssueId       .filter(_.byRepository(userName, repositoryName)).delete
+    Milestones    .filter(_.byRepository(userName, repositoryName)).delete
+    WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
+    WebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
+    Repositories  .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
     Repositories
@@ -178,7 +178,7 @@ trait RepositoryService { self: AccountService =>
         Repositories
           .filter(_.byRepository(userName, repositoryName))
           .map(x => (x.originUserName?, x.originRepositoryName?))
-          .unsafeUpdate(None, None)
+          .update(None, None)
       }
 
     // Update PARENT_USER_NAME and PARENT_REPOSITORY_NAME
@@ -190,7 +190,7 @@ trait RepositoryService { self: AccountService =>
         Repositories
           .filter(_.byRepository(userName, repositoryName))
           .map(x => (x.parentUserName?, x.parentRepositoryName?))
-          .unsafeUpdate(None, None)
+          .update(None, None)
       }
   }
 
@@ -319,7 +319,7 @@ trait RepositoryService { self: AccountService =>
    * Updates the last activity date of the repository.
    */
   def updateLastActivityDate(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    Repositories.filter(_.byRepository(userName, repositoryName)).map(_.lastActivityDate).unsafeUpdate(currentDate)
+    Repositories.filter(_.byRepository(userName, repositoryName)).map(_.lastActivityDate).update(currentDate)
   }
 
   /**
@@ -331,14 +331,14 @@ trait RepositoryService { self: AccountService =>
       enableWiki: Boolean, allowWikiEditing: Boolean, externalWikiUrl: Option[String])(implicit s: Session): Unit = {
     Repositories.filter(_.byRepository(userName, repositoryName))
       .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.externalIssuesUrl.?, r.enableWiki, r.allowWikiEditing, r.externalWikiUrl.?, r.updatedDate) }
-      .unsafeUpdate (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, currentDate)
+      .update (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, currentDate)
   }
 
   def saveRepositoryDefaultBranch(userName: String, repositoryName: String,
       defaultBranch: String)(implicit s: Session): Unit =
     Repositories.filter(_.byRepository(userName, repositoryName))
       .map { r => r.defaultBranch }
-      .unsafeUpdate (defaultBranch)
+      .update (defaultBranch)
 
   /**
    * Add collaborator to the repository.
@@ -348,7 +348,7 @@ trait RepositoryService { self: AccountService =>
    * @param collaboratorName the collaborator name
    */
   def addCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
-    Collaborators unsafeInsert Collaborator(userName, repositoryName, collaboratorName)
+    Collaborators insert Collaborator(userName, repositoryName, collaboratorName)
 
   /**
    * Remove collaborator from the repository.
@@ -358,7 +358,7 @@ trait RepositoryService { self: AccountService =>
    * @param collaboratorName the collaborator name
    */
   def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
-    Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).unsafeDelete
+    Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
 
   /**
    * Remove all collaborators from the repository.
@@ -367,7 +367,7 @@ trait RepositoryService { self: AccountService =>
    * @param repositoryName the repository name
    */
   def removeCollaborators(userName: String, repositoryName: String)(implicit s: Session): Unit =
-    Collaborators.filter(_.byRepository(userName, repositoryName)).unsafeDelete
+    Collaborators.filter(_.byRepository(userName, repositoryName)).delete
 
   /**
    * Returns the list of collaborators name which is sorted with ascending order.

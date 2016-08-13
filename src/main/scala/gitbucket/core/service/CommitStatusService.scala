@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
 import profile._
-import profile.api._
+import profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.model.{CommitState, CommitStatus, Account}
 
@@ -19,7 +19,7 @@ trait CommitStatusService {
           }.update((state, targetUrl, now, creator.userName, description))
           id
         }
-        case None => (CommitStatuses returning CommitStatuses.map(_.commitStatusId)) unsafeInsert CommitStatus(
+        case None => (CommitStatuses returning CommitStatuses.map(_.commitStatusId)) insert CommitStatus(
             userName       = userName,
             repositoryName = repositoryName,
             commitId       = sha,

@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigFactory
 import java.io.File
 
 import Directory._
-import com.github.takezoe.slick.blocking.{BlockingH2Driver, BlockingMySQLDriver, SlickBlockingAPI}
+import com.github.takezoe.slick.blocking.{BlockingH2Driver, BlockingMySQLDriver, BlockingJdbcProfile}
 import liquibase.database.AbstractJdbcDatabase
 import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
 import org.apache.commons.io.FileUtils
@@ -34,14 +34,14 @@ object DatabaseConfig {
   lazy val user: String = config.getString("db.user")
   lazy val password: String = config.getString("db.password")
   lazy val jdbcDriver: String = DatabaseType(url).jdbcDriver
-  lazy val slickDriver: SlickBlockingAPI = DatabaseType(url).slickDriver
+  lazy val slickDriver: BlockingJdbcProfile = DatabaseType(url).slickDriver
   lazy val liquiDriver: AbstractJdbcDatabase = DatabaseType(url).liquiDriver
 
 }
 
 sealed trait DatabaseType {
   val jdbcDriver: String
-  val slickDriver: SlickBlockingAPI
+  val slickDriver: BlockingJdbcProfile
   val liquiDriver: AbstractJdbcDatabase
 }
 
@@ -77,7 +77,7 @@ object DatabaseType {
     val liquiDriver = new PostgresDatabase()
   }
 
-  object BlockingPostgresDriver extends slick.driver.PostgresDriver with SlickBlockingAPI {
+  object BlockingPostgresDriver extends slick.driver.PostgresDriver with BlockingJdbcProfile {
     override def quoteIdentifier(id: String): String = {
       val s = new StringBuilder(id.length + 4) append '"'
       for(c <- id) if(c == '"') s append "\"\"" else s append c.toLower

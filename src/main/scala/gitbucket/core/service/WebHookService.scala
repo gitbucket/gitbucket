@@ -7,7 +7,7 @@ import gitbucket.core.model.{WebHook, Account, Issue, PullRequest, IssueComment,
 import gitbucket.core.model.Profile._
 import org.apache.http.client.utils.URLEncodedUtils
 import profile._
-import profile.api._
+import profile.blockingApi._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.service.RepositoryService.RepositoryInfo
@@ -54,22 +54,22 @@ trait WebHookService {
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).headOption
 
   def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType,  token: Option[String])(implicit s: Session): Unit = {
-    WebHooks unsafeInsert WebHook(owner, repository, url, ctype, token)
+    WebHooks insert WebHook(owner, repository, url, ctype, token)
     events.toSet.map { event: WebHook.Event =>
-      WebHookEvents unsafeInsert WebHookEvent(owner, repository, url, event)
+      WebHookEvents insert WebHookEvent(owner, repository, url, event)
     }
   }
 
   def updateWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])(implicit s: Session): Unit = {
-    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => (w.ctype, w.token)).unsafeUpdate((ctype, token))
-    WebHookEvents.filter(_.byWebHook(owner, repository, url)).unsafeDelete
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => (w.ctype, w.token)).update((ctype, token))
+    WebHookEvents.filter(_.byWebHook(owner, repository, url)).delete
     events.toSet.map { event: WebHook.Event =>
-      WebHookEvents unsafeInsert WebHookEvent(owner, repository, url, event)
+      WebHookEvents insert WebHookEvent(owner, repository, url, event)
     }
   }
 
   def deleteWebHook(owner: String, repository: String, url :String)(implicit s: Session): Unit =
-    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).unsafeDelete
+    WebHooks.filter(_.byPrimaryKey(owner, repository, url)).delete
 
   def callWebHookOf(owner: String, repository: String, event: WebHook.Event)(makePayload: => Option[WebHookPayload])
                    (implicit s: Session, c: JsonFormat.Context): Unit = {

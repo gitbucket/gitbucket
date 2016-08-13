@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
 import profile._
-import profile.api._
+import profile.blockingApi._
 
 import gitbucket.core.model.{Account, AccessToken}
 import gitbucket.core.util.StringUtil
@@ -35,7 +35,7 @@ trait AccessTokenService {
         userName = userName,
         note = note,
         tokenHash = hash)
-    val tokenId = (AccessTokens returning AccessTokens.map(_.accessTokenId)) unsafeInsert newToken
+    val tokenId = (AccessTokens returning AccessTokens.map(_.accessTokenId)) insert newToken
     (tokenId, token)
   }
 
@@ -50,7 +50,7 @@ trait AccessTokenService {
     AccessTokens.filter(_.userName === userName.bind).sortBy(_.accessTokenId.desc).list
 
   def deleteAccessToken(userName: String, accessTokenId: Int)(implicit s: Session): Unit =
-    AccessTokens filter (t => t.userName === userName.bind && t.accessTokenId === accessTokenId) unsafeDelete
+    AccessTokens filter (t => t.userName === userName.bind && t.accessTokenId === accessTokenId) delete
 
 }
 

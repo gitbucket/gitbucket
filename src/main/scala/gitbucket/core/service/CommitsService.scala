@@ -3,7 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.model.CommitComment
 import gitbucket.core.model.Profile._
 import profile._
-import profile.api._
+import profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 trait CommitsService {
@@ -24,7 +24,7 @@ trait CommitsService {
   def createCommitComment(owner: String, repository: String, commitId: String, loginUser: String,
                           content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int],
                           issueId: Option[Int])(implicit s: Session): Int =
-    CommitComments returning CommitComments.map(_.commentId) unsafeInsert CommitComment(
+    CommitComments returning CommitComments.map(_.commentId) insert CommitComment(
       userName          = owner,
       repositoryName    = repository,
       commitId          = commitId,
@@ -41,9 +41,9 @@ trait CommitsService {
     CommitComments
       .filter (_.byPrimaryKey(commentId))
       .map { t => (t.content, t.updatedDate) }
-      .unsafeUpdate (content, currentDate)
+      .update (content, currentDate)
   }
 
   def deleteCommitComment(commentId: Int)(implicit s: Session) =
-    CommitComments filter (_.byPrimaryKey(commentId)) unsafeDelete
+    CommitComments filter (_.byPrimaryKey(commentId)) delete
 }

@@ -6,7 +6,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.model.{Account, CommitState, Issue, IssueComment, IssueLabel, Label, PullRequest, Repository}
 import gitbucket.core.model.Profile._
 import profile._
-import profile.api._
+import profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 
@@ -235,7 +235,7 @@ trait IssuesService {
     // next id number
     sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
         .firstOption.filter { id =>
-      Issues unsafeInsert Issue(
+      Issues insert Issue(
           owner,
           repository,
           id,
@@ -253,18 +253,18 @@ trait IssuesService {
       IssueId
         .filter (_.byPrimaryKey(owner, repository))
         .map (_.issueId)
-        .unsafeUpdate (id) > 0
+        .update (id) > 0
     } get
 
   def registerIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int)(implicit s: Session) =
-    IssueLabels unsafeInsert IssueLabel(owner, repository, issueId, labelId)
+    IssueLabels insert IssueLabel(owner, repository, issueId, labelId)
 
   def deleteIssueLabel(owner: String, repository: String, issueId: Int, labelId: Int)(implicit s: Session) =
-    IssueLabels filter(_.byPrimaryKey(owner, repository, issueId, labelId)) unsafeDelete
+    IssueLabels filter(_.byPrimaryKey(owner, repository, issueId, labelId)) delete
 
   def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String, action: String)(implicit s: Session): Int = {
-    IssueComments returning IssueComments.map(_.commentId) unsafeInsert IssueComment(
+    IssueComments returning IssueComments.map(_.commentId) insert IssueComment(
       userName          = owner,
       repositoryName    = repository,
       issueId           = issueId,
@@ -279,26 +279,26 @@ trait IssuesService {
     Issues
       .filter (_.byPrimaryKey(owner, repository, issueId))
       .map { t => (t.title, t.content.?, t.updatedDate) }
-      .unsafeUpdate (title, content, currentDate)
+      .update (title, content, currentDate)
   }
 
   def updateAssignedUserName(owner: String, repository: String, issueId: Int,
                              assignedUserName: Option[String])(implicit s: Session) =
-    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.assignedUserName?).unsafeUpdate (assignedUserName)
+    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.assignedUserName?).update (assignedUserName)
 
   def updateMilestoneId(owner: String, repository: String, issueId: Int,
                         milestoneId: Option[Int])(implicit s: Session) =
-    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.milestoneId?).unsafeUpdate (milestoneId)
+    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.milestoneId?).update (milestoneId)
 
   def updateComment(commentId: Int, content: String)(implicit s: Session) = {
-    IssueComments.filter (_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).unsafeUpdate(content, currentDate)
+    IssueComments.filter (_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).update(content, currentDate)
   }
 
   def deleteComment(commentId: Int)(implicit s: Session) =
-    IssueComments filter (_.byPrimaryKey(commentId)) unsafeDelete
+    IssueComments filter (_.byPrimaryKey(commentId)) delete
 
   def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean)(implicit s: Session) = {
-    (Issues filter (_.byPrimaryKey(owner, repository, issueId)) map(t => (t.closed, t.updatedDate))).unsafeUpdate((closed, currentDate))
+    (Issues filter (_.byPrimaryKey(owner, repository, issueId)) map(t => (t.closed, t.updatedDate))).update((closed, currentDate))
   }
 
   /**

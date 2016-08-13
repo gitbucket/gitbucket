@@ -4,7 +4,7 @@ import gitbucket.core.model.{ProtectedBranch, ProtectedBranchContext, CommitStat
 import gitbucket.core.model.Profile._
 import gitbucket.core.plugin.ReceiveHook
 import profile._
-import profile.api._
+import profile.blockingApi._
 
 import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 
@@ -33,9 +33,9 @@ trait ProtectedBranchService {
   def enableBranchProtection(owner: String, repository: String, branch:String, includeAdministrators: Boolean, contexts: Seq[String])
                             (implicit session: Session): Unit = {
     disableBranchProtection(owner, repository, branch)
-    ProtectedBranches.unsafeInsert(new ProtectedBranch(owner, repository, branch, includeAdministrators && contexts.nonEmpty))
+    ProtectedBranches.insert(new ProtectedBranch(owner, repository, branch, includeAdministrators && contexts.nonEmpty))
     contexts.map{ context =>
-      ProtectedBranchContexts.unsafeInsert(new ProtectedBranchContext(owner, repository, branch, context))
+      ProtectedBranchContexts.insert(new ProtectedBranchContext(owner, repository, branch, context))
     }
   }
 

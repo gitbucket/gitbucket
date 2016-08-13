@@ -1,11 +1,11 @@
 package gitbucket.core.model
 
 import gitbucket.core.util.DatabaseConfig
-import com.github.takezoe.slick.blocking.SlickBlockingAPI
+import com.github.takezoe.slick.blocking.BlockingJdbcProfile
 
 trait Profile {
-  val profile: SlickBlockingAPI
-  import profile.api._
+  val profile: BlockingJdbcProfile
+  import profile.blockingApi._
 
   /**
    * java.util.Date Mapped Column Types
