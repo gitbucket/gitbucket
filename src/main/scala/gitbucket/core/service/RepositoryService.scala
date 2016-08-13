@@ -1,11 +1,12 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
+import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.{Collaborator, Repository, Account}
 import gitbucket.core.model.Profile._
-import gitbucket.core.util.JGitUtil
 import profile._
 import profile.api._
+import gitbucket.core.model.Profile.dateColumnType
 
 trait RepositoryService { self: AccountService =>
   import RepositoryService._
@@ -237,8 +238,6 @@ trait RepositoryService { self: AccountService =>
    * @return the repository information list
    */
   def getAllRepositories(userName: String)(implicit s: Session): List[(String, String)] = {
-    import gitbucket.core.model.Profile.dateColumnType
-
     Repositories.filter { t1 =>
       (t1.isPrivate === false.bind) ||
       (t1.userName  === userName.bind) ||
@@ -249,8 +248,6 @@ trait RepositoryService { self: AccountService =>
   }
 
   def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)(implicit s: Session): List[RepositoryInfo] = {
-    import gitbucket.core.model.Profile.dateColumnType
-
     Repositories.filter { t1 =>
       (t1.userName === userName.bind) ||
         (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
@@ -283,8 +280,6 @@ trait RepositoryService { self: AccountService =>
   def getVisibleRepositories(loginAccount: Option[Account], repositoryUserName: Option[String] = None,
                              withoutPhysicalInfo: Boolean = false)
                             (implicit s: Session): List[RepositoryInfo] = {
-    import gitbucket.core.model.Profile.dateColumnType
-
     (loginAccount match {
       // for Administrators
       case Some(x) if(x.isAdmin) => Repositories
@@ -324,7 +319,6 @@ trait RepositoryService { self: AccountService =>
    * Updates the last activity date of the repository.
    */
   def updateLastActivityDate(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    import gitbucket.core.model.Profile.dateColumnType
     Repositories.filter(_.byRepository(userName, repositoryName)).map(_.lastActivityDate).unsafeUpdate(currentDate)
   }
 
@@ -335,8 +329,6 @@ trait RepositoryService { self: AccountService =>
       description: Option[String], isPrivate: Boolean,
       enableIssues: Boolean, externalIssuesUrl: Option[String],
       enableWiki: Boolean, allowWikiEditing: Boolean, externalWikiUrl: Option[String])(implicit s: Session): Unit = {
-    import gitbucket.core.model.Profile.dateColumnType
-
     Repositories.filter(_.byRepository(userName, repositoryName))
       .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.externalIssuesUrl.?, r.enableWiki, r.allowWikiEditing, r.externalWikiUrl.?, r.updatedDate) }
       .unsafeUpdate (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, currentDate)

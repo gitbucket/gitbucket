@@ -1,14 +1,13 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil.CommitInfo
-import profile._
-import profile.api._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.model.{Account, CommitState, Issue, IssueComment, IssueLabel, Label, PullRequest, Repository}
-
-//import scala.slick.jdbc.{StaticQuery => Q}
+import gitbucket.core.model.Profile._
+import profile._
+import profile.api._
+import gitbucket.core.model.Profile.dateColumnType
 
 
 trait IssuesService {
@@ -277,7 +276,6 @@ trait IssuesService {
   }
 
   def updateIssue(owner: String, repository: String, issueId: Int, title: String, content: Option[String])(implicit s: Session) = {
-    import gitbucket.core.model.Profile.dateColumnType
     Issues
       .filter (_.byPrimaryKey(owner, repository, issueId))
       .map { t => (t.title, t.content.?, t.updatedDate) }
@@ -293,7 +291,6 @@ trait IssuesService {
     Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.milestoneId?).unsafeUpdate (milestoneId)
 
   def updateComment(commentId: Int, content: String)(implicit s: Session) = {
-    import gitbucket.core.model.Profile.dateColumnType
     IssueComments.filter (_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).unsafeUpdate(content, currentDate)
   }
 
@@ -301,7 +298,6 @@ trait IssuesService {
     IssueComments filter (_.byPrimaryKey(commentId)) unsafeDelete
 
   def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean)(implicit s: Session) = {
-    import gitbucket.core.model.Profile.dateColumnType
     (Issues filter (_.byPrimaryKey(owner, repository, issueId)) map(t => (t.closed, t.updatedDate))).unsafeUpdate((closed, currentDate))
   }
 

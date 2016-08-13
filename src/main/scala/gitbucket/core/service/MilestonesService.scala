@@ -4,7 +4,6 @@ import gitbucket.core.model.Milestone
 import gitbucket.core.model.Profile._
 import profile._
 import profile.api._
-// TODO Why is direct import required?
 import gitbucket.core.model.Profile.dateColumnType
 
 trait MilestonesService {

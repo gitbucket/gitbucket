@@ -4,7 +4,7 @@ import gitbucket.core.model.CommitComment
 import gitbucket.core.model.Profile._
 import profile._
 import profile.api._
-
+import gitbucket.core.model.Profile.dateColumnType
 
 trait CommitsService {
 
@@ -38,7 +38,6 @@ trait CommitsService {
       issueId           = issueId)
 
   def updateCommitComment(commentId: Int, content: String)(implicit s: Session) = {
-    import gitbucket.core.model.Profile.dateColumnType
     CommitComments
       .filter (_.byPrimaryKey(commentId))
       .map { t => (t.content, t.updatedDate) }
