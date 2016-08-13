@@ -13,22 +13,12 @@
             </div>
           }
           <input type="submit" class="btn btn-success pull-right" value="Export">
-          <div class="radio pull-right" style="margin-right: 10px;">
-            <label>
-              <input type="radio" name="type" value="sql">SQL
-            </label>
-          </div>
-          <div class="radio pull-right" style="margin-right: 10px;">
-            <label>
-              <input type="radio" name="type" value="xml" checked>XML
-            </label>
-          </div>
         </form>
       </div>
     </div>
 
     <div class="panel panel-default">
-      <div class="panel-heading strong">Import (only XML)</div>
+      <div class="panel-heading strong">Import</div>
       <div class="panel-body">
         <form class="form form-horizontal" action="@context.path/upload/import" method="POST" enctype="multipart/form-data" id="import-form">
           <input type="file" name="file" id="file">
@@ -42,10 +32,10 @@
 $(function(){
   $('#import-form').submit(function(){
     if($('#file').val() == ''){
-      alert('Choose an import XML file.');
+      alert('Choose an import SQL file.');
       return false;
-    } else if(!$('#file').val().endsWith(".xml")){
-      alert('Import is available for only the XML file.');
+    } else if(!$('#file').val().endsWith(".sql")){
+      alert('Import is available for only the SQL file.');
       return false;
     }
     return confirm('All existing data is deleted before importing.\nAre you sure?');
