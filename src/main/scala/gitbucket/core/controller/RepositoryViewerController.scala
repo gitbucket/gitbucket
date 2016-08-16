@@ -160,6 +160,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       protectedBranch)
   })
 
+  get("/:owner/:repository/upload/*")(collaboratorsOnly { repository =>
+    val (branch, path) = splitPath(repository, multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
+    html.upload(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
+      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")),
+      protectedBranch)
+  })
+
   get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
     val (branch, path) = splitPath(repository, multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
