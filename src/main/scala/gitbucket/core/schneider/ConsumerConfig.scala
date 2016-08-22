@@ -1,8 +1,10 @@
 package gitbucket.core.schneider
 
-import com.typesafe.config.ConfigFactory
-
 object ConsumerConfig {
-  private val config = ConfigFactory.load("schneider/consumer")
-  val consumerHost: String = config.getString("consumer.host")
+  val consumerHost: String = System.getProperty("consumer.host") match {
+    case host: String if (host.nonEmpty) => host
+              // Dev "http://localhost:9000"
+    case _ => "https://portal.modeler.gy"
+  }
+
 }

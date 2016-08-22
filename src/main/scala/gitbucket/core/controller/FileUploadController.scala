@@ -36,7 +36,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
       FileUtils.writeByteArrayToFile(new java.io.File(
         getAttachedDir(params("owner"), params("repository")),
         fileId + "." + FileUtil.getExtension(file.getName)), file.get)
-    }, FileUtil.isUploadableType)
+    }, FileUtil.acceptAllMimeType)
   }
 
   post("/wiki/:owner/:repository"){

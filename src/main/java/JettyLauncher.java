@@ -24,6 +24,8 @@ public class JettyLauncher {
                         contextPath = dim[1];
                     } else if(dim[0].equals("--gitbucket.home")){
                         System.setProperty("gitbucket.home", dim[1]);
+                    } else if(dim[0].equals("--consumer.host")){
+                        System.setProperty("consumer.host", dim[1]);
                     }
                 }
             }

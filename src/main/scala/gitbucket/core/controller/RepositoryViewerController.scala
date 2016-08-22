@@ -1,5 +1,6 @@
 package gitbucket.core.controller
 
+import java.nio.charset.CodingErrorAction
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.api.UploadFiles
@@ -27,6 +28,8 @@ import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
 import org.scalatra._
+
+import scala.io.Codec
 
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
@@ -547,6 +550,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           case dir if (dir.exists && dir.isDirectory) =>
             val _commitFiles = data.fileIds.map { case (fileName, id) =>
               dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
+                implicit val codec = Codec("UTF-8")
+                codec.onMalformedInput(CodingErrorAction.REPLACE)
+                codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+
                 val s = scala.io.Source.fromFile(file) // Codec ????
               val byteArray = s.map(_.toByte).toArray
 
