@@ -14,7 +14,6 @@ import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 import org.scalatra.{NoContent, UnprocessableEntity, Created}
 import scala.collection.JavaConverters._
-import org.eclipse.jgit.dircache.DirCache
 
 class ApiController extends ApiControllerBase
   with RepositoryService
@@ -23,6 +22,7 @@ class ApiController extends ApiControllerBase
   with IssuesService
   with LabelsService
   with PullRequestService
+  with CommitFileService
   with CommitStatusService
   with RepositoryCreationService
   with HandleCommentService
@@ -45,6 +45,7 @@ trait ApiControllerBase extends ControllerBase {
     with IssuesService
     with LabelsService
     with PullRequestService
+    with CommitFileService
     with CommitStatusService
     with RepositoryCreationService
     with HandleCommentService
@@ -404,10 +405,11 @@ trait ApiControllerBase extends ControllerBase {
   post("/api/v3/repos/:owner/:repository/files/upload")(collaboratorsOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       (for {
-        data <- extractFromJsonBody[UploadFilesAsBytesArray] 
+        data <- extractFromJsonBody[UploadFilesAsBytesArray] if data.isValid
       } yield {
         
-        commitFile(
+      commitFile(
+                context,
                 repository,
                 fileName = data.fileName,
                 fileBytes = data.fileBytes,
@@ -417,45 +419,7 @@ trait ApiControllerBase extends ControllerBase {
         org.scalatra.NotAcceptable("""{"message": "Incorrect number of arguments supplied for the POST method"}""")
     }
   })
-  
-  private def commitFile(repository: RepositoryService.RepositoryInfo,
-                          fileName: String, fileBytes: Array[Byte],
-                          branch: String, message: String) = {
-
-    LockUtil.lock(s"${repository.owner}/${repository.name}") {
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-
-        val loginAccount = context.loginAccount.get
-        val builder = DirCache.newInCore.builder()
-        val inserter = git.getRepository.newObjectInserter()
-        val headName = s"refs/heads/${branch}"
-        val headTip = git.getRepository.resolve(headName)
-        
-        if(headTip != null){
-          JGitUtil.processTree(git, headTip) { (path, tree) =>
-            if(path != fileName){
-                builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-            } else {
-              // do nothing
-            }
-          }
-        }
-
-        builder.add(JGitUtil.createDirCacheEntry(fileName,
-          org.eclipse.jgit.lib.FileMode.REGULAR_FILE, inserter.insert(org.eclipse.jgit.lib.Constants.OBJ_BLOB, fileBytes)))
-        builder.finish()
-
-        val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
-          headName, loginAccount.userName, loginAccount.mailAddress, message)
-
-        inserter.flush()
-        inserter.close()
-
-      }
-    }
-  }
-  
-  
+    
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
