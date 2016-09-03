@@ -48,7 +48,7 @@
         </a>
         <nav class="navbar navbar-static-top" role="navigation">
           @repository.map { repository =>
-            <form id="search" action="@context.path/search" method="POST" class="navbar-form navbar-left" role="search">
+            <form id="search" action="@context.path/search" method="POST" class="pc navbar-form navbar-left" role="search">
               <div class="form-group">
                 <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search this repository"/>
                 <input type="hidden" name="owner" value="@repository.owner"/>
@@ -56,7 +56,7 @@
               </div>
             </form>
           }
-          <ul class="nav navbar-nav">
+          <ul class="pc nav navbar-nav">
             @if(context.loginAccount.isDefined){
               <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>
               <li><a href="@context.path/dashboard/issues">Issues</a></li>
