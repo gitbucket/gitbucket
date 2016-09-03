@@ -427,48 +427,52 @@ div.repository-icon {
 div.repository-content {
   margin-left: 40px;
 }
-
+table.branches>thead>tr>th, table.branches>tbody>tr>td{
+  padding: 12px;
+}
 .branches .muted-link{
   color: #777;
 }
 .branches .muted-link:hover{
   color: #4183c4;
 }
+/*
 .branches .branch-details{
   display: inline-block;
   width: 490px;
   margin-right: 10px;
 }
+*/
 .branches .branch-name{
   color: #4183c4;
   display: inline-block;
   padding: 2px 6px;
-  font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   background-color: rgba(209,227,237,0.5);
   border-radius: 3px;
 }
 .branches .branch-meta{
   color: #aaa;
-  font-size: 12px;
   line-height: 20px;
 }
 .branches .branch-action{
-  display: inline-block;
-  float: right;
-  position: relative;
-  top: -6px;
+  /*float: right;*/
+  text-align: right;
   height: 20px;
 }
+.branches .branch-action a {
+  font-size: 100%;
+}
+.branches .branch-action a.btn {
+  font-size: 100%;
+  position: relative;
+  top: -6px;
+}
+
 .branches .branch-a-b-count{
-  display: inline-block;
-  vertical-align: middle;
-  width: 181px;
-  text-align: center;
   color: rgba(0,0,0,0.5);
 }
-.branches .a-b-count-widget{
-  font-size: 10px;
-}
+
 .branches .a-b-count-widget .count-half{
   width:90px;
   position: relative;
