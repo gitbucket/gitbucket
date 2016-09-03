@@ -51,7 +51,7 @@
         &nbsp;&nbsp;
         <span class="muted">Discuss and review the changes in this comparison with others.</span>
       </div>
-      <div id="pull-request-form" @*class="box"*@ style="display: none; margin-bottom: 20px;">
+      <div id="pull-request-form" style="display: none; margin-bottom: 20px;">
         <form method="POST" action="@context.path/@originRepository.owner/@originRepository.name/pulls/new" validate="true">
           <div class="row">
             <div class="col-md-9">
@@ -130,7 +130,7 @@
           </tr>
         </table>
       </div>
-      <div class="box" style="margin-bottom: 20px;">
+      <div style="margin-bottom: 20px;">
         @commits.map { day =>
           <div style="margin-top: 8px; margin-bottom: 8px;" class="muted">
             Commits on @helpers.date(day.head.commitTime)
