@@ -85,12 +85,6 @@ object Implicits {
   }
 
   implicit class RichSession(session: HttpSession){
-
-    def putAndGet[T](key: String, value: T): T = {
-      session.setAttribute(key, value)
-      value
-    }
-
     def getAndRemove[T](key: String): Option[T] = {
       val value = session.getAttribute(key).asInstanceOf[T]
       if(value == null){

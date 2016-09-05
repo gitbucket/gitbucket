@@ -520,10 +520,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       val sessionKey = Keys.Session.Pulls(owner, repoName)
 
       // retrieve search condition
-      val condition = session.putAndGet(sessionKey,
-        if(request.hasQueryString) IssueSearchCondition(request)
-        else session.getAs[IssueSearchCondition](sessionKey).getOrElse(IssueSearchCondition())
-      )
+      val condition = IssueSearchCondition(request)
 
       gitbucket.core.issues.html.list(
         "pulls",
