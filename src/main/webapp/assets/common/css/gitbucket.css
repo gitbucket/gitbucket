@@ -125,17 +125,6 @@ div.content-wrapper {
 /* ======================================================================== */
 /* Global Header */
 /* ======================================================================== */
-/*
-.navbar-brand {
-  height: unset;
-  padding: 8px;
-}
-
-.navbar {
-  min-height: unset;
-  margin-bottom: 0px;
-}
-*/
 span.header-version {
   font-size: small;
 }
@@ -164,36 +153,10 @@ div.container-wide {
   padding-left: 10px;
   padding-right: 10px;
 }
-/*
-div.main-sidebar {
-  width: 250px;
-  float: left;
-}
 
-div.main-content {
-  margin-left: 260px;
-}
-*/
 div.main-center {
-  width: 980px;
   margin: 0 auto;
 }
-
-div.dashboard-sidebar {
-  width: 300px;
-  float: left;
-}
-
-div.dashboard-content {
-  margin-left: 310px;
-}
-
-/*
-div.body {
-  margin-top: 20px;
-  margin-bottom: 40px;
-}
-*/
 
 span.error {
   color: red;
@@ -240,13 +203,6 @@ div.show-more {
 div.show-more a {
   color: #7aa1d3;
 }
-
-/*
-span.count-right {
-  float: right;
-  font-weight: bold;
-}
-*/
 
 .monospace {
   font-family: Consolas, 'Courier New', Courier, Monaco, monospace;
@@ -471,48 +427,52 @@ div.repository-icon {
 div.repository-content {
   margin-left: 40px;
 }
-
+table.branches>thead>tr>th, table.branches>tbody>tr>td{
+  padding: 12px;
+}
 .branches .muted-link{
   color: #777;
 }
 .branches .muted-link:hover{
   color: #4183c4;
 }
+/*
 .branches .branch-details{
   display: inline-block;
   width: 490px;
   margin-right: 10px;
 }
+*/
 .branches .branch-name{
   color: #4183c4;
   display: inline-block;
   padding: 2px 6px;
-  font: 12px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   background-color: rgba(209,227,237,0.5);
   border-radius: 3px;
 }
 .branches .branch-meta{
   color: #aaa;
-  font-size: 12px;
   line-height: 20px;
 }
 .branches .branch-action{
-  display: inline-block;
-  float: right;
-  position: relative;
-  top: -6px;
+  /*float: right;*/
+  text-align: right;
   height: 20px;
 }
+.branches .branch-action a {
+  font-size: 100%;
+}
+.branches .branch-action a.btn {
+  font-size: 100%;
+  position: relative;
+  top: -6px;
+}
+
 .branches .branch-a-b-count{
-  display: inline-block;
-  vertical-align: middle;
-  width: 181px;
-  text-align: center;
   color: rgba(0,0,0,0.5);
 }
-.branches .a-b-count-widget{
-  font-size: 10px;
-}
+
 .branches .a-b-count-widget .count-half{
   width:90px;
   position: relative;
@@ -530,21 +490,6 @@ div.repository-content {
 /****************************************************************************/
 /* Activity */
 /****************************************************************************/
-/*
-div.activity-icon-large {
-  position: absolute;
-  padding-top: 8px;
-}
-
-div.activity-icon-small {
-  position: absolute;
-  padding-left: 8px;
-}
-
-div.activity-content {
-  margin-left: 40px;
-}
-*/
 div[class^="activity-icon"] i{
     color: #BBB;
 }
@@ -589,25 +534,6 @@ a.header-link:hover i.octicon-x{
     color: #FFF;
 }
 
-/*
-table.blobview {
-  table-layout: fixed;
-}
-*/
-/*
-table.table-file-list {
-  margin-bottom: 0px;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  border-collapse: separate;
-}
-
-table.table-file-list th, table.table-file-list td {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-*/
-
 table.table-file-list td.latest-commit {
   padding-top: 4px;
   padding-bottom: 4px;
@@ -618,44 +544,12 @@ table.table-file-list td {
   background-color: #F8F8F8;
   font-size: small;
 }
-/*
-table.table-file-list .file-icon {
-  padding-right: 1px;
-}
 
-table.table-file-list .content-name {
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-table.table-file-list .commit-message {
-  max-width: 415px;
-  display: inline-block;
-}
-
-table.table-file-list .commit-author {
-  color: #999;
-  font-size: 12px;
-  float: right;
-}
-
-th, td, .table th, .table td {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  line-height: 100%;
-}
-*/
 div.commit-avatar-image {
   float: left;
   margin-right: 4px;
 }
-/*
-div.commit-message-box {
-  margin-left: 42px;
-}
-*/
+
 pre.commit-description {
   font-weight: normal;
   border: none;
@@ -897,8 +791,6 @@ div.issue-participants {
 div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
   margin-left: 70px;
-  /*max-width: 820px;*/
-  /*padding: 8px;*/
 }
 
 div.issue-comment-box > div.panel-body,
@@ -1066,6 +958,10 @@ div.pullreq-info {
 /****************************************************************************/
 /* Wiki */
 /****************************************************************************/
+.wiki-main {
+  margin-right: 260px;
+}
+
 h1.body-title {
   margin-top: 0px;
 }
@@ -1842,92 +1738,12 @@ div.container.blame-container{
 /* Mobile */
 /****************************************************************************/
 @media (max-width: 767px) {
-  /* Hide header search box */
-  input[name=query] {
-    display: none;
-  }
-  .container {
-    width: auto !important;
-  }
   .pc {
     display: none;
   }
-
-  div.dashboard-sidebar {
-    display: none;;
+  .wiki-main {
+    margin-right: 0px;
   }
-  div.dashboard-content {
-    margin-left: 0px;
-  }
-
-  div.main-sidebar {
-    width: 40px;
-    float: left;
-  }
-  div.main-content {
-    margin-left: 42px;
-  }
-
-
-  /* Adjust issue / comment form */
-  #issue-title {
-    width: 100% !important;
-  }
-  div.attachable>textarea,
-  div.attachable>div.clickable {
-    width: 100% !important;
-  }
-
-  /* Adjust issue search box size and position */
-  #search-filter-box {
-    width: 100% !important;
-  }
-  form#search-filter-form {
-    float: none !important;
-    margin-bottom: 10px;
-  }
-  form#search-filter-form>div.form-group {
-    width: 100% !important;
-    margin-bottom: 10px;
-  }
-  .table-issues a.button-link {
-    width: 42px;
-    height: 16px;
-    overflow: hidden;
-    display: inline-block;
-  }
-  body>div.container.body {
-    margin: 0 0 40px -12px;
-  }
-  /* Adjust sidemenu */
-  .container.body>div[style="width: 170px;"]{
-    width: 32px !important;
-    margin-right: -5px;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-  /* Hide badge of sidemenu */
-  .container.body>div[style="width: 170px;"] span.badge {
-    display: none;
-  }
-  /* Hide download button */
-  .container.body>div[style="width: 170px;"] a.btn-sm {
-    display: none;
-  }
-  /* Hide repository url box */
-  .container.body>div[style="width: 170px;"] .small,
-  .container.body>div[style="width: 170px;"] .input-group {
-    display: none;
-  }
-  /* Hide fork button */
-  div.input-group>span.fork {
-    display: none;
-  }
-  /* allow wrapping on raw/mobile/history buttons */ 
-  div.main-content>div.box-header>div.btn-group.pull-right 
-  { 
-    float: none !important; 
-  } 
 }
 
 /****************************************************************************/

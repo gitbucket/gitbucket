@@ -65,6 +65,12 @@ Support
 
 Release Notes
 -------------
+### 4.4 - 28 Aug 2016
+- Import a SQL dump file to the database
+- `go get` support in private repositories
+- Sort milestones by due date
+- apache-sshd has been updated to 1.2.0
+
 ### 4.3 - 30 Jul 2016
 - Emoji support by [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
 - User name suggestion

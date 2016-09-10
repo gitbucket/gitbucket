@@ -3,11 +3,8 @@ package gitbucket.core.util
 import java.io._
 import java.sql._
 import java.text.SimpleDateFormat
-import javax.xml.stream.{XMLStreamConstants, XMLInputFactory, XMLOutputFactory}
 import ControlUtil._
-import scala.StringBuilder
 import scala.annotation.tailrec
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -64,65 +61,34 @@ object JDBCUtil {
       }
     }
 
-    def importAsXML(in: InputStream): Unit = {
+    def importAsSQL(in: InputStream): Unit = {
       conn.setAutoCommit(false)
       try {
-        val factory = XMLInputFactory.newInstance()
-        using(factory.createXMLStreamReader(in, "UTF-8")){ reader =>
-          // stateful objects
-          var elementName   = ""
-          var insertTable   = ""
-          var insertColumns = Map.empty[String, (String, String)]
+        using(in){ in =>
+          var out = new ByteArrayOutputStream()
 
-          while(reader.hasNext){
-            reader.next()
+          var length = 0
+          val bytes = new scala.Array[Byte](1024 * 8)
+          var stringLiteral = false
 
-            reader.getEventType match {
-              case XMLStreamConstants.START_ELEMENT =>
-                elementName = reader.getName.getLocalPart
-                if(elementName == "insert"){
-                  insertTable = reader.getAttributeValue(null, "table")
-                } else if(elementName == "delete"){
-                  val tableName = reader.getAttributeValue(null, "table")
-                  conn.update(s"DELETE FROM ${tableName}")
-                } else if(elementName == "column"){
-                  val columnName  = reader.getAttributeValue(null, "name")
-                  val columnType  = reader.getAttributeValue(null, "type")
-                  val columnValue = reader.getElementText
-                  insertColumns = insertColumns + (columnName -> (columnType, columnValue))
-                }
-              case XMLStreamConstants.END_ELEMENT =>
-                // Execute insert statement
-                reader.getName.getLocalPart match {
-                  case "insert" => {
-                    val sb = new StringBuilder()
-                    sb.append(s"INSERT INTO ${insertTable} (")
-                    sb.append(insertColumns.map { case (columnName, _) => columnName }.mkString(", "))
-                    sb.append(") VALUES (")
-                    sb.append(insertColumns.map { case (_, (columnType, columnValue)) =>
-                      if(columnType == null || columnValue == null){
-                        "NULL"
-                      } else if(columnType == "string"){
-                        "'" + columnValue.replace("'", "''") + "'"
-                      } else if(columnType == "timestamp"){
-                        "'" + columnValue + "'"
-                      } else {
-                        columnValue.toString
-                      }
-                    }.mkString(", "))
-                    sb.append(")")
+          var count = 0
 
-                    conn.update(sb.toString)
-
-                    insertColumns = Map.empty[String, (String, String)] // Clear column information
-                  }
-                  case _ => // Nothing to do
-                }
-              case _ => // Nothing to do
+          while({ length = in.read(bytes); length != -1 }){
+            for(i <- 0 to length - 1){
+              val c = bytes(i)
+              if(c == '\''){
+                stringLiteral = !stringLiteral
+              }
+              if(c == ';' && !stringLiteral){
+                val sql = new String(out.toByteArray, "UTF-8")
+                conn.update(sql)
+                out = new ByteArrayOutputStream()
+              } else {
+                out.write(c)
+              }
             }
           }
         }
-
         conn.commit()
 
       } catch {
@@ -131,68 +97,6 @@ object JDBCUtil {
           throw e
         }
       }
-    }
-
-    def exportAsXML(targetTables: Seq[String]): File = {
-      val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-      val file = File.createTempFile("gitbucket-export-", ".xml")
-
-      val factory = XMLOutputFactory.newInstance()
-      using(factory.createXMLStreamWriter(new FileOutputStream(file), "UTF-8")){ writer =>
-        val dbMeta = conn.getMetaData
-        val allTablesInDatabase = allTablesOrderByDependencies(dbMeta)
-
-        writer.writeStartDocument("UTF-8", "1.0")
-        writer.writeStartElement("tables")
-
-        println(allTablesInDatabase.mkString(", "))
-
-        allTablesInDatabase.reverse.foreach { tableName =>
-          if (targetTables.contains(tableName)) {
-            writer.writeStartElement("delete")
-            writer.writeAttribute("table", tableName)
-            writer.writeEndElement()
-          }
-        }
-
-        allTablesInDatabase.foreach { tableName =>
-          if (targetTables.contains(tableName)) {
-            select(s"SELECT * FROM ${tableName}") { rs =>
-              writer.writeStartElement("insert")
-              writer.writeAttribute("table", tableName)
-              val rsMeta = rs.getMetaData
-              (1 to rsMeta.getColumnCount).foreach { i =>
-                val columnName = rsMeta.getColumnName(i)
-                val (columnType, columnValue) = if(rs.getObject(columnName) == null){
-                  (null, null)
-                } else {
-                  rsMeta.getColumnType(i) match {
-                    case Types.BOOLEAN | Types.BIT => ("boolean", rs.getBoolean(columnName))
-                    case Types.VARCHAR | Types.CLOB | Types.CHAR | Types.LONGVARCHAR => ("string", rs.getString(columnName))
-                    case Types.INTEGER => ("int", rs.getInt(columnName))
-                    case Types.TIMESTAMP => ("timestamp", dateFormat.format(rs.getTimestamp(columnName)))
-                  }
-                }
-                writer.writeStartElement("column")
-                writer.writeAttribute("name", columnName)
-                if(columnType != null){
-                  writer.writeAttribute("type", columnType)
-                }
-                if(columnValue != null){
-                  writer.writeCharacters(columnValue.toString)
-                }
-                writer.writeEndElement()
-              }
-              writer.writeEndElement()
-            }
-          }
-        }
-
-        writer.writeEndElement()
-        writer.writeEndDocument()
-      }
-
-      file
     }
 
     def exportAsSQL(targetTables: Seq[String]): File = {

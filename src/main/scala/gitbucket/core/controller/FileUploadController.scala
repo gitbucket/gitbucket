@@ -79,15 +79,10 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
   }
 
   post("/import") {
+    import JDBCUtil._
     session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account if loginAccount.isAdmin =>
       execute({ (file, fileId) =>
-        if(file.getName.endsWith(".xml")){
-          import JDBCUtil._
-          val conn = request2Session(request).conn
-          conn.importAsXML(file.getInputStream)
-        } else {
-          throw new RuntimeException("Import is available for only the XML file.")
-        }
+        request2Session(request).conn.importAsSQL(file.getInputStream)
       }, _ => true)
     }
     redirect("/admin/data")

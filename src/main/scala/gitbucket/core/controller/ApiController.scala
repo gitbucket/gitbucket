@@ -109,14 +109,13 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/contents/#get-contents
    */
   get("/api/v3/repos/:owner/:repo/contents/*")(referrersOnly { repository =>
-    val (id, path) = repository.splitPath(multiParams("splat").head)
-    val refStr = params("ref")
+    val path = multiParams("splat").head match {
+      case s if s.isEmpty => "."
+      case s => s
+    }
+    val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))){ git =>
-      if (path.isEmpty) {
-        JsonFormat(getFileList(git, refStr, ".").map{f => ApiContents(f)})
-      } else {
-        JsonFormat(getFileList(git, refStr, path).map{f => ApiContents(f)})
-      }
+      JsonFormat(getFileList(git, refStr, path).map{f => ApiContents(f)})
     }
   })
 

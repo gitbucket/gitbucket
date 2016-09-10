@@ -33,7 +33,7 @@
       }
     </div>
 
-    <table class="table table-bordered">
+    <table class="table table-bordered table-hover">
     @commits.map { day =>
       <tr>
         <th rowspan="@day.size" width="100">@helpers.date(day.head.commitTime)</th>

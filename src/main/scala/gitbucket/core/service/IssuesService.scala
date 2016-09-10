@@ -475,50 +475,6 @@ object IssuesService {
     }
 
     /**
-     * Restores IssueSearchCondition instance from filter query.
-     */
-    def apply(filter: String, milestones: Map[String, Int]): IssueSearchCondition = {
-      val conditions = filter.split("[ 　\t]+").flatMap { x =>
-        x.split(":") match {
-           case Array(key, value) => Some((key, value))
-           case _ => None
-        }
-      }.groupBy(_._1).map { case (key, values) =>
-        key -> values.map(_._2).toSeq
-      }
-
-      val (sort, direction) = conditions.get("sort").flatMap(_.headOption).getOrElse("created-desc") match {
-        case "created-asc"   => ("created" , "asc" )
-        case "comments-desc" => ("comments", "desc")
-        case "comments-asc"  => ("comments", "asc" )
-        case "updated-desc"  => ("comments", "desc")
-        case "updated-asc"   => ("comments", "asc" )
-        case _               => ("created" , "desc")
-      }
-
-      IssueSearchCondition(
-        conditions.get("label").map(_.toSet).getOrElse(Set.empty),
-        conditions.get("milestone").flatMap(_.headOption) match {
-          case None         => None
-          case Some("none") => Some(None)
-          case Some(x)      => Some(Some(x))
-        },
-        conditions.get("author").flatMap(_.headOption),
-        conditions.get("assignee").flatMap(_.headOption) match {
-          case None         => None
-          case Some("none") => Some(None)
-          case Some(x)      => Some(Some(x))
-        },
-        conditions.get("mentions").flatMap(_.headOption),
-        conditions.get("is").getOrElse(Seq.empty).find(x => x == "open" || x == "closed").getOrElse("open"),
-        sort,
-        direction,
-        conditions.get("visibility").flatMap(_.headOption),
-        conditions.get("group").map(_.toSet).getOrElse(Set.empty)
-      )
-    }
-
-    /**
      * Restores IssueSearchCondition instance from request parameters.
      */
     def apply(request: HttpServletRequest): IssueSearchCondition =
