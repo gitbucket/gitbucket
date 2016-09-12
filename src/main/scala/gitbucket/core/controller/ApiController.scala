@@ -22,7 +22,7 @@ class ApiController extends ApiControllerBase
   with IssuesService
   with LabelsService
   with PullRequestService
-  with CommitFileService
+  with FileService
   with CommitStatusService
   with RepositoryCreationService
   with HandleCommentService
@@ -45,7 +45,7 @@ trait ApiControllerBase extends ControllerBase {
     with IssuesService
     with LabelsService
     with PullRequestService
-    with CommitFileService
+    with FileService
     with CommitStatusService
     with RepositoryCreationService
     with HandleCommentService
@@ -399,22 +399,43 @@ trait ApiControllerBase extends ControllerBase {
   })
 
   /**
-   *  lhttps://developer.github.com/api/v3/repos/root/Test/files/upload
-    * Upload file to a branch.
+   *  https://developer.github.com/api/v3/repos/root/Help/file/master/fileName.md
+    * Gets file contents from branch.
     */
-  post("/api/v3/repos/:owner/:repository/files/upload")(collaboratorsOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/file/:branch/:filename")(referrersOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       (for {
-        data <- extractFromJsonBody[UploadFilesAsBytesArray] if data.isValid
+        branch <- params.get("branch")
+        filename <- params.get("filename")
       } yield {
         
-      commitFile(
+        using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+          getFileContent(git, branch, filename)
+        } 
+        
+      }) getOrElse
+        org.scalatra.NotAcceptable("""{"message": "Incorrect number of parameters supplied for the GET method"}""")       
+    } 
+  })
+  
+  /**
+   *  https://developer.github.com/api/v3/repos/root/Help/file/master
+    * Uploads file to a branch.
+    */
+  post("/api/v3/repos/:owner/:repository/file/:branch")(referrersOnly { repository =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      (for {
+        branch <- params.get("branch")
+        data <- extractFromJsonBody[UploadFilesAsBytesArray] if data.isValid
+      } yield {
+      
+      JsonFormat(commitFile(
                 context,
                 repository,
+                branch = branch,
                 fileName = data.fileName,
                 fileBytes = data.fileBytes,
-                branch = data.branch,
-                message = data.message)
+                commitMessage = data.message))
       }) getOrElse
         org.scalatra.NotAcceptable("""{"message": "Incorrect number of arguments supplied for the POST method"}""")
     }
