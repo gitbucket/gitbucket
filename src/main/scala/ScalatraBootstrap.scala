@@ -1,17 +1,23 @@
 
 import gitbucket.core.controller._
 import gitbucket.core.plugin.PluginRegistry
-import gitbucket.core.servlet.{ApiAuthenticationFilter, GitAuthenticationFilter, Database, TransactionFilter}
+import gitbucket.core.servlet.{ApiAuthenticationFilter, Database, GitAuthenticationFilter, TransactionFilter}
 import gitbucket.core.util.Directory
-
 import java.util.EnumSet
 import javax.servlet._
 
+import gitbucket.core.service.SystemSettingsService
 import org.scalatra._
 
 
-class ScalatraBootstrap extends LifeCycle {
+class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
   override def init(context: ServletContext) {
+
+    val settings = loadSystemSettings()
+    if(settings.baseUrl.exists(_.startsWith("https://"))) {
+      context.getSessionCookieConfig.setSecure(true)
+    }
+
     // Register TransactionFilter and BasicAuthenticationFilter at first
     context.addFilter("transactionFilter", new TransactionFilter)
     context.getFilterRegistration("transactionFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
