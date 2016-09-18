@@ -29,14 +29,14 @@
         </div>
       </div>
       @if(pathList.isEmpty){
-        @if(context.platform != "linux" && context.platform != null){
-          <div class="pull-right pc" style="margin-right: 5px;">
-            <div class="btn-group">
+        <div class="pull-right pc" style="margin-right: 5px;">
+          <div class="btn-group">
+            @if(context.platform != "linux" && context.platform != null){
               <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
-              <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
-            </div>
+            }
+            <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
           </div>
-        }
+        </div>
         <div class="pull-right pc">
           <div style="width: 240px; margin-right: 5px; margin-left: 5px;">
             @gitbucket.core.helper.html.copy("repository-url-copy", repository.httpUrl){
