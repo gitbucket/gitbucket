@@ -43,9 +43,31 @@
       <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
       <div class="panel panel-default issue-comment-box">
         <div class="panel-body">
+          <h3>Commit changes</h3>
           <div class="form-group">
-            <input type="text" name="message" class="form-control"/>
+            <input type="text" name="message" class="form-control" placeholder="Add files via upload"/>
           </div>
+          <fieldset class="border-bottom">
+          <div class="checkbox">
+            <label>
+              <input type="radio" id="quick-pull-choice-1" name="commit-choice" value="direct" checked="checked"> Commit directly to the
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch-name">@branch</a> branch
+            </label>
+          </div>
+          <div class="checkbox">
+            <label>
+              <input type="radio" id="quick-pull-choice-2" name="commit-choice" value="quick-pull"> Create a <strong>new branch</strong> for this commit and start a pull request
+            </label>
+          </div>
+          <div class="new-branch-name">
+            <div class="form-group">
+              <label class="control-label col-md-3" for="quick-pull-new-branch-name">New branch name</label>
+              <div class="col-md-9">
+                <input type="text" id="quick-pull-new-branch-name" name="quick-pull-new-branch" class="form-control">
+              </div>
+            </div>
+          </div>
+          </fieldset>
           <div style="text-align: right;">
             @if(fileName.isEmpty){
               <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
@@ -114,6 +136,11 @@ $(function(){
     $('#btn-code').appendClass('active');
     $('#btn-preview').removeClass('active');
   });
+
+  $("#quick-pull-choice-2" ).change(function(){
+    alert("Hi I am here");
+    $('.new-branch-name input').prop('disabled', !$(this).prop('checked'));
+  }).change();
 
   $('#btn-preview').click(function(){
     $('#editor').hide();

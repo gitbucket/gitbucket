@@ -19,7 +19,7 @@ uid: Long = new java.util.Date().getTime())(implicit context: gitbucket.core.con
     <div style="margin-top: 4px;">
         <span id="error-content" class="error"></span>
         @textarea = {
-        <textarea id="content@uid" class="form-control" name="content" placeholder="@placeholder"
+        <textarea readonly id="content@uid" class="form-control" name="content" placeholder="@placeholder"
                   @if(tabIndex> -2){ tabindex="@tabIndex"}
           @if(style.nonEmpty){ style="@style"}
           @if(styleClass.nonEmpty){ class="@styleClass" }>@content</textarea>
