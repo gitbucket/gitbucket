@@ -52,6 +52,13 @@ object Database {
     config.setJdbcUrl(DatabaseConfig.url)
     config.setUsername(DatabaseConfig.user)
     config.setPassword(DatabaseConfig.password)
+    config.setAutoCommit(false)
+    DatabaseConfig.connectionTimeout.foreach(config.setConnectionTimeout)
+    DatabaseConfig.idleTimeout.foreach(config.setIdleTimeout)
+    DatabaseConfig.maxLifetime.foreach(config.setMaxLifetime)
+    DatabaseConfig.minimumIdle.foreach(config.setMinimumIdle)
+    DatabaseConfig.maximumPoolSize.foreach(config.setMaximumPoolSize)
+
     logger.debug("load database connection pool")
     new HikariDataSource(config)
   }

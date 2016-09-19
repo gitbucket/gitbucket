@@ -17,6 +17,11 @@ object DatabaseConfig {
           |  url = "jdbc:h2:${DatabaseHome};MVCC=true"
           |  user = "sa"
           |  password = "sa"
+          |#  connectionTimeout = 30000
+          |#  idleTimeout = 600000
+          |#  maxLifetime = 1800000
+          |#  minimumIdle = 10
+          |#  maximumPoolSize = 10
           |}
           |""".stripMargin, "UTF-8")
     }
@@ -28,12 +33,21 @@ object DatabaseConfig {
   def url(directory: Option[String]): String =
     dbUrl.replace("${DatabaseHome}", directory.getOrElse(DatabaseHome))
 
-  lazy val url: String = url(None)
-  lazy val user: String = config.getString("db.user")
-  lazy val password: String = config.getString("db.password")
-  lazy val jdbcDriver: String = DatabaseType(url).jdbcDriver
-  lazy val slickDriver: slick.driver.JdbcProfile = DatabaseType(url).slickDriver
-  lazy val liquiDriver: AbstractJdbcDatabase = DatabaseType(url).liquiDriver
+  lazy val url                : String = url(None)
+  lazy val user               : String = config.getString("db.user")
+  lazy val password           : String = config.getString("db.password")
+  lazy val jdbcDriver         : String = DatabaseType(url).jdbcDriver
+  lazy val slickDriver        : slick.driver.JdbcProfile = DatabaseType(url).slickDriver
+  lazy val liquiDriver        : AbstractJdbcDatabase     = DatabaseType(url).liquiDriver
+  lazy val connectionTimeout  : Option[Long]   = getOptionValue("db.connectionTimeout", config.getLong)
+  lazy val idleTimeout        : Option[Long]   = getOptionValue("db.idleTimeout"      , config.getLong)
+  lazy val maxLifetime        : Option[Long]   = getOptionValue("db.maxLifetime"      , config.getLong)
+  lazy val minimumIdle        : Option[Int]    = getOptionValue("db.minimumIdle"      , config.getInt)
+  lazy val maximumPoolSize    : Option[Int]    = getOptionValue("db.maximumPoolSize"  , config.getInt)
+
+  private def getOptionValue[T](path: String, f: String => T): Option[T] = {
+    if(config.hasPath(path)) None else Some(f(path))
+  }
 
 }
 
