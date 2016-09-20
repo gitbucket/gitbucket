@@ -48,6 +48,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
 
+  case class UploadFilesForm(
+    branch: String,
+    path: String,
+    content: String,
+    message: Option[String],
+    charset: String,
+    lineSeparator: String,
+    files: String
+    )
+
   case class EditorForm(
     branch: String,
     path: String,
@@ -73,6 +83,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     content: String,
     issueId: Option[Int]
   )
+
+  val uploadFilesForm = mapping(
+    "branch"        -> trim(label("Branch", text(required))),
+    "path"          -> trim(label("Path", text())),
+    "content"       -> trim(label("Content", text(required))),
+    "message"       -> trim(label("Message", optional(text()))),
+    "charset"       -> trim(label("Charset", text(required))),
+    "lineSeparator" -> trim(label("Line Separator", text(required))),
+    "files"         -> trim(label("Files", text(required)))
+  )(UploadFilesForm.apply)
 
   val editorForm = mapping(
     "branch"        -> trim(label("Branch", text(required))),
@@ -541,6 +561,45 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
     * Upload file to a branch.
     */
+  post("/:owner/:repository/files/upload/commit", uploadFilesForm)(collaboratorsOnly { (form, repository) =>
+    Directory.getAttachedDir(repository.owner, repository.name) match {
+      case dir if (dir.exists && dir.isDirectory) =>
+        val _commitFiles = data.fileIds.map { case (fileName, id) =>
+          dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
+            implicit val codec = Codec("UTF-8")
+            codec.onMalformedInput(CodingErrorAction.REPLACE)
+            codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+
+            val s = scala.io.Source.fromFile(file) // Codec ????
+          val byteArray = s.map(_.toByte).toArray
+
+            CommitFile(id, fileName, byteArray)
+          }
+        }.toList
+
+        val finalCommitFiles = _commitFiles.flatten
+        if(finalCommitFiles.size == data.fileIds.size) {
+          commitFiles(
+            repository,
+            files = finalCommitFiles,
+            branch = data.branch,
+            path = data.path,
+            message = data.message)
+        }
+        else {
+          org.scalatra.NotAcceptable(
+            s"""{"message":
+                |"$repository doesn't contain all the files you specified in the body"}""".stripMargin)
+        }
+
+      case _ => org.scalatra.NotFound(s"""{"message": "$repository doesn't contain any attached files"}""")
+    }
+
+    redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
+      if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
+    }")
+  })
+
   post("/:owner/:repository/files/upload")(collaboratorsOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       (for {

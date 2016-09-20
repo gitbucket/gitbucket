@@ -60,13 +60,9 @@
             </label>
           </div>
           <div class="new-branch-name">
-            <div class="form-group">
-              <label class="control-label col-md-3" for="quick-pull-new-branch-name">New branch name</label>
-              <div class="col-md-9">
-                <input type="text" id="quick-pull-new-branch-name" name="quick-pull-new-branch" class="form-control">
-              </div>
-            </div>
+          <input type="text" id="quick-pull-new-branch-name" name="quick-pull-new-branch" class="form-control" placeholder="@branch">
           </div>
+
           </fieldset>
           <div style="text-align: right;">
             @if(fileName.isEmpty){
@@ -90,86 +86,9 @@
 <link href="@helpers.assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
-  $('#editor').text($('#initial').val());
-  var editor = ace.edit("editor");
-  editor.setTheme("ace/theme/monokai");
-  //editor.getSession().setUseWrapMode(false);
-
-  @if(fileName.isDefined){
-    editor.getSession().setMode("ace/mode/@helpers.editorType(fileName.get)");
-  }
-  @if(protectedBranch){
-    editor.setReadOnly(true);
-  }
-
-  editor.on('change', function(){
-    updateCommitButtonStatus();
-  });
-
-  function updateCommitButtonStatus(){
-    if(editor.getValue() == $('#initial').val() && $('#newFileName').val() == $('#oldFileName').val()){
-      $('#commit').attr('disabled', true);
-    } else {
-      $('#commit').attr('disabled', false);
-    }
-  }
-
-  $('#wrap').change(function(){
-    if($('#wrap option:selected').val() == 'true'){
-      editor.getSession().setUseWrapMode(true);
-    } else {
-      editor.getSession().setUseWrapMode(false);
-    }
-  });
-
-  $('#newFileName').watch(function(){
-    updateCommitButtonStatus();
-  });
-
-  $('#commit').click(function(){
-    $('#content').val(editor.getValue());
-  });
-
-  $('#btn-code').click(function(){
-    $('#editor').show();
-    $('#preview').hide();
-    $('#btn-code').appendClass('active');
-    $('#btn-preview').removeClass('active');
-  });
-
-  $("#quick-pull-choice-2" ).change(function(){
-    alert("Hi I am here");
-    $('.new-branch-name input').prop('disabled', !$(this).prop('checked'));
+  $('#quick-pull-choice-2').change(function(){
+       $('.new-branch-name input').prop('disabled', !$('#quick-pull-choice-2').prop('checked'));
   }).change();
 
-  $('#btn-preview').click(function(){
-    $('#editor').hide();
-    $('#preview').show();
-    $('#btn-code').removeClass('active');
-    $('#btn-preview').addClass('active');
-
-    @if(fileName.map(helpers.isRenderable _).getOrElse(false)) {
-      // update preview
-      $('#preview').html('<img src="@helpers.assets/common/images/indicator.gif"> Previewing...');
-      $.post('@helpers.url(repository)/_preview', {
-        content          : editor.getValue(),
-        enableWikiLink   : false,
-        enableRefsLink   : false,
-        enableLineBreaks : false,
-        enableTaskList   : false
-      }, function(data){
-        $('#preview').empty().append(
-          $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
-        prettyPrint();
-      });
-    } else {
-      // Show diff
-      $('#preview').empty()
-        .append($('<div id="diffText">'))
-        .append($('<textarea id="newText" style="display: none;">').data('file-name',$("#newFileName").val()).html(editor.getValue()))
-        .append($('<textarea id="oldText" style="display: none;">').data('file-name',$("#oldFileName").val()).html($('#initial').val()));
-      diffUsingJS('oldText', 'newText', 'diffText', 1);
-    }
-  });
 });
 </script>
