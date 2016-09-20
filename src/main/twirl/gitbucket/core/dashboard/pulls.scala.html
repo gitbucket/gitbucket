@@ -11,7 +11,7 @@
   @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
     @gitbucket.core.dashboard.html.tab("pulls")
     <div class="container">
-      @gitbucket.core.dashboard.html.issuesnavi(filter, openCount, closedCount, condition)
+      @gitbucket.core.dashboard.html.issuesnavi("pulls", filter, openCount, closedCount, condition)
       @gitbucket.core.dashboard.html.issueslist(issues, page, openCount, closedCount, condition, filter, groups)
     </div>
   }
