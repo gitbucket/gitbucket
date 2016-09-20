@@ -30,6 +30,7 @@ import org.eclipse.jgit.treewalk._
 import org.scalatra._
 
 import scala.io.Codec
+import scala.util.matching.Regex
 
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
@@ -54,8 +55,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     content: String,
     message: Option[String],
     charset: String,
-    lineSeparator: String,
-    files: String
+    lineSeparator: String
     )
 
   case class EditorForm(
@@ -90,8 +90,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "content"       -> trim(label("Content", text(required))),
     "message"       -> trim(label("Message", optional(text()))),
     "charset"       -> trim(label("Charset", text(required))),
-    "lineSeparator" -> trim(label("Line Separator", text(required))),
-    "files"         -> trim(label("Files", text(required)))
+    "lineSeparator" -> trim(label("Line Separator", text(required)))
   )(UploadFilesForm.apply)
 
   val editorForm = mapping(
@@ -564,40 +563,39 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   post("/:owner/:repository/files/upload/commit", uploadFilesForm)(collaboratorsOnly { (form, repository) =>
     Directory.getAttachedDir(repository.owner, repository.name) match {
       case dir if (dir.exists && dir.isDirectory) =>
-        val _commitFiles = data.fileIds.map { case (fileName, id) =>
-          dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
-            implicit val codec = Codec("UTF-8")
-            codec.onMalformedInput(CodingErrorAction.REPLACE)
-            codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+        if(form.content.nonEmpty) {
+          val pattern = new Regex("""(?<=\()[^)]+(?=\))""")
+          val list = form.content.split("/n")
+          val _list = list.map(x => (pattern findFirstIn x ))
 
-            val s = scala.io.Source.fromFile(file) // Codec ????
-          val byteArray = s.map(_.toByte).toArray
+          val str = _list.mkString(",")
+          org.scalatra.Ok(str
 
-            CommitFile(id, fileName, byteArray)
-          }
-        }.toList
-
-        val finalCommitFiles = _commitFiles.flatten
-        if(finalCommitFiles.size == data.fileIds.size) {
-          commitFiles(
-            repository,
-            files = finalCommitFiles,
-            branch = data.branch,
-            path = data.path,
-            message = data.message)
+          )
         }
-        else {
+        else{
           org.scalatra.NotAcceptable(
             s"""{"message":
                 |"$repository doesn't contain all the files you specified in the body"}""".stripMargin)
         }
 
-      case _ => org.scalatra.NotFound(s"""{"message": "$repository doesn't contain any attached files"}""")
+//        val _commitFiles = data.fileIds.map { case (fileName, id) =>
+//          dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
+//            implicit val codec = Codec("UTF-8")
+//            codec.onMalformedInput(CodingErrorAction.REPLACE)
+//            codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+//
+//            val s = scala.io.Source.fromFile(file) // Codec ????
+//          val byteArray = s.map(_.toByte).toArray
+//
+//            CommitFile(id, fileName, byteArray)
+//          }
+//        }.toList
+
+      case _ => redirect(s"/${repository.owner}/${repository.name}")
     }
 
-    redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
-      if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
-    }")
+
   })
 
   post("/:owner/:repository/files/upload")(collaboratorsOnly { repository =>

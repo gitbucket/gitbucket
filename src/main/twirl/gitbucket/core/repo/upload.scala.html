@@ -11,7 +11,7 @@
     @if(protectedBranch){
       <div class="alert alert-danger">branch @branch is protected.</div>
     }
-    <form method="POST" action="@helpers.url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
+    <form method="POST" action="@helpers.url(repository)/files/upload/commit" validate="true">
       <span class="error" id="error-newFileName"></span>
 
       <div class="muted attachable">
@@ -70,7 +70,7 @@
             } else {
               <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
             }
-            <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
+            <input type="submit" id="commit" class="btn btn-success" value="Commit changes"/>
             <input type="hidden" id="charset" name="charset" value="@content.charset"/>
             <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.lineSeparator"/>
             <input type="hidden" id="content" name="content" value=""/>
