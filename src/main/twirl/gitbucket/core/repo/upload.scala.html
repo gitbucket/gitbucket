@@ -37,7 +37,7 @@
           <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
 
-        <input type="hidden" name="branch" id="branch" value="@branch"/>
+        <input type="hidden" name="branch" id="branch" class="branch-name" value="@branch"/>
         <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
       </div>
       <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
@@ -89,6 +89,11 @@ $(function(){
   $('#quick-pull-choice-2').change(function(){
        $('.new-branch-name input').prop('disabled', !$('#quick-pull-choice-2').prop('checked'));
   }).change();
+
+  $('#quick-pull-new-branch-name').change(function(elm){
+       var newBranch = $('.new-branch-name input').val();
+       $('.branch-name').val(newBranch);
+  });
 
 });
 </script>
