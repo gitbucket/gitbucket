@@ -46,9 +46,10 @@ $ sbt executable
 
 ### Deploy assembly jar file
 
-For plug-in development, we have to publish the assembly jar file to the public Maven repository by `release/deploy-assembly-jar.sh`.
+For plug-in development, we have to publish the GitBucket jar file to the Maven central repository as well. At first, hit following command to publish artifacts to the sonatype OSS repository:
 
 ```bash
-$ cd release/
-$ ./deploy-assembly-jar.sh
+$ sbt publish-signed
 ```
+
+Then operate release sequence at https://oss.sonatype.org/.
