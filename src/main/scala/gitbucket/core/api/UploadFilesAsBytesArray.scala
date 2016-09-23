@@ -4,7 +4,6 @@ package gitbucket.core.api
 case class UploadFilesAsBytesArray(fileName:String, fileBytes: Array[Byte], message: String)
 {
   def isValid: Boolean = {
-    fileName.length>0 &&
-    fileBytes.length>0
+    fileName.length>0
   }
 }

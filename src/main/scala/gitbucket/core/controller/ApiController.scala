@@ -399,10 +399,10 @@ trait ApiControllerBase extends ControllerBase {
   })
 
   /**
-   *  https://developer.github.com/api/v3/repos/root/Help/file/master/fileName.md
+   *  https://developer.github.com/api/v3/repos/root/Help/branch/master/file/fileName.md
     * Gets file contents from branch.
     */
-  get("/api/v3/repos/:owner/:repository/file/:branch/:filename")(referrersOnly { repository =>
+  get("/api/v3/repos/:owner/:repository/branch/:branch/file/:filename")(referrersOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       (for {
         branch <- params.get("branch")
@@ -410,7 +410,7 @@ trait ApiControllerBase extends ControllerBase {
       } yield {
         
         using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-          getFileContent(git, branch, filename)
+          getFileContent(git, branch, filename.replace("|","/"))
         } 
         
       }) getOrElse
@@ -419,10 +419,10 @@ trait ApiControllerBase extends ControllerBase {
   })
   
   /**
-   *  https://developer.github.com/api/v3/repos/root/Help/file/master
+   *  https://developer.github.com/api/v3/repos/root/Help/branch/master
     * Uploads file to a branch.
     */
-  post("/api/v3/repos/:owner/:repository/file/:branch")(referrersOnly { repository =>
+  post("/api/v3/repos/:owner/:repository/branch/:branch")(referrersOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       (for {
         branch <- params.get("branch")
@@ -445,4 +445,3 @@ trait ApiControllerBase extends ControllerBase {
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
 }
-
