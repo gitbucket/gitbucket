@@ -46,7 +46,7 @@ object DatabaseConfig {
   lazy val maximumPoolSize    : Option[Int]    = getOptionValue("db.maximumPoolSize"  , config.getInt)
 
   private def getOptionValue[T](path: String, f: String => T): Option[T] = {
-    if(config.hasPath(path)) None else Some(f(path))
+    if(config.hasPath(path)) Some(f(path)) else None
   }
 
 }

@@ -1,4 +1,5 @@
-@(filter: String,
+@(active: String,
+  filter: String,
   openCount: Int,
   closedCount: Int,
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition)(implicit context: gitbucket.core.controller.Context)
@@ -9,15 +10,18 @@
   <li class="@(if(condition.state == "closed"){"active"})">
     <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
   </li>
-  @*
-  <li class="@if(filter == "created_by"){active}">
-    <a href="@path/dashboard/@active/created_by@condition.copy(author = None, assigned = None).toURL">Created</a>
-  </li>
-  <li class="@if(filter == "assigned"){active}">
-    <a href="@path/dashboard/@active/assigned@condition.copy(author = None, assigned = None).toURL">Assigned</a>
-  </li>
-  <li class="@if(filter == "mentioned"){active}">
-    <a href="@path/dashboard/@active/mentioned@condition.copy(author = None, assigned = None).toURL">Mentioned</a>
-  </li>
-  *@
 </ul>
+
+<div class="btn-group pull-right" data-toggle="buttons">
+  <a class="switch btn btn-default @if(filter == "created_by"){active}" href="@context.path/dashboard/@active/created_by@condition.copy(author = None, assigned = None).toURL">Created</a>
+  <a class="switch btn btn-default @if(filter == "assigned"  ){active}" href="@context.path/dashboard/@active/assigned@condition.copy(author = None, assigned = None).toURL">Assigned</a>
+  <a class="switch btn btn-default @if(filter == "mentioned" ){active}" href="@context.path/dashboard/@active/mentioned@condition.copy(author = None, assigned = None).toURL">Mentioned</a>
+</div>
+
+<script>
+$(function(){
+  $('a.switch').click(function(){
+    location.href = $(this).attr('href');
+  });
+})
+</script>
