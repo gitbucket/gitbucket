@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.api._
+
 import gitbucket.core.model._
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.PullRequestService._
@@ -21,6 +22,7 @@ class ApiController extends ApiControllerBase
   with IssuesService
   with LabelsService
   with PullRequestService
+  with FileService
   with CommitStatusService
   with RepositoryCreationService
   with HandleCommentService
@@ -43,6 +45,7 @@ trait ApiControllerBase extends ControllerBase {
     with IssuesService
     with LabelsService
     with PullRequestService
+    with FileService
     with CommitStatusService
     with RepositoryCreationService
     with HandleCommentService
@@ -71,6 +74,7 @@ trait ApiControllerBase extends ControllerBase {
     } getOrElse Unauthorized
   }
 
+   
   /**
    * Create user repository
    * https://developer.github.com/v3/repos/#create
@@ -394,8 +398,50 @@ trait ApiControllerBase extends ControllerBase {
     }) getOrElse NotFound
   })
 
+  /**
+   *  https://developer.github.com/api/v3/repos/root/Help/branch/master/file/fileName.md
+    * Gets file contents from branch.
+    */
+  get("/api/v3/repos/:owner/:repository/branch/:branch/file/:filename")(referrersOnly { repository =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      (for {
+        branch <- params.get("branch")
+        filename <- params.get("filename")
+      } yield {
+        
+        using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+          getFileContent(git, branch, filename.replace("|","/"))
+        } 
+        
+      }) getOrElse
+        org.scalatra.NotAcceptable("""{"message": "Incorrect number of parameters supplied for the GET method"}""")       
+    } 
+  })
+  
+  /**
+   *  https://developer.github.com/api/v3/repos/root/Help/branch/master
+    * Uploads file to a branch.
+    */
+  post("/api/v3/repos/:owner/:repository/branch/:branch")(referrersOnly { repository =>
+    defining(repository.owner, repository.name){ case (owner, name) =>
+      (for {
+        branch <- params.get("branch")
+        data <- extractFromJsonBody[UploadFilesAsBytesArray] if data.isValid
+      } yield {
+      
+      JsonFormat(commitFile(
+                context,
+                repository,
+                branch = branch,
+                fileName = data.fileName,
+                fileBytes = data.fileBytes,
+                commitMessage = data.message))
+      }) getOrElse
+        org.scalatra.NotAcceptable("""{"message": "Incorrect number of arguments supplied for the POST method"}""")
+    }
+  })
+    
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
 }
-
