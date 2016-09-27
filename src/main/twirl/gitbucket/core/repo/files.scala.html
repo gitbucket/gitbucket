@@ -34,6 +34,7 @@
             <div class="btn-group">
               <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
               <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
+              <a href="@helpers.url(repository)/upload/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-upload"></i> Upload Files</a>
             </div>
           </div>
         }

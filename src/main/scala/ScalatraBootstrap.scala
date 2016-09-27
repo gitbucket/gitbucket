@@ -46,7 +46,9 @@ class ScalatraBootstrap extends LifeCycle {
     context.setInitParameter(CorsSupport.AllowCredentialsKey, "true")
     context.setInitParameter(CorsSupport.PreflightMaxAgeKey, "1800")
 
-
+    // Set this parameter when run gitbucket on production mode
+    context.initParameters("org.scalatra.environment") = "production"
+    
     // Create GITBUCKET_HOME directory if it does not exist
     val dir = new java.io.File(Directory.GitBucketHome)
     if(!dir.exists){

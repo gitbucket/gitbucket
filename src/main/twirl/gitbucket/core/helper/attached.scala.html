@@ -48,7 +48,7 @@ $(function(){
     try {
       $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
         url: '@context.path/upload/file/@repository.owner/@repository.name',
-        maxFilesize: 10,
+        maxFilesize: 20,
         acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
         dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
         previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",

@@ -5,9 +5,10 @@ import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator, ReferrerAuthenticator, StringUtil}
-
+import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, StringUtil, UsersAuthenticator}
 import io.github.gitbucket.scalatra.forms._
+
+import scala.util.Try
 
 
 class IndexController extends IndexControllerBase 
@@ -31,7 +32,6 @@ trait IndexControllerBase extends ControllerBase {
     "owner"      -> trim(text(required)),
     "repository" -> trim(text(required))
   )(SearchForm.apply)
-
   case class SearchForm(query: String, owner: String, repository: String)
 
 

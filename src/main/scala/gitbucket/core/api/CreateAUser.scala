@@ -17,7 +17,7 @@ case class CreateAUser (
       !userName.startsWith("_") &&
       !userName.startsWith("-") &&
     // password rule
-      password.length > 8 && pattern.findAllIn(password).toList.size > 0
+      password.length >= 8 && pattern.findAllIn(password).toList.size > 0
 
   }
 

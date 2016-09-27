@@ -64,5 +64,6 @@ object FileUtil {
       "image/jpeg",
       "image/png",
       "text/plain",
-      "application/zip")
+      "application/zip",
+      ".s4m")
 }
