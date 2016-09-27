@@ -8,10 +8,11 @@ import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, StringUtil, UsersAuthenticator}
 import io.github.gitbucket.scalatra.forms._
 
+import gitbucket.core.schneider.ConsumerConfig
 import scala.util.Try
 
 
-class IndexController extends IndexControllerBase 
+class IndexController extends IndexControllerBase
   with RepositoryService with ActivityService with AccountService with RepositorySearchService with IssuesService
   with UsersAuthenticator with ReferrerAuthenticator
 
@@ -34,6 +35,15 @@ trait IndexControllerBase extends ControllerBase {
   )(SearchForm.apply)
   case class SearchForm(query: String, owner: String, repository: String)
 
+  // Add missing security headers.
+  before() {
+    // ALLOW-FROM - not supported in chrome or safari
+    response.addHeader("X-Frame-Options", "ALLOW-FROM " + ConsumerConfig.consumerHost)
+    response.addHeader("X-Content-Type-Options", "nosniff")
+    response.addHeader("Strict-Transport-Security", "max-age=31536000")
+    response.addHeader("Content-Security-Policy", "default-src \'self\'; script-src \'self\' \'unsafe-inline\'; connect-src \'self\'; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' https://www.gravatar.com; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com ;")
+    response.addHeader("X-Permitted-Cross-Domain-Policies", "all")
+  }
 
   get("/"){
     val loginAccount = context.loginAccount
@@ -46,12 +56,12 @@ trait IndexControllerBase extends ControllerBase {
         val loginUserName = loginAccount.get.userName
         val loginUserGroups = getGroupsByUserName(loginUserName)
         var visibleOwnerSet : Set[String] = Set(loginUserName)
-        
+
         visibleOwnerSet ++= loginUserGroups
 
         gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet),
             getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
-            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil) 
+            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
         )
     }
   }
