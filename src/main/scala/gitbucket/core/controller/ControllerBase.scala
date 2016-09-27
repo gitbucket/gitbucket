@@ -63,7 +63,6 @@ abstract class ControllerBase extends ScalatraFilter
       if(path.startsWith("/api/v3/")){
         httpRequest.setAttribute(Keys.Request.APIv3, true)
       }
-      // Scalatra actions
       super.doFilter(request, response, chain)
     }
   } finally {
