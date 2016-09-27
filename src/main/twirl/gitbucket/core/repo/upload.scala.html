@@ -1,0 +1,99 @@
+@(branch: String,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  pathList: List[String],
+  fileName: Option[String],
+  content: gitbucket.core.util.JGitUtil.ContentInfo,
+  protectedBranch: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@import gitbucket.core.util.FileUtil
+@gitbucket.core.html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
+  @gitbucket.core.html.menu("files", repository){
+    @if(protectedBranch){
+      <div class="alert alert-danger">branch @branch is protected.</div>
+    }
+    <form method="POST" action="@helpers.url(repository)/files/upload/commit" validate="true">
+      <span class="error" id="error-newFileName"></span>
+
+      <div class="muted attachable">
+        @gitbucket.core.helper.html.upload(
+          repository         = repository,
+          content            = "", //page.map(_.content).getOrElse(""),
+          enableWikiLink     = false,
+          enableRefsLink     = false,
+          enableLineBreaks   = false,
+          enableTaskList     = false,
+          hasWritePermission = true,
+          completionContext  = "Upload",
+          style              = "height: 100px;",
+          styleClass         = "monospace",
+          placeholder        = "Drop Something here",
+          tabIndex           = -1,
+          uid                = 1
+        )
+      </div>
+      <div class="head">
+        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
+
+        <input type="hidden" name="branch" id="branch" class="branch-name" value="@branch"/>
+        <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
+      </div>
+      <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
+      <div class="panel panel-default issue-comment-box">
+        <div class="panel-body">
+          <h3>Commit changes</h3>
+          <div class="form-group">
+            <input type="text" name="message" class="form-control" placeholder="Add files via upload"/>
+          </div>
+          <fieldset class="border-bottom">
+          <div class="checkbox">
+            <label>
+              <input type="radio" id="quick-pull-choice-1" name="commit-choice" value="direct" checked="checked"> Commit directly to the
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)" class="branch-name">@branch</a> branch
+            </label>
+          </div>
+          <div class="checkbox">
+            <label>
+              <input type="radio" id="quick-pull-choice-2" name="commit-choice" value="quick-pull"> Create a <strong>new branch</strong> for this commit and start a pull request
+            </label>
+          </div>
+          <div class="new-branch-name">
+          <input type="text" id="quick-pull-new-branch-name" name="quick-pull-new-branch" class="form-control" placeholder="@branch">
+          </div>
+
+          </fieldset>
+          <div style="text-align: right;">
+            @if(fileName.isEmpty){
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
+            } else {
+              <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
+            }
+            <input type="submit" id="commit" class="btn btn-success" value="Commit changes"/>
+            <input type="hidden" id="charset" name="charset" value="@content.charset"/>
+            <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.lineSeparator"/>
+            <input type="hidden" id="content" name="content" value=""/>
+            <input type="hidden" id="initial" value="@content.content"/>
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+}
+<script src="@helpers.assets/vendors/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="@helpers.assets/vendors/jsdifflib/difflib.js"></script>
+<link href="@helpers.assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script>
+$(function(){
+  $('#quick-pull-choice-2').change(function(){
+       $('.new-branch-name input').prop('disabled', !$('#quick-pull-choice-2').prop('checked'));
+  }).change();
+
+  $('#quick-pull-new-branch-name').change(function(elm){
+       var newBranch = $('.new-branch-name input').val();
+       $('.branch-name').val(newBranch);
+  });
+
+});
+</script>
