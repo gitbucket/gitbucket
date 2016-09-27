@@ -30,6 +30,8 @@ import org.eclipse.jgit.treewalk._
 import org.scalatra._
 
 import scala.io.Codec
+import scala.util.Try
+import scala.util.matching.Regex
 
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
@@ -47,6 +49,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
+
+  case class UploadFilesForm(
+    branch: String,
+    path: String,
+    content: String,
+    message: Option[String],
+    charset: String,
+    lineSeparator: String
+    )
 
   case class EditorForm(
     branch: String,
@@ -73,6 +84,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     content: String,
     issueId: Option[Int]
   )
+
+  val uploadFilesForm = mapping(
+    "branch"        -> trim(label("Branch", text(required))),
+    "path"          -> trim(label("Path", text())),
+    "content"       -> trim(label("Content", text(required))),
+    "message"       -> trim(label("Message", optional(text()))),
+    "charset"       -> trim(label("Charset", text(required))),
+    "lineSeparator" -> trim(label("Line Separator", text(required)))
+  )(UploadFilesForm.apply)
 
   val editorForm = mapping(
     "branch"        -> trim(label("Branch", text(required))),
@@ -159,6 +179,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (branch, path) = splitPath(repository, multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
+      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")),
+      protectedBranch)
+  })
+
+  get("/:owner/:repository/upload/*")(collaboratorsOnly { repository =>
+    val (branch, path) = splitPath(repository, multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
+    html.upload(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
       None, JGitUtil.ContentInfo("text", None, Some("UTF-8")),
       protectedBranch)
   })
@@ -533,6 +561,67 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
     * Upload file to a branch.
     */
+  post("/:owner/:repository/files/upload/commit", uploadFilesForm)(collaboratorsOnly { (form, repository) =>
+    Directory.getAttachedDir(repository.owner, repository.name) match {
+      case dir if (dir.exists && dir.isDirectory) =>
+        if(form.content.nonEmpty) {
+          val id_pattern = new Regex("""(?<=\()[^)]+(?=\))""")
+          val name_pattern = new Regex("""\[[^\]]+\]""")
+          val list  = form.content.split("\\s+")
+          val _m = scala.collection.mutable.HashMap[String, String]()
+          val m = list map {
+            x => val name : Option[String] = name_pattern findFirstIn(x)
+              val id : Option[String] = id_pattern findFirstIn(x)
+
+              (name, id) match {
+                case (Some(n), Some(i)) => _m += (n -> i)
+                case (_, _) =>
+              }
+          }
+
+
+          val _commitFiles = _m.map { case (fileName:String, f:String) =>
+            val l = f.split("/")
+            val id = l(l.size-1)
+            dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
+              implicit val codec = Codec("UTF-8")
+              codec.onMalformedInput(CodingErrorAction.REPLACE)
+              codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+
+              val s = scala.io.Source.fromFile(file) // Codec ????
+              val byteArray = s.map(_.toByte).toArray
+
+              CommitFile(id, fileName, byteArray)
+            }
+          }.toList
+
+
+          val finalCommitFiles = _commitFiles.flatten
+          if(finalCommitFiles.size == m.size) {
+            commitFiles(
+              repository,
+              files = finalCommitFiles,
+              branch = form.branch,
+              path = form.path,
+              message = form.message.getOrElse("Commit initiated by file upload"))
+
+            redirect(s"/${repository.owner}/${repository.name}")
+          }
+          else {
+            redirect(s"/${repository.owner}/${repository.name}")
+          }
+
+        }
+        else{
+          redirect(s"/${repository.owner}/${repository.name}")
+        }
+
+      case _ => redirect(s"/${repository.owner}/${repository.name}")
+    }
+
+
+  })
+
   post("/:owner/:repository/files/upload")(collaboratorsOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       (for {
@@ -595,12 +684,21 @@ Roy Li modification
         val builder = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
         val headName = s"refs/heads/${branch}"
-        val headTip = git.getRepository.resolve(headName)
+        val _headTip = git.getRepository.resolve(headName)
 
-        if(headTip != null){
-          JGitUtil.processTree(git, headTip) { (path, tree) =>
-            builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-          }
+        def process(ht: ObjectId) = JGitUtil.processTree(git, ht) { (path, tree) =>
+          builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+        }
+
+        val headTip = if(_headTip != null){
+          process(_headTip)
+          _headTip
+        }
+        else {
+          JGitUtil.createBranch(git, "master", branch)
+          val ht = git.getRepository.resolve(headName)
+          process(ht)
+          ht
         }
 
         files.foreach{item =>
@@ -608,7 +706,10 @@ Roy Li modification
           val bytes = item.fileBytes
           builder.add(JGitUtil.createDirCacheEntry(fileName,
             FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes)))
-          builder.finish()
+          Try(builder.finish()) match {
+            case scala.util.Success(v) =>
+            case scala.util.Failure(ex) =>
+          }
         }
 
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
