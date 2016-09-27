@@ -1,6 +1,5 @@
 package gitbucket.core.controller
 
-import java.io.{PrintStream, PrintWriter}
 
 import gitbucket.core.api.ApiError
 import gitbucket.core.model.Account
@@ -18,7 +17,7 @@ import org.scalatra.json._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 
 /**
@@ -65,23 +64,7 @@ abstract class ControllerBase extends ScalatraFilter
         httpRequest.setAttribute(Keys.Request.APIv3, true)
       }
       // Scalatra actions
-      Try(super.doFilter(request, response, chain)) match {
-        case Success(s) =>
-        case Failure(ex) => {
-          response.asInstanceOf[HttpServletResponse].setStatus(400)
-          response.setContentType("text/plain")
-          val ps = new PrintStream(response.getOutputStream)
-          val pw = new PrintWriter(ps)
-          pw.print(
-            s"""{
-                |"message" : "400 Bad Request"
-                |}
-             """.stripMargin)
-          pw.close
-          ps.close
-          response.getOutputStream.close
-        }
-      }
+      super.doFilter(request, response, chain)
     }
   } finally {
     contextCache.remove();
