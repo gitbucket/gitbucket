@@ -83,6 +83,18 @@
     <url-pattern>/console/*</url-pattern>
   </servlet-mapping>
 
+    <!-- ===================================================================== -->
+    <!-- Disabling the directory listing configuration -->
+    <!-- ===================================================================== -->
+    <servlet>
+        <servlet-name>default</servlet-name>
+        <servlet-class>org.eclipse.jetty.servlet.DefaultServlet</servlet-class>
+        <init-param>
+            <param-name>dirAllowed</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </servlet>
+
   <!-- ===================================================================== -->
   <!-- Session timeout -->
   <!-- ===================================================================== -->
@@ -101,7 +113,7 @@
   -->
 
 
-   <filter>
+<!--   <filter>
       <filter-name>cross-origin</filter-name>
       <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
       <init-param>
@@ -121,7 +133,7 @@
         <filter-name>cross-origin</filter-name>
         <url-pattern>/*</url-pattern>
   </filter-mapping>
-
+-->
 
 
 
