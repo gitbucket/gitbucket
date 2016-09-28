@@ -28,7 +28,8 @@ trait ServiceSpecBase {
       org.h2.Driver.load()
       using(DriverManager.getConnection(url, user, pass)){ conn =>
         val solidbase = new Solidbase()
-        val db = new H2Database() <| { _.setConnection(new JdbcConnection(conn)) } // TODO Remove setConnection in the future
+        val db = new H2Database()
+        db.setConnection(new JdbcConnection(conn)) // TODO Remove setConnection in the future
         solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, db, GitBucketCoreModule)
       }
       Database.forURL(url, user, pass).withSession { session =>
