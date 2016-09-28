@@ -22,9 +22,9 @@
   }, Some(repository)) {
   @gitbucket.core.html.menu("files", repository, Some(branch), info, error){
     <div class="head">
-      <div class="pull-right pc">
+      <div class="pull-right">
         <div class="btn-group">
-          <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default pc" data-hotkey="t"><i class="octicon octicon-search"></i></a>
+          <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
           <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i></a>
         </div>
       </div>
