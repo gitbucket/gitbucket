@@ -53,7 +53,7 @@ $(function(){
         dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
         previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
         success: function(file, id) {
-          var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
+          var attachFile = '\n[' + file.name + //(file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
             '](@context.baseUrl/@repository.owner/@repository.name/_attached/' + id + ')';
           $('#@textareaId').val($('#@textareaId').val() + attachFile);
           $(file.previewElement).prevAll('div.dz-preview').addBack().remove();

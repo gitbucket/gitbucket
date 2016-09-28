@@ -567,7 +567,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         if(form.content.nonEmpty) {
           val id_pattern = new Regex("""(?<=\()[^)]+(?=\))""")
           val name_pattern = new Regex("""(?<=\[)[^\[\]]+(?=\])""")
-          val list  = form.content.split("\\s+")
+          val list  = form.content.split("\n")
           val _m = scala.collection.mutable.HashMap[String, String]()
           val m = list map {
             x => val name : Option[String] = name_pattern findFirstIn(x)
@@ -578,7 +578,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 case (_, _) =>
               }
           }
-
 
           val _commitFiles = _m.map { case (fileName:String, f:String) =>
             val l = f.split("/")
@@ -706,10 +705,11 @@ Roy Li modification
           val bytes = item.fileBytes
           builder.add(JGitUtil.createDirCacheEntry(fileName,
             FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes)))
-          Try(builder.finish()) match {
+          builder.finish()
+          /*Try(builder.finish()) match {
             case scala.util.Success(v) =>
             case scala.util.Failure(ex) =>
-          }
+          }*/
         }
 
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),

@@ -41,7 +41,7 @@ trait IndexControllerBase extends ControllerBase {
     response.addHeader("X-Frame-Options", "ALLOW-FROM " + ConsumerConfig.consumerHost)
     response.addHeader("X-Content-Type-Options", "nosniff")
     response.addHeader("Strict-Transport-Security", "max-age=31536000")
-    response.addHeader("Content-Security-Policy", "default-src \'self\'; script-src \'self\' \'unsafe-inline\'; connect-src \'self\'; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' https://www.gravatar.com; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com ;")
+    response.addHeader("Content-Security-Policy", "default-src \'self\'; script-src \'self\' \'unsafe-inline\'; connect-src \'self\'; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' data: https://www.gravatar.com http://localhost:8080 https://*.modler.gy; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com ;")
     response.addHeader("X-Permitted-Cross-Domain-Policies", "all")
   }
 
