@@ -566,7 +566,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       case dir if (dir.exists && dir.isDirectory) =>
         if(form.content.nonEmpty) {
           val id_pattern = new Regex("""(?<=\()[^)]+(?=\))""")
-          val name_pattern = new Regex("""\[[^\]]+\]""")
+          val name_pattern = new Regex("""(?<=\[)[^\[\]]+(?=\])""")
           val list  = form.content.split("\\s+")
           val _m = scala.collection.mutable.HashMap[String, String]()
           val m = list map {
