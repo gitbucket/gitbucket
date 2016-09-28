@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 
 import slick.jdbc.JdbcBackend.{Session, Database => SlickDatabase}
 import gitbucket.core.util.Keys
+import org.owasp.esapi.ESAPI
 
 import scala.util.matching.Regex
 
@@ -25,70 +26,104 @@ class TransactionFilter extends Filter {
   def destroy(): Unit = {}
 
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
-    if(req.asInstanceOf[HttpServletRequest].getServletPath().startsWith("/assets/")){
-      val request = req.asInstanceOf[HttpServletRequest]
-      val pattern = new Regex("""^(https?|ftp)://[^\s/$.?#].[^\s]*$""")
-      def isValid (path: String): Boolean = {
-          pattern.findAllIn(path).hasNext
-      }
+    val request = req.asInstanceOf[HttpServletRequest]
 
-      def isValidQPair(a: Array[String]) = {
-        val validRange = Range.Double.inclusive(0, 1, 0.1)
-        a.length == 2 && a(0) == "q" && validRange.contains(a(1).toDouble)
-      }
-
-      import scala.collection.JavaConversions._
-
-      val lis = scala.util.Try (request.getHeaders("Accept") map { s =>
-        val fmts = s.split(",").map(_.trim)
-        val accepted = fmts.foldLeft(Map.empty[Int, List[String]]) { (acc, f) =>
-          val parts = f.split(";").map(_.trim)
-          val i = if (parts.size > 1) {
-            val pars = parts(1).split("=").map(_.trim).grouped(2).find(isValidQPair).getOrElse(Array("q", "0"))
-            (pars(1).toDouble * 10).ceil.toInt
-          } else 10
-          acc + (i -> (parts(0) :: acc.get(i).getOrElse(List.empty)))
-        }
-        accepted.toList.sortWith((kv1, kv2) => kv1._1 > kv2._1).flatMap(_._2.reverse)
-      })
-
-      if(isValid(request.getServletPath)) {
-        lis match {
-          case scala.util.Success(c) => {
-            // assets don't need transaction
-            chain.doFilter(req, res)
-          }
-          case scala.util.Failure(e) =>
-            val resp = res.asInstanceOf[HttpServletResponse]
-            resp.reset()
-            resp.setStatus(HttpServletResponse.SC_FORBIDDEN)
-        }
-      }
-      else{
-
-        val resp = res.asInstanceOf[HttpServletResponse]
-        resp.reset()
-        resp.setStatus(HttpServletResponse.SC_FORBIDDEN)
-        return
-      }
-
-
-
-
-    } else {
-      Database() withTransaction { session =>
-        // Register Scalatra error callback to rollback transaction
-        ScalatraBase.onFailure { _ =>
-          logger.debug("Rolled back transaction")
-          session.rollback()
-        }(req.asInstanceOf[HttpServletRequest])
-
-        logger.debug("begin transaction")
-        req.setAttribute(Keys.Request.DBSession, session)
-        chain.doFilter(req, res)
-        logger.debug("end transaction")
-      }
+    if (isRedirect(request.getQueryString) || isRedirect(request.getRequestURI) || isInvalid(request.getHeader("Accept"))) {
+      (res.asInstanceOf[HttpServletResponse])
+        .sendError(HttpServletResponse.SC_BAD_REQUEST)
     }
+    else{
+      if(req.asInstanceOf[HttpServletRequest].getServletPath().startsWith("/assets/")){
+        // assets don't need transaction
+        chain.doFilter(req, res)
+      } else {
+        Database() withTransaction { session =>
+          // Register Scalatra error callback to rollback transaction
+          ScalatraBase.onFailure { _ =>
+            logger.debug("Rolled back transaction")
+            session.rollback()
+          }(req.asInstanceOf[HttpServletRequest])
+
+          logger.debug("begin transaction")
+          req.setAttribute(Keys.Request.DBSession, session)
+          chain.doFilter(req, res)
+          logger.debug("end transaction")
+        }
+      }
+
+    }
+
+  }
+
+  private def isRedirect(value: String) : Boolean = {
+    if(value!=null && value.contains("redirect"))
+      false
+    else
+      isInvalid(value)
+  }
+
+  private def isInvalid(value: String) : Boolean = {
+    value != null && (value.indexOf('<') != -1
+      || value.indexOf('>') != -1
+      || value.indexOf("%3C") != -1
+      || value.indexOf("%3c") != -1
+      || value.indexOf("%3E") != -1
+      || value.indexOf("%3e") != -1
+      || stripXSS(value))
+
+  }
+
+  import java.util.regex.Pattern
+
+  private def stripXSS(value: String) : Boolean = {
+    if(value != null) {
+
+      // avoid encoded attacks.
+      var newValue =
+      ESAPI.encoder().canonicalize(value)
+        // Avoid null characters
+        .replaceAll("","")
+
+      // Avoid anything between script tags
+      newValue =  Pattern.compile("<script>(.*?)</script>", Pattern.CASE_INSENSITIVE)
+        .matcher(newValue).replaceAll("")
+      // Avoid anything in a src='...' type of expression
+      newValue = Pattern.compile("src[\r\n]*=[\r\n]*\\\'(.*?)\\\'", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+        .matcher(newValue).replaceAll("")
+      newValue = Pattern.compile("src[\r\n]*=[\r\n]*\\\"(.*?)\\\"", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+        .matcher(newValue).replaceAll("")
+
+      // Remove any lonesome </script> tag
+      newValue = Pattern.compile("</script>", Pattern.CASE_INSENSITIVE)
+        .matcher(newValue).replaceAll("")
+
+      // Remove any lonesome <script ...> tag
+      newValue = Pattern.compile("<script(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+        .matcher(newValue).replaceAll("")
+
+      // Avoid eval(...) expressions
+      newValue = Pattern.compile("eval\\((.*?)\\)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+        .matcher(newValue).replaceAll("")
+
+      // Avoid expression(...) expressions
+      newValue = Pattern.compile("expression\\((.*?)\\)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+        .matcher(newValue).replaceAll("")
+
+      // Avoid javascript:... expressions
+      newValue =  Pattern.compile("javascript:", Pattern.CASE_INSENSITIVE)
+        .matcher(newValue).replaceAll("")
+
+      // Avoid vbscript:... expressions
+      newValue = Pattern.compile("vbscript:", Pattern.CASE_INSENSITIVE)
+        .matcher(newValue).replaceAll("")
+
+      // Avoid onload= expressions
+      newValue = Pattern.compile("onload(.*?)=", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL)
+        .matcher(newValue).replaceAll("")
+
+      !newValue.equalsIgnoreCase(value)
+
+    } else false
 
   }
 
