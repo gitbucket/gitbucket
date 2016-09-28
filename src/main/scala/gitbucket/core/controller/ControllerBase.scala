@@ -25,7 +25,7 @@ import scala.util.Try
  */
 abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
-  with SystemSettingsService {
+  with SystemSettingsService with CorsSupport{
 
   implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
 
