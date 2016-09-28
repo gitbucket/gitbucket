@@ -25,7 +25,7 @@
       <div class="pull-right">
         <div class="btn-group">
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
-          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i></a>
+          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(repository.commitCount > 10000){10000+} else {@repository.commitCount} @helpers.plural(repository.commitCount, "commit")</a>
         </div>
       </div>
       @if(pathList.isEmpty){
