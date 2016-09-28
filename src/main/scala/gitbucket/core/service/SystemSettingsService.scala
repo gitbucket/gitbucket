@@ -73,7 +73,7 @@ trait SystemSettingsService {
         getValue(props, AllowAccountRegistration, false),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
-        getValue(props, Gravatar, true),
+        getValue(props, Gravatar, false),
         getValue(props, Notification, false),
         getOptionValue[Int](props, ActivityLogLimit, None),
         getValue(props, Ssh, false),
