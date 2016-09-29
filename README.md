@@ -70,6 +70,7 @@ Release Notes
 - Issues / Pull requests switcher in dashboard
 - HikariCP could be configured in `GITBUCKET_HOME/database.conf`
 - Improve Cookie security
+- Display commit count on the history button
 - Improve mobile view
 
 ### 4.4 - 28 Aug 2016
