@@ -22,7 +22,7 @@ import org.apache.commons.io.{IOUtils, FileUtils}
  */
 class FileUploadController extends ScalatraServlet with FileUploadSupport with RepositoryService with AccountService {
 
-  configureMultipartHandling(MultipartConfig(maxFileSize = Some(3 * 1024 * 1024)))
+  configureMultipartHandling(MultipartConfig(maxFileSize = Some(20 * 1024 * 1024)))
 
   post("/image"){
     execute({ (file, fileId) =>
