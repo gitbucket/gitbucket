@@ -65,7 +65,7 @@ Support
 
 Release Notes
 -------------
-### 4.5 - 1 Oct 2016
+### 4.5 - 29 Sep 2016
 - Attach files by dropping into textarea
 - Issues / Pull requests switcher in dashboard
 - HikariCP could be configured in `GITBUCKET_HOME/database.conf`
