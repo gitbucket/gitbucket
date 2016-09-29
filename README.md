@@ -65,6 +65,13 @@ Support
 
 Release Notes
 -------------
+### 4.5 - 1 Oct 2016
+- Attach files by dropping into textarea
+- Issues / Pull requests switcher in dashboard
+- HikariCP could be configured in `GITBUCKET_HOME/database.conf`
+- Improve Cookie security
+- Improve mobile view
+
 ### 4.4 - 28 Aug 2016
 - Import a SQL dump file to the database
 - `go get` support in private repositories
