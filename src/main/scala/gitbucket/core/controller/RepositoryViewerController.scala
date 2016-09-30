@@ -583,14 +583,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             val l = f.split("/")
             val id = l(l.size-1)
             dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
-              implicit val codec = Codec("UTF-8")
-              codec.onMalformedInput(CodingErrorAction.REPLACE)
-              codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
-
-              val s = scala.io.Source.fromFile(file) // Codec ????
-              val byteArray = s.map(_.toByte).toArray
-
-              CommitFile(id, fileName, byteArray)
+              val path = java.nio.file.Paths.get(file.getPath)
+              val data = java.nio.file.Files.readAllBytes(path)
+              CommitFile(id, fileName, data)
             }
           }.toList
 
@@ -630,14 +625,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           case dir if (dir.exists && dir.isDirectory) =>
             val _commitFiles = data.fileIds.map { case (fileName, id) =>
               dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
-                implicit val codec = Codec("UTF-8")
-                codec.onMalformedInput(CodingErrorAction.REPLACE)
-                codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
-
-                val s = scala.io.Source.fromFile(file) // Codec ????
-              val byteArray = s.map(_.toByte).toArray
-
-                CommitFile(id, fileName, byteArray)
+                val path = java.nio.file.Paths.get(file.getPath)
+                val data = java.nio.file.Files.readAllBytes(path)
+                CommitFile(id, fileName, data)
               }
             }.toList
 
