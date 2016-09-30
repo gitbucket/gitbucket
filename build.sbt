@@ -177,7 +177,6 @@ publishTo <<= version { (v: String) =>
 }
 publishMavenStyle := true
 pomIncludeRepository := { _ => false }
-artifact in Keys.`package` := Artifact(moduleName.value)
 pomExtra := (
   <url>https://github.com/gitbucket/gitbucket</url>
   <licenses>
