@@ -106,7 +106,6 @@ libraryDependencies ++= Seq(
 
 val executableKey = TaskKey[File]("executable")
 executableKey := {
-  import org.apache.ivy.util.ChecksumHelper
   import java.util.jar.{ Manifest => JarManifest }
   import java.util.jar.Attributes.{ Name => AttrName }
 
@@ -164,12 +163,6 @@ executableKey := {
   log info s"built executable webapp ${outputFile}"
   outputFile
 }
-/*
-Keys.artifact in (Compile, executableKey) ~= {
-    _ copy (`type` = "war", extension = "war"))
-}
-addArtifact(Keys.artifact in (Compile, executableKey), executableKey)
-*/
 publishTo <<= version { (v: String) =>
   val nexus = "https://oss.sonatype.org/"
   if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
