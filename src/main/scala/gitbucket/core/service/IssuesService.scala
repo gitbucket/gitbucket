@@ -221,7 +221,7 @@ trait IssuesService {
               case "desc" => sort desc
             }
           }
-        }
+        }.sortBy { case (t1, t2) => t1.issueId desc }
         .drop(offset).take(limit)
 
 
