@@ -568,14 +568,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           val id_pattern = new Regex("""(?<=\()[^)]+(?=\))""")
           val name_pattern = new Regex("""(?<=\[)[^\[\]]+(?=\])""")
           val list  = form.content.split("\n")
-          val _m = scala.collection.mutable.HashMap[String, String]()
-          val m = list map {
+          val _m = scala.collection.mutable.Map[String, String]()
+          list map {
             x => val name : Option[String] = name_pattern findFirstIn(x)
               val id : Option[String] = id_pattern findFirstIn(x)
 
               (name, id) match {
                 case (Some(n), Some(i)) => _m += (n -> i)
-                case (_, _) =>
+                case (_, _) => _m
               }
           }
 
@@ -591,7 +591,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
 
           val finalCommitFiles = _commitFiles.flatten
-          if(finalCommitFiles.size == m.size) {
+          if(finalCommitFiles.size == _m.size) {
             commitFiles(
               repository,
               files = finalCommitFiles,
