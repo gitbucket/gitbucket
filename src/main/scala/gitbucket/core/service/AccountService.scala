@@ -181,7 +181,6 @@ trait AccountService {
   def removeUserRelatedData(userName: String)(implicit s: Session): Unit = {
     GroupMembers.filter(_.userName === userName.bind).delete
     Collaborators.filter(_.collaboratorName === userName.bind).delete
-    Repositories.filter(_.userName === userName.bind).delete
   }
 
   def getGroupNames(userName: String)(implicit s: Session): List[String] = {
