@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.{Collaborator, Repository, Account}
+import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile.simple._
@@ -37,11 +37,14 @@ trait RepositoryService { self: AccountService =>
         originRepositoryName = originRepositoryName,
         parentUserName       = parentUserName,
         parentRepositoryName = parentRepositoryName,
-        enableIssues         = true,
-        externalIssuesUrl    = None,
-        enableWiki           = true,
-        allowWikiEditing     = true,
-        externalWikiUrl      = None
+        options              = RepositoryOptions(
+          enableIssues         = true,
+          externalIssuesUrl    = None,
+          enableWiki           = true,
+          allowWikiEditing     = true,
+          externalWikiUrl      = None,
+          allowFork            = true
+        )
       )
 
     IssueId insert (userName, repositoryName, 0)
@@ -321,10 +324,11 @@ trait RepositoryService { self: AccountService =>
   def saveRepositoryOptions(userName: String, repositoryName: String,
       description: Option[String], isPrivate: Boolean,
       enableIssues: Boolean, externalIssuesUrl: Option[String],
-      enableWiki: Boolean, allowWikiEditing: Boolean, externalWikiUrl: Option[String])(implicit s: Session): Unit =
+      enableWiki: Boolean, allowWikiEditing: Boolean, externalWikiUrl: Option[String],
+      allowFork: Boolean)(implicit s: Session): Unit =
     Repositories.filter(_.byRepository(userName, repositoryName))
-      .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.externalIssuesUrl.?, r.enableWiki, r.allowWikiEditing, r.externalWikiUrl.?, r.updatedDate) }
-      .update (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, currentDate)
+      .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.externalIssuesUrl.?, r.enableWiki, r.allowWikiEditing, r.externalWikiUrl.?, r.allowFork, r.updatedDate) }
+      .update (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, allowFork, currentDate)
 
   def saveRepositoryDefaultBranch(userName: String, repositoryName: String,
       defaultBranch: String)(implicit s: Session): Unit =

@@ -27,24 +27,26 @@
           @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
           @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
         }
-        @if(repository.repository.enableIssues) {
+        @if(repository.repository.options.enableIssues) {
           @menuitem("/issues", "issues", "Issues", "issue-opened", repository.issueCount)
           @menuitem("/pulls", "pulls", "Pull Requests", "git-pull-request", repository.pullCount)
           @menuitem("/issues/labels", "labels", "Labels", "tag")
           @menuitem("/issues/milestones", "milestones", "Milestones", "milestone")
         } else {
-          @repository.repository.externalIssuesUrl.map { externalIssuesUrl =>
+          @repository.repository.options.externalIssuesUrl.map { externalIssuesUrl =>
             @menuitem(externalIssuesUrl, "issues", "Issues", "issue-opened")
           }
         }
-        @if(repository.repository.enableWiki) {
+        @if(repository.repository.options.enableWiki) {
           @menuitem("/wiki", "wiki", "Wiki", "book")
         } else {
-          @repository.repository.externalWikiUrl.map { externalWikiUrl =>
+          @repository.repository.options.externalWikiUrl.map { externalWikiUrl =>
             @menuitem(externalWikiUrl, "wiki", "Wiki", "book")
           }
         }
-        @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
+        @if(repository.repository.options.allowFork) {
+          @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
+        }
         @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
           @menuitem("/settings", "settings", "Settings", "tools")
         }

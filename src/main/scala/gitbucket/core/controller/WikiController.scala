@@ -241,7 +241,7 @@ trait WikiControllerBase extends ControllerBase {
   private def targetWikiPage = getWikiPage(params("owner"), params("repository"), params("pageName"))
 
   private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean =
-    repository.repository.allowWikiEditing || (
+    repository.repository.options.allowWikiEditing || (
       hasWritePermission(repository.owner, repository.name, context.loginAccount)
     )
 

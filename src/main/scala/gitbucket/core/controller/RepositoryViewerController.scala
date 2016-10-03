@@ -494,18 +494,20 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>
-    html.forked(
-      getRepository(
-        repository.repository.originUserName.getOrElse(repository.owner),
-        repository.repository.originRepositoryName.getOrElse(repository.name)),
-      getForkedRepositories(
-        repository.repository.originUserName.getOrElse(repository.owner),
-        repository.repository.originRepositoryName.getOrElse(repository.name)),
-      context.loginAccount match {
-        case None => List()
-        case account: Option[Account] => getGroupsByUserName(account.get.userName)
-      }, // groups of current user
-      repository)
+    if(repository.repository.options.allowFork) {
+      html.forked(
+        getRepository(
+          repository.repository.originUserName.getOrElse(repository.owner),
+          repository.repository.originRepositoryName.getOrElse(repository.name)),
+        getForkedRepositories(
+          repository.repository.originUserName.getOrElse(repository.owner),
+          repository.repository.originRepositoryName.getOrElse(repository.name)),
+        context.loginAccount match {
+          case None => List()
+          case account: Option[Account] => getGroupsByUserName(account.get.userName)
+        }, // groups of current user
+        repository)
+    } else BadRequest()
   })
 
   /**

@@ -35,7 +35,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     externalIssuesUrl: Option[String],
     enableWiki: Boolean,
     allowWikiEditing: Boolean,
-    externalWikiUrl: Option[String]
+    externalWikiUrl: Option[String],
+    allowFork: Boolean
   )
   
   val optionsForm = mapping(
@@ -46,7 +47,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
     "enableWiki"        -> trim(label("Enable Wiki"        , boolean())),
     "allowWikiEditing"  -> trim(label("Allow Wiki Editing" , boolean())),
-    "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200)))))
+    "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200))))),
+    "allowFork"         -> trim(label("Allow Forking"      , boolean()))
   )(OptionsForm.apply)
 
   // for default branch
@@ -111,7 +113,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       form.externalIssuesUrl,
       form.enableWiki,
       form.allowWikiEditing,
-      form.externalWikiUrl
+      form.externalWikiUrl,
+      form.allowFork
     )
     // Change repository name
     if(repository.name != form.repositoryName){

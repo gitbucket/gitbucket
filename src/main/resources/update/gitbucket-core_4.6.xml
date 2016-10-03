@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+    <addColumn tableName="REPOSITORY">
+        <column name="ALLOW_FORK" type="boolean" nullable="false" defaultValueBoolean="true"/>
+    </addColumn>
+</changeSet>

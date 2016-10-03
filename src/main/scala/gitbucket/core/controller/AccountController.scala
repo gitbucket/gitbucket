@@ -14,6 +14,7 @@ import gitbucket.core.util._
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
+import org.scalatra.BadRequest
 
 
 class AccountController extends AccountControllerBase
@@ -355,76 +356,80 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
-    val loginAccount   = context.loginAccount.get
-    val loginUserName  = loginAccount.userName
-    val groups         = getGroupsByUserName(loginUserName)
-    groups match {
-      case _: List[String] =>
-        val managerPermissions = groups.map { group =>
-          val members = getGroupMembers(group)
-          context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager })
-        }
-        helper.html.forkrepository(
-          repository,
-          (groups zip managerPermissions).toMap
-        )
-      case _ => redirect(s"/${loginUserName}")
-    }
+    if(repository.repository.options.allowFork){
+      val loginAccount   = context.loginAccount.get
+      val loginUserName  = loginAccount.userName
+      val groups         = getGroupsByUserName(loginUserName)
+      groups match {
+        case _: List[String] =>
+          val managerPermissions = groups.map { group =>
+            val members = getGroupMembers(group)
+            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager })
+          }
+          helper.html.forkrepository(
+            repository,
+            (groups zip managerPermissions).toMap
+          )
+        case _ => redirect(s"/${loginUserName}")
+      }
+    } else BadRequest
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
-    val loginAccount  = context.loginAccount.get
-    val loginUserName = loginAccount.userName
-    val accountName   = form.accountName
+    if(repository.repository.options.allowFork){
+      val loginAccount  = context.loginAccount.get
+      val loginUserName = loginAccount.userName
+      val accountName   = form.accountName
 
-    LockUtil.lock(s"${accountName}/${repository.name}"){
-      if(getRepository(accountName, repository.name).isDefined ||
-          (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
-        // redirect to the repository if repository already exists
-        redirect(s"/${accountName}/${repository.name}")
-      } else {
-        // Insert to the database at first
-        val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
-        val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
+      LockUtil.lock(s"${accountName}/${repository.name}"){
+        if(getRepository(accountName, repository.name).isDefined ||
+            (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
+          // redirect to the repository if repository already exists
+          redirect(s"/${accountName}/${repository.name}")
+        } else {
+          // Insert to the database at first
+          val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
+          val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
 
-        insertRepository(
-          repositoryName       = repository.name,
-          userName             = accountName,
-          description          = repository.repository.description,
-          isPrivate            = repository.repository.isPrivate,
-          originRepositoryName = Some(originRepositoryName),
-          originUserName       = Some(originUserName),
-          parentRepositoryName = Some(repository.name),
-          parentUserName       = Some(repository.owner)
-        )
+          insertRepository(
+            repositoryName       = repository.name,
+            userName             = accountName,
+            description          = repository.repository.description,
+            isPrivate            = repository.repository.isPrivate,
+            originRepositoryName = Some(originRepositoryName),
+            originUserName       = Some(originUserName),
+            parentRepositoryName = Some(repository.name),
+            parentUserName       = Some(repository.owner)
+          )
 
-        // Add collaborators for group repository
-        val ownerAccount = getAccountByUserName(accountName).get
-        if(ownerAccount.isGroupAccount){
-          getGroupMembers(accountName).foreach { member =>
-            addCollaborator(accountName, repository.name, member.userName)
+          // Add collaborators for group repository
+          val ownerAccount = getAccountByUserName(accountName).get
+          if(ownerAccount.isGroupAccount){
+            getGroupMembers(accountName).foreach { member =>
+              addCollaborator(accountName, repository.name, member.userName)
+            }
           }
+
+          // Insert default labels
+          insertDefaultLabels(accountName, repository.name)
+
+          // clone repository actually
+          JGitUtil.cloneRepository(
+            getRepositoryDir(repository.owner, repository.name),
+            getRepositoryDir(accountName, repository.name))
+
+          // Create Wiki repository
+          JGitUtil.cloneRepository(
+            getWikiRepositoryDir(repository.owner, repository.name),
+            getWikiRepositoryDir(accountName, repository.name))
+
+          // Record activity
+          recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
+          // redirect to the repository
+          redirect(s"/${accountName}/${repository.name}")
         }
-
-        // Insert default labels
-        insertDefaultLabels(accountName, repository.name)
-
-        // clone repository actually
-        JGitUtil.cloneRepository(
-          getRepositoryDir(repository.owner, repository.name),
-          getRepositoryDir(accountName, repository.name))
-
-        // Create Wiki repository
-        JGitUtil.cloneRepository(
-          getWikiRepositoryDir(repository.owner, repository.name),
-          getWikiRepositoryDir(accountName, repository.name))
-
-        // Record activity
-        recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
-        // redirect to the repository
-        redirect(s"/${accountName}/${repository.name}")
       }
-    }
+    } else BadRequest
   })
 
   private def existsAccount: Constraint = new Constraint(){

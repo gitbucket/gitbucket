@@ -46,7 +46,7 @@
           <div class="panel-body">
             <fieldset class="form-group">
               <label class="checkbox" for="enableIssues">
-                <input type="checkbox" id="enableIssues" name="enableIssues"@if(repository.repository.enableIssues){ checked}/>
+                <input type="checkbox" id="enableIssues" name="enableIssues"@if(repository.repository.options.enableIssues){ checked}/>
                 Issues<br>
                 <div class="normal muted">
                   Provides Lightweight issue tracking integrated with this repository. Add issues to milestones, label issues, and close & reference issues from commit messages.
@@ -55,24 +55,33 @@
               <label for="externalIssuesUrl" class="strong">External URL:
                 <span class="normal muted">(Put if you have the external issue tracking system for this project)</span>
               </label>
-              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.externalIssuesUrl"/>
+              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
             </fieldset>
-            <fieldset class="form-group margin">
+            <fieldset class="form-group">
               <label class="checkbox" for="enableWiki">
-                <input type="checkbox" id="enableWiki" name="enableWiki"@if(repository.repository.enableWiki){ checked}/>
+                <input type="checkbox" id="enableWiki" name="enableWiki"@if(repository.repository.options.enableWiki){ checked}/>
                 Wiki<br>
                 <div class="normal muted">
                   Provides a simple solution to manage documents. All users who can look this repository can read and collaborators can edit pages.
                 </div>
               </label>
               <label class="checkbox" for="allowWikiEditing">
-                <input type="checkbox" id="allowWikiEditing" name="allowWikiEditing"@if(repository.repository.allowWikiEditing){ checked}/>
+                <input type="checkbox" id="allowWikiEditing" name="allowWikiEditing"@if(repository.repository.options.allowWikiEditing){ checked}/>
                 Allow read-only users to edit Wiki pages<br>
               </label>
               <label for="externalWikiUrl" class="strong">External URL:
                 <span class="normal muted">(Put if you have the external Wiki for this project)</span>
               </label>
-              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.externalWikiUrl"/>
+              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
+            </fieldset>
+            <fieldset class="form-group">
+              <label class="checkbox" for="allowFork">
+                <input type="checkbox" id="allowFork" name="allowFork"@if(repository.repository.options.allowFork){ checked}/>
+                Forks<br>
+                <div class="normal muted">
+                  Allow repository forking to users who can access this repository.
+                </div>
+              </label>
             </fieldset>
           </div>
         </div>
