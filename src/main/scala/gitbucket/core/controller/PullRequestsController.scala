@@ -104,7 +104,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             flash.toMap.map(f => f._1 -> f._2.toString))
         }
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   ajaxGet("/:owner/:repository/pull/:id/mergeguide")(referrersOnly { repository =>
@@ -138,7 +138,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           repository,
           getRepository(pullreq.requestUserName, pullreq.requestRepositoryName).get)
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:owner/:repository/pull/:id/delete/*")(collaboratorsOnly { repository =>
@@ -153,7 +153,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       }
       createComment(repository.owner, repository.name, userName, issueId, branchName, "delete_branch")
       redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:owner/:repository/pull/:id/update_branch")(referrersOnly { baseRepository =>
@@ -222,7 +222,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         }
         redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
       }
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
@@ -273,7 +273,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           }
         }
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:owner/:repository/compare")(referrersOnly { forkedRepository =>
@@ -290,7 +290,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
             redirect(s"/${forkedRepository.owner}/${forkedRepository.name}/compare/${originUserName}:${oldBranch}...${newBranch}")
           }
-        } getOrElse NotFound
+        } getOrElse NotFound()
       }
       case _ => {
         using(Git.open(getRepositoryDir(forkedRepository.owner, forkedRepository.name))){ git =>
@@ -386,7 +386,7 @@ trait PullRequestsControllerBase extends ControllerBase {
                      s"${forkedOwner}:${newId.map(_ => forkedId).getOrElse(forkedRepository.repository.defaultBranch)}")
         }
       }
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(collaboratorsOnly { forkedRepository =>
@@ -416,7 +416,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         }
         html.mergecheck(conflict)
       }
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   post("/:owner/:repository/pulls/new", pullRequestForm)(referrersOnly { (form, repository) =>

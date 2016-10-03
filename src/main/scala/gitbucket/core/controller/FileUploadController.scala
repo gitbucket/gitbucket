@@ -48,7 +48,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
       // Check whether logged-in user is collaborator
       collaboratorsOnly(owner, repository, loginAccount){
         execute({ (file, fileId) =>
-          val fileName   = file.getName
+          val fileName = file.getName
           LockUtil.lock(s"${owner}/${repository}/wiki") {
             using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
               val builder  = DirCache.newInCore.builder()
@@ -75,7 +75,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
           }
         }, FileUtil.isUploadableType)
       }
-    } getOrElse BadRequest
+    } getOrElse BadRequest()
   }
 
   post("/import") {
@@ -93,7 +93,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     loginAccount match {
       case x if(x.isAdmin) => action
       case x if(getCollaborators(owner, repository).contains(x.userName)) => action
-      case _ => BadRequest
+      case _ => BadRequest()
     }
   }
 
@@ -101,10 +101,9 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     case Some(file) if(mimeTypeChcker(file.name)) =>
       defining(FileUtil.generateFileId){ fileId =>
         f(file, fileId)
-
         Ok(fileId)
       }
-    case _ => BadRequest
+    case _ => BadRequest()
   }
 
 }

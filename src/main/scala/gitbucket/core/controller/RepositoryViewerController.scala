@@ -152,7 +152,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
             }, page, hasNext, hasWritePermission(repository.owner, repository.name, context.loginAccount))
-        case Left(_) => NotFound
+        case Left(_) => NotFound()
       }
     }
   })
@@ -177,7 +177,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         html.editor(branch, repository, paths.take(paths.size - 1).toList, Some(paths.last),
           JGitUtil.getContentInfo(git, path, objectId),
           protectedBranch)
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -190,7 +190,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val paths = path.split("/")
         html.delete(branch, repository, paths.take(paths.size - 1).toList, paths.last,
           JGitUtil.getContentInfo(git, path, objectId))
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -250,7 +250,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           loader.copyTo(response.outputStream)
           ()
         }
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -270,7 +270,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             response.setContentLength(loader.getSize.toInt)
             loader.copyTo(response.outputStream)
             ()
-          } getOrElse NotFound
+          } getOrElse NotFound()
         } else {
           html.blob(id, repository, path.split("/").toList,
             JGitUtil.getContentInfo(git, path, objectId),
@@ -278,7 +278,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             hasWritePermission(repository.owner, repository.name, context.loginAccount),
             request.paths(2) == "blame")
         }
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -334,7 +334,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }
       }
     } catch {
-      case e:MissingObjectException => NotFound
+      case e:MissingObjectException => NotFound()
     }
   })
 
@@ -397,8 +397,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               )
             ))
         }
-      } else Unauthorized
-    } getOrElse NotFound
+      } else Unauthorized()
+    } getOrElse NotFound()
   })
 
   ajaxPost("/:owner/:repository/commit_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
@@ -407,8 +407,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         if(isEditable(owner, name, comment.commentedUserName)){
           updateCommitComment(comment.commentId, form.content)
           redirect(s"/${owner}/${name}/commit_comments/_data/${comment.commentId}")
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -417,8 +417,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getCommitComment(owner, name, params("id")).map { comment =>
         if(isEditable(owner, name, comment.commentedUserName)){
           Ok(deleteCommitComment(comment.commentId))
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -489,7 +489,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         archiveRepository(name, ".zip", repository)
       case name if name.endsWith(".tar.gz") =>
         archiveRepository(name, ".tar.gz", repository)
-      case _ => BadRequest
+      case _ => BadRequest()
     }
   })
 
@@ -518,7 +518,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val ref = multiParams("splat").head
       JGitUtil.getTreeId(git, ref).map{ treeId =>
         html.find(ref, treeId, repository)
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -573,7 +573,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),
               flash.get("info"), flash.get("error"))
           }
-        } getOrElse NotFound
+        } getOrElse NotFound()
       }
     }
   }

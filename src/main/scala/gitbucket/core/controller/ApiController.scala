@@ -66,7 +66,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/orgs/:groupName") {
     getAccountByUserName(params("groupName")).filter(account => account.isGroupAccount).map { account =>
       JsonFormat(ApiUser(account))
-    } getOrElse NotFound
+    } getOrElse NotFound()
   }
 
   /**
@@ -75,7 +75,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/users/:userName") {
     getAccountByUserName(params("userName")).filterNot(account => account.isGroupAccount).map { account =>
       JsonFormat(ApiUser(account))
-    } getOrElse NotFound
+    } getOrElse NotFound()
   }
 
   /**
@@ -145,7 +145,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/user") {
     context.loginAccount.map { account =>
       JsonFormat(ApiUser(account))
-    } getOrElse Unauthorized
+    } getOrElse Unauthorized()
   }
 
   /**
@@ -179,7 +179,7 @@ trait ApiControllerBase extends ControllerBase {
           )
         }
       }
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -203,7 +203,7 @@ trait ApiControllerBase extends ControllerBase {
           )
         }
       }
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -221,7 +221,7 @@ trait ApiControllerBase extends ControllerBase {
         disableBranchProtection(repository.owner, repository.name, branch)
       }
       JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -243,7 +243,7 @@ trait ApiControllerBase extends ControllerBase {
       comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
     } yield {
       JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
-    }).getOrElse(NotFound)
+    }) getOrElse NotFound()
   })
 
   /**
@@ -259,7 +259,7 @@ trait ApiControllerBase extends ControllerBase {
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
       JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get), issue.isPullRequest))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -393,7 +393,7 @@ trait ApiControllerBase extends ControllerBase {
         ApiRepository(headRepo, ApiUser(headOwner)),
         ApiRepository(repository, ApiUser(baseOwner)),
         ApiUser(issueUser)))
-    }).getOrElse(NotFound)
+    }) getOrElse NotFound()
   })
 
   /**
@@ -412,7 +412,7 @@ trait ApiControllerBase extends ControllerBase {
           JsonFormat(commits)
         }
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   /**
@@ -437,7 +437,7 @@ trait ApiControllerBase extends ControllerBase {
       status <- getCommitStatus(repository.owner, repository.name, statusId)
     } yield {
       JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -453,7 +453,7 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
         ApiCommitStatus(status, ApiUser(creator))
       })
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -478,7 +478,7 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
       JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =

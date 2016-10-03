@@ -72,7 +72,7 @@ trait IssuesControllerBase extends ControllerBase {
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
           repository)
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -139,8 +139,8 @@ trait IssuesControllerBase extends ControllerBase {
           createReferComment(owner, name, issue.copy(title = title), title, context.loginAccount.get)
 
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -154,8 +154,8 @@ trait IssuesControllerBase extends ControllerBase {
           createReferComment(owner, name, issue, content.getOrElse(""), context.loginAccount.get)
 
           redirect(s"/${owner}/${name}/issues/_data/${issue.issueId}")
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -166,7 +166,7 @@ trait IssuesControllerBase extends ControllerBase {
         redirect(s"/${repository.owner}/${repository.name}/${
           if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:owner/:repository/issue_comments/state", issueStateForm)(readableUsersOnly { (form, repository) =>
@@ -176,7 +176,7 @@ trait IssuesControllerBase extends ControllerBase {
         redirect(s"/${repository.owner}/${repository.name}/${
           if(issue.isPullRequest) "pull" else "issues"}/${form.issueId}#comment-${id}")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   ajaxPost("/:owner/:repository/issue_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
@@ -185,8 +185,8 @@ trait IssuesControllerBase extends ControllerBase {
         if(isEditable(owner, name, comment.commentedUserName)){
           updateComment(comment.commentId, form.content)
           redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -195,8 +195,8 @@ trait IssuesControllerBase extends ControllerBase {
       getComment(owner, name, params("id")).map { comment =>
         if(isEditable(owner, name, comment.commentedUserName)){
           Ok(deleteComment(comment.commentId))
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -223,8 +223,8 @@ trait IssuesControllerBase extends ControllerBase {
             )
           )
         }
-      } else Unauthorized
-    } getOrElse NotFound
+      } else Unauthorized()
+    } getOrElse NotFound()
   })
 
   ajaxGet("/:owner/:repository/issue_comments/_data/:id")(readableUsersOnly { repository =>
@@ -249,8 +249,8 @@ trait IssuesControllerBase extends ControllerBase {
             )
           )
         }
-      } else Unauthorized
-    } getOrElse NotFound
+      } else Unauthorized()
+    } getOrElse NotFound()
   })
 
   ajaxPost("/:owner/:repository/issues/new/label")(collaboratorsOnly { repository =>
@@ -284,7 +284,7 @@ trait IssuesControllerBase extends ControllerBase {
       getMilestonesWithIssueCount(repository.owner, repository.name)
           .find(_._1.milestoneId == milestoneId).map { case (_, openCount, closeCount) =>
         gitbucket.core.issues.milestones.html.progress(openCount + closeCount, closeCount)
-      } getOrElse NotFound
+      } getOrElse NotFound()
     } getOrElse Ok()
   })
 
@@ -313,7 +313,7 @@ trait IssuesControllerBase extends ControllerBase {
           registerIssueLabel(repository.owner, repository.name, issueId, labelId)
         }
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:owner/:repository/issues/batchedit/assign")(collaboratorsOnly { repository =>
@@ -340,7 +340,7 @@ trait IssuesControllerBase extends ControllerBase {
           RawData(FileUtil.getMimeType(file.getName), file)
         }
       case _ => None
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")

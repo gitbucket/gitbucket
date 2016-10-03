@@ -300,7 +300,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
     getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
       html.edithooks(webhook, events, repository, flash.get("info"), false)
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   /**

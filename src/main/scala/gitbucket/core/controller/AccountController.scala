@@ -134,7 +134,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   }
 
   get("/:userName.atom") {
@@ -157,7 +157,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
       html.edit(x, flash.get("info"), flash.get("error"))
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:userName/_edit", editForm)(oneselfOnly { form =>
@@ -173,7 +173,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       flash += "info" -> "Account information has been updated."
       redirect(s"/${userName}/_edit")
 
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:userName/_delete")(oneselfOnly {
@@ -197,14 +197,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         session.invalidate
         redirect("/")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:userName/_ssh")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
       html.ssh(x, getPublicKeys(x.userName))
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:userName/_ssh", sshKeyForm)(oneselfOnly { form =>
@@ -235,7 +235,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         case _ => None
       }
       html.application(x, tokens, generatedToken)
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:userName/_personalToken", personalTokenForm)(oneselfOnly { form =>
@@ -261,7 +261,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       } else {
         html.register()
       }
-    } else NotFound
+    } else NotFound()
   }
 
   post("/register", newForm){ form =>
@@ -269,7 +269,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.url)
       updateImage(form.userName, form.fileId, false)
       redirect("/signin")
-    } else NotFound
+    } else NotFound()
   }
 
   get("/groups/new")(usersOnly {
@@ -330,7 +330,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         updateImage(form.groupName, form.fileId, form.clearImage)
         redirect(s"/${form.groupName}")
 
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -372,7 +372,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           )
         case _ => redirect(s"/${loginUserName}")
       }
-    } else BadRequest
+    } else BadRequest()
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
@@ -429,7 +429,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           redirect(s"/${accountName}/${repository.name}")
         }
       }
-    } else BadRequest
+    } else BadRequest()
   })
 
   private def existsAccount: Constraint = new Constraint(){

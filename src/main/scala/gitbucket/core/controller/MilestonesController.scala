@@ -42,7 +42,7 @@ trait MilestonesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/milestones/:milestoneId/edit")(collaboratorsOnly { repository =>
     params("milestoneId").toIntOpt.map{ milestoneId =>
       html.edit(getMilestone(repository.owner, repository.name, milestoneId), repository)
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:owner/:repository/issues/milestones/:milestoneId/edit", milestoneForm)(collaboratorsOnly { (form, repository) =>
@@ -51,7 +51,7 @@ trait MilestonesControllerBase extends ControllerBase {
         updateMilestone(milestone.copy(title = form.title, description = form.description, dueDate = form.dueDate))
         redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/close")(collaboratorsOnly { repository =>
@@ -60,7 +60,7 @@ trait MilestonesControllerBase extends ControllerBase {
         closeMilestone(milestone)
         redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/open")(collaboratorsOnly { repository =>
@@ -69,7 +69,7 @@ trait MilestonesControllerBase extends ControllerBase {
         openMilestone(milestone)
         redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:owner/:repository/issues/milestones/:milestoneId/delete")(collaboratorsOnly { repository =>
@@ -78,7 +78,7 @@ trait MilestonesControllerBase extends ControllerBase {
         deleteMilestone(repository.owner, repository.name, milestone.milestoneId)
         redirect(s"/${repository.owner}/${repository.name}/issues/milestones")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
 }
