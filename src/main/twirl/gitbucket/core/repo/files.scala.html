@@ -24,6 +24,7 @@
     <div class="head">
       <div class="pull-right pc">
         <div class="btn-group">
+          <a href="@helpers.url(repository)/upload/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-upload"></i> Upload Files</a>
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default pc" data-hotkey="t"><i class="octicon octicon-search"></i></a>
           <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i></a>
         </div>
@@ -34,7 +35,6 @@
             <div class="btn-group">
               <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
               <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
-              <a href="@helpers.url(repository)/upload/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-upload"></i> Upload Files</a>
             </div>
           </div>
         }

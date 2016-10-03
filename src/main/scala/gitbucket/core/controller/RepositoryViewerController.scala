@@ -664,6 +664,12 @@ Roy Li modification
   private def commitFiles(repository: RepositoryService.RepositoryInfo,
                           files: List[CommitFile],
                           branch: String, path: String, message: String) = {
+    val updatedFiles = files.map {file =>
+      val newName : String = if(path.length == 0) file.name else s"${path}/${file.name}"
+      file.copy(name = newName)
+    }
+
+    val newPath = updatedFiles.map(f => f.name)
 
 
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
@@ -676,7 +682,8 @@ Roy Li modification
         val _headTip = git.getRepository.resolve(headName)
 
         def process(ht: ObjectId) = JGitUtil.processTree(git, ht) { (path, tree) =>
-          builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+          if(!newPath.contains(path))
+            builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
         }
 
         val headTip = if(_headTip != null){
@@ -690,7 +697,7 @@ Roy Li modification
           ht
         }
 
-        files.foreach{item =>
+        updatedFiles.foreach{item =>
           val fileName = item.name
           val bytes = item.fileBytes
           builder.add(JGitUtil.createDirCacheEntry(fileName,
