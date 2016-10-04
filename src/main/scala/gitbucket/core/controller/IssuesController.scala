@@ -67,7 +67,7 @@ trait IssuesControllerBase extends ControllerBase {
           _,
           getComments(owner, name, issueId.toInt),
           getIssueLabels(owner, name, issueId.toInt),
-          (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
+          (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).exists(_.isGroupAccount)) Nil else List(owner))).sorted,
           getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
@@ -79,7 +79,7 @@ trait IssuesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       html.create(
-        (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
+        (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).exists(_.isGroupAccount)) Nil else List(owner))).sorted,
           getMilestones(owner, name),
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
