@@ -5,7 +5,6 @@ import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.CommitState
 import gitbucket.core.service.ProtectedBranchService.{ProtectedBranchReceiveHook, ProtectedBranchInfo}
-import scalaz._, Scalaz._
 import org.scalatest.FunSpec
 
 class ProtectedBranchServiceSpec extends FunSpec with ServiceSpecBase with ProtectedBranchService with CommitStatusService {
