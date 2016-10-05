@@ -9,8 +9,6 @@ import io.github.gitbucket.solidbase.Solidbase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
 import profile.simple._
-import scalaz._
-import Scalaz._
 
 import org.apache.commons.io.FileUtils
 
