@@ -410,7 +410,7 @@ trait ApiControllerBase extends ControllerBase {
       } yield {
         
         using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-          getFileContent(git, branch, filename.replace("|","/"))
+          getFileContent(git, branch, filename.sliding(2, 2).toArray.map(Integer.parseInt(_, 16).toChar).mkString)
         } 
         
       }) getOrElse
