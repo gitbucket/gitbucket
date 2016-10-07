@@ -568,14 +568,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           val id_pattern = new Regex("""(?<=\()[^)]+(?=\))""")
           val name_pattern = new Regex("""(?<=\[)[^\[\]]+(?=\])""")
           val list  = form.content.split("\n")
-          val _m = scala.collection.mutable.HashMap[String, String]()
-          val m = list map {
+          val _m = scala.collection.mutable.Map[String, String]()
+          list map {
             x => val name : Option[String] = name_pattern findFirstIn(x)
               val id : Option[String] = id_pattern findFirstIn(x)
 
               (name, id) match {
                 case (Some(n), Some(i)) => _m += (n -> i)
-                case (_, _) =>
+                case (_, _) => _m
               }
           }
 
@@ -583,20 +583,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             val l = f.split("/")
             val id = l(l.size-1)
             dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
-              implicit val codec = Codec("UTF-8")
-              codec.onMalformedInput(CodingErrorAction.REPLACE)
-              codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
-
-              val s = scala.io.Source.fromFile(file) // Codec ????
-              val byteArray = s.map(_.toByte).toArray
-
-              CommitFile(id, fileName, byteArray)
+              val path = java.nio.file.Paths.get(file.getPath)
+              val data = java.nio.file.Files.readAllBytes(path)
+              CommitFile(id, fileName, data)
             }
           }.toList
 
 
           val finalCommitFiles = _commitFiles.flatten
-          if(finalCommitFiles.size == m.size) {
+          if(finalCommitFiles.size == _m.size) {
             commitFiles(
               repository,
               files = finalCommitFiles,
@@ -630,14 +625,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           case dir if (dir.exists && dir.isDirectory) =>
             val _commitFiles = data.fileIds.map { case (fileName, id) =>
               dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
-                implicit val codec = Codec("UTF-8")
-                codec.onMalformedInput(CodingErrorAction.REPLACE)
-                codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
-
-                val s = scala.io.Source.fromFile(file) // Codec ????
-              val byteArray = s.map(_.toByte).toArray
-
-                CommitFile(id, fileName, byteArray)
+                val path = java.nio.file.Paths.get(file.getPath)
+                val data = java.nio.file.Files.readAllBytes(path)
+                CommitFile(id, fileName, data)
               }
             }.toList
 
@@ -674,6 +664,12 @@ Roy Li modification
   private def commitFiles(repository: RepositoryService.RepositoryInfo,
                           files: List[CommitFile],
                           branch: String, path: String, message: String) = {
+    val updatedFiles = files.map {file =>
+      val newName : String = if(path.length == 0) file.name else s"${path}/${file.name}"
+      file.copy(name = newName)
+    }
+
+    val newPath = updatedFiles.map(f => f.name)
 
 
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
@@ -686,7 +682,8 @@ Roy Li modification
         val _headTip = git.getRepository.resolve(headName)
 
         def process(ht: ObjectId) = JGitUtil.processTree(git, ht) { (path, tree) =>
-          builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+          if(!newPath.contains(path))
+            builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
         }
 
         val headTip = if(_headTip != null){
@@ -700,7 +697,7 @@ Roy Li modification
           ht
         }
 
-        files.foreach{item =>
+        updatedFiles.foreach{item =>
           val fileName = item.name
           val bytes = item.fileBytes
           builder.add(JGitUtil.createDirCacheEntry(fileName,

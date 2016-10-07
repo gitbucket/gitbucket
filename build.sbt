@@ -46,6 +46,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.15",
   "org.owasp.esapi"           % "esapi"                       % "2.1.0.1",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"            % "1.0.0",
+  "org.jsoup"                 % "jsoup"                         % "1.9.2",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "provided",
   "org.eclipse.jetty"         % "jetty-servlets"                % JettyVersion     % "test",
