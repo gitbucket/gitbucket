@@ -7,7 +7,7 @@ import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.JGitUtil.{CommitInfo, getFileList, getBranches, getDefaultBranch}
+import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
@@ -109,13 +109,30 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/contents/#get-contents
    */
   get("/api/v3/repos/:owner/:repo/contents/*")(referrersOnly { repository =>
+    def getFileInfo(git: Git, revision: String, pathStr: String): Option[FileInfo] = {
+      val path = new java.io.File(pathStr)
+      val dirName = path.getParent match {
+        case null => "."
+        case s => s
+      }
+      getFileList(git, revision, dirName).find(f => f.name.equals(path.getName))
+    }
+
     val path = multiParams("splat").head match {
       case s if s.isEmpty => "."
       case s => s
     }
     val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
+
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))){ git =>
-      JsonFormat(getFileList(git, refStr, path).map{f => ApiContents(f)})
+      val fileList = getFileList(git, refStr, path)
+      if (fileList.isEmpty) { // file or NotFound
+        getFileInfo(git, refStr, path).map(f => {
+          JsonFormat(ApiContents(f, getContentFromId(git, f.id, true)))
+        }).getOrElse(NotFound())
+      } else { // directory
+        JsonFormat(fileList.map{f => ApiContents(f, None)})
+      }
     }
   })
 
