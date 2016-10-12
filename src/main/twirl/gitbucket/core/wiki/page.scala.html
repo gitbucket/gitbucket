@@ -10,12 +10,13 @@
 @gitbucket.core.html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("wiki", repository){
     <div>
-      @if(hasWritePermission){
-        <div class="pull-right">
+      <div class="pull-right">
+        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
+        @if(hasWritePermission){
           <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
           <a class="btn btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
-        </div>
-      }
+        }
+      </div>
       <h1 class="body-title">@pageName</h1>
       <div>
         <span class="muted"><strong>@page.committer</strong> edited this page @gitbucket.core.helper.html.datetimeago(page.time)</span>
