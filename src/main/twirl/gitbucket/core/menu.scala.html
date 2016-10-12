@@ -9,11 +9,11 @@
   <li @if(active == name){class="active"}>
     @if(path.startsWith("http")){
       <a href="@path" target="_blank">
-        <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right">@count</span> }
+        <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right-container">@count</span> }
       </a>
     } else {
       <a href="@helpers.url(repository)@path">
-        <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right">@count</span> }
+        <i class="menu-icon octicon octicon-@icon"></i> @label @if(count > 0) { <span class="label label-primary pull-right-container">@count</span> }
       </a>
     }
   </li>
