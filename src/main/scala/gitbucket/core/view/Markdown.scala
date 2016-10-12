@@ -1,6 +1,7 @@
 package gitbucket.core.view
 
 import java.text.Normalizer
+import java.util
 import java.util.regex.Pattern
 import java.util.Locale
 
@@ -9,6 +10,11 @@ import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.StringUtil
 import io.github.gitbucket.markedj._
 import io.github.gitbucket.markedj.Utils._
+import org.commonmark.Extension
+import org.commonmark.ext.autolink.AutolinkExtension
+import org.commonmark.ext.gfm.tables.TablesExtension
+import org.commonmark.ext.heading.anchor.HeadingAnchorExtension
+import org.commonmark.renderer.html.HtmlRenderer
 
 object Markdown {
 
@@ -44,7 +50,37 @@ object Markdown {
     val renderer = new GitBucketMarkedRenderer(options, repository,
       enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
 
-    helpers.decorateHtml(Marked.marked(source, options, renderer), repository)
+    val extensions = util.Arrays.asList(TablesExtension.create(), AutolinkExtension.create(), HeadingAnchorExtension.create());
+    val parser = org.commonmark.parser.Parser.builder()
+      .extensions(extensions)
+      .build();
+    val commonMarkRenderer = HtmlRenderer.builder()
+      .extensions(extensions)
+      .build();
+
+    val parsed = parser.parse(source);
+    var html = commonMarkRenderer.render(parsed);
+    // helpers.decorateHtml(Marked.marked(source, options, renderer), repository)
+    val transformer = new TextTransformer(repository, enableRefsLink, enableTaskList, hasWritePermission)
+
+    helpers.decorateHtml(transformer.tranform(html), repository)
+  }
+
+  class TextTransformer (repository: RepositoryService.RepositoryInfo,
+                         enableRefsLink: Boolean,
+                         enableTaskList: Boolean,
+                         hasWritePermission: Boolean
+                        ) (implicit val context: Context) extends Object with LinkConverter with RequestCache {
+    def tranform(text: String) : String = {
+      val t1 = if (enableTaskList) convertCheckBox(text, hasWritePermission) else text
+      val t2 = if (enableRefsLink) convertRefsLinks(t1, repository, "#", false) else t1
+      t2
+    }
+    def convertCheckBox(text: String, hasWritePermission: Boolean): String = {
+      val disabled = if (hasWritePermission) "" else "disabled"
+      text.replaceAll("task:x:", """<input type="checkbox" class="task-list-item-checkbox" checked="checked" """ + disabled + "/>")
+        .replaceAll("task: :", """<input type="checkbox" class="task-list-item-checkbox" """ + disabled + "/>")
+    }
   }
 
   /**
