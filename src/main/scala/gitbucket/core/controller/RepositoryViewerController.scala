@@ -623,8 +623,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         updatePullRequests(repository.owner, repository.name, branch)
 
         // record activity
-        recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch,
-          List(new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))))
+        val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+        recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+
+        // create issue comment by commit message
+        createIssueComment(repository.owner, repository.name, commitInfo)
 
         // close issue by commit message
         closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
