@@ -436,7 +436,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName, true) match {
       case Some(account) => {
-
+        val repos = getVisibleRepositories(Some(account), Some(userName))
 
         val body = org.json4s.jackson.Serialization.write(
           Map("userName" -> account.userName,
@@ -448,7 +448,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             "lastLoginDate" -> account.lastLoginDate,
             "image" -> account.image.getOrElse(""),
             "isGroupAccount" -> account.isGroupAccount,
-            "isRemoved" -> account.isRemoved
+            "isRemoved" -> account.isRemoved,
+            "repositories" -> repos
           )
         )
 
