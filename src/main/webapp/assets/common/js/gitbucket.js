@@ -28,6 +28,9 @@ $(function(){
 
   // syntax highlighting by google-code-prettify
   prettyPrint();
+
+  // Suppress transition animation on load
+  $("body").removeClass("page-load");
 });
 
 function displayErrors(data, elem){
