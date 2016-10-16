@@ -1762,3 +1762,14 @@ div.container.blame-container{
   width: 20px;
   height: 20px;
 }
+
+/****************************************************************************/
+/* Suppress transition animation on load */
+/****************************************************************************/
+body.page-load * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
