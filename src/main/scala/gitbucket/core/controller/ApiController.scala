@@ -10,6 +10,7 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
+import gitbucket.core.view.helpers.{renderMarkup, isRenderable}
 import org.eclipse.jgit.api.Git
 import org.scalatra.{NoContent, UnprocessableEntity, Created}
 import scala.collection.JavaConverters._
@@ -127,8 +128,31 @@ trait ApiControllerBase extends ControllerBase {
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))){ git =>
       val fileList = getFileList(git, refStr, path)
       if (fileList.isEmpty) { // file or NotFound
-        getFileInfo(git, refStr, path).map(f => {
-          JsonFormat(ApiContents(f, getContentFromId(git, f.id, true)))
+        getFileInfo(git, refStr, path).flatMap(f => {
+          val largeFile = params.get("large_file").exists(s => s.equals("true"))
+          val content = getContentFromId(git, f.id, largeFile)
+          request.getHeader("Accept") match {
+            case "application/vnd.github.v3.raw" =>
+              content
+            case "application/vnd.github.v3.html" if isRenderable(f.name) =>
+              content.map(c =>
+                List(
+                  "<div data-path=\"", path, "\" id=\"file\">", "<article>",
+                  renderMarkup(path.split("/").toList, new String(c), refStr, repository, false, false, true).body,
+                  "</article>", "</div>"
+                ).mkString
+              )
+            case "application/vnd.github.v3.html" =>
+              content.map(c =>
+                List(
+                  "<div data-path=\"", path, "\" id=\"file\">", "<div class=\"plain\">", "<pre>",
+                  play.twirl.api.HtmlFormat.escape(new String(c)).body,
+                  "</pre>", "</div>", "</div>"
+                ).mkString
+              )
+            case _ =>
+              Some(JsonFormat(ApiContents(f, content)))
+          }
         }).getOrElse(NotFound())
       } else { // directory
         JsonFormat(fileList.map{f => ApiContents(f, None)})
