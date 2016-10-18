@@ -163,66 +163,62 @@ trait IssuesService {
                  (implicit s: Session): List[IssueInfo] = {
     // get issues and comment count and labels
     val result = searchIssueQueryBase(condition, pullRequest, offset, limit, repos)
-        .leftJoin (IssueLabels) .on { case ((t1, t2), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
-        .leftJoin (Labels)      .on { case (((t1, t2), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
-        .leftJoin (Milestones)  .on { case ((((t1, t2), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
-        .map { case ((((t1, t2), t3), t4), t5) =>
-          (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?, t5.title.?)
-        }
-        .list
-        .splitWith { (c1, c2) =>
-          c1._1.userName       == c2._1.userName &&
-          c1._1.repositoryName == c2._1.repositoryName &&
-          c1._1.issueId        == c2._1.issueId
-        }
+      .leftJoin (IssueLabels) .on { case (((t1, t2), i), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
+      .leftJoin (Labels)      .on { case ((((t1, t2), i), t3), t4) => t3.byLabel(t4.userName, t4.repositoryName, t4.labelId) }
+      .leftJoin (Milestones)  .on { case (((((t1, t2), i), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
+      .sortBy { case (((((t1, t2), i), t3), t4), t5) => i asc }
+      .map { case (((((t1, t2), i), t3), t4), t5) => (t1, t2.commentCount, t4.labelId.?, t4.labelName.?, t4.color.?, t5.title.?) }
+      .list
+      .splitWith { (c1, c2) => c1._1.userName == c2._1.userName && c1._1.repositoryName == c2._1.repositoryName && c1._1.issueId == c2._1.issueId }
+
     val status = getCommitStatues(result.map(_.head._1).map(is => (is.userName, is.repositoryName, is.issueId)))
 
     result.map { issues => issues.head match {
-          case (issue, commentCount, _, _, _, milestone) =>
-            IssueInfo(issue,
-             issues.flatMap { t => t._3.map (
-                 Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
-             )} toList,
-             milestone,
-             commentCount,
-             status.get(issue.userName, issue.repositoryName, issue.issueId))
-        }} toList
+      case (issue, commentCount, _, _, _, milestone) =>
+        IssueInfo(issue,
+          issues.flatMap { t => t._3.map (
+            Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get)
+          )} toList,
+          milestone,
+          commentCount,
+          status.get(issue.userName, issue.repositoryName, issue.issueId))
+    }} toList
   }
 
   /** for api
    * @return (issue, issueUser, commentCount, pullRequest, headRepo, headOwner)
    */
   def searchPullRequestByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)
-                 (implicit s: Session): List[(Issue, Account, Int, PullRequest, Repository, Account)] = {
+                            (implicit s: Session): List[(Issue, Account, Int, PullRequest, Repository, Account)] = {
     // get issues and comment count and labels
     searchIssueQueryBase(condition, true, offset, limit, repos)
-      .innerJoin(PullRequests).on { case ((t1, t2), t3) => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
-      .innerJoin(Repositories).on { case (((t1, t2), t3), t4) => t4.byRepository(t1.userName, t1.repositoryName) }
-      .innerJoin(Accounts).on { case ((((t1, t2), t3), t4), t5) => t5.userName === t1.openedUserName }
-      .innerJoin(Accounts).on { case (((((t1, t2), t3), t4), t5), t6) => t6.userName === t4.userName }
-      .map { case (((((t1, t2), t3), t4), t5), t6) =>
-          (t1, t5, t2.commentCount, t3, t4, t6)
-      }
+      .innerJoin(PullRequests).on { case (((t1, t2), i), t3) => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
+      .innerJoin(Repositories).on { case ((((t1, t2), i), t3), t4) => t4.byRepository(t1.userName, t1.repositoryName) }
+      .innerJoin(Accounts).on { case (((((t1, t2), i), t3), t4), t5) => t5.userName === t1.openedUserName }
+      .innerJoin(Accounts).on { case ((((((t1, t2), i), t3), t4), t5), t6) => t6.userName === t4.userName }
+      .sortBy { case ((((((t1, t2), i), t3), t4), t5), t6) => i asc }
+      .map { case ((((((t1, t2), i), t3), t4), t5), t6) => (t1, t5, t2.commentCount, t3, t4, t6) }
       .list
   }
 
   private def searchIssueQueryBase(condition: IssueSearchCondition, pullRequest: Boolean, offset: Int, limit: Int, repos: Seq[(String, String)])
-                 (implicit s: Session) =
+                                  (implicit s: Session) =
     searchIssueQuery(repos, condition, pullRequest)
-        .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
-        .sortBy { case (t1, t2) =>
-          (condition.sort match {
-            case "created"  => t1.registeredDate
-            case "comments" => t2.commentCount
-            case "updated"  => t1.updatedDate
-          }) match {
-            case sort => condition.direction match {
-              case "asc"  => sort asc
-              case "desc" => sort desc
-            }
+      .innerJoin(IssueOutline).on { (t1, t2) => t1.byIssue(t2.userName, t2.repositoryName, t2.issueId) }
+      .sortBy { case (t1, t2) => t1.issueId desc }
+      .sortBy { case (t1, t2) =>
+        (condition.sort match {
+          case "created"  => t1.registeredDate
+          case "comments" => t2.commentCount
+          case "updated"  => t1.updatedDate
+        }) match {
+          case sort => condition.direction match {
+            case "asc"  => sort asc
+            case "desc" => sort desc
           }
-        }.sortBy { case (t1, t2) => t1.issueId desc }
-        .drop(offset).take(limit)
+        }
+      }
+      .drop(offset).take(limit).zipWithIndex
 
 
   /**
