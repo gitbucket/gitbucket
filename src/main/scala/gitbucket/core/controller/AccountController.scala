@@ -121,7 +121,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // Members
         case "members" if(account.isGroupAccount) => {
           val members = getGroupMembers(account.userName)
-          gitbucket.core.account.html.members(account, members.map(_.userName),
+          gitbucket.core.account.html.members(account, members,
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
 
