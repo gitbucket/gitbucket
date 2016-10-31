@@ -10,25 +10,17 @@
         @collaborators.map { collaboratorName =>
           <li>
             <a href="@helpers.url(collaboratorName)">@collaboratorName</a>
-            @if(!isGroupRepository){
-              <a href="@helpers.url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
-            } else {
-              @if(repository.managers.contains(collaboratorName)){
-                (Manager)
-              }
-            }
+            <a href="@helpers.url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
           </li>
         }
       </ul>
-      @if(!isGroupRepository){
         <form method="POST" action="@helpers.url(repository)/settings/collaborators/add" validate="true" autocomplete="off">
           <div>
             <span class="error" id="error-userName"></span>
           </div>
-          @gitbucket.core.helper.html.account("userName", 300)
+          @gitbucket.core.helper.html.account("userName", 300, false)
           <input type="submit" class="btn btn-default" value="Add"/>
         </form>
-      }
     }
   }
 }

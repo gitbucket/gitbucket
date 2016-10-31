@@ -337,49 +337,53 @@ trait RepositoryService { self: AccountService =>
       .update (defaultBranch)
 
   /**
-   * Add collaborator to the repository.
-   *
-   * @param userName the user name of the repository owner
-   * @param repositoryName the repository name
-   * @param collaboratorName the collaborator name
+   * Add collaborator (user or group) to the repository.
    */
   def addCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
     Collaborators insert Collaborator(userName, repositoryName, collaboratorName)
 
   /**
-   * Remove collaborator from the repository.
-   * 
-   * @param userName the user name of the repository owner
-   * @param repositoryName the repository name
-   * @param collaboratorName the collaborator name
+   * Remove collaborator (user or group) from the repository.
    */
   def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
     Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
 
   /**
    * Remove all collaborators from the repository.
-   *
-   * @param userName the user name of the repository owner
-   * @param repositoryName the repository name
    */
   def removeCollaborators(userName: String, repositoryName: String)(implicit s: Session): Unit =
     Collaborators.filter(_.byRepository(userName, repositoryName)).delete
 
   /**
-   * Returns the list of collaborators name which is sorted with ascending order.
-   * 
-   * @param userName the user name of the repository owner
-   * @param repositoryName the repository name
-   * @return the list of collaborators name
+   * Returns the list of collaborators name (user name or group name) which is sorted with ascending order.
    */
   def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[String] =
     Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).map(_.collaboratorName).list
+
+  /**
+   * Returns the list of all collaborator name and permission which is sorted with ascending order.
+   * If a group is added as a collaborator, this method returns users who are belong to that group.
+   */
+  def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[String] = Nil)(implicit s: Session): List[(String, String)] = {
+    val q1 = Collaborators.filter(_.byRepository(userName, repositoryName))
+        .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
+        .map { case (t1, t2) => (t1.collaboratorName, "ADMIN") }
+
+    val q2 = Collaborators.filter(_.byRepository(userName, repositoryName))
+      .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
+      .innerJoin(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
+      .map { case ((t1, t2), t3) => (t3.userName, "ADMIN") }
+
+    q1.union(q2).list
+  }
+
 
   def hasWritePermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
-      case Some(a) if(getCollaborators(owner, repository).contains(a.userName)) => true
+      case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
+      case Some(a) if(getCollaboratorUserNames(owner, repository).contains((a.userName, "ADMIN"))) => true  // TODO ADMIN|WRITE
       case _ => false
     }
   }

@@ -1,10 +1,12 @@
 package gitbucket.core.util
 
 import gitbucket.core.controller.ControllerBase
-import gitbucket.core.service.{RepositoryService, AccountService}
+import gitbucket.core.service.{AccountService, RepositoryService}
 import RepositoryService.RepositoryInfo
 import Implicits._
 import ControlUtil._
+
+import scala.collection.Searching.search
 
 /**
  * Allows only oneself and administrators.
@@ -40,9 +42,9 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(repository.owner == x.userName) => action(repository)
-            case Some(x) if(getGroupMembers(repository.owner).exists { member =>
-              member.userName == x.userName && member.isManager == true
-            }) => action(repository)
+            // TODO Repository management is allowed for only group managers?
+            case Some(x) if(getGroupMembers(repository.owner).exists { m => m.userName == x.userName && m.isManager == true }) => action(repository)
+            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq("ADMIN")).exists(_._1 == x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
@@ -88,7 +90,7 @@ trait AdminAuthenticator { self: ControllerBase =>
 /**
  * Allows only collaborators and administrators.
  */
-trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =>
+trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def collaboratorsOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def collaboratorsOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
@@ -99,7 +101,8 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
           context.loginAccount match {
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
-            case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+            case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
+            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq("ADMIN", "WRITE")).exists(_._1 == x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
@@ -109,9 +112,9 @@ trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService =
 }
 
 /**
- * Allows only the repository owner (or manager for group repository) and administrators.
+ * Allows only guests and signed in users who can access the repository.
  */
-trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
+trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def referrersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def referrersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
@@ -125,7 +128,8 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
             context.loginAccount match {
               case Some(x) if(x.isAdmin) => action(repository)
               case Some(x) if(paths(0) == x.userName) => action(repository)
-              case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+              case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
+              case Some(x) if(getCollaboratorUserNames(paths(0), paths(1)).exists(_._1 == x.userName)) => action(repository)
               case _ => Unauthorized()
             }
           }
@@ -136,9 +140,9 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService =>
 }
 
 /**
- * Allows only signed in users which can access the repository.
+ * Allows only signed in users who can access the repository.
  */
-trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =>
+trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def readableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
   protected def readableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
 
@@ -150,7 +154,8 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService =
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(!repository.repository.isPrivate) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
-            case Some(x) if(getCollaborators(paths(0), paths(1)).contains(x.userName)) => action(repository)
+            case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
+            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1)).exists(_._1 == x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()

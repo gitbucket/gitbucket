@@ -182,7 +182,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Add the collaborator.
    */
   post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { (form, repository) =>
-    if(!getAccountByUserName(repository.owner).get.isGroupAccount){
+    getAccountByUserName(repository.owner).foreach { _ =>
       addCollaborator(repository.owner, repository.name, form.userName)
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
@@ -192,9 +192,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Add the collaborator.
    */
   get("/:owner/:repository/settings/collaborators/remove")(ownerOnly { repository =>
-    if(!getAccountByUserName(repository.owner).get.isGroupAccount){
-      removeCollaborator(repository.owner, repository.name, params("name"))
-    }
+    removeCollaborator(repository.owner, repository.name, params("name"))
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 
@@ -404,10 +402,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       getAccountByUserName(value) match {
         case None => Some("User does not exist.")
-        case Some(x) if(x.isGroupAccount)
-                  => Some("User does not exist.")
+//        case Some(x) if(x.isGroupAccount)
+//                  => Some("User does not exist.")
         case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
-                  => Some("User can access this repository already.")
+                  => Some(value + " is repository owner.") // TODO also group members?
         case _    => None
       }
   }

@@ -1,4 +1,4 @@
-@(id: String, width: Int)(implicit context: gitbucket.core.controller.Context)
+@(id: String, width: Int, userOnly: Boolean = true)(implicit context: gitbucket.core.controller.Context)
 <span style="margin-right: 0px;">
   <input type="text" name="@id" id="@id" class="form-control" autocomplete="off" style="width: @{width}px; margin-bottom: 0px; display: inline; vertical-align: middle;"/>
 </span>
@@ -6,7 +6,7 @@
 $(function(){
   $('#@id').typeahead({
     source: function (query, process) {
-      return $.get('@context.path/_user/proposals', { query: query },
+      return $.get('@context.path/_user/proposals@if(userOnly){?userOnly}', { query: query },
         function (data) {
           return process(data.options);
         });

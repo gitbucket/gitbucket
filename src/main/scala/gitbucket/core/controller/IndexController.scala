@@ -109,7 +109,11 @@ trait IndexControllerBase extends ControllerBase {
   get("/_user/proposals")(usersOnly {
     contentType = formats("json")
     org.json4s.jackson.Serialization.write(
-      Map("options" -> getAllUsers(false).filter(!_.isGroupAccount).map(_.userName).toArray)
+      Map("options" -> (if(params.get("userOnly").isDefined) {
+        getAllUsers(false).filter(!_.isGroupAccount).map(_.userName).toArray
+      } else {
+        getAllUsers(false).map(_.userName).toArray
+      }))
     )
   })
 
