@@ -1,4 +1,4 @@
-@(collaborators: List[String],
+@(collaborators: List[gitbucket.core.model.Collaborator],
   isGroupRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -7,10 +7,10 @@
     @gitbucket.core.settings.html.menu("collaborators", repository){
       <h3>Manage Collaborators</h3>
       <ul class="collaborator">
-        @collaborators.map { collaboratorName =>
+        @collaborators.map { collaborator =>
           <li>
-            <a href="@helpers.url(collaboratorName)">@collaboratorName</a>
-            <a href="@helpers.url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
+            <a href="@helpers.url(collaborator.userName)">@collaborator.userName</a>
+            <a href="@helpers.url(repository)/settings/collaborators/remove?name=@{collaborator.userName}" class="remove">(remove)</a>
           </li>
         }
       </ul>

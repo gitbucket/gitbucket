@@ -177,7 +177,8 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/collaborators/#list-collaborators
    */
   get("/api/v3/repos/:owner/:repo/collaborators") (referrersOnly { repository =>
-    JsonFormat(getCollaborators(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
+    // TODO Should ApiUser take permission? getCollaboratorUserNames does not return owner group members.
+    JsonFormat(getCollaboratorUserNames(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u._1).get)))
   })
 
   /**

@@ -183,7 +183,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { (form, repository) =>
     getAccountByUserName(repository.owner).foreach { _ =>
-      addCollaborator(repository.owner, repository.name, form.userName)
+      addCollaborator(repository.owner, repository.name, form.userName, "ADMIN") // TODO
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })

@@ -18,7 +18,6 @@ import gitbucket.core.view.helpers
 import io.github.gitbucket.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
@@ -33,8 +32,6 @@ trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
     with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
     with CommitStatusService with MergeService with ProtectedBranchService =>
-
-  private val logger = LoggerFactory.getLogger(classOf[PullRequestsControllerBase])
 
   val pullRequestForm = mapping(
     "title"                 -> trim(label("Title"  , text(required, maxlength(100)))),
@@ -94,7 +91,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             (commits.flatten.map(commit => getCommitComments(owner, name, commit.id, true)).flatten.toList ::: getComments(owner, name, issueId))
               .sortWith((a, b) => a.registeredDate before b.registeredDate),
             getIssueLabels(owner, name, issueId),
-            (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).get.isGroupAccount) Nil else List(owner))).sorted,
+            getAssignableUserNames(owner, name),
             getMilestonesWithIssueCount(owner, name),
             getLabels(owner, name),
             commits,
@@ -375,7 +372,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               originRepository,
               forkedRepository,
               hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
-              (getCollaborators(originRepository.owner, originRepository.name) ::: (if(getAccountByUserName(originRepository.owner).get.isGroupAccount) Nil else List(originRepository.owner))).sorted,
+              getAssignableUserNames(originRepository.owner, originRepository.name),
               getMilestones(originRepository.owner, originRepository.name),
               getLabels(originRepository.owner, originRepository.name)
             )
@@ -526,11 +523,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         "pulls",
         searchIssue(condition, true, (page - 1) * PullRequestLimit, PullRequestLimit, owner -> repoName),
         page,
-        if(!getAccountByUserName(owner).exists(_.isGroupAccount)){
-          (getCollaborators(owner, repoName) :+ owner).sorted
-        } else {
-          getCollaborators(owner, repoName)
-        },
+        getAssignableUserNames(owner, repoName),
         getMilestones(owner, repoName),
         getLabels(owner, repoName),
         countIssue(condition.copy(state = "open"  ), true, owner -> repoName),
@@ -539,5 +532,10 @@ trait PullRequestsControllerBase extends ControllerBase {
         repository,
         hasWritePermission(owner, repoName, context.loginAccount))
     }
+
+  // TODO Move to IssuesService?
+  private def getAssignableUserNames(owner: String, repository: String): List[String] =
+    (getCollaboratorUserNames(owner, repository, Seq("ADMIN", "WRITE")).map(_._1) :::
+      (if(getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).sorted
 
 }

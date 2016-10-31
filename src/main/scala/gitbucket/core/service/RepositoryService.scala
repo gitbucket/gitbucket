@@ -337,8 +337,8 @@ trait RepositoryService { self: AccountService =>
   /**
    * Add collaborator (user or group) to the repository.
    */
-  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
-    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, "ADMIN") // TODO
+  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String, permission: String)(implicit s: Session): Unit =
+    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, permission)
 
   /**
    * Remove collaborator (user or group) from the repository.
@@ -355,8 +355,8 @@ trait RepositoryService { self: AccountService =>
   /**
    * Returns the list of collaborators name (user name or group name) which is sorted with ascending order.
    */
-  def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[String] =
-    Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).map(_.collaboratorName).list // TODO return with permission
+  def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[Collaborator] =
+    Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).list
 
   /**
    * Returns the list of all collaborator name and permission which is sorted with ascending order.

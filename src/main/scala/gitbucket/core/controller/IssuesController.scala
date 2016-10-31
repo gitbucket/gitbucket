@@ -67,7 +67,7 @@ trait IssuesControllerBase extends ControllerBase {
           _,
           getComments(owner, name, issueId.toInt),
           getIssueLabels(owner, name, issueId.toInt),
-          (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).exists(_.isGroupAccount)) Nil else List(owner))).sorted,
+          getAssignableUserNames(owner, name),
           getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
           hasWritePermission(owner, name, context.loginAccount),
@@ -79,11 +79,11 @@ trait IssuesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       html.create(
-        (getCollaborators(owner, name) ::: (if(getAccountByUserName(owner).exists(_.isGroupAccount)) Nil else List(owner))).sorted,
-          getMilestones(owner, name),
-          getLabels(owner, name),
-          hasWritePermission(owner, name, context.loginAccount),
-          repository)
+        getAssignableUserNames(owner, name),
+        getMilestones(owner, name),
+        getLabels(owner, name),
+        hasWritePermission(owner, name, context.loginAccount),
+        repository)
     }
   })
 
@@ -369,11 +369,7 @@ trait IssuesControllerBase extends ControllerBase {
           "issues",
           searchIssue(condition, false, (page - 1) * IssueLimit, IssueLimit, owner -> repoName),
           page,
-          if(!getAccountByUserName(owner).exists(_.isGroupAccount)){
-            (getCollaborators(owner, repoName) :+ owner).sorted
-          } else {
-            getCollaborators(owner, repoName)
-          },
+          getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),
           getLabels(owner, repoName),
           countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
@@ -383,4 +379,10 @@ trait IssuesControllerBase extends ControllerBase {
           hasWritePermission(owner, repoName, context.loginAccount))
     }
   }
+
+  // TODO Move to IssuesService?
+  private def getAssignableUserNames(owner: String, repository: String): List[String] =
+    (getCollaboratorUserNames(owner, repository, Seq("ADMIN", "WRITE")).map(_._1) :::
+      (if(getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).sorted
+
 }
