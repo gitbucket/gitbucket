@@ -43,7 +43,8 @@ trait RepositoryService { self: AccountService =>
           enableWiki           = true,
           allowWikiEditing     = true,
           externalWikiUrl      = None,
-          allowFork            = true
+          allowFork            = true,
+          allowCreateIssue     = false
         )
       )
 
@@ -124,11 +125,8 @@ trait RepositoryService { self: AccountService =>
           repositoryName = newRepositoryName
         )) :_*)
 
-        if(account.isGroupAccount){
-          Collaborators.insertAll(getGroupMembers(newUserName).map(m => Collaborator(newUserName, newRepositoryName, m.userName)) :_*)
-        } else {
-          Collaborators.insertAll(collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        }
+        // TODO Drop transfered owner from collaborators?
+        Collaborators.insertAll(collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update activity messages
         Activities.filter { t =>
@@ -340,7 +338,7 @@ trait RepositoryService { self: AccountService =>
    * Add collaborator (user or group) to the repository.
    */
   def addCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
-    Collaborators insert Collaborator(userName, repositoryName, collaboratorName)
+    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, "ADMIN") // TODO
 
   /**
    * Remove collaborator (user or group) from the repository.
@@ -358,7 +356,7 @@ trait RepositoryService { self: AccountService =>
    * Returns the list of collaborators name (user name or group name) which is sorted with ascending order.
    */
   def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[String] =
-    Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).map(_.collaboratorName).list
+    Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).map(_.collaboratorName).list // TODO return with permission
 
   /**
    * Returns the list of all collaborator name and permission which is sorted with ascending order.
