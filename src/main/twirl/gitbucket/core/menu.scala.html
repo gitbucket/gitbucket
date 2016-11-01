@@ -27,7 +27,7 @@
           @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
           @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
         }
-        @if(repository.repository.options.enableIssues) {
+        @if(repository.repository.options.issuesOption != "DISABLE") {
           @menuitem("/issues", "issues", "Issues", "issue-opened", repository.issueCount)
           @menuitem("/pulls", "pulls", "Pull Requests", "git-pull-request", repository.pullCount)
           @menuitem("/issues/labels", "labels", "Labels", "tag")
@@ -37,7 +37,7 @@
             @menuitem(externalIssuesUrl, "issues", "Issues", "issue-opened")
           }
         }
-        @if(repository.repository.options.enableWiki) {
+        @if(repository.repository.options.wikiOption != "DISABLE") {
           @menuitem("/wiki", "wiki", "Wiki", "book")
         } else {
           @repository.repository.options.externalWikiUrl.map { externalWikiUrl =>

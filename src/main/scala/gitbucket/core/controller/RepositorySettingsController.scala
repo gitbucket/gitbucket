@@ -31,10 +31,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     repositoryName: String,
     description: Option[String],
     isPrivate: Boolean,
-    enableIssues: Boolean,
+    issuesOption: String,
     externalIssuesUrl: Option[String],
-    enableWiki: Boolean,
-    allowWikiEditing: Boolean,
+    wikiOption: String,
     externalWikiUrl: Option[String],
     allowFork: Boolean
   )
@@ -43,10 +42,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(40), identifier, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
-    "enableIssues"      -> trim(label("Enable Issues"      , boolean())),
+    "issuesOption"      -> trim(label("Issues Option"      , text(required))), // TODO enum check
     "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
-    "enableWiki"        -> trim(label("Enable Wiki"        , boolean())),
-    "allowWikiEditing"  -> trim(label("Allow Wiki Editing" , boolean())),
+    "wikiOption"        -> trim(label("Wiki Option"        , text(required))), // TODO enum check
     "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200))))),
     "allowFork"         -> trim(label("Allow Forking"      , boolean()))
   )(OptionsForm.apply)
@@ -109,10 +107,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       repository.repository.parentUserName.map { _ =>
         repository.repository.isPrivate
       } getOrElse form.isPrivate,
-      form.enableIssues,
+      form.issuesOption,
       form.externalIssuesUrl,
-      form.enableWiki,
-      form.allowWikiEditing,
+      form.wikiOption,
       form.externalWikiUrl,
       form.allowFork
     )

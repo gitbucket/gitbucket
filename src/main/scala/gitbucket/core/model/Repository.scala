@@ -17,18 +17,16 @@ trait RepositoryComponent extends TemplateComponent { self: Profile =>
     val originRepositoryName = column[String]("ORIGIN_REPOSITORY_NAME")
     val parentUserName       = column[String]("PARENT_USER_NAME")
     val parentRepositoryName = column[String]("PARENT_REPOSITORY_NAME")
-    val enableIssues         = column[Boolean]("ENABLE_ISSUES")
+    val issuesOption         = column[String]("ISSUES_OPTION")
     val externalIssuesUrl    = column[String]("EXTERNAL_ISSUES_URL")
-    val enableWiki           = column[Boolean]("ENABLE_WIKI")
-    val allowWikiEditing     = column[Boolean]("ALLOW_WIKI_EDITING")
+    val wikiOption           = column[String]("WIKI_OPTION")
     val externalWikiUrl      = column[String]("EXTERNAL_WIKI_URL")
     val allowFork            = column[Boolean]("ALLOW_FORK")
-    val allowCreateIssue     = column[Boolean]("ALLOW_CREATE_ISSUE")
 
     def * = (
       (userName, repositoryName, isPrivate, description.?, defaultBranch,
       registeredDate, updatedDate, lastActivityDate, originUserName.?, originRepositoryName.?, parentUserName.?, parentRepositoryName.?),
-      (enableIssues, externalIssuesUrl.?, enableWiki, allowWikiEditing, externalWikiUrl.?, allowFork, allowCreateIssue)
+      (issuesOption, externalIssuesUrl.?, wikiOption, externalWikiUrl.?, allowFork)
     ).shaped <> (
       { case (repository, options) =>
         Repository(
@@ -86,11 +84,9 @@ case class Repository(
 )
 
 case class RepositoryOptions(
-  enableIssues: Boolean,
+  issuesOption: String,
   externalIssuesUrl: Option[String],
-  enableWiki: Boolean,
-  allowWikiEditing: Boolean,
+  wikiOption: String,
   externalWikiUrl: Option[String],
-  allowFork: Boolean,
-  allowCreateIssue: Boolean
+  allowFork: Boolean
 )

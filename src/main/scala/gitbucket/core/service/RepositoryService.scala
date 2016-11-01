@@ -38,13 +38,11 @@ trait RepositoryService { self: AccountService =>
         parentUserName       = parentUserName,
         parentRepositoryName = parentRepositoryName,
         options              = RepositoryOptions(
-          enableIssues         = true,
+          issuesOption         = "PRIVATE",
           externalIssuesUrl    = None,
-          enableWiki           = true,
-          allowWikiEditing     = true,
+          wikiOption           = "PUBLIC",
           externalWikiUrl      = None,
-          allowFork            = true,
-          allowCreateIssue     = false
+          allowFork            = true
         )
       )
 
@@ -321,12 +319,12 @@ trait RepositoryService { self: AccountService =>
    */
   def saveRepositoryOptions(userName: String, repositoryName: String,
       description: Option[String], isPrivate: Boolean,
-      enableIssues: Boolean, externalIssuesUrl: Option[String],
-      enableWiki: Boolean, allowWikiEditing: Boolean, externalWikiUrl: Option[String],
+      issuesOption: String, externalIssuesUrl: Option[String],
+      wikiOption: String, externalWikiUrl: Option[String],
       allowFork: Boolean)(implicit s: Session): Unit =
     Repositories.filter(_.byRepository(userName, repositoryName))
-      .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.externalIssuesUrl.?, r.enableWiki, r.allowWikiEditing, r.externalWikiUrl.?, r.allowFork, r.updatedDate) }
-      .update (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, allowFork, currentDate)
+      .map { r => (r.description.?, r.isPrivate, r.issuesOption, r.externalIssuesUrl.?, r.wikiOption, r.externalWikiUrl.?, r.allowFork, r.updatedDate) }
+      .update (description, isPrivate, issuesOption, externalIssuesUrl, wikiOption, externalWikiUrl, allowFork, currentDate)
 
   def saveRepositoryDefaultBranch(userName: String, repositoryName: String,
       defaultBranch: String)(implicit s: Session): Unit =
