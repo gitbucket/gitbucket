@@ -340,11 +340,11 @@ trait RepositoryService { self: AccountService =>
   def addCollaborator(userName: String, repositoryName: String, collaboratorName: String, permission: String)(implicit s: Session): Unit =
     Collaborators insert Collaborator(userName, repositoryName, collaboratorName, permission)
 
-  /**
-   * Remove collaborator (user or group) from the repository.
-   */
-  def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
-    Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
+//  /**
+//   * Remove collaborator (user or group) from the repository.
+//   */
+//  def removeCollaborator(userName: String, repositoryName: String, collaboratorName: String)(implicit s: Session): Unit =
+//    Collaborators.filter(_.byPrimaryKey(userName, repositoryName, collaboratorName)).delete
 
   /**
    * Remove all collaborators from the repository.

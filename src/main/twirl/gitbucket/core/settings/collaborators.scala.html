@@ -6,21 +6,103 @@
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("collaborators", repository){
       <h3>Manage Collaborators</h3>
-      <ul class="collaborator">
-        @collaborators.map { collaborator =>
-          <li>
-            <a href="@helpers.url(collaborator.userName)">@collaborator.userName</a>
-            <a href="@helpers.url(repository)/settings/collaborators/remove?name=@{collaborator.userName}" class="remove">(remove)</a>
-          </li>
-        }
-      </ul>
-        <form method="POST" action="@helpers.url(repository)/settings/collaborators/add" validate="true" autocomplete="off">
-          <div>
-            <span class="error" id="error-userName"></span>
-          </div>
-          @gitbucket.core.helper.html.account("userName", 300, false)
-          <input type="submit" class="btn btn-default" value="Add"/>
-        </form>
+      <form id="form" method="post" action="@helpers.url(repository)/settings/collaborators">
+        <ul id="collaborator-list" class="collaborator">
+        </ul>
+        @gitbucket.core.helper.html.account("userName", 200, false)
+        <input type="button" class="btn btn-default" value="Add" id="addCollaborator"/>
+        <input type="hidden" id="collaborators" name="collaborators" value="@collaborators.map(x => x.userName + ":" + x.permission).mkString(",")"/>
+        <div>
+          <span class="error" id="error-members"></span>
+        </div>
+        <div class="align-right" style="margin-top: 20px;">
+          <input type="submit" class="btn btn-success" value="Apply changes"/>
+        </div>
+      </form>
     }
   }
 }
+<script>
+$(function(){
+  $('input[type=submit]').click(function(){
+    updateCollaborators();
+  });
+
+  $('#addCollaborator').click(function(){
+    $('#error-members').text('');
+    var userName = $('#userName').val();
+
+    // check empty
+    if($.trim(userName) == ''){
+      return false;
+    }
+
+    // check duplication
+    var exists = $('#collaborator-list li').filter(function(){
+      return $(this).data('name') == userName;
+    }).length > 0;
+    if(exists){
+      $('#error-members').text('User has been already added.');
+      return false;
+    }
+
+    // check existence
+    $.post('@context.path/_user/existence', {
+      'userName': userName
+    }, function(data, status){
+      if(data == 'true'){
+        addCollaboratorHTML(userName, 'ADMIN');
+      } else {
+        $('#error-members').text('User does not exist.');
+      }
+    });
+  });
+
+  $(document).on('click', '.remove', function(){
+    $(this).parent().remove();
+  });
+
+  // Don't submit form by ENTER key
+  $('#userName').keypress(function(e){
+    return !(e.keyCode == 13);
+  });
+
+  @collaborators.map { x =>
+    addCollaboratorHTML('@x.collaboratorName', '@x.permission');
+  }
+
+  function addCollaboratorHTML(userName, permission){
+    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="ADMIN" name="' + userName + '">Admin</label>');
+    if(permission == 'ADMIN'){
+      adminButton.addClass('active');
+    }
+    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="WRITE" name="' + userName + '">Write</label>');
+    if(permission == 'WRITE'){
+      writeButton.addClass('active');
+    }
+    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="READ" name="' + userName + '">Read</label>');
+    if(permission == 'READ'){
+      readButton.addClass('active');
+    }
+
+    $('#collaborator-list').append($('<li>')
+      .data('name', userName)
+      .append($('<div class="btn-group permission" data-toggle="buttons">')
+        .append(adminButton)
+        .append(writeButton)
+        .append(readButton))
+      .append(' ')
+      .append($('<a>').attr('href', '@context.path/' + userName).text(userName))
+      .append(' ')
+      .append($('<a href="#" class="remove pull-right">(remove)</a>')));
+  }
+
+  function updateCollaborators(){
+    var collaborators = $('#collaborator-list li').map(function(i, e){
+      var userName = $(e).data('name');
+      return userName + ':' + $(e).find('label.active input[type=radio]').attr('value');
+    }).get().join(',');
+    $('#collaborators').val(collaborators);
+  }
+});
+</script>
