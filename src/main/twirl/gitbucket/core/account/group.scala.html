@@ -80,15 +80,14 @@ $(function(){
     }
 
     // check existence
-    $.post('@context.path/_user/existence', {
-      'userName': userName
-    }, function(data, status){
-      if(data == 'true'){
-        addMemberHTML(userName, false);
-      } else {
-        $('#error-members').text('User does not exist.');
-      }
-    });
+    $.post('@context.path/_user/existence', { 'userName': userName },
+      function(data, status){
+        if(data == 'user'){
+          addMemberHTML(userName, false);
+        } else {
+          $('#error-members').text('User does not exist.');
+        }
+      });
   });
 
   $(document).on('click', '.remove', function(){

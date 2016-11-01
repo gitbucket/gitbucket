@@ -48,15 +48,14 @@ $(function(){
     }
 
     // check existence
-    $.post('@context.path/_user/existence', {
-      'userName': userName
-    }, function(data, status){
-      if(data == 'true'){
-        addCollaboratorHTML(userName, '@Permission.ADMIN.name'); // TODO isGroup
-      } else {
-        $('#error-collaborators').text('User does not exist.');
-      }
-    });
+    $.post('@context.path/_user/existence', { 'userName': userName },
+      function(data, status){
+        if(data != ''){
+          addCollaboratorHTML(userName, '@Permission.ADMIN.name', data == 'group');
+        } else {
+          $('#error-collaborators').text('User does not exist.');
+        }
+      });
   });
 
   $(document).on('click', '.remove', function(){

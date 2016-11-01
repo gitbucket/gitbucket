@@ -118,12 +118,13 @@ trait IndexControllerBase extends ControllerBase {
   })
 
   /**
-   * JSON API for checking user existence.
+   * JSON API for checking user or group existence.
+   * Returns a single string which is any of "group", "user" or "".
    */
   post("/_user/existence")(usersOnly {
     getAccountByUserName(params("userName")).map { account =>
-      if(params.get("userOnly").isDefined) !account.isGroupAccount else true
-    } getOrElse false
+      if(account.isGroupAccount) "group" else "user"
+    } getOrElse ""
   })
 
   // TODO Move to RepositoryViwerController?
