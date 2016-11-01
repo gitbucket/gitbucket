@@ -21,3 +21,20 @@ case class Collaborator(
   collaboratorName: String,
   permission: String
 )
+
+sealed abstract class Permission(val name: String)
+
+object Permission {
+  object ADMIN extends Permission("ADMIN")
+  object WRITE extends Permission("WRITE")
+  object READ  extends Permission("READ")
+
+//  val values: Vector[Permission] = Vector(ADMIN, WRITE, READ)
+//
+//  private val map: Map[String, Permission] = values.map(enum => enum.name -> enum).toMap
+//
+//  def apply(name: String): Permission = map(name)
+//
+//  def valueOf(name: String): Option[Permission] = map.get(name)
+
+}

@@ -25,7 +25,7 @@ trait Notifier extends RepositoryService with AccountService with IssuesService 
         // group members of group repository
         getGroupMembers(issue.userName).map(_.userName) :::
         // collaborators
-        getCollaboratorUserNames(issue.userName, issue.repositoryName).map(_._1) :::
+        getCollaboratorUserNames(issue.userName, issue.repositoryName) :::
         // participants
         issue.openedUserName ::
         getComments(issue.userName, issue.repositoryName, issue.issueId).map(_.commentedUserName)

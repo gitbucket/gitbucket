@@ -14,7 +14,7 @@ import Q.interpolation
 
 
 trait IssuesService {
-  self: AccountService =>
+  self: AccountService with RepositoryService =>
   import IssuesService._
 
   def getIssue(owner: String, repository: String, issueId: String)(implicit s: Session) =
@@ -431,6 +431,11 @@ trait IssuesService {
         }
       }
     }
+  }
+
+  def getAssignableUserNames(owner: String, repository: String)(implicit s: Session): List[String] = {
+    (getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE)) :::
+      (if (getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).sorted
   }
 
 }

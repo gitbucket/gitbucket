@@ -380,9 +380,4 @@ trait IssuesControllerBase extends ControllerBase {
     }
   }
 
-  // TODO Move to IssuesService?
-  private def getAssignableUserNames(owner: String, repository: String): List[String] =
-    (getCollaboratorUserNames(owner, repository, Seq("ADMIN", "WRITE")).map(_._1) :::
-      (if(getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).sorted
-
 }

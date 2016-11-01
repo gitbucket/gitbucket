@@ -2,6 +2,7 @@
   isGroupRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
+@import gitbucket.core.model.Permission
 @gitbucket.core.html.main("Settings", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("collaborators", repository){
@@ -51,7 +52,7 @@ $(function(){
       'userName': userName
     }, function(data, status){
       if(data == 'true'){
-        addCollaboratorHTML(userName, 'ADMIN'); // TODO isGroup
+        addCollaboratorHTML(userName, '@Permission.ADMIN.name'); // TODO isGroup
       } else {
         $('#error-collaborators').text('User does not exist.');
       }
@@ -72,16 +73,16 @@ $(function(){
   }
 
   function addCollaboratorHTML(userName, permission, isGroup){
-    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="ADMIN" name="' + userName + '">Admin</label>');
-    if(permission == 'ADMIN'){
+    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Permission.ADMIN.name" name="' + userName + '">Admin</label>');
+    if(permission == '@Permission.ADMIN.name'){
       adminButton.addClass('active');
     }
-    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="WRITE" name="' + userName + '">Write</label>');
-    if(permission == 'WRITE'){
+    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Permission.WRITE.name" name="' + userName + '">Write</label>');
+    if(permission == '@Permission.WRITE.name'){
       writeButton.addClass('active');
     }
-    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="READ" name="' + userName + '">Read</label>');
-    if(permission == 'READ'){
+    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Permission.READ.name" name="' + userName + '">Read</label>');
+    if(permission == '@Permission.READ.name'){
       readButton.addClass('active');
     }
 

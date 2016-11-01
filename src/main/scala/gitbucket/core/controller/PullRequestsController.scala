@@ -533,9 +533,4 @@ trait PullRequestsControllerBase extends ControllerBase {
         hasWritePermission(owner, repoName, context.loginAccount))
     }
 
-  // TODO Move to IssuesService?
-  private def getAssignableUserNames(owner: String, repository: String): List[String] =
-    (getCollaboratorUserNames(owner, repository, Seq("ADMIN", "WRITE")).map(_._1) :::
-      (if(getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).sorted
-
 }

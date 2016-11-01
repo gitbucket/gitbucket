@@ -188,25 +188,6 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
 
-
-//  /**
-//   * Add the collaborator.
-//   */
-//  post("/:owner/:repository/settings/collaborators/add", collaboratorForm)(ownerOnly { (form, repository) =>
-//    getAccountByUserName(repository.owner).foreach { _ =>
-//      addCollaborator(repository.owner, repository.name, form.userName, "ADMIN") // TODO
-//    }
-//    redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
-//  })
-//
-//  /**
-//   * Add the collaborator.
-//   */
-//  get("/:owner/:repository/settings/collaborators/remove")(ownerOnly { repository =>
-//    removeCollaborator(repository.owner, repository.name, params("name"))
-//    redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
-//  })
-
   /**
    * Display the web hook page.
    */
