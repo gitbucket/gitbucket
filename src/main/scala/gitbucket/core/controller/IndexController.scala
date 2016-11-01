@@ -110,10 +110,10 @@ trait IndexControllerBase extends ControllerBase {
     contentType = formats("json")
     org.json4s.jackson.Serialization.write(
       Map("options" -> (if(params.get("userOnly").isDefined) {
-        getAllUsers(false).filter(!_.isGroupAccount).map(_.userName).toArray
+        getAllUsers(false).filter(!_.isGroupAccount).map { t => (t.userName, t.isGroupAccount) }.toArray
       } else {
-        getAllUsers(false).map(_.userName).toArray
-      }))
+        getAllUsers(false).map { t => (t.userName, t.isGroupAccount) }.toArray
+      }).map { case (userName, groupAccount) => userName + ":" + groupAccount })
     )
   })
 

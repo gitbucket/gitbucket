@@ -1,4 +1,4 @@
-@(collaborators: List[gitbucket.core.model.Collaborator],
+@(collaborators: List[(gitbucket.core.model.Collaborator, Boolean)],
   isGroupRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -11,9 +11,9 @@
         </ul>
         @gitbucket.core.helper.html.account("userName", 200, false)
         <input type="button" class="btn btn-default" value="Add" id="addCollaborator"/>
-        <input type="hidden" id="collaborators" name="collaborators" value="@collaborators.map(x => x.userName + ":" + x.permission).mkString(",")"/>
+        <input type="hidden" id="collaborators" name="collaborators" value="@collaborators.map(x => x._1.userName + ":" + x._1.permission).mkString(",")"/>
         <div>
-          <span class="error" id="error-members"></span>
+          <span class="error" id="error-collaborators"></span>
         </div>
         <div class="align-right" style="margin-top: 20px;">
           <input type="submit" class="btn btn-success" value="Apply changes"/>
@@ -29,7 +29,7 @@ $(function(){
   });
 
   $('#addCollaborator').click(function(){
-    $('#error-members').text('');
+    $('#error-collaborators').text('');
     var userName = $('#userName').val();
 
     // check empty
@@ -42,7 +42,7 @@ $(function(){
       return $(this).data('name') == userName;
     }).length > 0;
     if(exists){
-      $('#error-members').text('User has been already added.');
+      $('#error-collaborators').text('User has been already added.');
       return false;
     }
 
@@ -51,9 +51,9 @@ $(function(){
       'userName': userName
     }, function(data, status){
       if(data == 'true'){
-        addCollaboratorHTML(userName, 'ADMIN');
+        addCollaboratorHTML(userName, 'ADMIN'); // TODO isGroup
       } else {
-        $('#error-members').text('User does not exist.');
+        $('#error-collaborators').text('User does not exist.');
       }
     });
   });
@@ -67,11 +67,11 @@ $(function(){
     return !(e.keyCode == 13);
   });
 
-  @collaborators.map { x =>
-    addCollaboratorHTML('@x.collaboratorName', '@x.permission');
+  @collaborators.map { case (collaborator, isGroup) =>
+    addCollaboratorHTML('@collaborator.collaboratorName', '@collaborator.permission', @isGroup);
   }
 
-  function addCollaboratorHTML(userName, permission){
+  function addCollaboratorHTML(userName, permission, isGroup){
     var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="ADMIN" name="' + userName + '">Admin</label>');
     if(permission == 'ADMIN'){
       adminButton.addClass('active');
@@ -93,7 +93,7 @@ $(function(){
         .append(readButton))
       .append(' ')
       .append($('<a>').attr('href', '@context.path/' + userName).text(userName))
-      .append(' ')
+      .append(isGroup ? ' (group)' : '')
       .append($('<a href="#" class="remove pull-right">(remove)</a>')));
   }
 

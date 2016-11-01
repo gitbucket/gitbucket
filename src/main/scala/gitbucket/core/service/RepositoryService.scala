@@ -355,8 +355,13 @@ trait RepositoryService { self: AccountService =>
   /**
    * Returns the list of collaborators name (user name or group name) which is sorted with ascending order.
    */
-  def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[Collaborator] =
-    Collaborators.filter(_.byRepository(userName, repositoryName)).sortBy(_.collaboratorName).list
+  def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[(Collaborator, Boolean)] =
+    Collaborators
+      .innerJoin(Accounts).on(_.collaboratorName === _.userName)
+      .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
+      .map { case (t1, t2) => (t1, t2.groupAccount) }
+      .sortBy { case (t1, t2) => t1.collaboratorName }
+      .list
 
   /**
    * Returns the list of all collaborator name and permission which is sorted with ascending order.
@@ -364,8 +369,8 @@ trait RepositoryService { self: AccountService =>
    */
   def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[String] = Nil)(implicit s: Session): List[(String, String)] = {
     val q1 = Collaborators.filter(_.byRepository(userName, repositoryName))
-        .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
-        .map { case (t1, t2) => (t1.collaboratorName, "ADMIN") }
+      .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
+      .map { case (t1, t2) => (t1.collaboratorName, "ADMIN") }
 
     val q2 = Collaborators.filter(_.byRepository(userName, repositoryName))
       .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }

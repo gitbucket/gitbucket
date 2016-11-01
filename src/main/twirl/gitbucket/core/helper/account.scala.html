@@ -5,6 +5,13 @@
 <script>
 $(function(){
   $('#@id').typeahead({
+    highlighter: function(item) {
+      var x = item.split(':');
+      return $('<div><strong>' + x[0] + '</strong>' + (x[1] == 'true' ? ' (group)' : '') + '</div>');
+    },
+    updater: function (item) {
+      return item.split(':')[0];
+    },
     source: function (query, process) {
       return $.get('@context.path/_user/proposals@if(userOnly){?userOnly}', { query: query },
         function (data) {
