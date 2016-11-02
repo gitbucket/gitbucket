@@ -39,45 +39,6 @@
                 </div>
               </label>
             </fieldset>
-          </div>
-        </div>
-        <div class="panel panel-default">
-          <div class="panel-heading strong">Features</div>
-          <div class="panel-body">
-            <fieldset class="form-group">
-              @* TODO Make radio to choose issues option
-              <label class="checkbox" for="enableIssues">
-                <input type="checkbox" id="enableIssues" name="enableIssues"@if(repository.repository.options.enableIssues){ checked}/>
-                Issues<br>
-                <div class="normal muted">
-                  Provides Lightweight issue tracking integrated with this repository. Add issues to milestones, label issues, and close & reference issues from commit messages.
-                </div>
-              </label>
-              *@
-              <label for="externalIssuesUrl" class="strong">External URL:
-                <span class="normal muted">(Put if you have the external issue tracking system for this project)</span>
-              </label>
-              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
-            </fieldset>
-            <fieldset class="form-group">
-              @* TODO Make radio to choose wiki option
-              <label class="checkbox" for="enableWiki">
-                <input type="checkbox" id="enableWiki" name="enableWiki"@if(repository.repository.options.enableWiki){ checked}/>
-                Wiki<br>
-                <div class="normal muted">
-                  Provides a simple solution to manage documents. All users who can look this repository can read and collaborators can edit pages.
-                </div>
-              </label>
-              <label class="checkbox" for="allowWikiEditing">
-                <input type="checkbox" id="allowWikiEditing" name="allowWikiEditing"@if(repository.repository.options.allowWikiEditing){ checked}/>
-                Allow read-only users to edit Wiki pages<br>
-              </label>
-              *@
-              <label for="externalWikiUrl" class="strong">External URL:
-                <span class="normal muted">(Put if you have the external Wiki for this project)</span>
-              </label>
-              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
-            </fieldset>
             <fieldset class="form-group">
               <label class="checkbox" for="allowFork">
                 <input type="checkbox" id="allowFork" name="allowFork"@if(repository.repository.options.allowFork){ checked}/>
@@ -86,6 +47,68 @@
                   Allow repository forking to users who can access this repository.
                 </div>
               </label>
+            </fieldset>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Issues</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
+              <div class="radio">
+                <label>
+                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disables issues tracking system
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Writable users can view, create and comment on issues
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Readable users can view, create and comment on isues
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> Anyone can view, create and comment on issues
+                </label>
+              </div>
+              <label for="externalIssuesUrl" class="strong">External URL:
+                <span class="normal muted">(Put if you have the external issue tracking system for this project)</span>
+              </label>
+              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
+            </fieldset>
+          </div>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Wiki</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
+              <div class="radio">
+                <label>
+                  <input type="radio" name="wikiOption" value="DISABLE" @if(repository.repository.options.wikiOption == "DISABLE"){ checked}> Disables wiki
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="wikiOption" value="PRIVATE" @if(repository.repository.options.wikiOption == "PRIVATE"){ checked}> Writable users can view, create and edit wiki pages
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Readable users can view, create and edit wiki pages
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="wikiOption" value="ALL" @if(repository.repository.options.wikiOption == "ALL"){ checked}> Anyone can view, create and edit wiki pages
+                </label>
+              </div>
+              <label for="externalWikiUrl" class="strong">External URL:
+                <span class="normal muted">(Put if you have the external Wiki for this project)</span>
+              </label>
+              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
             </fieldset>
           </div>
         </div>
@@ -100,14 +123,13 @@
 $(function(){
   updateFeatures();
 
-  $('#enableIssues, #enableWiki').click(function(){
+  $('input[name=issuesOption], input[name=wikiOption]').click(function(){
     updateFeatures();
   });
 });
 
 function updateFeatures() {
-  $('#externalIssuesUrl').prop('disabled', $('#enableIssues').prop('checked'));
-  $('#allowWikiEditing').prop('disabled', !$('#enableWiki').prop('checked'));
-  $('#externalWikiUrl').prop('disabled', $('#enableWiki').prop('checked'));
+  $('#externalIssuesUrl').prop('disabled', !$('input[name=issuesOption]').select('[value=DISABLE]').prop('checked'));
+  $('#externalWikiUrl').prop('disabled', !$('input[name=wikiOption]').select('[value=DISABLE]').prop('checked'));
 }
 </script>

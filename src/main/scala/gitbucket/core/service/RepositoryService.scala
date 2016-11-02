@@ -38,9 +38,9 @@ trait RepositoryService { self: AccountService =>
         parentUserName       = parentUserName,
         parentRepositoryName = parentRepositoryName,
         options              = RepositoryOptions(
-          issuesOption         = "PRIVATE",
+          issuesOption         = "PRIVATE", // TODO DISABLE for the forked repository?
           externalIssuesUrl    = None,
-          wikiOption           = "PUBLIC",
+          wikiOption           = "PUBLIC", // TODO DISABLE for the forked repository?
           externalWikiUrl      = None,
           allowFork            = true
         )
@@ -360,13 +360,15 @@ trait RepositoryService { self: AccountService =>
    * If a group is added as a collaborator, this method returns users who are belong to that group.
    */
   def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[Permission] = Nil)(implicit s: Session): List[String] = {
-    val q1 = Collaborators.filter(_.byRepository(userName, repositoryName))
+    val q1 = Collaborators
       .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
+      .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
       .map { case (t1, t2) => t1.collaboratorName }
 
-    val q2 = Collaborators.filter(_.byRepository(userName, repositoryName))
+    val q2 = Collaborators
       .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
       .innerJoin(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
+      .filter { case ((t1, t2), t3) => t1.byRepository(userName, repositoryName) }
       .map { case ((t1, t2), t3) => t3.userName }
 
     q1.union(q2).list.filter { x => filter.isEmpty || filter.exists(_.name == x) }
@@ -379,6 +381,16 @@ trait RepositoryService { self: AccountService =>
       case Some(a) if(a.userName == owner) => true
       case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
       case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE)).contains(a.userName)) => true
+      case _ => false
+    }
+  }
+
+  def hasReadPermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+    loginAccount match {
+      case Some(a) if(a.isAdmin) => true
+      case Some(a) if(a.userName == owner) => true
+      case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
+      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE, Permission.READ)).contains(a.userName)) => true
       case _ => false
     }
   }
