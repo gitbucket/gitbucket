@@ -13,7 +13,7 @@
           <input type="text" id="issue-title" name="title" class="form-control" value="" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
           @gitbucket.core.helper.html.preview(
             repository         = repository,
-            content            = "",
+            content            = repository.repository.options.issueTemplate,
             enableWikiLink     = false,
             enableRefsLink     = true,
             enableLineBreaks   = true,
