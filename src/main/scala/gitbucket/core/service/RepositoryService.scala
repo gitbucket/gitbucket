@@ -43,7 +43,8 @@ trait RepositoryService { self: AccountService =>
           enableWiki           = true,
           allowWikiEditing     = true,
           externalWikiUrl      = None,
-          allowFork            = true
+          allowFork            = true,
+          issueTemplate        = ""
         )
       )
 
@@ -325,10 +326,10 @@ trait RepositoryService { self: AccountService =>
       description: Option[String], isPrivate: Boolean,
       enableIssues: Boolean, externalIssuesUrl: Option[String],
       enableWiki: Boolean, allowWikiEditing: Boolean, externalWikiUrl: Option[String],
-      allowFork: Boolean)(implicit s: Session): Unit =
+      allowFork: Boolean, issueTemplate: String)(implicit s: Session): Unit =
     Repositories.filter(_.byRepository(userName, repositoryName))
-      .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.externalIssuesUrl.?, r.enableWiki, r.allowWikiEditing, r.externalWikiUrl.?, r.allowFork, r.updatedDate) }
-      .update (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, allowFork, currentDate)
+      .map { r => (r.description.?, r.isPrivate, r.enableIssues, r.externalIssuesUrl.?, r.enableWiki, r.allowWikiEditing, r.externalWikiUrl.?, r.allowFork, r.issueTemplate, r.updatedDate) }
+      .update (description, isPrivate, enableIssues, externalIssuesUrl, enableWiki, allowWikiEditing, externalWikiUrl, allowFork, issueTemplate, currentDate)
 
   def saveRepositoryDefaultBranch(userName: String, repositoryName: String,
       defaultBranch: String)(implicit s: Session): Unit =

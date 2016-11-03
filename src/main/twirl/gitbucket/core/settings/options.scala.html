@@ -52,6 +52,10 @@
                   Provides Lightweight issue tracking integrated with this repository. Add issues to milestones, label issues, and close & reference issues from commit messages.
                 </div>
               </label>
+              <label for="issueTemplate" class="strong">
+                Issue Template:
+              </label>
+              <textarea class="form-control" rows="10" id="issueTemplate" name="issueTemplate">@repository.repository.options.issueTemplate</textarea>
               <label for="externalIssuesUrl" class="strong">External URL:
                 <span class="normal muted">(Put if you have the external issue tracking system for this project)</span>
               </label>
@@ -103,6 +107,7 @@ $(function(){
 
 function updateFeatures() {
   $('#externalIssuesUrl').prop('disabled', $('#enableIssues').prop('checked'));
+  $('#issueTemplate').prop('disabled', !$('#enableIssues').prop('checked'));
   $('#allowWikiEditing').prop('disabled', !$('#enableWiki').prop('checked'));
   $('#externalWikiUrl').prop('disabled', $('#enableWiki').prop('checked'));
 }
