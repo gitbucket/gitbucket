@@ -6,6 +6,7 @@ import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service.PullRequestService._
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
@@ -14,7 +15,6 @@ import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
-
 import io.github.gitbucket.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
@@ -24,13 +24,15 @@ import scala.collection.JavaConverters._
 
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
-  with CommitsService with ActivityService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with CommitsService with ActivityService with WebHookPullRequestService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
   with CommitStatusService with MergeService with ProtectedBranchService
 
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
-    with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService with ReferrerAuthenticator with CollaboratorsAuthenticator
+    with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
     with CommitStatusService with MergeService with ProtectedBranchService =>
 
   val pullRequestForm = mapping(
@@ -96,7 +98,8 @@ trait PullRequestsControllerBase extends ControllerBase {
             getLabels(owner, name),
             commits,
             diffs,
-            hasWritePermission(owner, name, context.loginAccount),
+            isEditable(repository),
+            isManageable(repository),
             repository,
             flash.toMap.map(f => f._1 -> f._2.toString))
         }
@@ -416,64 +419,68 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pulls/new", pullRequestForm)(referrersOnly { (form, repository) =>
+  post("/:owner/:repository/pulls/new", pullRequestForm)(readableUsersOnly { (form, repository) =>
     defining(repository.owner, repository.name){ case (owner, name) =>
-      val writable = hasWritePermission(owner, name, context.loginAccount)
-      val loginUserName = context.loginAccount.get.userName
+      val manageable = isManageable(repository)
+      val editable = isEditable(repository)
 
-      val issueId = createIssue(
-        owner            = repository.owner,
-        repository       = repository.name,
-        loginUser        = loginUserName,
-        title            = form.title,
-        content          = form.content,
-        assignedUserName = if(writable) form.assignedUserName else None,
-        milestoneId      = if(writable) form.milestoneId else None,
-        isPullRequest    = true)
+      if(editable) {
+        val loginUserName = context.loginAccount.get.userName
 
-      createPullRequest(
-        originUserName        = repository.owner,
-        originRepositoryName  = repository.name,
-        issueId               = issueId,
-        originBranch          = form.targetBranch,
-        requestUserName       = form.requestUserName,
-        requestRepositoryName = form.requestRepositoryName,
-        requestBranch         = form.requestBranch,
-        commitIdFrom          = form.commitIdFrom,
-        commitIdTo            = form.commitIdTo)
+        val issueId = createIssue(
+          owner = repository.owner,
+          repository = repository.name,
+          loginUser = loginUserName,
+          title = form.title,
+          content = form.content,
+          assignedUserName = if (manageable) form.assignedUserName else None,
+          milestoneId = if (manageable) form.milestoneId else None,
+          isPullRequest = true)
 
-      // insert labels
-      if(writable){
-        form.labelNames.map { value =>
-          val labels = getLabels(owner, name)
-          value.split(",").foreach { labelName =>
-            labels.find(_.labelName == labelName).map { label =>
-              registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
+        createPullRequest(
+          originUserName = repository.owner,
+          originRepositoryName = repository.name,
+          issueId = issueId,
+          originBranch = form.targetBranch,
+          requestUserName = form.requestUserName,
+          requestRepositoryName = form.requestRepositoryName,
+          requestBranch = form.requestBranch,
+          commitIdFrom = form.commitIdFrom,
+          commitIdTo = form.commitIdTo)
+
+        // insert labels
+        if (manageable) {
+          form.labelNames.map { value =>
+            val labels = getLabels(owner, name)
+            value.split(",").foreach { labelName =>
+              labels.find(_.labelName == labelName).map { label =>
+                registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
+              }
             }
           }
         }
-      }
 
-      // fetch requested branch
-      fetchAsPullRequest(owner, name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
+        // fetch requested branch
+        fetchAsPullRequest(owner, name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
 
-      // record activity
-      recordPullRequestActivity(owner, name, loginUserName, issueId, form.title)
+        // record activity
+        recordPullRequestActivity(owner, name, loginUserName, issueId, form.title)
 
-      // call web hook
-      callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
+        // call web hook
+        callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
 
-      getIssue(owner, name, issueId.toString) foreach { issue =>
-        // extract references and create refer comment
-        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
+        getIssue(owner, name, issueId.toString) foreach { issue =>
+          // extract references and create refer comment
+          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
 
-        // notifications
-        Notifier().toNotify(repository, issue, form.content.getOrElse("")){
-          Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
+          // notifications
+          Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
+            Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
+          }
         }
-      }
 
-      redirect(s"/${owner}/${name}/pull/${issueId}")
+        redirect(s"/${owner}/${name}/pull/${issueId}")
+      } else Unauthorized()
     }
   })
 
@@ -513,8 +520,7 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name){ case (owner, repoName) =>
-      val page       = IssueSearchCondition.page(request)
-      val sessionKey = Keys.Session.Pulls(owner, repoName)
+      val page = IssueSearchCondition.page(request)
 
       // retrieve search condition
       val condition = IssueSearchCondition(request)
@@ -530,7 +536,26 @@ trait PullRequestsControllerBase extends ControllerBase {
         countIssue(condition.copy(state = "closed"), true, owner -> repoName),
         condition,
         repository,
-        hasWritePermission(owner, repoName, context.loginAccount))
+        isEditable(repository),
+        isManageable(repository))
     }
+
+  /**
+   * Tests whether an logged-in user can manage pull requests.
+   */
+  private def isManageable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
+    hasWritePermission(repository.owner, repository.name, context.loginAccount)
+  }
+
+  /**
+   * Tests whether an logged-in user can post pull requests.
+   */
+  private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
+    repository.repository.options.issuesOption match {
+      case "PUBLIC"  => hasReadPermission(repository.owner, repository.name, context.loginAccount)
+      case "PRIVATE" => hasWritePermission(repository.owner, repository.name, context.loginAccount)
+      case "DISABLE" => false
+    }
+  }
 
 }

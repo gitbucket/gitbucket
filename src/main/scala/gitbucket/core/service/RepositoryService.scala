@@ -363,15 +363,15 @@ trait RepositoryService { self: AccountService =>
     val q1 = Collaborators
       .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
       .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
-      .map { case (t1, t2) => t1.collaboratorName }
+      .map { case (t1, t2) => (t1.collaboratorName, t1.permission) }
 
     val q2 = Collaborators
       .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
       .innerJoin(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
       .filter { case ((t1, t2), t3) => t1.byRepository(userName, repositoryName) }
-      .map { case ((t1, t2), t3) => t3.userName }
+      .map { case ((t1, t2), t3) => (t3.userName, t1.permission) }
 
-    q1.union(q2).list.filter { x => filter.isEmpty || filter.exists(_.name == x) }
+    q1.union(q2).list.filter { x => filter.isEmpty || filter.exists(_.name == x._2) }.map(_._1)
   }
 
 

@@ -69,11 +69,6 @@
                   <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Readable users can view, create and comment on isues
                 </label>
               </div>
-              <div class="radio">
-                <label>
-                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> Anyone can view, create and comment on issues
-                </label>
-              </div>
               <label for="externalIssuesUrl" class="strong">External URL:
                 <span class="normal muted">(Put if you have the external issue tracking system for this project)</span>
               </label>
@@ -98,11 +93,6 @@
               <div class="radio">
                 <label>
                   <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Readable users can view, create and edit wiki pages
-                </label>
-              </div>
-              <div class="radio">
-                <label>
-                  <input type="radio" name="wikiOption" value="ALL" @if(repository.repository.options.wikiOption == "ALL"){ checked}> Anyone can view, create and edit wiki pages
                 </label>
               </div>
               <label for="externalWikiUrl" class="strong">External URL:

@@ -1,6 +1,6 @@
 @(issue: Option[gitbucket.core.model.Issue],
   comments: List[gitbucket.core.model.Comment],
-  hasWritePermission: Boolean,
+  isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pullreq: Option[gitbucket.core.model.PullRequest] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -11,7 +11,7 @@
     <div class="panel-heading">
       @helpers.user(issue.get.openedUserName, styleClass="username strong") <span class="muted">commented @gitbucket.core.helper.html.datetimeago(issue.get.registeredDate)</span>
       <span class="pull-right">
-        @if(hasWritePermission || context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
+        @if(isManageable || context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){
           <a href="#" data-issue-id="@issue.get.issueId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>
         }
       </span>
@@ -24,7 +24,7 @@
         enableRefsLink = true,
         enableLineBreaks = true,
         enableTaskList = true,
-        hasWritePermission = hasWritePermission
+        hasWritePermission = isManageable
       )
     </div>
   </div>
@@ -48,7 +48,7 @@
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
           </span>
           @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
-                && (hasWritePermission || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
+                && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){
             <span class="pull-right">
               <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-pencil" aria-label="Edit"></i></a>&nbsp;
               <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
@@ -63,7 +63,7 @@
             enableRefsLink = true,
             enableLineBreaks = true,
             enableTaskList = true,
-            hasWritePermission = hasWritePermission
+            hasWritePermission = isManageable
           )
         </div>
       </div>
@@ -166,7 +166,7 @@
     }
   }
   case comment: CommitComment => {
-    @gitbucket.core.helper.html.commitcomment(comment, hasWritePermission, repository, pullreq.map(_.commitIdTo))
+    @gitbucket.core.helper.html.commitcomment(comment, isManageable, repository, pullreq.map(_.commitIdTo))
   }
 }
 <script>

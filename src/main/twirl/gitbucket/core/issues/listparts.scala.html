@@ -8,7 +8,7 @@
   milestones: List[gitbucket.core.model.Milestone] = Nil,
   labels: List[gitbucket.core.model.Label] = Nil,
   repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None,
-  hasWritePermission: Boolean = false)(implicit context: gitbucket.core.controller.Context)
+  isManageable: Boolean = false)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.service.IssuesService.IssueInfo
 @*
@@ -110,7 +110,7 @@
             </li>
           }
         </span>
-        @if(hasWritePermission){
+        @if(isManageable){
           <span id="table-issues-batchedit">
             @gitbucket.core.helper.html.dropdown("Mark as") {
               <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
@@ -174,7 +174,7 @@
     @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
-          @if(hasWritePermission){
+          @if(isManageable){
             <input type="checkbox" value="@issue.issueId"/>
           }
           @*

@@ -4,12 +4,12 @@
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   labels: List[gitbucket.core.model.Label],
-  hasWritePermission: Boolean,
+  isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Labels</span>
-  @if(hasWritePermission){
+  @if(isManageable){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true) {
         @labels.map { label =>
@@ -34,7 +34,7 @@
 <hr/>
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Milestone</span>
-  @if(hasWritePermission){
+  @if(isManageable){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true) {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="octicon octicon-x"></i> Clear this milestone</a></li>
@@ -86,7 +86,7 @@
 <hr/>
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Assignee</span>
-  @if(hasWritePermission){
+  @if(isManageable){
     <div class="pull-right">
       @gitbucket.core.helper.html.dropdown("Edit", right = true) {
         <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>

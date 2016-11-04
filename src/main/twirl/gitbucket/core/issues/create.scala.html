@@ -1,7 +1,7 @@
 @(collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
   labels: List[gitbucket.core.model.Label],
-  hasWritePermission: Boolean,
+  isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
@@ -18,7 +18,7 @@
             enableRefsLink     = true,
             enableLineBreaks   = true,
             enableTaskList     = true,
-            hasWritePermission = hasWritePermission,
+            hasWritePermission = isManageable,
             completionContext  = "issues",
             style              = "height: 200px; max-height: 250px;",
             elastic            = true
@@ -28,7 +28,7 @@
           </div>
         </div>
         <div class="col-md-3">
-          @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, hasWritePermission, repository)
+          @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), labels, isManageable, repository)
         </div>
       </div>
     </form>
