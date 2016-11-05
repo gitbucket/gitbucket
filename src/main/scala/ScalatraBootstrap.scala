@@ -41,7 +41,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(new RepositorySettingsController, "/*")
 
     context.setInitParameter(CorsSupport.AllowedMethodsKey, "GET,HEAD,POST,PUT")
-    context.setInitParameter(CorsSupport.AllowedOriginsKey, "*.modeler.gy")
+    context.setInitParameter(CorsSupport.AllowedOriginsKey, "dynsim.simsci.io,*.simsci.io,*.modeler.gy")
     context.setInitParameter(CorsSupport.AllowedHeadersKey, "X-Requested-With,Authorization,Content-Type,Accept,Origin")
     context.setInitParameter(CorsSupport.AllowCredentialsKey, "true")
     context.setInitParameter(CorsSupport.PreflightMaxAgeKey, "1800")
