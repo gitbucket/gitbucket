@@ -34,7 +34,7 @@
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">
             </ul>
-            @gitbucket.core.helper.html.account("memberName", 200)
+            @gitbucket.core.helper.html.account("memberName", 200, true, false)
             <input type="button" class="btn btn-default" value="Add" id="addMember"/>
             <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
             <div>

@@ -6,17 +6,35 @@
 @gitbucket.core.html.main("Settings", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("collaborators", repository){
-      <h3>Manage Collaborators</h3>
       <form id="form" method="post" action="@helpers.url(repository)/settings/collaborators">
-        <ul id="collaborator-list" class="collaborator">
-        </ul>
-        @gitbucket.core.helper.html.account("userName", 200, false)
-        <input type="button" class="btn btn-default" value="Add" id="addCollaborator"/>
-        <input type="hidden" id="collaborators" name="collaborators" value="@collaborators.map(x => x._1.userName + ":" + x._1.permission).mkString(",")"/>
-        <div>
-          <span class="error" id="error-collaborators"></span>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Collaborators</div>
+          <div class="panel-body">
+            <ul id="collaborator-list" class="collaborator">
+            </ul>
+            @gitbucket.core.helper.html.account("userName-collaborator", 200, true, false)
+            <input type="button" class="btn btn-default add" value="Add" id="addCollaborator"/>
+            <div>
+              <span class="error" id="error-collaborator"></span>
+            </div>
+          </div>
         </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Groups</div>
+          <div class="panel-body">
+            <ul id="group-list" class="collaborator">
+            </ul>
+            @gitbucket.core.helper.html.account("userName-group", 200, false, true)
+            <input type="button" class="btn btn-default add" value="Add" id="addGroup"/>
+            <div>
+              <span class="error" id="error-group"></span>
+            </div>
+          </div>
+        </div>
+
         <div class="align-right" style="margin-top: 20px;">
+          <input type="hidden" id="collaborators" name="collaborators" />
           <input type="submit" class="btn btn-success" value="Apply changes"/>
         </div>
       </form>
@@ -26,24 +44,32 @@
 <script>
 $(function(){
   $('input[type=submit]').click(function(){
-    updateCollaborators();
+    updateValues();
   });
 
-  $('#addCollaborator').click(function(){
-    $('#error-collaborators').text('');
-    var userName = $('#userName').val();
+  $('.add').click(function(){
+    var id = $(this).attr('id') == 'addCollaborator' ? 'collaborator' : 'group';
+
+    $('#error-' + id).text('');
+    var userName = $('#userName-' + id).val();
 
     // check empty
     if($.trim(userName) == ''){
       return false;
     }
 
+    // check owner
+    var owner = '@repository.owner' == userName
+    if(owner){
+      $('#error-' + id).text('User is owner of this repository.');
+      return false;
+    }
     // check duplication
-    var exists = $('#collaborator-list li').filter(function(){
+    var exists = $('#' + id + '-list li').filter(function(){
       return $(this).data('name') == userName;
     }).length > 0;
     if(exists){
-      $('#error-collaborators').text('User has been already added.');
+      $('#error-' + id).text('User has been already added.');
       return false;
     }
 
@@ -51,9 +77,9 @@ $(function(){
     $.post('@context.path/_user/existence', { 'userName': userName },
       function(data, status){
         if(data != ''){
-          addCollaboratorHTML(userName, '@Permission.ADMIN.name', data == 'group');
+          addListHTML(userName, '@Permission.ADMIN.name', '#' + id + '-list');
         } else {
-          $('#error-collaborators').text('User does not exist.');
+          $('#error-' + id).text('User does not exist.');
         }
       });
   });
@@ -63,15 +89,15 @@ $(function(){
   });
 
   // Don't submit form by ENTER key
-  $('#userName').keypress(function(e){
+  $('#userName-collaborator, #userName-group').keypress(function(e){
     return !(e.keyCode == 13);
   });
 
   @collaborators.map { case (collaborator, isGroup) =>
-    addCollaboratorHTML('@collaborator.collaboratorName', '@collaborator.permission', @isGroup);
+    addListHTML('@collaborator.collaboratorName', '@collaborator.permission', @if(isGroup){'#group-list'}else{'#collaborator-list'});
   }
 
-  function addCollaboratorHTML(userName, permission, isGroup){
+  function addListHTML(userName, permission, id){
     var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Permission.ADMIN.name" name="' + userName + '">Admin</label>');
     if(permission == '@Permission.ADMIN.name'){
       adminButton.addClass('active');
@@ -85,24 +111,29 @@ $(function(){
       readButton.addClass('active');
     }
 
-    $('#collaborator-list').append($('<li>')
+    $(id).append($('<li>')
       .data('name', userName)
       .append($('<div class="btn-group permission" data-toggle="buttons">')
         .append(adminButton)
         .append(writeButton)
         .append(readButton))
       .append(' ')
-      .append($('<a>').attr('href', '@context.path/' + userName).text(userName))
-      .append(isGroup ? ' (group)' : '')
+      .append($('<a target="_blank">').attr('href', '@context.path/' + userName).text(userName))
       .append($('<a href="#" class="remove pull-right">(remove)</a>')));
   }
 
-  function updateCollaborators(){
+  function updateValues(){
     var collaborators = $('#collaborator-list li').map(function(i, e){
       var userName = $(e).data('name');
       return userName + ':' + $(e).find('label.active input[type=radio]').attr('value');
     }).get().join(',');
-    $('#collaborators').val(collaborators);
+
+    var groups = $('#group-list li').map(function(i, e){
+      var userName = $(e).data('name');
+      return userName + ':' + $(e).find('label.active input[type=radio]').attr('value');
+    }).get().join(',');
+
+    $('#collaborators').val(collaborators + ',' + groups);
   }
 });
 </script>

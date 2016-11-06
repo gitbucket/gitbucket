@@ -42,9 +42,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(40), identifier, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
-    "issuesOption"      -> trim(label("Issues Option"      , text(required))), // TODO enum check
+    "issuesOption"      -> trim(label("Issues Option"      , text(required, featureOption))),
     "externalIssuesUrl" -> trim(label("External Issues URL", optional(text(maxlength(200))))),
-    "wikiOption"        -> trim(label("Wiki Option"        , text(required))), // TODO enum check
+    "wikiOption"        -> trim(label("Wiki Option"        , text(required, featureOption))),
     "externalWikiUrl"   -> trim(label("External Wiki URL"  , optional(text(maxlength(200))))),
     "allowFork"         -> trim(label("Allow Forking"      , boolean()))
   )(OptionsForm.apply)
@@ -56,12 +56,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100))))
   )(DefaultBranchForm.apply)
 
-  // for collaborator addition
-  case class CollaboratorForm(userName: String)
-
-  val collaboratorForm = mapping(
-    "userName" -> trim(label("Username", text(required, collaborator)))
-  )(CollaboratorForm.apply)
+//  // for collaborator addition
+//  case class CollaboratorForm(userName: String)
+//
+//  val collaboratorForm = mapping(
+//    "userName" -> trim(label("Username", text(required, collaborator)))
+//  )(CollaboratorForm.apply)
 
   // for web hook url addition
   case class WebHookForm(url: String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])
@@ -178,7 +178,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/collaborators")(ownerOnly { repository =>
     val collaborators = params("collaborators")
     removeCollaborators(repository.owner, repository.name)
-    collaborators.split(",").map { collaborator =>
+    collaborators.split(",").withFilter(_.nonEmpty).map { collaborator =>
       val userName :: permission :: Nil = collaborator.split(":").toList
       addCollaborator(repository.owner, repository.name, userName, permission)
     }
@@ -384,20 +384,20 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     }
   }
 
-  /**
-   * Provides Constraint to validate the collaborator name.
-   */
-  private def collaborator: Constraint = new Constraint(){
-    override def validate(name: String, value: String, messages: Messages): Option[String] =
-      getAccountByUserName(value) match {
-        case None => Some("User does not exist.")
-//        case Some(x) if(x.isGroupAccount)
-//                  => Some("User does not exist.")
-        case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
-                  => Some(value + " is repository owner.") // TODO also group members?
-        case _    => None
-      }
-  }
+//  /**
+//   * Provides Constraint to validate the collaborator name.
+//   */
+//  private def collaborator: Constraint = new Constraint(){
+//    override def validate(name: String, value: String, messages: Messages): Option[String] =
+//      getAccountByUserName(value) match {
+//        case None => Some("User does not exist.")
+////        case Some(x) if(x.isGroupAccount)
+////                  => Some("User does not exist.")
+//        case Some(x) if(x.userName == params("owner") || getCollaborators(params("owner"), params("repository")).contains(x.userName))
+//                  => Some(value + " is repository owner.") // TODO also group members?
+//        case _    => None
+//      }
+//  }
 
   /**
    * Duplicate check for the rename repository name.
@@ -410,6 +410,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         }
       }
   }
+
+  /**
+   *
+   */
+  private def featureOption: Constraint = new Constraint(){
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+      if(Seq("DISABLE", "PRIVATE", "PUBLIC").contains(value)) None else Some("Option is invalid.")
+  }
+
 
   /**
    * Provides Constraint to validate the repository transfer user.

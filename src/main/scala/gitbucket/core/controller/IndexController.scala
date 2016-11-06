@@ -108,12 +108,18 @@ trait IndexControllerBase extends ControllerBase {
    */
   get("/_user/proposals")(usersOnly {
     contentType = formats("json")
+    val user  = params("user").toBoolean
+    val group = params("group").toBoolean
     org.json4s.jackson.Serialization.write(
-      Map("options" -> (if(params.get("userOnly").isDefined) {
-        getAllUsers(false).filter(!_.isGroupAccount).map { t => (t.userName, t.isGroupAccount) }.toArray
-      } else {
-        getAllUsers(false).map { t => (t.userName, t.isGroupAccount) }.toArray
-      }).map { case (userName, groupAccount) => userName + ":" + groupAccount })
+      Map("options" -> (
+        getAllUsers(false)
+          .withFilter { t => (user, group) match {
+            case (true, true) => true
+            case (true, false) => !t.isGroupAccount
+            case (false, true) => t.isGroupAccount
+            case (false, false) => false
+          }}.map { t => t.userName }
+      ))
     )
   })
 
