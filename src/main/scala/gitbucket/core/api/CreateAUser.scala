@@ -12,7 +12,7 @@ case class CreateAUser (
   ) {
   def isValid: Boolean = {
     val pattern = new Regex("^.*(?=.{8,})(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\d\\W]).*$")
-    userName.length <= 40 &&
+    userName.length <= 254 &&
       userName.matches("[a-zA-Z0-9\\@\\-\\+_.]+") &&
       !userName.startsWith("_") &&
       !userName.startsWith("-") &&
@@ -38,7 +38,7 @@ case class ModifyAUser (
       case Some(p) => p.length > 8 && pattern.findAllIn(p).toList.size > 0
       case None => true
     }
-    userName.length <= 40 &&
+    userName.length <= 254 &&
       userName.matches("[a-zA-Z0-9\\@\\-\\+_.]+") &&
       !userName.startsWith("_") &&
       !userName.startsWith("-") &&

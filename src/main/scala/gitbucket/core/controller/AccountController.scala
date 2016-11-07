@@ -40,10 +40,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class PersonalTokenForm(note: String)
 
   val newForm = mapping(
-    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
+    "userName"    -> trim(label("User name"    , text(required, maxlength(254), identifier, uniqueUserName))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
+    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(254), uniqueMailAddress()))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text())))
   )(AccountNewForm.apply)
@@ -51,7 +51,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   val editForm = mapping(
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
-    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
+    "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(254), uniqueMailAddress("userName")))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "clearImage"  -> trim(label("Clear image"  , boolean()))
@@ -70,14 +70,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
 
   val newGroupForm = mapping(
-    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "groupName" -> trim(label("Group name" ,text(required, maxlength(254), identifier, uniqueUserName))),
     "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
     "fileId"    -> trim(label("File ID"    ,optional(text()))),
     "members"   -> trim(label("Members"    ,text(required, members)))
   )(NewGroupForm.apply)
 
   val editGroupForm = mapping(
-    "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
+    "groupName"  -> trim(label("Group name"  ,text(required, maxlength(254), identifier))),
     "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
     "fileId"     -> trim(label("File ID"     ,optional(text()))),
     "members"    -> trim(label("Members"     ,text(required, members))),
@@ -88,7 +88,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class ForkRepositoryForm(owner: String, name: String)
 
   val newRepositoryForm = mapping(
-    "owner"        -> trim(label("Owner"          , text(required, maxlength(100), identifier, existsAccount))),
+    "owner"        -> trim(label("Owner"          , text(required, maxlength(254), identifier, existsAccount))),
     "name"         -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
