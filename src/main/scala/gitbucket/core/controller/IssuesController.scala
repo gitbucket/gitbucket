@@ -78,21 +78,22 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      html.create(
-        getAssignableUserNames(owner, name),
-        getMilestones(owner, name),
-        getLabels(owner, name),
-        hasWritePermission(owner, name, context.loginAccount),
-        repository)
-    }
+    if(isEditable(repository)){ // TODO Should this check is provided by authenticator?
+      defining(repository.owner, repository.name){ case (owner, name) =>
+        html.create(
+          getAssignableUserNames(owner, name),
+          getMilestones(owner, name),
+          getLabels(owner, name),
+          hasWritePermission(owner, name, context.loginAccount),
+          repository)
+      }
+    } else Unauthorized()
   })
 
   post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnly { (form, repository) =>
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      val manageable = isManageable(repository)
-      val editable = isEditable(repository)
-      if(editable) {
+    if(isEditable(repository)){ // TODO Should this check is provided by authenticator?
+      defining(repository.owner, repository.name){ case (owner, name) =>
+        val manageable = isManageable(repository)
         val userName = context.loginAccount.get.userName
 
         // insert issue
@@ -129,8 +130,8 @@ trait IssuesControllerBase extends ControllerBase {
         }
 
         redirect(s"/${owner}/${name}/issues/${issueId}")
-      } else Unauthorized()
-    }
+      }
+    } else Unauthorized()
   })
 
   ajaxPost("/:owner/:repository/issues/edit_title/:id", issueTitleEditForm)(readableUsersOnly { (title, repository) =>

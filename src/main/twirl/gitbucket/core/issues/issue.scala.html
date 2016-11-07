@@ -15,7 +15,9 @@
         @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
           <a class="btn btn-default" href="#" id="edit">Edit</a>
         }
-        <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
+        @if(isEditable){
+          <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
+        }
       </div>
       <div class="edit-title pull-right" style="display: none;">
         <a class="btn btn-success" href="#" id="update">Save</a>  <a class="btn btn-default" href="#" id="cancel">Cancel</a>
@@ -57,7 +59,7 @@
     </div>
   }
 }
-<script>
+<script><script>
 $(function(){
   $('#edit').click(function(){
     $('.edit-title').show();

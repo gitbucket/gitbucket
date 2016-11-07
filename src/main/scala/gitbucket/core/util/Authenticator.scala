@@ -90,6 +90,8 @@ trait AdminAuthenticator { self: ControllerBase =>
 
 /**
  * Allows only collaborators and administrators.
+ *
+ * TODO This authenticator should be renamed.
  */
 trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def collaboratorsOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
