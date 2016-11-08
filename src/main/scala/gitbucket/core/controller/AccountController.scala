@@ -319,13 +319,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
         // Update GROUP_MEMBER
         updateGroupMembers(form.groupName, members)
-        // Update COLLABORATOR for group repositories
-        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-          removeCollaborators(form.groupName, repositoryName)
-          members.foreach { case (userName, isManager) =>
-            addCollaborator(form.groupName, repositoryName, userName)
-          }
-        }
+//        // Update COLLABORATOR for group repositories
+//        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+//          removeCollaborators(form.groupName, repositoryName)
+//          members.foreach { case (userName, isManager) =>
+//            addCollaborator(form.groupName, repositoryName, userName)
+//          }
+//        }
 
         updateImage(form.groupName, form.fileId, form.clearImage)
         redirect(s"/${form.groupName}")
@@ -402,13 +402,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             parentUserName       = Some(repository.owner)
           )
 
-          // Add collaborators for group repository
-          val ownerAccount = getAccountByUserName(accountName).get
-          if(ownerAccount.isGroupAccount){
-            getGroupMembers(accountName).foreach { member =>
-              addCollaborator(accountName, repository.name, member.userName)
-            }
-          }
+//          // Add collaborators for group repository
+//          val ownerAccount = getAccountByUserName(accountName).get
+//          if(ownerAccount.isGroupAccount){
+//            getGroupMembers(accountName).foreach { member =>
+//              addCollaborator(accountName, repository.name, member.userName)
+//            }
+//          }
 
           // Insert default labels
           insertDefaultLabels(accountName, repository.name)

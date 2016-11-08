@@ -1,21 +1,20 @@
 @(pageName: Option[String],
   commits: List[gitbucket.core.util.JGitUtil.CommitInfo],
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  isEditable: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"History - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("wiki", repository){
-    <div class="pull-right">
-    @if(pageName.isEmpty){
-      @if(context.loginAccount.isDefined){
-        <a class="btn btn-small" href="@helpers.url(repository)/wiki/_new">New Page</a>
-      }
-    } else {
-      @if(context.loginAccount.isDefined){
-        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
-        <a class="btn btn-small btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
-      }
+    @if(isEditable) {
+      <div class="pull-right">
+        @if(pageName.isEmpty) {
+          <a class="btn btn-small" href="@helpers.url(repository)/wiki/_new">New Page</a>
+        } else {
+          <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
+          <a class="btn btn-small btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
+        }
+        </div>
     }
-    </div>
     <h1 class="wiki-title">
     @if(pageName.isEmpty){
       <span class="muted">History</span>

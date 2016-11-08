@@ -4,17 +4,20 @@
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   labels: List[gitbucket.core.model.Label],
-  hasWritePermission: Boolean,
+  isEditable: Boolean,
+  isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${issue.title} - Issue #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("issues", repository){
     <div>
       <div class="show-title pull-right">
-        @if(hasWritePermission || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
+        @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
           <a class="btn btn-default" href="#" id="edit">Edit</a>
         }
-        <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
+        @if(isEditable){
+          <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
+        }
       </div>
       <div class="edit-title pull-right" style="display: none;">
         <a class="btn btn-success" href="#" id="update">Save</a>  <a class="btn btn-default" href="#" id="cancel">Cancel</a>
@@ -47,16 +50,16 @@
     <hr>
     <div style="margin-top: 15px;">
       <div class="col-md-9">
-        @gitbucket.core.issues.html.commentlist(Some(issue), comments, hasWritePermission, repository)
-        @gitbucket.core.issues.html.commentform(issue, true, hasWritePermission, repository)
+        @gitbucket.core.issues.html.commentlist(Some(issue), comments, isManageable, repository)
+        @gitbucket.core.issues.html.commentform(issue, true, isEditable, isManageable, repository)
       </div>
       <div class="col-md-3">
-        @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+        @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, isManageable, repository)
       </div>
     </div>
   }
 }
-<script>
+<script><script>
 $(function(){
   $('#edit').click(function(){
     $('.edit-title').show();

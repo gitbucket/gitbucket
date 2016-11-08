@@ -35,7 +35,7 @@ class ApiController extends ApiControllerBase
   with GroupManagerAuthenticator
   with ReferrerAuthenticator
   with ReadableUsersAuthenticator
-  with CollaboratorsAuthenticator
+  with WritableUsersAuthenticator
 
 trait ApiControllerBase extends ControllerBase {
   self: RepositoryService
@@ -52,7 +52,7 @@ trait ApiControllerBase extends ControllerBase {
     with GroupManagerAuthenticator
     with ReferrerAuthenticator
     with ReadableUsersAuthenticator
-    with CollaboratorsAuthenticator =>
+    with WritableUsersAuthenticator =>
 
   /**
     * https://developer.github.com/v3/#root-endpoint
@@ -177,7 +177,8 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/collaborators/#list-collaborators
    */
   get("/api/v3/repos/:owner/:repo/collaborators") (referrersOnly { repository =>
-    JsonFormat(getCollaborators(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
+    // TODO Should ApiUser take permission? getCollaboratorUserNames does not return owner group members.
+    JsonFormat(getCollaboratorUserNames(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
   })
 
   /**
@@ -327,7 +328,7 @@ trait ApiControllerBase extends ControllerBase {
    * Create a label
    * https://developer.github.com/v3/issues/labels/#create-a-label
    */
-  post("/api/v3/repos/:owner/:repository/labels")(collaboratorsOnly { repository =>
+  post("/api/v3/repos/:owner/:repository/labels")(writableUsersOnly { repository =>
     (for{
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
@@ -352,7 +353,7 @@ trait ApiControllerBase extends ControllerBase {
    * Update a label
    * https://developer.github.com/v3/issues/labels/#update-a-label
    */
-  patch("/api/v3/repos/:owner/:repository/labels/:labelName")(collaboratorsOnly { repository =>
+  patch("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
     (for{
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
@@ -378,7 +379,7 @@ trait ApiControllerBase extends ControllerBase {
    * Delete a label
    * https://developer.github.com/v3/issues/labels/#delete-a-label
    */
-  delete("/api/v3/repos/:owner/:repository/labels/:labelName")(collaboratorsOnly { repository =>
+  delete("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
     LockUtil.lock(RepositoryName(repository).fullName) {
       getLabel(repository.owner, repository.name, params("labelName")).map { label =>
         deleteLabel(repository.owner, repository.name, label.labelId)
@@ -466,7 +467,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/statuses/#create-a-status
    */
-  post("/api/v3/repos/:owner/:repo/statuses/:sha")(collaboratorsOnly { repository =>
+  post("/api/v3/repos/:owner/:repo/statuses/:sha")(writableUsersOnly { repository =>
     (for{
       ref <- params.get("sha")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)

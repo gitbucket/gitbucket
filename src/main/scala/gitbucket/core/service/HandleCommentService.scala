@@ -13,7 +13,7 @@ trait HandleCommentService {
     with WebHookService with WebHookIssueCommentService with WebHookPullRequestService =>
 
   /**
-   * @see [[https://github.com/takezoe/gitbucket/wiki/CommentAction]]
+   * @see [[https://github.com/gitbucket/gitbucket/wiki/CommentAction]]
    */
   def handleComment(issue: Issue, content: Option[String], repository: RepositoryService.RepositoryInfo, actionOpt: Option[String])
                    (implicit context: Context, s: Session) = {
@@ -54,18 +54,20 @@ trait HandleCommentService {
 
       // call web hooks
       action match {
-        case None => commentId.map{ commentIdSome => callIssueCommentWebHook(repository, issue, commentIdSome, context.loginAccount.get) }
-        case Some(act) => val webHookAction = act match {
-          case "open"   => "opened"
-          case "reopen" => "reopened"
-          case "close"  => "closed"
-          case _ => act
-        }
-          if(issue.isPullRequest){
+        case None => commentId.map { commentIdSome => callIssueCommentWebHook(repository, issue, commentIdSome, context.loginAccount.get) }
+        case Some(act) => {
+          val webHookAction = act match {
+            case "open"   => "opened"
+            case "reopen" => "reopened"
+            case "close"  => "closed"
+            case _ => act
+          }
+          if (issue.isPullRequest) {
             callPullRequestWebHook(webHookAction, repository, issue.issueId, context.baseUrl, context.loginAccount.get)
           } else {
             callIssuesWebHook(webHookAction, repository, issue, context.baseUrl, context.loginAccount.get)
           }
+        }
       }
 
       // notifications

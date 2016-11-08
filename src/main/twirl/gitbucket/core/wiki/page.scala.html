@@ -2,7 +2,7 @@
   page: gitbucket.core.service.WikiService.WikiPageInfo,
   pages: List[String],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean,
+  isEditable: Boolean,
   sidebar: Option[gitbucket.core.service.WikiService.WikiPageInfo],
   footer: Option[gitbucket.core.service.WikiService.WikiPageInfo])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
@@ -12,7 +12,7 @@
     <div>
       <div class="pull-right">
         <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
-        @if(hasWritePermission){
+        @if(isEditable){
           <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
           <a class="btn btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
         }
@@ -49,13 +49,13 @@
       }
       @sidebar.map { sidebarPage =>
         <div class="wiki-sidebar">
-          @if(hasWritePermission){
+          @if(isEditable){
             <a href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
           @helpers.markdown(sidebarPage.content, repository, true, false, false, false, pages)
         </div>
       }.getOrElse{
-        @if(hasWritePermission){
+        @if(isEditable){
           <a class="button-link" href="@helpers.url(repository)/wiki/_Sidebar/_edit" style="text-decoration: none;">
             <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom sidebar</div>
           </a>
@@ -88,13 +88,13 @@
       </div>
       @footer.map { footerPage =>
         <div class="wiki-sidebar wiki-footer">
-          @if(hasWritePermission){
+          @if(isEditable){
             <a href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;"><span class="octicon octicon-pencil pull-right"></span></a>
           }
           @helpers.markdown(footerPage.content, repository, true, false, false, false, pages)
         </div>
       }.getOrElse{
-        @if(hasWritePermission){
+        @if(isEditable){
           <a class="button-link" href="@helpers.url(repository)/wiki/_Footer/_edit" style="text-decoration: none;">
             <div class="wiki-sidebar-dotted text-center"><i class="octicon octicon-plus"></i> Add a custom footer</div>
           </a>

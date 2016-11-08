@@ -31,7 +31,7 @@ import org.scalatra._
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with CommitStatusService
   with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBranchService
 
 /**
@@ -39,7 +39,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with CommitStatusService
     with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBranchService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
@@ -157,7 +157,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/new/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
@@ -165,7 +165,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       protectedBranch)
   })
 
-  get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/edit/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
 
@@ -181,7 +181,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/remove/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/remove/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
@@ -194,7 +194,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/create", editorForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/create", editorForm)(writableUsersOnly { (form, repository) =>
     commitFile(
       repository  = repository,
       branch      = form.branch,
@@ -211,7 +211,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }")
   })
 
-  post("/:owner/:repository/update", editorForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/update", editorForm)(writableUsersOnly { (form, repository) =>
     commitFile(
       repository  = repository,
       branch      = form.branch,
@@ -232,7 +232,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }")
   })
 
-  post("/:owner/:repository/remove", deleteForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/remove", deleteForm)(writableUsersOnly { (form, repository) =>
     commitFile(repository, form.branch, form.path, None, Some(form.fileName), "", "",
       form.message.getOrElse(s"Delete ${form.fileName}"))
 
@@ -443,7 +443,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Creates a branch.
    */
-  post("/:owner/:repository/branches")(collaboratorsOnly { repository =>
+  post("/:owner/:repository/branches")(writableUsersOnly { repository =>
     val newBranchName = params.getOrElse("new", halt(400))
     val fromBranchName = params.getOrElse("from", halt(400))
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
@@ -461,7 +461,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Deletes branch.
    */
-  get("/:owner/:repository/delete/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/delete/*")(writableUsersOnly { repository =>
     val branchName = multiParams("splat").head
     val userName   = context.loginAccount.get.userName
     if(repository.repository.defaultBranch != branchName){
