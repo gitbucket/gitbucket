@@ -779,10 +779,6 @@ h4#issueTitle {
   padding: 0px;
 }
 
-div.issue-avatar-image {
-  float: left;
-}
-
 div.issue-participants {
   margin-bottom: 15px;
   margin-left: 50px;
@@ -790,7 +786,6 @@ div.issue-participants {
 
 div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
-  margin-left: 70px;
 }
 
 div.issue-comment-box > div.panel-body,
@@ -879,7 +874,7 @@ li.task-list-item input.task-list-item-checkbox {
 
 .discussion-item {
     position: relative;
-    margin: 15px 0 15px 79px;
+    margin: 15px 0 15px 20px;
     padding-left: 25px;
 }
 .discussion-item-header {
