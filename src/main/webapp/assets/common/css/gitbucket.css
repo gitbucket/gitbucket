@@ -326,6 +326,12 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+.dropdown-filter-input {
+  border: solid 1px #ccc;
+  margin: 4px;
+  width: 96%;
+}
+
 ul.dropdown-menu {
   padding: 2px 0;
 }
@@ -338,7 +344,7 @@ ul.dropdown-menu li a {
   padding: 2px 10px;
 }
 
-ul.dropdown-menu :last-child {
+ul.dropdown-menu li:last-child {
   border-bottom: none;
 }
 
@@ -630,12 +636,6 @@ span.simplified-path {
   color: #aaa;
   font-weight: bold;
   line-height: 15px;
-}
-
-#branch-control-input {
-  border: solid 1px #ccc;
-  margin: 4px;
-  width: 96%;
 }
 
 .new-branch-name {
