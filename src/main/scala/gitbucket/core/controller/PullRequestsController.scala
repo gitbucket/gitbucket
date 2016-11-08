@@ -25,14 +25,14 @@ import scala.collection.JavaConverters._
 class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator
   with CommitStatusService with MergeService with ProtectedBranchService
 
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
     with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator
     with CommitStatusService with MergeService with ProtectedBranchService =>
 
   val pullRequestForm = mapping(
@@ -141,7 +141,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  get("/:owner/:repository/pull/:id/delete/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/pull/:id/delete/*")(writableUsersOnly { repository =>
     params("id").toIntOpt.map { issueId =>
       val branchName = multiParams("splat").head
       val userName   = context.loginAccount.get.userName
@@ -225,7 +225,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pull/:id/merge", mergeForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/pull/:id/merge", mergeForm)(writableUsersOnly { (form, repository) =>
     params("id").toIntOpt.flatMap { issueId =>
       val owner = repository.owner
       val name  = repository.name
@@ -389,7 +389,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(collaboratorsOnly { forkedRepository =>
+  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(writableUsersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
     val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
     val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)

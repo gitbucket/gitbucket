@@ -14,10 +14,10 @@ import org.scalatra.i18n.Messages
 
 class WikiController extends WikiControllerBase 
   with WikiService with RepositoryService with AccountService with ActivityService
-  with ReadableUsersAuthenticator with CollaboratorsAuthenticator with ReferrerAuthenticator
+  with ReadableUsersAuthenticator with ReferrerAuthenticator
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService with RepositoryService with ActivityService with ReadableUsersAuthenticator with CollaboratorsAuthenticator with ReferrerAuthenticator =>
+  self: WikiService with RepositoryService with ActivityService with ReadableUsersAuthenticator with ReferrerAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
   

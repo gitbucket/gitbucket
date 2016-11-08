@@ -15,11 +15,11 @@ import org.scalatra.Ok
 
 class IssuesController extends IssuesControllerBase
   with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with WebHookIssueCommentService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with WebHookIssueCommentService
 
 trait IssuesControllerBase extends ControllerBase {
   self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with WebHookIssueCommentService =>
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with WebHookIssueCommentService =>
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
@@ -258,32 +258,32 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/new/label")(collaboratorsOnly { repository =>
+  ajaxPost("/:owner/:repository/issues/new/label")(writableUsersOnly { repository =>
     val labelNames = params("labelNames").split(",")
     val labels = getLabels(repository.owner, repository.name).filter(x => labelNames.contains(x.labelName))
     html.labellist(labels)
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/label/new")(collaboratorsOnly { repository =>
+  ajaxPost("/:owner/:repository/issues/:id/label/new")(writableUsersOnly { repository =>
     defining(params("id").toInt){ issueId =>
       registerIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt)
       html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/label/delete")(collaboratorsOnly { repository =>
+  ajaxPost("/:owner/:repository/issues/:id/label/delete")(writableUsersOnly { repository =>
     defining(params("id").toInt){ issueId =>
       deleteIssueLabel(repository.owner, repository.name, issueId, params("labelId").toInt)
       html.labellist(getIssueLabels(repository.owner, repository.name, issueId))
     }
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/assign")(collaboratorsOnly { repository =>
+  ajaxPost("/:owner/:repository/issues/:id/assign")(writableUsersOnly { repository =>
     updateAssignedUserName(repository.owner, repository.name, params("id").toInt, assignedUserName("assignedUserName"))
     Ok("updated")
   })
 
-  ajaxPost("/:owner/:repository/issues/:id/milestone")(collaboratorsOnly { repository =>
+  ajaxPost("/:owner/:repository/issues/:id/milestone")(writableUsersOnly { repository =>
     updateMilestoneId(repository.owner, repository.name, params("id").toInt, milestoneId("milestoneId"))
     milestoneId("milestoneId").map { milestoneId =>
       getMilestonesWithIssueCount(repository.owner, repository.name)
@@ -293,7 +293,7 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse Ok()
   })
 
-  post("/:owner/:repository/issues/batchedit/state")(collaboratorsOnly { repository =>
+  post("/:owner/:repository/issues/batchedit/state")(writableUsersOnly { repository =>
     defining(params.get("value")){ action =>
       action match {
         case Some("open")  => executeBatch(repository) { issueId =>
@@ -311,7 +311,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/issues/batchedit/label")(collaboratorsOnly { repository =>
+  post("/:owner/:repository/issues/batchedit/label")(writableUsersOnly { repository =>
     params("value").toIntOpt.map{ labelId =>
       executeBatch(repository) { issueId =>
         getIssueLabel(repository.owner, repository.name, issueId, labelId) getOrElse {
@@ -321,7 +321,7 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/issues/batchedit/assign")(collaboratorsOnly { repository =>
+  post("/:owner/:repository/issues/batchedit/assign")(writableUsersOnly { repository =>
     defining(assignedUserName("value")){ value =>
       executeBatch(repository) {
         updateAssignedUserName(repository.owner, repository.name, _, value)
@@ -329,7 +329,7 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
-  post("/:owner/:repository/issues/batchedit/milestone")(collaboratorsOnly { repository =>
+  post("/:owner/:repository/issues/batchedit/milestone")(writableUsersOnly { repository =>
     defining(milestoneId("value")){ value =>
       executeBatch(repository) {
         updateMilestoneId(repository.owner, repository.name, _, value)

@@ -89,32 +89,6 @@ trait AdminAuthenticator { self: ControllerBase =>
 }
 
 /**
- * Allows only collaborators and administrators.
- *
- * TODO This authenticator should be renamed.
- */
-trait CollaboratorsAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
-  protected def collaboratorsOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
-  protected def collaboratorsOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
-
-  private def authenticate(action: (RepositoryInfo) => Any) = {
-    {
-      defining(request.paths){ paths =>
-        getRepository(paths(0), paths(1)).map { repository =>
-          context.loginAccount match {
-            case Some(x) if(x.isAdmin) => action(repository)
-            case Some(x) if(paths(0) == x.userName) => action(repository)
-            case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Permission.ADMIN, Permission.WRITE)).contains(x.userName)) => action(repository)
-            case _ => Unauthorized()
-          }
-        } getOrElse NotFound()
-      }
-    }
-  }
-}
-
-/**
  * Allows only guests and signed in users who can access the repository.
  */
 trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
@@ -143,7 +117,7 @@ trait ReferrerAuthenticator { self: ControllerBase with RepositoryService with A
 }
 
 /**
- * Allows only signed in users who can access the repository.
+ * Allows only signed in users who have read permission for the repository.
  */
 trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
   protected def readableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
@@ -159,6 +133,30 @@ trait ReadableUsersAuthenticator { self: ControllerBase with RepositoryService w
             case Some(x) if(paths(0) == x.userName) => action(repository)
             case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
             case Some(x) if(getCollaboratorUserNames(paths(0), paths(1)).contains(x.userName)) => action(repository)
+            case _ => Unauthorized()
+          }
+        } getOrElse NotFound()
+      }
+    }
+  }
+}
+
+/**
+ * Allows only signed in users who have write permission for the repository.
+ */
+trait WritableUsersAuthenticator { self: ControllerBase with RepositoryService with AccountService =>
+  protected def writableUsersOnly(action: (RepositoryInfo) => Any) = { authenticate(action) }
+  protected def writableUsersOnly[T](action: (T, RepositoryInfo) => Any) = (form: T) => { authenticate(action(form, _)) }
+
+  private def authenticate(action: (RepositoryInfo) => Any) = {
+    {
+      defining(request.paths){ paths =>
+        getRepository(paths(0), paths(1)).map { repository =>
+          context.loginAccount match {
+            case Some(x) if(x.isAdmin) => action(repository)
+            case Some(x) if(paths(0) == x.userName) => action(repository)
+            case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
+            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Permission.ADMIN, Permission.WRITE)).contains(x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
