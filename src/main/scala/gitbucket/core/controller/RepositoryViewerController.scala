@@ -593,14 +593,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val headName = s"refs/heads/${branch}"
         val headTip  = git.getRepository.resolve(headName)
 
-        JGitUtil.processTree(git, headTip){ (path, tree) =>
+        val permission = JGitUtil.processTree(git, headTip){ (path, tree) =>
+          // Add all entries except the editing file
           if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
             builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
           }
-        }
+          // Retrieve permission if file exists to keep it
+          oldPath.collect { case x if x == path => tree.getEntryFileMode.getBits }
+        }.flatten.headOption
 
         newPath.foreach { newPath =>
-          builder.add(JGitUtil.createDirCacheEntry(newPath, FileMode.REGULAR_FILE,
+          builder.add(JGitUtil.createDirCacheEntry(newPath,
+            permission.map { bits => FileMode.fromBits(bits) } getOrElse FileMode.REGULAR_FILE,
             inserter.insert(Constants.OBJ_BLOB, content.getBytes(charset))))
         }
         builder.finish()
