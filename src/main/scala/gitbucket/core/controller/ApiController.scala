@@ -7,9 +7,10 @@ import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.JGitUtil.{CommitInfo, getFileList, getBranches, getDefaultBranch}
+import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
+import gitbucket.core.view.helpers.{renderMarkup, isRenderable}
 import org.eclipse.jgit.api.Git
 import org.scalatra.{NoContent, UnprocessableEntity, Created}
 import scala.collection.JavaConverters._
@@ -34,7 +35,7 @@ class ApiController extends ApiControllerBase
   with GroupManagerAuthenticator
   with ReferrerAuthenticator
   with ReadableUsersAuthenticator
-  with CollaboratorsAuthenticator
+  with WritableUsersAuthenticator
 
 trait ApiControllerBase extends ControllerBase {
   self: RepositoryService
@@ -51,7 +52,7 @@ trait ApiControllerBase extends ControllerBase {
     with GroupManagerAuthenticator
     with ReferrerAuthenticator
     with ReadableUsersAuthenticator
-    with CollaboratorsAuthenticator =>
+    with WritableUsersAuthenticator =>
 
   /**
     * https://developer.github.com/v3/#root-endpoint
@@ -66,7 +67,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/orgs/:groupName") {
     getAccountByUserName(params("groupName")).filter(account => account.isGroupAccount).map { account =>
       JsonFormat(ApiUser(account))
-    } getOrElse NotFound
+    } getOrElse NotFound()
   }
 
   /**
@@ -75,7 +76,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/users/:userName") {
     getAccountByUserName(params("userName")).filterNot(account => account.isGroupAccount).map { account =>
       JsonFormat(ApiUser(account))
-    } getOrElse NotFound
+    } getOrElse NotFound()
   }
 
   /**
@@ -109,13 +110,53 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/contents/#get-contents
    */
   get("/api/v3/repos/:owner/:repo/contents/*")(referrersOnly { repository =>
+    def getFileInfo(git: Git, revision: String, pathStr: String): Option[FileInfo] = {
+      val path = new java.io.File(pathStr)
+      val dirName = path.getParent match {
+        case null => "."
+        case s => s
+      }
+      getFileList(git, revision, dirName).find(f => f.name.equals(path.getName))
+    }
+
     val path = multiParams("splat").head match {
       case s if s.isEmpty => "."
       case s => s
     }
     val refStr = params.getOrElse("ref", repository.repository.defaultBranch)
+
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))){ git =>
-      JsonFormat(getFileList(git, refStr, path).map{f => ApiContents(f)})
+      val fileList = getFileList(git, refStr, path)
+      if (fileList.isEmpty) { // file or NotFound
+        getFileInfo(git, refStr, path).flatMap(f => {
+          val largeFile = params.get("large_file").exists(s => s.equals("true"))
+          val content = getContentFromId(git, f.id, largeFile)
+          request.getHeader("Accept") match {
+            case "application/vnd.github.v3.raw" =>
+              content
+            case "application/vnd.github.v3.html" if isRenderable(f.name) =>
+              content.map(c =>
+                List(
+                  "<div data-path=\"", path, "\" id=\"file\">", "<article>",
+                  renderMarkup(path.split("/").toList, new String(c), refStr, repository, false, false, true).body,
+                  "</article>", "</div>"
+                ).mkString
+              )
+            case "application/vnd.github.v3.html" =>
+              content.map(c =>
+                List(
+                  "<div data-path=\"", path, "\" id=\"file\">", "<div class=\"plain\">", "<pre>",
+                  play.twirl.api.HtmlFormat.escape(new String(c)).body,
+                  "</pre>", "</div>", "</div>"
+                ).mkString
+              )
+            case _ =>
+              Some(JsonFormat(ApiContents(f, content)))
+          }
+        }).getOrElse(NotFound())
+      } else { // directory
+        JsonFormat(fileList.map{f => ApiContents(f, None)})
+      }
     }
   })
 
@@ -136,7 +177,8 @@ trait ApiControllerBase extends ControllerBase {
    * https://developer.github.com/v3/repos/collaborators/#list-collaborators
    */
   get("/api/v3/repos/:owner/:repo/collaborators") (referrersOnly { repository =>
-    JsonFormat(getCollaborators(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
+    // TODO Should ApiUser take permission? getCollaboratorUserNames does not return owner group members.
+    JsonFormat(getCollaboratorUserNames(params("owner"), params("repo")).map(u => ApiUser(getAccountByUserName(u).get)))
   })
 
   /**
@@ -145,7 +187,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/user") {
     context.loginAccount.map { account =>
       JsonFormat(ApiUser(account))
-    } getOrElse Unauthorized
+    } getOrElse Unauthorized()
   }
 
   /**
@@ -179,7 +221,7 @@ trait ApiControllerBase extends ControllerBase {
           )
         }
       }
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -203,7 +245,7 @@ trait ApiControllerBase extends ControllerBase {
           )
         }
       }
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -221,7 +263,7 @@ trait ApiControllerBase extends ControllerBase {
         disableBranchProtection(repository.owner, repository.name, branch)
       }
       JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -243,7 +285,7 @@ trait ApiControllerBase extends ControllerBase {
       comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
     } yield {
       JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
-    }).getOrElse(NotFound)
+    }) getOrElse NotFound()
   })
 
   /**
@@ -259,7 +301,7 @@ trait ApiControllerBase extends ControllerBase {
       issueComment <- getComment(repository.owner, repository.name, id.toString())
     } yield {
       JsonFormat(ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(context.loginAccount.get), issue.isPullRequest))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -286,7 +328,7 @@ trait ApiControllerBase extends ControllerBase {
    * Create a label
    * https://developer.github.com/v3/issues/labels/#create-a-label
    */
-  post("/api/v3/repos/:owner/:repository/labels")(collaboratorsOnly { repository =>
+  post("/api/v3/repos/:owner/:repository/labels")(writableUsersOnly { repository =>
     (for{
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
@@ -311,7 +353,7 @@ trait ApiControllerBase extends ControllerBase {
    * Update a label
    * https://developer.github.com/v3/issues/labels/#update-a-label
    */
-  patch("/api/v3/repos/:owner/:repository/labels/:labelName")(collaboratorsOnly { repository =>
+  patch("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
     (for{
       data <- extractFromJsonBody[CreateALabel] if data.isValid
     } yield {
@@ -337,7 +379,7 @@ trait ApiControllerBase extends ControllerBase {
    * Delete a label
    * https://developer.github.com/v3/issues/labels/#delete-a-label
    */
-  delete("/api/v3/repos/:owner/:repository/labels/:labelName")(collaboratorsOnly { repository =>
+  delete("/api/v3/repos/:owner/:repository/labels/:labelName")(writableUsersOnly { repository =>
     LockUtil.lock(RepositoryName(repository).fullName) {
       getLabel(repository.owner, repository.name, params("labelName")).map { label =>
         deleteLabel(repository.owner, repository.name, label.labelId)
@@ -393,7 +435,7 @@ trait ApiControllerBase extends ControllerBase {
         ApiRepository(headRepo, ApiUser(headOwner)),
         ApiRepository(repository, ApiUser(baseOwner)),
         ApiUser(issueUser)))
-    }).getOrElse(NotFound)
+    }) getOrElse NotFound()
   })
 
   /**
@@ -412,7 +454,7 @@ trait ApiControllerBase extends ControllerBase {
           JsonFormat(commits)
         }
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   /**
@@ -425,7 +467,7 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/statuses/#create-a-status
    */
-  post("/api/v3/repos/:owner/:repo/statuses/:sha")(collaboratorsOnly { repository =>
+  post("/api/v3/repos/:owner/:repo/statuses/:sha")(writableUsersOnly { repository =>
     (for{
       ref <- params.get("sha")
       sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
@@ -437,7 +479,7 @@ trait ApiControllerBase extends ControllerBase {
       status <- getCommitStatus(repository.owner, repository.name, statusId)
     } yield {
       JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -453,7 +495,7 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(getCommitStatuesWithCreator(repository.owner, repository.name, sha).map{ case(status, creator) =>
         ApiCommitStatus(status, ApiUser(creator))
       })
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   /**
@@ -478,7 +520,7 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
       JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
-    }) getOrElse NotFound
+    }) getOrElse NotFound()
   })
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =

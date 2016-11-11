@@ -108,18 +108,29 @@ trait IndexControllerBase extends ControllerBase {
    */
   get("/_user/proposals")(usersOnly {
     contentType = formats("json")
+    val user  = params("user").toBoolean
+    val group = params("group").toBoolean
     org.json4s.jackson.Serialization.write(
-      Map("options" -> getAllUsers(false).filter(!_.isGroupAccount).map(_.userName).toArray)
+      Map("options" -> (
+        getAllUsers(false)
+          .withFilter { t => (user, group) match {
+            case (true, true) => true
+            case (true, false) => !t.isGroupAccount
+            case (false, true) => t.isGroupAccount
+            case (false, false) => false
+          }}.map { t => t.userName }
+      ))
     )
   })
 
   /**
-   * JSON API for checking user existence.
+   * JSON API for checking user or group existence.
+   * Returns a single string which is any of "group", "user" or "".
    */
   post("/_user/existence")(usersOnly {
     getAccountByUserName(params("userName")).map { account =>
-      if(params.get("userOnly").isDefined) !account.isGroupAccount else true
-    } getOrElse false
+      if(account.isGroupAccount) "group" else "user"
+    } getOrElse ""
   })
 
   // TODO Move to RepositoryViwerController?

@@ -37,7 +37,7 @@ abstract class GitCommand extends Command with SessionAware {
     override def run(): Unit = {
       authUser match {
         case Some(authUser) =>
-          Database() withSession { implicit session =>
+          Database() withTransaction { implicit session =>
             try {
               runTask(authUser)
               callback.onExit(0)

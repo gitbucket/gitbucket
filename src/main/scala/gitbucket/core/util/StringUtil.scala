@@ -86,8 +86,9 @@ object StringUtil {
    *@param message the message which may contains issue id
    * @return the iterator of issue id
    */
-  def extractIssueId(message: String): Iterator[String] =
-    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(message).matchData.map(_.group(2))
+  def extractIssueId(message: String): Seq[String] =
+    "(^|\\W)#(\\d+)(\\W|$)".r
+      .findAllIn(message).matchData.map(_.group(2)).toSeq.distinct
 
   /**
    * Extract close issue id like ```close #issueId ``` from the given message.
@@ -95,8 +96,9 @@ object StringUtil {
    * @param message the message which may contains close command
    * @return the iterator of issue id
    */
-  def extractCloseId(message: String): Iterator[String] =
-    "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r.findAllIn(message).matchData.map(_.group(1))
+  def extractCloseId(message: String): Seq[String] =
+    "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r
+      .findAllIn(message).matchData.map(_.group(1)).toSeq.distinct
 
 
   /**

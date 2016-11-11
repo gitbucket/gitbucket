@@ -3,7 +3,7 @@
   to: String,
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean,
+    isEditable: Boolean,
   info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Compare Revisions - ${repository.owner}/${repository.name}", Some(repository)){
@@ -27,7 +27,7 @@
     <div class="pull-left">
       @gitbucket.core.helper.html.diff(diffs, repository, None, None, false, None, false, false)
     </div>
-    @if(hasWritePermission){
+    @if(isEditable){
       <div>
         @if(pageName.isDefined){
           <a href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_revert/@from...@to" class="btn">Revert Changes</a>

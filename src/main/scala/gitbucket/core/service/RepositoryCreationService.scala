@@ -21,12 +21,12 @@ trait RepositoryCreationService {
     // Insert to the database at first
     insertRepository(name, owner, description, isPrivate)
 
-    // Add collaborators for group repository
-    if(ownerAccount.isGroupAccount){
-      getGroupMembers(owner).foreach { member =>
-        addCollaborator(owner, name, member.userName)
-      }
-    }
+//    // Add collaborators for group repository
+//    if(ownerAccount.isGroupAccount){
+//      getGroupMembers(owner).foreach { member =>
+//        addCollaborator(owner, name, member.userName)
+//      }
+//    }
 
     // Insert default labels
     insertDefaultLabels(owner, name)

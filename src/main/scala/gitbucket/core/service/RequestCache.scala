@@ -11,7 +11,7 @@ import Implicits.request2Session
  * It may be called many times in one request, so each method stores
  * its result into the cache which available during a request.
  */
-trait RequestCache extends SystemSettingsService with AccountService with IssuesService {
+trait RequestCache extends SystemSettingsService with AccountService with IssuesService with RepositoryService {
 
   private implicit def context2Session(implicit context: Context): Session =
     request2Session(context.request)

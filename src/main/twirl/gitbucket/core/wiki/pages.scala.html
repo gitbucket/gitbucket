@@ -1,6 +1,6 @@
 @(pages: List[String],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  isEditable: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Pages - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("wiki", repository){
@@ -10,7 +10,7 @@
       </li>
       <li class="pull-right">
         <div class="btn-group">
-          @if(hasWritePermission){
+          @if(isEditable){
             <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/_new">New Page</a>
           }
         </div>

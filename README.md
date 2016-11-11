@@ -65,6 +65,21 @@ Support
 
 Release Notes
 -------------
+### 4.6 - 29 Oct 2016
+- Add disable option for forking
+- Add History button to wiki page
+- Git repository URL redirection for GitHub compatibility
+- Get-Content API improvement
+- Indicate who is group master in Members tab in group view
+
+### 4.5 - 29 Sep 2016
+- Attach files by dropping into textarea
+- Issues / Pull requests switcher in dashboard
+- HikariCP could be configured in `GITBUCKET_HOME/database.conf`
+- Improve Cookie security
+- Display commit count on the history button
+- Improve mobile view
+
 ### 4.4 - 28 Aug 2016
 - Import a SQL dump file to the database
 - `go get` support in private repositories

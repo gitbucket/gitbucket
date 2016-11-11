@@ -1,12 +1,12 @@
 @(issue: gitbucket.core.model.Issue,
   reopenable: Boolean,
-  hasWritePermission: Boolean,
+  isEditable: Boolean,
+  isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@if(context.loginAccount.isDefined){
+@if(isEditable){
   <hr/><br/>
   <form method="POST" validate="true">
-    <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
     <div class="panel panel-default issue-comment-box">
       <div class="panel-body">
         @gitbucket.core.helper.html.preview(
@@ -16,7 +16,7 @@
           enableRefsLink     = true,
           enableLineBreaks   = true,
           enableTaskList     = true,
-          hasWritePermission = hasWritePermission,
+          hasWritePermission = isEditable,
           completionContext  = "issues",
           style              = "",
           elastic            = true,
@@ -24,7 +24,7 @@
         )
         <div class="text-right">
           <input type="hidden" name="issueId" value="@issue.issueId"/>
-          @if((reopenable || !issue.closed) && (hasWritePermission || issue.openedUserName == context.loginAccount.get.userName)){
+          @if((reopenable || !issue.closed) && (isManageable || issue.openedUserName == context.loginAccount.get.userName)){
             <input type="submit" class="btn btn-default" tabindex="3" formaction="@helpers.url(repository)/issue_comments/state" value="@{if(issue.closed) "Reopen" else "Close"}" id="action"/>
           }
           <input type="submit" class="btn btn-success" tabindex="2" formaction="@helpers.url(repository)/issue_comments/new" value="Comment"/>

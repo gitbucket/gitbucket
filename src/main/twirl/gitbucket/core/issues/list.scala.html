@@ -8,7 +8,8 @@
   closedCount: Int,
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  isEditable: Boolean,
+  isManageable: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main((if(target == "issues") "Issues" else "Pull requests") + s" - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu(target, repository){
@@ -21,7 +22,7 @@
       </li>
     </ul>
     <form method="GET" id="search-filter-form" class="form-inline pull-right">
-    @if(context.loginAccount.isDefined){
+    @if(isEditable){
       @if(target == "issues"){
         <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
       }
@@ -30,8 +31,8 @@
       }
     }
     </form>
-    @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), hasWritePermission)
-    @if(hasWritePermission){
+    @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), isManageable)
+    @if(isManageable){
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
         <input type="hidden" name="checked"/>
@@ -40,7 +41,7 @@
     }
   }
 }
-@if(hasWritePermission){
+@if(isManageable){
 <script>
 $(function(){
   $('a.header-link').mouseover(function(e){

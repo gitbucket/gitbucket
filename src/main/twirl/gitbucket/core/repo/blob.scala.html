@@ -73,7 +73,7 @@
             </div>
           } else {
             <div class="box-content-bottom">
-              <pre class="prettyprint linenums blob @if(!isRenderable){ no-renderable } ">@content.content.get</pre>
+              <pre class="prettyprint linenums blob @if(!isRenderable){ no-renderable } ">@content.content.map(_.replaceAll("^(\r?\n)", "$1$1"))</pre>
             </div>
           }
         }

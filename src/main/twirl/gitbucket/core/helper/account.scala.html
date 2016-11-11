@@ -1,12 +1,19 @@
-@(id: String, width: Int)(implicit context: gitbucket.core.controller.Context)
+@(id: String, width: Int, user: Boolean, group: Boolean)(implicit context: gitbucket.core.controller.Context)
 <span style="margin-right: 0px;">
   <input type="text" name="@id" id="@id" class="form-control" autocomplete="off" style="width: @{width}px; margin-bottom: 0px; display: inline; vertical-align: middle;"/>
 </span>
 <script>
 $(function(){
   $('#@id').typeahead({
+//    highlighter: function(item) {
+//      var x = item.split(':');
+//      return $('<div><strong>' + x[0] + '</strong>' + (x[1] == 'true' ? ' (group)' : '') + '</div>');
+//    },
+//    updater: function (item) {
+//      return item.split(':')[0];
+//    },
     source: function (query, process) {
-      return $.get('@context.path/_user/proposals', { query: query },
+      return $.get('@context.path/_user/proposals', { query: query, user: @user, group: @group },
         function (data) {
           return process(data.options);
         });

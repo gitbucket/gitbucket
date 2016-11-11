@@ -8,9 +8,9 @@
     @if(comment.fileName.isDefined){filename="@comment.fileName.get"}
     @if(comment.newLine.isDefined){newline="@comment.newLine.get"}
     @if(comment.oldLine.isDefined){oldline="@comment.oldLine.get"}>
-  <div class="issue-avatar-image">@helpers.avatarLink(comment.commentedUserName, 48)</div>
   <div class="panel panel-default commit-comment-box commit-comment-@comment.commentId">
     <div class="panel-heading">
+      @helpers.avatar(comment.commentedUserName, 20)
       @helpers.user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">
           commented

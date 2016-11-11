@@ -326,6 +326,12 @@ div.account-image {
   margin-bottom: 8px;
 }
 
+.dropdown-filter-input {
+  border: solid 1px #ccc;
+  margin: 4px;
+  width: 96%;
+}
+
 ul.dropdown-menu {
   padding: 2px 0;
 }
@@ -338,7 +344,7 @@ ul.dropdown-menu li a {
   padding: 2px 10px;
 }
 
-ul.dropdown-menu :last-child {
+ul.dropdown-menu li:last-child {
   border-bottom: none;
 }
 
@@ -632,12 +638,6 @@ span.simplified-path {
   line-height: 15px;
 }
 
-#branch-control-input {
-  border: solid 1px #ccc;
-  margin: 4px;
-  width: 96%;
-}
-
 .new-branch-name {
   font-weight: bold;
   font-size: 1.2em;
@@ -779,10 +779,6 @@ h4#issueTitle {
   padding: 0px;
 }
 
-div.issue-avatar-image {
-  float: left;
-}
-
 div.issue-participants {
   margin-bottom: 15px;
   margin-left: 50px;
@@ -790,7 +786,6 @@ div.issue-participants {
 
 div.issue-comment-box, div.commit-comment-box {
   margin-bottom: 15px;
-  margin-left: 70px;
 }
 
 div.issue-comment-box > div.panel-body,
@@ -879,7 +874,7 @@ li.task-list-item input.task-list-item-checkbox {
 
 .discussion-item {
     position: relative;
-    margin: 15px 0 15px 79px;
+    margin: 15px 0 15px 20px;
     padding-left: 25px;
 }
 .discussion-item-header {
@@ -1588,7 +1583,7 @@ a.markdown-anchor-link span.octicon {
   vertical-align: baseline;
   font-size: 100%;
   height: inherit;
-  width: 780px;
+  width: 300px;
 }
 .find-input{
   font-size: 18px;
@@ -1761,4 +1756,15 @@ div.container.blame-container{
 .emoji {
   width: 20px;
   height: 20px;
+}
+
+/****************************************************************************/
+/* Suppress transition animation on load */
+/****************************************************************************/
+body.page-load * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
 }

@@ -5,7 +5,6 @@ import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.CommitState
 import gitbucket.core.service.ProtectedBranchService.{ProtectedBranchReceiveHook, ProtectedBranchInfo}
-import scalaz._, Scalaz._
 import org.scalatest.FunSpec
 
 class ProtectedBranchServiceSpec extends FunSpec with ServiceSpecBase with ProtectedBranchService with CommitStatusService {
@@ -53,7 +52,8 @@ class ProtectedBranchServiceSpec extends FunSpec with ServiceSpecBase with Prote
     it("getBranchProtectedReason on force push from admin") {
       withTestDB { implicit session =>
         withTestRepository { git =>
-          val rp = new ReceivePack(git.getRepository) <| { _.setAllowNonFastForwards(true) }
+          val rp = new ReceivePack(git.getRepository)
+          rp.setAllowNonFastForwards(true)
           val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE_NONFASTFORWARD)
           generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == None)
@@ -65,7 +65,8 @@ class ProtectedBranchServiceSpec extends FunSpec with ServiceSpecBase with Prote
     it("getBranchProtectedReason on force push from other") {
       withTestDB { implicit session =>
         withTestRepository { git =>
-          val rp = new ReceivePack(git.getRepository) <| { _.setAllowNonFastForwards(true) }
+          val rp = new ReceivePack(git.getRepository)
+          rp.setAllowNonFastForwards(true)
           val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE_NONFASTFORWARD)
           generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == None)
@@ -77,7 +78,8 @@ class ProtectedBranchServiceSpec extends FunSpec with ServiceSpecBase with Prote
     it("getBranchProtectedReason check status on push from other") {
       withTestDB { implicit session =>
         withTestRepository { git =>
-          val rp = new ReceivePack(git.getRepository) <| { _.setAllowNonFastForwards(false) }
+          val rp = new ReceivePack(git.getRepository)
+          rp.setAllowNonFastForwards(false)
           val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE)
           val user1 = generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user2") == None)
@@ -97,7 +99,8 @@ class ProtectedBranchServiceSpec extends FunSpec with ServiceSpecBase with Prote
     it("getBranchProtectedReason check status on push from admin") {
       withTestDB { implicit session =>
         withTestRepository { git =>
-          val rp = new ReceivePack(git.getRepository) <| { _.setAllowNonFastForwards(false) }
+          val rp = new ReceivePack(git.getRepository)
+            rp.setAllowNonFastForwards(false)
           val rc = new ReceiveCommand(ObjectId.fromString(sha), ObjectId.fromString(sha2), "refs/heads/branch", ReceiveCommand.Type.UPDATE)
           val user1 = generateNewUserWithDBRepository("user1", "repo1")
           assert(receiveHook.preReceive("user1", "repo1", rp, rc, "user1") == None)

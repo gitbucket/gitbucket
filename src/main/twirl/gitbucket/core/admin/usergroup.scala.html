@@ -34,7 +34,7 @@
             <label class="strong">Members</label>
             <ul id="member-list" class="collaborator">
             </ul>
-            @gitbucket.core.helper.html.account("memberName", 200)
+            @gitbucket.core.helper.html.account("memberName", 200, true, false)
             <input type="button" class="btn btn-default" value="Add" id="addMember"/>
             <input type="hidden" id="members" name="members" value="@members.map(member => member.userName + ":" + member.isManager).mkString(",")"/>
             <div>
@@ -75,16 +75,14 @@ $(function(){
     }
 
     // check existence
-    $.post('@context.path/_user/existence', {
-      'userName': userName,
-      'userOnly': true
-    }, function(data, status){
-      if(data == 'true'){
-        addMemberHTML(userName, false);
-      } else {
-        $('#error-members').text('User does not exist.');
-      }
-    });
+    $.post('@context.path/_user/existence', { 'userName': userName },
+      function(data, status){
+        if(data == 'user'){
+          addMemberHTML(userName, false);
+        } else {
+          $('#error-members').text('User does not exist.');
+        }
+      });
   });
 
   $(document).on('click', '.remove', function(){

@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.issues.labels.html
 import gitbucket.core.service.{RepositoryService, AccountService, IssuesService, LabelsService}
-import gitbucket.core.util.{ReferrerAuthenticator, CollaboratorsAuthenticator}
+import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import io.github.gitbucket.scalatra.forms._
 import org.scalatra.i18n.Messages
@@ -10,11 +10,11 @@ import org.scalatra.Ok
 
 class LabelsController extends LabelsControllerBase
   with LabelsService with IssuesService with RepositoryService with AccountService
-with ReferrerAuthenticator with CollaboratorsAuthenticator
+with ReferrerAuthenticator with WritableUsersAuthenticator
 
 trait LabelsControllerBase extends ControllerBase {
   self: LabelsService with IssuesService with RepositoryService
-    with ReferrerAuthenticator with CollaboratorsAuthenticator =>
+    with ReferrerAuthenticator with WritableUsersAuthenticator =>
 
   case class LabelForm(labelName: String, color: String)
 
@@ -32,11 +32,11 @@ trait LabelsControllerBase extends ControllerBase {
       hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
-  ajaxGet("/:owner/:repository/issues/labels/new")(collaboratorsOnly { repository =>
+  ajaxGet("/:owner/:repository/issues/labels/new")(writableUsersOnly { repository =>
     html.edit(None, repository)
   })
 
-  ajaxPost("/:owner/:repository/issues/labels/new", labelForm)(collaboratorsOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/issues/labels/new", labelForm)(writableUsersOnly { (form, repository) =>
     val labelId = createLabel(repository.owner, repository.name, form.labelName, form.color.substring(1))
     html.label(
       getLabel(repository.owner, repository.name, labelId).get,
@@ -46,13 +46,13 @@ trait LabelsControllerBase extends ControllerBase {
       hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
-  ajaxGet("/:owner/:repository/issues/labels/:labelId/edit")(collaboratorsOnly { repository =>
+  ajaxGet("/:owner/:repository/issues/labels/:labelId/edit")(writableUsersOnly { repository =>
     getLabel(repository.owner, repository.name, params("labelId").toInt).map { label =>
       html.edit(Some(label), repository)
     } getOrElse NotFound()
   })
 
-  ajaxPost("/:owner/:repository/issues/labels/:labelId/edit", labelForm)(collaboratorsOnly { (form, repository) =>
+  ajaxPost("/:owner/:repository/issues/labels/:labelId/edit", labelForm)(writableUsersOnly { (form, repository) =>
     updateLabel(repository.owner, repository.name, params("labelId").toInt, form.labelName, form.color.substring(1))
     html.label(
       getLabel(repository.owner, repository.name, params("labelId").toInt).get,
@@ -62,7 +62,7 @@ trait LabelsControllerBase extends ControllerBase {
       hasWritePermission(repository.owner, repository.name, context.loginAccount))
   })
 
-  ajaxPost("/:owner/:repository/issues/labels/:labelId/delete")(collaboratorsOnly { repository =>
+  ajaxPost("/:owner/:repository/issues/labels/:labelId/delete")(writableUsersOnly { repository =>
     deleteLabel(repository.owner, repository.name, params("labelId").toInt)
     Ok()
   })

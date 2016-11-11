@@ -5,12 +5,13 @@
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   labels: List[gitbucket.core.model.Label],
-  hasWritePermission: Boolean,
+  isEditable: Boolean,
+  isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <div class="col-md-9">
   <div id="comment-list">
-    @gitbucket.core.issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
+    @gitbucket.core.issues.html.commentlist(Some(issue), comments, isManageable, repository, Some(pullreq))
   </div>
   @defining(comments.flatMap {
     case comment: gitbucket.core.model.IssueComment => Some(comment)
@@ -25,7 +26,7 @@
         </div>
       </div>
     }
-    @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
+    @if(isManageable && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
       pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
       <div class="issue-comment-box" style="background-color: #d0eeff;">
         <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
@@ -37,11 +38,11 @@
         </div>
       </div>
     }
-    @gitbucket.core.issues.html.commentform(issue, !merged, hasWritePermission, repository)
+    @gitbucket.core.issues.html.commentform(issue, !merged, isEditable, isManageable, repository)
   }
 </div>
 <div class="col-md-3">
-  @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
+  @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, isManageable, repository)
 </div>
 <script>
 $(function(){
@@ -55,7 +56,7 @@ $(function(){
     $.get('@helpers.url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
   }
 
-  @if(hasWritePermission){
+  @if(isManageable){
     $('.delete-branch').click(function(e){
       var branchName = $(e.target).data('name');
       return confirm('Are you sure you want to remove the ' + branchName + ' branch?');

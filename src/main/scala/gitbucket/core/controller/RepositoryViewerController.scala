@@ -31,7 +31,7 @@ import org.scalatra._
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
   with RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with CommitStatusService
   with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBranchService
 
 /**
@@ -39,7 +39,7 @@ class RepositoryViewerController extends RepositoryViewerControllerBase
  */
 trait RepositoryViewerControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with ActivityService with IssuesService with WebHookService with CommitsService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with CollaboratorsAuthenticator with PullRequestService with CommitStatusService
+    with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with CommitStatusService
     with WebHookPullRequestService with WebHookPullRequestReviewCommentService with ProtectedBranchService =>
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
@@ -152,12 +152,12 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
             }, page, hasNext, hasWritePermission(repository.owner, repository.name, context.loginAccount))
-        case Left(_) => NotFound
+        case Left(_) => NotFound()
       }
     }
   })
 
-  get("/:owner/:repository/new/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/new/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
@@ -165,7 +165,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       protectedBranch)
   })
 
-  get("/:owner/:repository/edit/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/edit/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
 
@@ -177,11 +177,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         html.editor(branch, repository, paths.take(paths.size - 1).toList, Some(paths.last),
           JGitUtil.getContentInfo(git, path, objectId),
           protectedBranch)
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
-  get("/:owner/:repository/remove/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/remove/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
@@ -190,11 +190,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val paths = path.split("/")
         html.delete(branch, repository, paths.take(paths.size - 1).toList, paths.last,
           JGitUtil.getContentInfo(git, path, objectId))
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
-  post("/:owner/:repository/create", editorForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/create", editorForm)(writableUsersOnly { (form, repository) =>
     commitFile(
       repository  = repository,
       branch      = form.branch,
@@ -211,7 +211,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }")
   })
 
-  post("/:owner/:repository/update", editorForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/update", editorForm)(writableUsersOnly { (form, repository) =>
     commitFile(
       repository  = repository,
       branch      = form.branch,
@@ -232,7 +232,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }")
   })
 
-  post("/:owner/:repository/remove", deleteForm)(collaboratorsOnly { (form, repository) =>
+  post("/:owner/:repository/remove", deleteForm)(writableUsersOnly { (form, repository) =>
     commitFile(repository, form.branch, form.path, None, Some(form.fileName), "", "",
       form.message.getOrElse(s"Delete ${form.fileName}"))
 
@@ -250,7 +250,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           loader.copyTo(response.outputStream)
           ()
         }
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -270,7 +270,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             response.setContentLength(loader.getSize.toInt)
             loader.copyTo(response.outputStream)
             ()
-          } getOrElse NotFound
+          } getOrElse NotFound()
         } else {
           html.blob(id, repository, path.split("/").toList,
             JGitUtil.getContentInfo(git, path, objectId),
@@ -278,7 +278,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             hasWritePermission(repository.owner, repository.name, context.loginAccount),
             request.paths(2) == "blame")
         }
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -334,7 +334,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         }
       }
     } catch {
-      case e:MissingObjectException => NotFound
+      case e:MissingObjectException => NotFound()
     }
   })
 
@@ -397,8 +397,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               )
             ))
         }
-      } else Unauthorized
-    } getOrElse NotFound
+      } else Unauthorized()
+    } getOrElse NotFound()
   })
 
   ajaxPost("/:owner/:repository/commit_comments/edit/:id", commentForm)(readableUsersOnly { (form, repository) =>
@@ -407,8 +407,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         if(isEditable(owner, name, comment.commentedUserName)){
           updateCommitComment(comment.commentId, form.content)
           redirect(s"/${owner}/${name}/commit_comments/_data/${comment.commentId}")
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -417,8 +417,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getCommitComment(owner, name, params("id")).map { comment =>
         if(isEditable(owner, name, comment.commentedUserName)){
           Ok(deleteCommitComment(comment.commentId))
-        } else Unauthorized
-      } getOrElse NotFound
+        } else Unauthorized()
+      } getOrElse NotFound()
     }
   })
 
@@ -443,7 +443,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Creates a branch.
    */
-  post("/:owner/:repository/branches")(collaboratorsOnly { repository =>
+  post("/:owner/:repository/branches")(writableUsersOnly { repository =>
     val newBranchName = params.getOrElse("new", halt(400))
     val fromBranchName = params.getOrElse("from", halt(400))
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
@@ -461,7 +461,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   /**
    * Deletes branch.
    */
-  get("/:owner/:repository/delete/*")(collaboratorsOnly { repository =>
+  get("/:owner/:repository/delete/*")(writableUsersOnly { repository =>
     val branchName = multiParams("splat").head
     val userName   = context.loginAccount.get.userName
     if(repository.repository.defaultBranch != branchName){
@@ -489,23 +489,25 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         archiveRepository(name, ".zip", repository)
       case name if name.endsWith(".tar.gz") =>
         archiveRepository(name, ".tar.gz", repository)
-      case _ => BadRequest
+      case _ => BadRequest()
     }
   })
 
   get("/:owner/:repository/network/members")(referrersOnly { repository =>
-    html.forked(
-      getRepository(
-        repository.repository.originUserName.getOrElse(repository.owner),
-        repository.repository.originRepositoryName.getOrElse(repository.name)),
-      getForkedRepositories(
-        repository.repository.originUserName.getOrElse(repository.owner),
-        repository.repository.originRepositoryName.getOrElse(repository.name)),
-      context.loginAccount match {
-        case None => List()
-        case account: Option[Account] => getGroupsByUserName(account.get.userName)
-      }, // groups of current user
-      repository)
+    if(repository.repository.options.allowFork) {
+      html.forked(
+        getRepository(
+          repository.repository.originUserName.getOrElse(repository.owner),
+          repository.repository.originRepositoryName.getOrElse(repository.name)),
+        getForkedRepositories(
+          repository.repository.originUserName.getOrElse(repository.owner),
+          repository.repository.originRepositoryName.getOrElse(repository.name)),
+        context.loginAccount match {
+          case None => List()
+          case account: Option[Account] => getGroupsByUserName(account.get.userName)
+        }, // groups of current user
+        repository)
+    } else BadRequest()
   })
 
   /**
@@ -516,7 +518,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val ref = multiParams("splat").head
       JGitUtil.getTreeId(git, ref).map{ treeId =>
         html.find(ref, treeId, repository)
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -571,7 +573,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),
               flash.get("info"), flash.get("error"))
           }
-        } getOrElse NotFound
+        } getOrElse NotFound()
       }
     }
   }
@@ -591,14 +593,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val headName = s"refs/heads/${branch}"
         val headTip  = git.getRepository.resolve(headName)
 
-        JGitUtil.processTree(git, headTip){ (path, tree) =>
+        val permission = JGitUtil.processTree(git, headTip){ (path, tree) =>
+          // Add all entries except the editing file
           if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
             builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
           }
-        }
+          // Retrieve permission if file exists to keep it
+          oldPath.collect { case x if x == path => tree.getEntryFileMode.getBits }
+        }.flatten.headOption
 
         newPath.foreach { newPath =>
-          builder.add(JGitUtil.createDirCacheEntry(newPath, FileMode.REGULAR_FILE,
+          builder.add(JGitUtil.createDirCacheEntry(newPath,
+            permission.map { bits => FileMode.fromBits(bits) } getOrElse FileMode.REGULAR_FILE,
             inserter.insert(Constants.OBJ_BLOB, content.getBytes(charset))))
         }
         builder.finish()
@@ -621,8 +627,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         updatePullRequests(repository.owner, repository.name, branch)
 
         // record activity
-        recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch,
-          List(new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))))
+        val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+        recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+
+        // create issue comment by commit message
+        createIssueComment(repository.owner, repository.name, commitInfo)
 
         // close issue by commit message
         closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)

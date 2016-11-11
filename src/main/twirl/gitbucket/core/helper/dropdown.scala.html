@@ -1,7 +1,8 @@
 @(value : String  = "",
   prefix: String  = "",
   style : String  = "",
-  right : Boolean = false)(body: Html)
+  right : Boolean = false,
+  filter: String = "")(body: Html)
 <div class="btn-group" @if(style.nonEmpty){style="@style"}>
   <button
       class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
@@ -16,6 +17,28 @@
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu@if(right){ pull-right}">
+    @if(filter.nonEmpty) {
+      <li><input id="@filter-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="Filter"/></li>
+    }
     @body
   </ul>
 </div>
+@if(filter.nonEmpty) {
+<script>
+$(function(){
+  $('#@{filter}-input').parent().click(function(e) {
+    e.stopPropagation();
+  });
+  $('#@{filter}-input').keyup(function() {
+    var inputVal = $('#@{filter}-input').val();
+    $.each($('#@{filter}-input').parent().parent().find('a'), function(index, elem) {
+      if (!inputVal || !elem.text.trim() || elem.text.trim().lastIndexOf(inputVal, 0) >= 0) {
+        $(elem).parent().show();
+      } else {
+        $(elem).parent().hide();
+      }
+    });
+  });
+});
+</script>
+}

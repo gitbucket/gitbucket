@@ -248,7 +248,7 @@ trait AccountManagementControllerBase extends ControllerBase {
   protected def reservedNames(): Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = if(allReservedNames.contains(value)){
       Some(s"${value} is reserved")
-    }else{
+    } else {
       None
     }
   }

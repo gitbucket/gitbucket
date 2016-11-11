@@ -1,0 +1,36 @@
+package gitbucket.core.servlet
+
+import javax.servlet._
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
+import gitbucket.core.service.SystemSettingsService
+
+/**
+  * A controller to provide GitHub compatible URL for Git clients.
+  */
+class GHCompatRepositoryAccessFilter extends Filter with SystemSettingsService {
+
+  /**
+    * Pattern of GitHub compatible repository URL.
+    * <code>/:user/:repo.git/</code>
+    */
+  private val githubRepositoryPattern = """^/[^/]+/[^/]+\.git/.*""".r
+
+  override def init(filterConfig: FilterConfig) = {}
+
+  override def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) = {
+    implicit val request  = req.asInstanceOf[HttpServletRequest]
+    val response = res.asInstanceOf[HttpServletResponse]
+    val requestPath = request.getRequestURI.substring(request.getContextPath.length)
+    requestPath match {
+      case githubRepositoryPattern() =>
+        response.sendRedirect(baseUrl + "/git" + requestPath)
+
+      case _ =>
+        chain.doFilter(req, res)
+    }
+  }
+
+  override def destroy() = {}
+
+}

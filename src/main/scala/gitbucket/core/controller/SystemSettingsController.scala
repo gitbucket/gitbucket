@@ -233,7 +233,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         updateImage(userName, form.fileId, form.clearImage)
         redirect("/admin/users")
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/admin/users/_newgroup")(adminOnly {
@@ -279,19 +279,19 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         } else {
           // Update GROUP_MEMBER
           updateGroupMembers(form.groupName, members)
-          // Update COLLABORATOR for group repositories
-          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-            removeCollaborators(form.groupName, repositoryName)
-            members.foreach { case (userName, isManager) =>
-              addCollaborator(form.groupName, repositoryName, userName)
-            }
-          }
+//          // Update COLLABORATOR for group repositories
+//          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+//            removeCollaborators(form.groupName, repositoryName)
+//            members.foreach { case (userName, isManager) =>
+//              addCollaborator(form.groupName, repositoryName, userName)
+//            }
+//          }
         }
 
         updateImage(form.groupName, form.fileId, form.clearImage)
         redirect("/admin/users")
 
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 

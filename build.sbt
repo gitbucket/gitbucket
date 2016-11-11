@@ -1,6 +1,6 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.4.0"
+val GitBucketVersion = "4.6.0"
 val ScalatraVersion = "2.4.1"
 val JettyVersion = "9.3.9.v20160517"
 
@@ -51,7 +51,6 @@ libraryDependencies ++= Seq(
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                     % "junit"                        % "4.12"           % "test",
   "org.scalatra"             %% "scalatra-scalatest"           % ScalatraVersion  % "test",
-  "org.scalaz"               %% "scalaz-core"                  % "7.2.4"          % "test",
   "com.wix"                   % "wix-embedded-mysql"           % "1.0.3"          % "test",
   "ru.yandex.qatools.embed"   % "postgresql-embedded"          % "1.14"           % "test"
 )
@@ -107,7 +106,6 @@ libraryDependencies ++= Seq(
 
 val executableKey = TaskKey[File]("executable")
 executableKey := {
-  import org.apache.ivy.util.ChecksumHelper
   import java.util.jar.{ Manifest => JarManifest }
   import java.util.jar.Attributes.{ Name => AttrName }
 
@@ -165,12 +163,6 @@ executableKey := {
   log info s"built executable webapp ${outputFile}"
   outputFile
 }
-/*
-Keys.artifact in (Compile, executableKey) ~= {
-    _ copy (`type` = "war", extension = "war"))
-}
-addArtifact(Keys.artifact in (Compile, executableKey), executableKey)
-*/
 publishTo <<= version { (v: String) =>
   val nexus = "https://oss.sonatype.org/"
   if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
@@ -178,7 +170,6 @@ publishTo <<= version { (v: String) =>
 }
 publishMavenStyle := true
 pomIncludeRepository := { _ => false }
-artifact in Keys.`package` := Artifact(moduleName.value)
 pomExtra := (
   <url>https://github.com/gitbucket/gitbucket</url>
   <licenses>
