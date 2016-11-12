@@ -9,7 +9,10 @@ import scala.collection.mutable.ListBuffer
 
 /**
  * Provides implicit class which extends java.sql.Connection.
- * This is used in automatic migration in [[servlet.AutoUpdateListener]].
+ * This is used in following points:
+ *
+ * - Automatic migration in [[gitbucket.core.servlet.InitializeListener]]
+ * - Data importing / exporting in [[gitbucket.core.controller.SystemSettingsController]] and [[gitbucket.core.controller.FileUploadController]]
  */
 object JDBCUtil {
 
