@@ -14,6 +14,7 @@ import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 import org.scalatra.{NoContent, UnprocessableEntity, Created}
 import scala.collection.JavaConverters._
+import javax.servlet.http.HttpServletRequest
 
 class ApiController extends ApiControllerBase
   with RepositoryService
@@ -441,6 +442,29 @@ trait ApiControllerBase extends ControllerBase {
     }
   })
     
+   /**
+   *  https://developer.github.com/api/v3/logout
+    * Logs out the current user from the content store (resets cookies).
+    */
+  post("/api/v3/logout"){
+     
+      val cookiesCollectionObj = request.getCookies()
+      
+      if(cookiesCollectionObj != null){
+        var i = 0; 
+        for( i <- 0 until cookiesCollectionObj.length){
+           var cookie = cookiesCollectionObj(i)
+           
+           //println("Cookie info: name: " + cookie.getName() + "; value: " +  cookie.getValue()  + ";");  // debug purposes
+           
+           cookie.setMaxAge(0)
+           cookie.setValue("")
+           response.addCookie(cookie)
+        }
+      }
+      
+  }
+  
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
