@@ -11,7 +11,7 @@ case class CreateARepository(
     auto_init: Boolean = false
 ) {
   def isValid: Boolean = {
-    name.length<=40 &&
+    name.length <= 100 &&
         name.matches("[a-zA-Z0-9\\-\\+_.]+") &&
         !name.startsWith("_") &&
         !name.startsWith("-")

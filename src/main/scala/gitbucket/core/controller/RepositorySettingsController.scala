@@ -39,7 +39,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )
   
   val optionsForm = mapping(
-    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(40), identifier, renameRepositoryName))),
+    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), identifier, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
     "issuesOption"      -> trim(label("Issues Option"      , text(required, featureOption))),
