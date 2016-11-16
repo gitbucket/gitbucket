@@ -74,8 +74,6 @@ object JDBCUtil {
           val bytes = new scala.Array[Byte](1024 * 8)
           var stringLiteral = false
 
-          var count = 0
-
           while({ length = in.read(bytes); length != -1 }){
             for(i <- 0 to length - 1){
               val c = bytes(i)
@@ -84,12 +82,18 @@ object JDBCUtil {
               }
               if(c == ';' && !stringLiteral){
                 val sql = new String(out.toByteArray, "UTF-8")
-                conn.update(sql)
+                conn.update(sql.trim)
                 out = new ByteArrayOutputStream()
               } else {
                 out.write(c)
               }
             }
+          }
+
+          val remain = out.toByteArray
+          if(remain.length != 0){
+            val sql = new String(remain, "UTF-8")
+            conn.update(sql.trim)
           }
         }
         conn.commit()
