@@ -191,6 +191,7 @@ case class Context(settings: SystemSettingsService.SystemSettings, loginAccount:
     case agent if agent.contains("Win") => "windows"
     case _ => null
   }
+  val sidebarCollapse = request.getSession.getAttribute("sidebar-collapse") != null
 
   /**
    * Get object from cache.

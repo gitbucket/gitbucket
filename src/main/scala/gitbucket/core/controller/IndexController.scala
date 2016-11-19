@@ -5,9 +5,9 @@ import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator, ReferrerAuthenticator, StringUtil}
-
+import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, StringUtil, UsersAuthenticator}
 import io.github.gitbucket.scalatra.forms._
+import org.scalatra.Ok
 
 
 class IndexController extends IndexControllerBase 
@@ -79,6 +79,15 @@ trait IndexControllerBase extends ControllerBase {
   get("/activities.atom"){
     contentType = "application/atom+xml; type=feed"
     xml.feed(getRecentActivities())
+  }
+
+  get("/sidebar-collapse"){
+    if(params("collapse") == "true"){
+      session.setAttribute("sidebar-collapse", "true")
+    }  else {
+      session.setAttribute("sidebar-collapse", null)
+    }
+    Ok()
   }
 
   /**
