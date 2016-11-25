@@ -1,7 +1,7 @@
 package gitbucket.core.model
 
 trait AccountComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
   import self._
 
   lazy val Accounts = TableQuery[Accounts]

@@ -6,12 +6,10 @@ trait Comment {
 }
 
 trait IssueCommentComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
   import self._
 
-  lazy val IssueComments = new TableQuery(tag => new IssueComments(tag)){
-    def autoInc = this returning this.map(_.commentId)
-  }
+  lazy val IssueComments = TableQuery[IssueComments]
 
   class IssueComments(tag: Tag) extends Table[IssueComment](tag, "ISSUE_COMMENT") with IssueTemplate {
     val commentId = column[Int]("COMMENT_ID", O AutoInc)
@@ -39,12 +37,10 @@ case class IssueComment (
 ) extends Comment
 
 trait CommitCommentComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
   import self._
 
-  lazy val CommitComments = new TableQuery(tag => new CommitComments(tag)){
-    def autoInc = this returning this.map(_.commentId)
-  }
+  lazy val CommitComments = TableQuery[CommitComments]
 
   class CommitComments(tag: Tag) extends Table[CommitComment](tag, "COMMIT_COMMENT") with CommitTemplate {
     val commentId = column[Int]("COMMENT_ID", O AutoInc)

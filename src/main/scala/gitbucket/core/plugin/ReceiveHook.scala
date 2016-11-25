@@ -2,7 +2,7 @@ package gitbucket.core.plugin
 
 import gitbucket.core.model.Profile._
 import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
-import profile.simple._
+import profile.api._
 
 trait ReceiveHook {
 

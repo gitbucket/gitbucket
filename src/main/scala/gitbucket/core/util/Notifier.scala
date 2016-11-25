@@ -1,6 +1,7 @@
 package gitbucket.core.util
 
 import gitbucket.core.model.{Session, Issue}
+import gitbucket.core.model.Profile.profile._
 import gitbucket.core.service.{RepositoryService, AccountService, IssuesService, SystemSettingsService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.view.Markdown
