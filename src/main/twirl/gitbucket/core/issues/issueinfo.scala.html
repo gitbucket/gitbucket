@@ -74,7 +74,7 @@
 <span id="label-milestone">
   @issue.flatMap(_.milestoneId).map { milestoneId =>
     @milestones.collect { case (milestone, _, _) if(milestone.milestoneId == milestoneId) =>
-      <span class="strong small">@milestone.title</span>
+      <a class="strong small username" href="@helpers.url(repository)/issues?milestone=@helpers.urlEncode(milestone.title)&state=open">@milestone.title</a>
     }
   }.getOrElse {
     <span class="muted small">No milestone</span>
@@ -210,7 +210,8 @@ $(function(){
       $('#label-milestone').html($('<span class="muted small">').text('No milestone'));
       $('#milestone-progress-area').empty();
     } else {
-      $('#label-milestone').html($('<span class="strong small">').text(title));
+      $('#label-milestone').html($('<a class="strong small username">').text(title)
+        .attr('href', '@helpers.url(repository)/issues?milestone=' + encodeURIComponent(title) + '&state=open'));
       if(progress){
         $('#milestone-progress-area').html(progress);
       }
