@@ -65,6 +65,12 @@ Support
 
 Release Notes
 -------------
+### 4.7 - 26 Nov 2016
+- New permission system
+- Dropdown filter for issue labels, milestones and assignees
+- Keep sidebar folding status
+- Link from milestone label to the issue list
+
 ### 4.6 - 29 Oct 2016
 - Add disable option for forking
 - Add History button to wiki page
