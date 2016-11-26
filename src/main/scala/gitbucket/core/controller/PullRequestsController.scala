@@ -156,7 +156,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pull/:id/update_branch")(referrersOnly { baseRepository =>
+  post("/:owner/:repository/pull/:id/update_branch")(writableUsersOnly { baseRepository =>
     (for {
       issueId <- params("id").toIntOpt
       loginAccount <- context.loginAccount
@@ -165,15 +165,15 @@ trait PullRequestsControllerBase extends ControllerBase {
       name  = pullreq.requestRepositoryName
       if hasDeveloperRole(owner, name, context.loginAccount)
     } yield {
+      val repository = getRepository(owner, name).get
       val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
       if(branchProtection.needStatusCheck(loginAccount.userName)){
         flash += "error" -> s"branch ${pullreq.requestBranch} is protected need status check."
       } else {
-        val repository = getRepository(owner, name).get
         LockUtil.lock(s"${owner}/${name}"){
           val alias = if(pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName){
             pullreq.branch
-          }else{
+          } else {
             s"${pullreq.userName}:${pullreq.branch}"
           }
           val existIds = using(Git.open(Directory.getRepositoryDir(owner, name))) { git => JGitUtil.getAllCommitIds(git) }.toSet
@@ -187,11 +187,10 @@ trait PullRequestsControllerBase extends ControllerBase {
 
               using(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
                 //  after update branch
-
                 val newCommitId = git.getRepository.resolve(s"refs/heads/${pullreq.requestBranch}")
                 val commits = git.log.addRange(oldId, newCommitId).call.iterator.asScala.map(c => new JGitUtil.CommitInfo(c)).toList
 
-                commits.foreach{ commit =>
+                commits.foreach { commit =>
                   if(!existIds.contains(commit.id)){
                     createIssueComment(owner, name, commit)
                   }
@@ -220,8 +219,9 @@ trait PullRequestsControllerBase extends ControllerBase {
               flash += "info" -> s"Merge branch '${alias}' into ${pullreq.requestBranch}"
           }
         }
-        redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
       }
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+
     }) getOrElse NotFound()
   })
 
