@@ -115,7 +115,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         val hasConflict = LockUtil.lock(s"${owner}/${name}"){
           checkConflict(owner, name, pullreq.branch, issueId)
         }
-        val hasMergePermission = hasWritePermission(owner, name, context.loginAccount)
+        val hasMergePermission = hasDeveloperRole(owner, name, context.loginAccount)
         val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
         val mergeStatus = PullRequestService.MergeStatus(
            hasConflict         = hasConflict,
@@ -125,7 +125,7 @@ trait PullRequestsControllerBase extends ControllerBase {
            needStatusCheck     = context.loginAccount.map{ u =>
                                    branchProtection.needStatusCheck(u.userName)
                                  }.getOrElse(true),
-           hasUpdatePermission = hasWritePermission(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount) &&
+           hasUpdatePermission = hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount) &&
                                    context.loginAccount.map{ u =>
                                      !getProtectedBranchInfo(pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch).needStatusCheck(u.userName)
                                    }.getOrElse(false),
@@ -163,7 +163,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
       owner = pullreq.requestUserName
       name  = pullreq.requestRepositoryName
-      if hasWritePermission(owner, name, context.loginAccount)
+      if hasDeveloperRole(owner, name, context.loginAccount)
     } yield {
       val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
       if(branchProtection.needStatusCheck(loginAccount.userName)){
@@ -374,7 +374,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               forkedRepository,
               originRepository,
               forkedRepository,
-              hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
+              hasDeveloperRole(originRepository.owner, originRepository.name, context.loginAccount),
               getAssignableUserNames(originRepository.owner, originRepository.name),
               getMilestones(originRepository.owner, originRepository.name),
               getLabels(originRepository.owner, originRepository.name)
@@ -389,7 +389,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(writableUsersOnly { forkedRepository =>
+  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(readableUsersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
     val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
     val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
@@ -544,7 +544,7 @@ trait PullRequestsControllerBase extends ControllerBase {
    * Tests whether an logged-in user can manage pull requests.
    */
   private def isManageable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
-    hasWritePermission(repository.owner, repository.name, context.loginAccount)
+    hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
   }
 
   /**
@@ -552,8 +552,9 @@ trait PullRequestsControllerBase extends ControllerBase {
    */
   private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
     repository.repository.options.issuesOption match {
-      case "PUBLIC"  => hasReadPermission(repository.owner, repository.name, context.loginAccount)
-      case "PRIVATE" => hasWritePermission(repository.owner, repository.name, context.loginAccount)
+      case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined
+      case "PUBLIC"  => hasGuestRole(repository.owner, repository.name, context.loginAccount)
+      case "PRIVATE" => hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
       case "DISABLE" => false
     }
   }

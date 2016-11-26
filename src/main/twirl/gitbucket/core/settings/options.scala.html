@@ -61,12 +61,17 @@
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Writable users can view, create and comment on issues
+                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Developers can view, create and comment on issues
                 </label>
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Readable users can view, create and comment on isues
+                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Developers and guests can view, create and comment on isues
+                </label>
+              </div>
+              <div class="radio for-public-repo">
+                <label>
+                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on isues
                 </label>
               </div>
               <label for="externalIssuesUrl" class="strong">External URL:
@@ -87,12 +92,17 @@
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="wikiOption" value="PRIVATE" @if(repository.repository.options.wikiOption == "PRIVATE"){ checked}> Writable users can view, create and edit wiki pages
+                  <input type="radio" name="wikiOption" value="PRIVATE" @if(repository.repository.options.wikiOption == "PRIVATE"){ checked}> Developers can view, create and edit wiki pages
                 </label>
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Readable users can view, create and edit wiki pages
+                  <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Developers ans guests can view, create and edit wiki pages
+                </label>
+              </div>
+              <div class="radio for-public-repo">
+                <label>
+                  <input type="radio" name="wikiOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on isues
                 </label>
               </div>
               <label for="externalWikiUrl" class="strong">External URL:
@@ -112,14 +122,25 @@
 <script>
 $(function(){
   updateFeatures();
-
-  $('input[name=issuesOption], input[name=wikiOption]').click(function(){
+  $('input[name=isPrivate], input[name=issuesOption], input[name=wikiOption]').click(function(){
     updateFeatures();
   });
 });
 
 function updateFeatures() {
-  $('#externalIssuesUrl').prop('disabled', !$('input[name=issuesOption]').select('[value=DISABLE]').prop('checked'));
-  $('#externalWikiUrl').prop('disabled', !$('input[name=wikiOption]').select('[value=DISABLE]').prop('checked'));
+  if($('input[name=isPrivate]:checked').val() == 'false'){
+    $('.for-public-repo').show();
+  } else {
+    if($('input[name=issuesOption]:checked').val() == 'ALL'){
+      $('input[name=issuesOption][value=PUBLIC]').prop('checked', true);
+    }
+    if($('input[name=wikiOption]:checked').val() == 'ALL'){
+      $('input[name=wikiOption][value=PUBLIC]').prop('checked', true);
+    }
+    $('.for-public-repo').hide();
+  }
+
+  $('#externalIssuesUrl').prop('disabled', $('input[name=issuesOption]:checked').val() != 'DISABLE');
+  $('#externalWikiUrl').prop('disabled', $('input[name=wikiOption]:checked').val() != 'DISABLE');
 }
 </script>

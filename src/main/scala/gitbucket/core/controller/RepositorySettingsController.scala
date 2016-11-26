@@ -179,8 +179,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     val collaborators = params("collaborators")
     removeCollaborators(repository.owner, repository.name)
     collaborators.split(",").withFilter(_.nonEmpty).map { collaborator =>
-      val userName :: permission :: Nil = collaborator.split(":").toList
-      addCollaborator(repository.owner, repository.name, userName, permission)
+      val userName :: role :: Nil = collaborator.split(":").toList
+      addCollaborator(repository.owner, repository.name, userName, role)
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
@@ -416,7 +416,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   private def featureOption: Constraint = new Constraint(){
     override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
-      if(Seq("DISABLE", "PRIVATE", "PUBLIC").contains(value)) None else Some("Option is invalid.")
+      if(Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
   }
 
 

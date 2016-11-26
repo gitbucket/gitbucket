@@ -7,8 +7,8 @@ trait CollaboratorComponent extends TemplateComponent { self: Profile =>
 
   class Collaborators(tag: Tag) extends Table[Collaborator](tag, "COLLABORATOR") with BasicTemplate {
     val collaboratorName = column[String]("COLLABORATOR_NAME")
-    val permission = column[String]("PERMISSION")
-    def * = (userName, repositoryName, collaboratorName, permission) <> (Collaborator.tupled, Collaborator.unapply)
+    val role = column[String]("ROLE")
+    def * = (userName, repositoryName, collaboratorName, role) <> (Collaborator.tupled, Collaborator.unapply)
 
     def byPrimaryKey(owner: String, repository: String, collaborator: String) =
       byRepository(owner, repository) && (collaboratorName === collaborator.bind)
@@ -19,15 +19,15 @@ case class Collaborator(
   userName: String,
   repositoryName: String,
   collaboratorName: String,
-  permission: String
+  role: String
 )
 
-sealed abstract class Permission(val name: String)
+sealed abstract class Role(val name: String)
 
-object Permission {
-  object ADMIN extends Permission("ADMIN")
-  object WRITE extends Permission("WRITE")
-  object READ  extends Permission("READ")
+object Role {
+  object ADMIN extends Role("ADMIN")
+  object DEVELOPER extends Role("DEVELOPER")
+  object GUEST extends Role("GUEST")
 
 //  val values: Vector[Permission] = Vector(ADMIN, WRITE, READ)
 //

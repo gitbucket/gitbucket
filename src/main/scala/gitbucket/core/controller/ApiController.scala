@@ -524,7 +524,7 @@ trait ApiControllerBase extends ControllerBase {
   })
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
-    hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+    hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
 }
 

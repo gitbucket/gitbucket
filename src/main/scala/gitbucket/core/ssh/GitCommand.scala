@@ -92,7 +92,7 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
   protected def isWritableUser(username: String, repositoryInfo: RepositoryService.RepositoryInfo)
                               (implicit session: Session): Boolean =
     getAccountByUserName(username) match {
-      case Some(account) => hasWritePermission(repositoryInfo.owner, repositoryInfo.name, Some(account))
+      case Some(account) => hasDeveloperRole(repositoryInfo.owner, repositoryInfo.name, Some(account))
       case None => false
     }
 

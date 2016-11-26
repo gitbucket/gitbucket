@@ -2,12 +2,10 @@ package gitbucket.core.util
 
 import gitbucket.core.controller.ControllerBase
 import gitbucket.core.service.{AccountService, RepositoryService}
-import gitbucket.core.model.Permission
+import gitbucket.core.model.Role
 import RepositoryService.RepositoryInfo
 import Implicits._
 import ControlUtil._
-
-import scala.collection.Searching.search
 
 /**
  * Allows only oneself and administrators.
@@ -45,7 +43,7 @@ trait OwnerAuthenticator { self: ControllerBase with RepositoryService with Acco
             case Some(x) if(repository.owner == x.userName) => action(repository)
             // TODO Repository management is allowed for only group managers?
             case Some(x) if(getGroupMembers(repository.owner).exists { m => m.userName == x.userName && m.isManager == true }) => action(repository)
-            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Permission.ADMIN)).contains(x.userName)) => action(repository)
+            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Role.ADMIN)).contains(x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()
@@ -156,7 +154,7 @@ trait WritableUsersAuthenticator { self: ControllerBase with RepositoryService w
             case Some(x) if(x.isAdmin) => action(repository)
             case Some(x) if(paths(0) == x.userName) => action(repository)
             case Some(x) if(getGroupMembers(repository.owner).exists(_.userName == x.userName)) => action(repository)
-            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Permission.ADMIN, Permission.WRITE)).contains(x.userName)) => action(repository)
+            case Some(x) if(getCollaboratorUserNames(paths(0), paths(1), Seq(Role.ADMIN, Role.DEVELOPER)).contains(x.userName)) => action(repository)
             case _ => Unauthorized()
           }
         } getOrElse NotFound()

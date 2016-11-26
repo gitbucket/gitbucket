@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changeSet>
     <addColumn tableName="COLLABORATOR">
-        <column name="PERMISSION" type="varchar(10)" nullable="false" defaultValue="ADMIN"/>
+        <column name="ROLE" type="varchar(10)" nullable="false" defaultValue="ADMIN"/>
     </addColumn>
     <addColumn tableName="REPOSITORY">
         <column name="WIKI_OPTION" type="varchar(10)" nullable="false" defaultValue="DISABLE"/>

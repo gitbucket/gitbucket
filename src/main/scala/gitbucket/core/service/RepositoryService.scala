@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
-import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account, Permission}
+import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account, Role}
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
 import profile.simple._
@@ -335,8 +335,8 @@ trait RepositoryService { self: AccountService =>
   /**
    * Add collaborator (user or group) to the repository.
    */
-  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String, permission: String)(implicit s: Session): Unit =
-    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, permission)
+  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String, role: String)(implicit s: Session): Unit =
+    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, role)
 
   /**
    * Remove all collaborators from the repository.
@@ -359,38 +359,38 @@ trait RepositoryService { self: AccountService =>
    * Returns the list of all collaborator name and permission which is sorted with ascending order.
    * If a group is added as a collaborator, this method returns users who are belong to that group.
    */
-  def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[Permission] = Nil)(implicit s: Session): List[String] = {
+  def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[Role] = Nil)(implicit s: Session): List[String] = {
     val q1 = Collaborators
       .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
       .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
-      .map { case (t1, t2) => (t1.collaboratorName, t1.permission) }
+      .map { case (t1, t2) => (t1.collaboratorName, t1.role) }
 
     val q2 = Collaborators
       .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
       .innerJoin(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
       .filter { case ((t1, t2), t3) => t1.byRepository(userName, repositoryName) }
-      .map { case ((t1, t2), t3) => (t3.userName, t1.permission) }
+      .map { case ((t1, t2), t3) => (t3.userName, t1.role) }
 
     q1.union(q2).list.filter { x => filter.isEmpty || filter.exists(_.name == x._2) }.map(_._1)
   }
 
 
-  def hasWritePermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+  def hasDeveloperRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
       case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
-      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE)).contains(a.userName)) => true
+      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER)).contains(a.userName)) => true
       case _ => false
     }
   }
 
-  def hasReadPermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+  def hasGuestRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
       case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
-      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE, Permission.READ)).contains(a.userName)) => true
+      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER, Role.GUEST)).contains(a.userName)) => true
       case _ => false
     }
   }

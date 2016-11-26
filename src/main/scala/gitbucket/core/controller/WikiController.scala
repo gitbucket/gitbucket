@@ -242,9 +242,9 @@ trait WikiControllerBase extends ControllerBase {
 
   private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
     repository.repository.options.wikiOption match {
-//      case "ALL"     => repository.repository.isPrivate == false || hasReadPermission(repository.owner, repository.name, context.loginAccount)
-      case "PUBLIC"  => hasReadPermission(repository.owner, repository.name, context.loginAccount)
-      case "PRIVATE" => hasWritePermission(repository.owner, repository.name, context.loginAccount)
+      case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined
+      case "PUBLIC"  => hasGuestRole(repository.owner, repository.name, context.loginAccount)
+      case "PRIVATE" => hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
       case "DISABLE" => false
     }
   }
