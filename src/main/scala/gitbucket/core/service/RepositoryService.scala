@@ -279,7 +279,10 @@ trait RepositoryService { self: AccountService =>
       // for Normal Users
       case Some(x) if(!x.isAdmin) =>
         Repositories filter { t => (t.isPrivate === false.bind) || (t.userName === x.userName) ||
-          (Collaborators.filter { t2 => t2.byRepository(t.userName, t.repositoryName) && (t2.collaboratorName === x.userName.bind)} exists)
+          (Collaborators.filter { t2 =>
+            t2.byRepository(t.userName, t.repositoryName) &&
+              (t2.collaboratorName === x.userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName))
+          } exists)
         }
       // for Guests
       case None => Repositories filter(_.isPrivate === false.bind)
