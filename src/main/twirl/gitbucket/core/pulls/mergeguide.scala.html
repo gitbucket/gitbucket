@@ -99,7 +99,7 @@
                 you can perform a manual merge on the command line.
               </p>
             }
-            @gitbucket.core.helper.html.copy("repository-url-copy", forkedRepository.httpUrl){
+            @gitbucket.core.helper.html.copy("repository-url-copy", forkedRepository.httpUrl, targetTextId = "repository-url"){
               <div class="input-group-btn" data-toggle="buttons">
                 <label class="btn btn-sm btn-default active" id="repository-url-http"><input type="radio" checked>HTTP</label>
                 @if(context.settings.ssh && context.loginAccount.isDefined){
@@ -114,7 +114,7 @@
               </p>
               @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
                         s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
-                @gitbucket.core.helper.html.copy("merge-command-copy-1", command, "position: absolute; right: 31px;")()
+                @gitbucket.core.helper.html.copy("merge-command-copy-1", command, "position: absolute; right: 31px;", "merge-command")()
                 <pre style="font-size: 12px; border-radius: 3px;" id="merge-command">@Html(command)</pre>
               }
             </div>
@@ -124,8 +124,8 @@
               </p>
               @defining(s"git checkout ${pullreq.branch}\ngit merge --no-ff ${pullreq.requestUserName}-${pullreq.requestBranch}\n" +
                         s"git push origin ${pullreq.branch}"){ command =>
-                @gitbucket.core.helper.html.copy("merge-command-copy-2", command, "position: absolute; right: 31px;")()
-                <pre style="font-size: 12px; border-radius: 3px;">@command</pre>
+                @gitbucket.core.helper.html.copy("merge-command-copy-2", command, "position: absolute; right: 31px;", "merge-command-2")()
+                <pre style="font-size: 12px; border-radius: 3px;" id="merge-command-2">@command</pre>
               }
             </div>
           </div>

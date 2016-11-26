@@ -1,4 +1,4 @@
-@(id: String, value: String, style: String = "")(html: Html = Html(""))
+@(id: String, value: String, style: String = "", targetTextId: String = "")(html: Html = Html(""))
 @if(html.body.nonEmpty){
   <div class="input-group" style="margin-bottom: 0px;">
     @html
@@ -14,6 +14,36 @@
 <script>
 // copy to clipboard
 (function() {
+  @if(targetTextId.nonEmpty){
+  // if document.execCommand('copy') is available, use it for copy.
+  if (document.queryCommandSupported('copy')) {
+    var title = $('#@id').attr('title');
+    $('#@id').tooltip({
+      @* if default container is used then 2 lines tooltip text is displayd because tooptip width is narrow. *@
+      container: 'body'
+    });
+    $('#@id').on('click', function() {
+      var target = document.getElementById('@targetTextId');
+      if (!target) { @* target's id is incorrect. Fix argument's value *@
+        $('#@id').attr('title', 'failed to copy').tooltip('fixTitle').tooltip('show');
+        return;
+      }
+      if (typeof target.select === 'function') {
+        target.select();
+      } else {
+        var range = document.createRange();
+        range.selectNodeContents(target);
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      document.execCommand('copy');
+      $('#@id').attr('title', 'copied!').tooltip('fixTitle').tooltip('show');
+      $('#@id').attr('title', title).tooltip('fixTitle');
+    });
+    return
+  }
+  }
   // Check flash availablibity
   var flashAvailable = false;
   try {

@@ -64,7 +64,7 @@
       <div>
         <strong>Clone this wiki locally</strong>
       </div>
-      @gitbucket.core.helper.html.copy("repository-url-copy", WikiService.wikiHttpUrl(repository)){
+      @gitbucket.core.helper.html.copy("repository-url-copy", WikiService.wikiHttpUrl(repository), targetTextId = "repository-url"){
         <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
       }
       @if(WikiService.wikiSshUrl(repository).isDefined) {
