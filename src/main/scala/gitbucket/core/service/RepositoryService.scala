@@ -223,7 +223,7 @@ trait RepositoryService { self: AccountService =>
   }
 
   /**
-   * Returns the repositories without private repository that user does not have access right.
+   * Returns the repositories except private repository that user does not have access right.
    * Include public repository, private own repository and private but collaborator repository.
    *
    * @param userName the user name of collaborator
@@ -232,8 +232,10 @@ trait RepositoryService { self: AccountService =>
   def getAllRepositories(userName: String)(implicit s: Session): List[(String, String)] = {
     Repositories.filter { t1 =>
       (t1.isPrivate === false.bind) ||
-      (t1.userName  === userName.bind) ||
-      (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
+      (t1.userName  === userName.bind) || (t1.userName in (GroupMembers.filter(_.userName === userName.bind).map(_.groupName))) ||
+      (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) &&
+        ((t2.collaboratorName === userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === userName.bind).map(_.groupName)))
+      } exists)
     }.sortBy(_.lastActivityDate desc).map{ t =>
       (t.userName, t.repositoryName)
     }.list
@@ -242,8 +244,10 @@ trait RepositoryService { self: AccountService =>
   def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)
                          (implicit s: Session): List[RepositoryInfo] = {
     Repositories.filter { t1 =>
-      (t1.userName === userName.bind) ||
-        (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
+      (t1.userName === userName.bind) || (t1.userName in (GroupMembers.filter(_.userName === userName.bind).map(_.groupName))) ||
+      (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) &&
+        ((t2.collaboratorName === userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === userName.bind).map(_.groupName)))
+      } exists)
     }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
         if(withoutPhysicalInfo){
@@ -283,7 +287,7 @@ trait RepositoryService { self: AccountService =>
           (t.userName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)) ||
           (Collaborators.filter { t2 =>
             t2.byRepository(t.userName, t.repositoryName) &&
-              (t2.collaboratorName === x.userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName))
+              ((t2.collaboratorName === x.userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)))
           } exists)
         }
       // for Guests
