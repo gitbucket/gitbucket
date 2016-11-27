@@ -65,6 +65,10 @@ Support
 
 Release Notes
 -------------
+### 4.7.1 - 28 Nov 2016
+- Bug fix: group repositories are now shown in the your repositories list on the sidebar
+- Small performance improvement of the dashboard
+
 ### 4.7 - 26 Nov 2016
 - New permission system
 - Dropdown filter for issue labels, milestones and assignees
