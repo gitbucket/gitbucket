@@ -278,7 +278,9 @@ trait RepositoryService { self: AccountService =>
       case Some(x) if(x.isAdmin) => Repositories
       // for Normal Users
       case Some(x) if(!x.isAdmin) =>
-        Repositories filter { t => (t.isPrivate === false.bind) || (t.userName === x.userName) ||
+        Repositories filter { t =>
+          (t.isPrivate === false.bind) || (t.userName === x.userName) ||
+          (t.userName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)) ||
           (Collaborators.filter { t2 =>
             t2.byRepository(t.userName, t.repositoryName) &&
               (t2.collaboratorName === x.userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName))
