@@ -73,7 +73,7 @@ trait LinkConverter { self: RequestCache =>
       }
 
       // convert issue id to link
-      .replaceBy(("(?<=(^|\\W))(GH-|" + issueIdPrefix + ")([0-9]+)(?=(\\W|$))").r){ m =>
+      .replaceBy(("(?<=(^|\\W))(GH-|(?<!&)" + issueIdPrefix + ")([0-9]+)(?=(\\W|$))").r){ m =>
         val prefix = if(m.group(2) == "issue:") "#" else m.group(2)
         getIssue(repository.owner, repository.name, m.group(3)) match {
           case Some(issue) if(issue.isPullRequest) =>
