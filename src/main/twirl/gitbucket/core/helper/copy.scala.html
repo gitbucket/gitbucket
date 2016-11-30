@@ -42,52 +42,10 @@
       $('#@id').attr('title', title).tooltip('fixTitle');
     });
     return
-  }
-  }
-  // Check flash availablibity
-  var flashAvailable = false;
-  try {
-    var flashObject = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
-    if(flashObject) flashAvailable = true;
-  } catch (e) {
-    if (navigator.mimeTypes
-        && navigator.mimeTypes['application/x-shockwave-flash'] != undefined
-        && navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin) {
-      flashAvailable = true;
-    }
-  }
-  // if flash is not available, remove the copy button.
-  if(!flashAvailable) {
+  } else {
+    // if copy is not supported, remove the copy button
     $('#@id').remove();
-    return
   }
-
-  // Find ZeroClipboard.swf file URI from ZeroClipboard JavaScript file path.
-  // NOTE(tanacasino) I think this way is wrong... but i don't know correct way.
-  var moviePath = (function() {
-    var zclipjs = "ZeroClipboard.min.js";
-    var scripts = document.getElementsByTagName("script");
-    var i = scripts.length;
-    while(i--) {
-      var match = scripts[i].src.match(zclipjs + "$");
-      if(match) {
-        return match.input.substr(0, match.input.length - 6) + 'swf';
-      }
-    }
-  })();
-  var clip = new ZeroClipboard($("#@id"), {
-    moviePath: moviePath
-  });
-  var title = $('#@id').attr('title');
-  $('#@id').removeAttr('title')
-  clip.htmlBridge = "#global-zeroclipboard-html-bridge";
-  clip.on('complete', function(client, args) {
-    $(clip.htmlBridge).attr('title', 'copied!').tooltip('fixTitle').tooltip('show');
-    $(clip.htmlBridge).attr('title', title).tooltip('fixTitle');
-  });
-  $(clip.htmlBridge).tooltip({
-    title: title,
-    placement: $('#@id').attr('data-placement')
-  });
+  }
 })();
 </script>
