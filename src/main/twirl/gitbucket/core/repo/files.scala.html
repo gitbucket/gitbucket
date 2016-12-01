@@ -39,7 +39,7 @@
         </div>
         <div class="pull-right pc">
           <div style="width: 240px; margin-right: 5px; margin-left: 5px;">
-            @gitbucket.core.helper.html.copy("repository-url-copy", repository.httpUrl, targetTextId = "repository-url"){
+            @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", repository.httpUrl){
               @if(repository.sshUrl.isDefined){
                 <div class="btn-group input-group-btn">
                   <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
