@@ -1,5 +1,5 @@
 @(account: Option[gitbucket.core.model.Account], members: List[gitbucket.core.model.GroupMember])(implicit context: gitbucket.core.controller.Context)
-@gitbucket.core.html.main(if(account.isEmpty) "New Group" else "Update Group"){
+@gitbucket.core.html.main(if(account.isEmpty) "New group" else "Update group"){
   @gitbucket.core.admin.html.menu("users"){
     <form method="POST" action="@if(account.isEmpty){@context.path/admin/users/_newgroup} else {@context.path/admin/users/@account.get.userName/_editgroup}" validate="true">
       <div class="row">
@@ -44,7 +44,7 @@
         </div>
       </div>
       <fieldset class="border-top">
-        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create Group} else {Update Group}"/>
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create group} else {Update group}"/>
         <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
       </fieldset>
     </form>

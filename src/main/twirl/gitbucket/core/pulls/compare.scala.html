@@ -15,7 +15,7 @@
   milestones: List[gitbucket.core.model.Milestone],
   labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.html.main(s"Pull Requests - ${repository.owner}/${repository.name}", Some(repository)){
+@gitbucket.core.html.main(s"Pull requests - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
     <div class="pullreq-info">
       <div id="compare-edit">

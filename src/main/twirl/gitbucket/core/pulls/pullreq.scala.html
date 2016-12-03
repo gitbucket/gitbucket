@@ -14,7 +14,7 @@
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.IssueComment
 @import gitbucket.core.model.CommitComment
-@gitbucket.core.html.main(s"${issue.title} - Pull Request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
+@gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
     @defining(dayByDayCommits.flatten){ commits =>
       <div>
