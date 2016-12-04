@@ -38,7 +38,7 @@
         @if(account.isGroupAccount){
           <li@if(active == "members"){ class="active"}><a href="@helpers.url(account.userName)?tab=members">Members</a></li>
         } else {
-          <li@if(active == "activity"){ class="active"}><a href="@helpers.url(account.userName)?tab=activity">Public Activity</a></li>
+          <li@if(active == "activity"){ class="active"}><a href="@helpers.url(account.userName)?tab=activity">Public activity</a></li>
         }
         @gitbucket.core.plugin.PluginRegistry().getProfileTabs.map { tab =>
           @tab(account, context).map { link =>
@@ -48,14 +48,14 @@
         @if(context.loginAccount.isDefined && context.loginAccount.get.userName == account.userName){
           <li class="pull-right">
             <div class="button-group">
-              <a href="@helpers.url(account.userName)/_edit" class="btn btn-default">Edit Your Profile</a>
+              <a href="@helpers.url(account.userName)/_edit" class="btn btn-default">Edit your profile</a>
             </div>
           </li>
         }
         @if(context.loginAccount.isDefined && account.isGroupAccount && isGroupManager){
           <li class="pull-right">
             <div class="button-group">
-              <a href="@helpers.url(account.userName)/_editgroup" class="btn btn-default">Edit Group</a>
+              <a href="@helpers.url(account.userName)/_editgroup" class="btn btn-default">Edit group</a>
             </div>
           </li>
         }

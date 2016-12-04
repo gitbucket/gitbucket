@@ -3,10 +3,10 @@
   <div class="sidebar">
     <ul class="sidebar-menu" id="system-admin-menu-container">
       <li@if(active=="users"){ class="active"}>
-        <a href="@context.path/admin/users">User Management</a>
+        <a href="@context.path/admin/users">User management</a>
       </li>
       <li@if(active=="system"){ class="active"}>
-        <a href="@context.path/admin/system">System Settings</a>
+        <a href="@context.path/admin/system">System settings</a>
       </li>
       <li@if(active=="plugins"){ class="active"}>
         <a href="@context.path/admin/plugins">Plugins</a>
@@ -15,7 +15,7 @@
         <a href="@context.path/admin/data">Data export / import</a>
       </li>
       <li>
-        <a href="@context.path/console/login.jsp" target="_blank">H2 Console</a>
+        <a href="@context.path/console/login.jsp" target="_blank">H2 console</a>
       </li>
       @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
         @menu(context).map { link =>

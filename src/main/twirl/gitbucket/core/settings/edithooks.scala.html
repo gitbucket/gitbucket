@@ -66,8 +66,8 @@
             -->
             <label class="checkbox"><input type="checkbox" @check("events",IssueComment) />Issue comment <span class="help-block normal">Issue commented on. </span> </label>
             <label class="checkbox"><input type="checkbox" @check("events",Issues) />Issues <span class="help-block normal">Issue opened, closed<!-- , assigned, or labeled -->. </span> </label>
-            <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull Request <span class="help-block normal">Pull Request opened, closed<!-- , assigned, labeled -->, or synchronized. </span> </label>
-            <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull Request review comment <span class="help-block normal">Pull Request diff commented on. </span> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",PullRequest) />Pull request <span class="help-block normal">Pull request opened, closed<!-- , assigned, labeled -->, or synchronized. </span> </label>
+            <label class="checkbox"><input type="checkbox" @check("events",PullRequestReviewComment) />Pull request review comment <span class="help-block normal">Pull request diff commented on. </span> </label>
             <label class="checkbox"><input type="checkbox" @check("events",Push) />Push <span class="help-block normal">Git push to a repository. </span> </label>
             <div class="text-right">
               @if(!create){

@@ -1,10 +1,10 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@gitbucket.core.html.main("System Settings"){
+@gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
     <form action="@context.path/admin/system" method="POST" validate="true" class="form-horizontal">
       <div class="panel panel-default">
-        <div class="panel-heading strong">System Settings</div>
+        <div class="panel-heading strong">System settings</div>
         <div class="panel-body">
             <!--====================================================================-->
             <!-- System properties -->
