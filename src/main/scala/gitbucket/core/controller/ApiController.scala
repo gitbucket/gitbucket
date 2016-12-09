@@ -407,7 +407,7 @@ trait ApiControllerBase extends ControllerBase {
 
 
     JsonFormat(issues.map { case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
-      val comments = getCommentsForApi(repository.owner, repository.name, issue.issueId)
+      val mergedComment = getMergedComment(getCommentsForApi(repository.owner, repository.name, issue.issueId))
 
       ApiPullRequest(
         issue       = issue,
@@ -415,8 +415,9 @@ trait ApiControllerBase extends ControllerBase {
         headRepo    = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo    = ApiRepository(repository, ApiUser(baseOwner)),
         user        = ApiUser(issueUser),
-        merged      = comments.exists { case (comment, _, _) => comment.action == "merged" },
-        mergedAt    = comments.collectFirst { case (comment, _, _) if(comment.action == "merged") => comment.registeredDate }
+        merged      = mergedComment.isDefined,
+        mergedAt    = mergedComment.map { case (comment, _) => comment.registeredDate },
+        mergedBy    = mergedComment.map { case (_, account) => ApiUser(account) }
       )
     })
   })
@@ -434,7 +435,7 @@ trait ApiControllerBase extends ControllerBase {
       issueUser <- users.get(issue.openedUserName)
       headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
-      val comments = getCommentsForApi(repository.owner, repository.name, issueId)
+      val mergedComment = getMergedComment(getCommentsForApi(repository.owner, repository.name, issue.issueId))
 
       JsonFormat(ApiPullRequest(
         issue       = issue,
@@ -442,8 +443,9 @@ trait ApiControllerBase extends ControllerBase {
         headRepo    = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo    = ApiRepository(repository, ApiUser(baseOwner)),
         user        = ApiUser(issueUser),
-        merged      = comments.exists { case (comment, _, _) => comment.action == "merged" },
-        mergedAt    = comments.collectFirst { case (comment, _, _) if(comment.action == "merged") => comment.registeredDate }
+        merged      = mergedComment.isDefined,
+        mergedAt    = mergedComment.map { case (comment, _) => comment.registeredDate },
+        mergedBy    = mergedComment.map { case (_, account) => ApiUser(account) }
       ))
     }) getOrElse NotFound()
   })

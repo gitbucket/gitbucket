@@ -34,6 +34,10 @@ trait IssuesService {
     .map{ case ((t1, t2), t3) => (t1, t2, t3) }
     .list
 
+  def getMergedComment(comments: List[(IssueComment, Account, Issue)]): Option[(IssueComment, Account)] = {
+    comments.collectFirst { case (comment, account, _) if comment.action == "merged" => (comment, account) }
+  }
+
   def getComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
     if (commentId forall (_.isDigit))
       IssueComments filter { t =>

@@ -17,6 +17,7 @@ case class ApiPullRequest(
   mergeable: Option[Boolean],
   merged: Boolean,
   merged_at: Option[Date],
+  merged_by: Option[ApiUser],
   title: String,
   body: String,
   user: ApiUser) {
@@ -34,22 +35,27 @@ case class ApiPullRequest(
 
 object ApiPullRequest{
   def apply(issue: Issue, pullRequest: PullRequest, headRepo: ApiRepository, baseRepo: ApiRepository, user: ApiUser,
-            /*mergeable: Boolean,*/ merged: Boolean, mergedAt: Option[Date]): ApiPullRequest =
+            /*mergeable: Boolean,*/ merged: Boolean, mergedAt: Option[Date], mergedBy: Option[ApiUser]): ApiPullRequest =
     ApiPullRequest(
       number     = issue.issueId,
       updated_at = issue.updatedDate,
       created_at = issue.registeredDate,
       head       = Commit(
-                     sha  = pullRequest.commitIdTo,
-                     ref  = pullRequest.requestBranch,
-                     repo = headRepo)(issue.userName),
+        sha       = pullRequest.commitIdTo,
+        ref       = pullRequest.requestBranch,
+        repo      = headRepo,
+        baseOwner = issue.userName
+      ),
       base       = Commit(
-                     sha  = pullRequest.commitIdFrom,
-                     ref  = pullRequest.branch,
-                     repo = baseRepo)(issue.userName),
+        sha       = pullRequest.commitIdFrom,
+        ref       = pullRequest.branch,
+        repo      = baseRepo,
+        baseOwner = issue.userName
+      ),
       mergeable  = None, // TODO: need check mergeable.
       merged     = merged,
       merged_at  = mergedAt,
+      merged_by  = mergedBy,
       title      = issue.title,
       body       = issue.content.getOrElse(""),
       user       = user
@@ -58,7 +64,8 @@ object ApiPullRequest{
   case class Commit(
     sha: String,
     ref: String,
-    repo: ApiRepository)(baseOwner:String){
+    repo: ApiRepository,
+    baseOwner:String){
     val label = if( baseOwner == repo.owner.login ){ ref }else{ s"${repo.owner.login}:${ref}" }
     val user = repo.owner
   }
