@@ -15,6 +15,8 @@ case class ApiPullRequest(
   head: ApiPullRequest.Commit,
   base: ApiPullRequest.Commit,
   mergeable: Option[Boolean],
+  merged: Boolean,
+  merged_at: Option[Date],
   title: String,
   body: String,
   user: ApiUser) {
@@ -31,7 +33,8 @@ case class ApiPullRequest(
 }
 
 object ApiPullRequest{
-  def apply(issue: Issue, pullRequest: PullRequest, headRepo: ApiRepository, baseRepo: ApiRepository, user: ApiUser): ApiPullRequest =
+  def apply(issue: Issue, pullRequest: PullRequest, headRepo: ApiRepository, baseRepo: ApiRepository, user: ApiUser,
+            /*mergeable: Boolean,*/ merged: Boolean, mergedAt: Option[Date]): ApiPullRequest =
     ApiPullRequest(
       number     = issue.issueId,
       updated_at = issue.updatedDate,
@@ -45,6 +48,8 @@ object ApiPullRequest{
                      ref  = pullRequest.branch,
                      repo = baseRepo)(issue.userName),
       mergeable  = None, // TODO: need check mergeable.
+      merged     = merged,
+      merged_at  = mergedAt,
       title      = issue.title,
       body       = issue.content.getOrElse(""),
       user       = user

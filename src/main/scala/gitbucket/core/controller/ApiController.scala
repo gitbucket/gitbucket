@@ -405,13 +405,18 @@ trait ApiControllerBase extends ControllerBase {
         repos     = repository.owner -> repository.name
       )
 
+
     JsonFormat(issues.map { case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
+      val comments = getCommentsForApi(repository.owner, repository.name, issue.issueId)
+
       ApiPullRequest(
-        issue,
-        pullRequest,
-        ApiRepository(headRepo, ApiUser(headOwner)),
-        ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)
+        issue       = issue,
+        pullRequest = pullRequest,
+        headRepo    = ApiRepository(headRepo, ApiUser(headOwner)),
+        baseRepo    = ApiRepository(repository, ApiUser(baseOwner)),
+        user        = ApiUser(issueUser),
+        merged      = comments.exists { case (comment, _, _) => comment.action == "merged" },
+        mergedAt    = comments.collectFirst { case (comment, _, _) if(comment.action == "merged") => comment.registeredDate }
       )
     })
   })
@@ -429,12 +434,17 @@ trait ApiControllerBase extends ControllerBase {
       issueUser <- users.get(issue.openedUserName)
       headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
+      val comments = getCommentsForApi(repository.owner, repository.name, issueId)
+
       JsonFormat(ApiPullRequest(
-        issue,
-        pullRequest,
-        ApiRepository(headRepo, ApiUser(headOwner)),
-        ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)))
+        issue       = issue,
+        pullRequest = pullRequest,
+        headRepo    = ApiRepository(headRepo, ApiUser(headOwner)),
+        baseRepo    = ApiRepository(repository, ApiUser(baseOwner)),
+        user        = ApiUser(issueUser),
+        merged      = comments.exists { case (comment, _, _) => comment.action == "merged" },
+        mergedAt    = comments.collectFirst { case (comment, _, _) if(comment.action == "merged") => comment.registeredDate }
+      ))
     }) getOrElse NotFound()
   })
 
