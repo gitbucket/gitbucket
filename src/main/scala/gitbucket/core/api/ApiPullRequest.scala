@@ -1,7 +1,6 @@
 package gitbucket.core.api
 
-import gitbucket.core.model.{Issue, PullRequest}
-
+import gitbucket.core.model.{Account, Issue, IssueComment, PullRequest}
 import java.util.Date
 
 
@@ -34,8 +33,14 @@ case class ApiPullRequest(
 }
 
 object ApiPullRequest{
-  def apply(issue: Issue, pullRequest: PullRequest, headRepo: ApiRepository, baseRepo: ApiRepository, user: ApiUser,
-            /*mergeable: Boolean,*/ merged: Boolean, mergedAt: Option[Date], mergedBy: Option[ApiUser]): ApiPullRequest =
+  def apply(
+    issue: Issue,
+    pullRequest: PullRequest,
+    headRepo: ApiRepository,
+    baseRepo: ApiRepository,
+    user: ApiUser,
+    mergedComment: Option[(IssueComment, Account)]
+  ): ApiPullRequest =
     ApiPullRequest(
       number     = issue.issueId,
       updated_at = issue.updatedDate,
@@ -53,9 +58,9 @@ object ApiPullRequest{
         baseOwner = issue.userName
       ),
       mergeable  = None, // TODO: need check mergeable.
-      merged     = merged,
-      merged_at  = mergedAt,
-      merged_by  = mergedBy,
+      merged     = mergedComment.isDefined,
+      merged_at  = mergedComment.map { case (comment, _) => comment.registeredDate },
+      merged_by  = mergedComment.map { case (_, account) => ApiUser(account) },
       title      = issue.title,
       body       = issue.content.getOrElse(""),
       user       = user

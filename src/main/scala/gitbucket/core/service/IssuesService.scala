@@ -13,6 +13,7 @@ import scala.slick.jdbc.{StaticQuery => Q}
 import Q.interpolation
 
 
+
 trait IssuesService {
   self: AccountService with RepositoryService =>
   import IssuesService._
@@ -34,8 +35,8 @@ trait IssuesService {
     .map{ case ((t1, t2), t3) => (t1, t2, t3) }
     .list
 
-  def getMergedComment(comments: List[(IssueComment, Account, Issue)]): Option[(IssueComment, Account)] = {
-    comments.collectFirst { case (comment, account, _) if comment.action == "merged" => (comment, account) }
+  def getMergedComment(owner: String, repository: String, issueId: Int)(implicit s: Session): Option[(IssueComment, Account)] = {
+    getCommentsForApi(owner, repository, issueId).collectFirst { case (comment, account, _) if comment.action == "merged" => (comment, account) }
   }
 
   def getComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
