@@ -25,11 +25,11 @@ class JsonFormatSpec extends FunSuite {
   implicit val context = JsonFormat.Context("http://gitbucket.exmple.com")
 
   val apiUser = ApiUser(
-    login= "octocat",
-    email= "octocat@example.com",
-    `type`=  "User",
-    site_admin= false,
-    created_at= date1)
+    login = "octocat",
+    email = "octocat@example.com",
+    `type` =  "User",
+    site_admin = false,
+    created_at = date1)
   val apiUserJson = """{
     "login":"octocat",
     "email":"octocat@example.com",
@@ -264,60 +264,64 @@ class JsonFormatSpec extends FunSuite {
   }"""
 
   val apiPullRequest = ApiPullRequest(
-      number     = 1347,
-      updated_at = date1,
-      created_at = date1,
-      head       = ApiPullRequest.Commit(
-                     sha  = sha1,
-                     ref  = "new-topic",
-                     repo = repository)("octocat"),
-      base       = ApiPullRequest.Commit(
-                     sha  = sha1,
-                     ref  = "master",
-                     repo = repository)("octocat"),
-      mergeable  = None,
-      title      = "new-feature",
-      body       = "Please pull these awesome changes",
-      user       = apiUser
-    )
+    number        = 1347,
+    updated_at    = date1,
+    created_at    = date1,
+    head          = ApiPullRequest.Commit(
+                      sha  = sha1,
+                      ref  = "new-topic",
+                      repo = repository)("octocat"),
+    base          = ApiPullRequest.Commit(
+                      sha  = sha1,
+                      ref  = "master",
+                      repo = repository)("octocat"),
+    mergeable     = None,
+    merged        = false,
+    merged_at     = Some(date1),
+    merged_by     = Some(apiUser),
+    title         = "new-feature",
+    body          = "Please pull these awesome changes",
+    user          = apiUser
+  )
+
   val apiPullRequestJson = s"""{
-    "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347",
+    "number": 1347,
+    "updated_at": "2011-04-14T16:00:49Z",
+    "created_at": "2011-04-14T16:00:49Z",
+  //  "closed_at": "2011-04-14T16:00:49Z",
+    "head": {
+      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "ref": "new-topic",
+      "repo": $repositoryJson,
+      "label": "new-topic",
+      "user": $apiUserJson
+    },
+    "base": {
+      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "ref": "master",
+      "repo": $repositoryJson,
+      "label": "master",
+      "user": $apiUserJson
+    },
+  //  "merge_commit_sha": "e5bd3914e2e596debea16f433f57875b5b90bcd6",
+  //  "mergeable": true,
+    "merged": false,
+    "merged_at": "2011-04-14T16:00:49Z",
+    "merged_by": $apiUserJson,
+    "title": "new-feature",
+    "body": "Please pull these awesome changes",
+    "user": $apiUserJson,
     "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
-  //  "diff_url": "${context.baseUrl}/octocat/Hello-World/pull/1347.diff",
-  //  "patch_url": "${context.baseUrl}/octocat/Hello-World/pull/1347.patch",
-  //  "issue_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347",
+    "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347",
     "commits_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347/commits",
     "review_comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347/comments",
     "review_comment_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/comments/{number}",
     "comments_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347/comments",
-    "statuses_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/statuses/6dcb09b5b57875f334f61aebed695e2e4193db5e",
-    "number": 1347,
+    "statuses_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/statuses/6dcb09b5b57875f334f61aebed695e2e4193db5e"
+  //  "diff_url": "${context.baseUrl}/octocat/Hello-World/pull/1347.diff",
+  //  "patch_url": "${context.baseUrl}/octocat/Hello-World/pull/1347.patch",
+  //  "issue_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/issues/1347",
   //  "state": "open",
-    "title": "new-feature",
-    "body": "Please pull these awesome changes",
-    "created_at": "2011-04-14T16:00:49Z",
-    "updated_at": "2011-04-14T16:00:49Z",
-  //  "closed_at": "2011-04-14T16:00:49Z",
-  //  "merged_at": "2011-04-14T16:00:49Z",
-    "head": {
-      "label": "new-topic",
-      "ref": "new-topic",
-      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-      "user": $apiUserJson,
-      "repo": $repositoryJson
-    },
-    "base": {
-      "label": "master",
-      "ref": "master",
-      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-      "user": $apiUserJson,
-      "repo": $repositoryJson
-    },
-    "user": $apiUserJson
-  //  "merge_commit_sha": "e5bd3914e2e596debea16f433f57875b5b90bcd6",
-  //  "merged": false,
-  //  "mergeable": true,
-  //  "merged_by": $$apiUserJson,
   //  "comments": 10,
   //  "commits": 3,
   //  "additions": 100,

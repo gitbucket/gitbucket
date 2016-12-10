@@ -46,17 +46,13 @@ object ApiPullRequest{
       updated_at = issue.updatedDate,
       created_at = issue.registeredDate,
       head       = Commit(
-        sha       = pullRequest.commitIdTo,
-        ref       = pullRequest.requestBranch,
-        repo      = headRepo,
-        baseOwner = issue.userName
-      ),
+                     sha  = pullRequest.commitIdTo,
+                     ref  = pullRequest.requestBranch,
+                     repo = headRepo)(issue.userName),
       base       = Commit(
-        sha       = pullRequest.commitIdFrom,
-        ref       = pullRequest.branch,
-        repo      = baseRepo,
-        baseOwner = issue.userName
-      ),
+                     sha  = pullRequest.commitIdFrom,
+                     ref  = pullRequest.branch,
+                     repo = baseRepo)(issue.userName),
       mergeable  = None, // TODO: need check mergeable.
       merged     = mergedComment.isDefined,
       merged_at  = mergedComment.map { case (comment, _) => comment.registeredDate },
@@ -69,8 +65,7 @@ object ApiPullRequest{
   case class Commit(
     sha: String,
     ref: String,
-    repo: ApiRepository,
-    baseOwner:String){
+    repo: ApiRepository)(baseOwner:String){
     val label = if( baseOwner == repo.owner.login ){ ref }else{ s"${repo.owner.login}:${ref}" }
     val user = repo.owner
   }
