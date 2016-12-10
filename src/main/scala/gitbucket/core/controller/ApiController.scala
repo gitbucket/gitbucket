@@ -102,7 +102,7 @@ trait ApiControllerBase extends ControllerBase {
       defaultBranch = repository.repository.defaultBranch,
       origin        = repository.repository.originUserName.isEmpty
     ).map { br =>
-        ApiBranchForList(br.name, ApiBranchCommit(br.commitId))
+      ApiBranchForList(br.name, ApiBranchCommit(br.commitId))
     })
   })
 
@@ -254,7 +254,7 @@ trait ApiControllerBase extends ControllerBase {
   patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
     import gitbucket.core.api._
     (for{
-      branch <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
+      branch     <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
       protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
     } yield {
       if(protection.enabled){
@@ -281,8 +281,8 @@ trait ApiControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
     (for{
-      issueId <- params("id").toIntOpt
-      comments = getCommentsForApi(repository.owner, repository.name, issueId.toInt)
+      issueId  <- params("id").toIntOpt
+      comments =  getCommentsForApi(repository.owner, repository.name, issueId.toInt)
     } yield {
       JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
     }) getOrElse NotFound()
@@ -363,12 +363,14 @@ trait ApiControllerBase extends ControllerBase {
             updateLabel(repository.owner, repository.name, label.labelId, data.name, data.color)
             JsonFormat(ApiLabel(
               getLabel(repository.owner, repository.name, label.labelId).get,
-              RepositoryName(repository)))
+              RepositoryName(repository)
+            ))
           } else {
             // TODO ApiError should support errors field to enhance compatibility of GitHub API
             UnprocessableEntity(ApiError(
               "Validation Failed",
-              Some("https://developer.github.com/v3/issues/labels/#create-a-label")))
+              Some("https://developer.github.com/v3/issues/labels/#create-a-label")
+            ))
           }
         } getOrElse NotFound()
       }
@@ -407,11 +409,12 @@ trait ApiControllerBase extends ControllerBase {
 
     JsonFormat(issues.map { case (issue, issueUser, commentCount, pullRequest, headRepo, headOwner) =>
       ApiPullRequest(
-        issue,
-        pullRequest,
-        ApiRepository(headRepo, ApiUser(headOwner)),
-        ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)
+        issue         = issue,
+        pullRequest   = pullRequest,
+        headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
+        baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
+        user          = ApiUser(issueUser),
+        mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       )
     })
   })
@@ -421,20 +424,22 @@ trait ApiControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repository/pulls/:id")(referrersOnly { repository =>
     (for{
-      issueId <- params("id").toIntOpt
+      issueId   <- params("id").toIntOpt
       (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
-      users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set())
+      users     =  getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set.empty)
       baseOwner <- users.get(repository.owner)
       headOwner <- users.get(pullRequest.requestUserName)
       issueUser <- users.get(issue.openedUserName)
       headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
       JsonFormat(ApiPullRequest(
-        issue,
-        pullRequest,
-        ApiRepository(headRepo, ApiUser(headOwner)),
-        ApiRepository(repository, ApiUser(baseOwner)),
-        ApiUser(issueUser)))
+        issue         = issue,
+        pullRequest   = pullRequest,
+        headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
+        baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
+        user          = ApiUser(issueUser),
+        mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
+      ))
     }) getOrElse NotFound()
   })
 
@@ -450,7 +455,7 @@ trait ApiControllerBase extends ControllerBase {
           val oldId = git.getRepository.resolve(pullreq.commitIdFrom)
           val newId = git.getRepository.resolve(pullreq.commitIdTo)
           val repoFullName = RepositoryName(repository)
-          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map(c => ApiCommitListItem(new CommitInfo(c), repoFullName)).toList
+          val commits = git.log.addRange(oldId, newId).call.iterator.asScala.map { c => ApiCommitListItem(new CommitInfo(c), repoFullName) }.toList
           JsonFormat(commits)
         }
       }
@@ -469,14 +474,14 @@ trait ApiControllerBase extends ControllerBase {
    */
   post("/api/v3/repos/:owner/:repo/statuses/:sha")(writableUsersOnly { repository =>
     (for{
-      ref <- params.get("sha")
-      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
-      data <- extractFromJsonBody[CreateAStatus] if data.isValid
-      creator <- context.loginAccount
-      state <- CommitState.valueOf(data.state)
-      statusId = createCommitStatus(repository.owner, repository.name, sha, data.context.getOrElse("default"),
-        state, data.target_url, data.description, new java.util.Date(), creator)
-      status <- getCommitStatus(repository.owner, repository.name, statusId)
+      ref      <- params.get("sha")
+      sha      <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+      data     <- extractFromJsonBody[CreateAStatus] if data.isValid
+      creator  <- context.loginAccount
+      state    <- CommitState.valueOf(data.state)
+      statusId =  createCommitStatus(repository.owner, repository.name, sha, data.context.getOrElse("default"),
+                                     state, data.target_url, data.description, new java.util.Date(), creator)
+      status   <- getCommitStatus(repository.owner, repository.name, statusId)
     } yield {
       JsonFormat(ApiCommitStatus(status, ApiUser(creator)))
     }) getOrElse NotFound()
@@ -514,9 +519,9 @@ trait ApiControllerBase extends ControllerBase {
    */
   get("/api/v3/repos/:owner/:repo/commits/:ref/status")(referrersOnly { repository =>
     (for{
-      ref <- params.get("ref")
+      ref   <- params.get("ref")
       owner <- getAccountByUserName(repository.owner)
-      sha <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
+      sha   <- JGitUtil.getShaByRef(repository.owner, repository.name, ref)
     } yield {
       val statuses = getCommitStatuesWithCreator(repository.owner, repository.name, sha)
       JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))

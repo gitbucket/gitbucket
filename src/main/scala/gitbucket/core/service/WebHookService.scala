@@ -1,9 +1,11 @@
 package gitbucket.core.service
 
+import java.util.Date
+
 import fr.brouillard.oss.security.xhub.XHub
-import fr.brouillard.oss.security.xhub.XHub.{XHubDigest, XHubConverter}
+import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._
-import gitbucket.core.model.{WebHook, Account, Issue, PullRequest, IssueComment, WebHookEvent, CommitComment}
+import gitbucket.core.model.{Account, CommitComment, Issue, IssueComment, PullRequest, WebHook, WebHookEvent}
 import gitbucket.core.model.Profile._
 import org.apache.http.client.utils.URLEncodedUtils
 import profile.simple._
@@ -16,6 +18,7 @@ import org.apache.http.message.BasicNameValuePair
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 import org.slf4j.LoggerFactory
+
 import scala.concurrent._
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
@@ -33,15 +36,15 @@ trait WebHookService {
   def getWebHooks(owner: String, repository: String)(implicit s: Session): List[(WebHook, Set[WebHook.Event])] =
     WebHooks.filter(_.byRepository(owner, repository))
       .innerJoin(WebHookEvents).on { (w, t) => t.byWebHook(w) }
-      .map{ case (w,t) => w -> t.event }
+      .map { case (w,t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).toList.sortBy(_._1.url)
 
   /** get All WebHook informations of repository event */
   def getWebHooksByEvent(owner: String, repository: String, event: WebHook.Event)(implicit s: Session): List[WebHook] =
      WebHooks.filter(_.byRepository(owner, repository))
        .innerJoin(WebHookEvents).on { (wh, whe) => whe.byWebHook(wh) }
-       .filter{ case (wh, whe) => whe.event === event.bind}
-       .map{ case (wh, whe) => wh }
+       .filter { case (wh, whe) => whe.event === event.bind}
+       .map { case (wh, whe) => wh }
        .list.distinct
 
   /** get All WebHook information from repository to url */
@@ -49,12 +52,12 @@ trait WebHookService {
     WebHooks
       .filter(_.byPrimaryKey(owner, repository, url))
       .innerJoin(WebHookEvents).on { (w, t) => t.byWebHook(w) }
-      .map{ case (w,t) => w -> t.event }
+      .map { case (w,t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).headOption
 
-  def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType,  token: Option[String])(implicit s: Session): Unit = {
+  def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])(implicit s: Session): Unit = {
     WebHooks insert WebHook(owner, repository, url, ctype, token)
-    events.toSet.map{ event: WebHook.Event =>
+    events.map { event: WebHook.Event =>
       WebHookEvents insert WebHookEvent(owner, repository, url, event)
     }
   }
@@ -62,7 +65,7 @@ trait WebHookService {
   def updateWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])(implicit s: Session): Unit = {
     WebHooks.filter(_.byPrimaryKey(owner, repository, url)).map(w => (w.ctype, w.token)).update((ctype, token))
     WebHookEvents.filter(_.byWebHook(owner, repository, url)).delete
-    events.toSet.map{ event: WebHook.Event =>
+    events.map { event: WebHook.Event =>
       WebHookEvents insert WebHookEvent(owner, repository, url, event)
     }
   }
@@ -81,7 +84,7 @@ trait WebHookService {
   def callWebHook(event: WebHook.Event, webHooks: List[WebHook], payload: WebHookPayload)
                  (implicit c: JsonFormat.Context): List[(WebHook, String, Future[HttpRequest], Future[HttpResponse])] = {
     import org.apache.http.impl.client.HttpClientBuilder
-    import ExecutionContext.Implicits.global
+    import ExecutionContext.Implicits.global // TODO Shouldn't use the default execution context
     import org.apache.http.protocol.HttpContext
     import org.apache.http.client.methods.HttpPost
 
@@ -91,7 +94,7 @@ trait WebHookService {
       webHooks.map { webHook =>
         val reqPromise = Promise[HttpRequest]
         val f = Future {
-          val itcp = new org.apache.http.HttpRequestInterceptor{
+          val itcp = new org.apache.http.HttpRequestInterceptor {
             def process(res: HttpRequest, ctx: HttpContext): Unit = {
               reqPromise.success(res)
             }
@@ -129,8 +132,8 @@ trait WebHookService {
             httpPost.releaseConnection()
             logger.debug(s"end web hook invocation for ${webHook}")
             res
-          }catch{
-            case e:Throwable => {
+          } catch {
+            case e: Throwable => {
               if(!reqPromise.isCompleted){
                 reqPromise.failure(e)
               }
@@ -168,11 +171,11 @@ trait WebHookPullRequestService extends WebHookService {
         issueUser <- users.get(issue.openedUserName)
       } yield {
         WebHookIssuesPayload(
-          action       = action,
-          number       = issue.issueId,
-          repository   = ApiRepository(repository, ApiUser(repoOwner)),
-          issue        = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
-          sender       = ApiUser(sender))
+          action     = action,
+          number     = issue.issueId,
+          repository = ApiRepository(repository, ApiUser(repoOwner)),
+          issue      = ApiIssue(issue, RepositoryName(repository), ApiUser(issueUser)),
+          sender     = ApiUser(sender))
       }
     }
   }
@@ -198,7 +201,9 @@ trait WebHookPullRequestService extends WebHookService {
           headOwner      = headOwner,
           baseRepository = repository,
           baseOwner      = baseOwner,
-          sender         = sender)
+          sender         = sender,
+          mergedComment  = getMergedComment(repository.owner, repository.name, issueId)
+        )
       }
     }
   }
@@ -237,7 +242,10 @@ trait WebHookPullRequestService extends WebHookService {
         headOwner      = headOwner,
         baseRepository = baseRepo,
         baseOwner      = baseOwner,
-        sender         = sender)
+        sender         = sender,
+        mergedComment  = getMergedComment(baseRepo.owner, baseRepo.name, issue.issueId)
+      )
+
       callWebHook(WebHook.PullRequest, webHooks, payload)
     }
   }
@@ -267,7 +275,9 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
           headOwner      = headOwner,
           baseRepository = repository,
           baseOwner      = baseOwner,
-          sender         = sender)
+          sender         = sender,
+          mergedComment  = getMergedComment(repository.owner, repository.name, issue.issueId)
+        )
       }
     }
   }
@@ -365,11 +375,21 @@ object WebHookService {
         headOwner: Account,
         baseRepository: RepositoryInfo,
         baseOwner: Account,
-        sender: Account): WebHookPullRequestPayload = {
+        sender: Account,
+        mergedComment: Option[(IssueComment, Account)]): WebHookPullRequestPayload = {
+
       val headRepoPayload = ApiRepository(headRepository, headOwner)
       val baseRepoPayload = ApiRepository(baseRepository, baseOwner)
       val senderPayload = ApiUser(sender)
-      val pr = ApiPullRequest(issue, pullRequest, headRepoPayload, baseRepoPayload, ApiUser(issueUser))
+      val pr = ApiPullRequest(
+        issue         = issue,
+        pullRequest   = pullRequest,
+        headRepo      = headRepoPayload,
+        baseRepo      = baseRepoPayload,
+        user          = ApiUser(issueUser),
+        mergedComment = mergedComment
+      )
+
       WebHookPullRequestPayload(
         action       = action,
         number       = issue.issueId,
@@ -389,7 +409,7 @@ object WebHookService {
     sender: ApiUser
   ) extends WebHookPayload
 
-  object WebHookIssueCommentPayload{
+  object WebHookIssueCommentPayload {
     def apply(
         issue: Issue,
         issueUser: Account,
@@ -415,28 +435,42 @@ object WebHookService {
     sender: ApiUser
   ) extends WebHookPayload
 
-  object WebHookPullRequestReviewCommentPayload{
+  object WebHookPullRequestReviewCommentPayload {
     def apply(
-        action: String,
-        comment: CommitComment,
-        issue: Issue,
-        issueUser: Account,
-        pullRequest: PullRequest,
-        headRepository: RepositoryInfo,
-        headOwner: Account,
-        baseRepository: RepositoryInfo,
-        baseOwner: Account,
-        sender: Account
-      ) : WebHookPullRequestReviewCommentPayload = {
+      action: String,
+      comment: CommitComment,
+      issue: Issue,
+      issueUser: Account,
+      pullRequest: PullRequest,
+      headRepository: RepositoryInfo,
+      headOwner: Account,
+      baseRepository: RepositoryInfo,
+      baseOwner: Account,
+      sender: Account,
+      mergedComment: Option[(IssueComment, Account)]
+    ) : WebHookPullRequestReviewCommentPayload = {
       val headRepoPayload = ApiRepository(headRepository, headOwner)
       val baseRepoPayload = ApiRepository(baseRepository, baseOwner)
       val senderPayload = ApiUser(sender)
+
       WebHookPullRequestReviewCommentPayload(
-        action = action,
-        comment = ApiPullRequestReviewComment(comment, senderPayload, RepositoryName(baseRepository), issue.issueId),
-        pull_request = ApiPullRequest(issue, pullRequest, headRepoPayload, baseRepoPayload, ApiUser(issueUser)),
-        repository = baseRepoPayload,
-        sender = senderPayload)
+        action       = action,
+        comment      = ApiPullRequestReviewComment(
+          comment        = comment,
+          commentedUser  = senderPayload,
+          repositoryName = RepositoryName(baseRepository),
+          issueId        = issue.issueId
+        ),
+        pull_request = ApiPullRequest(
+          issue         = issue,
+          pullRequest   = pullRequest,
+          headRepo      = headRepoPayload,
+          baseRepo      = baseRepoPayload,
+          user          = ApiUser(issueUser),
+          mergedComment = mergedComment
+        ),
+        repository   = baseRepoPayload,
+        sender       = senderPayload)
     }
   }
 }
