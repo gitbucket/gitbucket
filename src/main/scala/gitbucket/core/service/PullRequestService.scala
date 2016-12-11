@@ -128,7 +128,6 @@ trait PullRequestService { self: IssuesService with CommitsService =>
 
         // Update comments position
         val comments = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
-        println(comments)
         comments.foreach { comment =>
           comment match {
             case CommitComment(_, _, _, commitId, _, _, Some(fileName), _, Some(newLine), _, _, _) => {
