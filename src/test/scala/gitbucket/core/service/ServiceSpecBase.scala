@@ -44,7 +44,7 @@ trait ServiceSpecBase {
   def user(name:String)(implicit s:Session):Account = AccountService.getAccountByUserName(name).get
 
   lazy val dummyService = new RepositoryService with AccountService with IssuesService with PullRequestService
-    with CommitStatusService with LabelsService (){}
+    with CommitsService with CommitStatusService with LabelsService (){}
 
   def generateNewUserWithDBRepository(userName:String, repositoryName:String)(implicit s:Session):Account = {
     val ac = AccountService.getAccountByUserName(userName).getOrElse(generateNewAccount(userName))
