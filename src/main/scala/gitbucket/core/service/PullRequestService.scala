@@ -129,7 +129,8 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         // Collect comment positions
         val positions = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
           .collect {
-            case CommitComment(_, _, _, commentId, _, _, Some(file), _, Some(newLine), _, _, _) => (file, commentId, newLine)
+            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _) => (file, commentId, Right(newLine))
+            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _) => (file, commentId, Left(oldLine))
           }
           .groupBy { case (file, _, _) => file }
           .map { case (file, comments) => file ->
@@ -164,7 +165,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
     }
   }
 
-  private def updatePullRequestCommentPositions(positions: Map[String, Seq[(Int, Int)]], userName: String, repositoryName: String,
+  private def updatePullRequestCommentPositions(positions: Map[String, Seq[(Int, Either[Int, Int])]], userName: String, repositoryName: String,
                                                 oldCommitId: String, newCommitId: String)(implicit s: Session): Unit = {
 
     val (_, diffs) = getRequestCompareInfo(userName, repositoryName, oldCommitId, userName, repositoryName, newCommitId)
@@ -187,13 +188,14 @@ trait PullRequestService { self: IssuesService with CommitsService =>
 
     positions.foreach { case (file, comments) =>
       patchs(file) match {
-        case Some(patch) => {
-          file -> comments.foreach { case (commentId, lineNumber) =>
-            var counter = lineNumber
-            patch.getDeltas.asScala.filter(_.getOriginal.getPosition < lineNumber).foreach { delta =>
+        case Some(patch) => file -> comments.foreach { case (commentId, lineNumber) => lineNumber match {
+          case Left(oldLine)  => updateCommitCommentPosition(commentId, newCommitId, Some(oldLine), None)
+          case Right(newLine) =>
+            var counter = newLine
+            patch.getDeltas.asScala.filter(_.getOriginal.getPosition < newLine).foreach { delta =>
               delta.getType match {
                 case Delta.TYPE.CHANGE =>
-                  if(delta.getOriginal.getPosition <= lineNumber - 1 && lineNumber <= delta.getOriginal.getPosition + delta.getRevised.getLines.size){
+                  if(delta.getOriginal.getPosition <= newLine - 1 && newLine <= delta.getOriginal.getPosition + delta.getRevised.getLines.size){
                     counter = -1
                   } else {
                     counter = counter + (delta.getRevised.getLines.size - delta.getOriginal.getLines.size)
@@ -205,11 +207,11 @@ trait PullRequestService { self: IssuesService with CommitsService =>
             if(counter >= 0){
               updateCommitCommentPosition(commentId, newCommitId, None, Some(counter))
             }
-          }
-        }
-        case _ => comments.foreach { case (commentId, lineNumber) =>
-          updateCommitCommentPosition(commentId, newCommitId, None, Some(lineNumber))
-        }
+        }}
+        case _ => comments.foreach { case (commentId, lineNumber) => lineNumber match {
+          case Right(oldLine) => updateCommitCommentPosition(commentId, newCommitId, Some(oldLine), None)
+          case Left(newLine)  => updateCommitCommentPosition(commentId, newCommitId, None, Some(newLine))
+        }}
       }
     }
   }
