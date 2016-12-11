@@ -22,6 +22,7 @@ class ApiController extends ApiControllerBase
   with IssuesService
   with LabelsService
   with PullRequestService
+  with CommitsService
   with CommitStatusService
   with RepositoryCreationService
   with HandleCommentService

@@ -15,6 +15,7 @@ scalaVersion := "2.11.8"
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
+  Resolver.jcenterRepo,
   "amateras" at "http://amateras.sourceforge.jp/mvn/",
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
@@ -45,6 +46,7 @@ libraryDependencies ++= Seq(
   "com.typesafe"              % "config"                       % "1.3.0",
   "com.typesafe.akka"        %% "akka-actor"                   % "2.3.15",
   "fr.brouillard.oss.security.xhub" % "xhub4j-core"            % "1.0.0",
+  "com.github.bkromhout"      % "java-diff-utils"              % "2.1.1",
   "com.enragedginger"        %% "akka-quartz-scheduler"        % "1.4.0-akka-2.3.x" exclude("c3p0","c3p0"),
   "org.eclipse.jetty"         % "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"             % "javax.servlet-api"            % "3.1.0"          % "provided",

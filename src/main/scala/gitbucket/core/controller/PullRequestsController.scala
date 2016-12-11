@@ -11,7 +11,6 @@ import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -498,25 +497,25 @@ trait PullRequestsControllerBase extends ControllerBase {
       (defaultOwner, value)
     }
 
-  private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
-      requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
-    using(
-      Git.open(getRepositoryDir(userName, repositoryName)),
-      Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
-    ){ (oldGit, newGit) =>
-      val oldId = oldGit.getRepository.resolve(branch)
-      val newId = newGit.getRepository.resolve(requestCommitId)
-
-      val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
-        new CommitInfo(revCommit)
-      }.toList.splitWith { (commit1, commit2) =>
-        helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
-      }
-
-      val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true)
-
-      (commits, diffs)
-    }
+//  private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
+//      requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
+//    using(
+//      Git.open(getRepositoryDir(userName, repositoryName)),
+//      Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
+//    ){ (oldGit, newGit) =>
+//      val oldId = oldGit.getRepository.resolve(branch)
+//      val newId = newGit.getRepository.resolve(requestCommitId)
+//
+//      val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
+//        new CommitInfo(revCommit)
+//      }.toList.splitWith { (commit1, commit2) =>
+//        helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
+//      }
+//
+//      val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true)
+//
+//      (commits, diffs)
+//    }
 
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name){ case (owner, repoName) =>
