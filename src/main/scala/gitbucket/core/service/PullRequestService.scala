@@ -126,18 +126,18 @@ trait PullRequestService { self: IssuesService with CommitsService =>
           pullreq.userName, pullreq.repositoryName, pullreq.branch, pullreq.issueId,
           pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
 
-        // Update comments position
-        val comments = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
-        comments.foreach { comment =>
-          comment match {
-            case CommitComment(_, _, _, commitId, _, _, Some(fileName), _, Some(newLine), _, _, _) => {
-              getNewLineNumber(fileName, newLine, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo, commitIdTo).foreach { lineNumber =>
-                updateCommitCommentPosition(commitId, commitIdTo, None, Some(lineNumber))
-              }
-            }
-            case _ => // Do nothing
+        // Collect comment positions
+        val positions = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
+          .collect {
+            case CommitComment(_, _, _, commentId, _, _, Some(file), _, Some(newLine), _, _, _) => (file, commentId, newLine)
           }
-        }
+          .groupBy { case (file, _, _) => file }
+          .map { case (file, comments) => file ->
+            comments.map { case (_, commentId, lineNumber) => (commentId, lineNumber) }
+          }
+
+        // Update comments position
+        updatePullRequestCommentPositions(positions, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo, commitIdTo)
 
         // Update commit id in the PULL_REQUEST table
         updateCommitId(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo, commitIdFrom)
@@ -164,39 +164,54 @@ trait PullRequestService { self: IssuesService with CommitsService =>
     }
   }
 
-  def getNewLineNumber(file: String, lineNumber: Int, userName: String, repositoryName: String, oldCommitId: String, newCommitId: String): Option[Int] = {
+  private def updatePullRequestCommentPositions(positions: Map[String, Seq[(Int, Int)]], userName: String, repositoryName: String,
+                                                oldCommitId: String, newCommitId: String)(implicit s: Session): Unit = {
+
     val (_, diffs) = getRequestCompareInfo(userName, repositoryName, oldCommitId, userName, repositoryName, newCommitId)
 
-    var counter = lineNumber
-
-    diffs.find(x => x.oldPath == "test").foreach { diff =>
-      (diff.oldContent, diff.newContent) match {
-        case (Some(oldContent), Some(newContent)) => {
-          val oldLines = oldContent.replace("\r\n", "\n").split("\n")
-          val newLines = newContent.replace("\r\n", "\n").split("\n")
-          val deltas   = DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava)
-
-          deltas.getDeltas.asScala.filter(_.getOriginal.getPosition < lineNumber).foreach { delta =>
-            delta.getType match {
-              case Delta.TYPE.CHANGE =>
-                if(delta.getOriginal.getPosition <= lineNumber - 1 && lineNumber <= delta.getOriginal.getPosition + delta.getRevised.getLines.size){
-                  counter = -1
-                } else {
-                  counter = counter + (delta.getRevised.getLines.size - delta.getOriginal.getLines.size)
-                }
-              case Delta.TYPE.INSERT =>
-                counter = counter + delta.getRevised.getLines.size
-              case Delta.TYPE.DELETE =>
-                counter = counter - delta.getOriginal.getLines.size
-            }
+    val patchs = positions.map { case (file, _) =>
+      diffs.find(x => x.oldPath == file).map { diff =>
+        (diff.oldContent, diff.newContent) match {
+          case (Some(oldContent), Some(newContent)) => {
+            val oldLines = oldContent.replace("\r\n", "\n").split("\n")
+            val newLines = newContent.replace("\r\n", "\n").split("\n")
+            file -> Option(DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava))
           }
-          counter
+          case _ =>
+            file -> None
         }
-        case _ => counter = -1
+      }.getOrElse {
+        file -> None
       }
     }
 
-    if(counter >= 0) Some(counter) else None
+    positions.foreach { case (file, comments) =>
+      patchs(file) match {
+        case Some(patch) => {
+          file -> comments.foreach { case (commentId, lineNumber) =>
+            var counter = lineNumber
+            patch.getDeltas.asScala.filter(_.getOriginal.getPosition < lineNumber).foreach { delta =>
+              delta.getType match {
+                case Delta.TYPE.CHANGE =>
+                  if(delta.getOriginal.getPosition <= lineNumber - 1 && lineNumber <= delta.getOriginal.getPosition + delta.getRevised.getLines.size){
+                    counter = -1
+                  } else {
+                    counter = counter + (delta.getRevised.getLines.size - delta.getOriginal.getLines.size)
+                  }
+                case Delta.TYPE.INSERT => counter = counter + delta.getRevised.getLines.size
+                case Delta.TYPE.DELETE => counter = counter - delta.getOriginal.getLines.size
+              }
+            }
+            if(counter >= 0){
+              updateCommitCommentPosition(commentId, newCommitId, None, Some(counter))
+            }
+          }
+        }
+        case _ => comments.foreach { case (commentId, lineNumber) =>
+          updateCommitCommentPosition(commentId, newCommitId, None, Some(lineNumber))
+        }
+      }
+    }
   }
 
   def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
