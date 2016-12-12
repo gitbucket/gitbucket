@@ -138,7 +138,7 @@ trait IndexControllerBase extends ControllerBase {
   // TODO Move to RepositoryViwerController?
   get("/:owner/:repository/search")(referrersOnly { repository =>
     defining(params("q").trim, params.getOrElse("type", "code")){ case (query, target) =>
-      val page   = try {
+      val page = try {
         val i = params.getOrElse("page", "1").toInt
         if(i <= 0) 1 else i
       } catch {
@@ -147,21 +147,15 @@ trait IndexControllerBase extends ControllerBase {
 
       target.toLowerCase match {
         case "issue" => gitbucket.core.search.html.issues(
-          countFiles(repository.owner, repository.name, query),
-          searchIssues(repository.owner, repository.name, query),
-          countWikiPages(repository.owner, repository.name, query),
+          if(query.nonEmpty) searchIssues(repository.owner, repository.name, query) else Nil,
           query, page, repository)
 
         case "wiki" => gitbucket.core.search.html.wiki(
-          countFiles(repository.owner, repository.name, query),
-          countIssues(repository.owner, repository.name, query),
-          searchWikiPages(repository.owner, repository.name, query),
+          if(query.nonEmpty) searchWikiPages(repository.owner, repository.name, query) else Nil,
           query, page, repository)
 
         case _ => gitbucket.core.search.html.code(
-          searchFiles(repository.owner, repository.name, query),
-          countIssues(repository.owner, repository.name, query),
-          countWikiPages(repository.owner, repository.name, query),
+          if(query.nonEmpty) searchFiles(repository.owner, repository.name, query) else Nil,
           query, page, repository)
       }
     }

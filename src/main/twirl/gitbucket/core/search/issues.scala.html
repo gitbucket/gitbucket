@@ -1,17 +1,17 @@
-@(fileCount: Int,
-  issues: List[gitbucket.core.service.RepositorySearchService.IssueSearchResult],
-  wikiCount: Int,
+@(issues: List[gitbucket.core.service.RepositorySearchService.IssueSearchResult],
   query: String,
   page: Int,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.service.RepositorySearchService
 @gitbucket.core.html.main("Search Results", Some(repository)){
-  @gitbucket.core.search.html.menu("issue", fileCount, issues.size, wikiCount, query, repository){
-    @if(issues.isEmpty){
-      <h4>We couldn't find any code matching '@query'</h4>
-    } else {
-      <h4>We've found @issues.size code @helpers.plural(issues.size, "result")</h4>
+  @gitbucket.core.search.html.menu("issue", query, repository){
+    @if(query.nonEmpty) {
+      @if(issues.isEmpty) {
+        <h4>We couldn't find any code matching '@query'</h4>
+      } else {
+        <h4>We've found @issues.size code @helpers.plural(issues.size, "result")</h4>
+      }
     }
     @issues.drop((page - 1) * RepositorySearchService.IssueLimit).take(RepositorySearchService.IssueLimit).map { issue =>
       <div class="block">
