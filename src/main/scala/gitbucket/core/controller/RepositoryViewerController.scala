@@ -328,7 +328,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               html.commit(id, new JGitUtil.CommitInfo(revCommit),
                 JGitUtil.getBranchesOfCommit(git, revCommit.getName),
                 JGitUtil.getTagsOfCommit(git, revCommit.getName),
-                getCommitComments(repository.owner, repository.name, id, false),
+                getCommitComments(repository.owner, repository.name, id, true),
                 repository, diffs, oldCommitId, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
           }
         }
