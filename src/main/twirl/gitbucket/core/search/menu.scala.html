@@ -1,4 +1,4 @@
-@(active: String, fileCount: Int, issueCount: Int, wikiCount: Int, query: String,
+@(active: String, query: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(body: Html)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.menu("", repository){
@@ -6,25 +6,16 @@
     <li@if(active=="code"){ class="active"}>
       <a href="@helpers.url(repository)/search?q=@helpers.urlEncode(query)&type=code">
         Files
-        @if(fileCount != 0){
-          <span class="badge">@fileCount</span>
-        }
       </a>
     </li>
     <li@if(active=="issue"){ class="active"}>
       <a href="@helpers.url(repository)/search?q=@helpers.urlEncode(query)&type=issue">
         Issues
-        @if(issueCount != 0){
-          <span class="badge">@issueCount</span>
-        }
       </a>
     </li>
     <li@if(active=="wiki"){ class="active"}>
       <a href="@helpers.url(repository)/search?q=@helpers.urlEncode(query)&type=wiki">
         Wiki
-        @if(wikiCount != 0){
-          <span class="badge">@wikiCount</span>
-        }
       </a>
     </li>
   </ul>
