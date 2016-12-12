@@ -213,7 +213,7 @@ object JGitUtil {
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(revision)
-      if(objectId==null) return Nil
+      if(objectId == null) return Nil
       val revCommit = revWalk.parseCommit(objectId)
 
       def useTreeWalk(rev:RevCommit)(f:TreeWalk => Any): Unit = if (path == ".") {
@@ -255,14 +255,14 @@ object JGitUtil {
                           revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, Option[String], RevCommit)] ={
         if(restList.isEmpty){
           result
-        }else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
-          result ++ restList.map{ case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(revCommit)) }
-        }else{
+        } else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
+          result ++ restList.map { case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(revCommit)) }
+        } else {
           val newCommit = revIterator.next
-          val (thisTimeChecks,skips) = restList.partition{ case (tuple, parentsMap) => parentsMap.contains(newCommit) }
+          val (thisTimeChecks,skips) = restList.partition { case (tuple, parentsMap) => parentsMap.contains(newCommit) }
           if(thisTimeChecks.isEmpty){
             findLastCommits(result, restList, revIterator)
-          }else{
+          } else {
             var nextRest = skips
             var nextResult = result
             // Map[(name, oid), (tuple, parentsMap)]
@@ -270,20 +270,20 @@ object JGitUtil {
             lazy val newParentsMap = newCommit.getParents.map(_ -> newCommit).toMap
             useTreeWalk(newCommit){ walk =>
               while(walk.next){
-                rest.remove(walk.getNameString -> walk.getObjectId(0)).map{ case (tuple, _) =>
+                rest.remove(walk.getNameString -> walk.getObjectId(0)).map { case (tuple, _) =>
                   if(newParentsMap.isEmpty){
                     nextResult +:= tupleAdd(tuple, newCommit)
-                  }else{
+                  } else {
                     nextRest +:= tuple -> newParentsMap
                   }
                 }
               }
             }
-            rest.values.map{ case (tuple, parentsMap) =>
+            rest.values.map { case (tuple, parentsMap) =>
               val restParentsMap = parentsMap - newCommit
               if(restParentsMap.isEmpty){
                 nextResult +:= tupleAdd(tuple, parentsMap(newCommit))
-              }else{
+              } else {
                 nextRest +:= tuple -> restParentsMap
               }
             }
@@ -295,7 +295,7 @@ object JGitUtil {
       var fileList: List[(ObjectId, FileMode, String, Option[String])] = Nil
       useTreeWalk(revCommit){ treeWalk =>
         while (treeWalk.next()) {
-          val linkUrl =if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
+          val linkUrl = if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
             getSubmodules(git, revCommit.getTree).find(_.path == treeWalk.getPathString).map(_.url)
           } else None
           fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, linkUrl)
@@ -345,7 +345,7 @@ object JGitUtil {
   def getTreeId(git: Git, revision: String): Option[String] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(revision)
-      if(objectId==null) return None
+      if(objectId == null) return None
       val revCommit = revWalk.parseCommit(objectId)
       Some(revCommit.getTree.name)
     }
@@ -357,7 +357,7 @@ object JGitUtil {
   def getAllFileListByTreeId(git: Git, treeId: String): List[String] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(treeId+"^{tree}")
-      if(objectId==null) return Nil
+      if(objectId == null) return Nil
       using(new TreeWalk(git.getRepository)){ treeWalk =>
         treeWalk.addTree(objectId)
         treeWalk.setRecursive(true)
