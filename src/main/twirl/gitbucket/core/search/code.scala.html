@@ -6,9 +6,7 @@
 @import gitbucket.core.service.RepositorySearchService
 @gitbucket.core.html.main("Search Results", Some(repository)){
   @gitbucket.core.search.html.menu("code", query, repository){
-    @if(query.isEmpty) {
-      <h4>Input the search keyword</h4>
-    } else {
+    @if(query.nonEmpty) {
       @if(files.isEmpty) {
         <h4>We couldn't find any code matching '@query'</h4>
       } else {
