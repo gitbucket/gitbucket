@@ -240,7 +240,6 @@ $(function(){
     var oldline  = $v.attr('oldline');
     var newline  = $v.attr('newline');
     var tmp;
-    var diff;
     if (typeof oldline !== 'undefined') {
       if (typeof newline !== 'undefined') {
         tmp = getInlineContainer();
@@ -248,13 +247,11 @@ $(function(){
         tmp = getInlineContainer('old');
       }
       tmp.children('td:first').html($v.clone().show());
-      diff.find('table.diff').find('.oldline[line-number=' + oldline  + ']')
-      .parent().nextAll(':not(.not-diff):first').before(tmp);
+      diff.find('table.diff').find('.oldline[line-number=' + oldline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
     } else {
       tmp = getInlineContainer('new');
       tmp.children('td:last').html($v.clone().show());
-      diff.find('table.diff').find('.newline[line-number=' + newline  + ']')
-      .parent().nextAll(':not(.not-diff):first').before(tmp);
+      diff.find('table.diff').find('.newline[line-number=' + newline  + ']').parent().nextAll(':not(.not-diff):first').before(tmp);
     }
     if (!diff.find('.toggle-notes').prop('checked')) {
       tmp.hide();
@@ -263,10 +260,10 @@ $(function(){
   function renderStatBar(add, del){
     if(add + del > 5){
       if(add){
-        if(add<del){
-          add = Math.floor(1 + (add * 4 / (add+del)));
+        if(add < del){
+          add = Math.floor(1 + (add * 4 / (add + del)));
         } else {
-          add = Math.ceil(1 + (add * 4 / (add+del)));
+          add = Math.ceil(1 + (add * 4 / (add + del)));
         }
       }
       del = 5 - add;
@@ -290,10 +287,12 @@ $(function(){
     var i = table.data("diff-id");
     var ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
     diffUsingJS('oldText-'+i, 'newText-'+i, diffText.attr('id'), viewType, ignoreWhiteSpace);
-    var add = diffText.find("table").attr("add")*1;
-    var del = diffText.find("table").attr("del")*1;
+    var add = diffText.find("table").attr("add") * 1;
+    var del = diffText.find("table").attr("del") * 1;
     table.find(".diffstat").text(add+del+" ").append(renderStatBar(add,del)).attr("title",add+" additions & "+del+" deletions").tooltip();
-    $('span.diffstat[data-diff-id="'+i+'"]').html('<span class="text-diff-added">+'+add+'</span><span class="text-diff-deleted">-'+del+'</span>').append(renderStatBar(add,del).attr('title',(add+del)+" lines changed").tooltip());
+    $('span.diffstat[data-diff-id="'+i+'"]')
+        .html('<span class="text-diff-added">+' + add + '</span><span class="text-diff-deleted">-' + del + '</span>')
+        .append(renderStatBar(add, del).attr('title', (add + del) + " lines changed").tooltip());
 
     @if(hasWritePermission) {
       diffText.find('.body').each(function(){ $('<b class="add-comment">+</b>').prependTo(this); });
@@ -301,7 +300,7 @@ $(function(){
     @if(showLineNotes){
       var fileName = table.attr('filename');
       $('.inline-comment').each(function(i, v) {
-        if($(this).attr('filename')==fileName){
+        if($(this).attr('filename') == fileName){
           renderOneCommitCommentIntoDiff($(this), table);
         }
       });

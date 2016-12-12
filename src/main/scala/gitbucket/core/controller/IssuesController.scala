@@ -14,12 +14,33 @@ import org.scalatra.Ok
 
 
 class IssuesController extends IssuesControllerBase
-  with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with WebHookIssueCommentService
+  with IssuesService
+  with RepositoryService
+  with AccountService
+  with LabelsService
+  with MilestonesService
+  with ActivityService
+  with HandleCommentService
+  with ReadableUsersAuthenticator
+  with ReferrerAuthenticator
+  with WritableUsersAuthenticator
+  with PullRequestService
+  with WebHookIssueCommentService
+  with CommitsService
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with WebHookIssueCommentService =>
+  self: IssuesService
+    with RepositoryService
+    with AccountService
+    with LabelsService
+    with MilestonesService
+    with ActivityService
+    with HandleCommentService
+    with ReadableUsersAuthenticator
+    with ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with PullRequestService
+    with WebHookIssueCommentService =>
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
