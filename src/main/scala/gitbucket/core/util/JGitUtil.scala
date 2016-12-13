@@ -378,7 +378,7 @@ object JGitUtil {
     .build()
 
   def updateCachedCommits(git: Git): List[CachedCommit] = {
-    val key = git.getRepository.getFS.getGitSystemConfig.getAbsolutePath
+    val key = git.getRepository.getDirectory.getAbsolutePath
     val list = new collection.mutable.ListBuffer[CachedCommit]()
     val i = git.log.all.call.iterator
     while (i.hasNext) {
@@ -391,7 +391,7 @@ object JGitUtil {
   }
 
   def getCachedCommits(git: Git): List[CachedCommit] = {
-    val key = git.getRepository.getFS.getGitSystemConfig.getAbsolutePath
+    val key = git.getRepository.getDirectory.getAbsolutePath
     val value = cache.get(key)
     if(value != null){
       value
@@ -401,7 +401,7 @@ object JGitUtil {
   }
 
   def removeCachedCommits(git: Git): Unit = {
-    val key = git.getRepository.getFS.getGitSystemConfig.getAbsolutePath
+    val key = git.getRepository.getDirectory.getAbsolutePath
     cache.remove(key)
   }
 
