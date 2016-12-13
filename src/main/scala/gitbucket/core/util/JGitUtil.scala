@@ -199,8 +199,7 @@ object JGitUtil {
         )
       } catch {
         // not initialized
-        case e: NoHeadException => RepositoryInfo(
-          owner, repository, 0, Nil, Nil)
+        case e: NoHeadException => RepositoryInfo(owner, repository, 0, Nil, Nil)
 
       }
     }
@@ -232,6 +231,8 @@ object JGitUtil {
       val objectId  = git.getRepository.resolve(revision)
       if(objectId == null) return Nil
       val revCommit = revWalk.parseCommit(objectId)
+      val commits = getCachedCommits(git)
+      val lastCommit = commits.headOption.orNull
 
       @tailrec
       def simplifyPath(tuple: (ObjectId, FileMode, String, Option[String], CachedCommit)): (ObjectId, FileMode, String, Option[String], CachedCommit) = tuple match {
@@ -262,7 +263,7 @@ object JGitUtil {
         if(restList.isEmpty){
           result
         } else if(commits.isEmpty){ // maybe, revCommit has only 1 log. other case, restList be empty
-          result ++ restList.map { case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(null)) } // TODO
+          result ++ restList.map { case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(lastCommit)) }
         } else {
           val newCommit :: restCommits = commits
           val (thisTimeChecks, skips) = restList.partition { case (tuple, parentsMap) => parentsMap.contains(newCommit.commitId) }
@@ -271,12 +272,12 @@ object JGitUtil {
           } else {
             var nextRest = skips
             var nextResult = result
-            // Map[(name, oid), (tuple, parentsMap)]
-            val rest = scala.collection.mutable.Map(thisTimeChecks.map{ t => (t._1._3 -> t._1._1) -> t }:_*)
+            // Map[oid, (tuple, parentsMap)]
+            val rest = scala.collection.mutable.Map(thisTimeChecks.map{ t => t._1._1 -> t } :_*)
             lazy val newParentsMap = newCommit.parentIds.map(_ -> newCommit).toMap
 
-            newCommit.objects.foreach { case (nameString, objectId) =>
-              rest.remove(nameString -> objectId).map { case (tuple, _) =>
+            newCommit.objects(git, path).foreach { objectId =>
+              rest.remove(objectId).map { case (tuple, _) =>
                 if (newParentsMap.isEmpty) {
                   nextResult +:= tupleAdd(tuple, newCommit)
                 } else {
@@ -307,8 +308,6 @@ object JGitUtil {
           fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, linkUrl)
         }
       }
-      val commits = getCachedCommits(git)
-      val lastCommit = commits.headOption.orNull
 
       val nextParentsMap: Map[String, CachedCommit] = Option(lastCommit).map { revCommit =>
         lastCommit.parentIds.map(_ -> lastCommit).toMap
@@ -346,27 +345,30 @@ object JGitUtil {
     author: String,
     email: String,
     parentIds: Seq[String],
-    objects: Seq[(String, ObjectId)]
-  )
+    revCommit: RevCommit
+  ){
+    def objects(git: Git, path: String): Seq[ObjectId] = {
+      val list = new collection.mutable.ListBuffer[ObjectId]()
+      usingTreeWalk(git, path, revCommit) { walk =>
+        while(walk.next) {
+          list += walk.getObjectId(0)
+        }
+      }
+      list
+    }
+  }
 
   object CachedCommit {
-    def apply(git: Git, commit: RevCommit): CachedCommit = {
+    def apply(git: Git, revCommit: RevCommit): CachedCommit = {
       CachedCommit(
-        commit.getFullMessage,
-        commit.getShortMessage,
-        commit.getName,
-        commit.getAuthorIdent.getWhen,
-        commit.getAuthorIdent.getName,
-        commit.getAuthorIdent.getEmailAddress,
-        commit.getParents.map(_.getName).toSeq, {
-          val list = new collection.mutable.ListBuffer[(String, ObjectId)]()
-          usingTreeWalk(git, ".", commit) { walk =>
-            while(walk.next) {
-              list += walk.getNameString -> walk.getObjectId(0)
-            }
-          }
-          list
-        }
+        revCommit.getFullMessage,
+        revCommit.getShortMessage,
+        revCommit.getName,
+        revCommit.getAuthorIdent.getWhen,
+        revCommit.getAuthorIdent.getName,
+        revCommit.getAuthorIdent.getEmailAddress,
+        revCommit.getParents.map(_.getName).toSeq,
+        revCommit
       )
     }
   }
@@ -782,6 +784,7 @@ object JGitUtil {
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
+    removeCachedCommits(git)
     newHeadId
   }
 
