@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.Git
 import Directory._
 import StringUtil._
 import ControlUtil._
+
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib._
@@ -16,7 +17,10 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
 import org.eclipse.jgit.transport.RefSpec
 import java.util.Date
-import org.eclipse.jgit.api.errors.{JGitInternalException, InvalidRefNameException, RefAlreadyExistsException, NoHeadException}
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
+
+import org.cache2k.Cache2kBuilder
+import org.eclipse.jgit.api.errors.{InvalidRefNameException, JGitInternalException, NoHeadException, RefAlreadyExistsException}
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.slf4j.LoggerFactory
 
@@ -202,6 +206,19 @@ object JGitUtil {
     }
   }
 
+  private def usingTreeWalk(git: Git, path: String, rev: RevCommit)(f: TreeWalk => Any): Unit = if (path == ".") {
+    val treeWalk = new TreeWalk(git.getRepository)
+    treeWalk.addTree(rev.getTree)
+    using(treeWalk)(f)
+  } else {
+    val treeWalk = TreeWalk.forPath(git.getRepository, path, rev.getTree)
+    if(treeWalk != null){
+      treeWalk.enterSubtree
+      using(treeWalk)(f)
+    }
+  }
+
+
   /**
    * Returns the file list of the specified path.
    * 
@@ -216,19 +233,8 @@ object JGitUtil {
       if(objectId == null) return Nil
       val revCommit = revWalk.parseCommit(objectId)
 
-      def useTreeWalk(rev:RevCommit)(f:TreeWalk => Any): Unit = if (path == ".") {
-        val treeWalk = new TreeWalk(git.getRepository)
-        treeWalk.addTree(rev.getTree)
-        using(treeWalk)(f)
-      } else {
-        val treeWalk = TreeWalk.forPath(git.getRepository, path, rev.getTree)
-        if(treeWalk != null){
-          treeWalk.enterSubtree
-          using(treeWalk)(f)
-        }
-      }
       @tailrec
-      def simplifyPath(tuple: (ObjectId, FileMode, String, Option[String], RevCommit)): (ObjectId, FileMode, String, Option[String], RevCommit) = tuple match {
+      def simplifyPath(tuple: (ObjectId, FileMode, String, Option[String], CachedCommit)): (ObjectId, FileMode, String, Option[String], CachedCommit) = tuple match {
         case (oid, FileMode.TREE, name, _, commit ) =>
           (using(new TreeWalk(git.getRepository)) { walk =>
             walk.addTree(oid)
@@ -245,55 +251,55 @@ object JGitUtil {
         case _ => tuple
       }
 
-      def tupleAdd(tuple:(ObjectId, FileMode, String, Option[String]), rev:RevCommit) = tuple match {
+      def tupleAdd(tuple: (ObjectId, FileMode, String, Option[String]), rev: CachedCommit) = tuple match {
         case (oid, fmode, name, opt) => (oid, fmode, name, opt, rev)
       }
 
       @tailrec
-      def findLastCommits(result:List[(ObjectId, FileMode, String, Option[String], RevCommit)],
-                          restList:List[((ObjectId, FileMode, String, Option[String]), Map[RevCommit, RevCommit])],
-                          revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, Option[String], RevCommit)] ={
+      def findLastCommits(result: List[(ObjectId, FileMode, String, Option[String], CachedCommit)],
+                          restList: List[((ObjectId, FileMode, String, Option[String]), Map[String, CachedCommit])],
+                          commits: List[CachedCommit]): List[(ObjectId, FileMode, String, Option[String], CachedCommit)] ={
         if(restList.isEmpty){
           result
-        } else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
-          result ++ restList.map { case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(revCommit)) }
+        } else if(commits.isEmpty){ // maybe, revCommit has only 1 log. other case, restList be empty
+          result ++ restList.map { case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(null)) } // TODO
         } else {
-          val newCommit = revIterator.next
-          val (thisTimeChecks,skips) = restList.partition { case (tuple, parentsMap) => parentsMap.contains(newCommit) }
+          val newCommit :: restCommits = commits
+          val (thisTimeChecks, skips) = restList.partition { case (tuple, parentsMap) => parentsMap.contains(newCommit.commitId) }
           if(thisTimeChecks.isEmpty){
-            findLastCommits(result, restList, revIterator)
+            findLastCommits(result, restList, restCommits)
           } else {
             var nextRest = skips
             var nextResult = result
             // Map[(name, oid), (tuple, parentsMap)]
             val rest = scala.collection.mutable.Map(thisTimeChecks.map{ t => (t._1._3 -> t._1._1) -> t }:_*)
-            lazy val newParentsMap = newCommit.getParents.map(_ -> newCommit).toMap
-            useTreeWalk(newCommit){ walk =>
-              while(walk.next){
-                rest.remove(walk.getNameString -> walk.getObjectId(0)).map { case (tuple, _) =>
-                  if(newParentsMap.isEmpty){
-                    nextResult +:= tupleAdd(tuple, newCommit)
-                  } else {
-                    nextRest +:= tuple -> newParentsMap
-                  }
+            lazy val newParentsMap = newCommit.parentIds.map(_ -> newCommit).toMap
+
+            newCommit.objects.foreach { case (nameString, objectId) =>
+              rest.remove(nameString -> objectId).map { case (tuple, _) =>
+                if (newParentsMap.isEmpty) {
+                  nextResult +:= tupleAdd(tuple, newCommit)
+                } else {
+                  nextRest +:= tuple -> newParentsMap
                 }
               }
             }
+
             rest.values.map { case (tuple, parentsMap) =>
-              val restParentsMap = parentsMap - newCommit
+              val restParentsMap = parentsMap - newCommit.commitId
               if(restParentsMap.isEmpty){
-                nextResult +:= tupleAdd(tuple, parentsMap(newCommit))
+                nextResult +:= tupleAdd(tuple, parentsMap(newCommit.commitId))
               } else {
                 nextRest +:= tuple -> restParentsMap
               }
             }
-            findLastCommits(nextResult, nextRest, revIterator)
+            findLastCommits(nextResult, nextRest, restCommits)
           }
         }
       }
 
       var fileList: List[(ObjectId, FileMode, String, Option[String])] = Nil
-      useTreeWalk(revCommit){ treeWalk =>
+      usingTreeWalk(git, path, revCommit){ treeWalk =>
         while (treeWalk.next()) {
           val linkUrl = if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
             getSubmodules(git, revCommit.getTree).find(_.path == treeWalk.getPathString).map(_.url)
@@ -301,22 +307,26 @@ object JGitUtil {
           fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, linkUrl)
         }
       }
-      revWalk.markStart(revCommit)
-      val it = revWalk.iterator
-      val lastCommit = it.next
-      val nextParentsMap = Option(lastCommit).map(_.getParents.map(_ -> lastCommit).toMap).getOrElse(Map())
-      findLastCommits(List.empty, fileList.map(a => a -> nextParentsMap), it)
+      val commits = getCachedCommits(git)
+      val lastCommit = commits.headOption.orNull
+
+      val nextParentsMap: Map[String, CachedCommit] = Option(lastCommit).map { revCommit =>
+        lastCommit.parentIds.map(_ -> lastCommit).toMap
+      }.getOrElse(Map.empty)
+
+      //val nextParentsMap = Option(lastCommit).map(_.getParents.map(_ -> lastCommit).toMap).getOrElse(Map())
+      findLastCommits(List.empty, fileList.map(a => a -> nextParentsMap), commits)
         .map(simplifyPath)
         .map { case (objectId, fileMode, name, linkUrl, commit) =>
           FileInfo(
             objectId,
             fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
             name,
-            getSummaryMessage(commit.getFullMessage, commit.getShortMessage),
-            commit.getName,
-            commit.getAuthorIdent.getWhen,
-            commit.getAuthorIdent.getName,
-            commit.getAuthorIdent.getEmailAddress,
+            getSummaryMessage(commit.fullMessage, commit.shortMessage),
+            commit.commitId,
+            commit.when,
+            commit.author,
+            commit.email,
             linkUrl)
         }.sortWith { (file1, file2) =>
           (file1.isDirectory, file2.isDirectory) match {
@@ -324,8 +334,75 @@ object JGitUtil {
             case (false, true ) => false
            case _ => file1.name.compareTo(file2.name) < 0
           }
-        }.toList
+        }
     }
+  }
+
+  case class CachedCommit(
+    fullMessage: String,
+    shortMessage: String,
+    commitId: String,
+    when: java.util.Date,
+    author: String,
+    email: String,
+    parentIds: Seq[String],
+    objects: Seq[(String, ObjectId)]
+  )
+
+  object CachedCommit {
+    def apply(git: Git, commit: RevCommit): CachedCommit = {
+      CachedCommit(
+        commit.getFullMessage,
+        commit.getShortMessage,
+        commit.getName,
+        commit.getAuthorIdent.getWhen,
+        commit.getAuthorIdent.getName,
+        commit.getAuthorIdent.getEmailAddress,
+        commit.getParents.map(_.getName).toSeq, {
+          val list = new collection.mutable.ListBuffer[(String, ObjectId)]()
+          usingTreeWalk(git, ".", commit) { walk =>
+            while(walk.next) {
+              list += walk.getNameString -> walk.getObjectId(0)
+            }
+          }
+          list
+        }
+      )
+    }
+  }
+
+  private val cache = new Cache2kBuilder[String, List[CachedCommit]]() {}
+    .name("CachedCommit")
+    .expireAfterWrite(1, TimeUnit.MINUTES)
+    .entryCapacity(100)
+    .build()
+
+  def updateCachedCommits(git: Git): List[CachedCommit] = {
+    val key = git.getRepository.getFS.getGitSystemConfig.getAbsolutePath
+    val list = new collection.mutable.ListBuffer[CachedCommit]()
+    val i = git.log.all.call.iterator
+    while (i.hasNext) {
+      val revCommit = i.next()
+      list += CachedCommit(git, revCommit)
+    }
+    val value = list.toList
+    cache.put(key, value)
+    value
+  }
+
+  def getCachedCommits(git: Git): List[CachedCommit] = {
+    val key = git.getRepository.getFS.getGitSystemConfig.getAbsolutePath
+    val value = cache.get(key)
+    if(value != null){
+      value
+    } else {
+      updateCachedCommits(git)
+    }
+  }
+
+  def removeCachedCommits(git: Git): Unit = {
+    val key = git.getRepository.getFS.getGitSystemConfig.getAbsolutePath
+    cache.remove(key)
   }
 
   /**
@@ -877,6 +954,7 @@ object JGitUtil {
 
   /**
    * Returns the last modified commit of specified path
+   *
    * @param git the Git object
    * @param startCommit the search base commit id
    * @param path the path of target file or directory
@@ -959,6 +1037,7 @@ object JGitUtil {
 
   /**
    * Returns sha1
+   *
    * @param owner repository owner
    * @param name  repository name
    * @param revstr  A git object references expression
