@@ -253,10 +253,6 @@ object JGitUtil {
         case _ => tuple
       }
 
-//      def tupleAdd(tuple: (ObjectId, FileMode, String, Option[String]), rev: CachedCommit) = tuple match {
-//        case (oid, fmode, name, opt) => (oid, fmode, name, opt, rev)
-//      }
-
       @tailrec
       def findLastCommits(result: collection.mutable.ListBuffer[(ObjectId, FileMode, String, Option[String], CachedCommit)],
                           fileList: collection.mutable.ListBuffer[((ObjectId, FileMode, String, Option[String]), Map[String, CachedCommit])],
@@ -324,7 +320,7 @@ object JGitUtil {
             objectId,
             fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
             name,
-            getSummaryMessage(commit.fullMessage, commit.shortMessage),
+            commit.message,
             commit.commitId,
             commit.when,
             commit.author,
@@ -341,8 +337,7 @@ object JGitUtil {
   }
 
   case class CachedCommit(
-    fullMessage: String,
-    shortMessage: String,
+    message: String,
     commitId: String,
     when: java.util.Date,
     author: String,
@@ -387,8 +382,7 @@ object JGitUtil {
   object CachedCommit {
     def apply(git: Git, revCommit: RevCommit): CachedCommit = {
       CachedCommit(
-        revCommit.getFullMessage,
-        revCommit.getShortMessage,
+        getSummaryMessage(revCommit.getFullMessage, revCommit.getShortMessage),
         revCommit.getName,
         revCommit.getAuthorIdent.getWhen,
         revCommit.getAuthorIdent.getName,
