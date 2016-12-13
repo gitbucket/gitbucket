@@ -778,6 +778,7 @@ object JGitUtil {
   def createBranch(git: Git, fromBranch: String, newBranch: String) = {
     try {
       git.branchCreate().setStartPoint(fromBranch).setName(newBranch).call()
+      removeCachedCommits(git)
       Right("Branch created.")
     } catch {
       case e: RefAlreadyExistsException => Left("Sorry, that branch already exists.")
