@@ -1,10 +1,12 @@
 package gitbucket.core.service
 
 import gitbucket.core.controller.Context
+import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account, Permission}
 import gitbucket.core.model.Profile._
-import gitbucket.core.util.JGitUtil
-import profile.simple._
+import profile._
+import profile.blockingApi._
+import gitbucket.core.model.Profile.dateColumnType
 
 trait RepositoryService { self: AccountService =>
   import RepositoryService._
@@ -117,6 +119,11 @@ trait RepositoryService { self: AccountService =>
         // Convert labelId
         val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
         val newLabelMap = Labels.filter(_.byRepository(newUserName, newRepositoryName)).map(x => (x.labelName, x.labelId)).list.toMap
+        IssueLabels.insertAll(issueLabels.map(x => x.copy(
+          labelId        = newLabelMap(oldLabelMap(x.labelId)),
+          userName       = newUserName,
+          repositoryName = newRepositoryName
+        )) :_*)
         IssueLabels.insertAll(issueLabels.map(x => x.copy(
           labelId        = newLabelMap(oldLabelMap(x.labelId)),
           userName       = newUserName,
@@ -239,8 +246,7 @@ trait RepositoryService { self: AccountService =>
     }.list
   }
 
-  def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)
-                         (implicit s: Session): List[RepositoryInfo] = {
+  def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)(implicit s: Session): List[RepositoryInfo] = {
     Repositories.filter { t1 =>
       (t1.userName === userName.bind) ||
         (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
@@ -311,8 +317,9 @@ trait RepositoryService { self: AccountService =>
   /**
    * Updates the last activity date of the repository.
    */
-  def updateLastActivityDate(userName: String, repositoryName: String)(implicit s: Session): Unit =
+  def updateLastActivityDate(userName: String, repositoryName: String)(implicit s: Session): Unit = {
     Repositories.filter(_.byRepository(userName, repositoryName)).map(_.lastActivityDate).update(currentDate)
+  }
 
   /**
    * Save repository options.
@@ -349,7 +356,7 @@ trait RepositoryService { self: AccountService =>
    */
   def getCollaborators(userName: String, repositoryName: String)(implicit s: Session): List[(Collaborator, Boolean)] =
     Collaborators
-      .innerJoin(Accounts).on(_.collaboratorName === _.userName)
+      .join(Accounts).on(_.collaboratorName === _.userName)
       .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
       .map { case (t1, t2) => (t1, t2.groupAccount) }
       .sortBy { case (t1, t2) => t1.collaboratorName }
@@ -361,13 +368,13 @@ trait RepositoryService { self: AccountService =>
    */
   def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[Permission] = Nil)(implicit s: Session): List[String] = {
     val q1 = Collaborators
-      .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
+      .join(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
       .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
       .map { case (t1, t2) => (t1.collaboratorName, t1.permission) }
 
     val q2 = Collaborators
-      .innerJoin(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
-      .innerJoin(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
+      .join(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
+      .join(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
       .filter { case ((t1, t2), t3) => t1.byRepository(userName, repositoryName) }
       .map { case ((t1, t2), t3) => (t3.userName, t1.permission) }
 

@@ -1,6 +1,6 @@
 package gitbucket.core.plugin
 
-import scala.slick.jdbc.JdbcBackend.Session
+import slick.jdbc.JdbcBackend.Session
 
 /**
  * Provides Slick Session to Plug-ins.

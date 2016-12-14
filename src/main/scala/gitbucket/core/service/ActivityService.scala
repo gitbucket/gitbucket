@@ -3,7 +3,8 @@ package gitbucket.core.service
 import gitbucket.core.model.Activity
 import gitbucket.core.model.Profile._
 import gitbucket.core.util.JGitUtil
-import profile.simple._
+import profile._
+import profile.blockingApi._
 
 trait ActivityService {
 
@@ -15,7 +16,7 @@ trait ActivityService {
 
   def getActivitiesByUser(activityUserName: String, isPublic: Boolean)(implicit s: Session): List[Activity] =
     Activities
-      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .join(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
       .filter { case (t1, t2) =>
         if(isPublic){
           (t1.activityUserName === activityUserName.bind) && (t2.isPrivate === false.bind)
@@ -30,7 +31,7 @@ trait ActivityService {
 
   def getRecentActivities()(implicit s: Session): List[Activity] =
     Activities
-      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .join(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
       .filter { case (t1, t2) =>  t2.isPrivate === false.bind }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }
@@ -39,7 +40,7 @@ trait ActivityService {
 
   def getRecentActivitiesByOwners(owners : Set[String])(implicit s: Session): List[Activity] =
     Activities
-      .innerJoin(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
+      .join(Repositories).on((t1, t2) => t1.byRepository(t2.userName, t2.repositoryName))
       .filter { case (t1, t2) => (t2.isPrivate === false.bind) || (t2.userName inSetBind owners) }
       .sortBy { case (t1, t2) => t1.activityId desc }
       .map    { case (t1, t2) => t1 }

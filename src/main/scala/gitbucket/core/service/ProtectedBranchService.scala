@@ -1,9 +1,10 @@
 package gitbucket.core.service
 
-import gitbucket.core.model._
+import gitbucket.core.model.{ProtectedBranch, ProtectedBranchContext, CommitState}
 import gitbucket.core.model.Profile._
 import gitbucket.core.plugin.ReceiveHook
-import profile.simple._
+import profile._
+import profile.blockingApi._
 
 import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 
@@ -12,14 +13,14 @@ trait ProtectedBranchService {
   import ProtectedBranchService._
   private def getProtectedBranchInfoOpt(owner: String, repository: String, branch: String)(implicit session: Session): Option[ProtectedBranchInfo] =
     ProtectedBranches
-      .leftJoin(ProtectedBranchContexts)
-      .on{ case (pb, c) => pb.byBranch(c.userName, c.repositoryName, c.branch) }
-      .map{ case (pb, c) => pb -> c.context.? }
+      .joinLeft(ProtectedBranchContexts)
+      .on  { case (pb, c) => pb.byBranch(c.userName, c.repositoryName, c.branch) }
+      .map { case (pb, c) => pb -> c.map(_.context) }
       .filter(_._1.byPrimaryKey(owner, repository, branch))
       .list
       .groupBy(_._1)
-      .map(p => p._1 -> p._2.flatMap(_._2))
-      .map{ case (t1, contexts) =>
+      .map { p => p._1 -> p._2.flatMap(_._2) }
+      .map { case (t1, contexts) =>
         new ProtectedBranchInfo(t1.userName, t1.repositoryName, true, contexts, t1.statusCheckAdmin)
       }.headOption
 

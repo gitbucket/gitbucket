@@ -1,7 +1,7 @@
 package gitbucket.core.model
 
 trait GroupMemberComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
 
   lazy val GroupMembers = TableQuery[GroupMembers]
 

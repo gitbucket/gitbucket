@@ -8,6 +8,7 @@ import org.scalatra.ScalatraBase
 import org.slf4j.LoggerFactory
 import slick.jdbc.JdbcBackend.{Database => SlickDatabase, Session}
 import gitbucket.core.util.Keys
+import gitbucket.core.model.Profile.profile._
 
 /**
  * Controls the transaction with the open session in view pattern.
@@ -29,7 +30,7 @@ class TransactionFilter extends Filter {
         // Register Scalatra error callback to rollback transaction
         ScalatraBase.onFailure { _ =>
           logger.debug("Rolled back transaction")
-          session.rollback()
+          session.conn.rollback()
         }(req.asInstanceOf[HttpServletRequest])
 
         logger.debug("begin transaction")
