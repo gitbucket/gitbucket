@@ -143,7 +143,7 @@
           <i class="octicon octicon-file-text"></i>
         }
         </td>
-        <td class="content-name">
+        <td class="ellipsis-cell" style="width: 20%; min-width: 160px;">
           @if(file.isDirectory){
             @if(file.linkUrl.isDefined){
               <a href="@file.linkUrl">
@@ -164,10 +164,10 @@
             <a href="@helpers.url(repository)/blob@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">@file.name</a>
           }
         </td>
-        <td class="mute">
-          <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message shorten-text" title="@file.message">@helpers.link(file.message, repository)</a>
+        <td class="ellipsis-cell" style="width: 70%;">
+          <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
         </td>
-        <td style="text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
+        <td style="width: 10%; min-width: 125px; text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
       </tr>
       }
     </table>
