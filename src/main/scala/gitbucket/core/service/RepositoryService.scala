@@ -4,8 +4,8 @@ import gitbucket.core.controller.Context
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account, Permission}
 import gitbucket.core.model.Profile._
-import profile._
-import profile.blockingApi._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 trait RepositoryService { self: AccountService =>

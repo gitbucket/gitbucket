@@ -1,9 +1,8 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
-import profile._
-import profile.blockingApi._
-
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.{Account, AccessToken}
 import gitbucket.core.util.StringUtil
 
@@ -21,7 +20,7 @@ trait AccessTokenService {
   def tokenToHash(token: String): String = StringUtil.sha1(token)
 
   /**
-   * @retuen (TokenId, Token)
+   * @return (TokenId, Token)
    */
   def generateAccessToken(userName: String, note: String)(implicit s: Session): (Int, String) = {
     var token: String = null
@@ -43,8 +42,8 @@ trait AccessTokenService {
   def getAccountByAccessToken(token: String)(implicit s: Session): Option[Account] =
     Accounts
       .join(AccessTokens)
-      .filter{ case (ac, t) => (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind) }
-      .map{ case (ac, t) => ac }
+      .filter { case (ac, t) => (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind) }
+      .map { case (ac, t) => ac }
       .firstOption
 
   def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] =

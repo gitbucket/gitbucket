@@ -5,8 +5,8 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._
-import profile._
-import profile.blockingApi._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 

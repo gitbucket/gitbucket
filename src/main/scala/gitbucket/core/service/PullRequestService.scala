@@ -1,11 +1,10 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{Account, Issue, PullRequest, WebHook, CommitStatus, CommitState}
-import gitbucket.core.model.Profile._
+import gitbucket.core.model.{Issue, PullRequest, CommitStatus, CommitState}
 import gitbucket.core.util.JGitUtil
-import profile._
-import profile.blockingApi._
-
+import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 trait PullRequestService { self: IssuesService =>
   import PullRequestService._

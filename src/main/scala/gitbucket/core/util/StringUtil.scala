@@ -101,18 +101,18 @@ object StringUtil {
       .findAllIn(message).matchData.map(_.group(1)).toSeq.distinct
 
 
-  /**
-   * Encode search string for LIKE condition.
-   * This method has been copied from Slick's SqlUtilsComponent.
-   */
-  def likeEncode(s: String) = {
-    val b = new StringBuilder
-    for(c <- s) c match {
-      case '%' | '_' | '^' => b append '^' append c
-      case _ => b append c
-    }
-    b.toString
-  }
+//  /**
+//   * Encode search string for LIKE condition.
+//   * This method has been copied from Slick's SqlUtilsComponent.
+//   */
+//  def likeEncode(s: String) = {
+//    val b = new StringBuilder
+//    for(c <- s) c match {
+//      case '%' | '_' | '^' => b append '^' append c
+//      case _ => b append c
+//    }
+//    b.toString
+//  }
 
 
 }

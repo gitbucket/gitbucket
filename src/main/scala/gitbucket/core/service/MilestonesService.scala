@@ -2,8 +2,8 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Milestone
 import gitbucket.core.model.Profile._
-import profile._
-import profile.blockingApi._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 trait MilestonesService {

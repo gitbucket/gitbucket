@@ -1,10 +1,10 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.{ProtectedBranch, ProtectedBranchContext, CommitState}
-import gitbucket.core.model.Profile._
 import gitbucket.core.plugin.ReceiveHook
-import profile._
-import profile.blockingApi._
+import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
 
