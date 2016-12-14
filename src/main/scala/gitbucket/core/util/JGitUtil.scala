@@ -8,6 +8,7 @@ import ControlUtil._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.revwalk._
 import org.eclipse.jgit.revwalk.filter._
@@ -254,8 +255,8 @@ object JGitUtil {
       }
 
       @tailrec
-      def findLastCommits(result: collection.mutable.ListBuffer[(ObjectId, FileMode, String, Option[String], CachedCommit)],
-                          fileList: collection.mutable.ListBuffer[((ObjectId, FileMode, String, Option[String]), Map[String, CachedCommit])],
+      def findLastCommits(result: ListBuffer[(ObjectId, FileMode, String, Option[String], CachedCommit)],
+                          fileList: ListBuffer[((ObjectId, FileMode, String, Option[String]), Map[String, CachedCommit])],
                           commits: List[CachedCommit]): List[(ObjectId, FileMode, String, Option[String], CachedCommit)] ={
         if(fileList.isEmpty){
           result.toList
@@ -270,36 +271,32 @@ object JGitUtil {
           if(targets.isEmpty){
             findLastCommits(result, fileList, restCommits)
           } else {
-            // Map[oid, (tuple, parentsMap)]
-            val rest = scala.collection.mutable.Map(targets.map {
-              case ((objectId, fileMode, fileName, linkUrl), map) => objectId -> ((objectId, fileMode, fileName, linkUrl), map) } :_*)
-
             val newParentsMap = newCommit.parentIds.map(_ -> newCommit).toMap
+            val objectIds = newCommit.objects(git, path)
 
-            newCommit.objects(git, path).foreach { objectId =>
-              rest.remove(objectId).map { case ((objectId, fileMode, fileName, linkUrl), _) =>
-                if (newParentsMap.isEmpty) {
+            targets.foreach { case ((objectId, fileMode, fileName, linkUrl), parentsMap) =>
+              if(objectIds.contains(objectId)){
+                if(newParentsMap.isEmpty){
                   result.append((objectId, fileMode, fileName, linkUrl, newCommit))
                 } else {
                   skips.append((objectId, fileMode, fileName, linkUrl) -> newParentsMap)
                 }
+              } else {
+                val restParentsMap = parentsMap - newCommit.commitId
+                if(restParentsMap.isEmpty){
+                  result.append((objectId, fileMode, fileName, linkUrl, parentsMap(newCommit.commitId)))
+                } else {
+                  skips.append((objectId, fileMode, fileName, linkUrl) -> restParentsMap)
+                }
               }
             }
 
-            rest.values.map { case ((objectId, fileMode, fileName, linkUrl), parentsMap) =>
-              val restParentsMap = parentsMap - newCommit.commitId
-              if(restParentsMap.isEmpty){
-                result.append((objectId, fileMode, fileName, linkUrl, parentsMap(newCommit.commitId)))
-              } else {
-                skips.append((objectId, fileMode, fileName, linkUrl) -> restParentsMap)
-              }
-            }
             findLastCommits(result, skips, restCommits)
           }
         }
       }
 
-      val fileList = new collection.mutable.ListBuffer[(ObjectId, FileMode, String, Option[String])]()
+      val fileList = new ListBuffer[(ObjectId, FileMode, String, Option[String])]()
       usingTreeWalk(git, path, revCommit){ treeWalk =>
         while (treeWalk.next()) {
           val linkUrl = if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
@@ -362,7 +359,7 @@ object JGitUtil {
     }
 
     private def _objects(git: Git, path: String): List[ObjectId] = {
-      val buffer = new collection.mutable.ListBuffer[ObjectId]()
+      val buffer = new ListBuffer[ObjectId]()
       usingTreeWalk(git, path, revCommit) { walk =>
         while(walk.next) {
           buffer += walk.getObjectId(0)
@@ -401,7 +398,7 @@ object JGitUtil {
 
   def updateCachedCommits(git: Git): List[CachedCommit] = {
     val key = git.getRepository.getDirectory.getAbsolutePath
-    val list = new collection.mutable.ListBuffer[CachedCommit]()
+    val list = new ListBuffer[CachedCommit]()
     val i = git.log.all.call.iterator
     while (i.hasNext) {
       val revCommit = i.next()
