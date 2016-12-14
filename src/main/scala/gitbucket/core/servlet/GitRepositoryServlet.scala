@@ -139,6 +139,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        JGitUtil.removeCachedCommits(git)
+
         val pushedIds = scala.collection.mutable.Set[String]()
         commands.asScala.foreach { command =>
           logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
