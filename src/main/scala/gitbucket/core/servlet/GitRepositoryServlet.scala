@@ -126,7 +126,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
         }
       }
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
-        existIds = JGitUtil.getCachedCommits(git).map(_.commitId)
+        existIds = JGitUtil.getAllCommitIds(git)
       }
     } catch {
       case ex: Exception => {

@@ -230,10 +230,10 @@ object JGitUtil {
    */
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
-      val objectId  = git.getRepository.resolve(revision)
+      val objectId = git.getRepository.resolve(revision)
       if(objectId == null) return Nil
-      val revCommit = revWalk.parseCommit(objectId)
-      val commits = getCachedCommits(git)
+      val revCommit  = revWalk.parseCommit(objectId)
+      val commits    = getCachedCommits(git, objectId)
       val lastCommit = commits.headOption.orNull
 
       @tailrec
@@ -306,8 +306,8 @@ object JGitUtil {
         }
       }
 
-      val nextParentsMap: Map[String, CachedCommit] = Option(lastCommit).map { revCommit =>
-        lastCommit.parentIds.map(_ -> lastCommit).toMap
+      val nextParentsMap: Map[String, CachedCommit] = Option(lastCommit).map { commit =>
+        commit.parentIds.map(_ -> commit).toMap
       }.getOrElse(Map.empty)
 
       findLastCommits(new collection.mutable.ListBuffer(), fileList.map(a => a -> nextParentsMap), commits)
@@ -390,39 +390,43 @@ object JGitUtil {
     }
   }
 
-  private val commitCache = new Cache2kBuilder[String, List[CachedCommit]]() {}
+  private val commitCache = new Cache2kBuilder[(String, String), List[CachedCommit]]() {}
     .name("CachedCommit")
     .expireAfterWrite(60, TimeUnit.MINUTES)
     .entryCapacity(100)
     .build()
 
-  def updateCachedCommits(git: Git): List[CachedCommit] = {
-    val key = git.getRepository.getDirectory.getAbsolutePath
+  def updateCachedCommits(git: Git, start: ObjectId): List[CachedCommit] = {
     val list = new ListBuffer[CachedCommit]()
-    val i = git.log.all.call.iterator
+    val i = git.log.add(start).call.iterator
     while (i.hasNext) {
       val revCommit = i.next()
       list += CachedCommit(git, revCommit)
     }
     val value = list.toList
-    commitCache.put(key, value)
+    commitCache.put((git.getRepository.getDirectory.getAbsolutePath, start.getName), value)
     value
   }
 
-  def getCachedCommits(git: Git): List[CachedCommit] = {
-    val key = git.getRepository.getDirectory.getAbsolutePath
-    val value = commitCache.get(key)
+  def getCachedCommits(git: Git, start: ObjectId): List[CachedCommit] = {
+    val value = commitCache.get((git.getRepository.getDirectory.getAbsolutePath, start.getName))
     if(value != null){
       value
     } else {
-      updateCachedCommits(git)
+      updateCachedCommits(git, start)
     }
   }
 
   def removeCachedCommits(git: Git): Unit = {
     val key = git.getRepository.getDirectory.getAbsolutePath
-    commitCache.remove(key)
     // TODO replace with function literal in Scala 2.12
+    commitCache.forEach(new Consumer[CacheEntry[(String, String), List[CachedCommit]]] {
+      override def accept(t: CacheEntry[(String, String), List[CachedCommit]]): Unit = {
+        if(t.getKey._1 == key){
+          commitCache.remove(t.getKey)
+        }
+      }
+    })
     treeCache.forEach(new Consumer[CacheEntry[(String, String, String), List[ObjectId]]] {
       override def accept(t: CacheEntry[(String, String, String), List[ObjectId]]): Unit = {
         if(t.getKey._1 == key){
