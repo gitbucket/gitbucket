@@ -23,7 +23,7 @@
     <div class="sidebar">
       <ul class="sidebar-menu">
         @menuitem("", "files", "Files", "code")
-        @if(repository.commitCount != 0) {
+        @if(repository.branchList.nonEmpty) {
           @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
           @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
         }
