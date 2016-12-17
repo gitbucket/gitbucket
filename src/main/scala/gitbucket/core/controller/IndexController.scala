@@ -160,4 +160,18 @@ trait IndexControllerBase extends ControllerBase {
       }
     }
   })
+
+  get("/searchrepo"){
+    val query = params("query").trim.toLowerCase
+    val visibleRepositories = getVisibleRepositories(context.loginAccount, None)
+    val repositories = visibleRepositories.filter { repository =>
+      repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0
+    }
+    context.loginAccount.map { account =>
+      gitbucket.core.search.html.repositories(query, repositories, Nil, getUserRepositories(account.userName, withoutPhysicalInfo = true))
+    }.getOrElse {
+      gitbucket.core.search.html.repositories(query, repositories, visibleRepositories, Nil)
+    }
+  }
+
 }

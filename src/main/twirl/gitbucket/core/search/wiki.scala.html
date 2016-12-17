@@ -10,7 +10,7 @@
       @if(wikis.isEmpty) {
         <h4>We couldn't find any code matching '@query'</h4>
       } else {
-        <h4>We've found @wikis.size code @helpers.plural(wikis.size, "result")</h4>
+        <h4>We've found @wikis.size @helpers.plural(wikis.size, "page")</h4>
       }
     }
     @wikis.drop((page - 1) * RepositorySearchService.CodeLimit).take(RepositorySearchService.CodeLimit).map { file =>

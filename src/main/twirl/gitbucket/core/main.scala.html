@@ -61,6 +61,12 @@
                 <input type="hidden" name="repository" value="@repository.name"/>
               </div>
             </form>
+          }.getOrElse {
+            <form id="search" action="@context.path/searchrepo" method="GET" class="pc navbar-form navbar-left" role="search">
+              <div class="form-group">
+                <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search repository"/>
+              </div>
+            </form>
           }
           <ul class="pc nav navbar-nav">
             @if(context.loginAccount.isDefined){
