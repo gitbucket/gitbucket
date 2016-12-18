@@ -133,9 +133,12 @@ trait ApiControllerBase extends ControllerBase {
           val largeFile = params.get("large_file").exists(s => s.equals("true"))
           val content = getContentFromId(git, f.id, largeFile)
           request.getHeader("Accept") match {
-            case "application/vnd.github.v3.raw" =>
+            case "application/vnd.github.v3.raw" => {
+              contentType = "application/vnd.github.v3.raw"
               content
-            case "application/vnd.github.v3.html" if isRenderable(f.name) =>
+            }
+            case "application/vnd.github.v3.html" if isRenderable(f.name) => {
+              contentType = "application/vnd.github.v3.html"
               content.map(c =>
                 List(
                   "<div data-path=\"", path, "\" id=\"file\">", "<article>",
@@ -143,7 +146,9 @@ trait ApiControllerBase extends ControllerBase {
                   "</article>", "</div>"
                 ).mkString
               )
-            case "application/vnd.github.v3.html" =>
+            }
+            case "application/vnd.github.v3.html" => {
+              contentType = "application/vnd.github.v3.html"
               content.map(c =>
                 List(
                   "<div data-path=\"", path, "\" id=\"file\">", "<div class=\"plain\">", "<pre>",
@@ -151,6 +156,7 @@ trait ApiControllerBase extends ControllerBase {
                   "</pre>", "</div>", "</div>"
                 ).mkString
               )
+            }
             case _ =>
               Some(JsonFormat(ApiContents(f, content)))
           }
