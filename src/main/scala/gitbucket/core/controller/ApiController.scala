@@ -278,6 +278,19 @@ trait ApiControllerBase extends ControllerBase {
   }
 
   /**
+   * https://developer.github.com/v3/issues/#get-a-single-issue
+   */
+  get("/api/v3/repos/:owner/:repository/issues/:id")(referrersOnly { repository =>
+    (for{
+      issueId  <- params("id").toIntOpt
+      issue <- getIssue(repository.owner, repository.name, issueId.toString)
+      openedUser <- getAccountByUserName(issue.openedUserName)
+    } yield {
+      JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(openedUser)))
+    }) getOrElse NotFound()
+  })
+
+  /**
    * https://developer.github.com/v3/issues/comments/#list-comments-on-an-issue
    */
   get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
