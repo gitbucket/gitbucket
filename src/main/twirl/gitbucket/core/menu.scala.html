@@ -67,6 +67,7 @@
           <div class="head">
             @gitbucket.core.helper.html.repositoryicon(repository, true)
             <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
+            <a href="@helpers.url(repository)/search"><i class="octicon octicon-search"></i></a>
 
             @defining(repository.repository){ x =>
               @if(repository.repository.originRepositoryName.isDefined){

@@ -86,7 +86,9 @@
           <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
       }
-      <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here" @if(!hasWritePermission){disabled}><i class="octicon octicon-plus"></i></a>
+      @if(hasWritePermission){
+        <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here"><i class="octicon octicon-plus"></i></a>
+      }
     </div>
     <table class="table table-hover">
       @*

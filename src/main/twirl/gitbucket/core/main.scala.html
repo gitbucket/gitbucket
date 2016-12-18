@@ -53,21 +53,11 @@
               <span class="sr-only">Toggle navigation</span>
             </a>
           }
-          @repository.map { repository =>
-            <form id="search" action="@context.path/search" method="POST" class="pc navbar-form navbar-left" role="search">
-              <div class="form-group">
-                <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search this repository"/>
-                <input type="hidden" name="owner" value="@repository.owner"/>
-                <input type="hidden" name="repository" value="@repository.name"/>
-              </div>
-            </form>
-          }.getOrElse {
-            <form id="search" action="@context.path/searchrepo" method="GET" class="pc navbar-form navbar-left" role="search">
-              <div class="form-group">
-                <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search repository"/>
-              </div>
-            </form>
-          }
+          <form id="search" action="@context.path/search" method="GET" class="pc navbar-form navbar-left" role="search">
+            <div class="form-group">
+              <input type="text" name="query" id="navbar-search-input" class="form-control" placeholder="Search repository"/>
+            </div>
+          </form>
           <ul class="pc nav navbar-nav">
             @if(context.loginAccount.isDefined){
               <li><a href="@context.path/dashboard/pulls">Pull requests</a></li>

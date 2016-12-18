@@ -5,7 +5,7 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("GitBucket"){
   @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
-    <form action="@context.path/searchrepo" method="GET" class="form-inline">
+    <form action="@context.path/search" method="GET" class="form-inline">
       <input type="text" name="query" value="@query" class="form-control" style="width: 250px; margin-bottom: 0px;"/>
       <input type="submit" value="Search" class="btn btn-default"/>
     </form>
