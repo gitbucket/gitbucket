@@ -31,6 +31,12 @@ libraryDependencies ++= Seq(
   "commons-io"                % "commons-io"                   % "2.4",
   "io.github.gitbucket"       % "solidbase"                    % "1.0.0",
   "io.github.gitbucket"       % "markedj"                      % "1.0.9",
+
+  "com.atlassian.commonmark"  % "commonmark"                   % "0.7.1",
+  "com.atlassian.commonmark"  % "commonmark-ext-gfm-tables"    % "0.7.1",
+  "com.atlassian.commonmark"  % "commonmark-ext-autolink"      % "0.7.1",
+  "com.atlassian.commonmark"  % "commonmark-ext-heading-anchor" % "0.7.1",
+
   "org.apache.commons"        % "commons-compress"             % "1.11",
   "org.apache.commons"        % "commons-email"                % "1.4",
   "org.apache.httpcomponents" % "httpclient"                   % "4.5.1",
