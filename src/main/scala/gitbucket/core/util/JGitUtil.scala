@@ -185,7 +185,6 @@ object JGitUtil {
     cache.forEach(new Consumer[CacheEntry[String, Int]] {
       override def accept(entry: CacheEntry[String, Int]): Unit = {
         if(entry.getKey.startsWith(keyPrefix)){
-          println("[remove]" + entry.getKey)
           cache.remove(entry.getKey)
         }
       }
@@ -209,7 +208,6 @@ object JGitUtil {
         commitCount
       }
     } else {
-      println("[hit]" + entry.getKey)
       entry.getValue
     }
   }
