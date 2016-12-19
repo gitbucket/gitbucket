@@ -76,7 +76,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      Nil,
       getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 
@@ -101,7 +101,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      Nil,
       getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 

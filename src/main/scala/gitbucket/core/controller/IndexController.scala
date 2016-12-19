@@ -131,13 +131,8 @@ trait IndexControllerBase extends ControllerBase {
   })
 
   // TODO Move to RepositoryViwerController?
-  post("/search", searchForm){ form =>
-    redirect(s"/${form.owner}/${form.repository}/search?q=${StringUtil.urlEncode(form.query)}")
-  }
-
-  // TODO Move to RepositoryViwerController?
   get("/:owner/:repository/search")(referrersOnly { repository =>
-    defining(params("q").trim, params.getOrElse("type", "code")){ case (query, target) =>
+    defining(params.getOrElse("q", "").trim, params.getOrElse("type", "code")){ case (query, target) =>
       val page = try {
         val i = params.getOrElse("page", "1").toInt
         if(i <= 0) 1 else i
@@ -160,4 +155,18 @@ trait IndexControllerBase extends ControllerBase {
       }
     }
   })
+
+  get("/search"){
+    val query = params.getOrElse("query", "").trim.toLowerCase
+    val visibleRepositories = getVisibleRepositories(context.loginAccount, None)
+    val repositories = visibleRepositories.filter { repository =>
+      repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0
+    }
+    context.loginAccount.map { account =>
+      gitbucket.core.search.html.repositories(query, repositories, Nil, getUserRepositories(account.userName, withoutPhysicalInfo = true))
+    }.getOrElse {
+      gitbucket.core.search.html.repositories(query, repositories, visibleRepositories, Nil)
+    }
+  }
+
 }

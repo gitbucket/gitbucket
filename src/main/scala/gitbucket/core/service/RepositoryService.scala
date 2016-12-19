@@ -421,26 +421,20 @@ trait RepositoryService { self: AccountService =>
 object RepositoryService {
 
   case class RepositoryInfo(owner: String, name: String, repository: Repository,
-    issueCount: Int, pullCount: Int, commitCount: Int, forkedCount: Int,
+    issueCount: Int, pullCount: Int, forkedCount: Int,
     branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]) {
 
     /**
      * Creates instance with issue count and pull request count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
-      this(
-        repo.owner, repo.name, model,
-        issueCount, pullCount, repo.commitCount, forkedCount,
-        repo.branchList, repo.tags, managers)
+      this(repo.owner, repo.name, model, issueCount, pullCount, forkedCount, repo.branchList, repo.tags, managers)
 
     /**
      * Creates instance without issue count and pull request count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, 	forkedCount: Int, managers: Seq[String]) =
-      this(
-        repo.owner, repo.name, model,
-        0, 0, repo.commitCount, forkedCount,
-        repo.branchList, repo.tags, managers)
+      this(repo.owner, repo.name, model, 0, 0, forkedCount, repo.branchList, repo.tags, managers)
 
     def httpUrl(implicit context: Context): String = RepositoryService.httpUrl(owner, name)
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)
@@ -454,7 +448,6 @@ object RepositoryService {
 
       (id, path.substring(id.length).stripPrefix("/"))
     }
-
   }
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"

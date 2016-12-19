@@ -238,7 +238,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, ctype, token)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
-        val commits = if(repository.commitCount == 0) List.empty else git.log
+        val commits = if(JGitUtil.isEmpty(git)) List.empty else git.log
           .add(git.getRepository.resolve(repository.repository.defaultBranch))
           .setMaxCount(4)
           .call.iterator.asScala.map(new CommitInfo(_)).toList

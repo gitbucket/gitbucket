@@ -546,10 +546,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * @return HTML of the file list
    */
   private def fileList(repository: RepositoryService.RepositoryInfo, revstr: String = "", path: String = ".") = {
-    if(repository.commitCount == 0){
-      html.guide(repository, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
-    } else {
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      if(JGitUtil.isEmpty(git)){
+        html.guide(repository, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
+      } else {
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
@@ -569,9 +569,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
-              files, readme, hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
+              JGitUtil.getCommitCount(repository.owner, repository.name, revision),
+              files,
+              readme,
+              hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
               getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),
-              flash.get("info"), flash.get("error"))
+              flash.get("info"),
+              flash.get("error")
+            )
           }
         } getOrElse NotFound()
       }

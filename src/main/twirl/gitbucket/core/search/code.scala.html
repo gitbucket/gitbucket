@@ -5,7 +5,7 @@
 @import gitbucket.core.view.helpers
 @import gitbucket.core.service.RepositorySearchService
 @gitbucket.core.html.main("Search Results", Some(repository)){
-  @gitbucket.core.search.html.menu("code", query, repository){
+  @gitbucket.core.search.html.menu("files", query, repository){
     @if(query.nonEmpty) {
       @if(files.isEmpty) {
         <h4>We couldn't find any code matching '@query'</h4>

@@ -32,14 +32,11 @@ object JGitUtil {
    *
    * @param owner the user name of the repository owner
    * @param name the repository name
-   * @param commitCount the commit count. If the repository has over 1000 commits then this property is 1001.
    * @param branchList the list of branch names
    * @param tags the list of tags
    */
-  case class RepositoryInfo(owner: String, name: String, commitCount: Int, branchList: List[String], tags: List[TagInfo]){
-    def this(owner: String, name: String) = {
-      this(owner, name, 0, Nil, Nil)
-    }
+  case class RepositoryInfo(owner: String, name: String, branchList: List[String], tags: List[TagInfo]){
+    def this(owner: String, name: String) = this(owner, name, Nil, Nil)
   }
 
   /**
@@ -169,6 +166,18 @@ object JGitUtil {
     revWalk.dispose
     revCommit
   }
+
+  /**
+   * Returns the number of commits in the specified branch or commit.
+   * If the specified branch has over 10000 commits, this method returns 100001.
+   */
+  def getCommitCount(owner: String, repository: String, branch: String): Int = {
+    using(Git.open(getRepositoryDir(owner, repository))){ git =>
+      val commitId = git.getRepository.resolve(branch)
+      val commitCount = git.log.add(commitId).call.iterator.asScala.take(10001).size
+      commitCount
+    }
+  }
   
   /**
    * Returns the repository information. It contains branch names and tag names.
@@ -176,13 +185,7 @@ object JGitUtil {
   def getRepositoryInfo(owner: String, repository: String): RepositoryInfo = {
     using(Git.open(getRepositoryDir(owner, repository))){ git =>
       try {
-        // get commit count
-        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(10001).sum
-
-        RepositoryInfo(
-          owner, repository,
-          // commit count
-          commitCount,
+        RepositoryInfo(owner, repository,
           // branches
           git.branchList.call.asScala.map { ref =>
             ref.getName.stripPrefix("refs/heads/")
@@ -195,9 +198,7 @@ object JGitUtil {
         )
       } catch {
         // not initialized
-        case e: NoHeadException => RepositoryInfo(
-          owner, repository, 0, Nil, Nil)
-
+        case e: NoHeadException => RepositoryInfo(owner, repository, Nil, Nil)
       }
     }
   }
@@ -212,7 +213,7 @@ object JGitUtil {
    */
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
-      val objectId  = git.getRepository.resolve(revision)
+      val objectId = git.getRepository.resolve(revision)
       if(objectId == null) return Nil
       val revCommit = revWalk.parseCommit(objectId)
 

@@ -5,12 +5,12 @@
 @import gitbucket.core.view.helpers
 @import gitbucket.core.service.RepositorySearchService
 @gitbucket.core.html.main("Search Results", Some(repository)){
-  @gitbucket.core.search.html.menu("issue", query, repository){
+  @gitbucket.core.search.html.menu("issues", query, repository){
     @if(query.nonEmpty) {
       @if(issues.isEmpty) {
         <h4>We couldn't find any code matching '@query'</h4>
       } else {
-        <h4>We've found @issues.size code @helpers.plural(issues.size, "result")</h4>
+        <h4>We've found @issues.size @helpers.plural(issues.size, "issue")</h4>
       }
     }
     @issues.drop((page - 1) * RepositorySearchService.IssueLimit).take(RepositorySearchService.IssueLimit).map { issue =>
