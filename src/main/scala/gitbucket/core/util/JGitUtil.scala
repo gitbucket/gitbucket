@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.Git
 import Directory._
 import StringUtil._
 import ControlUtil._
+
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib._
@@ -16,7 +17,11 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
 import org.eclipse.jgit.transport.RefSpec
 import java.util.Date
-import org.eclipse.jgit.api.errors.{JGitInternalException, InvalidRefNameException, RefAlreadyExistsException, NoHeadException}
+import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
+
+import org.cache2k.{Cache2kBuilder, CacheEntry}
+import org.eclipse.jgit.api.errors.{InvalidRefNameException, JGitInternalException, NoHeadException, RefAlreadyExistsException}
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.slf4j.LoggerFactory
 
@@ -167,18 +172,48 @@ object JGitUtil {
     revCommit
   }
 
+  private val cache = new Cache2kBuilder[String, Int]() {}
+    .name("commit-count")
+    .expireAfterWrite(24, TimeUnit.HOURS)
+    .entryCapacity(10000)
+    .build()
+
+  def removeCache(git: Git): Unit = {
+    val dir = git.getRepository.getDirectory
+    val keyPrefix = dir.getAbsolutePath + "@"
+
+    cache.forEach(new Consumer[CacheEntry[String, Int]] {
+      override def accept(entry: CacheEntry[String, Int]): Unit = {
+        if(entry.getKey.startsWith(keyPrefix)){
+          println("[remove]" + entry.getKey)
+          cache.remove(entry.getKey)
+        }
+      }
+    })
+  }
+
   /**
    * Returns the number of commits in the specified branch or commit.
    * If the specified branch has over 10000 commits, this method returns 100001.
    */
   def getCommitCount(owner: String, repository: String, branch: String): Int = {
-    using(Git.open(getRepositoryDir(owner, repository))){ git =>
-      val commitId = git.getRepository.resolve(branch)
-      val commitCount = git.log.add(commitId).call.iterator.asScala.take(10001).size
-      commitCount
+    val dir = getRepositoryDir(owner, repository)
+    val key = dir.getAbsolutePath + "@" + branch
+    val entry = cache.getEntry(key)
+
+    if(entry == null) {
+      using(Git.open(dir)) { git =>
+        val commitId = git.getRepository.resolve(branch)
+        val commitCount = git.log.add(commitId).call.iterator.asScala.take(10001).size
+        cache.put(key, commitCount)
+        commitCount
+      }
+    } else {
+      println("[hit]" + entry.getKey)
+      entry.getValue
     }
   }
-  
+
   /**
    * Returns the repository information. It contains branch names and tag names.
    */
@@ -706,6 +741,8 @@ object JGitUtil {
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
+    removeCache(git)
+
     newHeadId
   }
 
@@ -878,6 +915,7 @@ object JGitUtil {
 
   /**
    * Returns the last modified commit of specified path
+   *
    * @param git the Git object
    * @param startCommit the search base commit id
    * @param path the path of target file or directory
@@ -960,6 +998,7 @@ object JGitUtil {
 
   /**
    * Returns sha1
+   *
    * @param owner repository owner
    * @param name  repository name
    * @param revstr  A git object references expression
