@@ -65,6 +65,14 @@ Support
 
 Release Notes
 -------------
+## 4.8 - 23 Dec 2016
+- Search for repository names from the global header
+- Filter repositories on the sidebar of the dashboard
+- Search issues and wiki
+- Keep pull request comments after new commits are pushed
+- New web API to get a single issue
+- Performance improvement for the repository viewer
+
 ### 4.7.1 - 28 Nov 2016
 - Bug fix: group repositories are not shown in the your repositories list on the sidebar
 - Small performance improvement of the dashboard
