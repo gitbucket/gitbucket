@@ -34,7 +34,7 @@ You can specify following options:
 - `--host=[HOSTNAME]`
 - `--gitbucket.home=[DATA_DIR]`
 
-Of cource, you can also deploy gitbucket.war to the servlet container which supports Servlet 3.0.
+Of course, you can also deploy gitbucket.war to the servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
 
 About installation on Mac or Windows Server (with IIS), configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
