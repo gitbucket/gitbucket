@@ -91,7 +91,7 @@ object DatabaseType {
     val liquiDriver = new PostgresDatabase()
   }
 
-  object BlockingPostgresDriver extends slick.driver.PostgresDriver with BlockingJdbcProfile {
+  object BlockingPostgresDriver extends slick.jdbc.PostgresProfile with BlockingJdbcProfile {
     override def quoteIdentifier(id: String): String = {
       val s = new StringBuilder(id.length + 4) append '"'
       for(c <- id) if(c == '"') s append "\"\"" else s append c.toLower

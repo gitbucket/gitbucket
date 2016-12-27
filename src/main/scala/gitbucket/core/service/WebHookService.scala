@@ -18,6 +18,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.ObjectId
 import org.slf4j.LoggerFactory
 import scala.concurrent._
+import scala.util.{Success, Failure}
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
@@ -130,7 +131,7 @@ trait WebHookService {
             httpPost.releaseConnection()
             logger.debug(s"end web hook invocation for ${webHook}")
             res
-          }catch{
+          } catch {
             case e:Throwable => {
               if(!reqPromise.isCompleted){
                 reqPromise.failure(e)
@@ -139,11 +140,9 @@ trait WebHookService {
             }
           }
         }
-        f.onSuccess {
-          case s => logger.debug(s"Success: web hook request to ${webHook.url}")
-        }
-        f.onFailure {
-          case t => logger.error(s"Failed: web hook request to ${webHook.url}", t)
+        f.onComplete {
+          case Success(_) => logger.debug(s"Success: web hook request to ${webHook.url}")
+          case Failure(t) => logger.error(s"Failed: web hook request to ${webHook.url}", t)
         }
         (webHook, json, reqPromise.future, f)
       }

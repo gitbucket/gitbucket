@@ -7,6 +7,7 @@ import gitbucket.core.servlet.Database
 import gitbucket.core.view.Markdown
 
 import scala.concurrent._
+import scala.util.{Success, Failure}
 import ExecutionContext.Implicits.global
 import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import org.slf4j.LoggerFactory
@@ -93,11 +94,9 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       }
       "Notifications Successful."
     }
-    f onSuccess {
-      case s => logger.debug(s)
-    }
-    f onFailure {
-      case t => logger.error("Notifications Failed.", t)
+    f.onComplete {
+      case Success(s) => logger.debug(s)
+      case Failure(t) => logger.error("Notifications Failed.", t)
     }
   }
 
