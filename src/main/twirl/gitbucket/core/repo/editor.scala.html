@@ -136,6 +136,7 @@ $(function(){
       $.post('@helpers.url(repository)/_preview', {
         content          : editor.getValue(),
         enableWikiLink   : false,
+        filename         : $('#newFileName').val(),
         enableRefsLink   : false,
         enableLineBreaks : false,
         enableTaskList   : false

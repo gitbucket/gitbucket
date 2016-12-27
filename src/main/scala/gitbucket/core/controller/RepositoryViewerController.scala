@@ -102,16 +102,28 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/_preview")(referrersOnly { repository =>
     contentType = "text/html"
-    helpers.markdown(
-      markdown = params("content"),
-      repository = repository,
-      enableWikiLink = params("enableWikiLink").toBoolean,
-      enableRefsLink = params("enableRefsLink").toBoolean,
-      enableLineBreaks = params("enableLineBreaks").toBoolean,
-      enableTaskList = params("enableTaskList").toBoolean,
-      enableAnchor = false,
-      hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-    )
+    val filename = params.get("filename")
+    filename match {
+      case Some(f) => helpers.renderMarkup(
+          filePath = List(f),
+          fileContent = params("content"),
+          branch = "master",
+          repository = repository,
+          enableWikiLink = params("enableWikiLink").toBoolean,
+          enableRefsLink = params("enableRefsLink").toBoolean,
+          enableAnchor = false
+        )
+      case None => helpers.markdown(
+          markdown = params("content"),
+          repository = repository,
+          enableWikiLink = params("enableWikiLink").toBoolean,
+          enableRefsLink = params("enableRefsLink").toBoolean,
+          enableLineBreaks = params("enableLineBreaks").toBoolean,
+          enableTaskList = params("enableTaskList").toBoolean,
+          enableAnchor = false,
+          hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+        )
+    }
   })
 
   /**
