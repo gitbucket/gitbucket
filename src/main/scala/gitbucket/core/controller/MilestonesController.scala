@@ -27,7 +27,7 @@ trait MilestonesControllerBase extends ControllerBase {
       params.getOrElse("state", "open"),
       getMilestonesWithIssueCount(repository.owner, repository.name),
       repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
 
   get("/:owner/:repository/issues/milestones/new")(writableUsersOnly {

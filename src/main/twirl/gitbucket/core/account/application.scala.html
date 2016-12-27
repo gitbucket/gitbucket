@@ -19,8 +19,8 @@
           </div>
           <a href="@context.path/@account.userName/_personalToken/delete/@token.accessTokenId" class="btn btn-sm btn-danger pull-right">Delete</a>
           <div style="width: 50%;">
-            @gitbucket.core.helper.html.copy("generated-token-copy", tokenString){
-              <input type="text" value="@tokenString" class="form-control input-sm" readonly>
+            @gitbucket.core.helper.html.copy("generated-token", "generated-token-copy", tokenString){
+              <input type="text" value="@tokenString" class="form-control input-sm" id="generated-token" readonly>
             }
           </div>
           <hr style="margin-top: 10px;">

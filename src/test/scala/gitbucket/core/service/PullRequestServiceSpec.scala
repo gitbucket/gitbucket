@@ -4,7 +4,7 @@ import gitbucket.core.model._
 import org.scalatest.FunSpec
 
 class PullRequestServiceSpec extends FunSpec with ServiceSpecBase
-  with PullRequestService with IssuesService with AccountService with RepositoryService {
+  with PullRequestService with IssuesService with AccountService with RepositoryService with CommitsService {
 
   def swap(r: (Issue, PullRequest)) = (r._2 -> r._1)
 

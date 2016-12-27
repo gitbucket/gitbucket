@@ -39,7 +39,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )
   
   val optionsForm = mapping(
-    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(40), identifier, renameRepositoryName))),
+    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), identifier, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
     "issuesOption"      -> trim(label("Issues Option"      , text(required, featureOption))),
@@ -179,8 +179,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     val collaborators = params("collaborators")
     removeCollaborators(repository.owner, repository.name)
     collaborators.split(",").withFilter(_.nonEmpty).map { collaborator =>
-      val userName :: permission :: Nil = collaborator.split(":").toList
-      addCollaborator(repository.owner, repository.name, userName, permission)
+      val userName :: role :: Nil = collaborator.split(":").toList
+      addCollaborator(repository.owner, repository.name, userName, role)
     }
     redirect(s"/${repository.owner}/${repository.name}/settings/collaborators")
   })
@@ -238,7 +238,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, ctype, token)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
-        val commits = if(repository.commitCount == 0) List.empty else git.log
+        val commits = if(JGitUtil.isEmpty(git)) List.empty else git.log
           .add(git.getRepository.resolve(repository.repository.defaultBranch))
           .setMaxCount(4)
           .call.iterator.asScala.map(new CommitInfo(_)).toList
@@ -416,7 +416,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   private def featureOption: Constraint = new Constraint(){
     override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
-      if(Seq("DISABLE", "PRIVATE", "PUBLIC").contains(value)) None else Some("Option is invalid.")
+      if(Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
   }
 
 

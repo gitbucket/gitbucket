@@ -2,6 +2,7 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   latestCommit: gitbucket.core.util.JGitUtil.CommitInfo,
+  commitCount: Int,
   files: List[gitbucket.core.util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
   hasWritePermission: Boolean,
@@ -25,7 +26,7 @@
       <div class="pull-right">
         <div class="btn-group">
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
-          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(repository.commitCount > 10000){10000+} else {@repository.commitCount} @helpers.plural(repository.commitCount, "commit")</a>
+          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
         </div>
       </div>
       @if(pathList.isEmpty){
@@ -39,7 +40,7 @@
         </div>
         <div class="pull-right pc">
           <div style="width: 240px; margin-right: 5px; margin-left: 5px;">
-            @gitbucket.core.helper.html.copy("repository-url-copy", repository.httpUrl){
+            @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", repository.httpUrl){
               @if(repository.sshUrl.isDefined){
                 <div class="btn-group input-group-btn">
                   <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -85,7 +86,9 @@
           <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
       }
-      <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here" @if(!hasWritePermission){disabled}><i class="octicon octicon-plus"></i></a>
+      @if(hasWritePermission){
+        <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here"><i class="octicon octicon-plus"></i></a>
+      }
     </div>
     <table class="table table-hover">
       @*
@@ -143,7 +146,7 @@
           <i class="octicon octicon-file-text"></i>
         }
         </td>
-        <td class="content-name">
+        <td class="ellipsis-cell" style="width: 20%; min-width: 160px;">
           @if(file.isDirectory){
             @if(file.linkUrl.isDefined){
               <a href="@file.linkUrl">
@@ -164,10 +167,10 @@
             <a href="@helpers.url(repository)/blob@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">@file.name</a>
           }
         </td>
-        <td class="mute">
-          <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message shorten-text" title="@file.message">@helpers.link(file.message, repository)</a>
+        <td class="ellipsis-cell" style="width: 70%;">
+          <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
         </td>
-        <td style="text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
+        <td style="width: 10%; min-width: 125px; text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
       </tr>
       }
     </table>

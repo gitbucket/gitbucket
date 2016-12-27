@@ -44,7 +44,8 @@ object Markdown {
     val renderer = new GitBucketMarkedRenderer(options, repository,
       enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
 
-    helpers.decorateHtml(Marked.marked(source, options, renderer), repository)
+    //helpers.decorateHtml(Marked.marked(source, options, renderer), repository)
+    Marked.marked(source, options, renderer)
   }
 
   /**
@@ -109,11 +110,10 @@ object Markdown {
     override def text(text: String): String = {
       // convert commit id and username to link.
       val t1 = if(enableRefsLink) convertRefsLinks(text, repository, "#", false) else text
-
       // convert task list to checkbox.
       val t2 = if(enableTaskList) convertCheckBox(t1, hasWritePermission) else t1
-
-      t2
+      // decorate by TextDecorator plugins
+      helpers.decorateHtml(t2, repository)
     }
 
     override def link(href: String, title: String, text: String): String = {

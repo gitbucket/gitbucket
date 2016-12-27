@@ -14,7 +14,7 @@
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.IssueComment
 @import gitbucket.core.model.CommitComment
-@gitbucket.core.html.main(s"${issue.title} - Pull Request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
+@gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
     @defining(dayByDayCommits.flatten){ commits =>
       <div>
@@ -99,13 +99,13 @@
 $(function(){
   // Determine active tab from hash
   if(location.hash == '#commits'){
-    $('li:has(a[href=#commits])').addClass('active');
+    $('li:has(a[href="#commits"])').addClass('active');
     $('div#commits').addClass('active');
   } else if(location.hash == '#files'){
-    $('li:has(a[href=#files])').addClass('active');
+    $('li:has(a[href="#files"])').addClass('active');
     $('div#files').addClass('active');
   } else {
-    $('li:has(a[href=#conversation])').addClass('active');
+    $('li:has(a[href="#conversation"])').addClass('active');
     $('div#conversation').addClass('active');
   }
   // Set hash when tab is clicked

@@ -37,6 +37,12 @@ trait CommitsService {
       updatedDate       = currentDate,
       issueId           = issueId)
 
+  def updateCommitCommentPosition(commentId: Int, commitId: String, oldLine: Option[Int], newLine: Option[Int])(implicit s: Session): Unit =
+    CommitComments.filter(_.byPrimaryKey(commentId))
+      .map { t =>
+        (t.commitId, t.oldLine, t.newLine)
+      }.update(commitId, oldLine, newLine)
+
   def updateCommitComment(commentId: Int, content: String)(implicit s: Session) = {
     CommitComments
       .filter (_.byPrimaryKey(commentId))

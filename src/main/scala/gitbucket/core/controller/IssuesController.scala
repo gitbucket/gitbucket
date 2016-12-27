@@ -14,12 +14,33 @@ import org.scalatra.Ok
 
 
 class IssuesController extends IssuesControllerBase
-  with IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
-  with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with WebHookIssueCommentService
+  with IssuesService
+  with RepositoryService
+  with AccountService
+  with LabelsService
+  with MilestonesService
+  with ActivityService
+  with HandleCommentService
+  with ReadableUsersAuthenticator
+  with ReferrerAuthenticator
+  with WritableUsersAuthenticator
+  with PullRequestService
+  with WebHookIssueCommentService
+  with CommitsService
 
 trait IssuesControllerBase extends ControllerBase {
-  self: IssuesService with RepositoryService with AccountService with LabelsService with MilestonesService with ActivityService with HandleCommentService
-    with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator with PullRequestService with WebHookIssueCommentService =>
+  self: IssuesService
+    with RepositoryService
+    with AccountService
+    with LabelsService
+    with MilestonesService
+    with ActivityService
+    with HandleCommentService
+    with ReadableUsersAuthenticator
+    with ReferrerAuthenticator
+    with WritableUsersAuthenticator
+    with PullRequestService
+    with WebHookIssueCommentService =>
 
   case class IssueCreateForm(title: String, content: Option[String],
     assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
@@ -84,7 +105,7 @@ trait IssuesControllerBase extends ControllerBase {
           getAssignableUserNames(owner, name),
           getMilestones(owner, name),
           getLabels(owner, name),
-          hasWritePermission(owner, name, context.loginAccount),
+          isManageable(repository),
           repository)
       }
     } else Unauthorized()
@@ -386,7 +407,7 @@ trait IssuesControllerBase extends ControllerBase {
    * Tests whether an logged-in user can manage issues.
    */
   private def isManageable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
-    hasWritePermission(repository.owner, repository.name, context.loginAccount)
+    hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
   }
 
   /**
@@ -394,8 +415,9 @@ trait IssuesControllerBase extends ControllerBase {
    */
   private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
     repository.repository.options.issuesOption match {
-      case "PUBLIC"  => hasReadPermission(repository.owner, repository.name, context.loginAccount)
-      case "PRIVATE" => hasWritePermission(repository.owner, repository.name, context.loginAccount)
+      case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined
+      case "PUBLIC"  => hasGuestRole(repository.owner, repository.name, context.loginAccount)
+      case "PRIVATE" => hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
       case "DISABLE" => false
     }
   }
@@ -404,7 +426,7 @@ trait IssuesControllerBase extends ControllerBase {
    * Tests whether an issue or a comment is editable by a logged-in user.
    */
   private def isEditableContent(owner: String, repository: String, author: String)(implicit context: Context): Boolean = {
-    hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+    hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
   }
 
 }

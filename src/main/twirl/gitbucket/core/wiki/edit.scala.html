@@ -7,10 +7,9 @@
   @gitbucket.core.html.menu("wiki", repository){
     <div class="pull-right">
       @if(page.isDefined){
-        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
-        <a class="btn btn-small btn-danger" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_delete" id="delete">Delete Page</a>
+        <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
+        <a class="btn btn-danger" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_delete" id="delete">Delete Page</a>
       }
-      <a class="btn btn-small btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
     </div>
     <h1 class="wiki-title"><span class="muted">Editing</span> @if(pageName.isEmpty){New Page} else {@pageName}</h1>
     <form action="@helpers.url(repository)/wiki/@if(page.isEmpty){_new} else {_edit}" method="POST" validate="true">
@@ -44,9 +43,22 @@
     </form>
   }
 }
-<script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script><script>
+<script>
 $(function(){
   try {
+    $('#content1').dropzone({
+      url: '@context.path/upload/wiki/@repository.owner/@repository.name',
+      maxFilesize: 10,
+      clickable: false,
+      acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
+      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
+      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+      success: function(file, id) {
+        var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) + '](' + file.name + ')';
+        $('#content1').val($('#content1').val() + attachFile);
+        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
+      }
+    });
     $('.clickable').dropzone({
       url: '@context.path/upload/wiki/@repository.owner/@repository.name',
       maxFilesize: 10,

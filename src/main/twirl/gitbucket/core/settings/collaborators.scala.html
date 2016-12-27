@@ -2,7 +2,7 @@
   isGroupRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@import gitbucket.core.model.Permission
+@import gitbucket.core.model.Role
 @gitbucket.core.html.main("Settings", Some(repository)){
   @gitbucket.core.html.menu("settings", repository){
     @gitbucket.core.settings.html.menu("collaborators", repository){
@@ -77,7 +77,8 @@ $(function(){
     $.post('@context.path/_user/existence', { 'userName': userName },
       function(data, status){
         if(data != ''){
-          addListHTML(userName, '@Permission.ADMIN.name', '#' + id + '-list');
+          addListHTML(userName, '@Role.ADMIN.name', '#' + id + '-list');
+          $('#userName-' + id).val('');
         } else {
           $('#error-' + id).text('User does not exist.');
         }
@@ -94,26 +95,26 @@ $(function(){
   });
 
   @collaborators.map { case (collaborator, isGroup) =>
-    addListHTML('@collaborator.collaboratorName', '@collaborator.permission', @if(isGroup){'#group-list'}else{'#collaborator-list'});
+    addListHTML('@collaborator.collaboratorName', '@collaborator.role', @if(isGroup){'#group-list'}else{'#collaborator-list'});
   }
 
-  function addListHTML(userName, permission, id){
-    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Permission.ADMIN.name" name="' + userName + '">Admin</label>');
-    if(permission == '@Permission.ADMIN.name'){
+  function addListHTML(userName, role, id){
+    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.ADMIN.name" name="' + userName + '">Admin</label>');
+    if(role == '@Role.ADMIN.name'){
       adminButton.addClass('active');
     }
-    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Permission.WRITE.name" name="' + userName + '">Write</label>');
-    if(permission == '@Permission.WRITE.name'){
+    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.DEVELOPER.name" name="' + userName + '">Developer</label>');
+    if(role == '@Role.DEVELOPER.name'){
       writeButton.addClass('active');
     }
-    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Permission.READ.name" name="' + userName + '">Read</label>');
-    if(permission == '@Permission.READ.name'){
+    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.GUEST.name" name="' + userName + '">Guest</label>');
+    if(role == '@Role.GUEST.name'){
       readButton.addClass('active');
     }
 
     $(id).append($('<li>')
       .data('name', userName)
-      .append($('<div class="btn-group permission" data-toggle="buttons">')
+      .append($('<div class="btn-group role" data-toggle="buttons">')
         .append(adminButton)
         .append(writeButton)
         .append(readButton))

@@ -3,8 +3,8 @@
 @gitbucket.core.html.main("Manage Users"){
   @gitbucket.core.admin.html.menu("users"){
     <div class="pull-right" style="margin-bottom: 4px;">
-      <a href="@context.path/admin/users/_newuser" class="btn btn-default">New User</a>
-      <a href="@context.path/admin/users/_newgroup" class="btn btn-default">New Group</a>
+      <a href="@context.path/admin/users/_newuser" class="btn btn-default">New user</a>
+      <a href="@context.path/admin/users/_newgroup" class="btn btn-default">New group</a>
     </div>
     <label for="includeRemoved">
       <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>

@@ -3,10 +3,11 @@ package gitbucket.core.view
 import java.util.Date
 
 import gitbucket.core.model.Account
-import gitbucket.core.service.{SystemSettingsService, RequestCache}
+import gitbucket.core.service.{RequestCache, SystemSettingsService}
 import gitbucket.core.controller.Context
 import SystemSettingsService.SystemSettings
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletRequest, HttpSession}
+
 import play.twirl.api.Html
 import org.scalatest.FunSpec
 import org.scalatest.mock.MockitoSugar
@@ -16,9 +17,11 @@ import org.mockito.Mockito._
 class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
 
   val request = mock[HttpServletRequest]
+  val session = mock[HttpSession]
   when(request.getRequestURL).thenReturn(new StringBuffer("http://localhost:8080/path.html"))
   when(request.getRequestURI).thenReturn("/path.html")
   when(request.getContextPath).thenReturn("")
+  when(request.getSession).thenReturn(session)
 
   describe("getAvatarImageHtml") {
     it("should show Gravatar image for no image account if gravatar integration is enabled") {

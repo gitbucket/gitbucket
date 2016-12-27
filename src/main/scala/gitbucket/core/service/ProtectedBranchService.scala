@@ -87,7 +87,7 @@ object ProtectedBranchService {
     def getStopReason(isAllowNonFastForwards: Boolean, command: ReceiveCommand, pusher: String)(implicit session: Session): Option[String] = {
       if(enabled){
         command.getType() match {
-          case ReceiveCommand.Type.UPDATE|ReceiveCommand.Type.UPDATE_NONFASTFORWARD if isAllowNonFastForwards =>
+          case ReceiveCommand.Type.UPDATE_NONFASTFORWARD if isAllowNonFastForwards =>
             Some("Cannot force-push to a protected branch")
           case ReceiveCommand.Type.UPDATE|ReceiveCommand.Type.UPDATE_NONFASTFORWARD if needStatusCheck(pusher) =>
             unSuccessedContexts(command.getNewId.name) match {
@@ -99,7 +99,7 @@ object ProtectedBranchService {
             Some("Cannot delete a protected branch")
           case _ => None
         }
-      }else{
+      } else {
         None
       }
     }

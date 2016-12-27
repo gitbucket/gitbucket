@@ -102,16 +102,28 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/_preview")(referrersOnly { repository =>
     contentType = "text/html"
-    helpers.markdown(
-      markdown = params("content"),
-      repository = repository,
-      enableWikiLink = params("enableWikiLink").toBoolean,
-      enableRefsLink = params("enableRefsLink").toBoolean,
-      enableLineBreaks = params("enableLineBreaks").toBoolean,
-      enableTaskList = params("enableTaskList").toBoolean,
-      enableAnchor = false,
-      hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount)
-    )
+    val filename = params.get("filename")
+    filename match {
+      case Some(f) => helpers.renderMarkup(
+          filePath = List(f),
+          fileContent = params("content"),
+          branch = "master",
+          repository = repository,
+          enableWikiLink = params("enableWikiLink").toBoolean,
+          enableRefsLink = params("enableRefsLink").toBoolean,
+          enableAnchor = false
+        )
+      case None => helpers.markdown(
+          markdown = params("content"),
+          repository = repository,
+          enableWikiLink = params("enableWikiLink").toBoolean,
+          enableRefsLink = params("enableRefsLink").toBoolean,
+          enableLineBreaks = params("enableLineBreaks").toBoolean,
+          enableTaskList = params("enableTaskList").toBoolean,
+          enableAnchor = false,
+          hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+        )
+    }
   })
 
   /**
@@ -151,7 +163,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
-            }, page, hasNext, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+            }, page, hasNext, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
         case Left(_) => NotFound()
       }
     }
@@ -275,7 +287,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           html.blob(id, repository, path.split("/").toList,
             JGitUtil.getContentInfo(git, path, objectId),
             new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
-            hasWritePermission(repository.owner, repository.name, context.loginAccount),
+            hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
             request.paths(2) == "blame")
         }
       } getOrElse NotFound()
@@ -328,8 +340,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
               html.commit(id, new JGitUtil.CommitInfo(revCommit),
                 JGitUtil.getBranchesOfCommit(git, revCommit.getName),
                 JGitUtil.getTagsOfCommit(git, revCommit.getName),
-                getCommitComments(repository.owner, repository.name, id, false),
-                repository, diffs, oldCommitId, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+                getCommitComments(repository.owner, repository.name, id, true),
+                repository, diffs, oldCommitId, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
           }
         }
       }
@@ -358,7 +370,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     html.commentform(
       commitId = id,
       fileName, oldLineNumber, newLineNumber, issueId,
-      hasWritePermission = hasWritePermission(repository.owner, repository.name, context.loginAccount),
+      hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
       repository = repository
     )
   })
@@ -374,7 +386,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         callPullRequestReviewCommentWebHook("create", comment, repository, issueId, context.baseUrl, context.loginAccount.get)
       case None => recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
     }
-    helper.html.commitcomment(comment, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
+    helper.html.commitcomment(comment, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
   })
 
   ajaxGet("/:owner/:repository/commit_comments/_data/:id")(readableUsersOnly { repository =>
@@ -393,7 +405,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
                 enableRefsLink = true,
                 enableAnchor = true,
                 enableLineBreaks = true,
-                hasWritePermission = isEditable(x.userName, x.repositoryName, x.commentedUserName)
+                hasWritePermission = true
               )
             ))
         }
@@ -437,7 +449,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     .map(br => (br, getPullRequestByRequestCommit(repository.owner, repository.name, repository.repository.defaultBranch, br.name, br.commitId), protectedBranches.contains(br.name)))
     .reverse
 
-    html.branches(branches, hasWritePermission(repository.owner, repository.name, context.loginAccount), repository)
+    html.branches(branches, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
   })
 
   /**
@@ -546,10 +558,10 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * @return HTML of the file list
    */
   private def fileList(repository: RepositoryService.RepositoryInfo, revstr: String = "", path: String = ".") = {
-    if(repository.commitCount == 0){
-      html.guide(repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
-    } else {
-      using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      if(JGitUtil.isEmpty(git)){
+        html.guide(repository, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
+      } else {
         // get specified commit
         JGitUtil.getDefaultBranch(git, repository, revstr).map { case (objectId, revision) =>
           defining(JGitUtil.getRevCommitFromId(git, objectId)) { revCommit =>
@@ -569,9 +581,14 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
-              files, readme, hasWritePermission(repository.owner, repository.name, context.loginAccount),
+              JGitUtil.getCommitCount(repository.owner, repository.name, revision),
+              files,
+              readme,
+              hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
               getPullRequestFromBranch(repository.owner, repository.name, revstr, repository.repository.defaultBranch),
-              flash.get("info"), flash.get("error"))
+              flash.get("info"),
+              flash.get("error")
+            )
           }
         } getOrElse NotFound()
       }
@@ -691,7 +708,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
-    hasWritePermission(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+    hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
 
   override protected def renderUncaughtException(e: Throwable)(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
     e.printStackTrace()

@@ -1,12 +1,24 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.{Issue, PullRequest, CommitStatus, CommitState}
-import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
+import difflib.{Delta, DiffUtils}
+import gitbucket.core.model.{Session => _, _}
+import gitbucket.core.model.Profile._
+import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.Implicits._
+import gitbucket.core.util.JGitUtil
+import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
+import gitbucket.core.view
+import gitbucket.core.view.helpers
+import org.eclipse.jgit.api.Git
+import scala.collection.JavaConverters._
 
-trait PullRequestService { self: IssuesService =>
+
+trait PullRequestService { self: IssuesService with CommitsService =>
   import PullRequestService._
 
   def getPullRequest(owner: String, repository: String, issueId: Int)
@@ -111,10 +123,26 @@ trait PullRequestService { self: IssuesService =>
   def updatePullRequests(owner: String, repository: String, branch: String)(implicit s: Session): Unit =
     getPullRequestsByRequest(owner, repository, branch, false).foreach { pullreq =>
       if(Repositories.filter(_.byRepository(pullreq.userName, pullreq.repositoryName)).exists.run){
-      //if(Repositories.filter(_.byRepository(pullreq.userName, pullreq.repositoryName)).exists.run){
+        // Update the git repository
         val (commitIdTo, commitIdFrom) = JGitUtil.updatePullRequest(
           pullreq.userName, pullreq.repositoryName, pullreq.branch, pullreq.issueId,
           pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch)
+
+        // Collect comment positions
+        val positions = getCommitComments(pullreq.userName, pullreq.repositoryName, pullreq.commitIdTo, true)
+          .collect {
+            case CommitComment(_, _, _, commentId, _, _, Some(file), None, Some(newLine), _, _, _) => (file, commentId, Right(newLine))
+            case CommitComment(_, _, _, commentId, _, _, Some(file), Some(oldLine), None, _, _, _) => (file, commentId, Left(oldLine))
+          }
+          .groupBy { case (file, _, _) => file }
+          .map { case (file, comments) => file ->
+            comments.map { case (_, commentId, lineNumber) => (commentId, lineNumber) }
+          }
+
+        // Update comments position
+        updatePullRequestCommentPositions(positions, pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.commitIdTo, commitIdTo)
+
+        // Update commit id in the PULL_REQUEST table
         updateCommitId(pullreq.userName, pullreq.repositoryName, pullreq.issueId, commitIdTo, commitIdFrom)
       }
     }
@@ -138,6 +166,78 @@ trait PullRequestService { self: IssuesService =>
         .firstOption
     }
   }
+
+  private def updatePullRequestCommentPositions(positions: Map[String, Seq[(Int, Either[Int, Int])]], userName: String, repositoryName: String,
+                                                oldCommitId: String, newCommitId: String)(implicit s: Session): Unit = {
+
+    val (_, diffs) = getRequestCompareInfo(userName, repositoryName, oldCommitId, userName, repositoryName, newCommitId)
+
+    val patchs = positions.map { case (file, _) =>
+      diffs.find(x => x.oldPath == file).map { diff =>
+        (diff.oldContent, diff.newContent) match {
+          case (Some(oldContent), Some(newContent)) => {
+            val oldLines = oldContent.replace("\r\n", "\n").split("\n")
+            val newLines = newContent.replace("\r\n", "\n").split("\n")
+            file -> Option(DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava))
+          }
+          case _ =>
+            file -> None
+        }
+      }.getOrElse {
+        file -> None
+      }
+    }
+
+    positions.foreach { case (file, comments) =>
+      patchs(file) match {
+        case Some(patch) => file -> comments.foreach { case (commentId, lineNumber) => lineNumber match {
+          case Left(oldLine)  => updateCommitCommentPosition(commentId, newCommitId, Some(oldLine), None)
+          case Right(newLine) =>
+            var counter = newLine
+            patch.getDeltas.asScala.filter(_.getOriginal.getPosition < newLine).foreach { delta =>
+              delta.getType match {
+                case Delta.TYPE.CHANGE =>
+                  if(delta.getOriginal.getPosition <= newLine - 1 && newLine <= delta.getOriginal.getPosition + delta.getRevised.getLines.size){
+                    counter = -1
+                  } else {
+                    counter = counter + (delta.getRevised.getLines.size - delta.getOriginal.getLines.size)
+                  }
+                case Delta.TYPE.INSERT => counter = counter + delta.getRevised.getLines.size
+                case Delta.TYPE.DELETE => counter = counter - delta.getOriginal.getLines.size
+              }
+            }
+            if(counter >= 0){
+              updateCommitCommentPosition(commentId, newCommitId, None, Some(counter))
+            }
+        }}
+        case _ => comments.foreach { case (commentId, lineNumber) => lineNumber match {
+          case Right(oldLine) => updateCommitCommentPosition(commentId, newCommitId, Some(oldLine), None)
+          case Left(newLine)  => updateCommitCommentPosition(commentId, newCommitId, None, Some(newLine))
+        }}
+      }
+    }
+  }
+
+  def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
+                            requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
+    using(
+      Git.open(getRepositoryDir(userName, repositoryName)),
+      Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
+    ){ (oldGit, newGit) =>
+      val oldId = oldGit.getRepository.resolve(branch)
+      val newId = newGit.getRepository.resolve(requestCommitId)
+
+      val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
+        new CommitInfo(revCommit)
+      }.toList.splitWith { (commit1, commit2) =>
+        helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
+      }
+
+      val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true)
+
+      (commits, diffs)
+    }
+
 }
 
 object PullRequestService {

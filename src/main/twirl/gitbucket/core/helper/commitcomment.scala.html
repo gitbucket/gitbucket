@@ -13,15 +13,14 @@
       @helpers.avatar(comment.commentedUserName, 20)
       @helpers.user(comment.commentedUserName, styleClass="username strong")
         <span class="muted">
-          commented
+          commented on
           @if(comment.issueId.isDefined){
-            on this Pull Request
-          } else {
-            @if(comment.fileName.isDefined){
-              on @comment.fileName.get
-            }
-            in <a href="@context.path/@repository.owner/@repository.name/commit/@comment.commitId">@comment.commitId.substring(0, 7)</a>
+            <a href="@helpers.url(repository)/pull/@comment.issueId">#@comment.issueId</a>
           }
+          @comment.fileName.map { fileName =>
+            @fileName in
+          }
+          <a href="@context.path/@repository.owner/@repository.name/commit/@comment.commitId">@comment.commitId.substring(0, 7)</a>
           @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
         </span>
       <span class="pull-right">

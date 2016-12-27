@@ -109,6 +109,9 @@ class Mailer(private val smtp: Smtp) extends Notifier {
     }
     smtp.ssl.foreach { ssl =>
       email.setSSLOnConnect(ssl)
+      if(ssl == true) {
+        email.setSslSmtpPort(smtp.port.get.toString)
+      }
     }
     smtp.fromAddress
       .map (_ -> smtp.fromName.getOrElse(context.loginAccount.get.userName))

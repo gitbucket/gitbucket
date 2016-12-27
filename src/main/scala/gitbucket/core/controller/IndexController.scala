@@ -5,9 +5,9 @@ import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.{LDAPUtil, Keys, UsersAuthenticator, ReferrerAuthenticator, StringUtil}
-
+import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, StringUtil, UsersAuthenticator}
 import io.github.gitbucket.scalatra.forms._
+import org.scalatra.Ok
 
 
 class IndexController extends IndexControllerBase 
@@ -36,23 +36,11 @@ trait IndexControllerBase extends ControllerBase {
 
 
   get("/"){
-    val loginAccount = context.loginAccount
-    if(loginAccount.isEmpty) {
-        gitbucket.core.html.index(getRecentActivities(),
-            getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
-            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil)
-        )
-    } else {
-        val loginUserName = loginAccount.get.userName
-        val loginUserGroups = getGroupsByUserName(loginUserName)
-        var visibleOwnerSet : Set[String] = Set(loginUserName)
-        
-        visibleOwnerSet ++= loginUserGroups
-
-        gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet),
-            getVisibleRepositories(loginAccount, withoutPhysicalInfo = true),
-            loginAccount.map{ account => getUserRepositories(account.userName, withoutPhysicalInfo = true) }.getOrElse(Nil) 
-        )
+    context.loginAccount.map { account =>
+      val visibleOwnerSet: Set[String] = Set(account.userName) ++ getGroupsByUserName(account.userName)
+      gitbucket.core.html.index(getRecentActivitiesByOwners(visibleOwnerSet), Nil, getUserRepositories(account.userName, withoutPhysicalInfo = true))
+    }.getOrElse {
+      gitbucket.core.html.index(getRecentActivities(), getVisibleRepositories(None, withoutPhysicalInfo = true), Nil)
     }
   }
 
@@ -79,6 +67,15 @@ trait IndexControllerBase extends ControllerBase {
   get("/activities.atom"){
     contentType = "application/atom+xml; type=feed"
     xml.feed(getRecentActivities())
+  }
+
+  get("/sidebar-collapse"){
+    if(params("collapse") == "true"){
+      session.setAttribute("sidebar-collapse", "true")
+    }  else {
+      session.setAttribute("sidebar-collapse", null)
+    }
+    Ok()
   }
 
   /**
@@ -134,14 +131,9 @@ trait IndexControllerBase extends ControllerBase {
   })
 
   // TODO Move to RepositoryViwerController?
-  post("/search", searchForm){ form =>
-    redirect(s"/${form.owner}/${form.repository}/search?q=${StringUtil.urlEncode(form.query)}")
-  }
-
-  // TODO Move to RepositoryViwerController?
   get("/:owner/:repository/search")(referrersOnly { repository =>
-    defining(params("q").trim, params.getOrElse("type", "code")){ case (query, target) =>
-      val page   = try {
+    defining(params.getOrElse("q", "").trim, params.getOrElse("type", "code")){ case (query, target) =>
+      val page = try {
         val i = params.getOrElse("page", "1").toInt
         if(i <= 0) 1 else i
       } catch {
@@ -150,23 +142,31 @@ trait IndexControllerBase extends ControllerBase {
 
       target.toLowerCase match {
         case "issue" => gitbucket.core.search.html.issues(
-          countFiles(repository.owner, repository.name, query),
-          searchIssues(repository.owner, repository.name, query),
-          countWikiPages(repository.owner, repository.name, query),
+          if(query.nonEmpty) searchIssues(repository.owner, repository.name, query) else Nil,
           query, page, repository)
 
         case "wiki" => gitbucket.core.search.html.wiki(
-          countFiles(repository.owner, repository.name, query),
-          countIssues(repository.owner, repository.name, query),
-          searchWikiPages(repository.owner, repository.name, query),
+          if(query.nonEmpty) searchWikiPages(repository.owner, repository.name, query) else Nil,
           query, page, repository)
 
         case _ => gitbucket.core.search.html.code(
-          searchFiles(repository.owner, repository.name, query),
-          countIssues(repository.owner, repository.name, query),
-          countWikiPages(repository.owner, repository.name, query),
+          if(query.nonEmpty) searchFiles(repository.owner, repository.name, query) else Nil,
           query, page, repository)
       }
     }
   })
+
+  get("/search"){
+    val query = params.getOrElse("query", "").trim.toLowerCase
+    val visibleRepositories = getVisibleRepositories(context.loginAccount, None)
+    val repositories = visibleRepositories.filter { repository =>
+      repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0
+    }
+    context.loginAccount.map { account =>
+      gitbucket.core.search.html.repositories(query, repositories, Nil, getUserRepositories(account.userName, withoutPhysicalInfo = true))
+    }.getOrElse {
+      gitbucket.core.search.html.repositories(query, repositories, visibleRepositories, Nil)
+    }
+  }
+
 }

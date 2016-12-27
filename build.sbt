@@ -1,7 +1,7 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.6.0"
-val ScalatraVersion = "2.5.0-RC1"
+val GitBucketVersion = "4.8"
+val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.9.v20160517"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
@@ -15,6 +15,7 @@ scalaVersion := "2.12.0"
 // dependency settings
 resolvers ++= Seq(
   Classpaths.typesafeReleases,
+  Resolver.jcenterRepo,
   "amateras" at "http://amateras.sourceforge.jp/mvn/",
   "sonatype-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots/",
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
@@ -46,7 +47,9 @@ libraryDependencies ++= Seq(
   "com.typesafe"                    %  "config"                       % "1.3.0",
   "com.typesafe.akka"               %% "akka-actor"                   % "2.4.12",
   "fr.brouillard.oss.security.xhub" %  "xhub4j-core"                  % "1.0.0",
-  "com.enragedginger"               %% "akka-quartz-scheduler"         % "1.6.0-akka-2.4.x" exclude("c3p0","c3p0"),
+  "com.github.bkromhout"            % "java-diff-utils"               % "2.1.1",
+  "org.cache2k"                     % "cache2k-all"                   % "1.0.0.CR1",
+  "com.enragedginger"               %% "akka-quartz-scheduler"        % "1.6.0-akka-2.4.x" exclude("c3p0","c3p0"),
   "org.eclipse.jetty"               %  "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",

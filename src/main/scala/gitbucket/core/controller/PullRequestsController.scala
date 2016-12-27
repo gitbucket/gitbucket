@@ -11,10 +11,7 @@ import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
-import gitbucket.core.view
-import gitbucket.core.view.helpers
 import io.github.gitbucket.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
@@ -115,7 +112,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         val hasConflict = LockUtil.lock(s"${owner}/${name}"){
           checkConflict(owner, name, pullreq.branch, issueId)
         }
-        val hasMergePermission = hasWritePermission(owner, name, context.loginAccount)
+        val hasMergePermission = hasDeveloperRole(owner, name, context.loginAccount)
         val branchProtection = getProtectedBranchInfo(owner, name, pullreq.branch)
         val mergeStatus = PullRequestService.MergeStatus(
            hasConflict         = hasConflict,
@@ -125,7 +122,7 @@ trait PullRequestsControllerBase extends ControllerBase {
            needStatusCheck     = context.loginAccount.map{ u =>
                                    branchProtection.needStatusCheck(u.userName)
                                  }.getOrElse(true),
-           hasUpdatePermission = hasWritePermission(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount) &&
+           hasUpdatePermission = hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount) &&
                                    context.loginAccount.map{ u =>
                                      !getProtectedBranchInfo(pullreq.requestUserName, pullreq.requestRepositoryName, pullreq.requestBranch).needStatusCheck(u.userName)
                                    }.getOrElse(false),
@@ -156,24 +153,24 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pull/:id/update_branch")(referrersOnly { baseRepository =>
+  post("/:owner/:repository/pull/:id/update_branch")(writableUsersOnly { baseRepository =>
     (for {
       issueId <- params("id").toIntOpt
       loginAccount <- context.loginAccount
       (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
       owner = pullreq.requestUserName
       name  = pullreq.requestRepositoryName
-      if hasWritePermission(owner, name, context.loginAccount)
+      if hasDeveloperRole(owner, name, context.loginAccount)
     } yield {
+      val repository = getRepository(owner, name).get
       val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
       if(branchProtection.needStatusCheck(loginAccount.userName)){
         flash += "error" -> s"branch ${pullreq.requestBranch} is protected need status check."
       } else {
-        val repository = getRepository(owner, name).get
         LockUtil.lock(s"${owner}/${name}"){
           val alias = if(pullreq.repositoryName == pullreq.requestRepositoryName && pullreq.userName == pullreq.requestUserName){
             pullreq.branch
-          }else{
+          } else {
             s"${pullreq.userName}:${pullreq.branch}"
           }
           val existIds = using(Git.open(Directory.getRepositoryDir(owner, name))) { git => JGitUtil.getAllCommitIds(git) }.toSet
@@ -187,11 +184,10 @@ trait PullRequestsControllerBase extends ControllerBase {
 
               using(Git.open(Directory.getRepositoryDir(owner, name))) { git =>
                 //  after update branch
-
                 val newCommitId = git.getRepository.resolve(s"refs/heads/${pullreq.requestBranch}")
                 val commits = git.log.addRange(oldId, newCommitId).call.iterator.asScala.map(c => new JGitUtil.CommitInfo(c)).toList
 
-                commits.foreach{ commit =>
+                commits.foreach { commit =>
                   if(!existIds.contains(commit.id)){
                     createIssueComment(owner, name, commit)
                   }
@@ -220,8 +216,9 @@ trait PullRequestsControllerBase extends ControllerBase {
               flash += "info" -> s"Merge branch '${alias}' into ${pullreq.requestBranch}"
           }
         }
-        redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
       }
+      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+
     }) getOrElse NotFound()
   })
 
@@ -374,7 +371,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               forkedRepository,
               originRepository,
               forkedRepository,
-              hasWritePermission(originRepository.owner, originRepository.name, context.loginAccount),
+              hasDeveloperRole(originRepository.owner, originRepository.name, context.loginAccount),
               getAssignableUserNames(originRepository.owner, originRepository.name),
               getMilestones(originRepository.owner, originRepository.name),
               getLabels(originRepository.owner, originRepository.name)
@@ -389,7 +386,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(writableUsersOnly { forkedRepository =>
+  ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(readableUsersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
     val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
     val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
@@ -498,26 +495,6 @@ trait PullRequestsControllerBase extends ControllerBase {
       (defaultOwner, value)
     }
 
-  private def getRequestCompareInfo(userName: String, repositoryName: String, branch: String,
-      requestUserName: String, requestRepositoryName: String, requestCommitId: String): (Seq[Seq[CommitInfo]], Seq[DiffInfo]) =
-    using(
-      Git.open(getRepositoryDir(userName, repositoryName)),
-      Git.open(getRepositoryDir(requestUserName, requestRepositoryName))
-    ){ (oldGit, newGit) =>
-      val oldId = oldGit.getRepository.resolve(branch)
-      val newId = newGit.getRepository.resolve(requestCommitId)
-
-      val commits = newGit.log.addRange(oldId, newId).call.iterator.asScala.map { revCommit =>
-        new CommitInfo(revCommit)
-      }.toList.splitWith { (commit1, commit2) =>
-        helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
-      }
-
-      val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true)
-
-      (commits, diffs)
-    }
-
   private def searchPullRequests(userName: Option[String], repository: RepositoryService.RepositoryInfo) =
     defining(repository.owner, repository.name){ case (owner, repoName) =>
       val page = IssueSearchCondition.page(request)
@@ -544,7 +521,7 @@ trait PullRequestsControllerBase extends ControllerBase {
    * Tests whether an logged-in user can manage pull requests.
    */
   private def isManageable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
-    hasWritePermission(repository.owner, repository.name, context.loginAccount)
+    hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
   }
 
   /**
@@ -552,8 +529,9 @@ trait PullRequestsControllerBase extends ControllerBase {
    */
   private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
     repository.repository.options.issuesOption match {
-      case "PUBLIC"  => hasReadPermission(repository.owner, repository.name, context.loginAccount)
-      case "PRIVATE" => hasWritePermission(repository.owner, repository.name, context.loginAccount)
+      case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined
+      case "PUBLIC"  => hasGuestRole(repository.owner, repository.name, context.loginAccount)
+      case "PRIVATE" => hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
       case "DISABLE" => false
     }
   }

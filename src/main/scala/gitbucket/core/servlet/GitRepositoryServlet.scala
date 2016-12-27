@@ -110,7 +110,7 @@ import scala.collection.JavaConverters._
 class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)(implicit session: Session)
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
-  with WebHookPullRequestService with ProtectedBranchService {
+  with WebHookPullRequestService with CommitsService {
   
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil
@@ -139,6 +139,8 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   def onPostReceive(receivePack: ReceivePack, commands: java.util.Collection[ReceiveCommand]): Unit = {
     try {
       using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+        JGitUtil.removeCache(git)
+
         val pushedIds = scala.collection.mutable.Set[String]()
         commands.asScala.foreach { command =>
           logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")

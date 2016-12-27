@@ -10,6 +10,7 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 
 
+
 trait IssuesService {
   self: AccountService with RepositoryService =>
   import IssuesService._
@@ -30,6 +31,10 @@ trait IssuesService {
     .join(Issues).on{ case ((t1, t2), t3) => t3.byIssue(t1.userName, t1.repositoryName, t1.issueId) }
     .map{ case ((t1, t2), t3) => (t1, t2, t3) }
     .list
+
+  def getMergedComment(owner: String, repository: String, issueId: Int)(implicit s: Session): Option[(IssueComment, Account)] = {
+    getCommentsForApi(owner, repository, issueId).collectFirst { case (comment, account, _) if comment.action == "merged" => (comment, account) }
+  }
 
   def getComment(owner: String, repository: String, commentId: String)(implicit s: Session) =
     if (commentId forall (_.isDigit))
@@ -388,8 +393,8 @@ trait IssuesService {
   }
 
   def getAssignableUserNames(owner: String, repository: String)(implicit s: Session): List[String] = {
-    (getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE)) :::
-      (if (getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).sorted
+    (getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER)) :::
+      (if (getAccountByUserName(owner).get.isGroupAccount) getGroupMembers(owner).map(_.userName) else List(owner))).distinct.sorted
   }
 
 }

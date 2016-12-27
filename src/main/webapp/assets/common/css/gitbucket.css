@@ -174,12 +174,6 @@ span.error {
   font-weight: normal;
 }
 
-.shorten-text {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
 a.commit-message, a.commit-id, a.username, a.issue-comment-count {
   color: #333333;
 }
@@ -297,6 +291,20 @@ table.table th.box-header {
 
 th.box-header .octicon {
   display: inline;
+}
+
+td.ellipsis-cell {
+  position: relative;
+}
+
+td.ellipsis-cell > * {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding-right: 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 img.avatar {
@@ -941,7 +949,7 @@ pre.reset.discussion-item-content-text{
 }
 
 /****************************************************************************/
-/* Pull Request */
+/* Pull request */
 /****************************************************************************/
 div.pullreq-info {
   border: 1px solid #ddd;

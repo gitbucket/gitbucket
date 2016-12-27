@@ -84,7 +84,7 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
                 Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
                 account <- authenticate(settings, username, password)
               } yield if(isUpdating || repository.repository.isPrivate){
-                  if(hasWritePermission(repository.owner, repository.name, Some(account))){
+                  if(hasDeveloperRole(repository.owner, repository.name, Some(account))){
                     request.setAttribute(Keys.Request.UserName, account.userName)
                     true
                   } else false

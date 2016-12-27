@@ -10,13 +10,20 @@
 @gitbucket.core.html.main(s"${pageName} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("wiki", repository){
     <div>
-      <div class="pull-right">
-        <a class="btn btn-small btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
+      <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right">
+        <div class="input-group">
+          <input type="text" class="form-control" name="q" placeholder="Search..."/>
+          <input type="hidden" name="type" value="wiki"/>
+          <span class="input-group-btn">
+            <button type="submit" id="search-btn" class="btn btn-default"><i class="fa fa-search"></i></button>
+          </span>
+        </div>
+        <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_history">Page History</a>
         @if(isEditable){
           <a class="btn btn-default" href="@helpers.url(repository)/wiki/@helpers.urlEncode(pageName)/_edit">Edit Page</a>
           <a class="btn btn-success" href="@helpers.url(repository)/wiki/_new">New Page</a>
         }
-      </div>
+      </form>
       <h1 class="body-title">@pageName</h1>
       <div>
         <span class="muted"><strong>@page.committer</strong> edited this page @gitbucket.core.helper.html.datetimeago(page.time)</span>
@@ -64,7 +71,7 @@
       <div>
         <strong>Clone this wiki locally</strong>
       </div>
-      @gitbucket.core.helper.html.copy("repository-url-copy", WikiService.wikiHttpUrl(repository)){
+      @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", WikiService.wikiHttpUrl(repository)){
         <input type="text" value="@WikiService.wikiHttpUrl(repository)" id="repository-url" class="form-control input-sm" readonly>
       }
       @if(WikiService.wikiSshUrl(repository).isDefined) {

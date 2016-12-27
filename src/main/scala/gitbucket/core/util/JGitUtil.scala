@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.Git
 import Directory._
 import StringUtil._
 import ControlUtil._
+
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import org.eclipse.jgit.lib._
@@ -16,7 +17,11 @@ import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
 import org.eclipse.jgit.transport.RefSpec
 import java.util.Date
-import org.eclipse.jgit.api.errors.{JGitInternalException, InvalidRefNameException, RefAlreadyExistsException, NoHeadException}
+import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
+
+import org.cache2k.{Cache2kBuilder, CacheEntry}
+import org.eclipse.jgit.api.errors.{InvalidRefNameException, JGitInternalException, NoHeadException, RefAlreadyExistsException}
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.slf4j.LoggerFactory
 
@@ -32,14 +37,11 @@ object JGitUtil {
    *
    * @param owner the user name of the repository owner
    * @param name the repository name
-   * @param commitCount the commit count. If the repository has over 1000 commits then this property is 1001.
    * @param branchList the list of branch names
    * @param tags the list of tags
    */
-  case class RepositoryInfo(owner: String, name: String, commitCount: Int, branchList: List[String], tags: List[TagInfo]){
-    def this(owner: String, name: String) = {
-      this(owner, name, 0, Nil, Nil)
-    }
+  case class RepositoryInfo(owner: String, name: String, branchList: List[String], tags: List[TagInfo]){
+    def this(owner: String, name: String) = this(owner, name, Nil, Nil)
   }
 
   /**
@@ -169,20 +171,54 @@ object JGitUtil {
     revWalk.dispose
     revCommit
   }
-  
+
+  private val cache = new Cache2kBuilder[String, Int]() {}
+    .name("commit-count")
+    .expireAfterWrite(24, TimeUnit.HOURS)
+    .entryCapacity(10000)
+    .build()
+
+  def removeCache(git: Git): Unit = {
+    val dir = git.getRepository.getDirectory
+    val keyPrefix = dir.getAbsolutePath + "@"
+
+    cache.forEach(new Consumer[CacheEntry[String, Int]] {
+      override def accept(entry: CacheEntry[String, Int]): Unit = {
+        if(entry.getKey.startsWith(keyPrefix)){
+          cache.remove(entry.getKey)
+        }
+      }
+    })
+  }
+
+  /**
+   * Returns the number of commits in the specified branch or commit.
+   * If the specified branch has over 10000 commits, this method returns 100001.
+   */
+  def getCommitCount(owner: String, repository: String, branch: String): Int = {
+    val dir = getRepositoryDir(owner, repository)
+    val key = dir.getAbsolutePath + "@" + branch
+    val entry = cache.getEntry(key)
+
+    if(entry == null) {
+      using(Git.open(dir)) { git =>
+        val commitId = git.getRepository.resolve(branch)
+        val commitCount = git.log.add(commitId).call.iterator.asScala.take(10001).size
+        cache.put(key, commitCount)
+        commitCount
+      }
+    } else {
+      entry.getValue
+    }
+  }
+
   /**
    * Returns the repository information. It contains branch names and tag names.
    */
   def getRepositoryInfo(owner: String, repository: String): RepositoryInfo = {
     using(Git.open(getRepositoryDir(owner, repository))){ git =>
       try {
-        // get commit count
-        val commitCount = git.log.all.call.iterator.asScala.map(_ => 1).take(10001).sum
-
-        RepositoryInfo(
-          owner, repository,
-          // commit count
-          commitCount,
+        RepositoryInfo(owner, repository,
           // branches
           git.branchList.call.asScala.map { ref =>
             ref.getName.stripPrefix("refs/heads/")
@@ -195,9 +231,7 @@ object JGitUtil {
         )
       } catch {
         // not initialized
-        case e: NoHeadException => RepositoryInfo(
-          owner, repository, 0, Nil, Nil)
-
+        case e: NoHeadException => RepositoryInfo(owner, repository, Nil, Nil)
       }
     }
   }
@@ -212,8 +246,8 @@ object JGitUtil {
    */
   def getFileList(git: Git, revision: String, path: String = "."): List[FileInfo] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
-      val objectId  = git.getRepository.resolve(revision)
-      if(objectId==null) return Nil
+      val objectId = git.getRepository.resolve(revision)
+      if(objectId == null) return Nil
       val revCommit = revWalk.parseCommit(objectId)
 
       def useTreeWalk(rev:RevCommit)(f:TreeWalk => Any): Unit = if (path == ".") {
@@ -255,14 +289,14 @@ object JGitUtil {
                           revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, Option[String], RevCommit)] ={
         if(restList.isEmpty){
           result
-        }else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
-          result ++ restList.map{ case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(revCommit)) }
-        }else{
+        } else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
+          result ++ restList.map { case (tuple, map) => tupleAdd(tuple, map.values.headOption.getOrElse(revCommit)) }
+        } else {
           val newCommit = revIterator.next
-          val (thisTimeChecks,skips) = restList.partition{ case (tuple, parentsMap) => parentsMap.contains(newCommit) }
+          val (thisTimeChecks,skips) = restList.partition { case (tuple, parentsMap) => parentsMap.contains(newCommit) }
           if(thisTimeChecks.isEmpty){
             findLastCommits(result, restList, revIterator)
-          }else{
+          } else {
             var nextRest = skips
             var nextResult = result
             // Map[(name, oid), (tuple, parentsMap)]
@@ -270,20 +304,20 @@ object JGitUtil {
             lazy val newParentsMap = newCommit.getParents.map(_ -> newCommit).toMap
             useTreeWalk(newCommit){ walk =>
               while(walk.next){
-                rest.remove(walk.getNameString -> walk.getObjectId(0)).map{ case (tuple, _) =>
+                rest.remove(walk.getNameString -> walk.getObjectId(0)).map { case (tuple, _) =>
                   if(newParentsMap.isEmpty){
                     nextResult +:= tupleAdd(tuple, newCommit)
-                  }else{
+                  } else {
                     nextRest +:= tuple -> newParentsMap
                   }
                 }
               }
             }
-            rest.values.map{ case (tuple, parentsMap) =>
+            rest.values.map { case (tuple, parentsMap) =>
               val restParentsMap = parentsMap - newCommit
               if(restParentsMap.isEmpty){
                 nextResult +:= tupleAdd(tuple, parentsMap(newCommit))
-              }else{
+              } else {
                 nextRest +:= tuple -> restParentsMap
               }
             }
@@ -295,7 +329,7 @@ object JGitUtil {
       var fileList: List[(ObjectId, FileMode, String, Option[String])] = Nil
       useTreeWalk(revCommit){ treeWalk =>
         while (treeWalk.next()) {
-          val linkUrl =if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
+          val linkUrl = if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
             getSubmodules(git, revCommit.getTree).find(_.path == treeWalk.getPathString).map(_.url)
           } else None
           fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, linkUrl)
@@ -345,7 +379,7 @@ object JGitUtil {
   def getTreeId(git: Git, revision: String): Option[String] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(revision)
-      if(objectId==null) return None
+      if(objectId == null) return None
       val revCommit = revWalk.parseCommit(objectId)
       Some(revCommit.getTree.name)
     }
@@ -357,7 +391,7 @@ object JGitUtil {
   def getAllFileListByTreeId(git: Git, treeId: String): List[String] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
       val objectId  = git.getRepository.resolve(treeId+"^{tree}")
-      if(objectId==null) return Nil
+      if(objectId == null) return Nil
       using(new TreeWalk(git.getRepository)){ treeWalk =>
         treeWalk.addTree(objectId)
         treeWalk.setRecursive(true)
@@ -705,6 +739,8 @@ object JGitUtil {
     refUpdate.setNewObjectId(newHeadId)
     refUpdate.update()
 
+    removeCache(git)
+
     newHeadId
   }
 
@@ -877,6 +913,7 @@ object JGitUtil {
 
   /**
    * Returns the last modified commit of specified path
+   *
    * @param git the Git object
    * @param startCommit the search base commit id
    * @param path the path of target file or directory
@@ -959,6 +996,7 @@ object JGitUtil {
 
   /**
    * Returns sha1
+   *
    * @param owner repository owner
    * @param name  repository name
    * @param revstr  A git object references expression

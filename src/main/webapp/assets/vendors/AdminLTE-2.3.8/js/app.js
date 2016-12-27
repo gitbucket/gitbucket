@@ -7,7 +7,7 @@
  * @Author  Almsaeed Studio
  * @Support <http://www.almsaeedstudio.com>
  * @Email   <abdullah@almsaeedstudio.com>
- * @version 2.3.6
+ * @version 2.3.8
  * @license MIT <http://opensource.org/licenses/MIT>
  */
 

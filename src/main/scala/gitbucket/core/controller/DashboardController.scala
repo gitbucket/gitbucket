@@ -1,13 +1,13 @@
 package gitbucket.core.controller
 
 import gitbucket.core.dashboard.html
-import gitbucket.core.service.{RepositoryService, PullRequestService, AccountService, IssuesService}
-import gitbucket.core.util.{StringUtil, Keys, UsersAuthenticator}
+import gitbucket.core.service._
+import gitbucket.core.util.{Keys, UsersAuthenticator}
 import gitbucket.core.util.Implicits._
 import gitbucket.core.service.IssuesService._
 
 class DashboardController extends DashboardControllerBase
-  with IssuesService with PullRequestService with RepositoryService with AccountService
+  with IssuesService with PullRequestService with RepositoryService with AccountService with CommitsService
   with UsersAuthenticator
 
 trait DashboardControllerBase extends ControllerBase {
@@ -76,7 +76,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      Nil,
       getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 
@@ -101,7 +101,7 @@ trait DashboardControllerBase extends ControllerBase {
       },
       filter,
       getGroupNames(userName),
-      getVisibleRepositories(context.loginAccount, withoutPhysicalInfo = true),
+      Nil,
       getUserRepositories(userName, withoutPhysicalInfo = true))
   }
 

@@ -23,13 +23,13 @@
     <div class="sidebar">
       <ul class="sidebar-menu">
         @menuitem("", "files", "Files", "code")
-        @if(repository.commitCount != 0) {
+        @if(repository.branchList.nonEmpty) {
           @menuitem("/branches", "branches", "Branches", "git-branch", repository.branchList.length)
           @menuitem("/tags", "tags", "Tags", "tag", repository.tags.length)
         }
         @if(repository.repository.options.issuesOption != "DISABLE") {
           @menuitem("/issues", "issues", "Issues", "issue-opened", repository.issueCount)
-          @menuitem("/pulls", "pulls", "Pull Requests", "git-pull-request", repository.pullCount)
+          @menuitem("/pulls", "pulls", "Pull requests", "git-pull-request", repository.pullCount)
           @menuitem("/issues/labels", "labels", "Labels", "tag")
           @menuitem("/issues/milestones", "milestones", "Milestones", "milestone")
         } else {

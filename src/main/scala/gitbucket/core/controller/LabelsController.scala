@@ -29,7 +29,7 @@ trait LabelsControllerBase extends ControllerBase {
       getLabels(repository.owner, repository.name),
       countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
 
   ajaxGet("/:owner/:repository/issues/labels/new")(writableUsersOnly { repository =>
@@ -43,7 +43,7 @@ trait LabelsControllerBase extends ControllerBase {
       // TODO futility
       countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
 
   ajaxGet("/:owner/:repository/issues/labels/:labelId/edit")(writableUsersOnly { repository =>
@@ -59,7 +59,7 @@ trait LabelsControllerBase extends ControllerBase {
       // TODO futility
       countIssueGroupByLabels(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+      hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
 
   ajaxPost("/:owner/:repository/issues/labels/:labelId/delete")(writableUsersOnly { repository =>

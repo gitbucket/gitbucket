@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.controller.Context
 import gitbucket.core.util.JGitUtil
-import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account, Permission}
+import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account, Role}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
@@ -230,7 +230,7 @@ trait RepositoryService { self: AccountService =>
   }
 
   /**
-   * Returns the repositories without private repository that user does not have access right.
+   * Returns the repositories except private repository that user does not have access right.
    * Include public repository, private own repository and private but collaborator repository.
    *
    * @param userName the user name of collaborator
@@ -239,8 +239,10 @@ trait RepositoryService { self: AccountService =>
   def getAllRepositories(userName: String)(implicit s: Session): List[(String, String)] = {
     Repositories.filter { t1 =>
       (t1.isPrivate === false.bind) ||
-      (t1.userName  === userName.bind) ||
-      (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
+      (t1.userName  === userName.bind) || (t1.userName in (GroupMembers.filter(_.userName === userName.bind).map(_.groupName))) ||
+      (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) &&
+        ((t2.collaboratorName === userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === userName.bind).map(_.groupName)))
+      } exists)
     }.sortBy(_.lastActivityDate desc).map{ t =>
       (t.userName, t.repositoryName)
     }.list
@@ -248,8 +250,10 @@ trait RepositoryService { self: AccountService =>
 
   def getUserRepositories(userName: String, withoutPhysicalInfo: Boolean = false)(implicit s: Session): List[RepositoryInfo] = {
     Repositories.filter { t1 =>
-      (t1.userName === userName.bind) ||
-        (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) && (t2.collaboratorName === userName.bind)} exists)
+      (t1.userName === userName.bind) || (t1.userName in (GroupMembers.filter(_.userName === userName.bind).map(_.groupName))) ||
+      (Collaborators.filter { t2 => t2.byRepository(t1.userName, t1.repositoryName) &&
+        ((t2.collaboratorName === userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === userName.bind).map(_.groupName)))
+      } exists)
     }.sortBy(_.lastActivityDate desc).list.map{ repository =>
       new RepositoryInfo(
         if(withoutPhysicalInfo){
@@ -284,8 +288,13 @@ trait RepositoryService { self: AccountService =>
       case Some(x) if(x.isAdmin) => Repositories
       // for Normal Users
       case Some(x) if(!x.isAdmin) =>
-        Repositories filter { t => (t.isPrivate === false.bind) || (t.userName === x.userName) ||
-          (Collaborators.filter { t2 => t2.byRepository(t.userName, t.repositoryName) && (t2.collaboratorName === x.userName.bind)} exists)
+        Repositories filter { t =>
+          (t.isPrivate === false.bind) || (t.userName === x.userName) ||
+          (t.userName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)) ||
+          (Collaborators.filter { t2 =>
+            t2.byRepository(t.userName, t.repositoryName) &&
+              ((t2.collaboratorName === x.userName.bind) || (t2.collaboratorName in GroupMembers.filter(_.userName === x.userName.bind).map(_.groupName)))
+          } exists)
         }
       // for Guests
       case None => Repositories filter(_.isPrivate === false.bind)
@@ -342,8 +351,8 @@ trait RepositoryService { self: AccountService =>
   /**
    * Add collaborator (user or group) to the repository.
    */
-  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String, permission: String)(implicit s: Session): Unit =
-    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, permission)
+  def addCollaborator(userName: String, repositoryName: String, collaboratorName: String, role: String)(implicit s: Session): Unit =
+    Collaborators insert Collaborator(userName, repositoryName, collaboratorName, role)
 
   /**
    * Remove all collaborators from the repository.
@@ -366,38 +375,38 @@ trait RepositoryService { self: AccountService =>
    * Returns the list of all collaborator name and permission which is sorted with ascending order.
    * If a group is added as a collaborator, this method returns users who are belong to that group.
    */
-  def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[Permission] = Nil)(implicit s: Session): List[String] = {
+  def getCollaboratorUserNames(userName: String, repositoryName: String, filter: Seq[Role] = Nil)(implicit s: Session): List[String] = {
     val q1 = Collaborators
       .join(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === false.bind) }
       .filter { case (t1, t2) => t1.byRepository(userName, repositoryName) }
-      .map { case (t1, t2) => (t1.collaboratorName, t1.permission) }
+      .map { case (t1, t2) => (t1.collaboratorName, t1.role) }
 
     val q2 = Collaborators
       .join(Accounts).on { case (t1, t2) => (t1.collaboratorName === t2.userName) && (t2.groupAccount === true.bind) }
       .join(GroupMembers).on { case ((t1, t2), t3) => t2.userName === t3.groupName }
       .filter { case ((t1, t2), t3) => t1.byRepository(userName, repositoryName) }
-      .map { case ((t1, t2), t3) => (t3.userName, t1.permission) }
+      .map { case ((t1, t2), t3) => (t3.userName, t1.role) }
 
     q1.union(q2).list.filter { x => filter.isEmpty || filter.exists(_.name == x._2) }.map(_._1)
   }
 
 
-  def hasWritePermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+  def hasDeveloperRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
       case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
-      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE)).contains(a.userName)) => true
+      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER)).contains(a.userName)) => true
       case _ => false
     }
   }
 
-  def hasReadPermission(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+  def hasGuestRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
       case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
-      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Permission.ADMIN, Permission.WRITE, Permission.READ)).contains(a.userName)) => true
+      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER, Role.GUEST)).contains(a.userName)) => true
       case _ => false
     }
   }
@@ -419,26 +428,20 @@ trait RepositoryService { self: AccountService =>
 object RepositoryService {
 
   case class RepositoryInfo(owner: String, name: String, repository: Repository,
-    issueCount: Int, pullCount: Int, commitCount: Int, forkedCount: Int,
+    issueCount: Int, pullCount: Int, forkedCount: Int,
     branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]) {
 
     /**
      * Creates instance with issue count and pull request count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
-      this(
-        repo.owner, repo.name, model,
-        issueCount, pullCount, repo.commitCount, forkedCount,
-        repo.branchList, repo.tags, managers)
+      this(repo.owner, repo.name, model, issueCount, pullCount, forkedCount, repo.branchList, repo.tags, managers)
 
     /**
      * Creates instance without issue count and pull request count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, 	forkedCount: Int, managers: Seq[String]) =
-      this(
-        repo.owner, repo.name, model,
-        0, 0, repo.commitCount, forkedCount,
-        repo.branchList, repo.tags, managers)
+      this(repo.owner, repo.name, model, 0, 0, forkedCount, repo.branchList, repo.tags, managers)
 
     def httpUrl(implicit context: Context): String = RepositoryService.httpUrl(owner, name)
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)
@@ -452,7 +455,6 @@ object RepositoryService {
 
       (id, path.substring(id.length).stripPrefix("/"))
     }
-
   }
 
   def httpUrl(owner: String, name: String)(implicit context: Context): String = s"${context.baseUrl}/git/${owner}/${name}.git"

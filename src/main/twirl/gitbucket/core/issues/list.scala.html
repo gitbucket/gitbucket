@@ -21,15 +21,22 @@
         <a href="@condition.copy(state = "closed").toURL">Closed <span class="badge">@closedCount</span></a>
       </li>
     </ul>
-    <form method="GET" id="search-filter-form" class="form-inline pull-right">
-    @if(isEditable){
-      @if(target == "issues"){
-        <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
+    <form method="GET" action="@helpers.url(repository)/search" id="search-filter-form" class="form-inline pull-right">
+      <div class="input-group">
+        <input type="text" class="form-control" name="q" placeholder="Search..."/>
+        <input type="hidden" name="type" value="issue"/>
+        <span class="input-group-btn">
+          <button type="submit" id="search-btn" class="btn btn-default"><i class="fa fa-search"></i></button>
+        </span>
+      </div>
+      @if(isEditable){
+        @if(target == "issues"){
+          <a class="btn btn-success" href="@helpers.url(repository)/issues/new">New issue</a>
+        }
+        @if(target == "pulls"){
+          <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
+        }
       }
-      @if(target == "pulls"){
-        <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
-      }
-    }
     </form>
     @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), isManageable)
     @if(isManageable){

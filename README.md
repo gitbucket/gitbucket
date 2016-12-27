@@ -24,35 +24,30 @@ Installation
 --------
 GitBucket requires **Java8**. You have to install beforehand when it's not installed.
 
-1. Download latest **gitbucket.war** from [the release page](https://github.com/gitbucket/gitbucket/releases).
-2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
-3. Access **http://[hostname]:[port]/gitbucket/** using your web browser and logged-in with **root** / **root**.
+1. Download latest **gitbucket.war** from [the release page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
+2. Access `http://[hostname]:8080/` and logged in with **root** / **root**.
 
-or you can start GitBucket by `java -jar gitbucket.war` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
+You can specify following options:
 
-- --port=[NUMBER]
-- --prefix=[CONTEXTPATH]
-- --host=[HOSTNAME]
-- --gitbucket.home=[DATA_DIR]
+- `--port=[NUMBER]`
+- `--prefix=[CONTEXTPATH]`
+- `--host=[HOSTNAME]`
+- `--gitbucket.home=[DATA_DIR]`
 
-To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
+Of course, you can also deploy gitbucket.war to a servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
 
 About installation on Mac or Windows Server (with IIS), configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
+To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in `HOME/.gitbucket` in default. So if you want to back up GitBucket data, copy this directory to the other disk.
+
 Plug-ins
 --------
-GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. Some plug-ins are available now:
+GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. We are providing some official plug-ins:
 
 - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
-- [gitbucket-announce-plugin](https://github.com/gitbucket-plugins/gitbucket-announce-plugin)
-- [gitbucket-h2-backup-plugin](https://github.com/gitbucket-plugins/gitbucket-h2-backup-plugin)
-- [gitbucket-desktopnotify-plugin](https://github.com/yoshiyoshifujii/gitbucket-desktopnotify-plugin)
-- [gitbucket-commitgraphs-plugin](https://github.com/yoshiyoshifujii/gitbucket-commitgraphs-plugin)
-- [gitbucket-asciidoctor-plugin](https://github.com/lefou/gitbucket-asciidoctor-plugin)
-- [gitbucket-network-plugin](https://github.com/mrkm4ntr/gitbucket-network-plugin)
 - [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
 
-You can find community plugins other than them at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
+You can find more plugins made by community at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
 
 Support
 --------
@@ -65,6 +60,24 @@ Support
 
 Release Notes
 -------------
+## 4.8 - 23 Dec 2016
+- Search for repository names from the global header
+- Filter repositories on the sidebar of the dashboard
+- Search issues and wiki
+- Keep pull request comments after new commits are pushed
+- New web API to get a single issue
+- Performance improvement for the repository viewer
+
+### 4.7.1 - 28 Nov 2016
+- Bug fix: group repositories are not shown in the your repositories list on the sidebar
+- Small performance improvement of the dashboard
+
+### 4.7 - 26 Nov 2016
+- New permission system
+- Dropdown filter for issue labels, milestones and assignees
+- Keep sidebar folding status
+- Link from milestone label to the issue list
+
 ### 4.6 - 29 Oct 2016
 - Add disable option for forking
 - Add History button to wiki page
@@ -101,7 +114,7 @@ Release Notes
   - [List group repositories](https://developer.github.com/v3/repos/#list-organization-repositories)
 - Add new extension points
   - `assetsMapping` : Supplies resources in plugin classpath as web assets
-  - `suggestionProvider` : Provides suggestion in the Markdown editing textarea 
+  - `suggestionProvider` : Provides suggestion in the Markdown editing textarea
   - `textDecorator` : Decorate text nodes in HTML which is converted from Markdown
 
 ### 4.2.1 - 3 Jul 2016
