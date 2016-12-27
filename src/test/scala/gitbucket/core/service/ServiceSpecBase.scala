@@ -1,15 +1,15 @@
 package gitbucket.core.service
 
 import gitbucket.core.GitBucketCoreModule
-import gitbucket.core.util.{ControlUtil, DatabaseConfig, FileUtil}
+import gitbucket.core.util.{DatabaseConfig, FileUtil}
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.model._
-import gitbucket.core.model.Profile._
 import io.github.gitbucket.solidbase.Solidbase
 import liquibase.database.core.H2Database
 import liquibase.database.jvm.JdbcConnection
-import profile._
-import profile.blockingApi._
+import gitbucket.core.model._
+import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 import org.apache.commons.io.FileUtils
 
