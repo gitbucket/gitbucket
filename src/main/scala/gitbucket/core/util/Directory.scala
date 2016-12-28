@@ -73,12 +73,6 @@ object Directory {
   def getPluginCacheDir(): File = new File(s"${TemporaryHome}/_plugins")
 
   /**
-   * Temporary directory which is used to create an archive to download repository contents.
-   */
-  def getDownloadWorkDir(owner: String, repository: String, sessionId: String): File = 
-    new File(getTemporaryDir(owner, repository), s"download/${sessionId}")
-  
-  /**
    * Substance directory of the wiki repository.
    */
   def getWikiRepositoryDir(owner: String, repository: String): File =

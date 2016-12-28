@@ -683,11 +683,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   private def archiveRepository(name: String, suffix: String, repository: RepositoryService.RepositoryInfo): Unit = {
     val revision = name.stripSuffix(suffix)
-    val workDir = getDownloadWorkDir(repository.owner, repository.name, session.getId)
-    if(workDir.exists) {
-      FileUtils.deleteDirectory(workDir)
-    }
-    workDir.mkdirs
 
     val filename = repository.name + "-" +
       (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + suffix
