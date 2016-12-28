@@ -24,6 +24,9 @@ public class JettyLauncher {
                         port = Integer.parseInt(dim[1]);
                     } else if(dim[0].equals("--prefix")) {
                         contextPath = dim[1];
+                        if(!contextPath.startsWith("/")){
+                            contextPath = "/" + contextPath;
+                        }
                     } else if(dim[0].equals("--gitbucket.home")){
                         System.setProperty("gitbucket.home", dim[1]);
                     }
