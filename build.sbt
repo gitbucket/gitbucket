@@ -22,8 +22,8 @@ resolvers ++= Seq(
 )
 libraryDependencies ++= Seq(
   "org.scala-lang.modules"   %% "scala-java8-compat"           % "0.7.0",
-  "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % "4.1.2.201602141800-r",
-  "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % "4.1.2.201602141800-r",
+  "org.eclipse.jgit"          % "org.eclipse.jgit.http.server" % "4.6.0.201612231935-r",
+  "org.eclipse.jgit"          % "org.eclipse.jgit.archive"     % "4.6.0.201612231935-r",
   "org.scalatra"             %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"             %% "scalatra-json"                % ScalatraVersion,
   "org.json4s"               %% "json4s-jackson"               % "3.3.0",
