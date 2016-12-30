@@ -696,7 +696,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
       git.archive
          .setFormat(suffix.tail)
-         .setTree(revCommit.getTree)
+         .setTree(revCommit)
          .setOutputStream(response.getOutputStream)
          .call()
     }
