@@ -1,11 +1,9 @@
 package gitbucket.core.util
 
 import java.io.File
-import ControlUtil._
-import org.apache.commons.io.FileUtils
 
 /**
- * Provides directories used by GitBucket.
+ * Provides directory locations used by GitBucket.
  */
 object Directory {
 

@@ -53,6 +53,7 @@ trait SystemSettingsService {
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
+      settings.lfs.serverUrl.foreach { x => props.setProperty(LfsServerUrl, x) }
       using(new java.io.FileOutputStream(GitBucketConf)){ out =>
         props.store(out, null)
       }
@@ -109,7 +110,10 @@ trait SystemSettingsService {
             getOptionValue(props, LdapKeystore, None)))
         } else {
           None
-        }
+        },
+        Lfs(
+          getOptionValue(props, LfsServerUrl, None)
+        )
       )
     }
   }
@@ -134,7 +138,8 @@ object SystemSettingsService {
     useSMTP: Boolean,
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
-    ldap: Option[Ldap]){
+    ldap: Option[Ldap],
+    lfs: Lfs){
     def baseUrl(request: HttpServletRequest): String = baseUrl.fold(request.baseUrl)(_.stripSuffix("/"))
 
     def sshAddress:Option[SshAddress] =
@@ -176,6 +181,9 @@ object SystemSettingsService {
     port:Int,
     genericUser:String)
 
+  case class Lfs(
+    serverUrl: Option[String])
+
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
@@ -212,6 +220,7 @@ object SystemSettingsService {
   private val LdapTls = "ldap.tls"
   private val LdapSsl = "ldap.ssl"
   private val LdapKeystore = "ldap.keystore"
+  private val LfsServerUrl = "lfs.server_url"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A =
     defining(props.getProperty(key)){ value =>
