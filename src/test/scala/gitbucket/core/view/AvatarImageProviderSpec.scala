@@ -5,7 +5,7 @@ import java.util.Date
 import gitbucket.core.model.Account
 import gitbucket.core.service.{RequestCache, SystemSettingsService}
 import gitbucket.core.controller.Context
-import SystemSettingsService.SystemSettings
+import SystemSettingsService.{Lfs, SystemSettings}
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 
 import play.twirl.api.Html
@@ -112,7 +112,8 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       useSMTP                  = false,
       smtp                     = None,
       ldapAuthentication       = false,
-      ldap                     = None)
+      ldap                     = None,
+      lfs                      = Lfs(None))
 
   /**
    * Adapter to test AvatarImageProviderImpl.
