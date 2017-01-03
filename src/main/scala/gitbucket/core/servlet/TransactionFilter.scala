@@ -22,7 +22,6 @@ class TransactionFilter extends Filter {
 
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     val servletPath = req.asInstanceOf[HttpServletRequest].getServletPath()
-    println(servletPath)
     if(servletPath.startsWith("/assets/") || servletPath.startsWith("/git-lfs")){
       // assets and git-lfs don't need transaction
       chain.doFilter(req, res)

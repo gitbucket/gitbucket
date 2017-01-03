@@ -112,8 +112,7 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       useSMTP                  = false,
       smtp                     = None,
       ldapAuthentication       = false,
-      ldap                     = None,
-      lfs                      = Lfs(None))
+      ldap                     = None)
 
   /**
    * Adapter to test AvatarImageProviderImpl.
