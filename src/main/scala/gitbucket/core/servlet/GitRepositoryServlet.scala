@@ -61,6 +61,10 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
     }
   }
 
+  /**
+   * Provides GitLFS Batch API
+   * https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md
+   */
   protected def serviceGitLfsBatchAPI(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     val batchRequest = read[GitLfs.BatchRequest](req.getInputStream)
     val settings = loadSystemSettings()
@@ -96,10 +100,10 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
         }
 
         res.setContentType("application/vnd.git-lfs+json")
-
-        val out = res.getWriter
-        out.print(write(batchResponse))
-        out.flush()
+        using(res.getWriter){ out =>
+          out.print(write(batchResponse))
+          out.flush()
+        }
     }
   }
 }
@@ -315,6 +319,10 @@ object GitLfs {
     href: String,
     header: Map[String, String] = Map.empty,
     expires_at: Date
+  )
+
+  case class Error(
+    message: String
   )
 
 }

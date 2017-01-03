@@ -315,9 +315,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }.toMap
 
           response.setContentLength(attrs("size").toInt)
-          val hash = attrs("oid").split(":")(1)
+          val oid = attrs("oid").split(":")(1)
 
-          using(new FileInputStream(Directory.LfsHome + "/" + hash.substring(0, 2) + "/" + hash.substring(2, 4) + "/" + hash)){ in =>
+          using(new FileInputStream(Directory.LfsHome + "/" + oid.substring(0, 2) + "/" + oid.substring(2, 4) + "/" + oid)){ in =>
             IOUtils.copy(in, response.getOutputStream)
           }
         } else {
