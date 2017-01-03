@@ -36,6 +36,8 @@ object Directory {
 
   val TemporaryHome = s"${GitBucketHome}/tmp"
 
+  val LfsHome = s"${GitBucketHome}/lfs"
+
   /**
    * Substance directory of the repository.
    */
