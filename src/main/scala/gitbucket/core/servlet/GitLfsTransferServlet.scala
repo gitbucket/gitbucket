@@ -4,7 +4,7 @@ import java.io.{File, FileInputStream, FileOutputStream}
 import java.text.MessageFormat
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import gitbucket.core.util.Directory
+import gitbucket.core.util.{Directory, FileUtil}
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.json4s.jackson.Serialization._
 import org.apache.http.HttpStatus
@@ -24,7 +24,7 @@ class GitLfsTransferServlet extends HttpServlet {
     for {
       oid <- getObjectId(req, res)
     } yield {
-      val file = new File(Directory.LfsHome + "/" + oid.substring(0, 2) + "/" + oid.substring(2, 4) + "/" + oid)
+      val file = new File(FileUtil.getLfsFilePath(oid))
       if(file.exists()){
         res.setStatus(HttpStatus.SC_OK)
         res.setContentType("application/octet-stream")
@@ -44,7 +44,7 @@ class GitLfsTransferServlet extends HttpServlet {
     for {
       oid <- getObjectId(req, res)
     } yield {
-      val file = new File(Directory.LfsHome + "/" + oid.substring(0, 2) + "/" + oid.substring(2, 4) + "/" + oid)
+      val file = new File(FileUtil.getLfsFilePath(oid))
       FileUtils.forceMkdir(file.getParentFile)
       using(req.getInputStream, new FileOutputStream(file)){ (in, out) =>
         IOUtils.copy(in, out)

@@ -300,7 +300,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
       contentType = FileUtil.getMimeType(path)
 
-      if(loader.isLarge || context.settings.lfs.serverUrl.isEmpty){
+      if(loader.isLarge){
         response.setContentLength(loader.getSize.toInt)
         loader.copyTo(response.outputStream)
       } else {
@@ -317,7 +317,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           response.setContentLength(attrs("size").toInt)
           val oid = attrs("oid").split(":")(1)
 
-          using(new FileInputStream(Directory.LfsHome + "/" + oid.substring(0, 2) + "/" + oid.substring(2, 4) + "/" + oid)){ in =>
+          using(new FileInputStream(FileUtil.getLfsFilePath(oid))){ in =>
             IOUtils.copy(in, response.getOutputStream)
           }
         } else {
