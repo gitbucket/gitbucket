@@ -46,17 +46,6 @@
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <servlet-name>GitLfsBatchServlet</servlet-name>
-    <servlet-class>gitbucket.core.servlet.GitLfsBatchServlet</servlet-class>
-    <async-supported>true</async-supported>
-  </servlet>
-
-  <servlet-mapping>
-    <servlet-name>GitLfsBatchServlet</servlet-name>
-    <url-pattern>/git/root/git-lfs-test.git/info/lfs/*</url-pattern>
-  </servlet-mapping>
-
   <!-- ===================================================================== -->
   <!-- Supply assets which are provided by plugins -->
   <!-- ===================================================================== -->
