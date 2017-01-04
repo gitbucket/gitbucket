@@ -4,7 +4,7 @@ import java.io.{File, FileInputStream, FileOutputStream}
 import java.text.MessageFormat
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import gitbucket.core.util.{Directory, FileUtil}
+import gitbucket.core.util.{Directory, FileUtil, StringUtil}
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.json4s.jackson.Serialization._
 import org.apache.http.HttpStatus
@@ -22,7 +22,7 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doGet(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      oid <- getObjectId(req, res)
+      oid <- getObjectId(req, res) if checkToken(req, oid)
     } yield {
       val file = new File(FileUtil.getLfsFilePath(oid))
       if(file.exists()){
@@ -42,7 +42,7 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doPut(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      oid <- getObjectId(req, res)
+      oid <- getObjectId(req, res) if checkToken(req, oid)
     } yield {
       val file = new File(FileUtil.getLfsFilePath(oid))
       FileUtils.forceMkdir(file.getParentFile)
@@ -50,6 +50,16 @@ class GitLfsTransferServlet extends HttpServlet {
         IOUtils.copy(in, out)
       }
       res.setStatus(HttpStatus.SC_OK)
+    }
+  }
+
+  private def checkToken(req: HttpServletRequest, oid: String): Boolean = {
+    val token = req.getHeader("Authorization")
+    if(token != null){
+      val Array(expireAt, targetOid) = StringUtil.decodeBlowfish(token).split(" ")
+      oid == targetOid && expireAt.toLong > System.currentTimeMillis
+    } else {
+      false
     }
   }
 

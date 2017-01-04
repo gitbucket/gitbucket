@@ -74,6 +74,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
         throw new IllegalStateException("lfs.server_url is not configured.")
 
       case Some(baseUrl) =>
+        val timeout = System.currentTimeMillis + (60000 * 10) // 10 min.
         val batchResponse = batchRequest.operation match {
           case "upload" =>
             GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
@@ -81,7 +82,8 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                 GitLfs.Actions(
                   upload = Some(GitLfs.Action(
                     href = baseUrl + "/git-lfs/" + requestObject.oid,
-                    expires_at = new Date(System.currentTimeMillis + 60000L)
+                    header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                    expires_at = new Date(timeout)
                   ))
                 )
               )
@@ -92,7 +94,8 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                 GitLfs.Actions(
                   download = Some(GitLfs.Action(
                     href = baseUrl + "/git-lfs/" + requestObject.oid,
-                    expires_at = new Date(System.currentTimeMillis + 60000L)
+                    header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                    expires_at = new Date(timeout)
                   ))
                 )
               )
