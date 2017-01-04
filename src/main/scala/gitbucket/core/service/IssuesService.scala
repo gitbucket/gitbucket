@@ -269,7 +269,7 @@ trait IssuesService {
         } exists), condition.mentioned.isDefined)
     }
 
-  def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
+  def insertIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
                   assignedUserName: Option[String], milestoneId: Option[Int],
                   isPullRequest: Boolean = false)(implicit s: Session) =
     // next id number

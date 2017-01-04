@@ -21,10 +21,12 @@ class ApiController extends ApiControllerBase
   with ProtectedBranchService
   with IssuesService
   with LabelsService
+  with MilestonesService
   with PullRequestService
   with CommitsService
   with CommitStatusService
   with RepositoryCreationService
+  with IssueCreationService
   with HandleCommentService
   with WebHookService
   with WebHookPullRequestService
@@ -44,9 +46,11 @@ trait ApiControllerBase extends ControllerBase {
     with ProtectedBranchService
     with IssuesService
     with LabelsService
+    with MilestonesService
     with PullRequestService
     with CommitStatusService
     with RepositoryCreationService
+    with IssueCreationService
     with HandleCommentService
     with OwnerAuthenticator
     with UsersAuthenticator
@@ -294,6 +298,23 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(openedUser)))
     }) getOrElse NotFound()
+  })
+
+  /**
+    * https://developer.github.com/v3/issues/#create-an-issue
+    */
+  post("/api/v3/repos/:owner/:repository/issues")(readableUsersOnly { repository =>
+    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
+      (for{
+        data <- extractFromJsonBody[CreateAnIssue]
+        loginAccount <- context.loginAccount
+      } yield {
+        val milestone = data.milestone.flatMap(getMilestone(repository.owner, repository.name, _))
+        val issue = createIssue(repository, data.title, data.body, data.assignees.headOption,
+          milestone.map(_.milestoneId), data.labels)
+        JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount)))
+      }) getOrElse NotFound()
+    } else Unauthorized()
   })
 
   /**

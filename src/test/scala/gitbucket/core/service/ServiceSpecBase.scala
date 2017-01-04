@@ -53,7 +53,7 @@ trait ServiceSpecBase {
   }
 
   def generateNewIssue(userName:String, repositoryName:String, loginUser:String="root")(implicit s:Session): Int = {
-    dummyService.createIssue(
+    dummyService.insertIssue(
       owner            = userName,
       repository       = repositoryName,
       loginUser        = loginUser,
