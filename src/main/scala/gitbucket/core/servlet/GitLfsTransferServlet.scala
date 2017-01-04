@@ -22,9 +22,9 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doGet(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      oid <- getObjectId(req, res) if checkToken(req, oid)
+      (owner, name, oid) <- getPathInfo(req, res) if checkToken(req, oid)
     } yield {
-      val file = new File(FileUtil.getLfsFilePath(oid))
+      val file = new File(FileUtil.getLfsFilePath(owner, name, oid))
       if(file.exists()){
         res.setStatus(HttpStatus.SC_OK)
         res.setContentType("application/octet-stream")
@@ -42,9 +42,9 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doPut(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      oid <- getObjectId(req, res) if checkToken(req, oid)
+      (owner, name, oid) <- getPathInfo(req, res) if checkToken(req, oid)
     } yield {
-      val file = new File(FileUtil.getLfsFilePath(oid))
+      val file = new File(FileUtil.getLfsFilePath(owner, name, oid))
       FileUtils.forceMkdir(file.getParentFile)
       using(req.getInputStream, new FileOutputStream(file)){ (in, out) =>
         IOUtils.copy(in, out)
@@ -63,15 +63,10 @@ class GitLfsTransferServlet extends HttpServlet {
     }
   }
 
-  private def getObjectId(req: HttpServletRequest, rsp: HttpServletResponse): Option[String] = {
-    val info: String = req.getPathInfo
-    val length: Int = 1 + LongObjectIdStringLength
-    if (info.length != length) {
-      sendError(rsp, HttpStatus.SC_UNPROCESSABLE_ENTITY,
-        MessageFormat.format("Invalid pathInfo ''{0}'' does not match ''/'{'SHA-256'}'''", info))
-      None
-    } else {
-      Some(info.substring(1, length))
+  private def getPathInfo(req: HttpServletRequest, res: HttpServletResponse): Option[(String, String, String)] = {
+    req.getRequestURI.substring(1).split("/") match {
+      case Array(_, owner, name, oid) => Some((owner, name, oid))
+      case _ => None
     }
   }
 

@@ -36,8 +36,6 @@ object Directory {
 
   val TemporaryHome = s"${GitBucketHome}/tmp"
 
-  val LfsHome = s"${GitBucketHome}/lfs"
-
   /**
    * Substance directory of the repository.
    */
@@ -49,6 +47,12 @@ object Directory {
    */
   def getAttachedDir(owner: String, repository: String): File =
     new File(s"${RepositoryHome}/${owner}/${repository}/comments")
+
+  /**
+   * Directory for files which are attached to issue.
+   */
+  def getLfsDir(owner: String, repository: String): File =
+    new File(s"${RepositoryHome}/${owner}/${repository}/lfs")
 
   /**
    * Directory for uploaded files by the specified user.

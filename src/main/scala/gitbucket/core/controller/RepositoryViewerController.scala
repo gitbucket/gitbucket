@@ -257,7 +257,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
 
       getPathObjectId(git, path, revCommit).map { objectId =>
-        responseRawFile(git, objectId, path)
+        responseRawFile(git, objectId, path, repository)
       } getOrElse NotFound()
     }
   })
@@ -273,7 +273,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download (This route is left for backword compatibility)
-          responseRawFile(git, objectId, path)
+          responseRawFile(git, objectId, path, repository)
         } else {
           html.blob(id, repository, path.split("/").toList,
             JGitUtil.getContentInfo(git, path, objectId),
@@ -296,7 +296,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }.getOrElse(false)
   }
 
-  private def responseRawFile(git: Git, objectId: ObjectId, path: String): Unit = {
+  private def responseRawFile(git: Git, objectId: ObjectId, path: String,
+                              repository: RepositoryService.RepositoryInfo): Unit = {
     JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
       contentType = FileUtil.getMimeType(path)
 
@@ -317,7 +318,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           response.setContentLength(attrs("size").toInt)
           val oid = attrs("oid").split(":")(1)
 
-          using(new FileInputStream(FileUtil.getLfsFilePath(oid))){ in =>
+          using(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))){ in =>
             IOUtils.copy(in, response.getOutputStream)
           }
         } else {
