@@ -20,7 +20,7 @@ trait AccessTokenService {
   def tokenToHash(token: String): String = StringUtil.sha1(token)
 
   /**
-   * @retuen (TokenId, Token)
+   * @return (TokenId, Token)
    */
   def generateAccessToken(userName: String, note: String)(implicit s: Session): (Int, String) = {
     var token: String = null
