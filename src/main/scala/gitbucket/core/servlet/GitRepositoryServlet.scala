@@ -75,7 +75,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
       }
       case Some(baseUrl) => {
         req.getRequestURI.substring(1).replace(".git/", "/").split("/") match {
-          case Array(_, owner, name, _*) => {
+          case Array(_, owner, repository, _*) => {
             val timeout = System.currentTimeMillis + (60000 * 10) // 10 min.
             val batchResponse = batchRequest.operation match {
                 case "upload" =>
@@ -83,7 +83,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                     GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
                       GitLfs.Actions(
                         upload = Some(GitLfs.Action(
-                          href = baseUrl + "/git-lfs/" + owner + "/" + name + "/" + requestObject.oid,
+                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
                           header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
                           expires_at = new Date(timeout)
                         ))
@@ -95,7 +95,7 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
                     GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
                       GitLfs.Actions(
                         download = Some(GitLfs.Action(
-                          href = baseUrl + "/git-lfs/" + owner + "/" + name + "/" + requestObject.oid,
+                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
                           header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
                           expires_at = new Date(timeout)
                         ))

@@ -22,9 +22,9 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doGet(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      (owner, name, oid) <- getPathInfo(req, res) if checkToken(req, oid)
+      (owner, repository, oid) <- getPathInfo(req, res) if checkToken(req, oid)
     } yield {
-      val file = new File(FileUtil.getLfsFilePath(owner, name, oid))
+      val file = new File(FileUtil.getLfsFilePath(owner, repository, oid))
       if(file.exists()){
         res.setStatus(HttpStatus.SC_OK)
         res.setContentType("application/octet-stream")
@@ -42,9 +42,9 @@ class GitLfsTransferServlet extends HttpServlet {
 
   override protected def doPut(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     for {
-      (owner, name, oid) <- getPathInfo(req, res) if checkToken(req, oid)
+      (owner, repository, oid) <- getPathInfo(req, res) if checkToken(req, oid)
     } yield {
-      val file = new File(FileUtil.getLfsFilePath(owner, name, oid))
+      val file = new File(FileUtil.getLfsFilePath(owner, repository, oid))
       FileUtils.forceMkdir(file.getParentFile)
       using(req.getInputStream, new FileOutputStream(file)){ (in, out) =>
         IOUtils.copy(in, out)
@@ -65,7 +65,7 @@ class GitLfsTransferServlet extends HttpServlet {
 
   private def getPathInfo(req: HttpServletRequest, res: HttpServletResponse): Option[(String, String, String)] = {
     req.getRequestURI.substring(1).split("/") match {
-      case Array(_, owner, name, oid) => Some((owner, name, oid))
+      case Array(_, owner, repository, oid) => Some((owner, repository, oid))
       case _ => None
     }
   }

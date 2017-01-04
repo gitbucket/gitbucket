@@ -63,6 +63,7 @@ object FileUtil {
       "image/png",
       "text/plain")
 
-  def getLfsFilePath(owner: String, name: String, oid: String): String = Directory.getLfsDir(owner, name) + "/" + oid
+  def getLfsFilePath(owner: String, repository: String, oid: String): String =
+    Directory.getLfsDir(owner, repository) + "/" + oid
 
 }
