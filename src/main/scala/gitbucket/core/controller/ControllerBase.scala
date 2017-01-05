@@ -57,7 +57,7 @@ abstract class ControllerBase extends ScalatraFilter
         // Redirect to dashboard
         httpResponse.sendRedirect(baseUrl + "/")
       }
-    } else if(path.startsWith("/git/")){
+    } else if(path.startsWith("/git/") || path.startsWith("/git-lfs/")){
       // Git repository
       chain.doFilter(request, response)
     } else {

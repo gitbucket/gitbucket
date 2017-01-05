@@ -20,6 +20,20 @@ object ControlUtil {
       }
     }
 
+  def using[A <% { def close(): Unit }, B <% { def close(): Unit }, C](resource1: A, resource2: B)(f: (A, B) => C): C =
+    try f(resource1, resource2) finally {
+      if(resource1 != null){
+        ignoring(classOf[Throwable]) {
+          resource1.close()
+        }
+      }
+      if(resource2 != null){
+        ignoring(classOf[Throwable]) {
+          resource2.close()
+        }
+      }
+    }
+
   def using[T](git: Git)(f: Git => T): T =
     try f(git) finally git.getRepository.close()
 

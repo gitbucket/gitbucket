@@ -1,11 +1,9 @@
 package gitbucket.core.util
 
 import java.io.File
-import ControlUtil._
-import org.apache.commons.io.FileUtils
 
 /**
- * Provides directories used by GitBucket.
+ * Provides directory locations used by GitBucket.
  */
 object Directory {
 
@@ -49,6 +47,12 @@ object Directory {
    */
   def getAttachedDir(owner: String, repository: String): File =
     new File(s"${RepositoryHome}/${owner}/${repository}/comments")
+
+  /**
+   * Directory for files which are attached to issue.
+   */
+  def getLfsDir(owner: String, repository: String): File =
+    new File(s"${RepositoryHome}/${owner}/${repository}/lfs")
 
   /**
    * Directory for uploaded files by the specified user.

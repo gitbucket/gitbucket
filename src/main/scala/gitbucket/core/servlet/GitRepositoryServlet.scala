@@ -1,6 +1,7 @@
 package gitbucket.core.servlet
 
 import java.io.File
+import java.util.Date
 
 import gitbucket.core.api
 import gitbucket.core.model.{Session, WebHook}
@@ -11,16 +12,16 @@ import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
-
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.http.server.GitServlet
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.transport._
 import org.eclipse.jgit.transport.resolver._
 import org.slf4j.LoggerFactory
-
 import javax.servlet.ServletConfig
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
+import org.json4s.jackson.Serialization._
 
 
 /**
@@ -32,7 +33,8 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 class GitRepositoryServlet extends GitServlet with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(classOf[GitRepositoryServlet])
-  
+  private implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+
   override def init(config: ServletConfig): Unit = {
     setReceivePackFactory(new GitBucketReceivePackFactory())
 
@@ -45,13 +47,71 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
   override def service(req: HttpServletRequest, res: HttpServletResponse): Unit = {
     val agent = req.getHeader("USER-AGENT")
     val index = req.getRequestURI.indexOf(".git")
-    if(index >= 0 && (agent == null || agent.toLowerCase.indexOf("git/") < 0)){
+    if(index >= 0 && (agent == null || agent.toLowerCase.indexOf("git") < 0)){
       // redirect for browsers
       val paths = req.getRequestURI.substring(0, index).split("/")
       res.sendRedirect(baseUrl(req) + "/" + paths.dropRight(1).last + "/" + paths.last)
+
+    } else if(req.getMethod.toUpperCase == "POST" && req.getRequestURI.endsWith("/info/lfs/objects/batch")){
+      serviceGitLfsBatchAPI(req, res)
+
     } else {
       // response for git client
       super.service(req, res)
+    }
+  }
+
+  /**
+   * Provides GitLFS Batch API
+   * https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md
+   */
+  protected def serviceGitLfsBatchAPI(req: HttpServletRequest, res: HttpServletResponse): Unit = {
+    val batchRequest = read[GitLfs.BatchRequest](req.getInputStream)
+    val settings = loadSystemSettings()
+
+    settings.baseUrl match {
+      case None => {
+        throw new IllegalStateException("lfs.server_url is not configured.")
+      }
+      case Some(baseUrl) => {
+        req.getRequestURI.substring(1).replace(".git/", "/").split("/") match {
+          case Array(_, owner, repository, _*) => {
+            val timeout = System.currentTimeMillis + (60000 * 10) // 10 min.
+            val batchResponse = batchRequest.operation match {
+                case "upload" =>
+                  GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
+                    GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
+                      GitLfs.Actions(
+                        upload = Some(GitLfs.Action(
+                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
+                          header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                          expires_at = new Date(timeout)
+                        ))
+                      )
+                    )
+                  })
+                case "download" =>
+                  GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
+                    GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
+                      GitLfs.Actions(
+                        download = Some(GitLfs.Action(
+                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
+                          header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                          expires_at = new Date(timeout)
+                        ))
+                      )
+                    )
+                  })
+            }
+
+            res.setContentType("application/vnd.git-lfs+json")
+            using(res.getWriter){ out =>
+              out.print(write(batchResponse))
+              out.flush()
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -230,5 +290,47 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
       }
     }
   }
+
+}
+
+object GitLfs {
+
+  case class BatchRequest(
+    operation: String,
+    transfers: Seq[String],
+    objects: Seq[BatchRequestObject]
+  )
+
+  case class BatchRequestObject(
+    oid: String,
+    size: Long
+  )
+
+  case class BatchUploadResponse(
+    transfer: String,
+    objects: Seq[BatchResponseObject]
+  )
+
+  case class BatchResponseObject(
+    oid: String,
+    size: Long,
+    authenticated: Boolean,
+    actions: Actions
+  )
+
+  case class Actions(
+    download: Option[Action] = None,
+    upload: Option[Action] = None
+  )
+
+  case class Action(
+    href: String,
+    header: Map[String, String] = Map.empty,
+    expires_at: Date
+  )
+
+  case class Error(
+    message: String
+  )
 
 }

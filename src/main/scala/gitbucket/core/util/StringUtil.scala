@@ -1,13 +1,22 @@
 package gitbucket.core.util
 
 import java.net.{URLDecoder, URLEncoder}
+
 import org.mozilla.universalchardet.UniversalDetector
 import ControlUtil._
 import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
+import org.apache.commons.codec.binary.{Base64, StringUtils}
+
 import scala.util.control.Exception._
 
 object StringUtil {
+
+  private lazy val BlowfishKey = {
+    // last 4 numbers in current timestamp
+    val time = System.currentTimeMillis.toString
+    time.substring(time.length - 4)
+  }
 
   def sha1(value: String): String =
     defining(java.security.MessageDigest.getInstance("SHA-1")){ md =>
@@ -19,6 +28,20 @@ object StringUtil {
     val md = java.security.MessageDigest.getInstance("MD5")
     md.update(value.getBytes)
     md.digest.map(b => "%02x".format(b)).mkString
+  }
+
+  def encodeBlowfish(value: String): String = {
+    val spec = new javax.crypto.spec.SecretKeySpec(BlowfishKey.getBytes(), "Blowfish")
+    val cipher = javax.crypto.Cipher.getInstance("Blowfish")
+    cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, spec)
+    new String(Base64.encodeBase64(cipher.doFinal(value.getBytes("UTF-8"))), "UTF-8")
+  }
+
+  def decodeBlowfish(value: String): String = {
+    val spec = new javax.crypto.spec.SecretKeySpec(BlowfishKey.getBytes(), "Blowfish")
+    val cipher = javax.crypto.Cipher.getInstance("Blowfish")
+    cipher.init(javax.crypto.Cipher.DECRYPT_MODE, spec)
+    new String(cipher.doFinal(Base64.decodeBase64(value)), "UTF-8")
   }
 
   def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8").replace("+", "%20")

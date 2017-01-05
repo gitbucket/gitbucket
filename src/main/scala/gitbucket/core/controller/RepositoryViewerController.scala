@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import java.io.FileInputStream
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.repo.html
@@ -16,9 +17,8 @@ import gitbucket.core.model.{Account, WebHook}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
-
 import io.github.gitbucket.scalatra.forms._
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{FileUtils, IOUtils}
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.DirCache
@@ -255,13 +255,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (id, path) = repository.splitPath(multiParams("splat").head)
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
-      getPathObjectId(git, path, revCommit).flatMap { objectId =>
-        JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
-          contentType = FileUtil.getMimeType(path)
-          response.setContentLength(loader.getSize.toInt)
-          loader.copyTo(response.outputStream)
-          ()
-        }
+
+      getPathObjectId(git, path, revCommit).map { objectId =>
+        responseRawFile(git, objectId, path, repository)
       } getOrElse NotFound()
     }
   })
@@ -277,22 +273,61 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       getPathObjectId(git, path, revCommit).map { objectId =>
         if(raw){
           // Download (This route is left for backword compatibility)
-          JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
-            contentType = FileUtil.getMimeType(path)
-            response.setContentLength(loader.getSize.toInt)
-            loader.copyTo(response.outputStream)
-            ()
-          } getOrElse NotFound()
+          responseRawFile(git, objectId, path, repository)
         } else {
           html.blob(id, repository, path.split("/").toList,
             JGitUtil.getContentInfo(git, path, objectId),
             new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
             hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
-            request.paths(2) == "blame")
+            request.paths(2) == "blame",
+            isLfsFile(git, objectId))
         }
       } getOrElse NotFound()
     }
   })
+
+  private def isLfsFile(git: Git, objectId: ObjectId): Boolean = {
+    JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
+      if(loader.isLarge){
+        false
+      } else {
+        new String(loader.getCachedBytes, "UTF-8").startsWith("version https://git-lfs.github.com/spec/v1")
+      }
+    }.getOrElse(false)
+  }
+
+  private def responseRawFile(git: Git, objectId: ObjectId, path: String,
+                              repository: RepositoryService.RepositoryInfo): Unit = {
+    JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
+      contentType = FileUtil.getMimeType(path)
+
+      if(loader.isLarge){
+        response.setContentLength(loader.getSize.toInt)
+        loader.copyTo(response.outputStream)
+      } else {
+        val bytes = loader.getCachedBytes
+        val text = new String(bytes, "UTF-8")
+
+        if(text.startsWith("version https://git-lfs.github.com/spec/v1")){
+          // LFS objects
+          val attrs = text.split("\n").map { line =>
+            val dim = line.split(" ")
+            dim(0) -> dim(1)
+          }.toMap
+
+          response.setContentLength(attrs("size").toInt)
+          val oid = attrs("oid").split(":")(1)
+
+          using(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))){ in =>
+            IOUtils.copy(in, response.getOutputStream)
+          }
+        } else {
+          response.setContentLength(loader.getSize.toInt)
+          response.getOutputStream.write(bytes)
+        }
+      }
+    }
+  }
 
   get("/:owner/:repository/blame/*"){
     blobRoute.action()

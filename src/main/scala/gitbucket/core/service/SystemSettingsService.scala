@@ -176,6 +176,9 @@ object SystemSettingsService {
     port:Int,
     genericUser:String)
 
+  case class Lfs(
+    serverUrl: Option[String])
+
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
