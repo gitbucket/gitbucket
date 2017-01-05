@@ -7,9 +7,6 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Notifier
 import gitbucket.core.util.Implicits._
 
-/**
-  * Created by sk on 1/5 005.
-  */
 trait IssueCreationService {
 
   self: RepositoryService with WebHookIssueCommentService with LabelsService with IssuesService with ActivityService =>
@@ -42,10 +39,10 @@ trait IssueCreationService {
     recordCreateIssueActivity(owner, name, userName, issueId, title)
 
     // extract references and create refer comment
-    createReferComment(owner, name, issue, title + " " + body.getOrElse(""), context.loginAccount.get)
+    createReferComment(owner, name, issue, title + " " + body.getOrElse(""), loginAccount)
 
     // call web hooks
-    callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
+    callIssuesWebHook("opened", repository, issue, context.baseUrl, loginAccount)
 
     // notifications
     Notifier().toNotify(repository, issue, body.getOrElse("")) {
