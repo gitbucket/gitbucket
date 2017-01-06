@@ -70,42 +70,47 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
 
   private def defaultRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
                                 settings: SystemSettings, isUpdating: Boolean): Unit = {
-    implicit val r = request
-
-    request.paths match {
+    val action = request.paths match {
       case Array(_, repositoryOwner, repositoryName, _*) =>
-        getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", "")) match {
-          case Some(repository) => {
-            if(!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess){
-              chain.doFilter(request, response)
-            } else {
-              val passed = for {
-                auth <- Option(request.getHeader("Authorization"))
-                Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
-                account <- authenticate(settings, username, password)
-              } yield if(isUpdating || repository.repository.isPrivate){
-                  if(hasDeveloperRole(repository.owner, repository.name, Some(account))){
+        Database() withSession { implicit session =>
+          getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", "")) match {
+            case Some(repository) => {
+              val execute = if (!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess) {
+                // Authentication is not required
+                true
+              } else {
+                // Authentication is required
+                val passed = for {
+                  auth <- Option(request.getHeader("Authorization"))
+                  Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
+                  account <- authenticate(settings, username, password)
+                } yield if (isUpdating || repository.repository.isPrivate) {
+                  if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
                     request.setAttribute(Keys.Request.UserName, account.userName)
                     true
                   } else false
                 } else true
+                passed.getOrElse(false)
+              }
 
-              if(passed.getOrElse(false)){
-                chain.doFilter(request, response)
+              if (execute) {
+                () => chain.doFilter(request, response)
               } else {
-                AuthUtil.requireAuth(response)
+                () => AuthUtil.requireAuth(response)
               }
             }
-          }
-          case None => {
-            logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
-            response.sendError(HttpServletResponse.SC_NOT_FOUND)
+            case None => () => {
+              logger.debug(s"Repository ${repositoryOwner}/${repositoryName} is not found.")
+              response.sendError(HttpServletResponse.SC_NOT_FOUND)
+            }
           }
         }
-      case _ => {
+      case _ => () => {
         logger.debug(s"Not enough path arguments: ${request.paths}")
         response.sendError(HttpServletResponse.SC_NOT_FOUND)
       }
     }
+
+    action()
   }
 }
