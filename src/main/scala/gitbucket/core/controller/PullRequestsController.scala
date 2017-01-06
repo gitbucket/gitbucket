@@ -424,7 +424,7 @@ trait PullRequestsControllerBase extends ControllerBase {
       if(editable) {
         val loginUserName = context.loginAccount.get.userName
 
-        val issueId = createIssue(
+        val issueId = insertIssue(
           owner = repository.owner,
           repository = repository.name,
           loginUser = loginUserName,

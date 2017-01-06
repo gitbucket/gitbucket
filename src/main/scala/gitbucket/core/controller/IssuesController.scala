@@ -21,6 +21,7 @@ class IssuesController extends IssuesControllerBase
   with MilestonesService
   with ActivityService
   with HandleCommentService
+  with IssueCreationService
   with ReadableUsersAuthenticator
   with ReferrerAuthenticator
   with WritableUsersAuthenticator
@@ -36,6 +37,7 @@ trait IssuesControllerBase extends ControllerBase {
     with MilestonesService
     with ActivityService
     with HandleCommentService
+    with IssueCreationService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
@@ -91,7 +93,7 @@ trait IssuesControllerBase extends ControllerBase {
           getAssignableUserNames(owner, name),
           getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
-          isEditable(repository),
+          isIssueEditable(repository),
           isManageable(repository),
           repository)
       } getOrElse NotFound()
@@ -99,7 +101,7 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
-    if(isEditable(repository)){ // TODO Should this check is provided by authenticator?
+    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
       defining(repository.owner, repository.name){ case (owner, name) =>
         html.create(
           getAssignableUserNames(owner, name),
@@ -112,46 +114,10 @@ trait IssuesControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnly { (form, repository) =>
-    if(isEditable(repository)){ // TODO Should this check is provided by authenticator?
-      defining(repository.owner, repository.name){ case (owner, name) =>
-        val manageable = isManageable(repository)
-        val userName = context.loginAccount.get.userName
-
-        // insert issue
-        val issueId = createIssue(owner, name, userName, form.title, form.content,
-          if (manageable) form.assignedUserName else None,
-          if (manageable) form.milestoneId else None)
-
-        // insert labels
-        if (manageable) {
-          form.labelNames.map { value =>
-            val labels = getLabels(owner, name)
-            value.split(",").foreach { labelName =>
-              labels.find(_.labelName == labelName).map { label =>
-                registerIssueLabel(owner, name, issueId, label.labelId)
-              }
-            }
-          }
-        }
-
-        // record activity
-        recordCreateIssueActivity(owner, name, userName, issueId, form.title)
-
-        getIssue(owner, name, issueId.toString).foreach { issue =>
-          // extract references and create refer comment
-          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
-
-          // call web hooks
-          callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
-
-          // notifications
-          Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
-            Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
-          }
-        }
-
-        redirect(s"/${owner}/${name}/issues/${issueId}")
-      }
+    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
+      val issue = createIssue(repository, form.title, form.content, form.assignedUserName,
+        form.milestoneId, form.labelNames.toArray.flatMap(_.split(",")))
+      redirect(s"/${issue.userName}/${issue.repositoryName}/issues/${issue.issueId}")
     } else Unauthorized()
   })
 
@@ -398,27 +364,8 @@ trait IssuesControllerBase extends ControllerBase {
           countIssue(condition.copy(state = "closed"), false, owner -> repoName),
           condition,
           repository,
-          isEditable(repository),
+          isIssueEditable(repository),
           isManageable(repository))
-    }
-  }
-
-  /**
-   * Tests whether an logged-in user can manage issues.
-   */
-  private def isManageable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
-    hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-  }
-
-  /**
-   * Tests whether an logged-in user can post issues.
-   */
-  private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
-    repository.repository.options.issuesOption match {
-      case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined
-      case "PUBLIC"  => hasGuestRole(repository.owner, repository.name, context.loginAccount)
-      case "PRIVATE" => hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-      case "DISABLE" => false
     }
   }
 
@@ -428,5 +375,4 @@ trait IssuesControllerBase extends ControllerBase {
   private def isEditableContent(owner: String, repository: String, author: String)(implicit context: Context): Boolean = {
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
   }
-
 }
