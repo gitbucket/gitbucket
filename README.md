@@ -11,11 +11,10 @@ Features
 The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http and ssh access)
-- Repository viewer and online file editing
-- Wiki
-- Issues / Pull request
+- Repository viewer and online file editor
+- Issues, Pull request and Wiki for repositories
 - Email notification
-- Simple user and group management with LDAP integration
+- Account and group management with LDAP integration
 - Plug-in system
 
 If you want to try the development version of GitBucket, see [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
