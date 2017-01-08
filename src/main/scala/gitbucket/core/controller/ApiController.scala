@@ -336,8 +336,14 @@ trait ApiControllerBase extends ControllerBase {
         loginAccount <- context.loginAccount
       } yield {
         val milestone = data.milestone.flatMap(getMilestone(repository.owner, repository.name, _))
-        val issue = createIssue(repository, data.title, data.body, data.assignees.headOption,
-          milestone.map(_.milestoneId), data.labels)
+        val issue = createIssue(
+          repository,
+          data.title,
+          data.body,
+          data.assignees.headOption,
+          milestone.map(_.milestoneId),
+          data.labels,
+          loginAccount)
         JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount)))
       }) getOrElse NotFound()
     } else Unauthorized()

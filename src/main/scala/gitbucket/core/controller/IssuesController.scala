@@ -10,7 +10,7 @@ import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
 import io.github.gitbucket.scalatra.forms._
-import org.scalatra.Ok
+import org.scalatra.{BadRequest, Ok}
 
 
 class IssuesController extends IssuesControllerBase
@@ -115,8 +115,15 @@ trait IssuesControllerBase extends ControllerBase {
 
   post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnly { (form, repository) =>
     if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
-      val issue = createIssue(repository, form.title, form.content, form.assignedUserName,
-        form.milestoneId, form.labelNames.toArray.flatMap(_.split(",")))
+      val issue = createIssue(
+        repository,
+        form.title,
+        form.content,
+        form.assignedUserName,
+        form.milestoneId,
+        form.labelNames.toArray.flatMap(_.split(",")),
+        context.loginAccount.get)
+
       redirect(s"/${issue.userName}/${issue.repositoryName}/issues/${issue.issueId}")
     } else Unauthorized()
   })
@@ -293,7 +300,7 @@ trait IssuesControllerBase extends ControllerBase {
             handleComment(issue, None, repository, Some("close"))
           }
         }
-        case _ => // TODO BadRequest
+        case _ => BadRequest()
       }
     }
   })
