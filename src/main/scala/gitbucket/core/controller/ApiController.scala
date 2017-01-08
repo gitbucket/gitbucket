@@ -288,6 +288,32 @@ trait ApiControllerBase extends ControllerBase {
   }
 
   /**
+    * https://developer.github.com/v3/issues/#list-issues-for-a-repository
+    */
+  get("/api/v3/repos/:owner/:repository/issues")(referrersOnly { repository =>
+    val page = IssueSearchCondition.page(request)
+    // TODO: more api spec condition
+    val condition = IssueSearchCondition(request)
+    val baseOwner = getAccountByUserName(repository.owner).get
+
+    val issues: List[(Issue, Account)] =
+      searchIssueByApi(
+        condition = condition,
+        offset    = (page - 1) * PullRequestLimit,
+        limit     = PullRequestLimit,
+        repos     = repository.owner -> repository.name
+      )
+
+    JsonFormat(issues.map { case (issue, issueUser) =>
+      ApiIssue(
+        issue          = issue,
+        repositoryName = RepositoryName(repository),
+        user           = ApiUser(issueUser)
+      )
+    })
+  })
+
+  /**
    * https://developer.github.com/v3/issues/#get-a-single-issue
    */
   get("/api/v3/repos/:owner/:repository/issues/:id")(referrersOnly { repository =>
