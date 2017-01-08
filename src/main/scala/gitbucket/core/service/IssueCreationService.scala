@@ -19,7 +19,7 @@ trait IssueCreationService {
     val owner = repository.owner
     val name  = repository.name
     val userName   = loginAccount.userName
-    val manageable = isManageable(repository)
+    val manageable = isIssueManageable(repository)
 
     // insert issue
     val issueId = insertIssue(owner, name, userName, title, body,
@@ -54,15 +54,15 @@ trait IssueCreationService {
   }
 
   /**
-    * Tests whether an logged-in user can manage issues.
-    */
-  protected def isManageable(repository: RepositoryInfo)(implicit context: Context, s: Session): Boolean = {
+   * Tests whether an logged-in user can manage issues.
+   */
+  protected def isIssueManageable(repository: RepositoryInfo)(implicit context: Context, s: Session): Boolean = {
     hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
   }
 
   /**
-    * Tests whether an logged-in user can post issues.
-    */
+   * Tests whether an logged-in user can post issues.
+   */
   protected def isIssueEditable(repository: RepositoryInfo)(implicit context: Context, s: Session): Boolean = {
     repository.repository.options.issuesOption match {
       case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined

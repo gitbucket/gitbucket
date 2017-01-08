@@ -94,7 +94,7 @@ trait IssuesControllerBase extends ControllerBase {
           getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
           isIssueEditable(repository),
-          isManageable(repository),
+          isIssueManageable(repository),
           repository)
       } getOrElse NotFound()
     }
@@ -107,7 +107,7 @@ trait IssuesControllerBase extends ControllerBase {
           getAssignableUserNames(owner, name),
           getMilestones(owner, name),
           getLabels(owner, name),
-          isManageable(repository),
+          isIssueManageable(repository),
           repository)
       }
     } else Unauthorized()
@@ -372,7 +372,7 @@ trait IssuesControllerBase extends ControllerBase {
           condition,
           repository,
           isIssueEditable(repository),
-          isManageable(repository))
+          isIssueManageable(repository))
     }
   }
 
