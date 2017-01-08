@@ -3,6 +3,7 @@
 RPM spec file and init script for Red Hat Enterprise Linux 6.x. 
 
 To create RPM:
+
 1. Edit `../../gitbucket.conf` to suit.
 2. Edit `gitbucket.init` to suit.
 3. Edit `gitbucket.spec` to suit.
