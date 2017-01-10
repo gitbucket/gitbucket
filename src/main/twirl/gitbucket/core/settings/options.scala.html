@@ -44,7 +44,7 @@
                 <input type="checkbox" id="allowFork" name="allowFork"@if(repository.repository.options.allowFork){ checked}/>
                 Forks<br>
                 <div class="normal muted">
-                  Allow repository forking to users who can access this repository.
+                  Allow users who can access this repository to fork it.
                 </div>
               </label>
             </fieldset>
@@ -56,7 +56,7 @@
             <fieldset class="form-group">
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disables issues tracking system
+                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disable issues tracking system
                 </label>
               </div>
               <div class="radio">
@@ -75,7 +75,7 @@
                 </label>
               </div>
               <label for="externalIssuesUrl" class="strong">External URL:
-                <span class="normal muted">(Put if you have the external issue tracking system for this project)</span>
+                <span class="normal muted">(Used if you use the external issue tracking system for this project)</span>
               </label>
               <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
             </fieldset>
@@ -87,7 +87,7 @@
             <fieldset class="form-group">
               <div class="radio">
                 <label>
-                  <input type="radio" name="wikiOption" value="DISABLE" @if(repository.repository.options.wikiOption == "DISABLE"){ checked}> Disables wiki
+                  <input type="radio" name="wikiOption" value="DISABLE" @if(repository.repository.options.wikiOption == "DISABLE"){ checked}> Disable wiki
                 </label>
               </div>
               <div class="radio">
@@ -106,7 +106,7 @@
                 </label>
               </div>
               <label for="externalWikiUrl" class="strong">External URL:
-                <span class="normal muted">(Put if you have the external Wiki for this project)</span>
+                <span class="normal muted">(Used if you have the external wiki for this project)</span>
               </label>
               <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
             </fieldset>

@@ -8,7 +8,7 @@
   @gitbucket.core.search.html.menu("wiki", query, repository){
     @if(query.nonEmpty) {
       @if(wikis.isEmpty) {
-        <h4>We couldn't find any code matching '@query'</h4>
+        <h4>We could not find any code matching '@query'</h4>
       } else {
         <h4>We've found @wikis.size @helpers.plural(wikis.size, "page")</h4>
       }
