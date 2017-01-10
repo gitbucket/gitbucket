@@ -36,8 +36,8 @@
           </fieldset>
           <p class="muted">
             The base URL is used for redirect, notification email, git repository URL box and more.
-            If the base URL is empty, GitBucket generates URL from request information.
-            You can use this property to adjust URL difference between the reverse proxy and GitBucket.
+            If the base URL is empty, GitBucket generates URL from the request information.
+            You can use this property to adjust to URL differences between the reverse proxy and GitBucket.
           </p>
           <!--====================================================================-->
           <!-- Information -->
@@ -59,19 +59,19 @@
             </label>
             <label class="radio">
               <input type="radio" name="allowAccountRegistration" value="false"@if(!context.settings.allowAccountRegistration){ checked}>
-              <span class="strong">Deny</span> - <span class="normal">Only administrators can create accounts.</span>
+              <span class="strong">Deny</span> <span class="normal">- Only administrators can create accounts.</span>
             </label>
           </fieldset>
           <hr>
-          <label class="strong">Default option to create a new repository</label>
+          <label class="strong">Default permissions when creating a new repository</label>
           <fieldset>
             <label class="radio">
               <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
-              <span class="strong">Public</span> <span class="normal">- All users and guests can read that repository.</span>
+              <span class="strong">Public</span> <span class="normal">- All users and guests can read the repository.</span>
             </label>
             <label class="radio">
               <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
-              <span class="strong">Private</span> <span class="normal">- Only collaborators can read that repository.</span>
+              <span class="strong">Private</span> <span class="normal">- Only collaborators can read the repository.</span>
             </label>
           </fieldset>
           <!--====================================================================-->
@@ -82,7 +82,7 @@
           <fieldset>
             <label class="radio">
               <input type="radio" name="allowAnonymousAccess" value="true"@if(context.settings.allowAnonymousAccess){ checked}>
-              <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories, user/group profiles.</span>
+              <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories and user/group profiles.</span>
             </label>
             <label class="radio">
               <input type="radio" name="allowAnonymousAccess" value="false"@if(!context.settings.allowAnonymousAccess){ checked}>
@@ -93,7 +93,7 @@
           <!-- Activity -->
           <!--====================================================================-->
           <hr>
-          <label><span class="strong">Limit of activity logs</span> (Unlimited if it's not specified or zero)</label>
+          <label><span class="strong">Limit of activity logs</span> (Unlimited if it is not specified or zero)</label>
           <fieldset>
             <div class="form-group">
               <label class="control-label col-md-3" for="activityLogLimit">Limit</label>
@@ -111,7 +111,7 @@
           <fieldset>
             <label class="checkbox">
               <input type="checkbox" name="gravatar"@if(context.settings.gravatar){ checked}/>
-              Use Gravatar for Profile-Images
+              Use Gravatar for profile images
             </label>
           </fieldset>
           <!--====================================================================-->
@@ -123,7 +123,7 @@
             <label class="checkbox">
               <input type="checkbox" id="ssh" name="ssh"@if(context.settings.ssh){ checked}/>
               Enable SSH access to git repository
-              <span class="muted normal">(Both of SSH host and Base URL are required if SSH access is enabled)</span>
+              <span class="muted normal">(Both SSH host and Base URL are required if SSH access is enabled)</span>
             </label>
           </fieldset>
           <div class="ssh">
@@ -257,7 +257,7 @@
             <label class="checkbox">
               <input type="checkbox" id="useSMTP" name="useSMTP" @if(context.settings.useSMTP){ checked}/>
               SMTP
-              <span class="muted normal">(Enable notification not only SMTP configuration if you want to send notification email)</span>
+              <span class="muted normal">(Enable notification as well as SMTP configuration if you want to send notification email too)</span>
             </label>
           </fieldset>
           <div class="useSMTP">
@@ -317,7 +317,7 @@
           @*
           <hr>
           <label class="strong">
-            GitLFS <span class="muted normal">(Put LFS server url to enable GitLFS support)</span>
+            GitLFS <span class="muted normal">(Enter the LFS server url to enable GitLFS support)</span>
           </label>
           <div class="form-group">
             <label class="control-label col-md-3" for="smtpHost">LFS server url</label>

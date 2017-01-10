@@ -2,8 +2,8 @@ GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](htt
 =========
 
 GitBucket is a Git platform powered by Scala offering:
-- easy installation
-- high extensibility by plugins
+- Easy installation
+- High extensibility by plugins
 - API compatibility with Github
 
 Features
@@ -17,14 +17,14 @@ The current version of GitBucket provides a basic features below:
 - Account and group management with LDAP integration
 - Plug-in system
 
-If you want to try the development version of GitBucket, see [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
+If you want to try the development version of GitBucket, see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
 Installation
 --------
-GitBucket requires **Java8**. You have to install beforehand when it's not installed.
+GitBucket requires **Java8**. You have to install it if it is not already installed.
 
-1. Download latest **gitbucket.war** from [the release page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
-2. Access `http://[hostname]:8080/` and logged in with **root** / **root**.
+1. Download the latest **gitbucket.war** from [the releases page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
+2. Go to `http://[hostname]:8080/` and log in with **root** / **root**.
 
 You can specify following options:
 
@@ -33,29 +33,29 @@ You can specify following options:
 - `--host=[HOSTNAME]`
 - `--gitbucket.home=[DATA_DIR]`
 
-Of course, you can also deploy gitbucket.war to a servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
+You can also deploy gitbucket.war to a servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
 
-About installation on Mac or Windows Server (with IIS), configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
+For more information about installation on Mac or Windows Server (with IIS), or configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
-To upgrade GitBucket, only replace gitbucket.war after stop GitBucket. All GitBucket data is stored in `HOME/.gitbucket` in default. So if you want to back up GitBucket data, copy this directory to the other disk.
+To upgrade GitBucket, replace `gitbucket.war` with the new version, after stopping GitBucket. All GitBucket data is stored in `HOME/.gitbucket` by default. So if you want to back up GitBucket's data, copy this directory to the backup location.
 
-Plug-ins
+Plugins
 --------
-GitBucket has the plug-in system to extend GitBucket from outside of GitBucket. We are providing some official plug-ins:
+GitBucket has a plug-in system to allow extensions to GitBucket. We provide some official plug-ins:
 
 - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
 - [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
 
-You can find more plugins made by community at [gitbucket community plugins](http://gitbucket-plugins.github.io/).
+You can find more plugins made by the community at [GitBucket community plugins](http://gitbucket-plugins.github.io/).
 
 Support
 --------
 
-- If you have any question about GitBucket, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raise an issue.
-- Make sure check whether there is a same question or request in the past.
-- When raise a new issue, write subject in **English** at least.
-- We can also support in Japaneses other than English at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
-- First priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
+- If you have any questions about GitBucket, send it to the [gitter room](https://gitter.im/gitbucket/gitbucket) before opening an issue.
+- Make sure check whether there is the same question or request in the past.
+- When raise a new issue, write at least the subject in **English**.
+- We can also provide support in Japanese at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- The first priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
 
 Release Notes
 -------------
