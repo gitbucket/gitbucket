@@ -10,7 +10,7 @@
       <input type="submit" value="Search" class="btn btn-default"/>
     </form>
     @if(repositories.isEmpty) {
-      <h4>We couldn't find any repository matching '@query'</h4>
+      <h4>We couldn't find any repositories matching '@query'</h4>
     } else {
       <h4>We've found @repositories.size @helpers.plural(repositories.size, "repository", "repositories")</h4>
     }

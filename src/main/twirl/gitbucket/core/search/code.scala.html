@@ -10,7 +10,7 @@
       @if(files.isEmpty) {
         <h4>We couldn't find any code matching '@query'</h4>
       } else {
-        <h4>We've found @files.size code @helpers.plural(files.size, "result")</h4>
+        <h4>We have found @files.size code @helpers.plural(files.size, "result")</h4>
       }
     }
     @files.drop((page - 1) * RepositorySearchService.CodeLimit).take(RepositorySearchService.CodeLimit).map { file =>
