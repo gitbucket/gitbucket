@@ -41,6 +41,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "user"                     -> trim(label("SMTP User", optional(text()))),
         "password"                 -> trim(label("SMTP Password", optional(text()))),
         "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
+        "starttls"                 -> trim(label("Enable STARTTLS", optional(boolean()))),
         "fromAddress"              -> trim(label("FROM Address", optional(text()))),
         "fromName"                 -> trim(label("FROM Name", optional(text())))
     )(Smtp.apply)),
@@ -77,6 +78,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "user"        -> trim(label("SMTP User", optional(text()))),
       "password"    -> trim(label("SMTP Password", optional(text()))),
       "ssl"         -> trim(label("Enable SSL", optional(boolean()))),
+      "starttls"    -> trim(label("Enable STARTTLS", optional(boolean()))),
       "fromAddress" -> trim(label("FROM Address", optional(text()))),
       "fromName"    -> trim(label("FROM Name", optional(text())))
     )(Smtp.apply),
