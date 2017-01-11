@@ -118,6 +118,10 @@ class Mailer(private val smtp: Smtp) extends Notifier {
         email.setSslSmtpPort(smtp.port.get.toString)
       }
     }
+    smtp.starttls.foreach { starttls =>
+      email.setStartTLSEnabled(starttls)
+      email.setStartTLSRequired(starttls)
+    }
     smtp.fromAddress
       .map (_ -> smtp.fromName.getOrElse(loginAccount.userName))
       .orElse (Some("notifications@gitbucket.com" -> loginAccount.userName))

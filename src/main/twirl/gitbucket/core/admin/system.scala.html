@@ -294,6 +294,12 @@
               </div>
             </div>
             <div class="form-group">
+              <label class="control-label col-md-3" for="smtpStarttls">Enable STARTTLS</label>
+              <div class="col-md-9">
+                <input type="checkbox" id="smtpStarttls" name="smtp.starttls"@if(context.settings.smtp.flatMap(_.starttls).getOrElse(false)){ checked}/>
+              </div>
+            </div>
+            <div class="form-group">
               <label class="control-label col-md-3" for="fromAddress">FROM address</label>
               <div class="col-md-9">
                 <input type="text" id="fromAddress" name="smtp.fromAddress" class="form-control" value="@context.settings.smtp.map(_.fromAddress)"/>
@@ -343,6 +349,7 @@ $(function(){
     var user        = $('#smtpUser'    ).val();
     var password    = $('#smtpPassword').val();
     var ssl         = $('#smtpSsl'     ).prop('checked');
+    var starttls    = $('#smtpStarttls').prop('checked');
     var fromAddress = $('#fromAddress' ).val();
     var fromName    = $('#fromName'    ).val();
     var testAddress = $('#testAddress' ).val();
@@ -360,6 +367,7 @@ $(function(){
         'smtp.user': user,
         'smtp.password': password,
         'smtp.ssl': ssl,
+        'smtp.starttls': starttls,
         'smtp.fromAddress': fromAddress,
         'smtp.fromName': fromName,
         'testAddress': testAddress
