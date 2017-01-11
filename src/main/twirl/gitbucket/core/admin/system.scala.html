@@ -288,7 +288,7 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpPassword">Enable SSL</label>
+              <label class="control-label col-md-3" for="smtpSsl">Enable SSL</label>
               <div class="col-md-9">
                 <input type="checkbox" id="smtpSsl" name="smtp.ssl"@if(context.settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
               </div>
