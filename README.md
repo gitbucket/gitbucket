@@ -4,7 +4,7 @@ GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](htt
 GitBucket is a Git platform powered by Scala offering:
 - Easy installation
 - High extensibility by plugins
-- API compatibility with Github
+- API compatibility with GitHub
 
 Features
 --------
