@@ -147,25 +147,27 @@
         }
         </td>
         <td class="ellipsis-cell" style="width: 20%; min-width: 160px;">
-          @if(file.isDirectory){
-            @if(file.linkUrl.isDefined){
-              <a href="@file.linkUrl">
-                <span class="simplified-path">@file.name.split("/").toList.init match {
-                  case Nil => {}
-                  case list => {@list.mkString("", "/", "/")}
-                }</span>@file.name.split("/").toList.last
-              </a>
+          <span>
+            @if(file.isDirectory){
+              @if(file.linkUrl.isDefined){
+                <a href="@file.linkUrl">
+                  <span class="simplified-path">@file.name.split("/").toList.init match {
+                    case Nil => {}
+                    case list => {@list.mkString("", "/", "/")}
+                  }</span>@file.name.split("/").toList.last
+                </a>
+              } else {
+                <a href="@helpers.url(repository)/tree@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">
+                  <span class="simplified-path">@file.name.split("/").toList.init match {
+                    case Nil => {}
+                    case list => {@list.mkString("", "/", "/")}
+                  }</span>@file.name.split("/").toList.last
+                </a>
+              }
             } else {
-              <a href="@helpers.url(repository)/tree@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">
-                <span class="simplified-path">@file.name.split("/").toList.init match {
-                  case Nil => {}
-                  case list => {@list.mkString("", "/", "/")}
-                }</span>@file.name.split("/").toList.last
-              </a>
+              <a href="@helpers.url(repository)/blob@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">@file.name</a>
             }
-          } else {
-            <a href="@helpers.url(repository)/blob@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">@file.name</a>
-          }
+          </span>
         </td>
         <td class="ellipsis-cell" style="width: 70%;">
           <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
