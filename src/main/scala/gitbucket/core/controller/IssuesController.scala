@@ -107,6 +107,7 @@ trait IssuesControllerBase extends ControllerBase {
           getMilestones(owner, name),
           getLabels(owner, name),
           isIssueManageable(repository),
+          getContentTemplate(repository, "ISSUE_TEMPLATE"),
           repository)
       }
     } else Unauthorized()

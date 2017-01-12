@@ -3,7 +3,14 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Collaborator, Repository, RepositoryOptions, Account, Role}
 import gitbucket.core.model.Profile._
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.util.JGitUtil
+import gitbucket.core.util.JGitUtil.FileInfo
+import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.Directory
+import gitbucket.core.util.FileUtil
+import gitbucket.core.util.StringUtil
+import org.eclipse.jgit.api.Git
 import profile.simple._
 
 trait RepositoryService { self: AccountService =>
@@ -416,6 +423,36 @@ trait RepositoryService { self: AccountService =>
     }
     .sortBy(_.userName asc).map(t => t.userName -> t.repositoryName).list
 
+  private val templateExtensions = Seq("md", "markdown")
+
+  /**
+    * Returns content of template set per repository.
+    *
+    * @param repository the repository information
+    * @param fileBaseName the file basename without extension of template
+    * @return The content of template if the repository has it, otherwise empty string.
+   */
+  def getContentTemplate(repository: RepositoryInfo, fileBaseName: String)(implicit s: Session): String = {
+    val withExtFilenames = templateExtensions.map(extension => s"${fileBaseName.toLowerCase()}.${extension}")
+
+    def choiceTemplate(files: List[FileInfo]): Option[FileInfo] =
+      files.find { f =>
+        f.name.toLowerCase() == fileBaseName
+      }.orElse {
+        files.find(f => withExtFilenames.contains(f.name.toLowerCase()))
+      }
+
+    // Get template file from project root. When didn't find, will lookup default folder.
+    using(Git.open(Directory.getRepositoryDir(repository.owner, repository.name))) { git =>
+      choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".")).orElse {
+        choiceTemplate(JGitUtil.getFileList(git, repository.repository.defaultBranch, ".gitbucket"))
+      }.map { file =>
+        JGitUtil.getContentFromId(git, file.id, true).collect {
+          case bytes if FileUtil.isText(bytes) => StringUtil.convertFromByteArray(bytes)
+        }
+      } getOrElse None
+    } getOrElse ""
+  }
 }
 
 object RepositoryService {
