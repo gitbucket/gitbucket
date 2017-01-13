@@ -1,9 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Account
-import gitbucket.core.util.LockUtil
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
 
 import org.eclipse.jgit.merge.MergeStrategy

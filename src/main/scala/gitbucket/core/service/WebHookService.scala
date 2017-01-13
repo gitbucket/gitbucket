@@ -1,7 +1,5 @@
 package gitbucket.core.service
 
-import java.util.Date
-
 import fr.brouillard.oss.security.xhub.XHub
 import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._

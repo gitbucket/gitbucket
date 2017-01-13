@@ -4,7 +4,7 @@ import java.io.File
 import java.util.Date
 
 import gitbucket.core.api
-import gitbucket.core.model.{Session, WebHook}
+import gitbucket.core.model.WebHook
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._

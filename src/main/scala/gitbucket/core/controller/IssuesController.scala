@@ -2,7 +2,6 @@ package gitbucket.core.controller
 
 import gitbucket.core.issues.html
 import gitbucket.core.service.IssuesService._
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._

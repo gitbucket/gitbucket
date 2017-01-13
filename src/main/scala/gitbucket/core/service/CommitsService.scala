@@ -1,14 +1,11 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.CommitComment
-import gitbucket.core.util.{StringUtil, Implicits}
+import gitbucket.core.util.Implicits
 
-import scala.slick.jdbc.{StaticQuery => Q}
-import Q.interpolation
 import gitbucket.core.model.Profile._
 import profile.simple._
 import Implicits._
-import StringUtil._
 
 
 trait CommitsService {

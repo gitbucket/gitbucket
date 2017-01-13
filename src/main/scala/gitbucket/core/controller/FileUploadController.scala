@@ -10,7 +10,6 @@ import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
-import org.scalatra
 import org.scalatra._
 import org.scalatra.servlet.{MultipartConfig, FileUploadSupport, FileItem}
 import org.apache.commons.io.{IOUtils, FileUtils}

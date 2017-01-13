@@ -6,7 +6,7 @@ import org.mozilla.universalchardet.UniversalDetector
 import ControlUtil._
 import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
-import org.apache.commons.codec.binary.{Base64, StringUtils}
+import org.apache.commons.codec.binary.Base64
 
 import scala.util.control.Exception._
 
