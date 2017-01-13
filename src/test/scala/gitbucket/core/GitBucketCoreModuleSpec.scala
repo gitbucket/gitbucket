@@ -33,6 +33,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
       .withPort(3306)
       .withUser("sa", "sa")
       .withCharset(Charset.UTF8)
+      .withServerVariable("log_syslog", 0)
       .build()
 
     val mysqld = anEmbeddedMysql(config)
@@ -41,7 +42,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
 
     try {
       new Solidbase().migrate(
-        DriverManager.getConnection("jdbc:mysql://localhost:3306/gitbucket", "sa", "sa"),
+        DriverManager.getConnection("jdbc:mysql://localhost:3306/gitbucket?useSSL=false", "sa", "sa"),
         Thread.currentThread().getContextClassLoader(),
         new MySQLDatabase(),
         new Module(GitBucketCoreModule.getModuleId, GitBucketCoreModule.getVersions)
