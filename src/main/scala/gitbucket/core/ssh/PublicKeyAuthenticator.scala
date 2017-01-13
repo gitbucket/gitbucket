@@ -2,7 +2,6 @@ package gitbucket.core.ssh
 
 import java.security.PublicKey
 
-import gitbucket.core.model.SshKey
 import gitbucket.core.service.SshKeyService
 import gitbucket.core.servlet.Database
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator

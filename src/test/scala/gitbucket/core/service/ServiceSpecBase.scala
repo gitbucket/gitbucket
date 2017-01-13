@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.GitBucketCoreModule
-import gitbucket.core.util.{ControlUtil, DatabaseConfig, FileUtil}
+import gitbucket.core.util.{DatabaseConfig, FileUtil}
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._

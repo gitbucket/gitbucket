@@ -5,9 +5,6 @@ import profile.simple._
 
 import gitbucket.core.model.{CommitState, CommitStatus, Account}
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.StringUtil._
-import gitbucket.core.service.RepositoryService.RepositoryInfo
-import org.joda.time.LocalDateTime
 import gitbucket.core.model.Profile.dateColumnType
 
 trait CommitStatusService {

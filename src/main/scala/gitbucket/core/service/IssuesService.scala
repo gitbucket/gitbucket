@@ -111,7 +111,6 @@ trait IssuesService {
             pp.setInt(a._3)
           }
       }
-      import gitbucket.core.model.Profile.commitStateColumnType
       val query = Q.query[Seq[(String, String, Int)], (String, String, Int, Int, Int, Option[String], Option[CommitState], Option[String], Option[String])](s"""
         SELECT
           SUMM.USER_NAME,

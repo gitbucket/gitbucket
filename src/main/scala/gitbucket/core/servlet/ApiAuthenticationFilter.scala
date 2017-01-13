@@ -7,8 +7,6 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{AccessTokenService, AccountService, SystemSettingsService}
 import gitbucket.core.util.{AuthUtil, Keys}
-import org.scalatra.servlet.ServletApiImplicits._
-import org.scalatra._
 
 
 class ApiAuthenticationFilter extends Filter with AccessTokenService with AccountService with SystemSettingsService {
