@@ -38,7 +38,7 @@ createDir "$GITBUCKET_DIR"
 createDir "$GITBUCKET_LOG_DIR"
 
 echo "Fetching GitBucket v$GITBUCKET_VERSION and saving as $GITBUCKET_WAR_FILE"
-sudo wget -qO "$GITBUCKET_WAR_FILE" https://github.com/takezoe/gitbucket/releases/download/$GITBUCKET_VERSION/gitbucket.war
+sudo wget -qO "$GITBUCKET_WAR_FILE" https://github.com/gitbucket/gitbucket/releases/download/$GITBUCKET_VERSION/gitbucket.war
 
 sudo rm -f "$GITBUCKET_LOG_DIR/run.log"
 

@@ -1,86 +1,206 @@
-GitBucket [![Gitter chat](https://badges.gitter.im/takezoe/gitbucket.png)](https://gitter.im/takezoe/gitbucket) [![Build Status](https://travis-ci.org/takezoe/gitbucket.svg?branch=master)](https://travis-ci.org/takezoe/gitbucket)
+GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
-GitBucket is the easily installable GitHub clone powered by Scala.
-
+GitBucket is a Git platform powered by Scala offering:
+- Easy installation
+- High extensibility by plugins
+- API compatibility with GitHub
 
 Features
 --------
 The current version of GitBucket provides a basic features below:
 
 - Public / Private Git repository (http and ssh access)
-- Repository viewer and online file editing
-- Repository search (Code and Issues)
-- Wiki
-- Issues
-- Fork / Pull request
-- Mail notification
-- Activity timeline
-- User management (for Administrators)
-- Group (like Organization in Github)
-- LDAP integration
-- Gravatar support
+- Repository viewer and online file editor
+- Issues, Pull request and Wiki for repositories
+- Email notification
+- Account and group management with LDAP integration
+- Plug-in system
 
-Following features are not implemented, but we will make them in the future release!
-
-- Network graph
-- Statistics
-- Watch / Star
-
-If you want to try the development version of GitBucket, see the documentation for developers at [Wiki](https://github.com/takezoe/gitbucket/wiki).
+If you want to try the development version of GitBucket, see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
 Installation
 --------
+GitBucket requires **Java8**. You have to install it if it is not already installed.
 
-1. Download latest **gitbucket.war** from [the release page](https://github.com/takezoe/gitbucket/releases).
-2. Deploy it to the Servlet 3.0 container such as Tomcat 7.x, Jetty 8.x, GlassFish 3.x or higher.
-3. Access **http://[hostname]:[port]/gitbucket/** using your web browser.
+1. Download the latest **gitbucket.war** from [the releases page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
+2. Go to `http://[hostname]:8080/` and log in with **root** / **root**.
 
-If you are using Gitbucket behind a webserver please make sure you have increased the **client_max_body_size** (on nignx)
+You can specify following options:
 
-The default administrator account is **root** and password is **root**.
+- `--port=[NUMBER]`
+- `--prefix=[CONTEXTPATH]`
+- `--host=[HOSTNAME]`
+- `--gitbucket.home=[DATA_DIR]`
 
-or you can start GitBucket by `java -jar gitbucket.war` without servlet container. In this case, GitBucket URL is **http://[hostname]:8080/**. You can specify following options.
+You can also deploy gitbucket.war to a servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
 
-- --port=[NUMBER]
-- --prefix=[CONTEXTPATH]
-- --host=[HOSTNAME]
-- --gitbucket.home=[DATA_DIR]
+For more information about installation on Mac or Windows Server (with IIS), or configuration of Apache or Nginx and also integration with other tools or services such as Jenkins or Slack, see [Wiki](https://github.com/gitbucket/gitbucket/wiki).
 
-To upgrade GitBucket, only replace gitbucket.war. All GitBucket data is stored in HOME/.gitbucket. So if you want to back up GitBucket data, copy this directory to the other disk.
+To upgrade GitBucket, replace `gitbucket.war` with the new version, after stopping GitBucket. All GitBucket data is stored in `HOME/.gitbucket` by default. So if you want to back up GitBucket's data, copy this directory to the backup location.
 
-For Installation on Windows Server with IIS see [this wiki page](https://github.com/takezoe/gitbucket/wiki/Installation-on-IIS-and-Helicontech-Zoo)
+Plugins
+--------
+GitBucket has a plug-in system to allow extensions to GitBucket. We provide some official plug-ins:
 
-### Mac OS X
-#### Installing Via Homebrew
+- [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
+- [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
 
-```
-$ brew install gitbucket
-==> Downloading https://github.com/takezoe/gitbucket/releases/download/1.10/gitbucket.war
-######################################################################## 100.0%
-==> Caveats
-Note: When using launchctl the port will be 8080.
+You can find more plugins made by the community at [GitBucket community plugins](http://gitbucket-plugins.github.io/).
 
-To have launchd start gitbucket at login:
-    ln -sfv /usr/local/opt/gitbucket/*.plist ~/Library/LaunchAgents
-Then to load gitbucket now:
-    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.gitbucket.plist
-Or, if you don't want/need launchctl, you can just run:
-    java -jar /usr/local/opt/gitbucket/libexec/gitbucket.war
-==> Summary
-/usr/local/Cellar/gitbucket/1.10: 3 files, 42M, built in 11 seconds
-```
+Support
+--------
 
-#### Manual Installation
-On OS X, copy the [gitbucket.plist](https://raw.github.com/takezoe/gitbucket/master/contrib/macosx/gitbucket.plist) file to `~/Library/LaunchAgents/`
-
-Run the following commands in `Terminal` to
-
-- start gitbucket: `launchctl load ~/Library/LaunchAgents/gitbucket.plist`
-- stop gitbucket: `launchctl unload ~/Library/LaunchAgents/gitbucket.plist`
+- If you have any questions about GitBucket, send it to the [gitter room](https://gitter.im/gitbucket/gitbucket) before opening an issue.
+- Make sure check whether there is the same question or request in the past.
+- When raise a new issue, write at least the subject in **English**.
+- We can also provide support in Japanese at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- The first priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
 
 Release Notes
---------
+-------------
+## 4.8 - 23 Dec 2016
+- Search for repository names from the global header
+- Filter repositories on the sidebar of the dashboard
+- Search issues and wiki
+- Keep pull request comments after new commits are pushed
+- New web API to get a single issue
+- Performance improvement for the repository viewer
+
+### 4.7.1 - 28 Nov 2016
+- Bug fix: group repositories are not shown in the your repositories list on the sidebar
+- Small performance improvement of the dashboard
+
+### 4.7 - 26 Nov 2016
+- New permission system
+- Dropdown filter for issue labels, milestones and assignees
+- Keep sidebar folding status
+- Link from milestone label to the issue list
+
+### 4.6 - 29 Oct 2016
+- Add disable option for forking
+- Add History button to wiki page
+- Git repository URL redirection for GitHub compatibility
+- Get-Content API improvement
+- Indicate who is group master in Members tab in group view
+
+### 4.5 - 29 Sep 2016
+- Attach files by dropping into textarea
+- Issues / Pull requests switcher in dashboard
+- HikariCP could be configured in `GITBUCKET_HOME/database.conf`
+- Improve Cookie security
+- Display commit count on the history button
+- Improve mobile view
+
+### 4.4 - 28 Aug 2016
+- Import a SQL dump file to the database
+- `go get` support in private repositories
+- Sort milestones by due date
+- apache-sshd has been updated to 1.2.0
+
+### 4.3 - 30 Jul 2016
+- Emoji support by [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
+- User name suggestion
+- Add new web APIs and basic authentication support for API access
+- Root Endpoint
+  - [List endpoints](https://developer.github.com/v3/#root-endpoint)
+  - [List Branches](https://developer.github.com/v3/repos/branches/#list-branches)
+  - [Get contents](https://developer.github.com/v3/repos/contents/#get-contents)
+  - [Get a Reference](https://developer.github.com/v3/git/refs/#get-a-reference)
+  - [List Collaborators](https://developer.github.com/v3/repos/collaborators/#list-collaborators)
+  - [List user repositories](https://developer.github.com/v3/repos/#list-user-repositories)
+  - [Get a group](https://developer.github.com/v3/orgs/#get-an-organization)
+  - [List group repositories](https://developer.github.com/v3/repos/#list-organization-repositories)
+- Add new extension points
+  - `assetsMapping` : Supplies resources in plugin classpath as web assets
+  - `suggestionProvider` : Provides suggestion in the Markdown editing textarea
+  - `textDecorator` : Decorate text nodes in HTML which is converted from Markdown
+
+### 4.2.1 - 3 Jul 2016
+- Fix migration bug
+
+This is hotfix for a critical bug in migration. If you are new installation, use 4.2.0. But if you have an exisiting installation and it had been updated to 4.0 from 3.x, you must update to 4.2.1.
+
+### 4.2 - 2 Jul 2016
+- New UI based on [AdminLTE](https://github.com/almasaeed2010/AdminLTE)
+- git gc
+- Issues and Wiki have been possible to be disabled
+- SMTP configuration test mail
+
+### 4.1 - 4 Jun 2016
+- Generic ssh user
+- Improve branch protection UI
+- Default value of pull request title
+
+### 4.0 - 30 Apr 2016
+- MySQL and PostgreSQL support
+- Data export and import
+- Migration system has been switched to [solidbase](https://github.com/gitbucket/solidbase)
+
+**Note:** You can upgrade to GitBucket 4.0 from 3.14. If your GitBucket is 3.13 or before, you have to upgrade 3.14 at first.
+
+### 3.14 - 30 Apr 2016
+- File attachment and search for wiki pages
+- New extension points to add menus
+- Content-Type of webhooks has been choosable
+
+### 3.13 - 1 Apr 2016
+- Refresh user interface for wide screen
+- Add `pull_request` key in list issues API for pull requests
+- Add `X-Hub-Signature` security to webhooks
+- Provide SHA-256 checksum for `gitbucket.war`
+
+### 3.12 - 27 Feb 2016
+- New GitHub UI
+- Improve mobile view
+- Improve printing style
+- Individual URL for pull request tabs
+- SSH host configuration is separated from HTTP base URL
+
+### 3.11 - 30 Jan 2016
+- Upgrade Scalatra to 2.4
+- Sidebar and Footer for Wiki
+- Branch protection and receive hook extension point for plug-in
+- Limit recent updated repositories list
+- Issue actions look-alike GitHub
+- Web API for labels
+- Requires Java 8
+
+### 3.10 - 30 Dec 2015
+- Move to Bootstrap3
+- New URL for raw contents (`raw/master/doc/activity.md` instead of `blob/master/doc/activity.md?raw=true`)
+- Update xsbt-web-plugin
+- Update H2 database
+
+### 3.9 - 5 Dec 2015
+- GFM inline breaks support in Markdown
+- WebHook on create review comment is available
+- WebHook event trigger is selectable
+
+### 3.8 - 31 Oct 2015
+- Moved to GitHub organization
+- Omit diff view for large differences
+- Repository creation API
+- Render url as link in repository description
+- Expand attachable file types
+
+### 3.7 - 3 Oct 2015
+- Markdown processor has been switched to [markedj](https://github.com/gitbucket/markedj) from pegdown
+- Clone in desktop button
+- Providing MD5 and SHA-1 checksum for `gitbucket.war` has started
+
+### 3.6 - 30 Aug 2015
+- User interface Improvements: Especially, commit list, issues and pull request have been updated largely.
+- Installed plugins list has been available at the system administration console.
+- Pages and repository list in the sidebar have been limited and more pages and repositories link is available.
+- More reference link notation in Markdown has been supported.
+
+### 3.5 - 1 Aug 2015
+- Octicons has been applied
+- Global header has been enhanced. Now it's further similar to GitHub.
+- Default compare / pull request target has been changed to the parent repository
+- A lot of updates for [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
+
 ### 3.4 - 27 Jun 2015
 - Declarative style plug-in definition
 - New extension point to add markup render
@@ -293,7 +413,3 @@ Release Notes
 
 ### 1.0 - 04 Jul 2013
 - This is a first public release
-
-Sponsors
---------
-[![IntelliJ IDEA](https://www.jetbrains.com/idea/docs/logo_intellij_idea.png)](https://www.jetbrains.com/idea/)

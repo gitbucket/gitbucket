@@ -1,5 +1,6 @@
 package gitbucket.core.model
 
+import gitbucket.core.util.DatabaseConfig
 
 trait Profile {
   val profile: slick.driver.JdbcProfile
@@ -28,7 +29,9 @@ trait Profile {
 }
 
 trait ProfileProvider { self: Profile =>
-  val profile = slick.driver.H2Driver
+
+  lazy val profile = DatabaseConfig.slickDriver
+
 }
 
 trait CoreProfile extends ProfileProvider with Profile
@@ -48,6 +51,7 @@ trait CoreProfile extends ProfileProvider with Profile
   with RepositoryComponent
   with SshKeyComponent
   with WebHookComponent
-  with PluginComponent
+  with WebHookEventComponent
+  with ProtectedBranchComponent
 
 object Profile extends CoreProfile

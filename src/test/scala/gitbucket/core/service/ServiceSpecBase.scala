@@ -1,10 +1,13 @@
 package gitbucket.core.service
 
-import gitbucket.core.servlet.AutoUpdate
-import gitbucket.core.util.{ControlUtil, DatabaseConfig, FileUtil}
+import gitbucket.core.GitBucketCoreModule
+import gitbucket.core.util.{DatabaseConfig, FileUtil}
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._
+import io.github.gitbucket.solidbase.Solidbase
+import liquibase.database.core.H2Database
+import liquibase.database.jvm.JdbcConnection
 import profile.simple._
 
 import org.apache.commons.io.FileUtils
@@ -22,7 +25,10 @@ trait ServiceSpecBase {
       val (url, user, pass) = (DatabaseConfig.url(Some(dir.toString)), DatabaseConfig.user, DatabaseConfig.password)
       org.h2.Driver.load()
       using(DriverManager.getConnection(url, user, pass)){ conn =>
-        AutoUpdate.versions.reverse.foreach(_.update(conn, Thread.currentThread.getContextClassLoader))
+        val solidbase = new Solidbase()
+        val db = new H2Database()
+        db.setConnection(new JdbcConnection(conn)) // TODO Remove setConnection in the future
+        solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, db, GitBucketCoreModule)
       }
       Database.forURL(url, user, pass).withSession { session =>
         action(session)
@@ -38,16 +44,16 @@ trait ServiceSpecBase {
   def user(name:String)(implicit s:Session):Account = AccountService.getAccountByUserName(name).get
 
   lazy val dummyService = new RepositoryService with AccountService with IssuesService with PullRequestService
-    with CommitStatusService (){}
+    with CommitsService with CommitStatusService with LabelsService (){}
 
   def generateNewUserWithDBRepository(userName:String, repositoryName:String)(implicit s:Session):Account = {
     val ac = AccountService.getAccountByUserName(userName).getOrElse(generateNewAccount(userName))
-    dummyService.createRepository(repositoryName, userName, None, false)
+    dummyService.insertRepository(repositoryName, userName, None, false)
     ac
   }
 
   def generateNewIssue(userName:String, repositoryName:String, loginUser:String="root")(implicit s:Session): Int = {
-    dummyService.createIssue(
+    dummyService.insertIssue(
       owner            = userName,
       repository       = repositoryName,
       loginUser        = loginUser,

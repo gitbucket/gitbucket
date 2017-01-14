@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
 import gitbucket.core.account.html
-import gitbucket.core.api._
 import gitbucket.core.helper
 import gitbucket.core.model.GroupMember
 import gitbucket.core.service._
@@ -12,24 +11,22 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
 
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.lib.{FileMode, Constants}
 import org.scalatra.i18n.Messages
+import org.scalatra.BadRequest
 
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService
+  with AccessTokenService with WebHookService with RepositoryCreationService
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AccessTokenService with WebHookService =>
+    with AccessTokenService with WebHookService with RepositoryCreationService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             url: Option[String], fileId: Option[String])
@@ -42,7 +39,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class PersonalTokenForm(note: String)
 
   val newForm = mapping(
-    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName))),
+    "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
@@ -72,7 +69,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class EditGroupForm(groupName: String, groupDescription: Option[String], url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
 
   val newGroupForm = mapping(
-    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName))),
+    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "groupDescription" -> trim(label("Group description", optional(text()))),
     "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
     "fileId"    -> trim(label("File ID"    ,optional(text()))),
@@ -92,8 +89,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   case class ForkRepositoryForm(owner: String, name: String)
 
   val newRepositoryForm = mapping(
-    "owner"        -> trim(label("Owner"          , text(required, maxlength(40), identifier, existsAccount))),
-    "name"         -> trim(label("Repository name", text(required, maxlength(40), repository, uniqueRepository))),
+    "owner"        -> trim(label("Owner"          , text(required, maxlength(100), identifier, existsAccount))),
+    "name"         -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
     "description"  -> trim(label("Description"    , optional(text()))),
     "isPrivate"    -> trim(label("Repository Type", boolean())),
     "createReadme" -> trim(label("Create README"  , boolean()))
@@ -126,7 +123,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         // Members
         case "members" if(account.isGroupAccount) => {
           val members = getGroupMembers(account.userName)
-          gitbucket.core.account.html.members(account, members.map(_.userName),
+          gitbucket.core.account.html.members(account, members,
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
 
@@ -135,11 +132,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           val members = getGroupMembers(account.userName)
           gitbucket.core.account.html.repositories(account,
             if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getVisibleRepositories(context.loginAccount, context.baseUrl, Some(userName)),
+            getVisibleRepositories(context.loginAccount, Some(userName)),
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
       }
-    } getOrElse NotFound
+    } getOrElse NotFound()
   }
 
   get("/:userName.atom") {
@@ -158,30 +155,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     }
   }
 
-  /**
-   * https://developer.github.com/v3/users/#get-a-single-user
-   */
-  get("/api/v3/users/:userName") {
-    getAccountByUserName(params("userName")).map { account =>
-      JsonFormat(ApiUser(account))
-    } getOrElse NotFound
-  }
-
-  /**
-   * https://developer.github.com/v3/users/#get-the-authenticated-user
-   */
-  get("/api/v3/user") {
-    context.loginAccount.map { account =>
-      JsonFormat(ApiUser(account))
-    } getOrElse Unauthorized
-  }
-
-
   get("/:userName/_edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
-      html.edit(x, flash.get("info"))
-    } getOrElse NotFound
+      html.edit(x, flash.get("info"), flash.get("error"))
+    } getOrElse NotFound()
   })
 
   post("/:userName/_edit", editForm)(oneselfOnly { form =>
@@ -197,13 +175,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       flash += "info" -> "Account information has been updated."
       redirect(s"/${userName}/_edit")
 
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   get("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
-    getAccountByUserName(userName, true).foreach { account =>
+    getAccountByUserName(userName, true).map { account =>
+      if(isLastAdministrator(account)){
+        flash += "error" -> "Account can't be removed because this is last one administrator."
+        redirect(s"/${userName}/_edit")
+      } else {
 //      // Remove repositories
 //      getRepositoryNamesOfUser(userName).foreach { repositoryName =>
 //        deleteRepository(userName, repositoryName)
@@ -212,20 +194,19 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
 //      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
-//      removeUserRelatedData(userName)
-
-      updateAccount(account.copy(isRemoved = true))
-    }
-
-    session.invalidate
-    redirect("/")
+        removeUserRelatedData(userName)
+        updateAccount(account.copy(isRemoved = true))
+        session.invalidate
+        redirect("/")
+      }
+    } getOrElse NotFound()
   })
 
   get("/:userName/_ssh")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { x =>
       html.ssh(x, getPublicKeys(x.userName))
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:userName/_ssh", sshKeyForm)(oneselfOnly { form =>
@@ -256,7 +237,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         case _ => None
       }
       html.application(x, tokens, generatedToken)
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   post("/:userName/_personalToken", personalTokenForm)(oneselfOnly { form =>
@@ -282,7 +263,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       } else {
         html.register()
       }
-    } else NotFound
+    } else NotFound()
   }
 
   post("/register", newForm){ form =>
@@ -290,7 +271,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.url)
       updateImage(form.userName, form.fileId, false)
       redirect("/signin")
-    } else NotFound
+    } else NotFound()
   }
 
   get("/groups/new")(usersOnly {
@@ -340,18 +321,18 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
         // Update GROUP_MEMBER
         updateGroupMembers(form.groupName, members)
-        // Update COLLABORATOR for group repositories
-        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-          removeCollaborators(form.groupName, repositoryName)
-          members.foreach { case (userName, isManager) =>
-            addCollaborator(form.groupName, repositoryName, userName)
-          }
-        }
+//        // Update COLLABORATOR for group repositories
+//        getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+//          removeCollaborators(form.groupName, repositoryName)
+//          members.foreach { case (userName, isManager) =>
+//            addCollaborator(form.groupName, repositoryName, userName)
+//          }
+//        }
 
         updateImage(form.groupName, form.fileId, form.clearImage)
         redirect(s"/${form.groupName}")
 
-      } getOrElse NotFound
+      } getOrElse NotFound()
     }
   })
 
@@ -367,57 +348,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
-      if(getRepository(form.owner, form.name, context.baseUrl).isEmpty){
-        val ownerAccount  = getAccountByUserName(form.owner).get
-        val loginAccount  = context.loginAccount.get
-        val loginUserName = loginAccount.userName
-
-        // Insert to the database at first
-        createRepository(form.name, form.owner, form.description, form.isPrivate)
-
-        // Add collaborators for group repository
-        if(ownerAccount.isGroupAccount){
-          getGroupMembers(form.owner).foreach { member =>
-            addCollaborator(form.owner, form.name, member.userName)
-          }
-        }
-
-        // Insert default labels
-        insertDefaultLabels(form.owner, form.name)
-
-        // Create the actual repository
-        val gitdir = getRepositoryDir(form.owner, form.name)
-        JGitUtil.initRepository(gitdir)
-
-        if(form.createReadme){
-          using(Git.open(gitdir)){ git =>
-            val builder  = DirCache.newInCore.builder()
-            val inserter = git.getRepository.newObjectInserter()
-            val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
-            val content  = if(form.description.nonEmpty){
-              form.name + "\n" +
-              "===============\n" +
-              "\n" +
-              form.description.get
-            } else {
-              form.name + "\n" +
-              "===============\n"
-            }
-
-            builder.add(JGitUtil.createDirCacheEntry("README.md", FileMode.REGULAR_FILE,
-              inserter.insert(Constants.OBJ_BLOB, content.getBytes("UTF-8"))))
-            builder.finish()
-
-            JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-              Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
-          }
-        }
-
-        // Create Wiki repository
-        createWikiRepository(loginAccount, form.owner, form.name)
-
-        // Record activity
-        recordCreateRepositoryActivity(form.owner, form.name, loginUserName)
+      if(getRepository(form.owner, form.name).isEmpty){
+        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme)
       }
 
       // redirect to the repository
@@ -426,86 +358,81 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
-    val loginAccount   = context.loginAccount.get
-    val loginUserName  = loginAccount.userName
-    val groups         = getGroupsByUserName(loginUserName)
-    groups match {
-      case _: List[String] =>
-        val managerPermissions = groups.map { group =>
-          val members = getGroupMembers(group)
-          context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager })
-        }
-        helper.html.forkrepository(
-          repository,
-          (groups zip managerPermissions).toMap
-        )
-      case _ => redirect(s"/${loginUserName}")
-    }
+    if(repository.repository.options.allowFork){
+      val loginAccount   = context.loginAccount.get
+      val loginUserName  = loginAccount.userName
+      val groups         = getGroupsByUserName(loginUserName)
+      groups match {
+        case _: List[String] =>
+          val managerPermissions = groups.map { group =>
+            val members = getGroupMembers(group)
+            context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager })
+          }
+          helper.html.forkrepository(
+            repository,
+            (groups zip managerPermissions).toMap
+          )
+        case _ => redirect(s"/${loginUserName}")
+      }
+    } else BadRequest()
   })
 
   post("/:owner/:repository/fork", accountForm)(readableUsersOnly { (form, repository) =>
-    val loginAccount  = context.loginAccount.get
-    val loginUserName = loginAccount.userName
-    val accountName   = form.accountName
+    if(repository.repository.options.allowFork){
+      val loginAccount  = context.loginAccount.get
+      val loginUserName = loginAccount.userName
+      val accountName   = form.accountName
 
-    LockUtil.lock(s"${accountName}/${repository.name}"){
-      if(getRepository(accountName, repository.name, baseUrl).isDefined ||
-          (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
-        // redirect to the repository if repository already exists
-        redirect(s"/${accountName}/${repository.name}")
-      } else {
-        // Insert to the database at first
-        val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
-        val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
+      LockUtil.lock(s"${accountName}/${repository.name}"){
+        if(getRepository(accountName, repository.name).isDefined ||
+            (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
+          // redirect to the repository if repository already exists
+          redirect(s"/${accountName}/${repository.name}")
+        } else {
+          // Insert to the database at first
+          val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
+          val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
 
-        createRepository(
-          repositoryName       = repository.name,
-          userName             = accountName,
-          description          = repository.repository.description,
-          isPrivate            = repository.repository.isPrivate,
-          originRepositoryName = Some(originRepositoryName),
-          originUserName       = Some(originUserName),
-          parentRepositoryName = Some(repository.name),
-          parentUserName       = Some(repository.owner)
-        )
+          insertRepository(
+            repositoryName       = repository.name,
+            userName             = accountName,
+            description          = repository.repository.description,
+            isPrivate            = repository.repository.isPrivate,
+            originRepositoryName = Some(originRepositoryName),
+            originUserName       = Some(originUserName),
+            parentRepositoryName = Some(repository.name),
+            parentUserName       = Some(repository.owner)
+          )
 
-        // Add collaborators for group repository
-        val ownerAccount = getAccountByUserName(accountName).get
-        if(ownerAccount.isGroupAccount){
-          getGroupMembers(accountName).foreach { member =>
-            addCollaborator(accountName, repository.name, member.userName)
-          }
+//          // Add collaborators for group repository
+//          val ownerAccount = getAccountByUserName(accountName).get
+//          if(ownerAccount.isGroupAccount){
+//            getGroupMembers(accountName).foreach { member =>
+//              addCollaborator(accountName, repository.name, member.userName)
+//            }
+//          }
+
+          // Insert default labels
+          insertDefaultLabels(accountName, repository.name)
+
+          // clone repository actually
+          JGitUtil.cloneRepository(
+            getRepositoryDir(repository.owner, repository.name),
+            getRepositoryDir(accountName, repository.name))
+
+          // Create Wiki repository
+          JGitUtil.cloneRepository(
+            getWikiRepositoryDir(repository.owner, repository.name),
+            getWikiRepositoryDir(accountName, repository.name))
+
+          // Record activity
+          recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
+          // redirect to the repository
+          redirect(s"/${accountName}/${repository.name}")
         }
-
-        // Insert default labels
-        insertDefaultLabels(accountName, repository.name)
-
-        // clone repository actually
-        JGitUtil.cloneRepository(
-          getRepositoryDir(repository.owner, repository.name),
-          getRepositoryDir(accountName, repository.name))
-
-        // Create Wiki repository
-        JGitUtil.cloneRepository(
-          getWikiRepositoryDir(repository.owner, repository.name),
-          getWikiRepositoryDir(accountName, repository.name))
-
-        // Record activity
-        recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
-        // redirect to the repository
-        redirect(s"/${accountName}/${repository.name}")
       }
-    }
+    } else BadRequest()
   })
-
-  private def insertDefaultLabels(userName: String, repositoryName: String): Unit = {
-    createLabel(userName, repositoryName, "bug", "fc2929")
-    createLabel(userName, repositoryName, "duplicate", "cccccc")
-    createLabel(userName, repositoryName, "enhancement", "84b6eb")
-    createLabel(userName, repositoryName, "invalid", "e6e6e6")
-    createLabel(userName, repositoryName, "question", "cc317c")
-    createLabel(userName, repositoryName, "wontfix", "ffffff")
-  }
 
   private def existsAccount: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] =
@@ -529,8 +456,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   private def validPublicKey: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = SshUtil.str2PublicKey(value) match {
-     case Some(_) => None
-     case None => Some("Key is invalid.")
+     case Some(_) if !getAllKeys().exists(_.publicKey == value) => None
+     case _ => Some("Key is invalid.")
     }
   }
 

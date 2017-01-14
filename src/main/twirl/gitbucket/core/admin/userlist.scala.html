@@ -1,0 +1,70 @@
+@(users: List[gitbucket.core.model.Account], members: Map[String, List[String]], includeRemoved: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Manage Users"){
+  @gitbucket.core.admin.html.menu("users"){
+    <div class="pull-right" style="margin-bottom: 4px;">
+      <a href="@context.path/admin/users/_newuser" class="btn btn-default">New user</a>
+      <a href="@context.path/admin/users/_newgroup" class="btn btn-default">New group</a>
+    </div>
+    <label for="includeRemoved">
+      <input type="checkbox" id="includeRemoved" name="includeRemoved" @if(includeRemoved){checked}/>
+      Include removed users
+    </label>
+    <table class="table table-bordered table-hover">
+      @users.map { account =>
+        <tr>
+          <td @if(account.isRemoved){style="background-color: #dddddd;"}>
+            <div class="pull-right">
+              @if(account.isGroupAccount){
+                <a href="@context.path/admin/users/@account.userName/_editgroup">Edit</a>
+              } else {
+                <a href="@context.path/admin/users/@account.userName/_edituser">Edit</a>
+              }
+            </div>
+            <div class="strong">
+              @helpers.avatar(account.userName, 20)
+              <a href="@helpers.url(account.userName)">@account.userName</a>
+              @if(account.isGroupAccount){
+                (Group)
+              } else {
+                @if(account.isAdmin){
+                  (Administrator)
+                } else {
+                  (Normal)
+                }
+              }
+              @if(account.isGroupAccount){
+                @members(account.userName).map { userName =>
+                  @helpers.avatar(userName, 20, tooltip = true)
+                }
+              }
+            </div>
+            <div>
+              <hr>
+              @if(!account.isGroupAccount){
+                <i class="octicon octicon-mail"></i> @account.mailAddress
+              }
+              @account.url.map { url =>
+                <i class="octicon octicon-home"></i> @url
+              }
+            </div>
+            <div>
+              <span class="muted">Registered:</span> @helpers.datetime(account.registeredDate)
+              <span class="muted">Updated:</span> @helpers.datetime(account.updatedDate)
+              @if(!account.isGroupAccount){
+                <span class="muted">Last Login:</span> @account.lastLoginDate.map(helpers.datetime)
+              }
+            </div>
+          </td>
+        </tr>
+      }
+    </table>
+  }
+}
+<script>
+$(function(){
+  $('#includeRemoved').click(function(){
+    location.href = '@context.path/admin/users?includeRemoved=' + this.checked;
+  });
+});
+</script>

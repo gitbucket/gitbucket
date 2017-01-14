@@ -1,6 +1,5 @@
 package gitbucket.core.model
 
-import scala.slick.lifted.MappedTo
 import scala.slick.jdbc._
 
 trait CommitStatusComponent extends TemplateComponent { self: Profile =>
@@ -19,7 +18,7 @@ trait CommitStatusComponent extends TemplateComponent { self: Profile =>
     val creator = column[String]("CREATOR")
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
-    def * = (commitStatusId, userName, repositoryName, commitId, context, state, targetUrl, description, creator, registeredDate, updatedDate) <> (CommitStatus.tupled, CommitStatus.unapply)
+    def * = (commitStatusId, userName, repositoryName, commitId, context, state, targetUrl, description, creator, registeredDate, updatedDate) <> ((CommitStatus.apply _).tupled, CommitStatus.unapply)
     def byPrimaryKey(id: Int) = commitStatusId === id.bind
   }
 }
@@ -38,7 +37,20 @@ case class CommitStatus(
   registeredDate: java.util.Date,
   updatedDate: java.util.Date
 )
-
+object CommitStatus {
+  def pending(owner: String, repository: String, context: String) = CommitStatus(
+    commitStatusId = 0,
+    userName = owner,
+    repositoryName = repository,
+    commitId = "",
+    context = context,
+    state = CommitState.PENDING,
+    targetUrl = None,
+    description = Some("Waiting for status to be reported"),
+    creator = "",
+    registeredDate = new java.util.Date(),
+    updatedDate = new java.util.Date())
+}
 
 sealed abstract class CommitState(val name: String)
 

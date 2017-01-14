@@ -5,48 +5,44 @@
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   labels: List[gitbucket.core.model.Label],
-  hasWritePermission: Boolean,
+  isEditable: Boolean,
+  isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@import gitbucket.core.model._
-
-<div class="row-fluid">
-  <div class="span10">
-    <div id="comment-list">
-      @issues.html.commentlist(Some(issue), comments, hasWritePermission, repository, Some(pullreq))
-    </div>
-    @defining(comments.flatMap {
-      case comment: gitbucket.core.model.IssueComment => Some(comment)
-      case other => None
-    }.exists(_.action == "merge")){ merged =>
-      @if(hasWritePermission && !issue.closed){
-        <div class="check-conflict" style="display: none;">
-          <div class="box issue-comment-box" style="background-color: #fbeed5">
-            <div class="box-content"class="issue-content" style="border: 1px solid #c09853; padding: 10px;">
-              <img src="@assets/common/images/indicator.gif"/> Checking...
-            </div>
+@import gitbucket.core.view.helpers
+<div class="col-md-9">
+  <div id="comment-list">
+    @gitbucket.core.issues.html.commentlist(Some(issue), comments, isManageable, repository, Some(pullreq))
+  </div>
+  @defining(comments.flatMap {
+    case comment: gitbucket.core.model.IssueComment => Some(comment)
+    case other => None
+  }.exists(_.action == "merge")){ merged =>
+    @if(!issue.closed){
+      <div class="check-conflict" style="display: none;">
+        <div class="issue-comment-box" style="background-color: #fbeed5">
+          <div class="box-content"class="issue-content" style="border: 1px solid #c09853; padding: 10px;">
+            <img src="@helpers.assets/common/images/indicator.gif"/> Checking...
           </div>
         </div>
-      }
-      @if(hasWritePermission && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
-        pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
-        <div class="box issue-comment-box" style="background-color: #d0eeff;">
-          <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
-            <a href="@url(repository)/pull/@issue.issueId/delete/@encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
-            <div>
-              <span class="strong">Pull request successfully merged and closed</span>
-            </div>
-            <span class="small muted">You're all set-the <span class="label label-info monospace">@pullreq.requestBranch</span> branch can be safely deleted.</span>
+      </div>
+    }
+    @if(isManageable && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
+      pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
+      <div class="issue-comment-box" style="background-color: #d0eeff;">
+        <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
+          <a href="@helpers.url(repository)/pull/@issue.issueId/delete/@helpers.encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+          <div>
+            <span class="strong">Pull request successfully merged and closed</span>
           </div>
+          <span class="small muted">You're all set. The <span class="label label-info monospace">@pullreq.requestBranch</span> branch can now be safely deleted.</span>
         </div>
-        }
-        @issues.html.commentform(issue, !merged, hasWritePermission, repository)
-      }
-  </div>
-  <div class="span2">
-    @issues.html.issueinfo(issue, comments, issueLabels, collaborators, milestones, labels, hasWritePermission, repository)
-  </div>
+      </div>
+    }
+    @gitbucket.core.issues.html.commentform(issue, !merged, isEditable, isManageable, repository)
+  }
+</div>
+<div class="col-md-3">
+  @gitbucket.core.issues.html.issueinfo(Some(issue), comments, issueLabels, collaborators, milestones, labels, isManageable, repository)
 </div>
 <script>
 $(function(){
@@ -55,10 +51,12 @@ $(function(){
     $('#merge-pull-request').show();
   });
 
-  @if(hasWritePermission){
-    $('.check-conflict').show();
-    $.get('@url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+  var checkConflict = $('.check-conflict').show();
+  if(checkConflict.length){
+    $.get('@helpers.url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+  }
 
+  @if(isManageable){
     $('.delete-branch').click(function(e){
       var branchName = $(e.target).data('name');
       return confirm('Are you sure you want to remove the ' + branchName + ' branch?');

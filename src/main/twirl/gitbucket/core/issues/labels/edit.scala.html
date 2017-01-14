@@ -1,21 +1,20 @@
 @(label: Option[gitbucket.core.model.Label],
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
+@import gitbucket.core.view.helpers
 @defining(label.map(_.labelId).getOrElse("new")){ labelId =>
 <div id="edit-label-area-@labelId">
-  <form style="margin-bottom: 0px;">
-    <input type="text" id="labelName-@labelId" style="width: 300px; margin-bottom: 0px;" value="@label.map(_.labelName)"@if(labelId == "new"){ placeholder="New label name"}/>
-    <div id="label-color-@labelId" class="input-append color bscp" data-color="#@label.map(_.color).getOrElse("888888")" data-color-format="hex" style="width: 100px; margin-bottom: 0px;">
-      <input type="text" class="span3" id="labelColor-@labelId" value="#@label.map(_.color).getOrElse("888888")" readonly style="width: 100px;">
-      <span class="add-on"><i style="background-color: #@label.map(_.color).getOrElse("888888");"></i></span>
+  <form class="form-inline">
+    <input type="text" id="labelName-@labelId" style="width: 300px; float: left; margin-right: 4px;" class="form-control" value="@label.map(_.labelName)"@if(labelId == "new"){ placeholder="New label name"}/>
+    <div id="label-color-@labelId" class="input-group color bscp" data-color="#@label.map(_.color).getOrElse("888888")" data-color-format="hex" style="width: 100px; float: left;">
+      <input type="text" class="form-control" id="labelColor-@labelId" value="#@label.map(_.color).getOrElse("888888")" style="width: 100px;">
+      <span class="input-group-addon"><i style="background-color: #@label.map(_.color).getOrElse("888888");"></i></span>
     </div>
     <script>
-    $('div#label-color-@labelId').colorpicker();
+    $('div#label-color-@labelId').colorpicker({format: "hex"});
     </script>
     <span class="pull-right">
       <span id="label-error-@labelId" class="error"></span>
-      <input type="button" id="cancel-@labelId" class="btn label-edit-cancel" value="Cancel">
+      <input type="button" id="cancel-@labelId" class="btn btn-default label-edit-cancel" value="Cancel">
       <input type="button" id="submit-@labelId" class="btn btn-success" style="margin-bottom: 0px;" value="@(if(labelId == "new") "Create label"  else "Save changes")"/>
     </span>
   </form>
@@ -23,7 +22,7 @@
 <script>
 $(function(){
   $('#submit-@labelId').click(function(e){
-    $.post('@url(repository)/issues/labels/@{if(labelId == "new") "new" else labelId + "/edit"}', {
+    $.post('@helpers.url(repository)/issues/labels/@{if(labelId == "new") "new" else labelId + "/edit"}', {
       'labelName' : $('#labelName-@labelId').val(),
       'labelColor': $('#labelColor-@labelId').val()
     }, function(data, status){

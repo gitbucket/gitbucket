@@ -1,50 +1,99 @@
 @(branch: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
-  groupNames: List[String],
   latestCommit: gitbucket.core.util.JGitUtil.CommitInfo,
+  commitCount: Int,
   files: List[gitbucket.core.util.JGitUtil.FileInfo],
   readme: Option[(List[String], String)],
   hasWritePermission: Boolean,
   branchPullRequest: Option[(gitbucket.core.model.PullRequest, gitbucket.core.model.Issue)],
   info: Option[Any] = None,
   error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository, Some(branch), pathList.isEmpty, groupNames.isEmpty, info, error){
+@import gitbucket.core.view.helpers
+@import gitbucket.core.service.RepositoryService
+@gitbucket.core.html.main(
+  if(pathList.isEmpty){
+    if(branch == repository.repository.defaultBranch){
+      s"${repository.owner}/${repository.name}"
+    } else {
+      s"${repository.owner}/${repository.name} at ${helpers.encodeRefName(branch)}"
+    }
+  } else {
+    s"${(repository.name :: pathList).mkString("/")} at ${helpers.encodeRefName(branch)} - ${repository.owner}/${repository.name}"
+  }, Some(repository)) {
+  @gitbucket.core.html.menu("files", repository, Some(branch), info, error){
     <div class="head">
-      <div class="pull-right"><div class="btn-group">
-        <a href="@url(repository)/find/@encodeRefName(branch)" class="btn btn-mini" data-toggle="tooltip" data-placement="bottom" data-hotkey="t" title="Quickly jump between files"><i class="icon icon-th-list"></i></a>
-        @if(pathList.nonEmpty){
-          <a href="@url(repository)/commits/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-mini" data-toggle="tooltip" data-placement="bottom" title="Browse commits for this branch"><i class="icon icon-time"></i></a>
-        }
-      </div></div>
-      @branchPullRequest.map{ case (pullRequest, issue) =>
-        <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-pullrequest-branch btn-mini" title="@issue.title" data-toggle="tooltip">#@pullRequest.issueId</a>
-      }.getOrElse{
-        <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-success btn-mini"><i class="icon-white icon-retweet" data-toggle="tooltip" title="Compare, review, create a pull request"></i></a>
+      <div class="pull-right">
+        <div class="btn-group">
+          <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
+          <a href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default"><i class="octicon octicon-history"></i> @if(commitCount > 10000){10000+} else {@commitCount} @helpers.plural(commitCount, "commit")</a>
+        </div>
+      </div>
+      @if(pathList.isEmpty){
+        <div class="pull-right pc" style="margin-right: 5px;">
+          <div class="btn-group">
+            @if(context.platform != "linux" && context.platform != null){
+              <a href="@RepositoryService.openRepoUrl(repository.httpUrl)" id="repository-clone-url" class="btn btn-sm btn-default"><i class="octicon octicon-desktop-download"></i></a>
+            }
+            <a href="@{helpers.url(repository)}/archive/@{helpers.encodeRefName(branch)}.zip" class="btn btn-sm btn-default"><i class="octicon octicon-cloud-download"></i> Download ZIP</a>
+          </div>
+        </div>
+        <div class="pull-right pc">
+          <div style="width: 240px; margin-right: 5px; margin-left: 5px;">
+            @gitbucket.core.helper.html.copy("repository-url", "repository-url-copy", repository.httpUrl){
+              @if(repository.sshUrl.isDefined){
+                <div class="btn-group input-group-btn">
+                  <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span id="repository-url-proto">HTTP</span> <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a href="javascript:void(0);" id="repository-url-http">
+                        <strong>HTTP (recommended)</strong><br>
+                        Clone with Git using the repository's web address.
+                      </a>
+                    </li>
+                    <li>
+                      <a href="javascript:void(0);" id="repository-url-ssh">
+                        <strong>SSH</strong><br>
+                        Clone with an SSH key and passphrase from your GitBucket settings.
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              }
+              <input type="text" value="@repository.httpUrl" id="repository-url" class="form-control input-sm" readonly>
+            }
+          </div>
+        </div>
       }
-      @helper.html.branchcontrol(
-        branch,
-        repository,
-        hasWritePermission
-      ){
+      @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
         @repository.branchList.map { x =>
-          <li><a href="@url(repository)/tree/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
+          <li><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
         }
       }
-      <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
-      @pathList.zipWithIndex.map { case (section, i) =>
-        <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+      @if(pathList.isEmpty){
+        @*
+        @branchPullRequest.map{ case (pullRequest, issue) =>
+          <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">View #@pullRequest.issueId</a>
+        }.getOrElse {
+          <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success" @if(loginAccount.isEmpty){disabled}>New pull request</a>
+        }
+        *@
+      } else {
+        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
       }
       @if(hasWritePermission){
-        <a href="@url(repository)/new/@encodeRefName(branch)/@pathList.mkString("/")"><img src="@assets/common/images/newfile.png"/></a>
+        <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here"><i class="octicon octicon-plus"></i></a>
       }
     </div>
-    <table class="table table-file-list">
+    <table class="table table-hover">
+      @*
       <tr>
-        <th colspan="4" style="font-weight: normal;">
+        <th colspan="4" style="font-weight: normal; border: none;">
           <a href="@url(repository)/commit/@latestCommit.id" class="commit-message">@link(latestCommit.summary, repository)</a>
           @if(latestCommit.description.isDefined){
             <a href="javascript:void(0)" onclick="$('#description-@latestCommit.id').toggle();" class="omit">...</a>
@@ -52,84 +101,103 @@
           }
         </th>
       </tr>
+      *@
       <tr>
-        <td colspan="4" class="latest-commit">
+        <th colspan="4" class="latest-commit">
           <div>
             <div class="pull-right align-right monospace" style="line-height: 18px;">
-              <a href="@url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
+              <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-id"><span class="muted">latest commit</span> @latestCommit.id.substring(0, 10)</a>
             </div>
             <div class="author-info">
               <div class="author">
-                @avatar(latestCommit, 20)
-                <span>@user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
-                <span class="muted"> authored @helper.html.datetimeago(latestCommit.authorTime)</span>
+                @helpers.avatar(latestCommit, 20)
+                <span>@helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")</span>
+                <span class="muted"> authored @gitbucket.core.helper.html.datetimeago(latestCommit.authorTime)</span>
               </div>
               @if(latestCommit.isDifferentFromAuthor) {
               <div class="committer">
-                <span class="icon-arrow-right"></span>
-                <span>@user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
-                <span class="muted"> committed @helper.html.datetimeago(latestCommit.commitTime)</span>
+                <span class="octicon octicon-arrow-right"></span>
+                <span>@helpers.user(latestCommit.committerName, latestCommit.committerEmailAddress, "username strong")</span>
+                <span class="muted"> committed @gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
               </div>
               }
             </div>
           </div>
-        </td>
+        </th>
       </tr>
       @if(pathList.size > 0){
       <tr>
-        <td width="16"></td>
-        <td><a href="@url(repository)@if(pathList.size > 1){/tree/@encodeRefName(branch)/@pathList.init.mkString("/")}">..</a></td>
+        <td width="16" class="file-icon"></td>
+        <td><a href="@helpers.url(repository)@if(pathList.size > 1){/tree/@helpers.encodeRefName(branch)/@pathList.init.mkString("/")}">..</a></td>
         <td></td>
         <td></td>
       </tr>
       }
       @files.map { file =>
       <tr>
-        <td width="16">
+        <td width="16" class="file-icon">
         @if(file.isDirectory){
           @if(file.linkUrl.isDefined){
-            <img src="@assets/common/images/folder_link.png"/>
+            <i class="octicon octicon-file-symlink-directory"></i>
           } else {
-            <img src="@assets/common/images/folder.png"/>
+            <i class="octicon octicon-file-directory"></i>
           }
         } else {
-          <img src="@assets/common/images/file.png"/>
+          <i class="octicon octicon-file-text"></i>
         }
         </td>
-        <td>
-        @if(file.isDirectory){
-          @if(file.linkUrl.isDefined){
-            <a href="@file.linkUrl">
-              <span class="simplified-path">@file.name.split("/").toList.init match {
-                case Nil => {}
-                case list => {@list.mkString("", "/", "/")}
-              }</span>@file.name.split("/").toList.last
-            </a>
-          } else {
-            <a href="@url(repository)/tree@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">
-              <span class="simplified-path">@file.name.split("/").toList.init match {
-                case Nil => {}
-                case list => {@list.mkString("", "/", "/")}
-              }</span>@file.name.split("/").toList.last
-            </a>
-          }
-        } else {
-          <a href="@url(repository)/blob@{(encodeRefName(branch) :: pathList).mkString("/", "/", "/")}@file.name">@file.name</a>
-        }
+        <td class="ellipsis-cell" style="width: 20%; min-width: 160px;">
+          <span>
+            @if(file.isDirectory){
+              @if(file.linkUrl.isDefined){
+                <a href="@file.linkUrl">
+                  <span class="simplified-path">@file.name.split("/").toList.init match {
+                    case Nil => {}
+                    case list => {@list.mkString("", "/", "/")}
+                  }</span>@file.name.split("/").toList.last
+                </a>
+              } else {
+                <a href="@helpers.url(repository)/tree@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">
+                  <span class="simplified-path">@file.name.split("/").toList.init match {
+                    case Nil => {}
+                    case list => {@list.mkString("", "/", "/")}
+                  }</span>@file.name.split("/").toList.last
+                </a>
+              }
+            } else {
+              <a href="@helpers.url(repository)/blob@{(branch :: pathList).map(helpers.encodeRefName).mkString("/", "/", "/")}@{helpers.encodeRefName(file.name)}">@file.name</a>
+            }
+          </span>
         </td>
-        <td class="mute">
-          <a href="@url(repository)/commit/@file.commitId" class="commit-message">@link(file.message, repository)</a>
-          [@user(file.author, file.mailAddress)]
+        <td class="ellipsis-cell" style="width: 70%;">
+          <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
         </td>
-        <td style="text-align: right;">@helper.html.datetimeago(file.time, false)</td>
+        <td style="width: 10%; min-width: 125px; text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
       </tr>
       }
     </table>
     @readme.map { case(filePath, content) =>
-      <div id="readme">
-        <div class="box-header">@filePath.reverse.head</div>
-        <div class="box-content markdown-body">@renderMarkup(filePath, content, branch, repository, false, false, true)</div>
+      <div id="readme" class="panel panel-default">
+        <div class="panel-heading strong">@filePath.reverse.head</div>
+        <div class="panel-body markdown-body" style="padding-left: 20px; padding-right: 20px;">@helpers.renderMarkup(filePath, content, branch, repository, false, false, true)</div>
       </div>
     }
   }
 }
+<script>
+@repository.sshUrl.map { sshUrl =>
+  $('#repository-url-http').click(function(){
+    $('#repository-url-proto').text('HTTP');
+    $('#repository-url').val('@repository.httpUrl');
+    $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(repository.httpUrl)')
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+
+  $('#repository-url-ssh').click(function(){
+    $('#repository-url-proto').text('SSH');
+    $('#repository-url').val('@sshUrl');
+    $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(sshUrl)');
+    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+  });
+}
+</script>

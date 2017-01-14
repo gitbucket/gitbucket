@@ -1,5 +1,18 @@
 language: scala
-sudo: false
+sudo: true
 script:
-  - . env.sh
   - sbt test
+jdk:
+  - oraclejdk8
+before_script:
+  - sudo apt-get install libaio1
+  - sudo /etc/init.d/mysql stop
+  - sudo /etc/init.d/postgresql stop
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot
+    - $HOME/.sbt/launchers
+    - $HOME/.coursier
+    - $HOME/.embedmysql
+    - $HOME/.embedpostgresql

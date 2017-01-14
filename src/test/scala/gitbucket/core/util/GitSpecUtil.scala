@@ -1,7 +1,5 @@
 package gitbucket.core.util
 
-import gitbucket.core.model._
-import gitbucket.core.util.Directory._
 import gitbucket.core.util.ControlUtil._
 
 import org.apache.commons.io.FileUtils
@@ -14,14 +12,13 @@ import org.eclipse.jgit.merge._
 import org.eclipse.jgit.errors._
 
 import java.nio.file._
-import java.util.Date
 import java.io.File
 
 object GitSpecUtil {
-  def withTestFolder[U](f: File => U) {
+  def withTestFolder[U](f: File => U): U = {
     val folder = new File(System.getProperty("java.io.tmpdir"), "test-" + System.nanoTime)
     if(!folder.mkdirs()){
-      throw new java.io.IOException("can't create folder "+folder.getAbsolutePath)
+      throw new java.io.IOException("can't create folder " + folder.getAbsolutePath)
     }
     try {
       f(folder)
@@ -29,7 +26,7 @@ object GitSpecUtil {
       FileUtils.deleteQuietly(folder)
     }
   }
-  def withTestRepository[U](f: Git => U) = withTestFolder(folder => using(Git.open(createTestRepository(folder)))(f))
+  def withTestRepository[U](f: Git => U): U = withTestFolder(folder => using(Git.open(createTestRepository(folder)))(f))
   def createTestRepository(dir: File): File = {
     RepositoryCache.clear()
     FileUtils.deleteQuietly(dir)
@@ -56,7 +53,7 @@ object GitSpecUtil {
     JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
       branch, autorName, autorEmail, message)
     inserter.flush()
-    inserter.release()
+    inserter.close()
   }
   def getFile(git: Git, branch: String, path: String) = {
     val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
@@ -99,7 +96,7 @@ object GitSpecUtil {
     val inserter = repository.newObjectInserter
     val mergeCommitId = inserter.insert(mergeCommit)
     inserter.flush()
-    inserter.release()
+    inserter.close()
     // update refs
     val refUpdate = repository.updateRef(into)
     refUpdate.setNewObjectId(mergeCommitId)

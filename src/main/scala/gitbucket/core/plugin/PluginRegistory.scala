@@ -3,15 +3,18 @@ package gitbucket.core.plugin
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import javax.servlet.ServletContext
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.controller.{Context, ControllerBase}
+import gitbucket.core.model.Account
+import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.JDBCUtil._
-import gitbucket.core.util.{Version, Versions}
+import io.github.gitbucket.solidbase.Solidbase
+import io.github.gitbucket.solidbase.manager.JDBCVersionManager
+import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.codec.binary.{Base64, StringUtils}
 import org.slf4j.LoggerFactory
 
@@ -28,10 +31,24 @@ class PluginRegistry {
   renderers ++= Seq(
     "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
   )
+  private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
+  private val receiveHooks = new ListBuffer[ReceiveHook]
+  receiveHooks += new ProtectedBranchReceiveHook()
 
-  def addPlugin(pluginInfo: PluginInfo): Unit = {
-    plugins += pluginInfo
-  }
+  private val globalMenus = new ListBuffer[(Context) => Option[Link]]
+  private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
+  private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
+  private val profileTabs = new ListBuffer[(Account, Context) => Option[Link]]
+  private val systemSettingMenus = new ListBuffer[(Context) => Option[Link]]
+  private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
+  private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
+  private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
+  private val textDecorators = new ListBuffer[TextDecorator]
+
+  private val suggestionProviders = new ListBuffer[SuggestionProvider]
+  suggestionProviders += new UserNameSuggestionProvider()
+
+  def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
 
   def getPlugins(): List[PluginInfo] = plugins.toList
 
@@ -52,47 +69,78 @@ class PluginRegistry {
 
   def getImage(id: String): String = images(id)
 
-  def addController(path: String, controller: ControllerBase): Unit = {
-    controllers += ((controller, path))
-  }
+  def addController(path: String, controller: ControllerBase): Unit = controllers += ((controller, path))
 
   @deprecated("Use addController(path: String, controller: ControllerBase) instead", "3.4.0")
-  def addController(controller: ControllerBase, path: String): Unit = {
-    addController(path, controller)
-  }
+  def addController(controller: ControllerBase, path: String): Unit = addController(path, controller)
 
-  def getControllers(): List[(ControllerBase, String)] = controllers.toList
+  def getControllers(): Seq[(ControllerBase, String)] = controllers.toSeq
 
-  def addJavaScript(path: String, script: String): Unit = {
-    javaScripts += ((path, script))
-  }
+  def addJavaScript(path: String, script: String): Unit = javaScripts += ((path, script))
 
-  def getJavaScript(currentPath: String): List[String] = {
-    javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
-  }
+  def getJavaScript(currentPath: String): List[String] = javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
 
-  def addRenderer(extension: String, renderer: Renderer): Unit = {
-    renderers += ((extension, renderer))
-  }
+  def addRenderer(extension: String, renderer: Renderer): Unit = renderers += ((extension, renderer))
 
-  def getRenderer(extension: String): Renderer = {
-    renderers.get(extension).getOrElse(DefaultRenderer)
-  }
+  def getRenderer(extension: String): Renderer = renderers.get(extension).getOrElse(DefaultRenderer)
 
   def renderableExtensions: Seq[String] = renderers.keys.toSeq
 
-  private case class GlobalAction(
-    method: String,
-    path: String,
-    function: (HttpServletRequest, HttpServletResponse, Context) => Any
-  )
+  def addRepositoryRouting(routing: GitRepositoryRouting): Unit = repositoryRoutings += routing
 
-  private case class RepositoryAction(
-    method: String,
-    path: String,
-    function: (HttpServletRequest, HttpServletResponse, Context, RepositoryInfo) => Any
-  )
+  def getRepositoryRoutings(): Seq[GitRepositoryRouting] = repositoryRoutings.toSeq
 
+  def getRepositoryRouting(repositoryPath: String): Option[GitRepositoryRouting] = {
+    PluginRegistry().getRepositoryRoutings().find {
+      case GitRepositoryRouting(urlPath, _, _) => {
+        repositoryPath.matches("/" + urlPath + "(/.*)?")
+      }
+    }
+  }
+
+  def addReceiveHook(commitHook: ReceiveHook): Unit = receiveHooks += commitHook
+
+  def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
+
+  def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus += globalMenu
+
+  def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.toSeq
+
+  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = repositoryMenus += repositoryMenu
+
+  def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.toSeq
+
+  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = repositorySettingTabs += repositorySettingTab
+
+  def getRepositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = repositorySettingTabs.toSeq
+
+  def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = profileTabs += profileTab
+
+  def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.toSeq
+
+  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit = systemSettingMenus += systemSettingMenu
+
+  def getSystemSettingMenus: Seq[(Context) => Option[Link]] = systemSettingMenus.toSeq
+
+  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit = accountSettingMenus += accountSettingMenu
+
+  def getAccountSettingMenus: Seq[(Context) => Option[Link]] = accountSettingMenus.toSeq
+
+  def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = dashboardTabs += dashboardTab
+
+  def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
+
+  def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = assetsMappings += assetsMapping
+
+  def getAssetsMappings: Seq[(String, String, ClassLoader)] = assetsMappings.toSeq
+
+  def addTextDecorator(textDecorator: TextDecorator): Unit = textDecorators += textDecorator
+
+  def getTextDecorators: Seq[TextDecorator] = textDecorators.toSeq
+
+  def addSuggestionProvider(suggestionProvider: SuggestionProvider): Unit = suggestionProviders += suggestionProvider
+
+  def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.toSeq
 }
 
 /**
@@ -114,6 +162,8 @@ object PluginRegistry {
    */
   def initialize(context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = {
     val pluginDir = new File(PluginHome)
+    val manager = new JDBCVersionManager(conn)
+
     if(pluginDir.exists && pluginDir.isDirectory){
       pluginDir.listFiles(new FilenameFilter {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
@@ -123,37 +173,29 @@ object PluginRegistry {
           val plugin = classLoader.loadClass("Plugin").newInstance().asInstanceOf[Plugin]
 
           // Migration
-          val headVersion = plugin.versions.head
-          val currentVersion = conn.find("SELECT * FROM PLUGIN WHERE PLUGIN_ID = ?", plugin.pluginId)(_.getString("VERSION")) match {
-            case Some(x) => {
-              val dim = x.split("\\.")
-              Version(dim(0).toInt, dim(1).toInt)
-            }
-            case None => Version(0, 0)
-          }
+          val solidbase = new Solidbase()
+          solidbase.migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
 
-          Versions.update(conn, headVersion, currentVersion, plugin.versions, new URLClassLoader(Array(pluginJar.toURI.toURL))){ conn =>
-            currentVersion.versionString match {
-              case "0.0" =>
-                conn.update("INSERT INTO PLUGIN (PLUGIN_ID, VERSION) VALUES (?, ?)", plugin.pluginId, headVersion.versionString)
-              case _ =>
-                conn.update("UPDATE PLUGIN SET VERSION = ? WHERE PLUGIN_ID = ?", headVersion.versionString, plugin.pluginId)
-            }
+          // Check version
+          val databaseVersion = manager.getCurrentVersion(plugin.pluginId)
+          val pluginVersion = plugin.versions.last.getVersion
+          if(databaseVersion != pluginVersion){
+            throw new IllegalStateException(s"Plugin version is ${pluginVersion}, but database version is ${databaseVersion}")
           }
 
           // Initialize
           plugin.initialize(instance, context, settings)
           instance.addPlugin(PluginInfo(
-            pluginId    = plugin.pluginId,
-            pluginName  = plugin.pluginName,
-            version     = plugin.versions.head.versionString,
-            description = plugin.description,
-            pluginClass = plugin
+            pluginId      = plugin.pluginId,
+            pluginName    = plugin.pluginName,
+            pluginVersion = plugin.versions.last.getVersion,
+            description   = plugin.description,
+            pluginClass   = plugin
           ))
 
         } catch {
-          case e: Exception => {
-            logger.error(s"Error during plugin initialization", e)
+          case e: Throwable => {
+            logger.error(s"Error during plugin initialization: ${pluginJar.getAbsolutePath}", e)
           }
         }
       }
@@ -175,10 +217,12 @@ object PluginRegistry {
 
 }
 
+case class Link(id: String, label: String, path: String, icon: Option[String] = None)
+
 case class PluginInfo(
   pluginId: String,
   pluginName: String,
-  version: String,
+  pluginVersion: String,
   description: String,
   pluginClass: Plugin
 )

@@ -1,17 +1,18 @@
 package gitbucket.core.service
 
 import gitbucket.core.model._
-import gitbucket.core.model.Profile._
+import org.scalatest.FunSpec
 
-import org.specs2.mutable.Specification
+class PullRequestServiceSpec extends FunSpec with ServiceSpecBase
+  with PullRequestService with IssuesService with AccountService with RepositoryService with CommitsService {
 
-class PullRequestServiceSpec extends Specification with ServiceSpecBase with PullRequestService with IssuesService {
   def swap(r: (Issue, PullRequest)) = (r._2 -> r._1)
-  "PullRequestService.getPullRequestFromBranch" should {
-    """
+
+  describe("PullRequestService.getPullRequestFromBranch") {
+    it("""should
     |return pull request if exists pull request from `branch` to `defaultBranch` and not closed.
     |return pull request if exists pull request from `branch` to othre branch and not closed.
-    |return None if all pull request is closed""".stripMargin.trim in { withTestDB { implicit se =>
+    |return None if all pull request is closed""".stripMargin.trim) { withTestDB { implicit se =>
       generateNewUserWithDBRepository("user1", "repo1")
       generateNewUserWithDBRepository("user1", "repo2")
       generateNewUserWithDBRepository("user2", "repo1")
@@ -22,12 +23,12 @@ class PullRequestServiceSpec extends Specification with ServiceSpecBase with Pul
       val r1 = swap(generateNewPullRequest("user1/repo1/master2", "user1/repo1/head1"))
       val r2 = swap(generateNewPullRequest("user1/repo1/master", "user1/repo1/head1"))
       val r3 = swap(generateNewPullRequest("user1/repo1/master4", "user1/repo1/head1"))
-      getPullRequestFromBranch("user1", "repo1", "head1", "master") must_== Some(r2)
+      assert(getPullRequestFromBranch("user1", "repo1", "head1", "master") == Some(r2))
       updateClosed("user1", "repo1", r2._1.issueId, true)
-      getPullRequestFromBranch("user1", "repo1", "head1", "master").get must beOneOf(r1, r2)
+      assert(Seq(r1, r2).contains(getPullRequestFromBranch("user1", "repo1", "head1", "master").get))
       updateClosed("user1", "repo1", r1._1.issueId, true)
       updateClosed("user1", "repo1", r3._1.issueId, true)
-      getPullRequestFromBranch("user1", "repo1", "head1", "master") must beNone
+      assert(getPullRequestFromBranch("user1", "repo1", "head1", "master") == None)
     } }
   }
 }

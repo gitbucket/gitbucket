@@ -2,19 +2,22 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   fileName: Option[String],
-  content: gitbucket.core.util.JGitUtil.ContentInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
-    <form method="POST" action="@url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
+  content: gitbucket.core.util.JGitUtil.ContentInfo,
+  protectedBranch: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
+  @gitbucket.core.html.menu("files", repository){
+    @if(protectedBranch){
+      <div class="alert alert-danger">branch @branch is protected.</div>
+    }
+    <form method="POST" action="@helpers.url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
       <span class="error" id="error-newFileName"></span>
       <div class="head">
-        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
-          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
-        <input type="text" name="newFileName" id="newFileName" placeholder="Name your file..." value="@fileName"/>
+        <input type="text" name="newFileName" id="newFileName" class="form-control" placeholder="Name your file..." value="@fileName"/>
         <input type="hidden" name="oldFileName" id="oldFileName" value="@fileName"/>
         <input type="hidden" name="branch" id="branch" value="@branch"/>
         <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
@@ -23,7 +26,7 @@
         <tr>
           <th>
             <div class="pull-right">
-              <select id="wrap" class="input-medium" style="margin-bottom: 0px; height: 26px; padding: 0px;">
+              <select id="wrap" class="form-control" style="margin-bottom: 0px; padding: 0px;">
                 <optgroup label="Line Wrap Mode">
                   <option value="false">No wrap</option>
                   <option value="true">Soft wrap</option>
@@ -43,20 +46,20 @@
           </td>
         </tr>
       </table>
-      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
-        <div class="box issue-comment-box">
-        <div class="box-content">
+      <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
+      <div class="panel panel-default issue-comment-box">
+        <div class="panel-body">
           <div>
             <strong>Commit changes</strong>
           </div>
-          <div>
-            <input type="text" name="message" style="width: 98%;"/>
+          <div class="form-group">
+            <input type="text" name="message" class="form-control"/>
           </div>
           <div style="text-align: right;">
             @if(fileName.isEmpty){
-              <a href="@url(repository)/tree/@encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
+              <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
             } else {
-              <a href="@url(repository)/blob/@encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
+              <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
             }
             <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
             <input type="hidden" id="charset" name="charset" value="@content.charset"/>
@@ -69,9 +72,9 @@
     </form>
   }
 }
-<script src="@assets/vendors/ace/ace.js" type="text/javascript" charset="utf-8"></script>
-<script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
-<link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script src="@helpers.assets/vendors/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="@helpers.assets/vendors/jsdifflib/difflib.js"></script>
+<link href="@helpers.assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
@@ -80,7 +83,10 @@ $(function(){
   //editor.getSession().setUseWrapMode(false);
 
   @if(fileName.isDefined){
-    editor.getSession().setMode("ace/mode/@editorType(fileName.get)");
+    editor.getSession().setMode("ace/mode/@helpers.editorType(fileName.get)");
+  }
+  @if(protectedBranch){
+    editor.setReadOnly(true);
   }
 
   editor.on('change', function(){
@@ -114,23 +120,29 @@ $(function(){
   $('#btn-code').click(function(){
     $('#editor').show();
     $('#preview').hide();
+    $('#btn-code').appendClass('active');
+    $('#btn-preview').removeClass('active');
   });
 
   $('#btn-preview').click(function(){
     $('#editor').hide();
-    $('#preview').show()
+    $('#preview').show();
+    $('#btn-code').removeClass('active');
+    $('#btn-preview').addClass('active');
 
-    @if(fileName.map(isRenderable _).getOrElse(false)) {
+    @if(fileName.map(helpers.isRenderable _).getOrElse(false)) {
       // update preview
-      $('#preview').html('<img src="@assets/common/images/indicator.gif"> Previewing...');
-      $.post('@url(repository)/_preview', {
-        content        : editor.getValue(),
-        enableWikiLink : false,
-        enableRefsLink : false,
-        enableTaskList : false
+      $('#preview').html('<img src="@helpers.assets/common/images/indicator.gif"> Previewing...');
+      $.post('@helpers.url(repository)/_preview', {
+        content          : editor.getValue(),
+        enableWikiLink   : false,
+        filename         : $('#newFileName').val(),
+        enableRefsLink   : false,
+        enableLineBreaks : false,
+        enableTaskList   : false
       }, function(data){
         $('#preview').empty().append(
-          $('<div class="markdown-body" style="padding-left: 16px; padding-right: 16px;">').html(data));
+          $('<div class="markdown-body" style="padding-left: 20px; padding-right: 20px;">').html(data));
         prettyPrint();
       });
     } else {

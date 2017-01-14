@@ -1,8 +1,6 @@
 package gitbucket.core.util
 
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.treewalk.TreeWalk
 import scala.util.control.Exception._
 import scala.language.reflectiveCalls
 
@@ -22,6 +20,20 @@ object ControlUtil {
       }
     }
 
+  def using[A <% { def close(): Unit }, B <% { def close(): Unit }, C](resource1: A, resource2: B)(f: (A, B) => C): C =
+    try f(resource1, resource2) finally {
+      if(resource1 != null){
+        ignoring(classOf[Throwable]) {
+          resource1.close()
+        }
+      }
+      if(resource2 != null){
+        ignoring(classOf[Throwable]) {
+          resource2.close()
+        }
+      }
+    }
+
   def using[T](git: Git)(f: Git => T): T =
     try f(git) finally git.getRepository.close()
 
@@ -30,12 +42,6 @@ object ControlUtil {
       git1.getRepository.close()
       git2.getRepository.close()
     }
-
-  def using[T](revWalk: RevWalk)(f: RevWalk => T): T =
-    try f(revWalk) finally revWalk.release()
-
-  def using[T](treeWalk: TreeWalk)(f: TreeWalk => T): T =
-    try f(treeWalk) finally treeWalk.release()
 
   def ignore[T](f: => Unit): Unit = try {
     f

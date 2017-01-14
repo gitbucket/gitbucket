@@ -1,8 +1,7 @@
 @(account: Option[gitbucket.core.model.Account])(implicit context: gitbucket.core.controller.Context)
-@import context._
 <div id="avatar" class="muted">
   @if(account.nonEmpty && account.get.image.nonEmpty){
-    <img src="@path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
+    <img src="@context.path/@account.get.userName/_avatar" style="with: 120px; height: 120px;"/>
   } else {
     <div id="clickable">Upload Image</div>
   }
@@ -17,7 +16,7 @@
 <script>
 $(function(){
   var dropzone = new Dropzone('div#clickable', {
-    url: '@path/upload/image',
+    url: '@context.path/upload/image',
     previewsContainer: 'div#avatar',
     parallelUploads: 1,
     thumbnailWidth: 120,

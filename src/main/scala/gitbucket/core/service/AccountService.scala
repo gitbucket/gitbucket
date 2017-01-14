@@ -97,6 +97,12 @@ trait AccountService {
       Accounts filter (_.removed === false.bind) sortBy(_.userName) list
     }
 
+  def isLastAdministrator(account: Account)(implicit s: Session): Boolean = {
+    if(account.isAdmin){
+      (Accounts filter (_.removed === false.bind) filter (_.isAdmin === true.bind) map (_.userName.length)).first == 1
+    } else false
+  }
+
   def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
                    (implicit s: Session): Unit =
     Accounts insert Account(
@@ -151,9 +157,7 @@ trait AccountService {
       isRemoved      = false,
       groupDescription = description)
 
-  def updateGroup(groupName: String, url: Option[String],
-    groupDescription: Option[String], removed: Boolean)
-    (implicit s: Session): Unit =
+  def updateGroup(groupName: String, url: Option[String], groupDescription: Option[String], removed: Boolean)(implicit s: Session): Unit =
     Accounts.filter(_.userName === groupName.bind)
       .map(t => (t.url.?, t.groupDescription.?, t.removed))
       .update(url, groupDescription, removed)
@@ -181,12 +185,11 @@ trait AccountService {
   def removeUserRelatedData(userName: String)(implicit s: Session): Unit = {
     GroupMembers.filter(_.userName === userName.bind).delete
     Collaborators.filter(_.collaboratorName === userName.bind).delete
-    Repositories.filter(_.userName === userName.bind).delete
   }
 
   def getGroupNames(userName: String)(implicit s: Session): List[String] = {
     List(userName) ++
-      Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list
+      Collaborators.filter(_.collaboratorName === userName.bind).sortBy(_.userName).map(_.userName).list.distinct
   }
 
 }

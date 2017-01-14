@@ -7,7 +7,7 @@ trait LabelComponent extends TemplateComponent { self: Profile =>
 
   class Labels(tag: Tag) extends Table[Label](tag, "LABEL") with LabelTemplate {
     override val labelId = column[Int]("LABEL_ID", O AutoInc)
-    val labelName = column[String]("LABEL_NAME")
+    override val labelName = column[String]("LABEL_NAME")
     val color = column[String]("COLOR")
     def * = (userName, repositoryName, labelId, labelName, color) <> (Label.tupled, Label.unapply)
 

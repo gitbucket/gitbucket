@@ -1,24 +1,34 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import context._
-<div class="container">
-  <div class="row-fluid">
-    <div class="span3">
-      <div class="box">
-        <ul class="nav nav-tabs nav-stacked side-menu">
-          <li@if(active=="users"){ class="active"}>
-            <a href="@path/admin/users">User Management</a>
+<div class="main-sidebar">
+  <div class="sidebar">
+    <ul class="sidebar-menu" id="system-admin-menu-container">
+      <li@if(active=="users"){ class="active"}>
+        <a href="@context.path/admin/users">User management</a>
+      </li>
+      <li@if(active=="system"){ class="active"}>
+        <a href="@context.path/admin/system">System settings</a>
+      </li>
+      <li@if(active=="plugins"){ class="active"}>
+        <a href="@context.path/admin/plugins">Plugins</a>
+      </li>
+      <li@if(active=="data"){ class="active"}>
+        <a href="@context.path/admin/data">Data export / import</a>
+      </li>
+      <li>
+        <a href="@context.path/console/login.jsp" target="_blank">H2 console</a>
+      </li>
+      @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
+        @menu(context).map { link =>
+          <li@if(active==link.id){ class="active"}>
+            <a href="@context.path/@link.path">@link.label</a>
           </li>
-          <li@if(active=="system"){ class="active"}>
-            <a href="@path/admin/system">System Settings</a>
-          </li>
-          <li>
-            <a href="@path/console/login.jsp">H2 Console</a>
-          </li>
-       </ul>
-     </div>
-    </div>
-    <div class="span9">
-      @body
-    </div>
+        }
+      }
+   </ul>
+  </div>
+</div>
+<div class="content-wrapper">
+  <div class="content body">
+    @body
   </div>
 </div>

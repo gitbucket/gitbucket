@@ -1,11 +1,13 @@
 @(name: String, value: Option[java.util.Date])
 @import gitbucket.core.view.helpers
-<div id="@name" class="input-append date" data-date-format="yyyy-mm-dd" data-date="@value.map(helpers.date)">
-  <input class="span2" name="@name" type="text" readonly="" value="@value.map(helpers.date)" size="16"/>
-  <span class="add-on"><i class="icon-calendar"></i></span>
+<div id="@name" class="input-group date" data-date="@value.map(helpers.date)" style="width: 180px;">
+  <input class="form-control" name="@name" type="text" value="@value.map(helpers.date)"/>
+  <span class="input-group-addon"><i class="octicon octicon-calendar"></i></span>
 </div>
 <script>
 $(function(){
-  $('#@name').datepicker();
+  $('#@name').datetimepicker({
+    format: 'YYYY-MM-DD'
+  });
 });
 </script>

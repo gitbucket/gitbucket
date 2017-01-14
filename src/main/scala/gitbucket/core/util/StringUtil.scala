@@ -1,12 +1,22 @@
 package gitbucket.core.util
 
 import java.net.{URLDecoder, URLEncoder}
+
 import org.mozilla.universalchardet.UniversalDetector
 import ControlUtil._
 import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
+import org.apache.commons.codec.binary.Base64
+
+import scala.util.control.Exception._
 
 object StringUtil {
+
+  private lazy val BlowfishKey = {
+    // last 4 numbers in current timestamp
+    val time = System.currentTimeMillis.toString
+    time.substring(time.length - 4)
+  }
 
   def sha1(value: String): String =
     defining(java.security.MessageDigest.getInstance("SHA-1")){ md =>
@@ -20,11 +30,27 @@ object StringUtil {
     md.digest.map(b => "%02x".format(b)).mkString
   }
 
-  def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8")
+  def encodeBlowfish(value: String): String = {
+    val spec = new javax.crypto.spec.SecretKeySpec(BlowfishKey.getBytes(), "Blowfish")
+    val cipher = javax.crypto.Cipher.getInstance("Blowfish")
+    cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, spec)
+    new String(Base64.encodeBase64(cipher.doFinal(value.getBytes("UTF-8"))), "UTF-8")
+  }
+
+  def decodeBlowfish(value: String): String = {
+    val spec = new javax.crypto.spec.SecretKeySpec(BlowfishKey.getBytes(), "Blowfish")
+    val cipher = javax.crypto.Cipher.getInstance("Blowfish")
+    cipher.init(javax.crypto.Cipher.DECRYPT_MODE, spec)
+    new String(cipher.doFinal(Base64.decodeBase64(value)), "UTF-8")
+  }
+
+  def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8").replace("+", "%20")
 
   def urlDecode(value: String): String = URLDecoder.decode(value, "UTF-8")
 
   def splitWords(value: String): Array[String] = value.split("[ \\t　]+")
+
+  def isInteger(value: String): Boolean = allCatch opt { value.toInt } map(_ => true) getOrElse(false)
 
   def escapeHtml(value: String): String =
     value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
@@ -83,8 +109,9 @@ object StringUtil {
    *@param message the message which may contains issue id
    * @return the iterator of issue id
    */
-  def extractIssueId(message: String): Iterator[String] =
-    "(^|\\W)#(\\d+)(\\W|$)".r.findAllIn(message).matchData.map(_.group(2))
+  def extractIssueId(message: String): Seq[String] =
+    "(^|\\W)#(\\d+)(\\W|$)".r
+      .findAllIn(message).matchData.map(_.group(2)).toSeq.distinct
 
   /**
    * Extract close issue id like ```close #issueId ``` from the given message.
@@ -92,7 +119,8 @@ object StringUtil {
    * @param message the message which may contains close command
    * @return the iterator of issue id
    */
-  def extractCloseId(message: String): Iterator[String] =
-    "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r.findAllIn(message).matchData.map(_.group(1))
+  def extractCloseId(message: String): Seq[String] =
+    "(?i)(?<!\\w)(?:fix(?:e[sd])?|resolve[sd]?|close[sd]?)\\s+#(\\d+)(?!\\w)".r
+      .findAllIn(message).matchData.map(_.group(1)).toSeq.distinct
 
 }

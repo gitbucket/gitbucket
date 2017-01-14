@@ -1,0 +1,44 @@
+@(tableNames: Seq[String])(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Data export / import"){
+  @gitbucket.core.admin.html.menu("data") {
+    <div class="panel panel-default">
+      <div class="panel-heading strong">Export</div>
+      <div class="panel-body">
+        <form class="form form-horizontal" action="@context.path/admin/export" method="POST">
+          @tableNames.map { tableName =>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="tableNames" id="@tableName" value="@tableName" checked/> @tableName
+              </label>
+            </div>
+          }
+          <input type="submit" class="btn btn-success pull-right" value="Export">
+        </form>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading strong">Import</div>
+      <div class="panel-body">
+        <form class="form form-horizontal" action="@context.path/upload/import" method="POST" enctype="multipart/form-data" id="import-form">
+          <input type="file" name="file" id="file">
+          <input type="submit" class="btn btn-success pull-right" value="Import" id="import">
+        </form>
+      </div>
+    </div>
+  }
+}
+<script>
+$(function(){
+  $('#import-form').submit(function(){
+    if($('#file').val() == ''){
+      alert('Choose an import SQL file.');
+      return false;
+    } else if(!$('#file').val().endsWith(".sql")){
+      alert('Import is available for only the SQL file.');
+      return false;
+    }
+    return confirm('All existing data is deleted before importing.\nAre you sure?');
+  })
+})
+</script>

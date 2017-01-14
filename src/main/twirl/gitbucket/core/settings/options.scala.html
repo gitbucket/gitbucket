@@ -1,100 +1,146 @@
 @(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, info: Option[Any])(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Settings", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("options", repository){
-      @helper.html.information(info)
-      <form id="form" method="post" action="@url(repository)/settings/options" validate="true">
-        <div class="box">
-          <div class="box-header">Settings</div>
-          <div class="box-content">
-            <fieldset>
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Settings", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("options", repository){
+      @gitbucket.core.helper.html.information(info)
+      <form id="form" method="post" action="@helpers.url(repository)/settings/options" validate="true">
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Settings</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
               <label for="repositoryName" class="strong">Repository Name:</label>
-              <input type="text" name="repositoryName" id="repositoryName" value="@repository.name"/>
+              <input type="text" name="repositoryName" id="repositoryName" class="form-control" value="@repository.name"/>
               <span id="error-repositoryName" class="error"></span>
             </fieldset>
-            <fieldset class="margin">
+            <fieldset class="border-top form-group">
               <label for="description" class="strong">Description:</label>
-              <input type="text" name="description" id="description" style="width: 600px;" value="@repository.repository.description"/>
+              <input type="text" name="description" id="description" class="form-control" value="@repository.repository.description"/>
             </fieldset>
-            <fieldset class="margin">
-              <label for="defaultBranch" class="strong">Default Branch:</label>
-              <select name="defaultBranch" id="defaultBranch"@if(repository.branchList.isEmpty){ disabled}>
-                @if(repository.branchList.isEmpty){
-                  <option value="none" selected>No Branch</option>
-                } else {
-                  @repository.branchList.map { branch =>
-                    <option@if(branch==repository.repository.defaultBranch){ selected}>@branch</option>
-                  }
-                }
-              </select>
-              @if(repository.branchList.isEmpty){
-                <input type="hidden" name="defaultBranch" value="none"/>
-              }
-              <span class="error" id="error-defaultBranch"></span>
-            </fieldset>
-            <fieldset class="margin">
+            <fieldset class="border-top">
               <label class="radio">
                 <input type="radio" name="isPrivate" value="false"
                   @if(!repository.repository.isPrivate              ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
-                <span class="strong">Public</span><br>
-                <div>
-                  <span>All users and guests can read this repository.</span>
+                <span class="strong"><i class="octicon octicon-repo"></i> Public</span><br>
+                <div class="normal muted">
+                  Anyone can see this repository. You choose who can commit.
                 </div>
               </label>
-            </fieldset>
-            <fieldset>
               <label class="radio">
                 <input type="radio" name="isPrivate" value="true"
                   @if(repository.repository.isPrivate               ){ checked  }
                   @if(repository.repository.parentUserName.isDefined){ disabled }
                 >
-                <span class="strong">Private</span><br>
-                <div>
-                  <span>Only collaborators can read this repository.</span>
+                <span class="strong"><i class="octicon octicon-lock"></i> Private</span><br>
+                <div class="normal muted">
+                  You choose who can see and commit to this repository.
+                </div>
+              </label>
+            </fieldset>
+            <fieldset class="form-group">
+              <label class="checkbox" for="allowFork">
+                <input type="checkbox" id="allowFork" name="allowFork"@if(repository.repository.options.allowFork){ checked}/>
+                Forks<br>
+                <div class="normal muted">
+                  Allow users who can access this repository to fork it.
                 </div>
               </label>
             </fieldset>
           </div>
         </div>
-        @*
-        <div class="box">
-          <div class="box-header">Features:</div>
-          <div class="box-content">
-            <dl>
-              <dt>
-                <label class="checkbox strong">
-                  <input type="checkbox" name="wiki" id="wiki"/> Wiki
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Issues</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
+              <div class="radio">
+                <label>
+                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disable issues tracking system
                 </label>
-              </dt>
-              <dd>
-                Adds lightweight Wiki system to this repository.
-                This is the simplest way to provide documentation or examples.
-                Only collaborators can edit Wiki pages.
-              </dd>
-            </dl>
-            <hr>
-            <dl>
-              <dt>
-                <label class="checkbox strong">
-                  <input type="checkbox" name="issue" id="issue"/> Issue
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Developers can view, create and comment on issues
                 </label>
-              </dt>
-              <dd>
-                Adds lightweight issue tracking integrated with this repository.
-                All users who have signed in and can access this repository can register an issue.
-              </dd>
-            </dl>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Developers and guests can view, create and comment on isues
+                </label>
+              </div>
+              <div class="radio for-public-repo">
+                <label>
+                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on isues
+                </label>
+              </div>
+              <label for="externalIssuesUrl" class="strong">External URL:
+                <span class="normal muted">(Fill if you use an external issue tracking system for this project)</span>
+              </label>
+              <input type="text" class="form-control" id="externalIssuesUrl" name="externalIssuesUrl" value="@repository.repository.options.externalIssuesUrl"/>
+            </fieldset>
           </div>
         </div>
-        *@
-        <fieldset>
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Wiki</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
+              <div class="radio">
+                <label>
+                  <input type="radio" name="wikiOption" value="DISABLE" @if(repository.repository.options.wikiOption == "DISABLE"){ checked}> Disable wiki
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="wikiOption" value="PRIVATE" @if(repository.repository.options.wikiOption == "PRIVATE"){ checked}> Developers can view, create and edit wiki pages
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="wikiOption" value="PUBLIC" @if(repository.repository.options.wikiOption == "PUBLIC"){ checked}> Developers and guests can view, create and edit wiki pages
+                </label>
+              </div>
+              <div class="radio for-public-repo">
+                <label>
+                  <input type="radio" name="wikiOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on isues
+                </label>
+              </div>
+              <label for="externalWikiUrl" class="strong">External URL:
+                <span class="normal muted">(Fill if you use an external wiki for this project)</span>
+              </label>
+              <input type="text" class="form-control" id="externalWikiUrl" name="externalWikiUrl" value="@repository.repository.options.externalWikiUrl"/>
+            </fieldset>
+          </div>
+        </div>
+        <div class="align-right" style="margin-top: 20px;">
           <input type="submit" class="btn btn-success" value="Apply changes"/>
-        </fieldset>
+        </div>
       </form>
     }
   }
 }
+<script>
+$(function(){
+  updateFeatures();
+  $('input[name=isPrivate], input[name=issuesOption], input[name=wikiOption]').click(function(){
+    updateFeatures();
+  });
+});
+
+function updateFeatures() {
+  if($('input[name=isPrivate]:checked').val() == 'false'){
+    $('.for-public-repo').show();
+  } else {
+    if($('input[name=issuesOption]:checked').val() == 'ALL'){
+      $('input[name=issuesOption][value=PUBLIC]').prop('checked', true);
+    }
+    if($('input[name=wikiOption]:checked').val() == 'ALL'){
+      $('input[name=wikiOption][value=PUBLIC]').prop('checked', true);
+    }
+    $('.for-public-repo').hide();
+  }
+
+  $('#externalIssuesUrl').prop('disabled', $('input[name=issuesOption]:checked').val() != 'DISABLE');
+  $('#externalWikiUrl').prop('disabled', $('input[name=wikiOption]:checked').val() != 'DISABLE');
+}
+</script>

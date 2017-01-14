@@ -1,16 +1,14 @@
 @(branch: String,
   treeId: String,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
-  groupNames: List[String]
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo
   )(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository, Some(branch), false, groupNames.isEmpty){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+  @gitbucket.core.html.menu("files", repository, Some(branch)){
 
 <div>
   <div class="find-input">
-    <span class="bold"><a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a></span>
+    <span class="bold"><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a></span>
     /
     <input type="text" name="query" autocomplete="off" spellcheck="false" autofocus id="tree-finder-field" />
   </div>
@@ -24,13 +22,13 @@
   <code>↓</code> to navigate,
   <code>enter</code> to view files.
 </div>
-<table id="tree-finder-results" class="table table-file-list" data-url="@url(repository)/tree-list/@treeId">
+<table id="tree-finder-results" class="table table-file-list" data-url="@helpers.url(repository)/tree-list/@treeId">
   <tbody class="tree-browser-result-template">
     <tr class="tree-browser-result">
-      <td class="icon"><span class="icon icon-chevron-right"></span></td>
-      <td class="icon"><img src="@assets/common/images/file.png"/></td>
+      <td class="icon"><span class="octicon octicon-chevron-right"></span></td>
+      <td class="icon"><i class="octicon octicon-file-text"></i></td>
       <td>
-        <a href="@url(repository)/blob/@encodeRefName(branch)"></a>
+        <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)"></a>
       </td>
     </tr>
   </tbody>

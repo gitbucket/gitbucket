@@ -17,9 +17,19 @@ case class ApiIssue(
   state: String,
   created_at: Date,
   updated_at: Date,
-  body: String)(repositoryName: RepositoryName){
+  body: String)(repositoryName: RepositoryName, isPullRequest: Boolean){
   val comments_url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/issues/${number}/comments")
-  val html_url = ApiPath(s"/${repositoryName.fullName}/issues/${number}")
+  val html_url = ApiPath(s"/${repositoryName.fullName}/${if(isPullRequest){ "pull" }else{ "issues" }}/${number}")
+  val pull_request = if (isPullRequest) {
+    Some(Map(
+      "url" -> ApiPath(s"/api/v3/repos/${repositoryName.fullName}/pulls/${number}"),
+      "html_url" -> ApiPath(s"/${repositoryName.fullName}/pull/${number}")
+      // "diff_url" -> ApiPath(s"/${repositoryName.fullName}/pull/${number}.diff"),
+      // "patch_url" -> ApiPath(s"/${repositoryName.fullName}/pull/${number}.patch")
+    ))
+  } else {
+    None
+  }
 }
 
 object ApiIssue{
@@ -31,5 +41,5 @@ object ApiIssue{
       state  = if(issue.closed){ "closed" }else{ "open" },
       body   = issue.content.getOrElse(""),
       created_at = issue.registeredDate,
-      updated_at = issue.updatedDate)(repositoryName)
+      updated_at = issue.updatedDate)(repositoryName, issue.isPullRequest)
 }

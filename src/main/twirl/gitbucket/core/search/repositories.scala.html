@@ -1,0 +1,40 @@
+@(query: String,
+  repositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  recentRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo],
+  userRepositories: List[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("GitBucket"){
+  @gitbucket.core.dashboard.html.sidebar(recentRepositories, userRepositories){
+    <form action="@context.path/search" method="GET" class="form-inline">
+      <input type="text" name="query" value="@query" class="form-control" style="width: 250px; margin-bottom: 0px;"/>
+      <input type="submit" value="Search" class="btn btn-default"/>
+    </form>
+    @if(repositories.isEmpty) {
+      <h4>We couldn't find any repositories matching '@query'</h4>
+    } else {
+      <h4>We've found @repositories.size @helpers.plural(repositories.size, "repository", "repositories")</h4>
+    }
+    @repositories.map { repository =>
+      <div class="block">
+        <div class="repository-icon">
+          @gitbucket.core.helper.html.repositoryicon(repository, true)
+        </div>
+        <div class="repository-content">
+          <div class="block-header">
+            <a href="@helpers.url(repository)">@repository.owner/@repository.name</a>
+            @if(repository.repository.isPrivate){
+              <i class="octicon octicon-lock"></i>
+            }
+          </div>
+          @if(repository.repository.originUserName.isDefined){
+            <div class="small muted">forked from <a href="@context.path/@repository.repository.parentUserName/@repository.repository.parentRepositoryName">@repository.repository.parentUserName/@repository.repository.parentRepositoryName</a></div>
+          }
+          @if(repository.repository.description.isDefined){
+            <div>@repository.repository.description</div>
+          }
+          <div><span class="muted small">Updated @gitbucket.core.helper.html.datetimeago(repository.repository.lastActivityDate)</span></div>
+        </div>
+      </div>
+    }
+  }
+}

@@ -1,35 +1,140 @@
-@(collaborators: List[String],
+@(collaborators: List[(gitbucket.core.model.Collaborator, Boolean)],
   isGroupRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main("Settings", Some(repository)){
-  @html.menu("settings", repository){
-    @menu("collaborators", repository){
-      <h3>Manage Collaborators</h3>
-      <ul class="collaborator">
-        @collaborators.map { collaboratorName =>
-          <li>
-            <a href="@url(collaboratorName)">@collaboratorName</a>
-            @if(!isGroupRepository){
-              <a href="@url(repository)/settings/collaborators/remove?name=@collaboratorName" class="remove">(remove)</a>
-            } else {
-              @if(repository.managers.contains(collaboratorName)){
-                (Manager)
-              }
-            }
-          </li>
-        }
-      </ul>
-      @if(!isGroupRepository){
-        <form method="POST" action="@url(repository)/settings/collaborators/add" validate="true" autocomplete="off">
-          <div>
-            <span class="error" id="error-userName"></span>
+@import gitbucket.core.view.helpers
+@import gitbucket.core.model.Role
+@gitbucket.core.html.main("Settings", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("collaborators", repository){
+      <form id="form" method="post" action="@helpers.url(repository)/settings/collaborators">
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Collaborators</div>
+          <div class="panel-body">
+            <ul id="collaborator-list" class="collaborator">
+            </ul>
+            @gitbucket.core.helper.html.account("userName-collaborator", 200, true, false)
+            <input type="button" class="btn btn-default add" value="Add" id="addCollaborator"/>
+            <div>
+              <span class="error" id="error-collaborator"></span>
+            </div>
           </div>
-          @helper.html.account("userName", 300)
-          <input type="submit" class="btn" value="Add"/>
-        </form>
-      }
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Groups</div>
+          <div class="panel-body">
+            <ul id="group-list" class="collaborator">
+            </ul>
+            @gitbucket.core.helper.html.account("userName-group", 200, false, true)
+            <input type="button" class="btn btn-default add" value="Add" id="addGroup"/>
+            <div>
+              <span class="error" id="error-group"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="align-right" style="margin-top: 20px;">
+          <input type="hidden" id="collaborators" name="collaborators" />
+          <input type="submit" class="btn btn-success" value="Apply changes"/>
+        </div>
+      </form>
     }
   }
 }
+<script>
+$(function(){
+  $('input[type=submit]').click(function(){
+    updateValues();
+  });
+
+  $('.add').click(function(){
+    var id = $(this).attr('id') == 'addCollaborator' ? 'collaborator' : 'group';
+
+    $('#error-' + id).text('');
+    var userName = $('#userName-' + id).val();
+
+    // check empty
+    if($.trim(userName) == ''){
+      return false;
+    }
+
+    // check owner
+    var owner = '@repository.owner' == userName
+    if(owner){
+      $('#error-' + id).text('User is owner of this repository.');
+      return false;
+    }
+    // check duplication
+    var exists = $('#' + id + '-list li').filter(function(){
+      return $(this).data('name') == userName;
+    }).length > 0;
+    if(exists){
+      $('#error-' + id).text('User has been already added.');
+      return false;
+    }
+
+    // check existence
+    $.post('@context.path/_user/existence', { 'userName': userName },
+      function(data, status){
+        if(data != ''){
+          addListHTML(userName, '@Role.ADMIN.name', '#' + id + '-list');
+          $('#userName-' + id).val('');
+        } else {
+          $('#error-' + id).text('User does not exist.');
+        }
+      });
+  });
+
+  $(document).on('click', '.remove', function(){
+    $(this).parent().remove();
+  });
+
+  // Don't submit form by ENTER key
+  $('#userName-collaborator, #userName-group').keypress(function(e){
+    return !(e.keyCode == 13);
+  });
+
+  @collaborators.map { case (collaborator, isGroup) =>
+    addListHTML('@collaborator.collaboratorName', '@collaborator.role', @if(isGroup){'#group-list'}else{'#collaborator-list'});
+  }
+
+  function addListHTML(userName, role, id){
+    var adminButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.ADMIN.name" name="' + userName + '">Admin</label>');
+    if(role == '@Role.ADMIN.name'){
+      adminButton.addClass('active');
+    }
+    var writeButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.DEVELOPER.name" name="' + userName + '">Developer</label>');
+    if(role == '@Role.DEVELOPER.name'){
+      writeButton.addClass('active');
+    }
+    var readButton = $('<label class="btn btn-default btn-mini"><input type="radio" value="@Role.GUEST.name" name="' + userName + '">Guest</label>');
+    if(role == '@Role.GUEST.name'){
+      readButton.addClass('active');
+    }
+
+    $(id).append($('<li>')
+      .data('name', userName)
+      .append($('<div class="btn-group role" data-toggle="buttons">')
+        .append(adminButton)
+        .append(writeButton)
+        .append(readButton))
+      .append(' ')
+      .append($('<a target="_blank">').attr('href', '@context.path/' + userName).text(userName))
+      .append($('<a href="#" class="remove pull-right">(remove)</a>')));
+  }
+
+  function updateValues(){
+    var collaborators = $('#collaborator-list li').map(function(i, e){
+      var userName = $(e).data('name');
+      return userName + ':' + $(e).find('label.active input[type=radio]').attr('value');
+    }).get().join(',');
+
+    var groups = $('#group-list li').map(function(i, e){
+      var userName = $(e).data('name');
+      return userName + ':' + $(e).find('label.active input[type=radio]').attr('value');
+    }).get().join(',');
+
+    $('#collaborators').val(collaborators + ',' + groups);
+  }
+});
+</script>

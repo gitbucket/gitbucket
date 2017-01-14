@@ -1,2 +1,0 @@
-#!/bin/sh
-export GITBUCKET_VERSION=3.5.0-SNAPSHOT

@@ -1,21 +1,17 @@
 @(branch: String  = "",
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   hasWritePermission: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.service.RepositoryService
-@import context._
-@import gitbucket.core._
-@import gitbucket.core.view.helpers._
-@helper.html.dropdown(
+@import gitbucket.core.view.helpers
+@gitbucket.core.helper.html.dropdown(
   value  = if(branch.length == 40) branch.substring(0, 10) else branch,
-  prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree",
-  mini   = true
+  prefix = if(branch.length == 40) "tree" else if(repository.branchList.contains(branch)) "branch" else "tree"
 ) {
   <li><div id="branch-control-title">Switch branches<button id="branch-control-close" class="pull-right">&times</button></div></li>
-  <li><input id="branch-control-input" type="text" placeholder="Find or create branch ..."/></li>
+  <li><input id="branch-control-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="Find or create branch ..."/></li>
   @body
   @if(hasWritePermission) {
     <li id="create-branch" style="display: none;">
-      <a><form action="@url(repository)/branches" method="post" style="margin: 0;">
+      <a><form action="@helpers.url(repository)/branches" method="post" style="margin: 0;">
         <span class="new-branch-name">Create branch:&nbsp;<span class="new-branch"></span></span>
         <br><span style="padding-left: 17px;">from&nbsp;'@branch'</span>
         <input type="hidden" name="new">

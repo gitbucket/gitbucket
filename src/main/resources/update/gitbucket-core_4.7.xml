@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+    <addColumn tableName="COLLABORATOR">
+        <column name="ROLE" type="varchar(10)" nullable="false" defaultValue="ADMIN"/>
+    </addColumn>
+    <addColumn tableName="REPOSITORY">
+        <column name="WIKI_OPTION" type="varchar(10)" nullable="false" defaultValue="DISABLE"/>
+        <column name="ISSUES_OPTION" type="varchar(10)" nullable="false" defaultValue="DISABLE"/>
+    </addColumn>
+    <update tableName="REPOSITORY">
+        <column name="WIKI_OPTION" value="DISABLE"/>
+        <where>ENABLE_WIKI = FALSE</where>
+    </update>
+    <update tableName="REPOSITORY">
+        <column name="WIKI_OPTION" value="PRIVATE"/>
+        <where>ENABLE_WIKI = TRUE AND ALLOW_WIKI_EDITING = FALSE</where>
+    </update>
+    <update tableName="REPOSITORY">
+        <column name="WIKI_OPTION" value="PUBLIC"/>
+        <where>ENABLE_WIKI = TRUE AND ALLOW_WIKI_EDITING = TRUE</where>
+    </update>
+    <update tableName="REPOSITORY">
+        <column name="ISSUES_OPTION" value="DISABLE"/>
+        <where>ENABLE_ISSUES = FALSE</where>
+    </update>
+    <update tableName="REPOSITORY">
+        <column name="ISSUES_OPTION" value="PUBLIC"/>
+        <where>ENABLE_ISSUES = TRUE</where>
+    </update>
+    <dropColumn tableName="REPOSITORY" columnName="ENABLE_WIKI"/>
+    <dropColumn tableName="REPOSITORY" columnName="ALLOW_WIKI_EDITING"/>
+    <dropColumn tableName="REPOSITORY" columnName="ENABLE_ISSUES"/>
+</changeSet>

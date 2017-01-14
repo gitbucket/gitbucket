@@ -1,21 +1,23 @@
 package gitbucket.core.controller
 
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.wiki.html
-import gitbucket.core.service.{RepositoryService, WikiService, ActivityService, AccountService}
+import gitbucket.core.service.{AccountService, ActivityService, RepositoryService, WikiService}
 import gitbucket.core.util._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
 
 class WikiController extends WikiControllerBase 
-  with WikiService with RepositoryService with AccountService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator
+  with WikiService with RepositoryService with AccountService with ActivityService
+  with ReadableUsersAuthenticator with ReferrerAuthenticator
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService with RepositoryService with ActivityService with CollaboratorsAuthenticator with ReferrerAuthenticator =>
+  self: WikiService with RepositoryService with ActivityService with ReadableUsersAuthenticator with ReferrerAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
   
@@ -38,7 +40,9 @@ trait WikiControllerBase extends ControllerBase {
   get("/:owner/:repository/wiki")(referrersOnly { repository =>
     getWikiPage(repository.owner, repository.name, "Home").map { page =>
       html.page("Home", page, getWikiPageList(repository.owner, repository.name),
-        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+        repository, isEditable(repository),
+        getWikiPage(repository.owner, repository.name, "_Sidebar"),
+        getWikiPage(repository.owner, repository.name, "_Footer"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/Home/_edit")
   })
   
@@ -47,7 +51,9 @@ trait WikiControllerBase extends ControllerBase {
 
     getWikiPage(repository.owner, repository.name, pageName).map { page =>
       html.page(pageName, page, getWikiPageList(repository.owner, repository.name),
-        repository, hasWritePermission(repository.owner, repository.name, context.loginAccount))
+        repository, isEditable(repository),
+        getWikiPage(repository.owner, repository.name, "_Sidebar"),
+        getWikiPage(repository.owner, repository.name, "_Footer"))
     } getOrElse redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_edit")
   })
   
@@ -56,8 +62,8 @@ trait WikiControllerBase extends ControllerBase {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, "master", path = pageName + ".md") match {
-        case Right((logs, hasNext)) => html.history(Some(pageName), logs, repository)
-        case Left(_) => NotFound
+        case Right((logs, hasNext)) => html.history(Some(pageName), logs, repository, isEditable(repository))
+        case Left(_) => NotFound()
       }
     }
   })
@@ -68,7 +74,7 @@ trait WikiControllerBase extends ControllerBase {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true).filter(_.newPath == pageName + ".md"), repository,
-        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+        isEditable(repository), flash.get("info"))
     }
   })
   
@@ -77,94 +83,115 @@ trait WikiControllerBase extends ControllerBase {
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true), repository,
-        hasWritePermission(repository.owner, repository.name, context.loginAccount), flash.get("info"))
+        isEditable(repository), flash.get("info"))
     }
   })
 
-  get("/:owner/:repository/wiki/:page/_revert/:commitId")(collaboratorsOnly { repository =>
-    val pageName = StringUtil.urlDecode(params("page"))
-    val Array(from, to) = params("commitId").split("\\.\\.\\.")
+  get("/:owner/:repository/wiki/:page/_revert/:commitId")(readableUsersOnly { repository =>
+    if(isEditable(repository)){
+      val pageName = StringUtil.urlDecode(params("page"))
+      val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
-    if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))){
-      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
-    } else {
-      flash += "info" -> "This patch was not able to be reversed."
-      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}")
-    }
-  })
-
-  get("/:owner/:repository/wiki/_revert/:commitId")(collaboratorsOnly { repository =>
-    val Array(from, to) = params("commitId").split("\\.\\.\\.")
-
-    if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)){
-      redirect(s"/${repository.owner}/${repository.name}/wiki/")
-    } else {
-      flash += "info" -> "This patch was not able to be reversed."
-      redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
-    }
-  })
-
-  get("/:owner/:repository/wiki/:page/_edit")(collaboratorsOnly { repository =>
-    val pageName = StringUtil.urlDecode(params("page"))
-    html.edit(pageName, getWikiPage(repository.owner, repository.name, pageName), repository)
-  })
-  
-  post("/:owner/:repository/wiki/_edit", editForm)(collaboratorsOnly { (form, repository) =>
-    defining(context.loginAccount.get){ loginAccount =>
-      saveWikiPage(
-        repository.owner,
-        repository.name,
-        form.currentPageName,
-        form.pageName,
-        appendNewLine(convertLineSeparator(form.content, "LF"), "LF"),
-        loginAccount,
-        form.message.getOrElse(""),
-        Some(form.id)
-      ).map { commitId =>
-        updateLastActivityDate(repository.owner, repository.name)
-        recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+      if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, Some(pageName))){
+        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}")
+      } else {
+        flash += "info" -> "This patch was not able to be reversed."
+        redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(pageName)}/_compare/${from}...${to}")
       }
-      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
-    }
+    } else Unauthorized()
+  })
+
+  get("/:owner/:repository/wiki/_revert/:commitId")(readableUsersOnly { repository =>
+    if(isEditable(repository)){
+      val Array(from, to) = params("commitId").split("\\.\\.\\.")
+
+      if(revertWikiPage(repository.owner, repository.name, from, to, context.loginAccount.get, None)){
+        redirect(s"/${repository.owner}/${repository.name}/wiki/")
+      } else {
+        flash += "info" -> "This patch was not able to be reversed."
+        redirect(s"/${repository.owner}/${repository.name}/wiki/_compare/${from}...${to}")
+      }
+    } else Unauthorized()
+  })
+
+  get("/:owner/:repository/wiki/:page/_edit")(readableUsersOnly { repository =>
+    if(isEditable(repository)){
+      val pageName = StringUtil.urlDecode(params("page"))
+      html.edit(pageName, getWikiPage(repository.owner, repository.name, pageName), repository)
+    } else Unauthorized()
   })
   
-  get("/:owner/:repository/wiki/_new")(collaboratorsOnly {
-    html.edit("", None, _)
+  post("/:owner/:repository/wiki/_edit", editForm)(readableUsersOnly { (form, repository) =>
+    if(isEditable(repository)){
+      defining(context.loginAccount.get){ loginAccount =>
+        saveWikiPage(
+          repository.owner,
+          repository.name,
+          form.currentPageName,
+          form.pageName,
+          appendNewLine(convertLineSeparator(form.content, "LF"), "LF"),
+          loginAccount,
+          form.message.getOrElse(""),
+          Some(form.id)
+        ).map { commitId =>
+          updateLastActivityDate(repository.owner, repository.name)
+          recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+        }
+        if(notReservedPageName(form.pageName)) {
+          redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+        } else {
+          redirect(s"/${repository.owner}/${repository.name}/wiki")
+        }
+      }
+    } else Unauthorized()
   })
   
-  post("/:owner/:repository/wiki/_new", newForm)(collaboratorsOnly { (form, repository) =>
-    defining(context.loginAccount.get){ loginAccount =>
-      saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
+  get("/:owner/:repository/wiki/_new")(readableUsersOnly { repository =>
+    if(isEditable(repository)){
+      html.edit("", None, repository)
+    } else Unauthorized()
+  })
+  
+  post("/:owner/:repository/wiki/_new", newForm)(readableUsersOnly { (form, repository) =>
+    if(isEditable(repository)){
+      defining(context.loginAccount.get){ loginAccount =>
+        saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
           form.content, loginAccount, form.message.getOrElse(""), None)
 
-      updateLastActivityDate(repository.owner, repository.name)
-      recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+        updateLastActivityDate(repository.owner, repository.name)
+        recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
 
-      redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
-    }
+        if(notReservedPageName(form.pageName)) {
+          redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
+        } else {
+          redirect(s"/${repository.owner}/${repository.name}/wiki")
+        }
+      }
+    } else Unauthorized()
   })
   
-  get("/:owner/:repository/wiki/:page/_delete")(collaboratorsOnly { repository =>
-    val pageName = StringUtil.urlDecode(params("page"))
+  get("/:owner/:repository/wiki/:page/_delete")(readableUsersOnly { repository =>
+    if(isEditable(repository)){
+      val pageName = StringUtil.urlDecode(params("page"))
 
-    defining(context.loginAccount.get){ loginAccount =>
-      deleteWikiPage(repository.owner, repository.name, pageName, loginAccount.fullName, loginAccount.mailAddress, s"Destroyed ${pageName}")
-      updateLastActivityDate(repository.owner, repository.name)
+      defining(context.loginAccount.get){ loginAccount =>
+        deleteWikiPage(repository.owner, repository.name, pageName, loginAccount.fullName, loginAccount.mailAddress, s"Destroyed ${pageName}")
+        updateLastActivityDate(repository.owner, repository.name)
 
-      redirect(s"/${repository.owner}/${repository.name}/wiki")
-    }
+        redirect(s"/${repository.owner}/${repository.name}/wiki")
+      }
+    } else Unauthorized()
   })
-  
+
   get("/:owner/:repository/wiki/_pages")(referrersOnly { repository =>
-    html.pages(getWikiPageList(repository.owner, repository.name), repository,
-      hasWritePermission(repository.owner, repository.name, context.loginAccount))
+    html.pages(getWikiPageList(repository.owner, repository.name), repository, isEditable(repository))
   })
   
   get("/:owner/:repository/wiki/_history")(referrersOnly { repository =>
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, "master") match {
-        case Right((logs, hasNext)) => html.history(None, logs, repository)
-        case Left(_) => NotFound
+        case Right((logs, hasNext)) => html.history(None, logs, repository, isEditable(repository))
+        case Left(_) => NotFound()
       }
     }
   })
@@ -174,7 +201,7 @@ trait WikiControllerBase extends ControllerBase {
 
     getFileContent(repository.owner, repository.name, path).map { bytes =>
       RawData(FileUtil.getContentType(path, bytes), bytes)
-    } getOrElse NotFound
+    } getOrElse NotFound()
   })
 
   private def unique: Constraint = new Constraint(){
@@ -186,12 +213,14 @@ trait WikiControllerBase extends ControllerBase {
     override def validate(name: String, value: String, messages: Messages): Option[String] =
       if(value.exists("\\/:*?\"<>|".contains(_))){
         Some(s"${name} contains invalid character.")
-      } else if(value.startsWith("_") || value.startsWith("-")){
+      } else if(notReservedPageName(value) && (value.startsWith("_") || value.startsWith("-"))){
         Some(s"${name} starts with invalid character.")
       } else {
         None
       }
   }
+
+  private def notReservedPageName(value: String) = ! (Array[String]("_Sidebar","_Footer") contains value)
 
   private def conflictForNew: Constraint = new Constraint(){
     override def validate(name: String, value: String, messages: Messages): Option[String] = {
@@ -210,5 +239,14 @@ trait WikiControllerBase extends ControllerBase {
   }
 
   private def targetWikiPage = getWikiPage(params("owner"), params("repository"), params("pageName"))
+
+  private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
+    repository.repository.options.wikiOption match {
+      case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined
+      case "PUBLIC"  => hasGuestRole(repository.owner, repository.name, context.loginAccount)
+      case "PRIVATE" => hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
+      case "DISABLE" => false
+    }
+  }
 
 }

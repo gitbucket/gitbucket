@@ -1,5 +1,7 @@
 *.class
 *.log
+.ensime
+.ensime_cache
 
 # sbt specific
 dist/*

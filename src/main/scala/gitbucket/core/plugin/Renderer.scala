@@ -20,7 +20,14 @@ trait Renderer {
 object MarkdownRenderer extends Renderer {
   override def render(request: RenderRequest): Html = {
     import request._
-    Html(Markdown.toHtml(fileContent, repository, enableWikiLink, enableRefsLink, enableAnchor)(context))
+    Html(Markdown.toHtml(
+      markdown         = fileContent,
+      repository       = repository,
+      enableWikiLink   = enableWikiLink,
+      enableRefsLink   = enableRefsLink,
+      enableAnchor     = enableAnchor,
+      enableLineBreaks = false
+    )(context))
   }
 }
 
@@ -35,11 +42,13 @@ object DefaultRenderer extends Renderer {
   }
 }
 
-case class RenderRequest(filePath: List[String],
-   fileContent: String,
-   branch: String,
-   repository: RepositoryService.RepositoryInfo,
-   enableWikiLink: Boolean,
-   enableRefsLink: Boolean,
-   enableAnchor: Boolean,
-   context: Context)
+case class RenderRequest(
+  filePath: List[String],
+  fileContent: String,
+  branch: String,
+  repository: RepositoryService.RepositoryInfo,
+  enableWikiLink: Boolean,
+  enableRefsLink: Boolean,
+  enableAnchor: Boolean,
+  context: Context
+)

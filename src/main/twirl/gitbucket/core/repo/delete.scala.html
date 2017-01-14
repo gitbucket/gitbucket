@@ -3,15 +3,14 @@
   pathList: List[String],
   fileName: String,
   content: gitbucket.core.util.JGitUtil.ContentInfo)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"Deleting ${path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
-    <form method="POST" action="@url(repository)/remove" validate="true">
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"Deleting ${context.path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
+  @gitbucket.core.html.menu("files", repository){
+    <form method="POST" action="@helpers.url(repository)/remove" validate="true">
       <div class="head">
-        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
-          <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
         @fileName
         <input type="hidden" name="fileName" id="fileName" value="@fileName"/>
@@ -22,7 +21,7 @@
         <th style="font-weight: normal;" class="box-header">
           @fileName
           <div class="pull-right align-right">
-            <a href="@url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-small">View</a>
+            <a href="@helpers.url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-small">View</a>
           </div>
         </th>
         <tr>
@@ -33,7 +32,7 @@
           </td>
         </tr>
       </table>
-      <div class="issue-avatar-image">@avatar(loginAccount.get.userName, 48)</div>
+      <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
         <div class="box issue-comment-box">
         <div class="box-content">
           <div>
@@ -43,7 +42,7 @@
             <input type="text" name="message" style="width: 98%;"/>
           </div>
           <div style="text-align: right;">
-            <a href="@url(repository)/blob/@encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
+            <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
             <input type="submit" id="commit" class="btn btn-success" value="Commit changes"/>
           </div>
         </div>
@@ -51,8 +50,8 @@
     </form>
   }
 }
-<script type="text/javascript" src="@assets/vendors/jsdifflib/difflib.js"></script>
-<link href="@assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="@helpers.assets/vendors/jsdifflib/difflib.js"></script>
+<link href="@helpers.assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   diffUsingJS('oldText', 'newText', 'diffText', 1);

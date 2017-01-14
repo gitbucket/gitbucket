@@ -20,13 +20,21 @@ case class ApiCommit(
   removed: List[String],
   modified: List[String],
   author: ApiPersonIdent,
-  committer: ApiPersonIdent)(repositoryName:RepositoryName){
-  val url = ApiPath(s"/api/v3/${repositoryName.fullName}/commits/${id}")
-  val html_url = ApiPath(s"/${repositoryName.fullName}/commit/${id}")
+  committer: ApiPersonIdent)(repositoryName:RepositoryName, urlIsHtmlUrl: Boolean) extends FieldSerializable{
+  val url = if(urlIsHtmlUrl){
+    ApiPath(s"/${repositoryName.fullName}/commit/${id}")
+  }else{
+    ApiPath(s"/api/v3/${repositoryName.fullName}/commits/${id}")
+  }
+  val html_url = if(urlIsHtmlUrl){
+    None
+  }else{
+    Some(ApiPath(s"/${repositoryName.fullName}/commit/${id}"))
+  }
 }
 
 object ApiCommit{
-  def apply(git: Git, repositoryName: RepositoryName, commit: CommitInfo): ApiCommit = {
+  def apply(git: Git, repositoryName: RepositoryName, commit: CommitInfo, urlIsHtmlUrl: Boolean = false): ApiCommit = {
     val diffs = JGitUtil.getDiffs(git, commit.id, false)
     ApiCommit(
       id        = commit.id,
@@ -43,6 +51,7 @@ object ApiCommit{
       },
       author    = ApiPersonIdent.author(commit),
       committer = ApiPersonIdent.committer(commit)
-    )(repositoryName)
+    )(repositoryName, urlIsHtmlUrl)
   }
+  def forPushPayload(git: Git, repositoryName: RepositoryName, commit: CommitInfo): ApiCommit = apply(git, repositoryName, commit, true)
 }

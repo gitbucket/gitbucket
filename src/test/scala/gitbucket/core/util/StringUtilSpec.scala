@@ -1,56 +1,66 @@
 package gitbucket.core.util
 
-import org.specs2.mutable._
+import org.scalatest.FunSpec
 
-class StringUtilSpec extends Specification {
+class StringUtilSpec extends FunSpec {
 
-  "urlDecode" should {
-    "decode encoded string to original string" in {
+  describe("urlEncode") {
+    it("should encode whitespace to %20") {
+      val encoded = StringUtil.urlEncode("aa bb")
+      assert(encoded == "aa%20bb")
+    }
+  }
+
+  describe("urlDecode") {
+    it("should decode encoded string to original string") {
       val encoded = StringUtil.urlEncode("あいうえお")
-      StringUtil.urlDecode(encoded) mustEqual "あいうえお"
+      assert(StringUtil.urlDecode(encoded) == "あいうえお")
+    }
+    it("should decode en%20 to whitespace") {
+      assert(StringUtil.urlDecode("aa%20bb") == "aa bb")
     }
   }
 
-  "splitWords" should {
-    "split string by whitespaces" in {
+  describe("splitWords") {
+    it("should split string by whitespaces") {
       val split = StringUtil.splitWords("aa bb\tcc　dd \t　ee")
-      split mustEqual Array("aa", "bb", "cc", "dd", "ee")
+      assert(split === Array("aa", "bb", "cc", "dd", "ee"))
     }
   }
 
-  "escapeHtml" should {
-    "escape &, <, > and \"" in {
-      StringUtil.escapeHtml("<a href=\"/test\">a & b</a>") mustEqual "&lt;a href=&quot;/test&quot;&gt;a &amp; b&lt;/a&gt;"
+  describe("escapeHtml") {
+    it("should escape &, <, > and \"") {
+      assert(StringUtil.escapeHtml("<a href=\"/test\">a & b</a>") == "&lt;a href=&quot;/test&quot;&gt;a &amp; b&lt;/a&gt;")
     }
   }
 
-  "md5" should {
-    "generate MD5 hash" in {
-      StringUtil.md5("abc") mustEqual "900150983cd24fb0d6963f7d28e17f72"
+  describe("md5") {
+    it("should generate MD5 hash") {
+      assert(StringUtil.md5("abc") == "900150983cd24fb0d6963f7d28e17f72")
     }
   }
 
-  "sha1" should {
-    "generate SHA1 hash" in {
-      StringUtil.sha1("abc") mustEqual "a9993e364706816aba3e25717850c26c9cd0d89d"
+  describe("sha1") {
+    it("should generate SHA1 hash") {
+      assert(StringUtil.sha1("abc") == "a9993e364706816aba3e25717850c26c9cd0d89d")
     }
   }
 
-  "extractIssueId" should {
-    "extract '#xxx' and return extracted id" in {
-      StringUtil.extractIssueId("(refs #123)").toSeq mustEqual Seq("123")
+  describe("extractIssueId") {
+    it("should extract '#xxx' and return extracted id") {
+      assert(StringUtil.extractIssueId("(refs #123)").toSeq == Seq("123"))
     }
-    "returns Nil from message which does not contain #xxx" in {
-      StringUtil.extractIssueId("this is test!").toSeq mustEqual Nil
+    it("should return Nil from message which does not contain #xxx") {
+      assert(StringUtil.extractIssueId("this is test!").toSeq == Nil)
     }
   }
 
-  "extractCloseId" should {
-    "extract 'close #xxx' and return extracted id" in {
-      StringUtil.extractCloseId("(close #123)").toSeq mustEqual Seq("123")
+  describe("extractCloseId") {
+    it("should extract 'close #xxx' and return extracted id") {
+      assert(StringUtil.extractCloseId("(close #123)").toSeq == Seq("123"))
     }
-    "returns Nil from message which does not contain close command" in {
-      StringUtil.extractCloseId("(refs #123)").toSeq mustEqual Nil
+    it("should returns Nil from message which does not contain close command") {
+      assert(StringUtil.extractCloseId("(refs #123)").toSeq == Nil)
     }
   }
 }

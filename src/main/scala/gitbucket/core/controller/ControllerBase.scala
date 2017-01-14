@@ -8,7 +8,7 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 
-import jp.sf.amateras.scalatra.forms._
+import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.json4s._
 import org.scalatra._
@@ -28,7 +28,11 @@ abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
   with SystemSettingsService {
 
-  implicit val jsonFormats = DefaultFormats
+  implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
+
+  before("/api/v3/*") {
+    contentType = formats("json")
+  }
 
 // TODO Scala 2.11
 //  // Don't set content type via Accept header.
@@ -53,7 +57,7 @@ abstract class ControllerBase extends ScalatraFilter
         // Redirect to dashboard
         httpResponse.sendRedirect(baseUrl + "/")
       }
-    } else if(path.startsWith("/git/")){
+    } else if(path.startsWith("/git/") || path.startsWith("/git-lfs/")){
       // Git repository
       chain.doFilter(request, response)
     } else {
@@ -176,11 +180,18 @@ abstract class ControllerBase extends ScalatraFilter
  * Context object for the current request.
  */
 case class Context(settings: SystemSettingsService.SystemSettings, loginAccount: Option[Account], request: HttpServletRequest){
-
   val path = settings.baseUrl.getOrElse(request.getContextPath)
   val currentPath = request.getRequestURI.substring(request.getContextPath.length)
   val baseUrl = settings.baseUrl(request)
   val host = new java.net.URL(baseUrl).getHost
+  val platform = request.getHeader("User-Agent") match {
+    case null => null
+    case agent if agent.contains("Mac") => "mac"
+    case agent if agent.contains("Linux") => "linux"
+    case agent if agent.contains("Win") => "windows"
+    case _ => null
+  }
+  val sidebarCollapse = request.getSession.getAttribute("sidebar-collapse") != null
 
   /**
    * Get object from cache.
@@ -232,6 +243,15 @@ trait AccountManagementControllerBase extends ControllerBase {
       getAccountByMailAddress(value, true)
         .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
         .map    { _ => "Mail address is already registered." }
+  }
+
+  val allReservedNames = Set("git", "admin", "upload", "api")
+  protected def reservedNames(): Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] = if(allReservedNames.contains(value)){
+      Some(s"${value} is reserved")
+    } else {
+      None
+    }
   }
 
 }

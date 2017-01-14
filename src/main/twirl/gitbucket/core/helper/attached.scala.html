@@ -1,33 +1,77 @@
-@(owner: String, repository: String)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
-@import context._
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  completionContext: String, generateScript: Boolean = true)(textarea: Html)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.util.FileUtil
+@import gitbucket.core.view.helpers
 <div class="muted attachable">
   @textarea
-  <div class="clickable">Attach images by dragging &amp; dropping, or selecting them.</div>
+  <div class="clickable">Attach images or documents by dragging &amp; dropping, or selecting them.</div>
 </div>
 @defining("(id=\")([\\w\\-]*)(\")".r.findFirstMatchIn(textarea.body).map(_.group(2))){ textareaId =>
 <script>
 $(function(){
-  try {
-    $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
-      url: '@path/upload/image/@owner/@repository',
-      maxFilesize: 10,
-      acceptedFiles: 'image/*',
-      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, or JPG.',
-      previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your images...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
-      success: function(file, id) {
-        var images = '\n![' + file.name.split('.')[0] + '](@baseUrl/@owner/@repository/_attached/' + id + ')';
-        $('#@textareaId').val($('#@textareaId').val() + images);
-        $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
-      }
-    });
-  } catch(e) {
-    if (e.message !== "Dropzone already attached.") {
-      throw e;
+  @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
+    @if(provider.context.contains(completionContext)){
+      var @provider.id = @Html(helpers.json(provider.values(repository)));
+      @Html(provider.additionalScript)
     }
   }
+  $('#@textareaId').textcomplete([
+    @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
+      @if(provider.context.contains(completionContext)){
+        {
+          id: '@{provider.id}',
+          match: /\B@{provider.prefix}([\-+\w]*)$/,
+          search: function (term, callback) {
+            callback($.map(@{provider.id}, function (proposal) {
+              return proposal.indexOf(term) === 0 ? proposal : null;
+            }));
+          },
+          template: function (value) {
+            return @{Html(provider.template)};
+          },
+          replace: function (value) {
+            return '@{provider.prefix}' + value + '@{provider.suffix}';
+          },
+          index: 1
+        },
+      }
+    }
+  ], {
+    onKeydown: function (e, commands) {
+      if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
+        return commands.KEY_ENTER;
+      }
+    }
+  });
 
-  // Adjust clickable area width
-  $('#@textareaId').next('div.clickable').css('width', ($('#@textareaId').width() + 8) + 'px');
+  @if(generateScript){
+    try {
+      $([$('#@textareaId')[0]]).dropzone({
+        @dropzone(false, textareaId)
+      });
+      $([$('#@textareaId').closest('div')[0], $('#@textareaId').next('div')[0]]).dropzone({
+        @dropzone(true, textareaId)
+      });
+    } catch(e) {
+      if (e.message !== "Dropzone already attached.") {
+        throw e;
+      }
+    }
+  }
 });
 </script>
+}
+@dropzone(clickable: Boolean, textareaId: Option[String]) = {
+  url: '@context.path/upload/file/@repository.owner/@repository.name',
+  maxFilesize: 10,
+  clickable: @clickable,
+  acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
+  dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
+  previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+  success: function(file, id) {
+    var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +
+        '](@context.baseUrl/@repository.owner/@repository.name/_attached/' + id + ')';
+    $('#@textareaId').val($('#@textareaId').val() + attachFile);
+    $(file.previewElement).prevAll('div.dz-preview').addBack().remove();
+  }
 }

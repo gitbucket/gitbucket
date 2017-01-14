@@ -1,12 +1,12 @@
 package gitbucket.core.ssh
 
-import gitbucket.core.service.SystemSettingsService
+import gitbucket.core.service.SystemSettingsService.SshAddress
 import org.apache.sshd.common.Factory
 import org.apache.sshd.server.{Environment, ExitCallback, Command}
 import java.io.{OutputStream, InputStream}
 import org.eclipse.jgit.lib.Constants
 
-class NoShell extends Factory[Command] with SystemSettingsService {
+class NoShell(sshAddress:SshAddress) extends Factory[Command] {
   override def create(): Command = new Command() {
     private var in: InputStream = null
     private var out: OutputStream = null
@@ -14,8 +14,6 @@ class NoShell extends Factory[Command] with SystemSettingsService {
     private var callback: ExitCallback = null
 
     override def start(env: Environment): Unit = {
-      val user = env.getEnv.get("USER")
-      val port = loadSystemSettings().sshPort.getOrElse(SystemSettingsService.DefaultSshPort)
       val message =
         """
           | Welcome to
@@ -31,8 +29,8 @@ class NoShell extends Factory[Command] with SystemSettingsService {
           |
           | Please use:
           |
-          | git clone ssh://%s@GITBUCKET_HOST:%d/OWNER/REPOSITORY_NAME.git
-        """.stripMargin.format(user, port).replace("\n", "\r\n") + "\r\n"
+          | git clone ssh://%s@%s:%d/OWNER/REPOSITORY_NAME.git
+        """.stripMargin.format(sshAddress.genericUser, sshAddress.host, sshAddress.port).replace("\n", "\r\n") + "\r\n"
       err.write(Constants.encode(message))
       err.flush()
       in.close()

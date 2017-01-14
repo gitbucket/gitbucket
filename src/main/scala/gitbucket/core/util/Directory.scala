@@ -1,11 +1,9 @@
 package gitbucket.core.util
 
 import java.io.File
-import ControlUtil._
-import org.apache.commons.io.FileUtils
 
 /**
- * Provides directories used by GitBucket.
+ * Provides directory locations used by GitBucket.
  */
 object Directory {
 
@@ -51,6 +49,12 @@ object Directory {
     new File(s"${RepositoryHome}/${owner}/${repository}/comments")
 
   /**
+   * Directory for files which are attached to issue.
+   */
+  def getLfsDir(owner: String, repository: String): File =
+    new File(s"${RepositoryHome}/${owner}/${repository}/lfs")
+
+  /**
    * Directory for uploaded files by the specified user.
    */
   def getUserUploadDir(userName: String): File = new File(s"${GitBucketHome}/data/${userName}/files")
@@ -72,12 +76,6 @@ object Directory {
    */
   def getPluginCacheDir(): File = new File(s"${TemporaryHome}/_plugins")
 
-  /**
-   * Temporary directory which is used to create an archive to download repository contents.
-   */
-  def getDownloadWorkDir(owner: String, repository: String, sessionId: String): File = 
-    new File(getTemporaryDir(owner, repository), s"download/${sessionId}")
-  
   /**
    * Substance directory of the wiki repository.
    */

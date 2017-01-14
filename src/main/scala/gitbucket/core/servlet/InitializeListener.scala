@@ -1,16 +1,23 @@
 package gitbucket.core.servlet
 
+import java.io.File
+
 import akka.event.Logging
 import com.typesafe.config.ConfigFactory
+import gitbucket.core.GitBucketCoreModule
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
-import org.apache.commons.io.FileUtils
+import gitbucket.core.util.DatabaseConfig
+import gitbucket.core.util.Directory._
+import gitbucket.core.util.JDBCUtil._
+import io.github.gitbucket.solidbase.Solidbase
+import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import javax.servlet.{ServletContextListener, ServletContextEvent}
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
-import gitbucket.core.util.Versions
 import akka.actor.{Actor, Props, ActorSystem}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
-import AutoUpdate._
+import scala.collection.JavaConverters._
 
 /**
  * Initialize GitBucket system.
@@ -29,15 +36,63 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
     Database() withTransaction { session =>
       val conn = session.conn
+      val manager = new JDBCVersionManager(conn)
 
-      // Migration
-      logger.debug("Start schema update")
-      Versions.update(conn, headVersion, getCurrentVersion(), versions, Thread.currentThread.getContextClassLoader){ conn =>
-        FileUtils.writeStringToFile(versionFile, headVersion.versionString, "UTF-8")
+      // Check version
+      val versionFile = new File(GitBucketHome, "version")
+
+      if(versionFile.exists()){
+        val version = FileUtils.readFileToString(versionFile, "UTF-8")
+        if(version == "3.14"){
+          // Initialization for GitBucket 3.14
+          logger.info("Migration to GitBucket 4.x start")
+
+          // Backup current data
+          val dataMvFile = new File(GitBucketHome, "data.mv.db")
+          if(dataMvFile.exists) {
+            FileUtils.copyFile(dataMvFile, new File(GitBucketHome, "data.mv.db_3.14"))
+          }
+          val dataTraceFile = new File(GitBucketHome, "data.trace.db")
+          if(dataTraceFile.exists) {
+            FileUtils.copyFile(dataTraceFile, new File(GitBucketHome, "data.trace.db_3.14"))
+          }
+
+          // Change form
+          manager.initialize()
+          manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
+          conn.select("SELECT PLUGIN_ID, VERSION FROM PLUGIN"){ rs =>
+            manager.updateVersion(rs.getString("PLUGIN_ID"), rs.getString("VERSION"))
+          }
+          conn.update("DROP TABLE PLUGIN")
+          versionFile.delete()
+
+          logger.info("Migration to GitBucket 4.x completed")
+
+        } else {
+          throw new Exception("GitBucket can't migrate from this version. Please update to 3.14 at first.")
+        }
+      }
+
+      // Run normal migration
+      logger.info("Start schema update")
+      val solidbase = new Solidbase()
+      solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
+
+      // Rescue code for users who updated from 3.14 to 4.0.0
+      // https://github.com/gitbucket/gitbucket/issues/1227
+      val currentVersion = manager.getCurrentVersion(GitBucketCoreModule.getModuleId)
+      val databaseVersion = if(currentVersion == "4.0"){
+        manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
+        "4.0.0"
+      } else currentVersion
+
+      val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
+      if(databaseVersion != gitbucketVersion){
+        throw new IllegalStateException(s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}.")
       }
 
       // Load plugins
-      logger.debug("Initialize plugins")
+      logger.info("Initialize plugins")
       PluginRegistry.initialize(event.getServletContext, loadSystemSettings(), conn)
     }
 

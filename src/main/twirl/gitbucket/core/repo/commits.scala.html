@@ -5,77 +5,86 @@
   page: Int,
   hasNext: Boolean,
   hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
-@import context._
-@import gitbucket.core.view.helpers._
-@html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
-  @html.menu("code", repository){
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
+  @gitbucket.core.html.menu("files", repository){
     <div class="head">
-      @helper.html.branchcontrol(
-        branch,
-        repository,
-        hasWritePermission
-      ){
-        @repository.branchList.map { x =>
-          <li><a href="@url(repository)/commits/@encodeRefName(x)">@helper.html.checkicon(x == branch) @x</a></li>
-        }
-      }
       @if(pathList.isEmpty){
-        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> / Commit History
+        @gitbucket.core.helper.html.branchcontrol(
+          branch,
+          repository,
+          hasWritePermission
+        ){
+          @repository.branchList.map { x =>
+            <li><a href="@helpers.url(repository)/commits/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+          }
+        }
       }
       @if(pathList.nonEmpty){
         <span class="muted">History for</span>
-        <a href="@url(repository)/tree/@encodeRefName(branch)">@repository.name</a> /
+        <a class="strong" href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
           @if(i == pathList.length - 1){
-            @section
+            <span class="strong">@section</span>
           } else {
-            <a href="@url(repository)/tree/@encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+            <a class="strong" href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
           }
         }
       }
     </div>
+
+    <table class="table table-bordered table-hover">
     @commits.map { day =>
-      <table class="table table-bordered">
-        <tr>
-          <th>@date(day.head.commitTime)</th>
-        </tr>
-        @day.map { commit =>
-        <tr>
+      <tr>
+        <th rowspan="@day.size" width="100">@helpers.date(day.head.commitTime)</th>
+        @day.zipWithIndex.map { case (commit, i) =>
+          @if(i != 0){ <tr> }
           <td>
-            <div class="pull-right align-right">
-              <a href="@url(repository)/commit/@commit.id" class="btn btn-small monospace">@commit.id.substring(0, 10)</a><br>
-              <a href="@url(repository)/tree/@commit.id" class="small">Browse code</a>
+            <div class="pull-right text-right">
+              <a href="@helpers.url(repository)/commit/@commit.id" class="monospace commit-message strong"><i class="octicon octicon-diff" style="color: black;"></i>@commit.id.substring(0, 7)</a><br>
+              <a href="@helpers.url(repository)/tree/@commit.id" class="button-link">Browse files »</a>
             </div>
             <div>
-              <div class="commit-avatar-image">@avatar(commit, 40)</div>
-              <div class="commit-message-box">
-                <a href="@url(repository)/commit/@commit.id" class="commit-message" style="font-weight: bold;">@link(commit.summary, repository)</a>
+              <div class="commit-avatar-image">@helpers.avatarLink(commit, 40)</div>
+              <div>
+                @helpers.link(commit.summary, repository)
                 @if(commit.description.isDefined){
                   <a href="javascript:void(0)" onclick="$('#description-@commit.id').toggle();" class="omit">...</a>
                 }
                 <br>
                 @if(commit.description.isDefined){
-                  <pre id="description-@commit.id" style="display: none;" class="commit-description">@link(commit.description.get, repository)</pre>
+                  <pre id="description-@commit.id" style="display: none;" class="commit-description">@helpers.link(commit.description.get, repository)</pre>
                 }
-                <div class="small">
-                  @user(commit.authorName, commit.authorEmailAddress, "username")
-                  <span class="muted">authored @helper.html.datetimeago(commit.authorTime)</span>
+                  <div>
                   @if(commit.isDifferentFromAuthor) {
-                    <span class="icon-arrow-right" style="margin-top : -2px ;"></span>
-                    @user(commit.committerName, commit.committerEmailAddress, "username")
-                    <span class="muted">committed @helper.html.datetimeago(commit.authorTime)</span>
+                    @helpers.user(commit.authorName, commit.authorEmailAddress, "username")
+                    <span class="muted">authored @gitbucket.core.helper.html.datetimeago(commit.authorTime)</span>
+                    <span class="octicon octicon-arrow-right" style="margin-top : -2px;"></span>
                   }
+                  @helpers.user(commit.committerName, commit.committerEmailAddress, "username")
+                  <span class="muted">committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
                 </div>
               </div>
             </div>
           </td>
-        </tr>
+          </tr>
         }
-      </table>
     }
-    <div class="btn-group">
-      <button class="btn" onclick="location.href='?page=@{page - 1}'"@if(page <= 1){ disabled="true"}>&lt; Newer</button>
-      <button class="btn" onclick="location.href='?page=@{page + 1}'"@if(!hasNext){ disabled="true"}>Older &gt;</button>
-    </div>
+    </table>
+
+    <nav style="text-align: center; margin-top: 20px">
+      <ul class="pagination">
+        @if(page <= 1){
+          <li class="disabled"><span>Newer</span></li>
+        } else {
+          <li><a href="?page=@{page - 1}">Newer</a></li>
+        }
+        @if(!hasNext){
+          <li class="disabled"><span>Older</span></li>
+        } else {
+          <li><a href="?page=@{page + 1}">Older</a></li>
+        }
+      </ul>
+    </nav>
   }
 }

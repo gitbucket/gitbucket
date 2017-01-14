@@ -1,0 +1,7 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
+  </head>
+</html>

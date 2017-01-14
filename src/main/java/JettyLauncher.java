@@ -1,15 +1,16 @@
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
 import java.net.URL;
+import java.net.InetSocketAddress;
 import java.security.ProtectionDomain;
 
 public class JettyLauncher {
     public static void main(String[] args) throws Exception {
         String host = null;
         int port = 8080;
+        InetSocketAddress address = null;
         String contextPath = "/";
         boolean forceHttps = false;
 
@@ -23,6 +24,9 @@ public class JettyLauncher {
                         port = Integer.parseInt(dim[1]);
                     } else if(dim[0].equals("--prefix")) {
                         contextPath = dim[1];
+                        if(!contextPath.startsWith("/")){
+                            contextPath = "/" + contextPath;
+                        }
                     } else if(dim[0].equals("--gitbucket.home")){
                         System.setProperty("gitbucket.home", dim[1]);
                     }
@@ -30,24 +34,29 @@ public class JettyLauncher {
             }
         }
 
-        Server server = new Server();
-
-        SelectChannelConnector connector = new SelectChannelConnector();
         if(host != null) {
-            connector.setHost(host);
+            address = new InetSocketAddress(host, port);
+        } else {
+            address = new InetSocketAddress(port);
         }
-        connector.setMaxIdleTime(1000 * 60 * 60);
-        connector.setSoLingerTime(-1);
-        connector.setPort(port);
-        server.addConnector(connector);
+
+        Server server = new Server(address);
+
+//        SelectChannelConnector connector = new SelectChannelConnector();
+//        if(host != null) {
+//            connector.setHost(host);
+//        }
+//        connector.setMaxIdleTime(1000 * 60 * 60);
+//        connector.setSoLingerTime(-1);
+//        connector.setPort(port);
+//        server.addConnector(connector);
 
         WebAppContext context = new WebAppContext();
 
         File tmpDir = new File(getGitBucketHome(), "tmp");
-        if(tmpDir.exists()){
-            deleteDirectory(tmpDir);
+        if(!tmpDir.exists()){
+            tmpDir.mkdirs();
         }
-        tmpDir.mkdirs();
         context.setTempDirectory(tmpDir);
 
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
@@ -62,6 +71,8 @@ public class JettyLauncher {
         }
 
         server.setHandler(context);
+        server.setStopAtShutdown(true);
+        server.setStopTimeout(7_000);
         server.start();
         server.join();
     }

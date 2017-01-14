@@ -4,6 +4,8 @@ import gitbucket.core.api.JsonFormat
 import gitbucket.core.controller.Context
 import gitbucket.core.servlet.Database
 
+import java.util.regex.Pattern.quote
+
 import javax.servlet.http.{HttpSession, HttpServletRequest}
 
 import scala.util.matching.Regex
@@ -65,6 +67,7 @@ object Implicits {
 
     def paths: Array[String] = (request.getRequestURI.substring(request.getContextPath.length + 1) match{
       case path if path.startsWith("api/v3/repos/") => path.substring(13/* "/api/v3/repos".length */)
+      case path if path.startsWith("api/v3/orgs/") => path.substring(12/* "/api/v3/orgs".length */)
       case path => path
     }).split("/")
 
@@ -72,15 +75,16 @@ object Implicits {
 
     def hasAttribute(name: String): Boolean = request.getAttribute(name) != null
 
+    def gitRepositoryPath: String = request.getRequestURI.replaceFirst("^" + quote(request.getContextPath) + "/git/", "/")
+
+    def baseUrl:String = {
+      val url = request.getRequestURL.toString
+      val len = url.length - (request.getRequestURI.length - request.getContextPath.length)
+      url.substring(0, len).stripSuffix("/")
+    }
   }
 
   implicit class RichSession(session: HttpSession){
-
-    def putAndGet[T](key: String, value: T): T = {
-      session.setAttribute(key, value)
-      value
-    }
-
     def getAndRemove[T](key: String): Option[T] = {
       val value = session.getAttribute(key).asInstanceOf[T]
       if(value == null){
