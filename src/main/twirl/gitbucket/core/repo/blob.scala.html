@@ -96,12 +96,16 @@
       }
   }
 }
+@*
 <script src="@helpers.assets/vendors/jquery/jquery.ba-hashchange.js"></script>
+*@
 <script>
 $(window).load(function(){
-  $(window).hashchange(function(){
+  updateHighlighting();
+
+  window.onhashchange = function(){
     updateHighlighting();
-  }).hashchange();
+  }
 
   var pre = $('pre.prettyprint');
   function updateSourceLineNum(){
@@ -116,7 +120,6 @@ $(window).load(function(){
         top     : pos.top + 'px',
         left    : pos.left + 'px'
       }).click(function(e){
-        $(window).hashchange(function(){})
         var pos = $(this).data("pos");
         if(!pos){
           pos = $('ol.linenums li').map(function(){ return { id: $(this).attr("id"), top: $(this).position().top} }).toArray();
@@ -182,7 +185,7 @@ $(window).load(function(){
         var h = $(e).height();
         if(blame == index[i]){
           lastDiv.css("min-height",(p.top + h + 1) - lastDiv.position().top);
-        }else{
+        } else {
           $(e).addClass('blame-sep')
           blame = index[i];
           var sha = $('<div class="blame-sha">')
