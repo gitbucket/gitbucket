@@ -19,8 +19,8 @@ trait AccountComponent { self: Profile =>
     val image = column[String]("IMAGE")
     val groupAccount = column[Boolean]("GROUP_ACCOUNT")
     val removed = column[Boolean]("REMOVED")
-    val groupDescription = column[String]("GROUP_DESCRIPTION")
-    def * = (userName, fullName, mailAddress, password, isAdmin, url.?, registeredDate, updatedDate, lastLoginDate.?, image.?, groupAccount, removed, groupDescription.?) <> (Account.tupled, Account.unapply)
+    val description = column[String]("DESCRIPTION")
+    def * = (userName, fullName, mailAddress, password, isAdmin, url.?, registeredDate, updatedDate, lastLoginDate.?, image.?, groupAccount, removed, description.?) <> (Account.tupled, Account.unapply)
   }
 }
 
@@ -37,5 +37,5 @@ case class Account(
   image: Option[String],
   isGroupAccount: Boolean,
   isRemoved: Boolean,
-  groupDescription: Option[String]
+  description: Option[String]
 )

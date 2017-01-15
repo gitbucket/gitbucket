@@ -47,6 +47,14 @@ class AccountServiceSpec extends FunSuite with ServiceSpecBase {
     val newAddress = "new mail address"
     AccountService.updateAccount(user().copy(mailAddress = newAddress))
     assert(user().mailAddress == newAddress)
+
+    val newUrl = Some("http://new.url.example/path")
+    AccountService.updateAccount(user().copy(url = newUrl))
+    assert(user().url == newUrl)
+
+    val newDescription = Some("http://new.url.example/path")
+    AccountService.updateAccount(user().copy(description = newDescription))
+    assert(user().description == newDescription)
   }}
 
   test("group") { withTestDB { implicit session =>
@@ -69,18 +77,18 @@ class AccountServiceSpec extends FunSuite with ServiceSpecBase {
   }}
 
   test("createGroup save description") { withTestDB { implicit session =>
-    AccountService.createGroup("some-group", None, Some("some clever description"))
+    AccountService.createGroup("some-group", Some("some clever description"), None)
     val maybeGroup = AccountService.getAccountByUserName("some-group")
 
-    assert(maybeGroup.flatMap(_.groupDescription) == Some("some clever description"))
+    assert(maybeGroup.flatMap(_.description) == Some("some clever description"))
   }}
 
   test("updateGroup save description") { withTestDB { implicit session =>
     AccountService.createGroup("a-group", None, None)
 
-    AccountService.updateGroup("a-group", None, Some("new description"), false)
+    AccountService.updateGroup("a-group", Some("new description"), None, false)
 
     val group = AccountService.getAccountByUserName("a-group")
-    assert(group.flatMap(_.groupDescription) == Some("new description"))
+    assert(group.flatMap(_.description) == Some("new description"))
   }}
 }

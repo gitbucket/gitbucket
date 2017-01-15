@@ -29,10 +29,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     with AccessTokenService with WebHookService with RepositoryCreationService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
-                            url: Option[String], fileId: Option[String])
+                            description: Option[String], url: Option[String], fileId: Option[String])
 
   case class AccountEditForm(password: Option[String], fullName: String, mailAddress: String,
-                             url: Option[String], fileId: Option[String], clearImage: Boolean)
+                             description: Option[String], url: Option[String], fileId: Option[String], clearImage: Boolean)
 
   case class SshKeyForm(title: String, publicKey: String)
 
@@ -43,6 +43,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
+    "description" -> trim(label("bio"          , optional(text()))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text())))
   )(AccountNewForm.apply)
@@ -51,6 +52,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
+    "description" -> trim(label("bio"          , optional(text()))),
     "url"         -> trim(label("URL"          , optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      , optional(text()))),
     "clearImage"  -> trim(label("Clear image"  , boolean()))
@@ -65,12 +67,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "note"     -> trim(label("Token", text(required, maxlength(100))))
   )(PersonalTokenForm.apply)
 
-  case class NewGroupForm(groupName: String, groupDescription: Option[String], url: Option[String], fileId: Option[String], members: String)
-  case class EditGroupForm(groupName: String, groupDescription: Option[String], url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
+  case class NewGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String], members: String)
+  case class EditGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
 
   val newGroupForm = mapping(
     "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "groupDescription" -> trim(label("Group description", optional(text()))),
+    "description" -> trim(label("Group description", optional(text()))),
     "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
     "fileId"    -> trim(label("File ID"    ,optional(text()))),
     "members"   -> trim(label("Members"    ,text(required, members)))
@@ -78,7 +80,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val editGroupForm = mapping(
     "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
-    "groupDescription" -> trim(label("Group description", optional(text()))),
+    "description" -> trim(label("Group description", optional(text()))),
     "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
     "fileId"     -> trim(label("File ID"     ,optional(text()))),
     "members"    -> trim(label("Members"     ,text(required, members))),
@@ -169,6 +171,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         password    = form.password.map(sha1).getOrElse(account.password),
         fullName    = form.fullName,
         mailAddress = form.mailAddress,
+        description = form.description,
         url         = form.url))
 
       updateImage(userName, form.fileId, form.clearImage)
@@ -268,7 +271,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   post("/register", newForm){ form =>
     if(context.settings.allowAccountRegistration){
-      createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.url)
+      createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, false, form.description, form.url)
       updateImage(form.userName, form.fileId, false)
       redirect("/signin")
     } else NotFound()
@@ -279,7 +282,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
-    createGroup(form.groupName, form.url, form.groupDescription)
+    createGroup(form.groupName, form.description, form.url)
     updateGroupMembers(form.groupName, form.members.split(",").map {
       _.split(":") match {
         case Array(userName, isManager) => (userName, isManager.toBoolean)
@@ -317,7 +320,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }.toList){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, form.url, form.groupDescription, false)
+        updateGroup(groupName, form.description, form.url, false)
 
         // Update GROUP_MEMBER
         updateGroupMembers(form.groupName, members)

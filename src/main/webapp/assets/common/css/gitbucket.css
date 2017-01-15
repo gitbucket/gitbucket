@@ -424,8 +424,7 @@ div.signin-form {
   font-weight: bold;
 }
 
-.account-username,
-.group-description {
+.account-username {
   margin-top: 10px;
   font-size: 140%;
   color: #888888;

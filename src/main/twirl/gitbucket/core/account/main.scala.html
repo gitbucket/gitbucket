@@ -10,13 +10,11 @@
           <p>@account.userName</p>
           @account.fullName
         </div>
-        @if(account.isGroupAccount) {
-          <div class="group-description">@account.groupDescription</div>
-        } else {
-          <div class="account-username">@account.groupDescription</div>
-        }
       </div>
       <div style="padding-left: 10px; padding-right: 10px;">
+        @account.description.map{ description =>
+          <p style="color: white;">@description</p>
+        }
         @if(account.url.isDefined){
           <p style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             <i class="octicon octicon-home"></i> <a href="@account.url">@account.url</a>

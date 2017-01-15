@@ -26,8 +26,7 @@
           </fieldset>
           <fieldset class="form-group">
             <label class="strong">Description (Optional)</label>
-            <input type="text" name="groupDescription" id="groupDescription"
-              value="@account.map(_.groupDescription)" />
+            <textarea name="description" id="description" class="form-control">@account.map(_.description)</textarea>
           </fieldset>
           <fieldset class="form-group">
             <label for="avatar" class="strong">Image (Optional)</label>
