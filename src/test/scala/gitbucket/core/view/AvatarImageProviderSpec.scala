@@ -94,7 +94,8 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
       lastLoginDate  = None,
       image          = image,
       isGroupAccount = false,
-      isRemoved      = false)
+      isRemoved      = false,
+      description    = None)
 
   private def createSystemSettings(useGravatar: Boolean) =
     SystemSettings(

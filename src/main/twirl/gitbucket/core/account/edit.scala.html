@@ -37,6 +37,11 @@
                 <input type="text" name="url" id="url" class="form-control" value="@account.url"/>
                 <span id="error-url" class="error"></span>
               </fieldset>
+              <fieldset class="form-group">
+                <label for="description" class="strong">Bio (optional):</label>
+                <textarea name="description" id="description" class="form-control">@account.description</textarea>
+                <span id="error-description" class="error"></span>
+              </fieldset>
             </div>
             <div class="col-md-6">
               <fieldset class="form-group">

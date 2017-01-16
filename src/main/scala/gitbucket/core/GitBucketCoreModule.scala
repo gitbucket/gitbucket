@@ -24,5 +24,8 @@ object GitBucketCoreModule extends Module("gitbucket-core",
     new SqlMigration("update/gitbucket-core_4.7.sql")
   ),
   new Version("4.7.1"),
-  new Version("4.8")
+  new Version("4.8"),
+  new Version("4.9",
+    new LiquibaseMigration("update/gitbucket-core_4.9.xml")
+  )
 )
