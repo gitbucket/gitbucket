@@ -2,6 +2,7 @@
   milestones: List[gitbucket.core.model.Milestone],
   labels: List[gitbucket.core.model.Label],
   isManageable: Boolean,
+  content: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"New Issue - ${repository.owner}/${repository.name}", Some(repository)){
@@ -13,7 +14,7 @@
           <input type="text" id="issue-title" name="title" class="form-control" value="" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
           @gitbucket.core.helper.html.preview(
             repository         = repository,
-            content            = "",
+            content            = content,
             enableWikiLink     = false,
             enableRefsLink     = true,
             enableLineBreaks   = true,

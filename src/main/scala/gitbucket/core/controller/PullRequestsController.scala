@@ -368,6 +368,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               forkedId,
               oldId.getName,
               newId.getName,
+              getContentTemplate(originRepository, "PULL_REQUEST_TEMPLATE"),
               forkedRepository,
               originRepository,
               forkedRepository,
