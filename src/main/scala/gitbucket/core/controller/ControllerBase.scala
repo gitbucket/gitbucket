@@ -20,6 +20,8 @@ import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
 
 import scala.util.Try
 
+import net.coobird.thumbnailator.Thumbnails
+
 
 /**
  * Provides generic features for controller implementations.
@@ -225,10 +227,9 @@ trait AccountManagementControllerBase extends ControllerBase {
     } else {
       fileId.map { fileId =>
         val filename = "avatar." + FileUtil.getExtension(session.getAndRemove(Keys.Session.Upload(fileId)).get)
-        FileUtils.moveFile(
-          new java.io.File(getTemporaryDir(session.getId), fileId),
-          new java.io.File(getUserUploadDir(userName), filename)
-        )
+        Thumbnails.of(new java.io.File(getTemporaryDir(session.getId), fileId))
+          .size(324, 324)
+          .toFile(new java.io.File(getUserUploadDir(userName), filename))
         updateAvatarImage(userName, Some(filename))
       }
     }
