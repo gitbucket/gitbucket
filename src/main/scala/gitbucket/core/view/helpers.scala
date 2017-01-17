@@ -161,7 +161,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     }
 
   import scala.util.matching.Regex._
-  implicit class RegexReplaceString(s: String) {
+  implicit class RegexReplaceString(private val s: String) extends AnyVal {
     def replaceAll(pattern: String, replacer: (Match) => String): String = {
       pattern.r.replaceAllIn(s, (m: Match) => replacer(m).replace("$", "\\$"))
     }
@@ -297,7 +297,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Implicit conversion to add mkHtml() to Seq[Html].
    */
-  implicit class RichHtmlSeq(seq: Seq[Html]) {
+  implicit class RichHtmlSeq(private val seq: Seq[Html]) extends AnyVal {
     def mkHtml(separator: String) = Html(seq.mkString(separator))
     def mkHtml(separator: scala.xml.Elem) = Html(seq.mkString(separator.toString))
   }
