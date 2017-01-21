@@ -24,7 +24,7 @@ trait IssuesService {
     else None
 
   def getComments(owner: String, repository: String, issueId: Int)(implicit s: Session) =
-    IssueComments filter (_.byIssue(owner, repository, issueId)) list
+    IssueComments filter (_.byIssue(owner, repository, issueId)) sortBy(_.commentId asc) list
 
   /** @return IssueComment and commentedUser and Issue */
   def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session): List[(IssueComment, Account, Issue)] =
