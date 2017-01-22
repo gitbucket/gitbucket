@@ -32,6 +32,7 @@ You can specify following options:
 - `--prefix=[CONTEXTPATH]`
 - `--host=[HOSTNAME]`
 - `--gitbucket.home=[DATA_DIR]`
+- `--temp_dir=[TEMP_DIR]`
 
 You can also deploy gitbucket.war to a servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
 
