@@ -1,4 +1,6 @@
-@(systemSettings: gitbucket.core.service.SystemSettingsService.SystemSettings)(implicit context: gitbucket.core.controller.Context)
+@(systemSettings: gitbucket.core.service.SystemSettingsService.SystemSettings,
+  userName: Option[Any] = None,
+  password: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
 <div class="panel panel-default">
   <div class="panel-heading strong">Sign in</div>
   <ul class="list-group list-group-flush">
@@ -7,12 +9,12 @@
         <div class="form-group">
           <label for="userName">Username:</label>
           <span id="error-userName" class="error"></span>
-          <input type="text" name="userName" id="userName" class="form-control" autofocus/>
+          <input type="text" name="userName" id="userName" class="form-control" autofocus value="@userName"/>
         </div>
         <div class="form-group">
           <label for="password">Password:</label>
           <span id="error-password" class="error"></span>
-          <input type="password" name="password" id="password" class="form-control"/>
+          <input type="password" name="password" id="password" class="form-control" value="@password"/>
         </div>
         <input type="submit" class="btn btn-success" value="Sign in"/>
         @if(systemSettings.allowAccountRegistration){
