@@ -12,6 +12,7 @@ public class JettyLauncher {
         int port = 8080;
         InetSocketAddress address = null;
         String contextPath = "/";
+        String tmpDirPath="";
         boolean forceHttps = false;
 
         for(String arg: args) {
@@ -29,6 +30,8 @@ public class JettyLauncher {
                         }
                     } else if(dim[0].equals("--gitbucket.home")){
                         System.setProperty("gitbucket.home", dim[1]);
+                    } else if(dim[0].equals("--temp_dir")){
+                        tmpDirPath = dim[1];
                     }
                 }
             }
@@ -53,9 +56,21 @@ public class JettyLauncher {
 
         WebAppContext context = new WebAppContext();
 
-        File tmpDir = new File(getGitBucketHome(), "tmp");
-        if(!tmpDir.exists()){
-            tmpDir.mkdirs();
+        File tmpDir;
+        if(tmpDirPath.equals("")){
+            tmpDir = new File(getGitBucketHome(), "tmp");
+            if(!tmpDir.exists()){
+                tmpDir.mkdirs();
+            }
+        } else {
+            tmpDir = new File(tmpDirPath);
+            if(!tmpDir.exists()){
+                throw new java.io.FileNotFoundException(
+                    String.format("temp_dir \"%s\" not found", tmpDirPath));
+            } else if(!tmpDir.isDirectory()) {
+                throw new IllegalArgumentException(
+                    String.format("temp_dir \"%s\" is not a directory", tmpDirPath));
+            }
         }
         context.setTempDirectory(tmpDir);
 
