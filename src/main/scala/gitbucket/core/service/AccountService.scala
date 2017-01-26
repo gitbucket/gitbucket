@@ -14,12 +14,19 @@ trait AccountService {
 
   private val logger = LoggerFactory.getLogger(classOf[AccountService])
 
-  def authenticate(settings: SystemSettings, userName: String, password: String)(implicit s: Session): Option[Account] =
-    if(settings.ldapAuthentication){
+  def authenticate(settings: SystemSettings, userName: String, password: String)(implicit s: Session): Option[Account] = {
+    val account = if (settings.ldapAuthentication) {
       ldapAuthentication(settings, userName, password)
     } else {
       defaultAuthentication(userName, password)
     }
+
+    if(account.isEmpty){
+      logger.info(s"Failed to authentication: $userName")
+    }
+
+    account
+  }
 
   /**
    * Authenticate by internal database.
@@ -68,7 +75,7 @@ trait AccountService {
         }
       }
       case Left(errorMessage) => {
-        logger.info(s"LDAP Authentication Failed: ${errorMessage}")
+        logger.info(s"LDAP error: ${errorMessage}")
         defaultAuthentication(userName, password)
       }
     }
