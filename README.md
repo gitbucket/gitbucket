@@ -67,6 +67,16 @@ Support
 
 Release Notes
 -------------
+## 4.9 - 29 Jan 2017
+- GitLFS support
+- Template for issues and pull requests
+- Manual label color editing
+- Account description
+- `--tmp-dir` option for standalone mode
+- More APIs for issues
+  - [List issues for a repository](https://developer.github.com/v3/issues/#list-issues-for-a-repository)
+  - [Create an issue](https://developer.github.com/v3/issues/#create-an-issue)
+
 ## 4.8 - 23 Dec 2016
 - Search for repository names from the global header
 - Filter repositories on the sidebar of the dashboard
