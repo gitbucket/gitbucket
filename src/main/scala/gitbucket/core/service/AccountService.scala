@@ -22,7 +22,7 @@ trait AccountService {
     }
 
     if(account.isEmpty){
-      logger.info(s"Failed to authentication: $userName")
+      logger.info(s"Failed to authenticate: $userName")
     }
 
     account
