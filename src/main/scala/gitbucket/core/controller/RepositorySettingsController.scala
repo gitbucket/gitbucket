@@ -338,6 +338,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
+      FileUtils.deleteDirectory(getLfsDir(repository.owner, repository.name))
     }
     redirect(s"/${repository.owner}")
   })
