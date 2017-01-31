@@ -74,41 +74,44 @@ class GitRepositoryServlet extends GitServlet with SystemSettingsService {
         throw new IllegalStateException("lfs.server_url is not configured.")
       }
       case Some(baseUrl) => {
-        req.getRequestURI.substring(1).replace(".git/", "/").split("/") match {
-          case Array(_, owner, repository, _*) => {
-            val timeout = System.currentTimeMillis + (60000 * 10) // 10 min.
-            val batchResponse = batchRequest.operation match {
-                case "upload" =>
-                  GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
-                    GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
-                      GitLfs.Actions(
-                        upload = Some(GitLfs.Action(
-                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
-                          header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
-                          expires_at = new Date(timeout)
-                        ))
-                      )
-                    )
-                  })
-                case "download" =>
-                  GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
-                    GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
-                      GitLfs.Actions(
-                        download = Some(GitLfs.Action(
-                          href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
-                          header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
-                          expires_at = new Date(timeout)
-                        ))
-                      )
-                    )
-                  })
-            }
+        val index = req.getRequestURI.indexOf(".git")
+        if(index >= 0){
+          val paths = req.getRequestURI.substring(0, index).split("/")
+          val owner = paths.dropRight(1).last
+          val repository = paths.last
 
-            res.setContentType("application/vnd.git-lfs+json")
-            using(res.getWriter){ out =>
-              out.print(write(batchResponse))
-              out.flush()
-            }
+          val timeout = System.currentTimeMillis + (60000 * 10) // 10 min.
+          val batchResponse = batchRequest.operation match {
+            case "upload" =>
+              GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
+                GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
+                  GitLfs.Actions(
+                    upload = Some(GitLfs.Action(
+                      href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
+                      header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                      expires_at = new Date(timeout)
+                    ))
+                  )
+                )
+              })
+            case "download" =>
+              GitLfs.BatchUploadResponse("basic", batchRequest.objects.map { requestObject =>
+                GitLfs.BatchResponseObject(requestObject.oid, requestObject.size, true,
+                  GitLfs.Actions(
+                    download = Some(GitLfs.Action(
+                      href = baseUrl + "/git-lfs/" + owner + "/" + repository + "/" + requestObject.oid,
+                      header = Map("Authorization" -> StringUtil.encodeBlowfish(timeout + " " + requestObject.oid)),
+                      expires_at = new Date(timeout)
+                    ))
+                  )
+                )
+              })
+          }
+
+          res.setContentType("application/vnd.git-lfs+json")
+          using(res.getWriter){ out =>
+            out.print(write(batchResponse))
+            out.flush()
           }
         }
       }

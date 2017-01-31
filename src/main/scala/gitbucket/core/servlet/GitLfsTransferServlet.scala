@@ -64,10 +64,11 @@ class GitLfsTransferServlet extends HttpServlet {
   }
 
   private def getPathInfo(req: HttpServletRequest, res: HttpServletResponse): Option[(String, String, String)] = {
-    req.getRequestURI.substring(1).split("/") match {
-      case Array(_, owner, repository, oid) => Some((owner, repository, oid))
-      case _ => None
-    }
+    val paths = req.getRequestURI.substring(1).split("/")
+    val owner = paths.dropRight(2).last
+    val repository = paths.dropRight(1).last
+    val oid = paths.last
+    Some((owner, repository, oid))
   }
 
   private def sendError(res: HttpServletResponse, status: Int, message: String): Unit = {
