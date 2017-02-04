@@ -60,6 +60,13 @@ trait ApiControllerBase extends ControllerBase {
     with WritableUsersAuthenticator =>
 
   /**
+    * 404 for non-implemented api
+    */
+  get("/api/v3/*") {
+    NotFound()
+  }
+
+  /**
     * https://developer.github.com/v3/#root-endpoint
     */
   get("/api/v3/") {
