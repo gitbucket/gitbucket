@@ -22,6 +22,12 @@
             <input type="text" name="url" id="url" class="form-control" value="@account.map(_.url)"/>
           </fieldset>
           <fieldset class="form-group">
+            <label for="groupDescription" class="strong">Description (Optional)</label>
+            <div>
+              <textarea name="description" id="description" class="form-control">@account.map(_.description)</textarea>
+            </div>
+          </fieldset>
+          <fieldset class="form-group">
             <label for="avatar" class="strong">Image (Optional)</label>
             @gitbucket.core.helper.html.uploadavatar(account)
           </fieldset>

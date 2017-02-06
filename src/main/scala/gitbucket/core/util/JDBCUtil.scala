@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
  */
 object JDBCUtil {
 
-  implicit class RichConnection(conn: Connection){
+  implicit class RichConnection(private val conn: Connection) extends AnyVal {
 
     def update(sql: String, params: Any*): Int = {
       execute(sql, params: _*){ stmt =>
@@ -214,8 +214,6 @@ object JDBCUtil {
       tsort(edges).toSeq
     }
 
-    case class TableDependency(tableName: String, children: Seq[String])
-
 
     def tsort[A](edges: Traversable[(A, A)]): Iterable[A] = {
       @tailrec
@@ -235,5 +233,7 @@ object JDBCUtil {
       tsort(toPred, Seq())
     }
   }
+
+  private case class TableDependency(tableName: String, children: Seq[String])
 
 }

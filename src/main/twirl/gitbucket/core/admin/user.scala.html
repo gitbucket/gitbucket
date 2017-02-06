@@ -66,6 +66,13 @@
             </div>
             <input type="text" name="url" id="url" class="form-control" value="@account.map(_.url)"/>
           </fieldset>
+          <fieldset class="form-group">
+            <label class="strong">Bio (Optional):</label>
+            <div>
+              <span id="error-description" class="error"></span>
+            </div>
+            <textarea name="description" id="description" class="form-control">@account.map(_.description)</textarea>
+          </fieldset>
         </div>
         <div class="col-md-6">
           <fieldset class="form-group">

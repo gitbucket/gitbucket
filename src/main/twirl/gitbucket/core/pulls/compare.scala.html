@@ -7,6 +7,7 @@
   forkedId: String,
   sourceId: String,
   commitId: String,
+  content: String,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   originRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   forkedRepository: gitbucket.core.service.RepositoryService.RepositoryInfo,
@@ -59,7 +60,7 @@
               <input type="text" name="title" value="@title" class="form-control" style="margin-bottom: 6px;" placeholder="Title"/>
               @gitbucket.core.helper.html.preview(
                 repository         = repository,
-                content            = "",
+                content            = content,
                 enableWikiLink     = false,
                 enableRefsLink     = true,
                 enableLineBreaks   = true,

@@ -134,7 +134,7 @@ class ProtectedBranchServiceSpec extends FunSpec with ServiceSpecBase with Prote
     it("administrator is manager") {
       withTestDB { implicit session =>
         val x = ProtectedBranchInfo("grp1", "repo1", true, Nil, false)
-        x.createGroup("grp1", None)
+        x.createGroup("grp1", None, None)
         generateNewAccount("user1")
         generateNewAccount("user2")
         generateNewAccount("user3")

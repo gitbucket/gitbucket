@@ -9,7 +9,6 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 
 import io.github.gitbucket.scalatra.forms._
-import org.apache.commons.io.FileUtils
 import org.json4s._
 import org.scalatra._
 import org.scalatra.i18n._
@@ -19,6 +18,8 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
 
 import scala.util.Try
+
+import net.coobird.thumbnailator.Thumbnails
 
 
 /**
@@ -57,7 +58,7 @@ abstract class ControllerBase extends ScalatraFilter
         // Redirect to dashboard
         httpResponse.sendRedirect(baseUrl + "/")
       }
-    } else if(path.startsWith("/git/")){
+    } else if(path.startsWith("/git/") || path.startsWith("/git-lfs/")){
       // Git repository
       chain.doFilter(request, response)
     } else {
@@ -225,10 +226,13 @@ trait AccountManagementControllerBase extends ControllerBase {
     } else {
       fileId.map { fileId =>
         val filename = "avatar." + FileUtil.getExtension(session.getAndRemove(Keys.Session.Upload(fileId)).get)
-        FileUtils.moveFile(
-          new java.io.File(getTemporaryDir(session.getId), fileId),
-          new java.io.File(getUserUploadDir(userName), filename)
-        )
+        val uploadDir = getUserUploadDir(userName)
+        if(!uploadDir.exists){
+          uploadDir.mkdirs()
+        }
+        Thumbnails.of(new java.io.File(getTemporaryDir(session.getId), fileId))
+          .size(324, 324)
+          .toFile(new java.io.File(uploadDir, filename))
         updateAvatarImage(userName, Some(filename))
       }
     }

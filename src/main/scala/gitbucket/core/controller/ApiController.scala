@@ -21,10 +21,12 @@ class ApiController extends ApiControllerBase
   with ProtectedBranchService
   with IssuesService
   with LabelsService
+  with MilestonesService
   with PullRequestService
   with CommitsService
   with CommitStatusService
   with RepositoryCreationService
+  with IssueCreationService
   with HandleCommentService
   with WebHookService
   with WebHookPullRequestService
@@ -44,9 +46,11 @@ trait ApiControllerBase extends ControllerBase {
     with ProtectedBranchService
     with IssuesService
     with LabelsService
+    with MilestonesService
     with PullRequestService
     with CommitStatusService
     with RepositoryCreationService
+    with IssueCreationService
     with HandleCommentService
     with OwnerAuthenticator
     with UsersAuthenticator
@@ -54,6 +58,13 @@ trait ApiControllerBase extends ControllerBase {
     with ReferrerAuthenticator
     with ReadableUsersAuthenticator
     with WritableUsersAuthenticator =>
+
+  /**
+    * 404 for non-implemented api
+    */
+  get("/api/v3/*") {
+    NotFound()
+  }
 
   /**
     * https://developer.github.com/v3/#root-endpoint
@@ -175,7 +186,7 @@ trait ApiControllerBase extends ControllerBase {
     using(Git.open(getRepositoryDir(params("owner"), params("repo")))) { git =>
       //JsonFormat( (revstr, git.getRepository().resolve(revstr)) )
       // getRef is deprecated by jgit-4.2. use exactRef() or findRef()
-      val sha = git.getRepository().getRef(revstr).getObjectId().name()
+      val sha = git.getRepository().exactRef(revstr).getObjectId().name()
       JsonFormat(ApiRef(revstr, ApiObject(sha)))
     }
   })
@@ -284,6 +295,32 @@ trait ApiControllerBase extends ControllerBase {
   }
 
   /**
+    * https://developer.github.com/v3/issues/#list-issues-for-a-repository
+    */
+  get("/api/v3/repos/:owner/:repository/issues")(referrersOnly { repository =>
+    val page = IssueSearchCondition.page(request)
+    // TODO: more api spec condition
+    val condition = IssueSearchCondition(request)
+    val baseOwner = getAccountByUserName(repository.owner).get
+
+    val issues: List[(Issue, Account)] =
+      searchIssueByApi(
+        condition = condition,
+        offset    = (page - 1) * PullRequestLimit,
+        limit     = PullRequestLimit,
+        repos     = repository.owner -> repository.name
+      )
+
+    JsonFormat(issues.map { case (issue, issueUser) =>
+      ApiIssue(
+        issue          = issue,
+        repositoryName = RepositoryName(repository),
+        user           = ApiUser(issueUser)
+      )
+    })
+  })
+
+  /**
    * https://developer.github.com/v3/issues/#get-a-single-issue
    */
   get("/api/v3/repos/:owner/:repository/issues/:id")(referrersOnly { repository =>
@@ -294,6 +331,29 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(openedUser)))
     }) getOrElse NotFound()
+  })
+
+  /**
+    * https://developer.github.com/v3/issues/#create-an-issue
+    */
+  post("/api/v3/repos/:owner/:repository/issues")(readableUsersOnly { repository =>
+    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
+      (for{
+        data <- extractFromJsonBody[CreateAnIssue]
+        loginAccount <- context.loginAccount
+      } yield {
+        val milestone = data.milestone.flatMap(getMilestone(repository.owner, repository.name, _))
+        val issue = createIssue(
+          repository,
+          data.title,
+          data.body,
+          data.assignees.headOption,
+          milestone.map(_.milestoneId),
+          data.labels,
+          loginAccount)
+        JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount)))
+      }) getOrElse NotFound()
+    } else Unauthorized()
   })
 
   /**

@@ -4,7 +4,8 @@
   content: gitbucket.core.util.JGitUtil.ContentInfo,
   latestCommit: gitbucket.core.util.JGitUtil.CommitInfo,
   hasWritePermission: Boolean,
-  isBlame: Boolean)(implicit context: gitbucket.core.controller.Context)
+  isBlame: Boolean,
+  isLfsFile: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${helpers.encodeRefName(branch)} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
@@ -44,6 +45,9 @@
         } else {
           <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
+      }
+      @if(isLfsFile){
+        <span class="label label-info">LFS</span>
       }
     </div>
     <div class="box-header">
@@ -92,12 +96,13 @@
       }
   }
 }
-<script src="@helpers.assets/vendors/jquery/jquery.ba-hashchange.js"></script>
 <script>
 $(window).load(function(){
-  $(window).hashchange(function(){
+  updateHighlighting();
+
+  window.onhashchange = function(){
     updateHighlighting();
-  }).hashchange();
+  }
 
   var pre = $('pre.prettyprint');
   function updateSourceLineNum(){
@@ -112,7 +117,6 @@ $(window).load(function(){
         top     : pos.top + 'px',
         left    : pos.left + 'px'
       }).click(function(e){
-        $(window).hashchange(function(){})
         var pos = $(this).data("pos");
         if(!pos){
           pos = $('ol.linenums li').map(function(){ return { id: $(this).attr("id"), top: $(this).position().top} }).toArray();
@@ -178,7 +182,7 @@ $(window).load(function(){
         var h = $(e).height();
         if(blame == index[i]){
           lastDiv.css("min-height",(p.top + h + 1) - lastDiv.position().top);
-        }else{
+        } else {
           $(e).addClass('blame-sep')
           blame = index[i];
           var sha = $('<div class="blame-sha">')

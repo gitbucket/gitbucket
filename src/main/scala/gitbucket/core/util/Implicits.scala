@@ -24,7 +24,7 @@ object Implicits {
 
   implicit def context2ApiJsonFormatContext(implicit context: Context): JsonFormat.Context = JsonFormat.Context(context.baseUrl)
 
-  implicit class RichSeq[A](seq: Seq[A]) {
+  implicit class RichSeq[A](private val seq: Seq[A]) extends AnyVal {
 
     def splitWith(condition: (A, A) => Boolean): Seq[Seq[A]] = split(seq)(condition)
 
@@ -40,7 +40,7 @@ object Implicits {
       }
   }
 
-  implicit class RichString(value: String){
+  implicit class RichString(private val value: String) extends AnyVal {
     def replaceBy(regex: Regex)(replace: Regex.MatchData => Option[String]): String = {
       val sb = new StringBuilder()
       var i = 0
@@ -63,7 +63,7 @@ object Implicits {
     }
   }
 
-  implicit class RichRequest(request: HttpServletRequest){
+  implicit class RichRequest(private val request: HttpServletRequest) extends AnyVal {
 
     def paths: Array[String] = (request.getRequestURI.substring(request.getContextPath.length + 1) match{
       case path if path.startsWith("api/v3/repos/") => path.substring(13/* "/api/v3/repos".length */)
@@ -84,7 +84,7 @@ object Implicits {
     }
   }
 
-  implicit class RichSession(session: HttpSession){
+  implicit class RichSession(private val session: HttpSession) extends AnyVal {
     def getAndRemove[T](key: String): Option[T] = {
       val value = session.getAttribute(key).asInstanceOf[T]
       if(value == null){

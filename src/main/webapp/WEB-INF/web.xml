@@ -46,6 +46,17 @@
     <url-pattern>/git/*</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>GitLfsTransferServlet</servlet-name>
+    <servlet-class>gitbucket.core.servlet.GitLfsTransferServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>GitLfsTransferServlet</servlet-name>
+    <url-pattern>/git-lfs/*</url-pattern>
+  </servlet-mapping>
+
+
   <!-- ===================================================================== -->
   <!-- Supply assets which are provided by plugins -->
   <!-- ===================================================================== -->

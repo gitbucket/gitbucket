@@ -5,7 +5,7 @@ import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.ControlUtil._
-import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, StringUtil, UsersAuthenticator}
+import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, UsersAuthenticator}
 import io.github.gitbucket.scalatra.forms._
 import org.scalatra.Ok
 
@@ -49,13 +49,18 @@ trait IndexControllerBase extends ControllerBase {
     if(redirect.isDefined && redirect.get.startsWith("/")){
       flash += Keys.Flash.Redirect -> redirect.get
     }
-    gitbucket.core.html.signin()
+    gitbucket.core.html.signin(flash.get("userName"), flash.get("password"), flash.get("error"))
   }
 
   post("/signin", signinForm){ form =>
     authenticate(context.settings, form.userName, form.password) match {
       case Some(account) => signin(account)
-      case None          => redirect("/signin")
+      case None          => {
+        flash += "userName" -> form.userName
+        flash += "password" -> form.password
+        flash += "error" -> "Sorry, your Username and/or Password is incorrect. Please try again."
+        redirect("/signin")
+      }
     }
   }
 

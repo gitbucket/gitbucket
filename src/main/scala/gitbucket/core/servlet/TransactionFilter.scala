@@ -22,8 +22,9 @@ class TransactionFilter extends Filter {
   def destroy(): Unit = {}
 
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
-    if(req.asInstanceOf[HttpServletRequest].getServletPath().startsWith("/assets/")){
-      // assets don't need transaction
+    val servletPath = req.asInstanceOf[HttpServletRequest].getServletPath()
+    if(servletPath.startsWith("/assets/")  || servletPath == "/git" || servletPath == "/git-lfs"){
+      // assets and git-lfs don't need transaction
       chain.doFilter(req, res)
     } else {
       Database() withTransaction { session =>

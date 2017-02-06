@@ -21,7 +21,7 @@ trait IssuesService {
     else None
 
   def getComments(owner: String, repository: String, issueId: Int)(implicit s: Session) =
-    IssueComments filter (_.byIssue(owner, repository, issueId)) list
+    IssueComments filter (_.byIssue(owner, repository, issueId)) sortBy(_.commentId asc) list
 
   /** @return IssueComment and commentedUser and Issue */
   def getCommentsForApi(owner: String, repository: String, issueId: Int)(implicit s: Session): List[(IssueComment, Account, Issue)] =
@@ -149,7 +149,19 @@ trait IssuesService {
   }
 
   /** for api
-   *
+   * @return (issue, issueUser, commentCount)
+   */
+  def searchIssueByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)
+                            (implicit s: Session): List[(Issue, Account)] = {
+    // get issues and comment count and labels
+    searchIssueQueryBase(condition, false, offset, limit, repos)
+      .join(Accounts).on { case (((t1, t2), i), t3) => t3.userName === t1.openedUserName }
+      .sortBy { case (((t1, t2), i), t3) => i asc }
+      .map { case (((t1, t2), i), t3) => (t1, t3) }
+      .list
+  }
+
+  /** for api
    * @return (issue, issueUser, commentCount, pullRequest, headRepo, headOwner)
    */
   def searchPullRequestByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)
@@ -232,7 +244,7 @@ trait IssuesService {
         } exists), condition.mentioned.isDefined)
     }
 
-  def createIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
+  def insertIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
                   assignedUserName: Option[String], milestoneId: Option[Int],
                   isPullRequest: Boolean = false)(implicit s: Session) =
     // next id number

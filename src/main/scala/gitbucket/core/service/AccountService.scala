@@ -14,12 +14,19 @@ trait AccountService {
 
   private val logger = LoggerFactory.getLogger(classOf[AccountService])
 
-  def authenticate(settings: SystemSettings, userName: String, password: String)(implicit s: Session): Option[Account] =
-    if(settings.ldapAuthentication){
+  def authenticate(settings: SystemSettings, userName: String, password: String)(implicit s: Session): Option[Account] = {
+    val account = if (settings.ldapAuthentication) {
       ldapAuthentication(settings, userName, password)
     } else {
       defaultAuthentication(userName, password)
     }
+
+    if(account.isEmpty){
+      logger.info(s"Failed to authenticate: $userName")
+    }
+
+    account
+  }
 
   /**
    * Authenticate by internal database.
@@ -61,14 +68,14 @@ trait AccountService {
               defaultAuthentication(userName, password)
             }
             case None => {
-              createAccount(ldapUserInfo.userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None)
+              createAccount(ldapUserInfo.userName, "", ldapUserInfo.fullName, ldapUserInfo.mailAddress, false, None, None)
               getAccountByUserName(ldapUserInfo.userName)
             }
           }
         }
       }
       case Left(errorMessage) => {
-        logger.info(s"LDAP Authentication Failed: ${errorMessage}")
+        logger.info(s"LDAP error: ${errorMessage}")
         defaultAuthentication(userName, password)
       }
     }
@@ -103,7 +110,7 @@ trait AccountService {
     } else false
   }
 
-  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, url: Option[String])
+  def createAccount(userName: String, password: String, fullName: String, mailAddress: String, isAdmin: Boolean, description: Option[String], url: Option[String])
                    (implicit s: Session): Unit =
     Accounts insert Account(
       userName       = userName,
@@ -117,12 +124,13 @@ trait AccountService {
       lastLoginDate  = None,
       image          = None,
       isGroupAccount = false,
-      isRemoved      = false)
+      isRemoved      = false,
+      description    = description)
 
   def updateAccount(account: Account)(implicit s: Session): Unit =
     Accounts
       .filter { a =>  a.userName === account.userName.bind }
-      .map    { a => (a.password, a.fullName, a.mailAddress, a.isAdmin, a.url.?, a.registeredDate, a.updatedDate, a.lastLoginDate.?, a.removed) }
+      .map    { a => (a.password, a.fullName, a.mailAddress, a.isAdmin, a.url.?, a.registeredDate, a.updatedDate, a.lastLoginDate.?, a.removed, a.description.?) }
       .update (
         account.password,
         account.fullName,
@@ -132,7 +140,8 @@ trait AccountService {
         account.registeredDate,
         currentDate,
         account.lastLoginDate,
-        account.isRemoved)
+        account.isRemoved,
+        account.description)
 
   def updateAvatarImage(userName: String, image: Option[String])(implicit s: Session): Unit =
     Accounts.filter(_.userName === userName.bind).map(_.image.?).update(image)
@@ -140,7 +149,7 @@ trait AccountService {
   def updateLastLoginDate(userName: String)(implicit s: Session): Unit =
     Accounts.filter(_.userName === userName.bind).map(_.lastLoginDate).update(currentDate)
 
-  def createGroup(groupName: String, url: Option[String])(implicit s: Session): Unit =
+  def createGroup(groupName: String, description: Option[String], url: Option[String])(implicit s: Session): Unit =
     Accounts insert Account(
       userName       = groupName,
       password       = "",
@@ -153,10 +162,13 @@ trait AccountService {
       lastLoginDate  = None,
       image          = None,
       isGroupAccount = true,
-      isRemoved      = false)
+      isRemoved      = false,
+      description    = description)
 
-  def updateGroup(groupName: String, url: Option[String], removed: Boolean)(implicit s: Session): Unit =
-    Accounts.filter(_.userName === groupName.bind).map(t => t.url.? -> t.removed).update(url, removed)
+  def updateGroup(groupName: String, description: Option[String], url: Option[String], removed: Boolean)(implicit s: Session): Unit =
+    Accounts.filter(_.userName === groupName.bind)
+      .map(t => (t.url.?, t.description.?, t.removed))
+      .update(url, description, removed)
 
   def updateGroupMembers(groupName: String, members: List[(String, Boolean)])(implicit s: Session): Unit = {
     GroupMembers.filter(_.groupName === groupName.bind).delete

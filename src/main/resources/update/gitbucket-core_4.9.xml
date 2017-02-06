@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <addColumn tableName="ACCOUNT">
+    <column name="DESCRIPTION" type="text" nullable="true" />
+  </addColumn>
+</changeSet>

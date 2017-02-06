@@ -36,8 +36,8 @@
           </fieldset>
           <p class="muted">
             The base URL is used for redirect, notification email, git repository URL box and more.
-            If the base URL is empty, GitBucket generates URL from request information.
-            You can use this property to adjust URL difference between the reverse proxy and GitBucket.
+            If the base URL is empty, GitBucket generates URL from the request information.
+            You can use this property to adjust to URL differences between the reverse proxy and GitBucket.
           </p>
           <!--====================================================================-->
           <!-- Information -->
@@ -59,19 +59,19 @@
             </label>
             <label class="radio">
               <input type="radio" name="allowAccountRegistration" value="false"@if(!context.settings.allowAccountRegistration){ checked}>
-              <span class="strong">Deny</span> - <span class="normal">Only administrators can create accounts.</span>
+              <span class="strong">Deny</span> <span class="normal">- Only administrators can create accounts.</span>
             </label>
           </fieldset>
           <hr>
-          <label class="strong">Default option to create a new repository</label>
+          <label class="strong">Default permissions when creating a new repository</label>
           <fieldset>
             <label class="radio">
               <input type="radio" name="isCreateRepoOptionPublic" value="true"@if(context.settings.isCreateRepoOptionPublic){ checked}>
-              <span class="strong">Public</span> <span class="normal">- All users and guests can read that repository.</span>
+              <span class="strong">Public</span> <span class="normal">- All users and guests can read the repository.</span>
             </label>
             <label class="radio">
               <input type="radio" name="isCreateRepoOptionPublic" value="false"@if(!context.settings.isCreateRepoOptionPublic){ checked}>
-              <span class="strong">Private</span> <span class="normal">- Only collaborators can read that repository.</span>
+              <span class="strong">Private</span> <span class="normal">- Only collaborators can read the repository.</span>
             </label>
           </fieldset>
           <!--====================================================================-->
@@ -82,7 +82,7 @@
           <fieldset>
             <label class="radio">
               <input type="radio" name="allowAnonymousAccess" value="true"@if(context.settings.allowAnonymousAccess){ checked}>
-              <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories, user/group profiles.</span>
+              <span class="strong">Allow</span> <span class="normal">- Anyone can view public repositories and user/group profiles.</span>
             </label>
             <label class="radio">
               <input type="radio" name="allowAnonymousAccess" value="false"@if(!context.settings.allowAnonymousAccess){ checked}>
@@ -93,7 +93,7 @@
           <!-- Activity -->
           <!--====================================================================-->
           <hr>
-          <label><span class="strong">Limit of activity logs</span> (Unlimited if it's not specified or zero)</label>
+          <label><span class="strong">Limit of activity logs</span> (Unlimited if it is not specified or zero)</label>
           <fieldset>
             <div class="form-group">
               <label class="control-label col-md-3" for="activityLogLimit">Limit</label>
@@ -111,7 +111,7 @@
           <fieldset>
             <label class="checkbox">
               <input type="checkbox" name="gravatar"@if(context.settings.gravatar){ checked}/>
-              Use Gravatar for Profile-Images
+              Use Gravatar for profile images
             </label>
           </fieldset>
           <!--====================================================================-->
@@ -123,27 +123,25 @@
             <label class="checkbox">
               <input type="checkbox" id="ssh" name="ssh"@if(context.settings.ssh){ checked}/>
               Enable SSH access to git repository
+              <span class="muted normal">(Both SSH host and Base URL are required if SSH access is enabled)</span>
             </label>
           </fieldset>
           <div class="ssh">
             <div class="form-group">
-              <label class="control-label col-md-3" for="sshHost">SSH Host</label>
+              <label class="control-label col-md-3" for="sshHost">SSH host</label>
               <div class="col-md-9">
                 <input type="text" id="sshHost" name="sshHost" class="form-control" value="@context.settings.sshHost"/>
                 <span id="error-sshHost" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="sshPort">SSH Port</label>
+              <label class="control-label col-md-3" for="sshPort">SSH port</label>
               <div class="col-md-9">
                 <input type="text" id="sshPort" name="sshPort" class="form-control" value="@context.settings.sshPort"/>
                 <span id="error-sshPort" class="error"></span>
               </div>
             </div>
           </div>
-          <p class="muted">
-             Both of SSH host and Base URL are required if SSH access is enabled.
-          </p>
           <!--====================================================================-->
           <!-- Authentication -->
           <!--====================================================================-->
@@ -157,14 +155,14 @@
           </fieldset>
           <div class="ldap">
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapHost">LDAP Host</label>
+              <label class="control-label col-md-3" for="ldapHost">LDAP host</label>
               <div class="col-md-9">
                 <input type="text" id="ldapHost" name="ldap.host" class="form-control" value="@context.settings.ldap.map(_.host)"/>
                 <span id="error-ldap_host" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapPort">LDAP Port</label>
+              <label class="control-label col-md-3" for="ldapPort">LDAP port</label>
               <div class="col-md-9">
                 <input type="text" id="ldapPort" name="ldap.port" class="form-control input-mini" value="@context.settings.ldap.map(_.port)"/>
                 <span id="error-ldap_port" class="error"></span>
@@ -178,7 +176,7 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="ldapBindPassword">Bind Password</label>
+              <label class="control-label col-md-3" for="ldapBindPassword">Bind password</label>
               <div class="col-md-9">
                 <input type="password" id="ldapBindPassword" name="ldap.bindPassword" class="form-control" value="@context.settings.ldap.map(_.bindPassword)"/>
                 <span id="error-ldap_bindPassword" class="error"></span>
@@ -259,49 +257,56 @@
             <label class="checkbox">
               <input type="checkbox" id="useSMTP" name="useSMTP" @if(context.settings.useSMTP){ checked}/>
               SMTP
+              <span class="muted normal">(Enable notification as well as SMTP configuration if you want to send notification email too)</span>
             </label>
           </fieldset>
           <div class="useSMTP">
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpHost">SMTP Host</label>
+              <label class="control-label col-md-3" for="smtpHost">SMTP host</label>
               <div class="col-md-9">
                 <input type="text" id="smtpHost" name="smtp.host" class="form-control" value="@context.settings.smtp.map(_.host)"/>
                 <span id="error-smtp_host" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpPort">SMTP Port</label>
+              <label class="control-label col-md-3" for="smtpPort">SMTP port</label>
               <div class="col-md-9">
                 <input type="text" id="smtpPort" name="smtp.port" class="form-control input-mini" value="@context.settings.smtp.map(_.port)"/>
                 <span id="error-smtp_port" class="error"></span>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpUser">SMTP User</label>
+              <label class="control-label col-md-3" for="smtpUser">SMTP user</label>
               <div class="col-md-9">
                 <input type="text" id="smtpUser" name="smtp.user" class="form-control" value="@context.settings.smtp.map(_.user)"/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpPassword">SMTP Password</label>
+              <label class="control-label col-md-3" for="smtpPassword">SMTP password</label>
               <div class="col-md-9">
                 <input type="password" id="smtpPassword" name="smtp.password" class="form-control" value="@context.settings.smtp.map(_.password)"/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="smtpPassword">Enable SSL</label>
+              <label class="control-label col-md-3" for="smtpSsl">Enable SSL</label>
               <div class="col-md-9">
                 <input type="checkbox" id="smtpSsl" name="smtp.ssl"@if(context.settings.smtp.flatMap(_.ssl).getOrElse(false)){ checked}/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="fromAddress">FROM Address</label>
+              <label class="control-label col-md-3" for="smtpStarttls">Enable STARTTLS</label>
+              <div class="col-md-9">
+                <input type="checkbox" id="smtpStarttls" name="smtp.starttls"@if(context.settings.smtp.flatMap(_.starttls).getOrElse(false)){ checked}/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="control-label col-md-3" for="fromAddress">FROM address</label>
               <div class="col-md-9">
                 <input type="text" id="fromAddress" name="smtp.fromAddress" class="form-control" value="@context.settings.smtp.map(_.fromAddress)"/>
               </div>
             </div>
             <div class="form-group">
-              <label class="control-label col-md-3" for="fromName">FROM Name</label>
+              <label class="control-label col-md-3" for="fromName">FROM name</label>
               <div class="col-md-9">
                 <input type="text" id="fromName" name="smtp.fromName" class="form-control" value="@context.settings.smtp.map(_.fromName)"/>
               </div>
@@ -311,11 +316,23 @@
               <input type="text" id="testAddress" size="30"/>
               <input type="button" id="sendTestMail" value="Send"/>
             </div>
-
-            <p class="muted">
-              Enable notification not only SMTP configuration if you want to send notification email.
-            </p>
           </div>
+          <!--====================================================================-->
+          <!-- GitLFS -->
+          <!--====================================================================-->
+          @*
+          <hr>
+          <label class="strong">
+            GitLFS <span class="muted normal">(Enter the LFS server url to enable GitLFS support)</span>
+          </label>
+          <div class="form-group">
+            <label class="control-label col-md-3" for="smtpHost">LFS server url</label>
+            <div class="col-md-9">
+              <input type="text" id="lfsServerUrl" name="lfs.serverUrl" class="form-control" value="@context.settings.lfs.serverUrl"/>
+              <span id="error-lfs_serverUrl" class="error"></span>
+            </div>
+          </div>
+          *@
         </div>
       </div>
       <div class="align-right" style="margin-top: 20px;">
@@ -332,6 +349,7 @@ $(function(){
     var user        = $('#smtpUser'    ).val();
     var password    = $('#smtpPassword').val();
     var ssl         = $('#smtpSsl'     ).prop('checked');
+    var starttls    = $('#smtpStarttls').prop('checked');
     var fromAddress = $('#fromAddress' ).val();
     var fromName    = $('#fromName'    ).val();
     var testAddress = $('#testAddress' ).val();
@@ -349,6 +367,7 @@ $(function(){
         'smtp.user': user,
         'smtp.password': password,
         'smtp.ssl': ssl,
+        'smtp.starttls': starttls,
         'smtp.fromAddress': fromAddress,
         'smtp.fromName': fromName,
         'testAddress': testAddress

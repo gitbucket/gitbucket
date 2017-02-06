@@ -1,6 +1,6 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.8"
+val GitBucketVersion = "4.9.0"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.9.v20160517"
 
@@ -22,8 +22,8 @@ resolvers ++= Seq(
 )
 libraryDependencies ++= Seq(
   "org.scala-lang.modules"          %% "scala-java8-compat"           % "0.8.0",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.1.2.201602141800-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.1.2.201602141800-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.6.0.201612231935-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.6.0.201612231935-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"               % "3.5.0",
@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "org.apache.sshd"                 %  "apache-sshd"                  % "1.2.0",
   "org.apache.tika"                 %  "tika-core"                    % "1.13",
   "com.github.takezoe"              %% "blocking-slick"               % "0.0.3",
-  "joda-time"                       % "joda-time"                     % "2.9.6",
+  "joda-time"                       %  "joda-time"                    % "2.9.6",
   "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
   "com.h2database"                  %  "h2"                           % "1.4.192",
   "mysql"                           %  "mysql-connector-java"         % "5.1.39",
@@ -47,14 +47,15 @@ libraryDependencies ++= Seq(
   "com.typesafe"                    %  "config"                       % "1.3.0",
   "com.typesafe.akka"               %% "akka-actor"                   % "2.4.12",
   "fr.brouillard.oss.security.xhub" %  "xhub4j-core"                  % "1.0.0",
-  "com.github.bkromhout"            % "java-diff-utils"               % "2.1.1",
-  "org.cache2k"                     % "cache2k-all"                   % "1.0.0.CR1",
+  "com.github.bkromhout"            %  "java-diff-utils"              % "2.1.1",
+  "org.cache2k"                     %  "cache2k-all"                  % "1.0.0.CR1",
   "com.enragedginger"               %% "akka-quartz-scheduler"        % "1.6.0-akka-2.4.x" exclude("c3p0","c3p0"),
+  "net.coobird"                     %  "thumbnailator"                % "0.4.8",
   "org.eclipse.jetty"               %  "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",
   "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
-  "com.wix"                         %  "wix-embedded-mysql"           % "1.0.3"          % "test",
+  "com.wix"                         %  "wix-embedded-mysql"           % "2.1.4"          % "test",
   "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "1.14"           % "test"
 )
 
@@ -166,9 +167,9 @@ executableKey := {
   log info s"built executable webapp ${outputFile}"
   outputFile
 }
-publishTo <<= version { (v: String) =>
+publishTo := {
   val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
+  if (version.value.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
   else                             Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
 publishMavenStyle := true

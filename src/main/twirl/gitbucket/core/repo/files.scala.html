@@ -168,7 +168,9 @@
           }
         </td>
         <td class="ellipsis-cell" style="width: 70%;">
-          <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
+          <span>
+            <a href="@helpers.url(repository)/commit/@file.commitId" class="commit-message" title="@file.message">@helpers.link(file.message, repository)</a>
+          </span>
         </td>
         <td style="width: 10%; min-width: 125px; text-align: right;">@gitbucket.core.helper.html.datetimeago(file.time, false)</td>
       </tr>

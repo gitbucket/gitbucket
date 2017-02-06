@@ -38,7 +38,7 @@ trait ServiceSpecBase {
   }
 
   def generateNewAccount(name:String)(implicit s:Session):Account = {
-    AccountService.createAccount(name, name, name, s"${name}@example.com", false, None)
+    AccountService.createAccount(name, name, name, s"${name}@example.com", false, None, None)
     user(name)
   }
 
@@ -54,7 +54,7 @@ trait ServiceSpecBase {
   }
 
   def generateNewIssue(userName:String, repositoryName:String, loginUser:String="root")(implicit s:Session): Int = {
-    dummyService.createIssue(
+    dummyService.insertIssue(
       owner            = userName,
       repository       = repositoryName,
       loginUser        = loginUser,

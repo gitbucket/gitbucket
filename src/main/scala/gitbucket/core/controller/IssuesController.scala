@@ -2,7 +2,6 @@ package gitbucket.core.controller
 
 import gitbucket.core.issues.html
 import gitbucket.core.service.IssuesService._
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
@@ -10,7 +9,7 @@ import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
 import io.github.gitbucket.scalatra.forms._
-import org.scalatra.Ok
+import org.scalatra.{BadRequest, Ok}
 
 
 class IssuesController extends IssuesControllerBase
@@ -21,6 +20,7 @@ class IssuesController extends IssuesControllerBase
   with MilestonesService
   with ActivityService
   with HandleCommentService
+  with IssueCreationService
   with ReadableUsersAuthenticator
   with ReferrerAuthenticator
   with WritableUsersAuthenticator
@@ -36,6 +36,7 @@ trait IssuesControllerBase extends ControllerBase {
     with MilestonesService
     with ActivityService
     with HandleCommentService
+    with IssueCreationService
     with ReadableUsersAuthenticator
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
@@ -91,67 +92,39 @@ trait IssuesControllerBase extends ControllerBase {
           getAssignableUserNames(owner, name),
           getMilestonesWithIssueCount(owner, name),
           getLabels(owner, name),
-          isEditable(repository),
-          isManageable(repository),
+          isIssueEditable(repository),
+          isIssueManageable(repository),
           repository)
       } getOrElse NotFound()
     }
   })
 
   get("/:owner/:repository/issues/new")(readableUsersOnly { repository =>
-    if(isEditable(repository)){ // TODO Should this check is provided by authenticator?
+    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
       defining(repository.owner, repository.name){ case (owner, name) =>
         html.create(
           getAssignableUserNames(owner, name),
           getMilestones(owner, name),
           getLabels(owner, name),
-          isManageable(repository),
+          isIssueManageable(repository),
+          getContentTemplate(repository, "ISSUE_TEMPLATE"),
           repository)
       }
     } else Unauthorized()
   })
 
   post("/:owner/:repository/issues/new", issueCreateForm)(readableUsersOnly { (form, repository) =>
-    if(isEditable(repository)){ // TODO Should this check is provided by authenticator?
-      defining(repository.owner, repository.name){ case (owner, name) =>
-        val manageable = isManageable(repository)
-        val userName = context.loginAccount.get.userName
+    if(isIssueEditable(repository)){ // TODO Should this check is provided by authenticator?
+      val issue = createIssue(
+        repository,
+        form.title,
+        form.content,
+        form.assignedUserName,
+        form.milestoneId,
+        form.labelNames.toArray.flatMap(_.split(",")),
+        context.loginAccount.get)
 
-        // insert issue
-        val issueId = createIssue(owner, name, userName, form.title, form.content,
-          if (manageable) form.assignedUserName else None,
-          if (manageable) form.milestoneId else None)
-
-        // insert labels
-        if (manageable) {
-          form.labelNames.map { value =>
-            val labels = getLabels(owner, name)
-            value.split(",").foreach { labelName =>
-              labels.find(_.labelName == labelName).map { label =>
-                registerIssueLabel(owner, name, issueId, label.labelId)
-              }
-            }
-          }
-        }
-
-        // record activity
-        recordCreateIssueActivity(owner, name, userName, issueId, form.title)
-
-        getIssue(owner, name, issueId.toString).foreach { issue =>
-          // extract references and create refer comment
-          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
-
-          // call web hooks
-          callIssuesWebHook("opened", repository, issue, context.baseUrl, context.loginAccount.get)
-
-          // notifications
-          Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
-            Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
-          }
-        }
-
-        redirect(s"/${owner}/${name}/issues/${issueId}")
-      }
+      redirect(s"/${issue.userName}/${issue.repositoryName}/issues/${issue.issueId}")
     } else Unauthorized()
   })
 
@@ -327,7 +300,7 @@ trait IssuesControllerBase extends ControllerBase {
             handleComment(issue, None, repository, Some("close"))
           }
         }
-        case _ => // TODO BadRequest
+        case _ => BadRequest()
       }
     }
   })
@@ -398,27 +371,8 @@ trait IssuesControllerBase extends ControllerBase {
           countIssue(condition.copy(state = "closed"), false, owner -> repoName),
           condition,
           repository,
-          isEditable(repository),
-          isManageable(repository))
-    }
-  }
-
-  /**
-   * Tests whether an logged-in user can manage issues.
-   */
-  private def isManageable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
-    hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-  }
-
-  /**
-   * Tests whether an logged-in user can post issues.
-   */
-  private def isEditable(repository: RepositoryInfo)(implicit context: Context): Boolean = {
-    repository.repository.options.issuesOption match {
-      case "ALL"     => !repository.repository.isPrivate && context.loginAccount.isDefined
-      case "PUBLIC"  => hasGuestRole(repository.owner, repository.name, context.loginAccount)
-      case "PRIVATE" => hasDeveloperRole(repository.owner, repository.name, context.loginAccount)
-      case "DISABLE" => false
+          isIssueEditable(repository),
+          isIssueManageable(repository))
     }
   }
 
@@ -428,5 +382,4 @@ trait IssuesControllerBase extends ControllerBase {
   private def isEditableContent(owner: String, repository: String, author: String)(implicit context: Context): Boolean = {
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
   }
-
 }

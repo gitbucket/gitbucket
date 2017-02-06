@@ -41,6 +41,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "user"                     -> trim(label("SMTP User", optional(text()))),
         "password"                 -> trim(label("SMTP Password", optional(text()))),
         "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
+        "starttls"                 -> trim(label("Enable STARTTLS", optional(boolean()))),
         "fromAddress"              -> trim(label("FROM Address", optional(text()))),
         "fromName"                 -> trim(label("FROM Name", optional(text())))
     )(Smtp.apply)),
@@ -77,6 +78,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       "user"        -> trim(label("SMTP User", optional(text()))),
       "password"    -> trim(label("SMTP Password", optional(text()))),
       "ssl"         -> trim(label("Enable SSL", optional(boolean()))),
+      "starttls"    -> trim(label("Enable STARTTLS", optional(boolean()))),
       "fromAddress" -> trim(label("FROM Address", optional(text()))),
       "fromName"    -> trim(label("FROM Name", optional(text())))
     )(Smtp.apply),
@@ -89,16 +91,16 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   case class NewUserForm(userName: String, password: String, fullName: String,
                          mailAddress: String, isAdmin: Boolean,
-                         url: Option[String], fileId: Option[String])
+                         description: Option[String], url: Option[String], fileId: Option[String])
 
   case class EditUserForm(userName: String, password: Option[String], fullName: String,
-                          mailAddress: String, isAdmin: Boolean, url: Option[String],
+                          mailAddress: String, isAdmin: Boolean, description: Option[String], url: Option[String],
                           fileId: Option[String], clearImage: Boolean, isRemoved: Boolean)
 
-  case class NewGroupForm(groupName: String, url: Option[String], fileId: Option[String],
+  case class NewGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String],
                           members: String)
 
-  case class EditGroupForm(groupName: String, url: Option[String], fileId: Option[String],
+  case class EditGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String],
                            members: String, clearImage: Boolean, isRemoved: Boolean)
 
 
@@ -108,6 +110,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress()))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
+    "description" -> trim(label("bio"          ,optional(text()))),
     "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      ,optional(text())))
   )(NewUserForm.apply)
@@ -118,6 +121,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress("userName")))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
+    "description" -> trim(label("bio"          ,optional(text()))),
     "url"         -> trim(label("URL"          ,optional(text(maxlength(200))))),
     "fileId"      -> trim(label("File ID"      ,optional(text()))),
     "clearImage"  -> trim(label("Clear image"  ,boolean())),
@@ -126,6 +130,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val newGroupForm = mapping(
     "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
+    "description" -> trim(label("Group description", optional(text()))),
     "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
     "fileId"    -> trim(label("File ID"    ,optional(text()))),
     "members"   -> trim(label("Members"    ,text(required, members)))
@@ -133,6 +138,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val editGroupForm = mapping(
     "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
+    "description" -> trim(label("Group description", optional(text()))),
     "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
     "fileId"     -> trim(label("File ID"     ,optional(text()))),
     "members"    -> trim(label("Members"     ,text(required, members))),
@@ -164,7 +170,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/system/sendmail", sendMailForm)(adminOnly { form =>
     try {
       new Mailer(form.smtp).send(form.testAddress,
-        "Test message from GitBucket", "This is a test message from GitBucket.")
+        "Test message from GitBucket", "This is a test message from GitBucket.",
+        context.loginAccount.get)
 
       "Test mail has been sent to: " + form.testAddress
 
@@ -193,7 +200,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/users/_newuser", newUserForm)(adminOnly { form =>
-    createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, form.isAdmin, form.url)
+    createAccount(form.userName, sha1(form.password), form.fullName, form.mailAddress, form.isAdmin, form.description, form.url)
     updateImage(form.userName, form.fileId, false)
     redirect("/admin/users")
   })
@@ -227,6 +234,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           fullName     = form.fullName,
           mailAddress  = form.mailAddress,
           isAdmin      = form.isAdmin,
+          description  = form.description,
           url          = form.url,
           isRemoved    = form.isRemoved))
 
@@ -241,7 +249,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   post("/admin/users/_newgroup", newGroupForm)(adminOnly { form =>
-    createGroup(form.groupName, form.url)
+    createGroup(form.groupName, form.description, form.url)
     updateGroupMembers(form.groupName, form.members.split(",").map {
       _.split(":") match {
         case Array(userName, isManager) => (userName, isManager.toBoolean)
@@ -264,7 +272,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       }
     }.toList){ case (groupName, members) =>
       getAccountByUserName(groupName, true).map { account =>
-        updateGroup(groupName, form.url, form.isRemoved)
+        updateGroup(groupName, form.url, form.description, form.isRemoved)
 
         if(form.isRemoved){
           // Remove from GROUP_MEMBER
