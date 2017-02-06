@@ -1,15 +1,15 @@
 package gitbucket.core.ssh
 
-import gitbucket.core.model.Session
-import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
-import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
-import gitbucket.core.servlet.{Database, CommitLogHook}
-import gitbucket.core.util.{Directory, ControlUtil}
-import org.apache.sshd.server.{CommandFactory, Environment, ExitCallback, Command, SessionAware}
+import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
+import gitbucket.core.servlet.{CommitLogHook, Database}
+import gitbucket.core.util.{ControlUtil, Directory}
+import org.apache.sshd.server.{Command, CommandFactory, Environment, ExitCallback, SessionAware}
 import org.apache.sshd.server.session.ServerSession
 import org.slf4j.LoggerFactory
 import java.io.{File, InputStream, OutputStream}
+
 import ControlUtil._
 import org.eclipse.jgit.api.Git
 import Directory._

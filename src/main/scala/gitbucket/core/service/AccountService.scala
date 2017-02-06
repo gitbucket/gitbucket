@@ -3,7 +3,6 @@ package gitbucket.core.service
 import org.slf4j.LoggerFactory
 import gitbucket.core.model.{GroupMember, Account}
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.{StringUtil, LDAPUtil}

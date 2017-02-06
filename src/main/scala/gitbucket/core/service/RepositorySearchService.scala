@@ -9,8 +9,7 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.lib.FileMode
 import org.eclipse.jgit.api.Git
-import gitbucket.core.model.Profile._
-import profile.blockingApi._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 trait RepositorySearchService { self: IssuesService =>
   import RepositorySearchService._

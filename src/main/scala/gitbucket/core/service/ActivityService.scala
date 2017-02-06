@@ -3,7 +3,6 @@ package gitbucket.core.service
 import gitbucket.core.model.Activity
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 
 trait ActivityService {

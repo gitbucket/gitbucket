@@ -2,7 +2,6 @@ package gitbucket.core.service
 
 import gitbucket.core.model.{Issue, PullRequest, CommitStatus, CommitState}
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import difflib.{Delta, DiffUtils}
 import gitbucket.core.model.{Session => _, _}

@@ -1,7 +1,6 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.{Account, AccessToken}
 import gitbucket.core.util.StringUtil

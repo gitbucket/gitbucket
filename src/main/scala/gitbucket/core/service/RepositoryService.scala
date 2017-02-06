@@ -5,7 +5,6 @@ import gitbucket.core.util._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role}
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
 import gitbucket.core.util.JGitUtil.FileInfo

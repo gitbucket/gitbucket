@@ -5,7 +5,7 @@ import java.util.Date
 
 import gitbucket.core.api
 import gitbucket.core.model.WebHook
-import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._

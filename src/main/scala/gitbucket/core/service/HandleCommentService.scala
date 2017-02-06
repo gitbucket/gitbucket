@@ -3,10 +3,10 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.Issue
 import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Notifier
-import profile.blockingApi._
 
 trait HandleCommentService {
   self: RepositoryService with IssuesService with ActivityService

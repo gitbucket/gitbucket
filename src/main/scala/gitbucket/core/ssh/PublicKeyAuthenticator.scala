@@ -4,7 +4,7 @@ import java.security.PublicKey
 
 import gitbucket.core.service.SshKeyService
 import gitbucket.core.servlet.Database
-import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator
 import org.apache.sshd.server.session.ServerSession
 import org.apache.sshd.common.AttributeStore

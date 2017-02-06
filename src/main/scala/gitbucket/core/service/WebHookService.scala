@@ -5,7 +5,6 @@ import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._
 import gitbucket.core.model.{Account, CommitComment, Issue, IssueComment, PullRequest, WebHook, WebHookEvent}
 import gitbucket.core.model.Profile._
-import gitbucket.core.model.Profile.profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.http.client.utils.URLEncodedUtils
 import gitbucket.core.util.JGitUtil.CommitInfo

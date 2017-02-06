@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
   "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.1",
   "org.apache.sshd"                 %  "apache-sshd"                  % "1.2.0",
   "org.apache.tika"                 %  "tika-core"                    % "1.13",
-  "com.github.takezoe"              %% "blocking-slick"               % "0.0.3",
+  "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.6-SNAPSHOT",
   "joda-time"                       %  "joda-time"                    % "2.9.6",
   "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
   "com.h2database"                  %  "h2"                           % "1.4.192",

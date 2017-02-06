@@ -6,7 +6,7 @@ import gitbucket.core.plugin.{GitRepositoryFilter, GitRepositoryRouting, PluginR
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.service.{RepositoryService, AccountService, SystemSettingsService}
 import gitbucket.core.util.{Keys, Implicits, AuthUtil}
-import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import org.slf4j.LoggerFactory
 import Implicits._
 
