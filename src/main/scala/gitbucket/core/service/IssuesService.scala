@@ -455,6 +455,7 @@ object IssuesService {
           case ("comments", "asc" ) => Some("sort:comments-asc")
           case ("updated" , "desc") => Some("sort:updated-desc")
           case ("updated" , "asc" ) => Some("sort:updated-asc")
+          case x                    => throw new MatchError(x)
         },
         visibility.map(visibility => s"visibility:${visibility}")
       ).flatten ++
