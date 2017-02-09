@@ -132,6 +132,7 @@ trait IssuesService {
         .joinLeft (IssueLabels) .on { case (((t1, t2), i), t3) => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
         .joinLeft (Labels)      .on { case ((((t1, t2), i), t3), t4) => t3.map(_.byLabel(t4.userName, t4.repositoryName, t4.labelId)) }
         .joinLeft (Milestones)  .on { case (((((t1, t2), i), t3), t4), t5) => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
+        .sortBy { case (((((t1, t2), i), t3), t4), t5) => i asc }
         .map { case (((((t1, t2), i), t3), t4), t5) =>
           (t1, t2.commentCount, t4.map(_.labelId), t4.map(_.labelName), t4.map(_.color), t5.map(_.title))
         }
