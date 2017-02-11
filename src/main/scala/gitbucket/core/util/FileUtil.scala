@@ -66,4 +66,5 @@ object FileUtil {
   def getLfsFilePath(owner: String, repository: String, oid: String): String =
     Directory.getLfsDir(owner, repository) + "/" + oid
 
+  def readableSize(size: Long): String = FileUtils.byteCountToDisplaySize(size)
 }

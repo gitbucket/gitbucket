@@ -173,7 +173,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
-      None, JGitUtil.ContentInfo("text", None, Some("UTF-8")),
+      None, JGitUtil.ContentInfo("text", None, None, Some("UTF-8")),
       protectedBranch)
   })
 
