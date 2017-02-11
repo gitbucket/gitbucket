@@ -129,10 +129,6 @@ object JGitUtil {
      * the line separator of this content ("LF" or "CRLF")
      */
     val lineSeparator: String = if(content.exists(_.indexOf("\r\n") >= 0)) "CRLF" else "LF"
-    /**
-     * a human-readable display value (includes units - EB, PB, TB, GB, MB, KB or bytes)
-     */
-    val readableSize = FileUtil.readableSize(size.getOrElse(0))
   }
 
   /**
