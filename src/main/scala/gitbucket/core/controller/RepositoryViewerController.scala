@@ -308,13 +308,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val bytes = loader.getCachedBytes
         val text = new String(bytes, "UTF-8")
 
-        if(text.startsWith("version https://git-lfs.github.com/spec/v1")){
-          // LFS objects
-          val attrs = text.split("\n").map { line =>
-            val dim = line.split(" ")
-            dim(0) -> dim(1)
-          }.toMap
-
+        val attrs = JGitUtil.getLfsObjects(text)
+        if(attrs.nonEmpty) {
           response.setContentLength(attrs("size").toInt)
           val oid = attrs("oid").split(":")(1)
 

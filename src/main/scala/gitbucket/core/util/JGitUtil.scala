@@ -792,6 +792,18 @@ object JGitUtil {
     }
   }
 
+  def getLfsObjects(text: String): Map[String, String] = {
+      if(text.startsWith("version https://git-lfs.github.com/spec/v1")){
+        // LFS objects
+        text.split("\n").map { line =>
+          val dim = line.split(" ")
+          dim(0) -> dim(1)
+        }.toMap
+      } else {
+        Map.empty
+      }
+  }
+
   def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
     // Viewer
     using(git.getRepository.getObjectDatabase){ db =>
