@@ -66,7 +66,7 @@ object Database {
   }
 
   private val db: SlickDatabase = {
-    SlickDatabase.forDataSource(dataSource)
+    SlickDatabase.forDataSource(dataSource, Some(dataSource.getMaximumPoolSize))
   }
 
   def apply(): SlickDatabase = db
