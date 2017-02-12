@@ -380,4 +380,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     }
   }
 
+  /**
+   * a human-readable display value (includes units - EB, PB, TB, GB, MB, KB or bytes)
+   *
+   * @param size total size of object in bytes
+   */
+  def readableSize(size: Option[Long]): String = FileUtil.readableSize(size.getOrElse(0))
+
 }

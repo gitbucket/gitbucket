@@ -54,6 +54,7 @@
       @helpers.avatar(latestCommit, 28)
       @helpers.user(latestCommit.authorName, latestCommit.authorEmailAddress, "username strong")
       <span class="muted">@gitbucket.core.helper.html.datetimeago(latestCommit.commitTime)</span>
+      <span class="label label-default">@helpers.readableSize(content.size)</span>
       <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
       <div class="btn-group pull-right">
         @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){

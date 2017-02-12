@@ -120,10 +120,11 @@ object JGitUtil {
    * The file content data for the file content view of the repository viewer.
    *
    * @param viewType "image", "large" or "other"
+   * @param size total size of object in bytes
    * @param content the string content
    * @param charset the character encoding
    */
-  case class ContentInfo(viewType: String, content: Option[String], charset: Option[String]){
+  case class ContentInfo(viewType: String, size: Option[Long], content: Option[String], charset: Option[String]){
     /**
      * the line separator of this content ("LF" or "CRLF")
      */
@@ -792,6 +793,33 @@ object JGitUtil {
     }
   }
 
+  def getLfsObjects(text: String): Map[String, String] = {
+      if(text.startsWith("version https://git-lfs.github.com/spec/v1")){
+        // LFS objects
+        text.split("\n").map { line =>
+          val dim = line.split(" ")
+          dim(0) -> dim(1)
+        }.toMap
+      } else {
+        Map.empty
+      }
+  }
+
+  def getContentSize(loader: ObjectLoader): Long = {
+    if(loader.isLarge) {
+      loader.getSize
+    } else {
+      val bytes = loader.getCachedBytes
+      val text = new String(bytes, "UTF-8")
+
+      val attr = getLfsObjects(text)
+      attr.get("size") match {
+        case Some(size) => size.toLong
+        case None => loader.getSize
+      }
+    }
+  }
+
   def getContentInfo(git: Git, path: String, objectId: ObjectId): ContentInfo = {
     // Viewer
     using(git.getRepository.getObjectDatabase){ db =>
@@ -799,18 +827,19 @@ object JGitUtil {
       val large  = FileUtil.isLarge(loader.getSize)
       val viewer = if(FileUtil.isImage(path)) "image" else if(large) "large" else "other"
       val bytes  = if(viewer == "other") JGitUtil.getContentFromId(git, objectId, false) else None
+      val size = Some(getContentSize(loader))
 
       if(viewer == "other"){
         if(bytes.isDefined && FileUtil.isText(bytes.get)){
           // text
-          ContentInfo("text", Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
+          ContentInfo("text", size, Some(StringUtil.convertFromByteArray(bytes.get)), Some(StringUtil.detectEncoding(bytes.get)))
         } else {
           // binary
-          ContentInfo("binary", None, None)
+          ContentInfo("binary", size, None, None)
         }
       } else {
         // image or large
-        ContentInfo(viewer, None, None)
+        ContentInfo(viewer, size, None, None)
       }
     }
   }
