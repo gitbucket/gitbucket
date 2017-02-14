@@ -125,6 +125,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
         FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
       }
+      // Move lfs directory
+      defining(getLfsDir(repository.owner, repository.name)){ dir =>
+        if(dir.isDirectory()) {
+          FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
+        }
+      }
     }
     flash += "info" -> "Repository settings has been updated."
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
@@ -322,6 +328,13 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         // Move wiki repository
         defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
           FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
+        }
+        // Move lfs directory
+        defining(getLfsDir(repository.owner, repository.name)){ dir =>
+          if(dir.isDirectory()) {
+            FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
+
+          }
         }
       }
     }
