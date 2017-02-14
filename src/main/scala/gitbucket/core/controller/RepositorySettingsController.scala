@@ -129,6 +129,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       defining(getLfsDir(repository.owner, repository.name)){ dir =>
         if(dir.isDirectory()) {
           FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
+          FileUtil.deleteDirectoryIfEmpty(dir.getParentFile())
         }
       }
     }
@@ -333,7 +334,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         defining(getLfsDir(repository.owner, repository.name)){ dir =>
           if(dir.isDirectory()) {
             FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
-
+            FileUtil.deleteDirectoryIfEmpty(dir.getParentFile())
           }
         }
       }
@@ -351,7 +352,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
-      FileUtils.deleteDirectory(getLfsDir(repository.owner, repository.name))
+      val lfsDir = getLfsDir(repository.owner, repository.name)
+      FileUtils.deleteDirectory(lfsDir)
+      FileUtil.deleteDirectoryIfEmpty(lfsDir.getParentFile())
     }
     redirect(s"/${repository.owner}")
   })

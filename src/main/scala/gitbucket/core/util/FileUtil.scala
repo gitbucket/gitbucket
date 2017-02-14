@@ -67,4 +67,10 @@ object FileUtil {
     Directory.getLfsDir(owner, repository) + "/" + oid
 
   def readableSize(size: Long): String = FileUtils.byteCountToDisplaySize(size)
+
+  def deleteDirectoryIfEmpty(dir: File): Unit = {
+    if(dir.isDirectory() && dir.list().isEmpty) {
+      FileUtils.deleteDirectory(dir)
+    }
+  }
 }
