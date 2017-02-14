@@ -43,21 +43,28 @@ object Directory {
     new File(s"${RepositoryHome}/${owner}/${repository}.git")
 
   /**
+   * Directory for repository files.
+   */
+  def getRepositoryFilesDir(owner: String, repository: String): File =
+    new File(s"${RepositoryHome}/${owner}/${repository}")
+
+  /**
    * Directory for files which are attached to issue.
    */
   def getAttachedDir(owner: String, repository: String): File =
-    new File(s"${RepositoryHome}/${owner}/${repository}/comments")
+    new File(getRepositoryFilesDir(owner, repository), "comments")
 
   /**
    * Directory for files which are attached to issue.
    */
   def getLfsDir(owner: String, repository: String): File =
-    new File(s"${RepositoryHome}/${owner}/${repository}/lfs")
+    new File(getRepositoryFilesDir(owner, repository), "lfs")
 
   /**
    * Directory for uploaded files by the specified user.
    */
-  def getUserUploadDir(userName: String): File = new File(s"${GitBucketHome}/data/${userName}/files")
+  def getUserUploadDir(userName: String): File =
+    new File(s"${GitBucketHome}/data/${userName}/files")
 
   /**
    * Root of temporary directories for the upload file.
@@ -74,7 +81,8 @@ object Directory {
   /**
    * Root of plugin cache directory. Plugin repositories are cloned into this directory.
    */
-  def getPluginCacheDir(): File = new File(s"${TemporaryHome}/_plugins")
+  def getPluginCacheDir(): File =
+    new File(s"${TemporaryHome}/_plugins")
 
   /**
    * Substance directory of the wiki repository.

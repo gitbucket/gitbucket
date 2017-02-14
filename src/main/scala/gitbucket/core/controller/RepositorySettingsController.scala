@@ -119,19 +119,24 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       renameRepository(repository.owner, repository.name, repository.owner, form.repositoryName)
       // Move git repository
       defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
-        FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
+        if(dir.isDirectory){
+          FileUtils.moveDirectory(dir, getRepositoryDir(repository.owner, form.repositoryName))
+        }
       }
       // Move wiki repository
       defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
-        FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
+        if(dir.isDirectory) {
+          FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
+        }
       }
       // Move lfs directory
       defining(getLfsDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory()) {
+        if(dir.isDirectory) {
           FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
-          FileUtil.deleteDirectoryIfEmpty(dir.getParentFile())
         }
       }
+      // Delete parent directory
+      FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
     }
     flash += "info" -> "Repository settings has been updated."
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
@@ -324,19 +329,24 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         renameRepository(repository.owner, repository.name, form.newOwner, repository.name)
         // Move git repository
         defining(getRepositoryDir(repository.owner, repository.name)){ dir =>
-          FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
+          if(dir.isDirectory){
+            FileUtils.moveDirectory(dir, getRepositoryDir(form.newOwner, repository.name))
+          }
         }
         // Move wiki repository
         defining(getWikiRepositoryDir(repository.owner, repository.name)){ dir =>
-          FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
+          if(dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
+          }
         }
         // Move lfs directory
         defining(getLfsDir(repository.owner, repository.name)){ dir =>
           if(dir.isDirectory()) {
             FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
-            FileUtil.deleteDirectoryIfEmpty(dir.getParentFile())
           }
         }
+        // Delere parent directory
+        FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
       }
     }
     redirect(s"/${form.newOwner}/${repository.name}")
