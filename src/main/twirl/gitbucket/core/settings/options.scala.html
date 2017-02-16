@@ -51,27 +51,27 @@
           </div>
         </div>
         <div class="panel panel-default">
-          <div class="panel-heading strong">Issues</div>
+          <div class="panel-heading strong">Issues and Pull Requests</div>
           <div class="panel-body">
             <fieldset class="form-group">
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disable issues tracking system
+                  <input type="radio" name="issuesOption" value="DISABLE" @if(repository.repository.options.issuesOption == "DISABLE"){ checked}> Disable issue tracking and pull request system
                 </label>
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Developers can view, create and comment on issues
+                  <input type="radio" name="issuesOption" value="PRIVATE" @if(repository.repository.options.issuesOption == "PRIVATE"){ checked}> Developers can view, create and comment on issues and pull requests
                 </label>
               </div>
               <div class="radio">
                 <label>
-                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Developers and guests can view, create and comment on issues
+                  <input type="radio" name="issuesOption" value="PUBLIC" @if(repository.repository.options.issuesOption == "PUBLIC"){ checked}> Developers and guests can view, create and comment on issues and pull requests
                 </label>
               </div>
               <div class="radio for-public-repo">
                 <label>
-                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on issues
+                  <input type="radio" name="issuesOption" value="ALL" @if(repository.repository.options.issuesOption == "ALL"){ checked}> All users can view, create and comment on issues and pull requests
                 </label>
               </div>
               <label for="externalIssuesUrl" class="strong">External URL:
