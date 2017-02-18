@@ -221,12 +221,21 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
               }
             }
 
+            val repositoryInfo = getRepository(owner, repository).get
+
+            // Update default branch if repository is empty and pushed branch is not current default branch
+            if(JGitUtil.isEmpty(git) && commits.nonEmpty && branchName != repositoryInfo.repository.defaultBranch){
+              saveRepositoryDefaultBranch(owner, repository, branchName)
+              // Change repository HEAD
+              using(Git.open(Directory.getRepositoryDir(owner, repository))) { git =>
+                git.getRepository.updateRef(Constants.HEAD, true).link(Constants.R_HEADS + branchName)
+              }
+            }
+
             // Retrieve all issue count in the repository
             val issueCount =
               countIssue(IssueSearchCondition(state = "open"), false, owner -> repository) +
                 countIssue(IssueSearchCondition(state = "closed"), false, owner -> repository)
-
-            val repositoryInfo = getRepository(owner, repository).get
 
             // Extract new commit and apply issue comment
             val defaultBranch = repositoryInfo.repository.defaultBranch
