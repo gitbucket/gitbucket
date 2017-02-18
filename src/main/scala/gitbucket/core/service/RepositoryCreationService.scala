@@ -1,6 +1,6 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.JGitUtil
@@ -8,7 +8,6 @@ import gitbucket.core.model.Account
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
-import profile.simple._
 
 trait RepositoryCreationService {
   self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService =>

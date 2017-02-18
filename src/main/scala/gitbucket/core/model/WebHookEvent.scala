@@ -1,7 +1,7 @@
 package gitbucket.core.model
 
 trait WebHookEventComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
   import gitbucket.core.model.Profile.WebHooks
 
   lazy val WebHookEvents = TableQuery[WebHookEvents]
@@ -14,7 +14,7 @@ trait WebHookEventComponent extends TemplateComponent { self: Profile =>
     def * = (userName, repositoryName, url, event) <> ((WebHookEvent.apply _).tupled, WebHookEvent.unapply)
 
     def byWebHook(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url === url.bind)
-    def byWebHook(owner: Column[String], repository: Column[String], url: Column[String]) =
+    def byWebHook(owner: Rep[String], repository: Rep[String], url: Rep[String]) =
       byRepository(userName, repositoryName) && (this.url === url)
     def byWebHook(webhook: WebHooks) =
       byRepository(webhook.userName, webhook.repositoryName) && (this.url === webhook.url)

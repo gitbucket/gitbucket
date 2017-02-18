@@ -2,7 +2,8 @@ package gitbucket.core.model
 
 
 trait AccessTokenComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
+
   lazy val AccessTokens = TableQuery[AccessTokens]
 
   class AccessTokens(tag: Tag) extends Table[AccessToken](tag, "ACCESS_TOKEN") {

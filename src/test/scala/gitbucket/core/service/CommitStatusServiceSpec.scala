@@ -2,7 +2,8 @@ package gitbucket.core.service
 
 import gitbucket.core.model._
 import gitbucket.core.model.Profile._
-import profile.simple._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import org.scalatest.FunSuite
 
 

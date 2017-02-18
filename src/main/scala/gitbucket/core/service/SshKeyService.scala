@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.SshKey
 import gitbucket.core.model.Profile._
-import profile.simple._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 trait SshKeyService {
 

@@ -1,14 +1,13 @@
 package gitbucket.core.service
 
+import org.slf4j.LoggerFactory
 import gitbucket.core.model.{GroupMember, Account}
 import gitbucket.core.model.Profile._
-import gitbucket.core.util.{StringUtil, LDAPUtil}
-import gitbucket.core.service.SystemSettingsService.SystemSettings
-import profile.simple._
-import StringUtil._
-import org.slf4j.LoggerFactory
-// TODO Why is direct import required?
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.util.{StringUtil, LDAPUtil}
+import StringUtil._
+import gitbucket.core.service.SystemSettingsService.SystemSettings
 
 trait AccountService {
 

@@ -1,7 +1,7 @@
 package gitbucket.core.model
 
 trait MilestoneComponent extends TemplateComponent { self: Profile =>
-  import profile.simple._
+  import profile.api._
   import self._
 
   lazy val Milestones = TableQuery[Milestones]
@@ -15,7 +15,7 @@ trait MilestoneComponent extends TemplateComponent { self: Profile =>
     def * = (userName, repositoryName, milestoneId, title, description.?, dueDate.?, closedDate.?) <> (Milestone.tupled, Milestone.unapply)
 
     def byPrimaryKey(owner: String, repository: String, milestoneId: Int) = byMilestone(owner, repository, milestoneId)
-    def byPrimaryKey(userName: Column[String], repositoryName: Column[String], milestoneId: Column[Int]) = byMilestone(userName, repositoryName, milestoneId)
+    def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], milestoneId: Rep[Int]) = byMilestone(userName, repositoryName, milestoneId)
   }
 }
 

@@ -1,8 +1,9 @@
 package gitbucket.core.service
 
-import difflib.{Delta, DiffUtils}
-import gitbucket.core.model.{Session => _, _}
+import gitbucket.core.model.{Issue, PullRequest, CommitStatus, CommitState, CommitComment}
 import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
+import difflib.{Delta, DiffUtils}
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
@@ -11,8 +12,6 @@ import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import org.eclipse.jgit.api.Git
-import profile.simple._
-
 import scala.collection.JavaConverters._
 
 
@@ -36,7 +35,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
   def getPullRequestCountGroupByUser(closed: Boolean, owner: Option[String], repository: Option[String])
                                     (implicit s: Session): List[PullRequestCount] =
     PullRequests
-      .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+      .join(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
         (t2.closed         === closed.bind) &&
         (t1.userName       === owner.get.bind, owner.isDefined) &&
@@ -83,7 +82,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
   def getPullRequestsByRequest(userName: String, repositoryName: String, branch: String, closed: Boolean)
                               (implicit s: Session): List[PullRequest] =
     PullRequests
-      .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+      .join(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
         (t1.requestUserName       === userName.bind) &&
         (t1.requestRepositoryName === repositoryName.bind) &&
@@ -103,7 +102,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
   def getPullRequestFromBranch(userName: String, repositoryName: String, branch: String, defaultBranch: String)
                               (implicit s: Session): Option[(PullRequest, Issue)] =
     PullRequests
-      .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+      .join(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
       .filter { case (t1, t2) =>
         (t1.requestUserName       === userName.bind) &&
         (t1.requestRepositoryName === repositoryName.bind) &&
@@ -151,7 +150,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
       None
     } else {
       PullRequests
-        .innerJoin(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
+        .join(Issues).on { (t1, t2) => t1.byPrimaryKey(t2.userName, t2.repositoryName, t2.issueId) }
         .filter { case (t1, t2) =>
           (t1.userName              === userName.bind) &&
           (t1.repositoryName        === repositoryName.bind) &&

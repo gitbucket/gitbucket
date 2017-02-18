@@ -2,7 +2,9 @@ package gitbucket.core.service
 
 import gitbucket.core.model._
 import org.scalatest.FunSuite
-
+import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 class AccessTokenServiceSpec extends FunSuite with ServiceSpecBase {
 
@@ -66,8 +68,7 @@ class AccessTokenServiceSpec extends FunSuite with ServiceSpecBase {
   test("when update Account.userName then AccessToken.userName changed") { withTestDB { implicit session =>
     val user2 = generateNewAccount("user2")
     val (id, token) = AccessTokenService.generateAccessToken("user2", "note")
-    import gitbucket.core.model.Profile._
-    import profile.simple._
+
     Accounts.filter(_.userName === "user2".bind).map(_.userName).update("user3")
 
     assert(AccessTokenService.getAccountByAccessToken(token) match {

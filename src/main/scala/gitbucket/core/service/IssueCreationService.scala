@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Account, Issue}
-import gitbucket.core.model.Profile.profile.simple.Session
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Notifier
 import gitbucket.core.util.Implicits._

@@ -5,8 +5,8 @@ import fr.brouillard.oss.security.xhub.XHub.{XHubConverter, XHubDigest}
 import gitbucket.core.api._
 import gitbucket.core.model.{Account, CommitComment, Issue, IssueComment, PullRequest, WebHook, WebHookEvent}
 import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import org.apache.http.client.utils.URLEncodedUtils
-import profile.simple._
 import gitbucket.core.util.JGitUtil.CommitInfo
 import gitbucket.core.util.RepositoryName
 import gitbucket.core.service.RepositoryService.RepositoryInfo
@@ -18,6 +18,7 @@ import org.eclipse.jgit.lib.ObjectId
 import org.slf4j.LoggerFactory
 
 import scala.concurrent._
+import scala.util.{Success, Failure}
 import org.apache.http.HttpRequest
 import org.apache.http.HttpResponse
 import gitbucket.core.model.WebHookContentType
@@ -33,24 +34,24 @@ trait WebHookService {
   /** get All WebHook informations of repository */
   def getWebHooks(owner: String, repository: String)(implicit s: Session): List[(WebHook, Set[WebHook.Event])] =
     WebHooks.filter(_.byRepository(owner, repository))
-      .innerJoin(WebHookEvents).on { (w, t) => t.byWebHook(w) }
-      .map { case (w,t) => w -> t.event }
+      .join(WebHookEvents).on { (w, t) => t.byWebHook(w) }
+      .map { case (w, t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).toList.sortBy(_._1.url)
 
   /** get All WebHook informations of repository event */
   def getWebHooksByEvent(owner: String, repository: String, event: WebHook.Event)(implicit s: Session): List[WebHook] =
      WebHooks.filter(_.byRepository(owner, repository))
-       .innerJoin(WebHookEvents).on { (wh, whe) => whe.byWebHook(wh) }
+       .join(WebHookEvents).on { (wh, whe) => whe.byWebHook(wh) }
        .filter { case (wh, whe) => whe.event === event.bind}
-       .map { case (wh, whe) => wh }
+       .map{ case (wh, whe) => wh }
        .list.distinct
 
   /** get All WebHook information from repository to url */
   def getWebHook(owner: String, repository: String, url: String)(implicit s: Session): Option[(WebHook, Set[WebHook.Event])] =
     WebHooks
       .filter(_.byPrimaryKey(owner, repository, url))
-      .innerJoin(WebHookEvents).on { (w, t) => t.byWebHook(w) }
-      .map { case (w,t) => w -> t.event }
+      .join(WebHookEvents).on { (w, t) => t.byWebHook(w) }
+      .map { case (w, t) => w -> t.event }
       .list.groupBy(_._1).mapValues(_.map(_._2).toSet).headOption
 
   def addWebHook(owner: String, repository: String, url :String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])(implicit s: Session): Unit = {
@@ -139,11 +140,9 @@ trait WebHookService {
             }
           }
         }
-        f.onSuccess {
-          case s => logger.debug(s"Success: web hook request to ${webHook.url}")
-        }
-        f.onFailure {
-          case t => logger.error(s"Failed: web hook request to ${webHook.url}", t)
+        f.onComplete {
+          case Success(_) => logger.debug(s"Success: web hook request to ${webHook.url}")
+          case Failure(t) => logger.error(s"Failed: web hook request to ${webHook.url}", t)
         }
         (webHook, json, reqPromise.future, f)
       }

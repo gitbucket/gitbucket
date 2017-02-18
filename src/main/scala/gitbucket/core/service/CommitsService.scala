@@ -1,12 +1,9 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.CommitComment
-import gitbucket.core.util.Implicits
-
 import gitbucket.core.model.Profile._
-import profile.simple._
-import Implicits._
-
+import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.model.Profile.dateColumnType
 
 trait CommitsService {
 
@@ -26,7 +23,7 @@ trait CommitsService {
   def createCommitComment(owner: String, repository: String, commitId: String, loginUser: String,
                           content: String, fileName: Option[String], oldLine: Option[Int], newLine: Option[Int],
                           issueId: Option[Int])(implicit s: Session): Int =
-    CommitComments.autoInc insert CommitComment(
+    CommitComments returning CommitComments.map(_.commentId) insert CommitComment(
       userName          = owner,
       repositoryName    = repository,
       commitId          = commitId,
@@ -45,12 +42,12 @@ trait CommitsService {
         (t.commitId, t.oldLine, t.newLine)
       }.update(commitId, oldLine, newLine)
 
-  def updateCommitComment(commentId: Int, content: String)(implicit s: Session) =
+  def updateCommitComment(commentId: Int, content: String)(implicit s: Session) = {
     CommitComments
       .filter (_.byPrimaryKey(commentId))
-      .map { t =>
-        t.content -> t.updatedDate
-      }.update (content, currentDate)
+      .map { t => (t.content, t.updatedDate) }
+      .update (content, currentDate)
+  }
 
   def deleteCommitComment(commentId: Int)(implicit s: Session) =
     CommitComments filter (_.byPrimaryKey(commentId)) delete

@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Label
 import gitbucket.core.model.Profile._
-import profile.simple._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 trait LabelsService {
 
@@ -15,13 +15,14 @@ trait LabelsService {
   def getLabel(owner: String, repository: String, labelName: String)(implicit s: Session): Option[Label] =
     Labels.filter(_.byLabel(owner, repository, labelName)).firstOption
 
-  def createLabel(owner: String, repository: String, labelName: String, color: String)(implicit s: Session): Int =
-    Labels returning Labels.map(_.labelId) += Label(
+  def createLabel(owner: String, repository: String, labelName: String, color: String)(implicit s: Session): Int = {
+    Labels returning Labels.map(_.labelId) insert Label(
       userName       = owner,
       repositoryName = repository,
       labelName      = labelName,
       color          = color
     )
+  }
 
   def updateLabel(owner: String, repository: String, labelId: Int, labelName: String, color: String)
                  (implicit s: Session): Unit =

@@ -1,11 +1,9 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile._
-import profile.simple._
-
-import gitbucket.core.model.{CommitState, CommitStatus, Account}
-import gitbucket.core.util.Implicits._
+import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
+import gitbucket.core.model.{CommitState, CommitStatus, Account}
 
 trait CommitStatusService {
   /** insert or update */
@@ -20,7 +18,7 @@ trait CommitStatusService {
           }.update((state, targetUrl, now, creator.userName, description))
           id
         }
-        case None => (CommitStatuses returning CommitStatuses.map(_.commitStatusId)) += CommitStatus(
+        case None => (CommitStatuses returning CommitStatuses.map(_.commitStatusId)) insert CommitStatus(
             userName       = userName,
             repositoryName = repositoryName,
             commitId       = sha,
@@ -46,7 +44,7 @@ trait CommitStatusService {
     CommitStatuses.filter(t => t.byRepository(userName, repositoryName)).filter(t => t.updatedDate > time.bind).groupBy(_.context).map(_._1).list
 
   def getCommitStatuesWithCreator(userName: String, repositoryName: String, sha: String)(implicit s: Session) :List[(CommitStatus, Account)] =
-    byCommitStatues(userName, repositoryName, sha).innerJoin(Accounts).filter { case (t, a) => t.creator === a.userName }.list
+    byCommitStatues(userName, repositoryName, sha).join(Accounts).filter { case (t, a) => t.creator === a.userName }.list
 
   protected def byCommitStatues(userName: String, repositoryName: String, sha: String)(implicit s: Session) = 
     CommitStatuses.filter(t => t.byCommit(userName, repositoryName, sha)).sortBy(_.updatedDate desc)
