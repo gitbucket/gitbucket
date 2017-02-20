@@ -3,7 +3,7 @@ package gitbucket.core.view
 import gitbucket.core.controller.Context
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import org.scalatest.FunSpec
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 
 class HelpersSpec extends FunSpec with MockitoSugar {
 

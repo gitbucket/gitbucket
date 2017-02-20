@@ -10,7 +10,7 @@ import javax.servlet.http.{HttpServletRequest, HttpSession}
 
 import play.twirl.api.Html
 import org.scalatest.FunSpec
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
 
 
