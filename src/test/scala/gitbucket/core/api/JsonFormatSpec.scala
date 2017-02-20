@@ -392,7 +392,7 @@ class JsonFormatSpec extends FunSuite {
       case e: com.fasterxml.jackson.core.JsonParseException => {
         val p = java.lang.Math.max(e.getLocation.getCharOffset() - 10, 0).toInt
         val message = json2.substring(p, java.lang.Math.min(p + 100, json2.length))
-        throw new com.fasterxml.jackson.core.JsonParseException(message + e.getMessage, e.getLocation)
+        throw new com.fasterxml.jackson.core.JsonParseException(e.getProcessor, message + e.getMessage)
       }
     }
     val js1 = parse(resultJson)
