@@ -21,7 +21,6 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
-  "org.scala-lang.modules"          %% "scala-java8-compat"           % "0.8.0",
   "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.6.0.201612231935-r",
   "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.6.0.201612231935-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
