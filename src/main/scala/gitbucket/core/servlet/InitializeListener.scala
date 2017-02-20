@@ -28,6 +28,20 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
 
   private val logger = LoggerFactory.getLogger(classOf[InitializeListener])
 
+  // ActorSystem for Quartz scheduler
+  private val system = ActorSystem("job", ConfigFactory.parseString(
+    """
+      |akka {
+      |  quartz {
+      |    schedules {
+      |      Daily {
+      |        expression = "0 0 0 * * ?"
+      |      }
+      |    }
+      |  }
+      |}
+    """.stripMargin))
+
   override def contextInitialized(event: ServletContextEvent): Unit = {
     val dataDir = event.getServletContext.getInitParameter("gitbucket.home")
     if(dataDir != null){
@@ -98,25 +112,16 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     }
 
     // Start Quartz scheduler
-    val system = ActorSystem("job", ConfigFactory.parseString(
-      """
-        |akka {
-        |  quartz {
-        |    schedules {
-        |      Daily {
-        |        expression = "0 0 0 * * ?"
-        |      }
-        |    }
-        |  }
-        |}
-      """.stripMargin))
-
     val scheduler = QuartzSchedulerExtension(system)
 
     scheduler.schedule("Daily", system.actorOf(Props[DeleteOldActivityActor]), "DeleteOldActivity")
   }
 
+
+
   override def contextDestroyed(event: ServletContextEvent): Unit = {
+    // Shutdown Quartz scheduler
+    system.terminate()
     // Shutdown plugins
     PluginRegistry.shutdown(event.getServletContext, loadSystemSettings())
     // Close datasource
