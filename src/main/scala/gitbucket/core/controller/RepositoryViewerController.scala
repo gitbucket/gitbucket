@@ -611,7 +611,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             html.files(revision, repository,
               if(path == ".") Nil else path.split("/").toList, // current path
               new JGitUtil.CommitInfo(lastModifiedCommit), // last modified commit
-              JGitUtil.getCommitCount(repository.owner, repository.name, revision),
+              JGitUtil.getCommitCount(repository.owner, repository.name, lastModifiedCommit.getName),
               files,
               readme,
               hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
