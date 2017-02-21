@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.Account
+import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
@@ -9,10 +10,10 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.lib.{FileMode, Constants}
+import org.eclipse.jgit.lib.{Constants, FileMode}
 import org.scalatra._
-import org.scalatra.servlet.{MultipartConfig, FileUploadSupport, FileItem}
-import org.apache.commons.io.{IOUtils, FileUtils}
+import org.scalatra.servlet.{FileItem, FileUploadSupport, MultipartConfig}
+import org.apache.commons.io.{FileUtils, IOUtils}
 
 /**
  * Provides Ajax based file upload functionality.
@@ -45,7 +46,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
       val repository = params("repository")
 
       // Check whether logged-in user is collaborator
-      collaboratorsOnly(owner, repository, loginAccount){
+      onlyWikiEditable(owner, repository, loginAccount){
         execute({ (file, fileId) =>
           val fileName = file.getName
           LockUtil.lock(s"${owner}/${repository}/wiki") {
@@ -87,12 +88,16 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     redirect("/admin/data")
   }
 
-  private def collaboratorsOnly(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
+  private def onlyWikiEditable(owner: String, repository: String, loginAccount: Account)(action: => Any): Any = {
     implicit val session = Database.getSession(request)
-    loginAccount match {
-      case x if(x.isAdmin) => action
-      case x if(getCollaborators(owner, repository).contains(x.userName)) => action
-      case _ => BadRequest()
+    getRepository(owner, repository) match {
+      case Some(x) => x.repository.options.wikiOption match {
+        case "ALL"     if !x.repository.isPrivate => action
+        case "PUBLIC"  if hasGuestRole(owner, repository, Some(loginAccount)) => action
+        case "PRIVATE" if hasDeveloperRole(owner, repository, Some(loginAccount)) => action
+        case _  => BadRequest()
+      }
+      case None => BadRequest()
     }
   }
 
