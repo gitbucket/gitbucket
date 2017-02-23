@@ -149,7 +149,7 @@ object Markdown {
     private def fixUrl(url: String, isImage: Boolean = false): String = {
       lazy val urlWithRawParam: String = url + (if(isImage && !url.endsWith("?raw=true")) "?raw=true" else "")
 
-      if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")){
+      if(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("mailto:") || url.startsWith("/")){
         url
       } else if(url.startsWith("#")){
         ("#" + generateAnchorName(url.substring(1)))
