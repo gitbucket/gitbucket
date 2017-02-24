@@ -63,6 +63,10 @@ Support
 
 Release Notes
 -------------
+### 4.10 - 25 Feb 2017
+- Update to Scala 2.12 and Scalatra 2.5
+- Display file size in the file viewer
+
 ### 4.9 - 29 Jan 2017
 - GitLFS support
 - Template for issues and pull requests
