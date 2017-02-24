@@ -64,7 +64,7 @@ Support
 Release Notes
 -------------
 ### 4.10 - 25 Feb 2017
-- Update to Scala 2.12 and Scalatra 2.5
+- Update to Scala 2.12, Scalatra 2.5 and Slick 3.2
 - Display file size in the file viewer
 
 ### 4.9 - 29 Jan 2017
