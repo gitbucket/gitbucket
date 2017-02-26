@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.account.html
 import gitbucket.core.helper
-import gitbucket.core.model.GroupMember
+import gitbucket.core.model.{GroupMember, Role}
 import gitbucket.core.service._
 import gitbucket.core.ssh.SshUtil
 import gitbucket.core.util.ControlUtil._
@@ -10,7 +10,6 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
-
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
@@ -407,13 +406,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             parentUserName       = Some(repository.owner)
           )
 
-//          // Add collaborators for group repository
-//          val ownerAccount = getAccountByUserName(accountName).get
-//          if(ownerAccount.isGroupAccount){
-//            getGroupMembers(accountName).foreach { member =>
-//              addCollaborator(accountName, repository.name, member.userName)
-//            }
-//          }
+          // Set default collaborators for the private fork
+          if(repository.repository.isPrivate){
+            // Copy collaborators from the source repository
+            getCollaborators(repository.owner, repository.name).foreach { case (collaborator, _) =>
+              addCollaborator(accountName, repository.name, collaborator.collaboratorName, collaborator.role)
+            }
+            // Register an owner of the source repository as a collaborator
+            addCollaborator(accountName, repository.name, repository.owner, Role.ADMIN.name)
+          }
 
           // Insert default labels
           insertDefaultLabels(accountName, repository.name)
