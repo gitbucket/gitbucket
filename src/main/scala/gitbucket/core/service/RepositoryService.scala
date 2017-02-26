@@ -397,6 +397,7 @@ trait RepositoryService { self: AccountService =>
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
+      case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
       case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER)).contains(a.userName)) => true
       case _ => false
     }
@@ -406,6 +407,7 @@ trait RepositoryService { self: AccountService =>
     loginAccount match {
       case Some(a) if(a.isAdmin) => true
       case Some(a) if(a.userName == owner) => true
+      case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
       case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN, Role.DEVELOPER, Role.GUEST)).contains(a.userName)) => true
       case _ => false
     }
