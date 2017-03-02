@@ -1,0 +1,42 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo, deployKeys: List[gitbucket.core.model.DeployKey])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.ssh.SshUtil
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Deploy keys", Some(repository)){
+  @gitbucket.core.html.menu("settings", repository){
+    @gitbucket.core.settings.html.menu("deploykeys", repository){
+      <div class="panel panel-default">
+        <div class="panel-heading strong">Deploy keys</div>
+        <div class="panel-body">
+          @if(deployKeys.isEmpty){
+            No keys
+          }
+          @deployKeys.zipWithIndex.map { case (key, i) =>
+            @if(i != 0){
+              <hr>
+            }
+          <strong style="line-height: 30px;">@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
+          <a href="@helpers.url(repository)/settings/deploykey/delete/@key.deployKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
+          }
+        </div>
+      </div>
+      <form method="POST" action="@helpers.url(repository)/settings/deploykey" validate="true">
+        <div class="panel panel-default">
+          <div class="panel-heading strong">Add a deploy key</div>
+          <div class="panel-body">
+            <fieldset class="form-group">
+              <label for="title" class="strong">Title</label>
+              <div><span id="error-title" class="error"></span></div>
+              <input type="text" name="title" id="title" class="form-control"/>
+            </fieldset>
+            <fieldset class="form-group">
+              <label for="publicKey" class="strong">Key</label>
+              <div><span id="error-publicKey" class="error"></span></div>
+              <textarea name="publicKey" id="publicKey" class="form-control" style="height: 250px;"></textarea>
+            </fieldset>
+            <input type="submit" class="btn btn-success" value="Add"/>
+          </div>
+        </div>
+      </form>
+    }
+  }
+}
