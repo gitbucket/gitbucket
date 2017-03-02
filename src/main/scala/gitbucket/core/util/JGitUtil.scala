@@ -955,11 +955,7 @@ object JGitUtil {
   def getBranches(owner: String, name: String, defaultBranch: String, origin: Boolean): Seq[BranchInfo] = {
     using(Git.open(getRepositoryDir(owner, name))){ git =>
       val repo = git.getRepository
-      val defaultObject = if (repo.getAllRefs.keySet().contains(defaultBranch)) {
-        repo.resolve(defaultBranch)
-      } else {
-        git.branchList().call().iterator().next().getObjectId
-      }
+      val defaultObject = repo.resolve(defaultBranch)
 
       git.branchList.call.asScala.map { ref =>
         val walk = new RevWalk(repo)
@@ -974,7 +970,7 @@ object JGitUtil {
             None
           } else {
             walk.reset()
-            walk.setRevFilter( RevFilter.MERGE_BASE )
+            walk.setRevFilter(RevFilter.MERGE_BASE)
             walk.markStart(branchCommit)
             walk.markStart(defaultCommit)
             val mergeBase = walk.next()
@@ -987,7 +983,7 @@ object JGitUtil {
           }
           BranchInfo(branchName, committer, when, committerEmail, mergeInfo, ref.getObjectId.name)
         } finally {
-          walk.dispose();
+          walk.dispose()
         }
       }
     }
