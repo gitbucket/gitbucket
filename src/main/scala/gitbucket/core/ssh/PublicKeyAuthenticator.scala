@@ -14,14 +14,14 @@ object PublicKeyAuthenticator {
   // put in the ServerSession here to be read by GitCommand later
   private val userNameSessionKey = new AttributeStore.AttributeKey[String]
 
-  def putUserName(serverSession:ServerSession, userName:String):Unit =
+  def putUserName(serverSession: ServerSession, userName: String):Unit =
     serverSession.setAttribute(userNameSessionKey, userName)
 
-  def getUserName(serverSession:ServerSession):Option[String] =
+  def getUserName(serverSession: ServerSession):Option[String] =
     Option(serverSession.getAttribute(userNameSessionKey))
 }
 
-class PublicKeyAuthenticator(genericUser:String) extends PublickeyAuthenticator with SshKeyService {
+class PublicKeyAuthenticator(genericUser: String) extends PublickeyAuthenticator with SshKeyService {
   private val logger = LoggerFactory.getLogger(classOf[PublicKeyAuthenticator])
 
   override def authenticate(username: String, key: PublicKey, session: ServerSession): Boolean =
@@ -45,7 +45,7 @@ class PublicKeyAuthenticator(genericUser:String) extends PublickeyAuthenticator 
     authenticated
   }
 
-  private def authenticateGenericUser(username: String, key: PublicKey, session: ServerSession, genericUser:String): Boolean = {
+  private def authenticateGenericUser(username: String, key: PublicKey, session: ServerSession, genericUser: String): Boolean = {
     // find all users having the key we got from ssh
     val possibleUserNames =
       Database()
