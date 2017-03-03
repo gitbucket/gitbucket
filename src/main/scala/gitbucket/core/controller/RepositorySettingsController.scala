@@ -58,11 +58,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
 
   // for deploy key
-  case class DeployKeyForm(title: String, publicKey: String)
+  case class DeployKeyForm(title: String, publicKey: String, allowWrite: Boolean)
 
   val deployKeyForm = mapping(
-    "title"     -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey" -> trim(label("Key"  , text(required)))
+    "title"      -> trim(label("Title", text(required, maxlength(100)))),
+    "publicKey"  -> trim(label("Key"  , text(required))), // TODO duplication check in the repository?
+    "allowWrite" -> trim(label("Key"  , boolean()))
   )(DeployKeyForm.apply)
 
   // for web hook url addition
@@ -391,7 +392,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   /** Register a deploy key */
   post("/:owner/:repository/settings/deploykey", deployKeyForm)(ownerOnly { (form, repository) =>
-    addDeployKey(repository.owner, repository.name, form.title, form.publicKey)
+    addDeployKey(repository.owner, repository.name, form.title, form.publicKey, form.allowWrite)
     redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
   })
 

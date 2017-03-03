@@ -11,7 +11,8 @@ trait DeployKeyComponent { self: Profile =>
     val deployKeyId = column[Int]("DEPLOY_KEY_ID", O AutoInc)
     val title = column[String]("TITLE")
     val publicKey = column[String]("PUBLIC_KEY")
-    def * = (userName, repositoryName, deployKeyId, title, publicKey) <> (DeployKey.tupled, DeployKey.unapply)
+    val allowWrite = column[Boolean]("ALLOW_WRITE")
+    def * = (userName, repositoryName, deployKeyId, title, publicKey, allowWrite) <> (DeployKey.tupled, DeployKey.unapply)
 
     def byPrimaryKey(userName: String, repositoryName: String, deployKeyId: Int) =
       (this.userName === userName.bind) && (this.repositoryName === repositoryName.bind) && (this.deployKeyId === deployKeyId.bind)
@@ -23,5 +24,6 @@ case class DeployKey(
   repositoryName: String,
   deployKeyId: Int = 0,
   title: String,
-  publicKey: String
+  publicKey: String,
+  allowWrite: Boolean
 )

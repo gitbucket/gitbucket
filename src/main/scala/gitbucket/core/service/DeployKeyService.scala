@@ -6,11 +6,20 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 
 trait DeployKeyService {
 
-  def addDeployKey(userName: String, repositoryName: String, title: String, publicKey: String)(implicit s: Session): Unit =
-    DeployKeys.insert(DeployKey(userName = userName, repositoryName = repositoryName, title = title, publicKey = publicKey))
+  def addDeployKey(userName: String, repositoryName: String, title: String, publicKey: String, allowWrite: Boolean)
+                  (implicit s: Session): Unit =
+    DeployKeys.insert(DeployKey(
+      userName       = userName,
+      repositoryName = repositoryName,
+      title          = title,
+      publicKey      = publicKey,
+      allowWrite     = allowWrite
+    ))
 
   def getDeployKeys(userName: String, repositoryName: String)(implicit s: Session): List[DeployKey] =
-    DeployKeys.filter(x => (x.userName === userName.bind) && (x.repositoryName === repositoryName.bind)).sortBy(_.deployKeyId).list
+    DeployKeys
+      .filter(x => (x.userName === userName.bind) && (x.repositoryName === repositoryName.bind))
+      .sortBy(_.deployKeyId).list
 
   def getAllDeployKeys()(implicit s: Session): List[DeployKey] =
     DeployKeys.filter(_.publicKey.trim =!= "").list

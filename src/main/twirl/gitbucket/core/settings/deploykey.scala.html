@@ -15,6 +15,9 @@
               <hr>
             }
           <strong style="line-height: 30px;">@key.title</strong> (@SshUtil.fingerPrint(key.publicKey).getOrElse("Key is invalid."))
+          @if(key.allowWrite){
+            <label class="label label-warning">Write access</label>
+          }
           <a href="@helpers.url(repository)/settings/deploykey/delete/@key.deployKeyId" class="btn btn-sm btn-danger pull-right">Delete</a>
           }
         </div>
@@ -31,7 +34,12 @@
             <fieldset class="form-group">
               <label for="publicKey" class="strong">Key</label>
               <div><span id="error-publicKey" class="error"></span></div>
-              <textarea name="publicKey" id="publicKey" class="form-control" style="height: 250px;"></textarea>
+              <textarea name="publicKey" id="publicKey" class="form-control" style="height: 200px;"></textarea>
+            </fieldset>
+            <fieldset class="form-group">
+              <label>
+                <input type="checkbox" name="allowWrite"> Allow write access
+              </label>
             </fieldset>
             <input type="submit" class="btn btn-success" value="Add"/>
           </div>
