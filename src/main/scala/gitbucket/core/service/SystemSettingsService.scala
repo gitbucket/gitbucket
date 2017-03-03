@@ -175,9 +175,9 @@ object SystemSettingsService {
     fromName: Option[String])
 
   case class SshAddress(
-    host:String,
-    port:Int,
-    genericUser:String)
+    host: String,
+    port: Int,
+    genericUser: String)
 
   case class Lfs(
     serverUrl: Option[String])

@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.settings.html
 import gitbucket.core.model.WebHook
-import gitbucket.core.service.{RepositoryService, AccountService, WebHookService, ProtectedBranchService, CommitStatusService}
+import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
@@ -19,11 +19,11 @@ import gitbucket.core.model.WebHookContentType
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
-  with RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService
+  with RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService with DeployKeyService
   with OwnerAuthenticator with UsersAuthenticator
 
 trait RepositorySettingsControllerBase extends ControllerBase {
-  self: RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService
+  self: RepositoryService with AccountService with WebHookService with ProtectedBranchService with CommitStatusService with DeployKeyService
     with OwnerAuthenticator with UsersAuthenticator =>
 
   // for repository options
@@ -37,7 +37,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     externalWikiUrl: Option[String],
     allowFork: Boolean
   )
-  
+
   val optionsForm = mapping(
     "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), identifier, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
@@ -56,12 +56,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     "defaultBranch"  -> trim(label("Default Branch" , text(required, maxlength(100))))
   )(DefaultBranchForm.apply)
 
-//  // for collaborator addition
-//  case class CollaboratorForm(userName: String)
-//
-//  val collaboratorForm = mapping(
-//    "userName" -> trim(label("Username", text(required, collaborator)))
-//  )(CollaboratorForm.apply)
+
+  // for deploy key
+  case class DeployKeyForm(title: String, publicKey: String, allowWrite: Boolean)
+
+  val deployKeyForm = mapping(
+    "title"      -> trim(label("Title", text(required, maxlength(100)))),
+    "publicKey"  -> trim(label("Key"  , text(required))), // TODO duplication check in the repository?
+    "allowWrite" -> trim(label("Key"  , boolean()))
+  )(DeployKeyForm.apply)
 
   // for web hook url addition
   case class WebHookForm(url: String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])
@@ -380,6 +383,24 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     }
     flash += "info" -> "Garbage collection has been executed."
     redirect(s"/${repository.owner}/${repository.name}/settings/danger")
+  })
+
+  /** List deploy keys */
+  get("/:owner/:repository/settings/deploykey")(ownerOnly { repository =>
+    html.deploykey(repository, getDeployKeys(repository.owner, repository.name))
+  })
+
+  /** Register a deploy key */
+  post("/:owner/:repository/settings/deploykey", deployKeyForm)(ownerOnly { (form, repository) =>
+    addDeployKey(repository.owner, repository.name, form.title, form.publicKey, form.allowWrite)
+    redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
+  })
+
+  /** Delete a deploy key */
+  get("/:owner/:repository/settings/deploykey/delete/:id")(ownerOnly { repository =>
+    val deployKeyId = params("id").toInt
+    deleteDeployKey(repository.owner, repository.name, deployKeyId)
+    redirect(s"/${repository.owner}/${repository.name}/settings/deploykey")
   })
 
   /**

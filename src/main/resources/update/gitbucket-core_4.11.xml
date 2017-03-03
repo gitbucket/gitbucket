@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<changeSet>
+  <createTable tableName="DEPLOY_KEY">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="DEPLOY_KEY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
+    <column name="TITLE" type="varchar(100)" nullable="false"/>
+    <column name="PUBLIC_KEY" type="text" nullable="false"/>
+    <column name="ALLOW_WRITE" type="boolean" nullable="false" defaultValueBoolean="false"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_DEPLOY_KEY_PK" tableName="DEPLOY_KEY" columnNames="USER_NAME, REPOSITORY_NAME, DEPLOY_KEY_ID"/>
+  <addForeignKeyConstraint constraintName="IDX_DEPLOY_KEY_FK0" baseTableName="DEPLOY_KEY" baseColumnNames="USER_NAME, REPOSITORY_NAME" referencedTableName="REPOSITORY" referencedColumnNames="USER_NAME, REPOSITORY_NAME"/>
+</changeSet>

@@ -15,6 +15,9 @@
   <li@if(active=="hooks"){ class="active"}>
     <a href="@helpers.url(repository)/settings/hooks">Service Hooks</a>
   </li>
+  <li@if(active=="deploykeys"){ class="active"}>
+  <a href="@helpers.url(repository)/settings/deploykey">Deploy Keys</a>
+  </li>
   <li@if(active=="danger"){ class="active"}>
     <a href="@helpers.url(repository)/settings/danger">Danger Zone</a>
   </li>
