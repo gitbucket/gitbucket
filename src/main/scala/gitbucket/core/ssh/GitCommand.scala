@@ -95,6 +95,24 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
     }
   }
 
+  protected def isReadableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)
+                              (implicit session: Session): Boolean = {
+    authType match {
+      case AuthType.UserAuthType(username) => {
+        getAccountByUserName(username) match {
+          case Some(account) => hasGuestRole(owner, repoName, Some(account))
+          case None => false
+        }
+      }
+      case AuthType.DeployKeyType(key) => {
+        getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).exists(_ == key)) match {
+          case List(_) => true
+          case _ => false
+        }
+      }
+    }
+  }
+
   protected def isWritableUser(authType: AuthType, repositoryInfo: RepositoryService.RepositoryInfo)
                               (implicit session: Session): Boolean = {
     authType match {
@@ -106,7 +124,7 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
       }
       case AuthType.DeployKeyType(key) => {
         getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).exists(_ == key)) match {
-          case List(_) => true
+          case List(x) if x.allowWrite => true
           case _ => false
         }
       }
@@ -122,7 +140,7 @@ class DefaultGitUploadPack(owner: String, repoName: String) extends DefaultGitCo
   override protected def runTask(authType: AuthType): Unit = {
     val execute = Database() withSession { implicit session =>
       getRepository(owner, repoName.replaceFirst("\\.wiki\\Z", "")).map { repositoryInfo =>
-        !repositoryInfo.repository.isPrivate || isWritableUser(authType, repositoryInfo)
+        !repositoryInfo.repository.isPrivate || isReadableUser(authType, repositoryInfo)
       }.getOrElse(false)
     }
 
