@@ -50,6 +50,7 @@ object JGitUtil {
    * @param id the object id
    * @param isDirectory whether is it directory
    * @param name the file (or directory) name
+   * @param path the file (or directory) complete path
    * @param message the last commit message
    * @param commitId the last commit id
    * @param time the last modified time
@@ -57,7 +58,7 @@ object JGitUtil {
    * @param mailAddress the committer's mail address
    * @param linkUrl the url of submodule
    */
-  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, message: String, commitId: String,
+  case class FileInfo(id: ObjectId, isDirectory: Boolean, name: String, path: String, message: String, commitId: String,
                       time: Date, author: String, mailAddress: String, linkUrl: Option[String])
 
   /**
@@ -263,13 +264,13 @@ object JGitUtil {
         }
       }
       @tailrec
-      def simplifyPath(tuple: (ObjectId, FileMode, String, Option[String], RevCommit)): (ObjectId, FileMode, String, Option[String], RevCommit) = tuple match {
-        case (oid, FileMode.TREE, name, _, commit ) =>
+      def simplifyPath(tuple: (ObjectId, FileMode, String, String, Option[String], RevCommit)): (ObjectId, FileMode, String, String, Option[String], RevCommit) = tuple match {
+        case (oid, FileMode.TREE, name, path, _, commit ) =>
           (using(new TreeWalk(git.getRepository)) { walk =>
             walk.addTree(oid)
             // single tree child, or None
             if(walk.next() && walk.getFileMode(0) == FileMode.TREE){
-              Some((walk.getObjectId(0), walk.getFileMode(0), name + "/" + walk.getNameString, None, commit)).filterNot(_ => walk.next())
+              Some((walk.getObjectId(0), walk.getFileMode(0), name + "/" + walk.getNameString, path + "/" + walk.getNameString, None, commit)).filterNot(_ => walk.next())
             } else {
               None
             }
@@ -280,14 +281,14 @@ object JGitUtil {
         case _ => tuple
       }
 
-      def tupleAdd(tuple:(ObjectId, FileMode, String, Option[String]), rev:RevCommit) = tuple match {
-        case (oid, fmode, name, opt) => (oid, fmode, name, opt, rev)
+      def tupleAdd(tuple:(ObjectId, FileMode, String, String, Option[String]), rev:RevCommit) = tuple match {
+        case (oid, fmode, name, path, opt) => (oid, fmode, name, path, opt, rev)
       }
 
       @tailrec
-      def findLastCommits(result:List[(ObjectId, FileMode, String, Option[String], RevCommit)],
-                          restList:List[((ObjectId, FileMode, String, Option[String]), Map[RevCommit, RevCommit])],
-                          revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, Option[String], RevCommit)] ={
+      def findLastCommits(result:List[(ObjectId, FileMode, String, String, Option[String], RevCommit)],
+                          restList:List[((ObjectId, FileMode, String, String, Option[String]), Map[RevCommit, RevCommit])],
+                          revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, String, Option[String], RevCommit)] ={
         if(restList.isEmpty){
           result
         } else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
@@ -327,13 +328,13 @@ object JGitUtil {
         }
       }
 
-      var fileList: List[(ObjectId, FileMode, String, Option[String])] = Nil
+      var fileList: List[(ObjectId, FileMode, String, String, Option[String])] = Nil
       useTreeWalk(revCommit){ treeWalk =>
         while (treeWalk.next()) {
           val linkUrl = if (treeWalk.getFileMode(0) == FileMode.GITLINK) {
             getSubmodules(git, revCommit.getTree).find(_.path == treeWalk.getPathString).map(_.url)
           } else None
-          fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, linkUrl)
+          fileList +:= (treeWalk.getObjectId(0), treeWalk.getFileMode(0), treeWalk.getNameString, treeWalk.getPathString, linkUrl)
         }
       }
       revWalk.markStart(revCommit)
@@ -342,11 +343,12 @@ object JGitUtil {
       val nextParentsMap = Option(lastCommit).map(_.getParents.map(_ -> lastCommit).toMap).getOrElse(Map())
       findLastCommits(List.empty, fileList.map(a => a -> nextParentsMap), it)
         .map(simplifyPath)
-        .map { case (objectId, fileMode, name, linkUrl, commit) =>
+        .map { case (objectId, fileMode, name, path, linkUrl, commit) =>
           FileInfo(
             objectId,
             fileMode == FileMode.TREE || fileMode == FileMode.GITLINK,
             name,
+            path,
             getSummaryMessage(commit.getFullMessage, commit.getShortMessage),
             commit.getName,
             commit.getAuthorIdent.getWhen,

@@ -296,34 +296,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }.getOrElse(false)
   }
 
-  private def responseRawFile(git: Git, objectId: ObjectId, path: String,
-                              repository: RepositoryService.RepositoryInfo): Unit = {
-    JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
-      contentType = FileUtil.getMimeType(path)
-
-      if(loader.isLarge){
-        response.setContentLength(loader.getSize.toInt)
-        loader.copyTo(response.outputStream)
-      } else {
-        val bytes = loader.getCachedBytes
-        val text = new String(bytes, "UTF-8")
-
-        val attrs = JGitUtil.getLfsObjects(text)
-        if(attrs.nonEmpty) {
-          response.setContentLength(attrs("size").toInt)
-          val oid = attrs("oid").split(":")(1)
-
-          using(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))){ in =>
-            IOUtils.copy(in, response.getOutputStream)
-          }
-        } else {
-          response.setContentLength(loader.getSize.toInt)
-          response.getOutputStream.write(bytes)
-        }
-      }
-    }
-  }
-
   get("/:owner/:repository/blame/*"){
     blobRoute.action()
   }
@@ -693,21 +665,6 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           }
         }
       }
-    }
-  }
-
-  private def getPathObjectId(git: Git, path: String, revCommit: RevCommit): Option[ObjectId] = {
-    @scala.annotation.tailrec
-    def _getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
-      case true if(walk.getPathString == path) => Some(walk.getObjectId(0))
-      case true  => _getPathObjectId(path, walk)
-      case false => None
-    }
-
-    using(new TreeWalk(git.getRepository)){ treeWalk =>
-      treeWalk.addTree(revCommit.getTree)
-      treeWalk.setRecursive(true)
-      _getPathObjectId(path, treeWalk)
     }
   }
 

@@ -31,6 +31,7 @@ object JsonFormat {
     FieldSerializer[ApiPullRequest.Commit]() +
     FieldSerializer[ApiIssue]() +
     FieldSerializer[ApiComment]() +
+    FieldSerializer[ApiContents]() +
     FieldSerializer[ApiLabel]() +
     ApiBranchProtection.enforcementLevelSerializer
 
