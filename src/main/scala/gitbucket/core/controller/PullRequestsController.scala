@@ -420,65 +420,61 @@ trait PullRequestsControllerBase extends ControllerBase {
   post("/:owner/:repository/pulls/new", pullRequestForm)(readableUsersOnly { (form, repository) =>
     defining(repository.owner, repository.name){ case (owner, name) =>
       val manageable = isManageable(repository)
-      val editable = isEditable(repository)
+      val loginUserName = context.loginAccount.get.userName
 
-      if(editable) {
-        val loginUserName = context.loginAccount.get.userName
+      val issueId = insertIssue(
+        owner = repository.owner,
+        repository = repository.name,
+        loginUser = loginUserName,
+        title = form.title,
+        content = form.content,
+        assignedUserName = if (manageable) form.assignedUserName else None,
+        milestoneId = if (manageable) form.milestoneId else None,
+        isPullRequest = true)
 
-        val issueId = insertIssue(
-          owner = repository.owner,
-          repository = repository.name,
-          loginUser = loginUserName,
-          title = form.title,
-          content = form.content,
-          assignedUserName = if (manageable) form.assignedUserName else None,
-          milestoneId = if (manageable) form.milestoneId else None,
-          isPullRequest = true)
+      createPullRequest(
+        originUserName = repository.owner,
+        originRepositoryName = repository.name,
+        issueId = issueId,
+        originBranch = form.targetBranch,
+        requestUserName = form.requestUserName,
+        requestRepositoryName = form.requestRepositoryName,
+        requestBranch = form.requestBranch,
+        commitIdFrom = form.commitIdFrom,
+        commitIdTo = form.commitIdTo)
 
-        createPullRequest(
-          originUserName = repository.owner,
-          originRepositoryName = repository.name,
-          issueId = issueId,
-          originBranch = form.targetBranch,
-          requestUserName = form.requestUserName,
-          requestRepositoryName = form.requestRepositoryName,
-          requestBranch = form.requestBranch,
-          commitIdFrom = form.commitIdFrom,
-          commitIdTo = form.commitIdTo)
-
-        // insert labels
-        if (manageable) {
-          form.labelNames.map { value =>
-            val labels = getLabels(owner, name)
-            value.split(",").foreach { labelName =>
-              labels.find(_.labelName == labelName).map { label =>
-                registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
-              }
+      // insert labels
+      if (manageable) {
+        form.labelNames.map { value =>
+          val labels = getLabels(owner, name)
+          value.split(",").foreach { labelName =>
+            labels.find(_.labelName == labelName).map { label =>
+              registerIssueLabel(repository.owner, repository.name, issueId, label.labelId)
             }
           }
         }
+      }
 
-        // fetch requested branch
-        fetchAsPullRequest(owner, name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
+      // fetch requested branch
+      fetchAsPullRequest(owner, name, form.requestUserName, form.requestRepositoryName, form.requestBranch, issueId)
 
-        // record activity
-        recordPullRequestActivity(owner, name, loginUserName, issueId, form.title)
+      // record activity
+      recordPullRequestActivity(owner, name, loginUserName, issueId, form.title)
 
-        // call web hook
-        callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
+      // call web hook
+      callPullRequestWebHook("opened", repository, issueId, context.baseUrl, context.loginAccount.get)
 
-        getIssue(owner, name, issueId.toString) foreach { issue =>
-          // extract references and create refer comment
-          createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
+      getIssue(owner, name, issueId.toString) foreach { issue =>
+        // extract references and create refer comment
+        createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
 
-          // notifications
-          Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
-            Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
-          }
+        // notifications
+        Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
+          Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
         }
+      }
 
-        redirect(s"/${owner}/${name}/pull/${issueId}")
-      } else Unauthorized()
+      redirect(s"/${owner}/${name}/pull/${issueId}")
     }
   })
 
