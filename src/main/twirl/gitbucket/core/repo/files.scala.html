@@ -29,6 +29,7 @@
         </p>
       }
     }
+    <div id="pull-request-area"></div>
     <div class="head" style="height: 24px;">
       <div class="pull-right">
         <div class="btn-group">
@@ -204,19 +205,29 @@
   }
 }
 <script>
-@repository.sshUrl.map { sshUrl =>
-  $('#repository-url-http').click(function(){
-    $('#repository-url-proto').text('HTTP');
-    $('#repository-url').val('@repository.httpUrl');
-    $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(repository.httpUrl)')
-    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
-  });
+$(function() {
+  @repository.sshUrl.map { sshUrl =>
+    $('#repository-url-http').click(function(){
+      $('#repository-url-proto').text('HTTP');
+      $('#repository-url').val('@repository.httpUrl');
+      $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(repository.httpUrl)')
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
 
-  $('#repository-url-ssh').click(function(){
-    $('#repository-url-proto').text('SSH');
-    $('#repository-url').val('@sshUrl');
-    $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(sshUrl)');
-    $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
-  });
-}
+    $('#repository-url-ssh').click(function(){
+      $('#repository-url-proto').text('SSH');
+      $('#repository-url').val('@sshUrl');
+      $('#repository-clone-url').attr('href', '@RepositoryService.openRepoUrl(sshUrl)');
+      $('#repository-url-copy').attr('data-clipboard-text', $('#repository-url').val());
+    });
+  }
+
+  @if(pathList.isEmpty && hasWritePermission){
+    $.get('@{helpers.url(repository)}/pulls/proposals', function(res){
+      if(res) {
+        $('#pull-request-area').html(res);
+      }
+    });
+  }
+});
 </script>

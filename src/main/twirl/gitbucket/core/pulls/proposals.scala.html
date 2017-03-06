@@ -1,0 +1,13 @@
+@(branches: Seq[String],
+  parent: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@if(branches.nonEmpty){
+  @branches.map { branch =>
+    <div class="box-content" style="margin-bottom: 6px; padding-left: 10px; padding-top: 8px; padding-right: 4px; padding-bottom: 9px; background-color: #fff9ea">
+      <strong><i class="menu-icon octicon octicon-git-branch"></i><span class="muted">@branch</span></strong>
+      <a class="pull-right btn btn-success btn-sm" style="position: relative; top: -4px;"
+         href="@helpers.url(repository)/compare/@{parent.owner}:@{parent.repository.defaultBranch}...@{repository.owner}:@{branch}">Compare & pull request</a>
+    </div>
+  }
+}
