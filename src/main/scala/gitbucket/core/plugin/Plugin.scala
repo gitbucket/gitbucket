@@ -80,6 +80,16 @@ abstract class Plugin {
   def receiveHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[ReceiveHook] = Nil
 
   /**
+   * Override to add repository hooks.
+   */
+  val repositoryHooks: Seq[RepositoryHook] = Nil
+
+  /**
+   * Override to add repository hooks.
+   */
+  def repositoryHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[RepositoryHook] = Nil
+
+  /**
    * Override to add global menus.
    */
   val globalMenus: Seq[(Context) => Option[Link]] = Nil
@@ -201,6 +211,9 @@ abstract class Plugin {
     }
     (receiveHooks ++ receiveHooks(registry, context, settings)).foreach { receiveHook =>
       registry.addReceiveHook(receiveHook)
+    }
+    (repositoryHooks ++ repositoryHooks(registry, context, settings)).foreach { repositoryHook =>
+      registry.addRepositoryHook(repositoryHook)
     }
     (globalMenus ++ globalMenus(registry, context, settings)).foreach { globalMenu =>
       registry.addGlobalMenu(globalMenu)

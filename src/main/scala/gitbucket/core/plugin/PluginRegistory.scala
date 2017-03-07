@@ -35,6 +35,7 @@ class PluginRegistry {
   private val receiveHooks = new ListBuffer[ReceiveHook]
   receiveHooks += new ProtectedBranchReceiveHook()
 
+  private val repositoryHooks = new ListBuffer[RepositoryHook]
   private val globalMenus = new ListBuffer[(Context) => Option[Link]]
   private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
   private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
@@ -101,6 +102,10 @@ class PluginRegistry {
   def addReceiveHook(commitHook: ReceiveHook): Unit = receiveHooks += commitHook
 
   def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
+
+  def addRepositoryHook(repositoryHook: RepositoryHook): Unit = repositoryHooks += repositoryHook
+
+  def getRepositoryHooks: Seq[RepositoryHook] = repositoryHooks.toSeq
 
   def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus += globalMenu
 

@@ -3,6 +3,7 @@ package gitbucket.core.controller
 import gitbucket.core.account.html
 import gitbucket.core.helper
 import gitbucket.core.model.{GroupMember, Role}
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
 import gitbucket.core.ssh.SshUtil
 import gitbucket.core.util.ControlUtil._
@@ -351,12 +352,16 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
+        // Create the repository
         createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme)
-      }
 
-      // redirect to the repository
-      redirect(s"/${form.owner}/${form.name}")
+        // Call hooks
+        PluginRegistry().getRepositoryHooks.foreach(_.created(form.owner, form.name))
+      }
     }
+
+    // redirect to the repository
+    redirect(s"/${form.owner}/${form.name}")
   })
 
   get("/:owner/:repository/fork")(readableUsersOnly { repository =>
@@ -431,6 +436,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
           // Record activity
           recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
+
+          // Call hooks
+          PluginRegistry().getRepositoryHooks.foreach(_.forked(repository.owner, accountName, repository.name))
+
           // redirect to the repository
           redirect(s"/${accountName}/${repository.name}")
         }

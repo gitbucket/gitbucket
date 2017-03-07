@@ -16,6 +16,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import gitbucket.core.model.WebHookContentType
+import gitbucket.core.plugin.PluginRegistry
 
 
 class RepositorySettingsController extends RepositorySettingsControllerBase
@@ -140,6 +141,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       }
       // Delete parent directory
       FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
+
+      // Call hooks
+      PluginRegistry().getRepositoryHooks.foreach(_.renamed(repository.owner, repository.name, form.repositoryName))
     }
     flash += "info" -> "Repository settings has been updated."
     redirect(s"/${repository.owner}/${form.repositoryName}/settings/options")
@@ -350,6 +354,9 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         }
         // Delere parent directory
         FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
+
+        // Call hooks
+        PluginRegistry().getRepositoryHooks.foreach(_.transferred(repository.owner, form.newOwner, repository.name))
       }
     }
     redirect(s"/${form.newOwner}/${repository.name}")
@@ -360,6 +367,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   post("/:owner/:repository/settings/delete")(ownerOnly { repository =>
     LockUtil.lock(s"${repository.owner}/${repository.name}"){
+      // Delete the repository and related files
       deleteRepository(repository.owner, repository.name)
 
       FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
@@ -368,7 +376,11 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val lfsDir = getLfsDir(repository.owner, repository.name)
       FileUtils.deleteDirectory(lfsDir)
       FileUtil.deleteDirectoryIfEmpty(lfsDir.getParentFile())
+
+      // Call hooks
+      PluginRegistry().getRepositoryHooks.foreach(_.deleted(repository.owner, repository.name))
     }
+
     redirect(s"/${repository.owner}")
   })
 
