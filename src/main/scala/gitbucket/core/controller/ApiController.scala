@@ -84,9 +84,10 @@ trait ApiControllerBase extends ControllerBase {
 
   /**
    * https://developer.github.com/v3/users/#get-a-single-user
+   * This API also returns group information (as GitHub).
    */
   get("/api/v3/users/:userName") {
-    getAccountByUserName(params("userName")).filterNot(account => account.isGroupAccount).map { account =>
+    getAccountByUserName(params("userName")).map { account =>
       JsonFormat(ApiUser(account))
     } getOrElse NotFound()
   }
@@ -116,6 +117,20 @@ trait ApiControllerBase extends ControllerBase {
     ).map { br =>
       ApiBranchForList(br.name, ApiBranchCommit(br.commitId))
     })
+  })
+
+  /**
+    * https://developer.github.com/v3/repos/branches/#get-branch
+    */
+  get ("/api/v3/repos/:owner/:repo/branches/:branch")(referrersOnly { repository =>
+    //import gitbucket.core.api._
+    (for{
+      branch     <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
+      br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
+    } yield {
+      val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
+      JsonFormat(ApiBranch(branch, ApiBranchCommit(br.commitId), ApiBranchProtection(protection))(RepositoryName(repository)))
+    }) getOrElse NotFound()
   })
 
   /*
@@ -169,11 +184,11 @@ trait ApiControllerBase extends ControllerBase {
               )
             }
             case _ =>
-              Some(JsonFormat(ApiContents(f, content)))
+              Some(JsonFormat(ApiContents(f, RepositoryName(repository), content)))
           }
         }).getOrElse(NotFound())
       } else { // directory
-        JsonFormat(fileList.map{f => ApiContents(f, None)})
+        JsonFormat(fileList.map{f => ApiContents(f, RepositoryName(repository), None)})
       }
     }
   })
@@ -274,13 +289,14 @@ trait ApiControllerBase extends ControllerBase {
     (for{
       branch     <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
       protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
+      br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
     } yield {
       if(protection.enabled){
         enableBranchProtection(repository.owner, repository.name, branch, protection.status.enforcement_level == ApiBranchProtection.Everyone, protection.status.contexts)
       } else {
         disableBranchProtection(repository.owner, repository.name, branch)
       }
-      JsonFormat(ApiBranch(branch, protection)(RepositoryName(repository)))
+      JsonFormat(ApiBranch(branch, ApiBranchCommit(br.commitId), protection)(RepositoryName(repository)))
     }) getOrElse NotFound()
   })
 
@@ -610,6 +626,20 @@ trait ApiControllerBase extends ControllerBase {
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+
+  /**
+    * non-GitHub compatible API for Jenkins-Plugin
+    */
+  get("/api/v3/repos/:owner/:repo/raw/*")(referrersOnly { repository =>
+    val (id, path) = repository.splitPath(multiParams("splat").head)
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))
+
+      getPathObjectId(git, path, revCommit).map { objectId =>
+        responseRawFile(git, objectId, path, repository)
+      } getOrElse NotFound()
+    }
+  })
 
 }
 

@@ -1,26 +1,31 @@
 package gitbucket.core.controller
 
+import java.io.FileInputStream
+
 import gitbucket.core.api.ApiError
 import gitbucket.core.model.Account
-import gitbucket.core.service.{AccountService, SystemSettingsService}
+import gitbucket.core.service.{AccountService, SystemSettingsService,RepositoryService}
 import gitbucket.core.util.ControlUtil._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
-
+import gitbucket.core.util.JGitUtil._
 import io.github.gitbucket.scalatra.forms._
 import org.json4s._
 import org.scalatra._
 import org.scalatra.i18n._
 import org.scalatra.json._
-
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import javax.servlet.{FilterChain, ServletResponse, ServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
 
 import scala.util.Try
-
 import net.coobird.thumbnailator.Thumbnails
 
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.treewalk._
+import org.apache.commons.io.IOUtils
 
 /**
  * Provides generic features for controller implementations.
@@ -174,6 +179,49 @@ abstract class ControllerBase extends ScalatraFilter
       case Some("application/json") => Some(parsedBody)
       case _ => Some(parse(request.body))
     }).filterNot(_ == JNothing).flatMap(j => Try(j.extract[A]).toOption)
+  }
+
+  protected def getPathObjectId(git: Git, path: String, revCommit: RevCommit): Option[ObjectId] = {
+    @scala.annotation.tailrec
+    def _getPathObjectId(path: String, walk: TreeWalk): Option[ObjectId] = walk.next match {
+      case true if(walk.getPathString == path) => Some(walk.getObjectId(0))
+      case true  => _getPathObjectId(path, walk)
+      case false => None
+    }
+
+    using(new TreeWalk(git.getRepository)){ treeWalk =>
+      treeWalk.addTree(revCommit.getTree)
+      treeWalk.setRecursive(true)
+      _getPathObjectId(path, treeWalk)
+    }
+  }
+
+  protected def responseRawFile(git: Git, objectId: ObjectId, path: String,
+                              repository: RepositoryService.RepositoryInfo): Unit = {
+    JGitUtil.getObjectLoaderFromId(git, objectId){ loader =>
+      contentType = FileUtil.getMimeType(path)
+
+      if(loader.isLarge){
+        response.setContentLength(loader.getSize.toInt)
+        loader.copyTo(response.outputStream)
+      } else {
+        val bytes = loader.getCachedBytes
+        val text = new String(bytes, "UTF-8")
+
+        val attrs = JGitUtil.getLfsObjects(text)
+        if(attrs.nonEmpty) {
+          response.setContentLength(attrs("size").toInt)
+          val oid = attrs("oid").split(":")(1)
+
+          using(new FileInputStream(FileUtil.getLfsFilePath(repository.owner, repository.name, oid))){ in =>
+            IOUtils.copy(in, response.getOutputStream)
+          }
+        } else {
+          response.setContentLength(loader.getSize.toInt)
+          response.getOutputStream.write(bytes)
+        }
+      }
+    }
   }
 }
 
