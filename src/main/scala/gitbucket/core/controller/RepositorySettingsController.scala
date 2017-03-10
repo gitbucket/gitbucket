@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.settings.html
-import gitbucket.core.model.WebHook
+import gitbucket.core.model.{WebHook, RepositoryWebHook}
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
@@ -215,7 +215,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = WebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
+    val webhook = RepositoryWebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
     html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
   })
 
@@ -254,7 +254,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val url = params("url")
       val token = Some(params("token"))
       val ctype = WebHookContentType.valueOf(params("ctype"))
-      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, ctype, token)
+      val dummyWebHookInfo = RepositoryWebHook(repository.owner, repository.name, url, ctype, token)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
         val commits = if(JGitUtil.isEmpty(git)) List.empty else git.log

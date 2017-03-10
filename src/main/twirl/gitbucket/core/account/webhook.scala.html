@@ -1,0 +1,39 @@
+@(account: gitbucket.core.model.Account,
+groupNames: List[String],
+webHooks: List[(gitbucket.core.model.AccountWebHook, Set[gitbucket.core.model.WebHook.Event])])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.account.html.main(account, groupNames, "webhooks"){
+<div class="panel panel-default">
+  <div class="panel-heading strong">
+    Webhooks
+  </div>
+  <div class="panel-body">
+    <p>
+      Webhooks allow external services to be notified when certain events happen within your repository.
+      When the specified events happen, we’ll send a POST request to each of the URLs you provide.
+      Learn more in <a href="https://github.com/takezoe/gitbucket/wiki/API-WebHook" target="_blank">GitBucket Wiki Webhook Page</a>.
+    </p>
+    <a href="@helpers.url(account.userName)/_hooks/new" class="btn btn-success pull-right" style="margin-bottom: 10px;">Add webhook</a>
+
+    <table class="table table-condensed" style="margin-bottom:0px;">
+      @webHooks.map { case (webHook, events) =>
+      <tr><td style="vertical-align: middle;">
+        <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="css-truncate" style="max-width:360px">
+          <span class="css-truncate-target">@webHook.url</span>
+        </a>
+        <em class="css-truncate" style="max-width: 225px;">(<span class="css-truncate-target">@events.map(_.name).mkString(", ")</span>)</em>
+      </td><td>
+        <div class="btn-group pull-right">
+          <a href="@helpers.url(account.userName)/_hooks/edit?url=@helpers.urlEncode(webHook.url)" class="btn btn-default">
+            <span class="octicon octicon-pencil"></span>
+          </a>
+          <a href="@helpers.url(account.userName)/_hooks/delete?url=@helpers.urlEncode(webHook.url)" class="btn btn-danger" onclick="return confirm('delete webhook for @webHook.url ?')">
+            <span class="octicon octicon-x"></span>
+          </a>
+        </div>
+      </td></tr>
+      }
+    </table>
+  </div>
+</div>
+}

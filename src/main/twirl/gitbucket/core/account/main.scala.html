@@ -43,6 +43,7 @@
         } else {
           <li@if(active == "activity"){ class="active"}><a href="@helpers.url(account.userName)?tab=activity">Public activity</a></li>
         }
+        <li@if(active == "webhooks"){ class="active"}><a href="@helpers.url(account.userName)?tab=webhooks">Webhooks</a></li>
         @gitbucket.core.plugin.PluginRegistry().getProfileTabs.map { tab =>
           @tab(account, context).map { link =>
             <li@if(active == link.id){ class="active"}><a href="@context.path/@link.path">@link.label</a></li>
