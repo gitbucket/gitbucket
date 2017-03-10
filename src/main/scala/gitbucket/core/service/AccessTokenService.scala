@@ -42,7 +42,7 @@ trait AccessTokenService {
     Accounts
       .join(AccessTokens)
       .filter { case (ac, t) => (ac.userName === t.userName) && (t.tokenHash === tokenToHash(token).bind) && (ac.removed === false.bind) }
-      .map { case (ac, t) => ac }
+      .map    { case (ac, t) => ac }
       .firstOption
 
   def getAccessTokens(userName: String)(implicit s: Session): List[AccessToken] =

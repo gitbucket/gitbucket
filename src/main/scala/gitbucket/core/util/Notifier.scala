@@ -13,7 +13,7 @@ import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
 import org.slf4j.LoggerFactory
 import gitbucket.core.controller.Context
 import SystemSettingsService.Smtp
-import ControlUtil.defining
+import SyntaxSugars.defining
 
 trait Notifier extends RepositoryService with AccountService with IssuesService {
 

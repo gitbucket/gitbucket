@@ -5,7 +5,7 @@ import gitbucket.core.model._
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._

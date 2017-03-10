@@ -2,7 +2,7 @@ package gitbucket.core.util
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.{ReentrantLock, Lock}
-import ControlUtil._
+import SyntaxSugars._
 
 object LockUtil {
 

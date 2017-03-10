@@ -4,7 +4,7 @@ import gitbucket.core.model.{Issue, PullRequest, CommitStatus, CommitState, Comm
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import difflib.{Delta, DiffUtils}
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.JGitUtil

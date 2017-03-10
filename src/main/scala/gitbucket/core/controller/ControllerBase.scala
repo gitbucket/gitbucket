@@ -5,7 +5,7 @@ import java.io.FileInputStream
 import gitbucket.core.api.ApiError
 import gitbucket.core.model.Account
 import gitbucket.core.service.{AccountService, SystemSettingsService,RepositoryService}
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._

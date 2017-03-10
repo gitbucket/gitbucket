@@ -1,7 +1,7 @@
 package gitbucket.core.util
 
 import gitbucket.core.model.Account
-import ControlUtil._
+import SyntaxSugars._
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.Ldap
 import com.novell.ldap._
@@ -111,9 +111,9 @@ object LDAPUtil {
       }
     }
 
-    val conn: LDAPConnection = 
+    val conn: LDAPConnection =
 	if(ssl) {
-		new LDAPConnection(new LDAPJSSESecureSocketFactory()) 
+		new LDAPConnection(new LDAPJSSESecureSocketFactory())
 	}else {
 		new LDAPConnection(new LDAPJSSEStartTLSFactory())
 	}

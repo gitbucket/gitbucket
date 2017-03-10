@@ -3,7 +3,7 @@ package gitbucket.core.util
 import java.net.{URLDecoder, URLEncoder}
 
 import org.mozilla.universalchardet.UniversalDetector
-import ControlUtil._
+import SyntaxSugars._
 import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
 import org.apache.commons.codec.binary.Base64

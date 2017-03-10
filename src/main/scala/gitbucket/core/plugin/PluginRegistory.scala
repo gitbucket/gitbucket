@@ -9,7 +9,7 @@ import gitbucket.core.model.Account
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase

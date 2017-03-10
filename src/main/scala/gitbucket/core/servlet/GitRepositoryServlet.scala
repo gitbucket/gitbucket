@@ -10,7 +10,7 @@ import gitbucket.core.plugin.{GitRepositoryRouting, PluginRegistry}
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.service._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import org.eclipse.jgit.api.Git
@@ -27,7 +27,7 @@ import org.json4s.jackson.Serialization._
 
 /**
  * Provides Git repository via HTTP.
- * 
+ *
  * This servlet provides only Git repository functionality.
  * Authentication is provided by [[GitAuthenticationFilter]].
  */
@@ -174,7 +174,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
   with WebHookPullRequestService with CommitsService {
-  
+
   private val logger = LoggerFactory.getLogger(classOf[CommitLogHook])
   private var existIds: Seq[String] = Nil
 

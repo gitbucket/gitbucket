@@ -3,7 +3,7 @@ package gitbucket.core.util
 import org.apache.commons.io.FileUtils
 import org.apache.tika.Tika
 import java.io.File
-import ControlUtil._
+import SyntaxSugars._
 import scala.util.Random
 
 object FileUtil {

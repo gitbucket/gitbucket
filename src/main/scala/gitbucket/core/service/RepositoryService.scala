@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
@@ -206,7 +206,7 @@ trait RepositoryService { self: AccountService =>
 
   /**
    * Returns the specified repository information.
-   * 
+   *
    * @param userName the user name of the repository owner
    * @param repositoryName the repository name
    * @return the repository information

@@ -1,7 +1,7 @@
 package gitbucket.core.service
 
 import gitbucket.core.model.Profile.profile.blockingApi._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.Account

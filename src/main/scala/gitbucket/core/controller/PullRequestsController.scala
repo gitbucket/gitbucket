@@ -8,7 +8,7 @@ import gitbucket.core.service.IssuesService._
 import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._

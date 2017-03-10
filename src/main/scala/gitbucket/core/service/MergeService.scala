@@ -2,7 +2,7 @@ package gitbucket.core.service
 
 import gitbucket.core.model.Account
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 
 import org.eclipse.jgit.merge.MergeStrategy
 import org.eclipse.jgit.api.Git

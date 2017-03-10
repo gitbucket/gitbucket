@@ -1,6 +1,6 @@
 package gitbucket.core.util
 
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git

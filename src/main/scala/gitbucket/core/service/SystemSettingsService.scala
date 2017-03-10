@@ -1,9 +1,9 @@
 package gitbucket.core.service
 
-import gitbucket.core.util.{Directory, ControlUtil}
+import gitbucket.core.util.{Directory, SyntaxSugars}
 import gitbucket.core.util.Implicits._
 import Directory._
-import ControlUtil._
+import SyntaxSugars._
 import SystemSettingsService._
 import javax.servlet.http.HttpServletRequest
 

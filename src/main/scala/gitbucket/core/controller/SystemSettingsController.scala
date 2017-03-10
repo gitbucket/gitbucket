@@ -9,7 +9,7 @@ import gitbucket.core.ssh.SshServer
 import gitbucket.core.plugin.PluginRegistry
 import SystemSettingsService._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.StringUtil._
 import io.github.gitbucket.scalatra.forms._

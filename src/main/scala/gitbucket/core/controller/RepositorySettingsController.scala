@@ -6,7 +6,7 @@ import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
 import gitbucket.core.util.JGitUtil._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
 import io.github.gitbucket.scalatra.forms._
@@ -92,14 +92,14 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings")(ownerOnly { repository =>
     redirect(s"/${repository.owner}/${repository.name}/settings/options")
   })
-  
+
   /**
    * Display the Options page.
    */
   get("/:owner/:repository/settings/options")(ownerOnly {
     html.options(_, flash.get("info"))
   })
-  
+
   /**
    * Save the repository options.
    */

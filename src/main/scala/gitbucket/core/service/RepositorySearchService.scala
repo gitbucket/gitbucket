@@ -4,7 +4,7 @@ import gitbucket.core.model.Issue
 import gitbucket.core.util._
 import gitbucket.core.util.StringUtil
 import Directory._
-import ControlUtil._
+import SyntaxSugars._
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.TreeWalk
 import org.eclipse.jgit.lib.FileMode

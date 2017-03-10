@@ -3,7 +3,7 @@ package gitbucket.core.controller
 import gitbucket.core.issues.html
 import gitbucket.core.service.IssuesService._
 import gitbucket.core.service._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.view

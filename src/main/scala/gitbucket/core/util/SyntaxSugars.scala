@@ -7,7 +7,7 @@ import scala.language.reflectiveCalls
 /**
  * Provides control facilities.
  */
-object ControlUtil {
+object SyntaxSugars {
 
   def defining[A, B](value: A)(f: A => B): B = f(value)
 
@@ -46,7 +46,11 @@ object ControlUtil {
   def ignore[T](f: => Unit): Unit = try {
     f
   } catch {
-    case e: Exception => ()
+    case _: Exception => ()
+  }
+
+  object ~ {
+    def unapply[A, B](t: (A, B)): Option[(A, B)] = Some(t)
   }
 
 }

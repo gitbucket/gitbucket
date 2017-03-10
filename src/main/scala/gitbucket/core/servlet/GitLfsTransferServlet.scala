@@ -8,7 +8,7 @@ import gitbucket.core.util.{FileUtil, StringUtil}
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.json4s.jackson.Serialization._
 import org.apache.http.HttpStatus
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 
 /**
  * Provides GitLFS Transfer API

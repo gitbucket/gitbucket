@@ -5,7 +5,7 @@ import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import io.github.gitbucket.solidbase.model.Version
 
 /**

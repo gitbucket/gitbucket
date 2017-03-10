@@ -4,7 +4,7 @@ import gitbucket.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
 import Directory._
 import StringUtil._
-import ControlUtil._
+import SyntaxSugars._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -78,7 +78,7 @@ object JGitUtil {
   case class CommitInfo(id: String, shortMessage: String, fullMessage: String, parents: List[String],
                         authorTime: Date, authorName: String, authorEmailAddress: String,
                         commitTime: Date, committerName: String, committerEmailAddress: String){
-    
+
     def this(rev: org.eclipse.jgit.revwalk.RevCommit) = this(
         rev.getName,
         rev.getShortMessage,
@@ -159,7 +159,7 @@ object JGitUtil {
 
   /**
    * Returns RevCommit from the commit or tag id.
-   * 
+   *
    * @param git the Git object
    * @param objectId the ObjectId of the commit or tag
    * @return the RevCommit for the specified commit or tag
@@ -240,7 +240,7 @@ object JGitUtil {
 
   /**
    * Returns the file list of the specified path.
-   * 
+   *
    * @param git the Git object
    * @param revision the branch name or commit id
    * @param path the directory path (optional)
@@ -411,7 +411,7 @@ object JGitUtil {
 
   /**
    * Returns the commit list of the specified branch.
-   * 
+   *
    * @param git the Git object
    * @param revision the branch name or commit id
    * @param page the page number (1-)
@@ -421,7 +421,7 @@ object JGitUtil {
    */
   def getCommitLog(git: Git, revision: String, page: Int = 1, limit: Int = 0, path: String = ""): Either[String, (List[CommitInfo], Boolean)] = {
     val fixedPage = if(page <= 0) 1 else page
-    
+
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], count: Int, logs: List[CommitInfo]): (List[CommitInfo], Boolean)  =
       i.hasNext match {
@@ -431,7 +431,7 @@ object JGitUtil {
         }
         case _ => (logs, i.hasNext)
       }
-    
+
     using(new RevWalk(git.getRepository)){ revWalk =>
       defining(git.getRepository.resolve(revision)){ objectId =>
         if(objectId == null){
@@ -469,10 +469,10 @@ object JGitUtil {
     }
   }
 
-  
+
   /**
    * Returns the commit list between two revisions.
-   * 
+   *
    * @param git the Git object
    * @param from the from revision
    * @param to the to revision
@@ -481,10 +481,10 @@ object JGitUtil {
   // TODO swap parameters 'from' and 'to'!?
   def getCommitLog(git: Git, from: String, to: String): List[CommitInfo] =
     getCommitLogs(git, to)(_.getName == from)
-  
+
   /**
    * Returns the latest RevCommit of the specified path.
-   * 
+   *
    * @param git the Git object
    * @param path the path
    * @param revision the branch name or commit id

@@ -5,7 +5,7 @@ import gitbucket.core.controller.Context
 import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.lib._
@@ -17,10 +17,10 @@ import org.eclipse.jgit.api.errors.PatchFormatException
 import scala.collection.JavaConverters._
 
 object WikiService {
-  
+
   /**
    * The model for wiki page.
-   * 
+   *
    * @param name the page name
    * @param content the page content
    * @param committer the last committer
@@ -28,10 +28,10 @@ object WikiService {
    * @param id the latest commit id
    */
   case class WikiPageInfo(name: String, content: String, committer: String, time: Date, id: String)
-  
+
   /**
    * The model for wiki page history.
-   * 
+   *
    * @param name the page name
    * @param committer the committer the committer
    * @param message the commit message

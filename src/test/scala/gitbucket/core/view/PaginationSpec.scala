@@ -1,7 +1,7 @@
 package gitbucket.core.view
 
-import gitbucket.core.util.ControlUtil
-import ControlUtil._
+import gitbucket.core.util.SyntaxSugars
+import SyntaxSugars._
 import org.scalatest.FunSpec
 
 class PaginationSpec extends FunSpec {

@@ -3,7 +3,7 @@ package gitbucket.core.util
 import java.io._
 import java.sql._
 import java.text.SimpleDateFormat
-import ControlUtil._
+import SyntaxSugars._
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 

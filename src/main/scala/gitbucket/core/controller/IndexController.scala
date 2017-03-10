@@ -4,13 +4,13 @@ import gitbucket.core.helper.xml
 import gitbucket.core.model.Account
 import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.ControlUtil._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, UsersAuthenticator}
 import io.github.gitbucket.scalatra.forms._
 import org.scalatra.Ok
 
 
-class IndexController extends IndexControllerBase 
+class IndexController extends IndexControllerBase
   with RepositoryService with ActivityService with AccountService with RepositorySearchService with IssuesService
   with UsersAuthenticator with ReferrerAuthenticator
 
