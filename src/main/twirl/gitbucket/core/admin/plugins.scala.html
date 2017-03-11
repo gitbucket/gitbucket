@@ -1,8 +1,11 @@
-@(plugins: List[gitbucket.core.plugin.PluginInfo])(implicit context: gitbucket.core.controller.Context)
+@(plugins: List[gitbucket.core.plugin.PluginInfo], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
+    @gitbucket.core.helper.html.information(info)
     <h1>Installed plugins</h1>
-
+    <form action="@context.path/admin/plugins/_reload" method="POST" class="pull-right">
+      <input type="submit" value="Reload plugins" class="btn btn-success">
+    </form>
     @if(plugins.size > 0) {
       <ul>
       @plugins.map { plugin =>

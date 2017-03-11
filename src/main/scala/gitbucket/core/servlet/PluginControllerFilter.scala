@@ -7,10 +7,10 @@ import gitbucket.core.plugin.PluginRegistry
 
 class PluginControllerFilter extends Filter {
 
+  private var filterConfig: FilterConfig = null
+
   override def init(filterConfig: FilterConfig): Unit = {
-    PluginRegistry().getControllers().foreach { case (controller, _) =>
-      controller.init(filterConfig)
-    }
+    this.filterConfig = filterConfig
   }
 
   override def destroy(): Unit = {
@@ -26,6 +26,9 @@ class PluginControllerFilter extends Filter {
     }
 
     controller.map { case (controller, _) =>
+      if(controller.config == null){
+        controller.init(filterConfig)
+      }
       controller.doFilter(request, response, chain)
     }.getOrElse{
       chain.doFilter(request, response)

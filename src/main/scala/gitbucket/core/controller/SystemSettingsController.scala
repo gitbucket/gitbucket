@@ -181,9 +181,14 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    html.plugins(PluginRegistry().getPlugins())
+    html.plugins(PluginRegistry().getPlugins(), flash.get("info"))
   })
 
+  post("/admin/plugins/_reload")(adminOnly {
+    PluginRegistry.reload(request.getServletContext(), loadSystemSettings(), request2Session(request).conn)
+    flash += "info" -> "All plugins are reloaded."
+    redirect("/admin/plugins")
+  })
 
   get("/admin/users")(adminOnly {
     val includeRemoved = params.get("includeRemoved").map(_.toBoolean).getOrElse(false)

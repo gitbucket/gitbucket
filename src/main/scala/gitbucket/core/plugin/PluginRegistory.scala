@@ -155,7 +155,7 @@ object PluginRegistry {
 
   private val logger = LoggerFactory.getLogger(classOf[PluginRegistry])
 
-  private val instance = new PluginRegistry()
+  private var instance = new PluginRegistry()
 
   /**
    * Returns the PluginRegistry singleton instance.
@@ -163,9 +163,18 @@ object PluginRegistry {
   def apply(): PluginRegistry = instance
 
   /**
+   * Reload all plugins.
+   */
+  def reload(context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
+    shutdown(context, settings)
+    instance = new PluginRegistry()
+    initialize(context, settings, conn)
+  }
+
+  /**
    * Initializes all installed plugins.
    */
-  def initialize(context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = {
+  def initialize(context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
     val pluginDir = new File(PluginHome)
     val manager = new JDBCVersionManager(conn)
 
@@ -207,7 +216,7 @@ object PluginRegistry {
     }
   }
 
-  def shutdown(context: ServletContext, settings: SystemSettings): Unit = {
+  def shutdown(context: ServletContext, settings: SystemSettings): Unit = synchronized {
     instance.getPlugins().foreach { pluginInfo =>
       try {
         pluginInfo.pluginClass.shutdown(instance, context, settings)
@@ -218,7 +227,6 @@ object PluginRegistry {
       }
     }
   }
-
 
 }
 
