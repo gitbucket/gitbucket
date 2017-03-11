@@ -2,12 +2,15 @@ package gitbucket.core.plugin
 
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
+import java.nio.file.{Paths, StandardWatchEventKinds}
+import java.util.concurrent.TimeUnit
 import javax.servlet.ServletContext
 
 import gitbucket.core.controller.{Context, ControllerBase}
 import gitbucket.core.model.Account
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.DatabaseConfig
@@ -157,6 +160,8 @@ object PluginRegistry {
 
   private var instance = new PluginRegistry()
 
+  private var watcher: PluginWatchThread = null
+
   /**
    * Returns the PluginRegistry singleton instance.
    */
@@ -214,6 +219,11 @@ object PluginRegistry {
         }
       }
     }
+
+    if(watcher == null){
+      watcher = new PluginWatchThread(context)
+      watcher.start()
+    }
   }
 
   def shutdown(context: ServletContext, settings: SystemSettings): Unit = synchronized {
@@ -239,3 +249,45 @@ case class PluginInfo(
   description: String,
   pluginClass: Plugin
 )
+
+class PluginWatchThread(context: ServletContext) extends Thread with SystemSettingsService {
+  import gitbucket.core.model.Profile.profile.blockingApi._
+
+  private val logger = LoggerFactory.getLogger(classOf[PluginWatchThread])
+
+  override def run(): Unit = {
+    val path = Paths.get(PluginHome)
+    val fs = path.getFileSystem
+    val watcher = fs.newWatchService
+
+    val watchKey = path.register(watcher,
+      StandardWatchEventKinds.ENTRY_CREATE,
+      StandardWatchEventKinds.ENTRY_MODIFY,
+      StandardWatchEventKinds.ENTRY_DELETE,
+      StandardWatchEventKinds.OVERFLOW)
+
+    logger.info("Start PluginWatchThread: " + path)
+
+    try {
+      while (watchKey.isValid()) {
+        val detectedWatchKey = watcher.take()
+        if(detectedWatchKey != null){
+          val events = detectedWatchKey.pollEvents()
+          events.forEach { event =>
+            logger.info(event.kind + ": " + event.context)
+          }
+          gitbucket.core.servlet.Database() withTransaction { session =>
+            logger.info("Reloading plugins...")
+            PluginRegistry.reload(context, loadSystemSettings(), session.conn)
+          }
+        }
+        detectedWatchKey.reset()
+      }
+    } catch {
+      case _: InterruptedException => ()
+    }
+
+    logger.info("Shutdown PluginWatchThread")
+  }
+
+}
