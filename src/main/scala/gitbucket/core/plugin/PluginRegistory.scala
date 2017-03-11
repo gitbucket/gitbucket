@@ -19,6 +19,7 @@ import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.codec.binary.{Base64, StringUtils}
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -160,7 +161,7 @@ object PluginRegistry {
 
   private var instance = new PluginRegistry()
 
-//  private var watcher: PluginWatchThread = null
+  private var watcher: PluginWatchThread = null
 
   /**
    * Returns the PluginRegistry singleton instance.
@@ -196,11 +197,22 @@ object PluginRegistry {
     val pluginDir = new File(PluginHome)
     val manager = new JDBCVersionManager(conn)
 
+    // Clean installed directory
+    val installedDir = new File(PluginHome, "installed")
+    if(installedDir.exists){
+      FileUtils.deleteDirectory(installedDir)
+    }
+    installedDir.mkdir()
+
     if(pluginDir.exists && pluginDir.isDirectory){
       pluginDir.listFiles(new FilenameFilter {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
       }).foreach { pluginJar =>
-        val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
+        // Copy the plugin jar file to GITBUCKET_HOME/plugins/installed
+        val installedJar = new File(installedDir, pluginJar.getName)
+        FileUtils.copyFile(pluginJar, installedJar)
+
+        val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
           val plugin = classLoader.loadClass("Plugin").newInstance().asInstanceOf[Plugin]
 
@@ -235,10 +247,10 @@ object PluginRegistry {
       }
     }
 
-//    if(watcher == null){
-//      watcher = new PluginWatchThread(context)
-//      watcher.start()
-//    }
+    if(watcher == null){
+      watcher = new PluginWatchThread(context)
+      watcher.start()
+    }
   }
 
   def shutdown(context: ServletContext, settings: SystemSettings): Unit = synchronized {
@@ -269,45 +281,46 @@ case class PluginInfo(
   classLoader: URLClassLoader
 )
 
-//class PluginWatchThread(context: ServletContext) extends Thread with SystemSettingsService {
-//  import gitbucket.core.model.Profile.profile.blockingApi._
-//
-//  private val logger = LoggerFactory.getLogger(classOf[PluginWatchThread])
-//
-//  override def run(): Unit = {
-//    val path = Paths.get(PluginHome)
-//    val fs = path.getFileSystem
-//    val watcher = fs.newWatchService
-//
-//    val watchKey = path.register(watcher,
-//      StandardWatchEventKinds.ENTRY_CREATE,
-//      StandardWatchEventKinds.ENTRY_MODIFY,
-//      StandardWatchEventKinds.ENTRY_DELETE,
-//      StandardWatchEventKinds.OVERFLOW)
-//
-//    logger.info("Start PluginWatchThread: " + path)
-//
-//    try {
-//      while (watchKey.isValid()) {
-//        val detectedWatchKey = watcher.take()
-//        val events = detectedWatchKey.pollEvents()
-//
-//        events.forEach { event =>
-//          logger.info(event.kind + ": " + event.context)
-//        }
-//
-//        gitbucket.core.servlet.Database() withTransaction { session =>
-//          logger.info("Reloading plugins...")
-//          PluginRegistry.reload(context, loadSystemSettings(), session.conn)
-//        }
-//
-//        detectedWatchKey.reset()
-//      }
-//    } catch {
-//      case _: InterruptedException => watchKey.cancel()
-//    }
-//
-//    logger.info("Shutdown PluginWatchThread")
-//  }
-//
-//}
+class PluginWatchThread(context: ServletContext) extends Thread with SystemSettingsService {
+  import gitbucket.core.model.Profile.profile.blockingApi._
+  import scala.collection.JavaConverters._
+
+  private val logger = LoggerFactory.getLogger(classOf[PluginWatchThread])
+
+  override def run(): Unit = {
+    val path = Paths.get(PluginHome)
+    val fs = path.getFileSystem
+    val watcher = fs.newWatchService
+
+    val watchKey = path.register(watcher,
+      StandardWatchEventKinds.ENTRY_CREATE,
+      StandardWatchEventKinds.ENTRY_MODIFY,
+      StandardWatchEventKinds.ENTRY_DELETE,
+      StandardWatchEventKinds.OVERFLOW)
+
+    logger.info("Start PluginWatchThread: " + path)
+
+    try {
+      while (watchKey.isValid()) {
+        val detectedWatchKey = watcher.take()
+        val events = detectedWatchKey.pollEvents.asScala.filter(_.context.toString != "installed")
+        if(events.nonEmpty){
+          events.foreach { event =>
+            logger.info(event.kind + ": " + event.context)
+          }
+
+          gitbucket.core.servlet.Database() withTransaction { session =>
+            logger.info("Reloading plugins...")
+            PluginRegistry.reload(context, loadSystemSettings(), session.conn)
+          }
+        }
+        detectedWatchKey.reset()
+      }
+    } catch {
+      case _: InterruptedException => watchKey.cancel()
+    }
+
+    logger.info("Shutdown PluginWatchThread")
+  }
+
+}
