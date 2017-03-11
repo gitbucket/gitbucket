@@ -160,7 +160,7 @@ object PluginRegistry {
 
   private var instance = new PluginRegistry()
 
-  private var watcher: PluginWatchThread = null
+//  private var watcher: PluginWatchThread = null
 
   /**
    * Returns the PluginRegistry singleton instance.
@@ -174,6 +174,19 @@ object PluginRegistry {
     shutdown(context, settings)
     instance = new PluginRegistry()
     initialize(context, settings, conn)
+  }
+
+  /**
+   * Uninstall a specified plugin.
+   */
+  def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
+    instance.getPlugins().find(_.pluginId == pluginId).foreach { plugin =>
+      shutdown(context, settings)
+      // TODO kick uninstall action here?
+      plugin.pluginJar.delete()
+      instance = new PluginRegistry()
+      initialize(context, settings, conn)
+    }
   }
 
   /**
@@ -209,7 +222,9 @@ object PluginRegistry {
             pluginName    = plugin.pluginName,
             pluginVersion = plugin.versions.last.getVersion,
             description   = plugin.description,
-            pluginClass   = plugin
+            pluginClass   = plugin,
+            pluginJar     = pluginJar,
+            classLoader   = classLoader
           ))
 
         } catch {
@@ -220,10 +235,10 @@ object PluginRegistry {
       }
     }
 
-    if(watcher == null){
-      watcher = new PluginWatchThread(context)
-      watcher.start()
-    }
+//    if(watcher == null){
+//      watcher = new PluginWatchThread(context)
+//      watcher.start()
+//    }
   }
 
   def shutdown(context: ServletContext, settings: SystemSettings): Unit = synchronized {
@@ -234,6 +249,8 @@ object PluginRegistry {
         case e: Exception => {
           logger.error(s"Error during plugin shutdown", e)
         }
+      } finally {
+        pluginInfo.classLoader.close()
       }
     }
   }
@@ -247,47 +264,50 @@ case class PluginInfo(
   pluginName: String,
   pluginVersion: String,
   description: String,
-  pluginClass: Plugin
+  pluginClass: Plugin,
+  pluginJar: File,
+  classLoader: URLClassLoader
 )
 
-class PluginWatchThread(context: ServletContext) extends Thread with SystemSettingsService {
-  import gitbucket.core.model.Profile.profile.blockingApi._
-
-  private val logger = LoggerFactory.getLogger(classOf[PluginWatchThread])
-
-  override def run(): Unit = {
-    val path = Paths.get(PluginHome)
-    val fs = path.getFileSystem
-    val watcher = fs.newWatchService
-
-    val watchKey = path.register(watcher,
-      StandardWatchEventKinds.ENTRY_CREATE,
-      StandardWatchEventKinds.ENTRY_MODIFY,
-      StandardWatchEventKinds.ENTRY_DELETE,
-      StandardWatchEventKinds.OVERFLOW)
-
-    logger.info("Start PluginWatchThread: " + path)
-
-    try {
-      while (watchKey.isValid()) {
-        val detectedWatchKey = watcher.take()
-        if(detectedWatchKey != null){
-          val events = detectedWatchKey.pollEvents()
-          events.forEach { event =>
-            logger.info(event.kind + ": " + event.context)
-          }
-          gitbucket.core.servlet.Database() withTransaction { session =>
-            logger.info("Reloading plugins...")
-            PluginRegistry.reload(context, loadSystemSettings(), session.conn)
-          }
-        }
-        detectedWatchKey.reset()
-      }
-    } catch {
-      case _: InterruptedException => ()
-    }
-
-    logger.info("Shutdown PluginWatchThread")
-  }
-
-}
+//class PluginWatchThread(context: ServletContext) extends Thread with SystemSettingsService {
+//  import gitbucket.core.model.Profile.profile.blockingApi._
+//
+//  private val logger = LoggerFactory.getLogger(classOf[PluginWatchThread])
+//
+//  override def run(): Unit = {
+//    val path = Paths.get(PluginHome)
+//    val fs = path.getFileSystem
+//    val watcher = fs.newWatchService
+//
+//    val watchKey = path.register(watcher,
+//      StandardWatchEventKinds.ENTRY_CREATE,
+//      StandardWatchEventKinds.ENTRY_MODIFY,
+//      StandardWatchEventKinds.ENTRY_DELETE,
+//      StandardWatchEventKinds.OVERFLOW)
+//
+//    logger.info("Start PluginWatchThread: " + path)
+//
+//    try {
+//      while (watchKey.isValid()) {
+//        val detectedWatchKey = watcher.take()
+//        val events = detectedWatchKey.pollEvents()
+//
+//        events.forEach { event =>
+//          logger.info(event.kind + ": " + event.context)
+//        }
+//
+//        gitbucket.core.servlet.Database() withTransaction { session =>
+//          logger.info("Reloading plugins...")
+//          PluginRegistry.reload(context, loadSystemSettings(), session.conn)
+//        }
+//
+//        detectedWatchKey.reset()
+//      }
+//    } catch {
+//      case _: InterruptedException => watchKey.cancel()
+//    }
+//
+//    logger.info("Shutdown PluginWatchThread")
+//  }
+//
+//}

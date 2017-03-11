@@ -190,6 +190,15 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     redirect("/admin/plugins")
   })
 
+  post("/admin/plugins/:pluginId/_uninstall")(adminOnly {
+    val pluginId = params("pluginId")
+    PluginRegistry().getPlugins().find(_.pluginId == pluginId).foreach { plugin =>
+      PluginRegistry.uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+      flash += "info" -> s"${pluginId} was uninstalled."
+    }
+    redirect("/admin/plugins")
+  })
+
   get("/admin/users")(adminOnly {
     val includeRemoved = params.get("includeRemoved").map(_.toBoolean).getOrElse(false)
     val users          = getAllUsers(includeRemoved)

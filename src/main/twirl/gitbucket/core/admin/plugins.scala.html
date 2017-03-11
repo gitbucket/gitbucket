@@ -2,10 +2,10 @@
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
     @gitbucket.core.helper.html.information(info)
-    <h1>Installed plugins</h1>
     <form action="@context.path/admin/plugins/_reload" method="POST" class="pull-right">
       <input type="submit" value="Reload plugins" class="btn btn-success">
     </form>
+    <h1>Installed plugins</h1>
     @if(plugins.size > 0) {
       <ul>
       @plugins.map { plugin =>
@@ -15,7 +15,12 @@
 
       @plugins.map { plugin =>
         <div class="panel panel-default">
-          <div class="panel-heading strong" id="@plugin.pluginId">@plugin.pluginName</div>
+          <div class="panel-heading strong" id="@plugin.pluginId">
+            <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall" method="POST" class="pull-right uninstall-form">
+              <input type="submit" value="Uninstall" class="btn btn-danger btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
+            </form>
+            @plugin.pluginName
+          </div>
           <div class="panel-body">
             <div class="row">
               <label class="col-md-2">Id</label>
@@ -41,3 +46,11 @@
     }
   }
 }
+<script>
+  $(function(){
+    $('.uninstall-form').click(function(e){
+      var name = $(e.target).data('name');
+      return confirm('Uninstall ' + name + '. Are you sure?');
+    });
+  });
+</script>
