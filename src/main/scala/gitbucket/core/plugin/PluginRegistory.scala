@@ -49,6 +49,10 @@ class PluginRegistry {
   private val suggestionProviders = new ListBuffer[SuggestionProvider]
   suggestionProviders += new UserNameSuggestionProvider()
 
+  private val themeJavaScriptFiles = new ListBuffer[(String, String)]
+  private val themeCssFiles = new ListBuffer[(String, String)]
+  private val themeSkinNames = new ListBuffer[(String, String)]
+
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
 
   def getPlugins(): List[PluginInfo] = plugins.toList
@@ -146,6 +150,19 @@ class PluginRegistry {
   def addSuggestionProvider(suggestionProvider: SuggestionProvider): Unit = suggestionProviders += suggestionProvider
 
   def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.toSeq
+
+  def addThemeJavaScriptFile(pluginId: String, file: String): Unit = themeJavaScriptFiles += ((pluginId, file))
+
+  // def getThemeJavaScriptFiles(pluginId): List[String] = themeJavaScriptFiles.filter(x => pluginId.matches(x._1)).toList.map(_._2)
+  def getThemeJavaScriptFiles(pluginId: String): List[String] = themeJavaScriptFiles.filter(x => x._1 == pluginId).toList.map(_._2)
+
+  def addThemeCssFile(pluginId: String, file: String): Unit = themeCssFiles += ((pluginId, file))
+
+  def getThemeCssFiles(pluginId: String): List[String] = themeCssFiles.filter(x => x._1 == pluginId).toList.map(_._2)
+
+  def addThemeSkinName(pluginId: String, skinName: String): Unit = themeSkinNames += ((pluginId, skinName))
+
+  def getThemeSkinNames: Seq[(String, String)] = themeSkinNames.toSeq
 }
 
 /**

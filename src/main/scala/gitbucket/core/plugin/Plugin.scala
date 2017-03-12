@@ -190,6 +190,26 @@ abstract class Plugin {
   def suggestionProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[SuggestionProvider] = Nil
 
   /**
+    * Override and set true if this plugin is theme plugin.
+    */
+  val isThemePlugin: Boolean = false
+
+  /**
+    * Override to add JavaScript files for theme plugin.
+    */
+  def themeJavaScriptFiles: Seq[String] = Nil
+
+  /**
+    * Override to add css files for theme plugin.
+    */
+  def themeCssFiles: Seq[String] = Nil
+
+  /**
+    * override to define Css(maybe adminLTE) skinNames
+    */
+  def themeSkinNames: Seq[String] = Nil
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -244,6 +264,15 @@ abstract class Plugin {
     }
     (suggestionProviders ++ suggestionProviders(registry, context, settings)).foreach { suggestionProvider =>
       registry.addSuggestionProvider(suggestionProvider)
+    }
+    themeJavaScriptFiles.foreach { file =>
+      registry.addThemeJavaScriptFile(pluginId, file)
+    }
+    themeCssFiles.foreach { file =>
+      registry.addThemeCssFile(pluginId, file)
+    }
+    themeSkinNames.foreach {skinName =>
+      registry.addThemeSkinName(pluginId, skinName)
     }
   }
 
