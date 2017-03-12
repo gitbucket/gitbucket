@@ -190,11 +190,6 @@ abstract class Plugin {
   def suggestionProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[SuggestionProvider] = Nil
 
   /**
-    * Override and set true if this plugin is theme plugin.
-    */
-  val isThemePlugin: Boolean = false
-
-  /**
     * Override to add JavaScript files for theme plugin.
     */
   def themeJavaScriptFiles: Seq[String] = Nil
@@ -268,13 +263,11 @@ abstract class Plugin {
     themeJavaScriptFiles.foreach { file =>
       registry.addThemeJavaScriptFile(pluginId, file)
     }
-    if (isThemePlugin){
-      themeCssFiles.foreach { file =>
-        registry.addThemeCssFile(pluginId, file)
-      }
-      themeSkinNames.foreach {skinName =>
-        registry.addThemeSkinName(pluginId, skinName)
-      }
+    themeCssFiles.foreach { file =>
+      registry.addThemeCssFile(pluginId, file)
+    }
+    themeSkinNames.foreach {skinName =>
+      registry.addThemeSkinName(pluginId, skinName)
     }
   }
 
