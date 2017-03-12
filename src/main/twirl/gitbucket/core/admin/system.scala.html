@@ -1,5 +1,6 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.plugin.PluginRegistry
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -56,7 +57,7 @@
           <fieldset>
             <select name="themeAndSkinName">
               @PluginRegistry().getThemeSkinNames.map{ case (pluginId, skinName) =>
-                <option>@pluginId/@skinName</option>
+                <option @if((pluginId == helpers.themePluginName.get) && (skinName == helpers.skinName)){ selected}>@pluginId/@skinName</option>
               }
             </select>
           </fieldset>
