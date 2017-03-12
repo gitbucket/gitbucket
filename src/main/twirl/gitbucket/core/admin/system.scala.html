@@ -57,7 +57,7 @@
           <fieldset>
             <select name="themeAndSkinName">
               @PluginRegistry().getThemeSkinNames.map{ case (pluginId, skinName) =>
-                <option @if((pluginId == helpers.themePluginName.get) && (skinName == helpers.skinName)){ selected}>@pluginId/@skinName</option>
+                <option @if((pluginId == helpers.themePluginName.getOrElse("")) && (skinName == helpers.skinName)){ selected}>@pluginId/@skinName</option>
               }
             </select>
           </fieldset>
