@@ -16,3 +16,23 @@ cache:
     - $HOME/.coursier
     - $HOME/.embedmysql
     - $HOME/.embedpostgresql
+matrix:
+  include:
+  - dist: trusty
+    group: edge
+    sudo: required
+    jdk: oraclejdk9
+    script:
+    # https://github.com/sbt/sbt/pull/2951
+    - git clone https://github.com/retronym/java9-rt-export
+    - cd java9-rt-export/
+    - git checkout 1019a2873d057dd7214f4135e84283695728395d
+    - jdk_switcher use oraclejdk8
+    - sbt package
+    - jdk_switcher use oraclejdk9
+    - mkdir -p $HOME/.sbt/0.13/java9-rt-ext; java -jar target/java9-rt-export-*.jar $HOME/.sbt/0.13/java9-rt-ext/rt.jar
+    - jar tf $HOME/.sbt/0.13/java9-rt-ext/rt.jar | grep java/lang/Object
+    - cd ..
+    - echo "sbt.version=0.13.14-RC1" > project/build.properties
+    - wget https://raw.githubusercontent.com/paulp/sbt-extras/9ade5fa54914ca8aded44105bf4b9a60966f3ccd/sbt && chmod +x ./sbt
+    - ./sbt -Dscala.ext.dirs=$HOME/.sbt/0.13/java9-rt-ext test
