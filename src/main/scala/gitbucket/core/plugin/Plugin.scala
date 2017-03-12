@@ -268,11 +268,13 @@ abstract class Plugin {
     themeJavaScriptFiles.foreach { file =>
       registry.addThemeJavaScriptFile(pluginId, file)
     }
-    themeCssFiles.foreach { file =>
-      registry.addThemeCssFile(pluginId, file)
-    }
-    themeSkinNames.foreach {skinName =>
-      registry.addThemeSkinName(pluginId, skinName)
+    if (isThemePlugin){
+      themeCssFiles.foreach { file =>
+        registry.addThemeCssFile(pluginId, file)
+      }
+      themeSkinNames.foreach {skinName =>
+        registry.addThemeSkinName(pluginId, skinName)
+      }
     }
   }
 

@@ -54,7 +54,7 @@
           <hr>
           <label><span class="strong">Skin name</span></label>
           <fieldset>
-            <select name="themAndSkinName">
+            <select name="themeAndSkinName">
               @PluginRegistry().getThemeSkinNames.map{ case (pluginId, skinName) =>
                 <option>@pluginId/@skinName</option>
               }

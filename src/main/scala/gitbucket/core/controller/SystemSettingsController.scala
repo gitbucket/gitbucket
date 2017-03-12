@@ -25,6 +25,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   private val form = mapping(
     "baseUrl"                  -> trim(label("Base URL", optional(text()))),
     "information"              -> trim(label("Information", optional(text()))),
+    "themeAndSkinName"                  -> trim(label("Theme and skin name", optional(text()))),
     "allowAccountRegistration" -> trim(label("Account registration", boolean())),
     "allowAnonymousAccess"     -> trim(label("Anonymous access", boolean())),
     "isCreateRepoOptionPublic" -> trim(label("Default option to create a new repository", boolean())),

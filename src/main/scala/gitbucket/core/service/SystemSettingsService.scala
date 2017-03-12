@@ -15,6 +15,7 @@ trait SystemSettingsService {
     defining(new java.util.Properties()){ props =>
       settings.baseUrl.foreach(x => props.setProperty(BaseURL, x.replaceFirst("/\\Z", "")))
       settings.information.foreach(x => props.setProperty(Information, x))
+      settings.themeAndSkinName.foreach(x => props.setProperty(ThemeAndSkinName, x))
       props.setProperty(AllowAccountRegistration, settings.allowAccountRegistration.toString)
       props.setProperty(AllowAnonymousAccess, settings.allowAnonymousAccess.toString)
       props.setProperty(IsCreateRepoOptionPublic, settings.isCreateRepoOptionPublic.toString)
@@ -71,6 +72,7 @@ trait SystemSettingsService {
       SystemSettings(
         getOptionValue[String](props, BaseURL, None).map(x => x.replaceFirst("/\\Z", "")),
         getOptionValue(props, Information, None),
+        getOptionValue(props, ThemeAndSkinName, None),
         getValue(props, AllowAccountRegistration, false),
         getValue(props, AllowAnonymousAccess, true),
         getValue(props, IsCreateRepoOptionPublic, true),
@@ -124,6 +126,7 @@ object SystemSettingsService {
   case class SystemSettings(
     baseUrl: Option[String],
     information: Option[String],
+    themeAndSkinName: Option[String],
     allowAccountRegistration: Boolean,
     allowAnonymousAccess: Boolean,
     isCreateRepoOptionPublic: Boolean,
@@ -182,12 +185,14 @@ object SystemSettingsService {
   case class Lfs(
     serverUrl: Option[String])
 
+  val DefaultSkinName = "skin-blue"
   val DefaultSshPort = 29418
   val DefaultSmtpPort = 25
   val DefaultLdapPort = 389
 
   private val BaseURL = "base_url"
   private val Information = "information"
+  private val ThemeAndSkinName = "theme_skin_name"
   private val AllowAccountRegistration = "allow_account_registration"
   private val AllowAnonymousAccess = "allow_anonymous_access"
   private val IsCreateRepoOptionPublic = "is_create_repository_option_public"

@@ -7,7 +7,7 @@ import gitbucket.core.controller.Context
 import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.service.{RepositoryService, RequestCache}
+import gitbucket.core.service.{RepositoryService, RequestCache, SystemSettingsService}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
 import play.twirl.api.{Html, HtmlFormat}
 
@@ -215,6 +215,16 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     * Returns the url to the root of plugin assets.
     */
   def pluginAssets(implicit context: Context): String = s"${context.path}/plugin-assets"
+
+  /**
+    * Returns theme plugin name from settings.
+    */
+  def themePluginName(implicit context: Context): Option[String] = context.settings.themeAndSkinName.map(_.split('/')(0))
+
+  /**
+    * Returns skin name from settings.
+    */
+  def skinName(implicit context: Context): String = context.settings.themeAndSkinName.map(_.split('/')(1)).getOrElse(SystemSettingsService.DefaultSkinName)
 
   /**
    * Generates the text link to the account page.
