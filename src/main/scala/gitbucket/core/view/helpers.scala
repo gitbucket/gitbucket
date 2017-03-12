@@ -212,6 +212,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def assets(implicit context: Context): String = s"${context.path}/assets"
 
   /**
+    * Returns the url to the root of plugin assets.
+    */
+  def pluginAssets(implicit context: Context): String = s"${context.path}/plugin-assets"
+
+  /**
    * Generates the text link to the account page.
    * If user does not exist or disabled, this method returns user name as text without link.
    */

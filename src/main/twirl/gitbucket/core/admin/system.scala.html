@@ -1,4 +1,5 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.plugin.PluginRegistry
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -46,6 +47,18 @@
           <label><span class="strong">Information</span> (HTML is available)</label>
           <fieldset>
             <textarea name="information" class="form-control" style="height: 100px;">@context.settings.information</textarea>
+          </fieldset>
+          <!--====================================================================-->
+          <!-- Skin Settings -->
+          <!--====================================================================-->
+          <hr>
+          <label><span class="strong">Skin name</span></label>
+          <fieldset>
+            <select name="themAndSkinName">
+              @PluginRegistry().getThemeSkinNames.map{ case (pluginId, skinName) =>
+                <option>@pluginId/@skinName</option>
+              }
+            </select>
           </fieldset>
           <!--====================================================================-->
           <!-- Account registration -->
