@@ -101,6 +101,7 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
     SystemSettings(
       baseUrl                  = None,
       information              = None,
+      themeAndSkinName         = None,
       allowAccountRegistration = false,
       allowAnonymousAccess     = true,
       isCreateRepoOptionPublic = true,
