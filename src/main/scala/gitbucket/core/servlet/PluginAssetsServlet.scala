@@ -26,6 +26,7 @@ class PluginAssetsServlet extends HttpServlet {
           val bytes = IOUtils.toByteArray(in)
           resp.setContentLength(bytes.length)
           resp.setContentType(FileUtil.getContentType(path, bytes))
+          resp.setHeader("Cache-Control", "max-age=3600")
           resp.getOutputStream.write(bytes)
         } finally {
           in.close()

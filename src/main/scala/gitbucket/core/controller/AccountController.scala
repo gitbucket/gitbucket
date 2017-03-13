@@ -149,6 +149,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:userName/_avatar"){
     val userName = params("userName")
+    response.setHeader("Cache-Control", "max-age=3600")
     getAccountByUserName(userName).flatMap(_.image).map { image =>
       RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
     } getOrElse {
