@@ -1,12 +1,12 @@
 package gitbucket.core.util
 
 import java.net.{URLDecoder, URLEncoder}
+import java.util.Base64
 
 import org.mozilla.universalchardet.UniversalDetector
 import SyntaxSugars._
 import org.apache.commons.io.input.BOMInputStream
 import org.apache.commons.io.IOUtils
-import org.apache.commons.codec.binary.Base64
 
 import scala.util.control.Exception._
 
@@ -34,14 +34,14 @@ object StringUtil {
     val spec = new javax.crypto.spec.SecretKeySpec(BlowfishKey.getBytes(), "Blowfish")
     val cipher = javax.crypto.Cipher.getInstance("Blowfish")
     cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, spec)
-    new String(Base64.encodeBase64(cipher.doFinal(value.getBytes("UTF-8"))), "UTF-8")
+    Base64.getEncoder.encodeToString(cipher.doFinal(value.getBytes("UTF-8")))
   }
 
   def decodeBlowfish(value: String): String = {
     val spec = new javax.crypto.spec.SecretKeySpec(BlowfishKey.getBytes(), "Blowfish")
     val cipher = javax.crypto.Cipher.getInstance("Blowfish")
     cipher.init(javax.crypto.Cipher.DECRYPT_MODE, spec)
-    new String(cipher.doFinal(Base64.decodeBase64(value)), "UTF-8")
+    new String(cipher.doFinal(Base64.getDecoder.decode(value)), "UTF-8")
   }
 
   def urlEncode(value: String): String = URLEncoder.encode(value, "UTF-8").replace("+", "%20")
