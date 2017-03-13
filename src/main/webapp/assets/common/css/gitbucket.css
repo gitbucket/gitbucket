@@ -469,20 +469,6 @@ table.branches>thead>tr>th, table.branches>tbody>tr>td{
   color: #aaa;
   line-height: 20px;
 }
-.branches .branch-action{
-  /*float: right;*/
-  text-align: right;
-  height: 20px;
-}
-.branches .branch-action a {
-  font-size: 100%;
-}
-.branches .branch-action a.btn {
-  font-size: 100%;
-  position: relative;
-  top: -6px;
-}
-
 .branches .branch-a-b-count{
   color: rgba(0,0,0,0.5);
 }
