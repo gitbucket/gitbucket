@@ -59,7 +59,7 @@ libraryDependencies ++= Seq(
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:_")
+scalacOptions := Seq("-deprecation", "-language:postfixOps")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 
