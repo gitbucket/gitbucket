@@ -33,9 +33,9 @@
             <fieldset class="form-group">
               <label class="strong">Content type</label>
               <div></div>
-              <select name="ctype">
-              	<option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>	
-              	<option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>	
+              <select name="ctype" class="form-control" style="width: 500px;">
+              	<option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>
+              	<option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>
                </select>
             </fieldset>
             <fieldset class="form-group">
