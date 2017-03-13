@@ -5,6 +5,7 @@ import java.util.Date
 import gitbucket.core.model.Account
 import gitbucket.core.service.{RequestCache, SystemSettingsService}
 import gitbucket.core.controller.Context
+import gitbucket.core.view.helpers
 import SystemSettingsService.SystemSettings
 import javax.servlet.http.{HttpServletRequest, HttpSession}
 
@@ -34,18 +35,20 @@ class AvatarImageProviderSpec extends FunSpec with MockitoSugar {
 
     it("should show uploaded image even if gravatar integration is enabled") {
       implicit val context = Context(createSystemSettings(true), None, request)
-      val provider = new AvatarImageProviderImpl(Some(createAccount(Some("icon.png"))))
+      val account = createAccount((Some("icon.png")))
+      val provider = new AvatarImageProviderImpl(Some(account))
 
       assert(provider.toHtml("user", 32).toString ==
-        "<img src=\"/user/_avatar\" class=\"avatar\" style=\"width: 32px; height: 32px;\" />")
+        s"<img src=\"/user/_avatar?${helpers.hashDate(account.updatedDate)}\" class=\"avatar\" style=\"width: 32px; height: 32px;\" />")
     }
 
     it("should show local image for no image account if gravatar integration is disabled") {
       implicit val context = Context(createSystemSettings(false), None, request)
-      val provider = new AvatarImageProviderImpl(Some(createAccount(None)))
+      val account = createAccount(None)
+      val provider = new AvatarImageProviderImpl(account)
 
       assert(provider.toHtml("user", 32).toString ==
-        "<img src=\"/user/_avatar\" class=\"avatar\" style=\"width: 32px; height: 32px;\" />")
+        s"<img src=\"/user/_avatar?${helpers.hashDate(account.updatedDate)}\" class=\"avatar\" style=\"width: 32px; height: 32px;\" />")
     }
 
     it("should show Gravatar image for specified mail address if gravatar integration is enabled") {
