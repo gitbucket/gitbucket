@@ -153,7 +153,6 @@ class PluginRegistry {
 
   def addThemeJavaScriptFile(pluginId: String, file: String): Unit = themeJavaScriptFiles += ((pluginId, file))
 
-  // def getThemeJavaScriptFiles(pluginId): List[String] = themeJavaScriptFiles.filter(x => pluginId.matches(x._1)).toList.map(_._2)
   def getThemeJavaScriptFiles(pluginId: String): List[String] = themeJavaScriptFiles.filter(x => x._1 == pluginId).toList.map(_._2)
 
   def addThemeCssFile(pluginId: String, file: String): Unit = themeCssFiles += ((pluginId, file))
