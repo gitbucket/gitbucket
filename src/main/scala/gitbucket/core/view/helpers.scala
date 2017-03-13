@@ -75,6 +75,11 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def date(date: Date): String = new SimpleDateFormat("yyyy-MM-dd").format(date)
 
   /**
+    * Format java.util.Date to "yyyyMMDDHHmmss" (for url hash ex. /some/path.css?19800101010203
+    */
+  def hashDate(date: Date): String = new SimpleDateFormat("yyyyMMddHHmmss").format(date)
+
+  /**
    * Returns singular if count is 1, otherwise plural.
    * If plural is not specified, returns singular + "s" as plural.
    */
