@@ -75,18 +75,18 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def date(date: Date): String = new SimpleDateFormat("yyyy-MM-dd").format(date)
 
   /**
-    * Format java.util.Date to "yyyyMMDDHHmmss" (for url hash ex. /some/path.css?19800101010203
-    */
+   * Format java.util.Date to "yyyyMMDDHHmmss" (for url hash ex. /some/path.css?19800101010203
+   */
   def hashDate(date: Date): String = new SimpleDateFormat("yyyyMMddHHmmss").format(date)
 
   /**
-    * java.util.Date of boot timestamp.
-    */
+   * java.util.Date of boot timestamp.
+   */
   val bootDate: Date = new Date()
 
   /**
-    * hashDate of bootDate for /assets, /plugin-assets
-    */
+   * hashDate of bootDate for /assets, /plugin-assets
+   */
   def hashQuery: String = hashDate(bootDate)
 
   /**
@@ -224,6 +224,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Returns the url to the root of assets.
    */
+  @deprecated("Use assets(path: String)(implicit context: Context) instead.", "4.11.0")
   def assets(implicit context: Context): String = s"${context.path}/assets"
 
   /**

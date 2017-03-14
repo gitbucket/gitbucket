@@ -4,7 +4,7 @@
 @import gitbucket.core.view.helpers
 @gitbucket.core.account.html.main(account, groupNames, "activity"){
   <div class="pull-right">
-    <a href="@context.path/@{account.userName}.atom"><img src="@{helpers.assets}/common/images/feed.png" alt="activities"></a>
+    <a href="@context.path/@{account.userName}.atom"><img src="@helpers.assets("/common/images/feed.png")" alt="activities"></a>
   </div>
   @gitbucket.core.helper.html.activities(activities)
 }
