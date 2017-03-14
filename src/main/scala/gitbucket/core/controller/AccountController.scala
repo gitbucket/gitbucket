@@ -153,7 +153,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     (for {
       account <- getAccountByUserName(userName)
       image <- account.image
-    } yield (account, image)) match{
+    } yield (account, image)) match {
       case Some((account, image)) =>
         response.setDateHeader("Last-Modified", account.updatedDate.getTime)
         RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))

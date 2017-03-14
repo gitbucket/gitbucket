@@ -228,8 +228,8 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def assets(implicit context: Context): String = s"${context.path}/assets"
 
   /**
-    * Returns the url to the path of assets.
-    */
+   * Returns the url to the path of assets.
+   */
   def assets(path: String)(implicit context: Context): String = s"${context.path}/assets${path}?${hashQuery}"
 
   /**
