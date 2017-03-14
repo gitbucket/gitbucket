@@ -20,7 +20,7 @@ trait AvatarImageProvider { self: RequestCache =>
         if(account.image.isEmpty && context.settings.gravatar){
           s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}&d=retro&r=g"""
         } else {
-          s"""${context.path}/${account.userName}/_avatar"""
+          s"""${context.path}/${account.userName}/_avatar?${helpers.hashDate(account.updatedDate)}"""
         }
       } getOrElse {
         s"""${context.path}/_unknown/_avatar"""
@@ -31,7 +31,7 @@ trait AvatarImageProvider { self: RequestCache =>
         if(account.image.isEmpty && context.settings.gravatar){
           s"""https://www.gravatar.com/avatar/${StringUtil.md5(account.mailAddress.toLowerCase)}?s=${size}&d=retro&r=g"""
         } else {
-          s"""${context.path}/${account.userName}/_avatar"""
+          s"""${context.path}/${account.userName}/_avatar?${helpers.hashDate(account.updatedDate)}"""
         }
       } getOrElse {
         if(context.settings.gravatar){

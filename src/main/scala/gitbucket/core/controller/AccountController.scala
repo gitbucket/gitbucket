@@ -15,6 +15,7 @@ import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
+import java.util.Date
 
 
 class AccountController extends AccountControllerBase
@@ -149,11 +150,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:userName/_avatar"){
     val userName = params("userName")
-    getAccountByUserName(userName).flatMap(_.image).map { image =>
-      RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
-    } getOrElse {
-      contentType = "image/png"
-      Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
+    (for {
+      account <- getAccountByUserName(userName)
+      image <- account.image
+    } yield (account, image)) match{
+      case Some((account, image)) =>
+        response.setDateHeader("Last-Modified", account.updatedDate.getTime)
+        RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
+      case None =>
+        contentType = "image/png"
+        response.setDateHeader("Last-Modified", (new Date(0)).getTime)
+        Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
     }
   }
 
