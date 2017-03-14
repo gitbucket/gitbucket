@@ -365,6 +365,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     decorateHtml(HtmlFormat.fill(out).toString, repository)
   }
 
+  /**
+   * Decorate a given HTML by TextDecorators which are provided by plug-ins.
+   * TextDecorators are applied to only text parts of a given HTML.
+   */
   def decorateHtml(html: String, repository: RepositoryInfo)(implicit context: Context): String = {
     PluginRegistry().getTextDecorators.foldLeft(html){ case (html, decorator) =>
       val text = new StringBuilder()
