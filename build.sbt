@@ -54,6 +54,7 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",
   "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
+  "org.mockito"                     %  "mockito-core"                 % "2.7.16"         % "test",
   "com.wix"                         %  "wix-embedded-mysql"           % "2.1.4"          % "test",
   "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "1.14"           % "test"
 )
