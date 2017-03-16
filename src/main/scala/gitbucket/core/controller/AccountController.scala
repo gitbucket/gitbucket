@@ -21,13 +21,13 @@ import java.util.Date
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService with RepositoryCreationService
+  with AccessTokenService with WebHookService with RepositoryCreationService with TextAvatarService
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AccessTokenService with WebHookService with RepositoryCreationService =>
+    with AccessTokenService with WebHookService with RepositoryCreationService with TextAvatarService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             description: Option[String], url: Option[String], fileId: Option[String])
@@ -150,17 +150,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:userName/_avatar"){
     val userName = params("userName")
-    (for {
-      account <- getAccountByUserName(userName)
-      image <- account.image
-    } yield (account, image)) match {
-      case Some((account, image)) =>
+    getAccountByUserName(userName).map{ account =>
+      account.image.map{ image =>
         response.setDateHeader("Last-Modified", account.updatedDate.getTime)
         RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
-      case None =>
+      }.getOrElse{
         contentType = "image/png"
-        response.setDateHeader("Last-Modified", (new Date(0)).getTime)
-        Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
+        response.setDateHeader("Last-Modified", new Date(0).getTime())
+        textAvatar(account.fullName)
+      }
+    }.getOrElse{
+      NotFound()
     }
   }
 
