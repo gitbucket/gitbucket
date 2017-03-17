@@ -1127,7 +1127,7 @@ table.diff tbody tr.not-diff:hover td{
 }
 
 .not-diff > .comment-box-container {
-    white-space: initial;
+    white-space: normal;
     line-height: initial;
     padding: 10px;
 }
