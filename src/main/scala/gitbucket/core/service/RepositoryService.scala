@@ -73,6 +73,7 @@ trait RepositoryService { self: AccountService =>
         val collaborators           = Collaborators          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val protectedBranches       = ProtectedBranches      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val protectedBranchContexts = ProtectedBranchContexts.filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val deployKeys              = DeployKeys             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
           (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
@@ -112,6 +113,7 @@ trait RepositoryService { self: AccountService =>
         CommitStatuses         .insertAll(commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ProtectedBranches      .insertAll(protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ProtectedBranchContexts.insertAll(protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        DeployKeys             .insertAll(deployKeys    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update source repository of pull requests
         PullRequests.filter { t =>
@@ -121,11 +123,6 @@ trait RepositoryService { self: AccountService =>
         // Convert labelId
         val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
         val newLabelMap = Labels.filter(_.byRepository(newUserName, newRepositoryName)).map(x => (x.labelName, x.labelId)).list.toMap
-        IssueLabels.insertAll(issueLabels.map(x => x.copy(
-          labelId        = newLabelMap(oldLabelMap(x.labelId)),
-          userName       = newUserName,
-          repositoryName = newRepositoryName
-        )) :_*)
         IssueLabels.insertAll(issueLabels.map(x => x.copy(
           labelId        = newLabelMap(oldLabelMap(x.labelId)),
           userName       = newUserName,
@@ -168,6 +165,7 @@ trait RepositoryService { self: AccountService =>
     Milestones    .filter(_.byRepository(userName, repositoryName)).delete
     WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     WebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
+    DeployKeys    .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
