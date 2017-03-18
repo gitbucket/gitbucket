@@ -156,7 +156,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
       }.getOrElse{
         contentType = "image/png"
-        TextAvatarUtil.textAvatar(account.fullName).getOrElse(Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png"))
+        (if (account.isGroupAccount) {
+          TextAvatarUtil.textGroupAvatar(account.fullName)
+        } else {
+          TextAvatarUtil.textAvatar(account.fullName)
+        }).getOrElse(Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png"))
       }
     }.getOrElse{
       NotFound()
