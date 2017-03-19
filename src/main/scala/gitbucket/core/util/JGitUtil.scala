@@ -538,6 +538,7 @@ object JGitUtil {
       } else {
         // initial commit
         using(new TreeWalk(git.getRepository)){ treeWalk =>
+          treeWalk.setRecursive(true)
           treeWalk.addTree(revCommit.getTree)
           val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
           while(treeWalk.next){
