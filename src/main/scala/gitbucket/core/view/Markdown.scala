@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 import java.util.Locale
 
 import gitbucket.core.controller.Context
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.StringUtil
 import io.github.gitbucket.markedj._
@@ -80,8 +81,8 @@ object Markdown {
     }
 
     override def code(code: String, lang: String, escaped: Boolean): String = {
-      "<pre class=\"prettyprint" + (if(lang != null) s" ${options.getLangPrefix}${lang}" else "" )+ "\">" +
-        (if(escaped) code else escape(code, true)) + "</pre>"
+      val codeRenderer = PluginRegistry().getMarkdownCodeRenderer(lang)
+      codeRenderer.renderCode(code, lang, escaped, options)
     }
 
     override def list(body: String, ordered: Boolean): String = {

@@ -31,6 +31,7 @@ class PluginRegistry {
   renderers ++= Seq(
     "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
   )
+  private val markdownCodeRenders = mutable.Map[String, MarkdownCodeRenderer]()
   private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
   private val receiveHooks = new ListBuffer[ReceiveHook]
   receiveHooks += new ProtectedBranchReceiveHook()
@@ -86,6 +87,10 @@ class PluginRegistry {
   def getRenderer(extension: String): Renderer = renderers.get(extension).getOrElse(DefaultRenderer)
 
   def renderableExtensions: Seq[String] = renderers.keys.toSeq
+
+  def addMarkdownCodeRenderer(lang: String, renderer: MarkdownCodeRenderer): Unit = markdownCodeRenders += ((lang, renderer))
+
+  def getMarkdownCodeRenderer(lang: String): MarkdownCodeRenderer = markdownCodeRenders.get(lang).getOrElse(DefaultMarkdownCodeRenderer)
 
   def addRepositoryRouting(routing: GitRepositoryRouting): Unit = repositoryRoutings += routing
 
