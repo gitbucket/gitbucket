@@ -60,6 +60,16 @@ abstract class Plugin {
   def renderers(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, Renderer)] = Nil
 
   /**
+   * Override to declare this plug-in provides markdown code renderers.
+   */
+  val markdownCodeRenderers: Seq[(String, MarkdownCodeRenderer)] = Nil
+
+  /**
+   * Override to declare this plug-in provides markdown code renderers.
+   */
+  def markdownCodeRenderers(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(String, MarkdownCodeRenderer)] = Nil
+
+  /**
    * Override to add git repository routings.
    */
   val repositoryRoutings: Seq[GitRepositoryRouting] = Nil
@@ -205,6 +215,9 @@ abstract class Plugin {
     }
     (renderers ++ renderers(registry, context, settings)).foreach { case (extension, renderer) =>
       registry.addRenderer(extension, renderer)
+    }
+    (markdownCodeRenderers ++ markdownCodeRenderers(registry, context, settings)).foreach { case (lang, codeRenderer) =>
+      registry.addMarkdownCodeRenderer(lang, codeRenderer)
     }
     (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { routing =>
       registry.addRepositoryRouting(routing)
