@@ -16,7 +16,7 @@
     </div>
   </div>
   Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
-  <ul id="commit-file-list" style="display: none;clear:right">
+  <ul id="commit-file-list" style="display: none;">
   @diffs.zipWithIndex.map { case (diff, i) =>
     <li class="border">
       <span class="pull-right diffstat" data-diff-id="@i"></span>
