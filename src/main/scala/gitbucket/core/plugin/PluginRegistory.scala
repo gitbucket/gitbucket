@@ -247,7 +247,7 @@ object PluginRegistry {
           ))
         } catch {
           case e: Throwable => {
-            logger.error(s"Error during plugin initialization: ${pluginJar.getAbsolutePath}", e)
+            logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
           }
         }
       }
@@ -265,7 +265,7 @@ object PluginRegistry {
         pluginInfo.pluginClass.shutdown(instance, context, settings)
       } catch {
         case e: Exception => {
-          logger.error(s"Error during plugin shutdown", e)
+          logger.error(s"Error during plugin shutdown: ${pluginInfo.pluginJar.getName}", e)
         }
       } finally {
         pluginInfo.classLoader.close()
