@@ -248,10 +248,16 @@ abstract class Plugin {
   }
 
   /**
-   * This method is invoked in shutdown of plugin system.
+   * This method is invoked when the plugin system is shutting down.
    * If the plugin has any resources, release them in this method.
    */
   def shutdown(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Unit = {}
+
+//  /**
+//   * This method is invoked when this plugin is uninstalled.
+//   * Cleanup database or any other resources in this method if necessary.
+//   */
+//  def uninstall(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Unit = {}
 
   /**
    * Helper method to get a resource from classpath.

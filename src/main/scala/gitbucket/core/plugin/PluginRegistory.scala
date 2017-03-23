@@ -181,8 +181,13 @@ object PluginRegistry {
    */
   def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
     instance.getPlugins().find(_.pluginId == pluginId).foreach { plugin =>
+//      try {
+//        plugin.pluginClass.uninstall(instance, context, settings)
+//      } catch {
+//        case e: Exception =>
+//          logger.error(s"Error during uninstalling plugin: ${plugin.pluginJar.getName}", e)
+//      }
       shutdown(context, settings)
-      // TODO kick uninstall action here?
       plugin.pluginJar.delete()
       instance = new PluginRegistry()
       initialize(context, settings, conn)
@@ -260,15 +265,15 @@ object PluginRegistry {
   }
 
   def shutdown(context: ServletContext, settings: SystemSettings): Unit = synchronized {
-    instance.getPlugins().foreach { pluginInfo =>
+    instance.getPlugins().foreach { plugin =>
       try {
-        pluginInfo.pluginClass.shutdown(instance, context, settings)
+        plugin.pluginClass.shutdown(instance, context, settings)
       } catch {
         case e: Exception => {
-          logger.error(s"Error during plugin shutdown: ${pluginInfo.pluginJar.getName}", e)
+          logger.error(s"Error during plugin shutdown: ${plugin.pluginJar.getName}", e)
         }
       } finally {
-        pluginInfo.classLoader.close()
+        plugin.classLoader.close()
       }
     }
   }
