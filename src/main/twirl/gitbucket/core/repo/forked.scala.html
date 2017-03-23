@@ -49,8 +49,8 @@
 <script>
 $(function(){
   $('a[rel*=facebox]').facebox({
-    'loadingImage': '@helpers.assets/vendors/facebox/loading.gif',
-    'closeImage': '@helpers.assets/vendors/facebox/closelabel.png'
+    'loadingImage': '@helpers.assets("/vendors/facebox/loading.gif")',
+    'closeImage': '@helpers.assets("/vendors/facebox/closelabel.png")'
   });
 
   $(document).on("click", ".js-fork-owner-select-target", function() {

@@ -16,9 +16,9 @@
     </div>
   </div>
   Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>
-  <ul id="commit-file-list" style="display: none;">
+  <ul id="commit-file-list" style="display: none;clear:right">
   @diffs.zipWithIndex.map { case (diff, i) =>
-    <li@if(i > 0){ class="border"}>
+    <li class="border">
       <span class="pull-right diffstat" data-diff-id="@i"></span>
       <a href="#diff-@i">
         @if(diff.changeType == ChangeType.COPY || diff.changeType == ChangeType.RENAME){
@@ -130,8 +130,8 @@
     </tr>
   </table>
 }
-<script type="text/javascript" src="@helpers.assets/vendors/jsdifflib/difflib.js"></script>
-<link href="@helpers.assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script type="text/javascript" src="@helpers.assets("/vendors/jsdifflib/difflib.js")"></script>
+<link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   @if(showIndex){

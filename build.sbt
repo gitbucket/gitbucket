@@ -21,8 +21,8 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.6.0.201612231935-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.6.0.201612231935-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.6.1.201703071140-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.6.1.201703071140-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"               % "3.5.0",
@@ -54,12 +54,13 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",
   "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
+  "org.mockito"                     %  "mockito-core"                 % "2.7.16"         % "test",
   "com.wix"                         %  "wix-embedded-mysql"           % "2.1.4"          % "test",
   "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "1.14"           % "test"
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:_")
+scalacOptions := Seq("-deprecation", "-language:postfixOps")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 

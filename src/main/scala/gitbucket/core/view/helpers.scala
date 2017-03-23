@@ -75,6 +75,21 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   def date(date: Date): String = new SimpleDateFormat("yyyy-MM-dd").format(date)
 
   /**
+   * Format java.util.Date to "yyyyMMDDHHmmss" (for url hash ex. /some/path.css?19800101010203
+   */
+  def hashDate(date: Date): String = new SimpleDateFormat("yyyyMMddHHmmss").format(date)
+
+  /**
+   * java.util.Date of boot timestamp.
+   */
+  val bootDate: Date = new Date()
+
+  /**
+   * hashDate of bootDate for /assets, /plugin-assets
+   */
+  def hashQuery: String = hashDate(bootDate)
+
+  /**
    * Returns singular if count is 1, otherwise plural.
    * If plural is not specified, returns singular + "s" as plural.
    */
@@ -209,7 +224,13 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   /**
    * Returns the url to the root of assets.
    */
+  @deprecated("Use assets(path: String)(implicit context: Context) instead.", "4.11.0")
   def assets(implicit context: Context): String = s"${context.path}/assets"
+
+  /**
+   * Returns the url to the path of assets.
+   */
+  def assets(path: String)(implicit context: Context): String = s"${context.path}/assets${path}?${hashQuery}"
 
   /**
    * Generates the text link to the account page.
@@ -344,6 +365,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     decorateHtml(HtmlFormat.fill(out).toString, repository)
   }
 
+  /**
+   * Decorate a given HTML by TextDecorators which are provided by plug-ins.
+   * TextDecorators are applied to only text parts of a given HTML.
+   */
   def decorateHtml(html: String, repository: RepositoryInfo)(implicit context: Context): String = {
     PluginRegistry().getTextDecorators.foldLeft(html){ case (html, decorator) =>
       val text = new StringBuilder()

@@ -3,6 +3,7 @@ package gitbucket.core.plugin
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import java.nio.file.{Paths, StandardWatchEventKinds}
+import java.util.Base64
 import javax.servlet.ServletContext
 
 import gitbucket.core.controller.{Context, ControllerBase}
@@ -17,7 +18,6 @@ import gitbucket.core.util.Directory._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
-import org.apache.commons.codec.binary.{Base64, StringUtils}
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 
@@ -57,7 +57,7 @@ class PluginRegistry {
   def getPlugins(): List[PluginInfo] = plugins.toList
 
   def addImage(id: String, bytes: Array[Byte]): Unit = {
-    val encoded = StringUtils.newStringUtf8(Base64.encodeBase64(bytes, false))
+    val encoded = Base64.getEncoder.encodeToString(bytes)
     images += ((id, encoded))
   }
 

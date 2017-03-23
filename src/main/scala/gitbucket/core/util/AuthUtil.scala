@@ -1,5 +1,6 @@
 package gitbucket.core.util
 
+import java.util.Base64
 import javax.servlet.http.HttpServletResponse
 
 /**
@@ -13,7 +14,7 @@ object AuthUtil {
 
   def decodeAuthHeader(header: String): String = {
     try {
-      new String(new sun.misc.BASE64Decoder().decodeBuffer(header.substring(6)))
+      new String(Base64.getDecoder.decode(header.substring(6)))
     } catch {
       case _: Throwable => ""
     }

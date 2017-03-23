@@ -44,7 +44,6 @@ object Markdown {
     val renderer = new GitBucketMarkedRenderer(options, repository,
       enableWikiLink, enableRefsLink, enableAnchor, enableTaskList, hasWritePermission, pages)
 
-    //helpers.decorateHtml(Marked.marked(source, options, renderer), repository)
     Marked.marked(source, options, renderer)
   }
 

@@ -13,7 +13,7 @@
     @gitbucket.core.dashboard.html.tab()
     <div class="container">
       <div class="pull-right">
-        <a href="@context.path/activities.atom"><img src="@helpers.assets/common/images/feed.png" alt="activities"></a>
+        <a href="@context.path/activities.atom"><img src="@helpers.assets("/common/images/feed.png")" alt="activities"></a>
       </div>
       @gitbucket.core.helper.html.activities(activities)
     </div>

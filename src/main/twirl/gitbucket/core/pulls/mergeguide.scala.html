@@ -112,20 +112,19 @@
               <p>
                 <span class="strong">Step 1:</span> From your project repository, check out a new branch and test the changes.
               </p>
-              @defining(s"git checkout -b ${pullreq.requestUserName}-${pullreq.requestBranch} ${pullreq.branch}\n" +
-                        s"git pull ${forkedRepository.httpUrl} ${pullreq.requestBranch}"){ command =>
-                @gitbucket.core.helper.html.copy("merge-command", "merge-command-copy-1", command, "position: absolute; right: 31px;")()
-                <pre style="font-size: 12px; border-radius: 3px;" id="merge-command">@Html(command)</pre>
+              @helpers.pre {
+                git checkout -b @{pullreq.requestUserName}-@{pullreq.requestBranch} @{pullreq.branch}
+                git pull @{forkedRepository.httpUrl} @{pullreq.requestBranch}
               }
             </div>
             <div>
               <p>
                 <span class="strong">Step 2:</span> Merge the changes and update on the server.
               </p>
-              @defining(s"git checkout ${pullreq.branch}\ngit merge --no-ff ${pullreq.requestUserName}-${pullreq.requestBranch}\n" +
-                        s"git push origin ${pullreq.branch}"){ command =>
-                @gitbucket.core.helper.html.copy("merge-command-2", "merge-command-copy-2", command, "position: absolute; right: 31px;")()
-                <pre style="font-size: 12px; border-radius: 3px;" id="merge-command-2">@command</pre>
+              @helpers.pre {
+                git checkout @{pullreq.branch}
+                git merge --no-ff @{pullreq.requestUserName}-@{pullreq.requestBranch}
+                git push origin @{pullreq.branch}
               }
             </div>
           </div>

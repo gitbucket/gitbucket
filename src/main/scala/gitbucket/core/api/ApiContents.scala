@@ -1,8 +1,9 @@
 package gitbucket.core.api
 
+import java.util.Base64
+
 import gitbucket.core.util.JGitUtil.FileInfo
 import gitbucket.core.util.RepositoryName
-import org.apache.commons.codec.binary.Base64
 
 case class ApiContents(
   `type`: String,
@@ -20,7 +21,7 @@ object ApiContents{
       ApiContents("dir", fileInfo.name, fileInfo.path, fileInfo.commitId, None, None)(repositoryName)
     } else {
       content.map(arr =>
-        ApiContents("file", fileInfo.name, fileInfo.path, fileInfo.commitId, Some(Base64.encodeBase64String(arr)), Some("base64"))(repositoryName)
+        ApiContents("file", fileInfo.name, fileInfo.path, fileInfo.commitId, Some(Base64.getEncoder.encodeToString(arr)), Some("base64"))(repositoryName)
       ).getOrElse(ApiContents("file", fileInfo.name, fileInfo.path, fileInfo.commitId, None, None)(repositoryName))
     }
   }
