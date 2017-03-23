@@ -150,17 +150,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:userName/_avatar"){
     val userName = params("userName")
-    (for {
-      account <- getAccountByUserName(userName)
-      image <- account.image
-    } yield (account, image)) match {
-      case Some((account, image)) =>
-        response.setDateHeader("Last-Modified", account.updatedDate.getTime)
+    getAccountByUserName(userName).map{ account =>
+      response.setDateHeader("Last-Modified", account.updatedDate.getTime)
+      account.image.map{ image =>
         RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
-      case None =>
+      }.getOrElse{
         contentType = "image/png"
-        response.setDateHeader("Last-Modified", (new Date(0)).getTime)
-        Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
+        (if (account.isGroupAccount) {
+          TextAvatarUtil.textGroupAvatar(account.fullName)
+        } else {
+          TextAvatarUtil.textAvatar(account.fullName)
+        }).getOrElse(Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png"))
+      }
+    }.getOrElse{
+      NotFound()
     }
   }
 
