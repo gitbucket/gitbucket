@@ -3,7 +3,6 @@ package gitbucket.core.plugin
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import java.nio.file.{Paths, StandardWatchEventKinds}
-import java.util.concurrent.TimeUnit
 import javax.servlet.ServletContext
 
 import gitbucket.core.controller.{Context, ControllerBase}
@@ -198,29 +197,37 @@ object PluginRegistry {
     val manager = new JDBCVersionManager(conn)
 
     // Clean installed directory
-    val installedDir = new File(PluginHome, "installed")
+    val installedDir = new File(PluginHome, ".installed")
     if(installedDir.exists){
       FileUtils.deleteDirectory(installedDir)
     }
     installedDir.mkdir()
 
     if(pluginDir.exists && pluginDir.isDirectory){
-      pluginDir.listFiles(new FilenameFilter {
+      val files = pluginDir.listFiles(new FilenameFilter {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-      }).foreach { pluginJar =>
-        // Copy the plugin jar file to GITBUCKET_HOME/plugins/installed
+      }).sortBy(_.lastModified() * -1)
+
+      files.foreach { pluginJar =>
+        // Copy the plugin jar file to GITBUCKET_HOME/plugins/.installed
         val installedJar = new File(installedDir, pluginJar.getName)
         FileUtils.copyFile(pluginJar, installedJar)
 
         val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
           val plugin = classLoader.loadClass("Plugin").newInstance().asInstanceOf[Plugin]
+          val pluginId = plugin.pluginId
+
+          // Check duplication
+          instance.getPlugins().find(_.pluginId == pluginId).foreach { x =>
+            throw new IllegalStateException(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
+          }
 
           // Migration
           val solidbase = new Solidbase()
           solidbase.migrate(conn, classLoader, DatabaseConfig.liquiDriver, new Module(plugin.pluginId, plugin.versions: _*))
 
-          // Check version
+          // Check database version
           val databaseVersion = manager.getCurrentVersion(plugin.pluginId)
           val pluginVersion = plugin.versions.last.getVersion
           if(databaseVersion != pluginVersion){
@@ -238,7 +245,6 @@ object PluginRegistry {
             pluginJar     = pluginJar,
             classLoader   = classLoader
           ))
-
         } catch {
           case e: Throwable => {
             logger.error(s"Error during plugin initialization: ${pluginJar.getAbsolutePath}", e)
@@ -303,7 +309,7 @@ class PluginWatchThread(context: ServletContext) extends Thread with SystemSetti
     try {
       while (watchKey.isValid()) {
         val detectedWatchKey = watcher.take()
-        val events = detectedWatchKey.pollEvents.asScala.filter(_.context.toString != "installed")
+        val events = detectedWatchKey.pollEvents.asScala.filter(_.context.toString != ".installed")
         if(events.nonEmpty){
           events.foreach { event =>
             logger.info(event.kind + ": " + event.context)
