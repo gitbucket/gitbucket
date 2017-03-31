@@ -63,6 +63,13 @@ Support
 
 Release Notes
 -------------
+### 4.11 - 1 Apr 2017
+- Deploy keys support
+- Auto generate avatar images
+- Collaborators of the private forked repository are copied from the original repository
+- Cache avatar images in the browser
+- New extension point to receive events about repository
+
 ### 4.10 - 25 Feb 2017
 - Update to Scala 2.12, Scalatra 2.5 and Slick 3.2
 - Display file size in the file viewer
