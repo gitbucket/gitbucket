@@ -1,6 +1,7 @@
 @(userName: Option[Any] = None,
   password: Option[Any] = None,
   error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.util.DatabaseConfig
 @gitbucket.core.html.main("Sign in"){
   <div class="content-wrapper main-center">
     <div class="content body">
@@ -9,6 +10,12 @@
           <div class="alert alert-info" style="background-color: white; color: #555; border-color: #4183c4; font-size: small; line-height: 120%;">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
             @Html(information)
+          </div>
+        }
+        @if(DatabaseConfig.url.startsWith("jdbc:h2:")) {
+          <div class="alert alert-warning">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            H2 database should be used for evaluation purpose only.
           </div>
         }
         @gitbucket.core.helper.html.error(error)
