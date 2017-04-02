@@ -19,19 +19,25 @@ public class JettyLauncher {
             if(arg.startsWith("--") && arg.contains("=")) {
                 String[] dim = arg.split("=");
                 if(dim.length >= 2) {
-                    if(dim[0].equals("--host")) {
-                        host = dim[1];
-                    } else if(dim[0].equals("--port")) {
-                        port = Integer.parseInt(dim[1]);
-                    } else if(dim[0].equals("--prefix")) {
-                        contextPath = dim[1];
-                        if(!contextPath.startsWith("/")){
-                            contextPath = "/" + contextPath;
-                        }
-                    } else if(dim[0].equals("--gitbucket.home")){
-                        System.setProperty("gitbucket.home", dim[1]);
-                    } else if(dim[0].equals("--temp_dir")){
-                        tmpDirPath = dim[1];
+                    switch (dim[0]) {
+                        case "--host":
+                            host = dim[1];
+                            break;
+                        case "--port":
+                            port = Integer.parseInt(dim[1]);
+                            break;
+                        case "--prefix":
+                            contextPath = dim[1];
+                            if (!contextPath.startsWith("/")) {
+                                contextPath = "/" + contextPath;
+                            }
+                            break;
+                        case "--gitbucket.home":
+                            System.setProperty("gitbucket.home", dim[1]);
+                            break;
+                        case "--temp_dir":
+                            tmpDirPath = dim[1];
+                            break;
                     }
                 }
             }
