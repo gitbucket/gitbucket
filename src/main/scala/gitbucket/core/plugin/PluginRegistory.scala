@@ -175,7 +175,7 @@ object PluginRegistry {
       }).foreach { pluginJar =>
         val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
-          val plugin = classLoader.loadClass("Plugin").newInstance().asInstanceOf[Plugin]
+          val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
 
           // Migration
           val solidbase = new Solidbase()
