@@ -83,7 +83,7 @@ class PluginRegistry {
 
   def addRenderer(extension: String, renderer: Renderer): Unit = renderers += ((extension, renderer))
 
-  def getRenderer(extension: String): Renderer = renderers.get(extension).getOrElse(DefaultRenderer)
+  def getRenderer(extension: String): Renderer = renderers.getOrElse(extension, DefaultRenderer)
 
   def renderableExtensions: Seq[String] = renderers.keys.toSeq
 
