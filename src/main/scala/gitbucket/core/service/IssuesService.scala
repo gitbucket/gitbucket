@@ -111,7 +111,7 @@ trait IssuesService {
       val (_, cs) = status.head
       Some(CommitStatusInfo(
         count        = status.length,
-        successCount = status.filter(_._2.state == CommitState.SUCCESS).length,
+        successCount = status.count(_._2.state == CommitState.SUCCESS),
         context      = (if(status.length == 1) Some(cs.context) else None),
         state        = (if(status.length == 1) Some(cs.state)   else None),
         targetUrl    = (if(status.length == 1) cs.targetUrl     else None),

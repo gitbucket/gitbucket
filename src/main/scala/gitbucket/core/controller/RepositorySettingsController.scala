@@ -157,7 +157,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
-    if(repository.branchList.find(_ == form.defaultBranch).isEmpty){
+    if(!repository.branchList.contains(form.defaultBranch)){
       redirect(s"/${repository.owner}/${repository.name}/settings/options")
     } else {
       saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
@@ -174,7 +174,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/branches/:branch")(ownerOnly { repository =>
     import gitbucket.core.api._
     val branch = params("branch")
-    if(repository.branchList.find(_ == branch).isEmpty){
+    if(!repository.branchList.contains(branch)){
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))

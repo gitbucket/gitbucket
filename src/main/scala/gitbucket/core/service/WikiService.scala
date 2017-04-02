@@ -177,7 +177,7 @@ trait WikiService {
             val headId   = git.getRepository.resolve(Constants.HEAD + "^{commit}")
 
             JGitUtil.processTree(git, headId){ (path, tree) =>
-              if(revertInfo.find(x => x.filePath == path).isEmpty){
+              if(!revertInfo.exists(x => x.filePath == path)){
                 builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
               }
             }

@@ -232,7 +232,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       oldFileName = form.oldFileName,
       content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
       charset     = form.charset,
-      message     = if(form.oldFileName.exists(_ == form.newFileName)){
+      message     = if(form.oldFileName.contains(form.newFileName)){
         form.message.getOrElse(s"Update ${form.newFileName}")
       } else {
         form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
@@ -614,7 +614,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
         val permission = JGitUtil.processTree(git, headTip){ (path, tree) =>
           // Add all entries except the editing file
-          if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
+          if(!newPath.contains(path) && !oldPath.contains(path)){
             builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
           }
           // Retrieve permission if file exists to keep it
