@@ -151,16 +151,16 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_avatar"){
     val userName = params("userName")
     contentType = "image/png"
-    getAccountByUserName(userName).map{ account =>
+    getAccountByUserName(userName).flatMap{ account =>
       response.setDateHeader("Last-Modified", account.updatedDate.getTime)
       account.image.map{ image =>
-        RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
+        Some(RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image)))
       }.getOrElse{
-        (if (account.isGroupAccount) {
+        if (account.isGroupAccount) {
           TextAvatarUtil.textGroupAvatar(account.fullName)
         } else {
           TextAvatarUtil.textAvatar(account.fullName)
-        }).get
+        }
       }
     }.getOrElse{
       response.setHeader("Cache-Control", "max-age=3600")
