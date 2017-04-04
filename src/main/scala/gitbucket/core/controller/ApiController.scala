@@ -125,7 +125,7 @@ trait ApiControllerBase extends ControllerBase {
   get ("/api/v3/repos/:owner/:repo/branches/:branch")(referrersOnly { repository =>
     //import gitbucket.core.api._
     (for{
-      branch     <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
+      branch     <- params.get("branch") if repository.branchList.contains(branch)
       br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
     } yield {
       val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
@@ -287,7 +287,7 @@ trait ApiControllerBase extends ControllerBase {
   patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
     import gitbucket.core.api._
     (for{
-      branch     <- params.get("branch") if repository.branchList.find(_ == branch).isDefined
+      branch     <- params.get("branch") if repository.branchList.contains(branch)
       protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
       br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
     } yield {

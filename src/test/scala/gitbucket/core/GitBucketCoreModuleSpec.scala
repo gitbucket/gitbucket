@@ -29,7 +29,7 @@ class GitBucketCoreModuleSpec extends FunSuite {
   }
 
   test("Migration MySQL", ExternalDBTest){
-    val config = aMysqldConfig(v5_7_10)
+    val config = aMysqldConfig(v5_7_latest)
       .withPort(3306)
       .withUser("sa", "sa")
       .withCharset(Charset.UTF8)
