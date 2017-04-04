@@ -63,7 +63,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   val deployKeyForm = mapping(
     "title"      -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey"  -> trim(label("Key"  , text(required))), // TODO duplication check in the repository?
+    "publicKey"  -> trim2(label("Key" , text(required))), // TODO duplication check in the repository?
     "allowWrite" -> trim(label("Key"  , boolean()))
   )(DeployKeyForm.apply)
 
