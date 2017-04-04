@@ -15,7 +15,6 @@ import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
-import java.util.Date
 
 
 class AccountController extends AccountControllerBase
