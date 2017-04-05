@@ -1,7 +1,7 @@
 Notification Email
 ========
 
-GitBucket sends email to target users by enabling the notification email by an administrator.
+GitBucket can send email notification to users if this feature is enabled by an administrator.
 
 The timing of the notification are as follows:
 
@@ -20,4 +20,4 @@ Notified users are as follows:
 * collaborators
 * participants
 
-However, the operation in person is excluded from the target.
+However, the person performing the operation is excluded from the notification.
