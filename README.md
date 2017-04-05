@@ -1,20 +1,21 @@
 GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
-GitBucket is a Git platform powered by Scala offering:
+GitBucket is a Git web platform powered by Scala offering:
 - Easy installation
+- Intuitive UI
 - High extensibility by plugins
 - API compatibility with GitHub
 
 Features
 --------
-The current version of GitBucket provides a basic features below:
+The current version of GitBucket provides many features such as:
 
 - Public / Private Git repository (http and ssh access)
 - GitLFS support
-- Repository viewer includes online file editor
+- Repository viewer including an online file editor
 - Issues, Pull request and Wiki for repositories
-- Activity timeline and email notification
+- Activity timeline and email notifications
 - Account and group management with LDAP integration
 - Plug-in system
 
@@ -22,7 +23,7 @@ If you want to try the development version of GitBucket, see the [Developer's Gu
 
 Installation
 --------
-GitBucket requires **Java8**. You have to install it if it is not already installed.
+GitBucket requires **Java8**. You have to install it, if it is not already installed.
 
 1. Download the latest **gitbucket.war** from [the releases page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
 2. Go to `http://[hostname]:8080/` and log in with **root** / **root**.
@@ -45,21 +46,24 @@ To upgrade GitBucket, replace `gitbucket.war` with the new version, after stoppi
 
 Plugins
 --------
-GitBucket has a plug-in system to allow extensions to GitBucket. We provide some official plug-ins:
+GitBucket has a plug-in system that allows extra functionality. Officially the following plug-ins are provided:
 
 - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
 - [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
+- [gitbucket-pages-plugin](https://github.com/gitbucket/gitbucket-pages-plugin)
+- [gitbucket-h2-backup-plugin](https://github.com/gitbucket-plugins/gitbucket-h2-backup-plugin)
+- [https://github.com/gitbucket-plugins/gitbucket-announce-plugin](https://github.com/gitbucket-plugins/gitbucket-announce-plugin)
 
 You can find more plugins made by the community at [GitBucket community plugins](http://gitbucket-plugins.github.io/).
 
 Support
 --------
 
-- If you have any questions about GitBucket, send it to the [gitter room](https://gitter.im/gitbucket/gitbucket) before opening an issue.
-- Make sure check whether there is the same question or request in the past.
-- When raise a new issue, write at least the subject in **English**.
-- We can also provide support in Japanese at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
-- The first priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
+- If you have any questions about GitBucket, please use the [gitter room](https://gitter.im/gitbucket/gitbucket) before opening any issue.
+- Make sure to check whether the same question or request was answered in the past (see the closed issues).
+- When raising a new issue, please write at least the subject in **English**.
+- We also provide support in Japanese at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
 Release Notes
 -------------
