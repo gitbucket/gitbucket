@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "joda-time"                       %  "joda-time"                    % "2.9.9",
   "com.novell.ldap"                 %  "jldap"                        % "4.3",
   "com.h2database"                  %  "h2"                           % "1.4.194",
-  "mysql"                           %  "mysql-connector-java"         % "6.0.6",
+  "mysql"                           %  "mysql-connector-java"         % "5.1.41",
   "org.postgresql"                  %  "postgresql"                   % "42.0.0",
   "ch.qos.logback"                  %  "logback-classic"              % "1.2.3",
   "com.zaxxer"                      %  "HikariCP"                     % "2.6.1",
