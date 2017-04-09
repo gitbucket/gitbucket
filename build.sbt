@@ -2,7 +2,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.11.0"
 val ScalatraVersion = "2.5.0"
-val JettyVersion = "9.3.9.v20160517"
+val JettyVersion = "9.4.3.v20170317"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
 
@@ -25,26 +25,26 @@ libraryDependencies ++= Seq(
   "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.7.0.201704051617-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"               % "3.5.0",
+  "org.json4s"                      %% "json4s-jackson"               % "3.5.1",
   "io.github.gitbucket"             %% "scalatra-forms"               % "1.1.0",
-  "commons-io"                      %  "commons-io"                   % "2.4",
-  "io.github.gitbucket"             %  "solidbase"                    % "1.0.0",
+  "commons-io"                      %  "commons-io"                   % "2.5",
+  "io.github.gitbucket"             %  "solidbase"                    % "1.0.1",
   "io.github.gitbucket"             %  "markedj"                      % "1.0.10",
-  "org.apache.commons"              %  "commons-compress"             % "1.11",
+  "org.apache.commons"              %  "commons-compress"             % "1.13",
   "org.apache.commons"              %  "commons-email"                % "1.4",
-  "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.1",
-  "org.apache.sshd"                 %  "apache-sshd"                  % "1.2.0",
-  "org.apache.tika"                 %  "tika-core"                    % "1.13",
+  "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.3",
+  "org.apache.sshd"                 %  "apache-sshd"                  % "1.4.0",
+  "org.apache.tika"                 %  "tika-core"                    % "1.14",
   "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.8",
-  "joda-time"                       %  "joda-time"                    % "2.9.6",
-  "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
-  "com.h2database"                  %  "h2"                           % "1.4.192",
-  "mysql"                           %  "mysql-connector-java"         % "5.1.39",
-  "org.postgresql"                  %  "postgresql"                   % "9.4.1208",
-  "ch.qos.logback"                  %  "logback-classic"              % "1.1.7",
-  "com.zaxxer"                      %  "HikariCP"                     % "2.4.6",
-  "com.typesafe"                    %  "config"                       % "1.3.0",
-  "com.typesafe.akka"               %% "akka-actor"                   % "2.4.12",
+  "joda-time"                       %  "joda-time"                    % "2.9.9",
+  "com.novell.ldap"                 %  "jldap"                        % "4.3",
+  "com.h2database"                  %  "h2"                           % "1.4.194",
+  "mysql"                           %  "mysql-connector-java"         % "6.0.6",
+  "org.postgresql"                  %  "postgresql"                   % "42.0.0",
+  "ch.qos.logback"                  %  "logback-classic"              % "1.2.3",
+  "com.zaxxer"                      %  "HikariCP"                     % "2.6.1",
+  "com.typesafe"                    %  "config"                       % "1.3.1",
+  "com.typesafe.akka"               %% "akka-actor"                   % "2.4.17",
   "fr.brouillard.oss.security.xhub" %  "xhub4j-core"                  % "1.0.0",
   "com.github.bkromhout"            %  "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     %  "cache2k-all"                  % "1.0.0.CR1",
@@ -54,9 +54,9 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",
   "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
-  "org.mockito"                     %  "mockito-core"                 % "2.7.16"         % "test",
+  "org.mockito"                     %  "mockito-core"                 % "2.7.21"         % "test",
   "com.wix"                         %  "wix-embedded-mysql"           % "2.1.4"          % "test",
-  "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "1.14"           % "test"
+  "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "1.23"           % "test"
 )
 
 // Compiler settings
