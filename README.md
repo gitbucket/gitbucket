@@ -51,8 +51,6 @@ GitBucket has a plug-in system that allows extra functionality. Officially the f
 - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
 - [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
 - [gitbucket-pages-plugin](https://github.com/gitbucket/gitbucket-pages-plugin)
-- [gitbucket-h2-backup-plugin](https://github.com/gitbucket-plugins/gitbucket-h2-backup-plugin)
-- [https://github.com/gitbucket-plugins/gitbucket-announce-plugin](https://github.com/gitbucket-plugins/gitbucket-announce-plugin)
 
 You can find more plugins made by the community at [GitBucket community plugins](http://gitbucket-plugins.github.io/).
 
