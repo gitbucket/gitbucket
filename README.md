@@ -2,10 +2,13 @@ GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](htt
 =========
 
 GitBucket is a Git web platform powered by Scala offering:
+
 - Easy installation
 - Intuitive UI
 - High extensibility by plugins
 - API compatibility with GitHub
+
+You can touch GitBucket at the [demo site](https://gitbucket.herokuapp.com/) (ID: root / Pass: root) and get the latest information at [GitBucket News](https://gitbucket.github.io/gitbucket-news/).
 
 Features
 --------
@@ -26,7 +29,7 @@ Installation
 GitBucket requires **Java8**. You have to install it, if it is not already installed.
 
 1. Download the latest **gitbucket.war** from [the releases page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
-2. Go to `http://[hostname]:8080/` and log in with **root** / **root**.
+2. Go to `http://[hostname]:8080/` and log in with ID: **root** / Pass: **root**.
 
 You can specify following options:
 
