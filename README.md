@@ -60,9 +60,10 @@ You can find more plugins made by the community at [GitBucket community plugins]
 Support
 --------
 
-- If you have any questions about GitBucket, check [wiki](https://github.com/gitbucket/gitbucket/wiki) and make sure to check whether the same question or request was answered in the past (see the closed issues) at first.
-- Send your question to the [gitter room](https://gitter.im/gitbucket/gitbucket) instead of raising issue.
-- We can provide support in Japanese at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- If you have any questions about GitBucket, see [Wiki](https://github.com/gitbucket/gitbucket/wiki) and check issues whether there is a same question or request in the past.
+- If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
+- We can also provide support in Japanese other than English at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- Write an issue in English. At least, write subject in English.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
 Release Notes
