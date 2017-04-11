@@ -672,10 +672,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val revision = name.stripSuffix(suffix)
     
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
-      
-      val sha1 = git.getRepository.resolve(revision).getName()
-      
+      val oid = git.getRepository.resolve(revision)
+      val revCommit = JGitUtil.getRevCommitFromId(git, oid)
+      val sha1 = oid.getName()     
       val filename = repository.name + "-" +
         (if(sha1.startsWith(revision)) sha1 else revision).replace('/','-') + suffix
 
