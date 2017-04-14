@@ -8,19 +8,19 @@ GitBucket is a Git web platform powered by Scala offering:
 - High extensibility by plugins
 - API compatibility with GitHub
 
-You can touch GitBucket at the [demo site](https://gitbucket.herokuapp.com/) (ID: root / Pass: root) and get the latest information at [GitBucket News](https://gitbucket.github.io/gitbucket-news/).
+You can try an [online demo](https://gitbucket.herokuapp.com/) *(ID: root / Pass: root)* of GitBucket, and also get the latest information at [GitBucket News](https://gitbucket.github.io/gitbucket-news/).
 
 Features
 --------
 The current version of GitBucket provides many features such as:
 
-- Public / Private Git repository (http and ssh access)
+- Public / Private Git repositories (with http/https and ssh access)
 - GitLFS support
 - Repository viewer including an online file editor
-- Issues, Pull request and Wiki for repositories
+- Issues, Pull Requests and Wiki for repositories
 - Activity timeline and email notifications
 - Account and group management with LDAP integration
-- Plug-in system
+- a Plug-in system
 
 If you want to try the development version of GitBucket, see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
