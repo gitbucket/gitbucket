@@ -556,6 +556,7 @@ pre.commit-description {
   background-color: transparent;
   padding: 2px;
   margin: 0px;
+  white-space: pre-wrap;
 }
 
 #repository-url {
