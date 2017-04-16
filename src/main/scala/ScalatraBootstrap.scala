@@ -47,6 +47,7 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
     context.mount(new MilestonesController, "/*")
     context.mount(new IssuesController, "/*")
     context.mount(new PullRequestsController, "/*")
+    context.mount(new ReleaseController, "/*")
     context.mount(new RepositorySettingsController, "/*")
 
     // Create GITBUCKET_HOME directory if it does not exist

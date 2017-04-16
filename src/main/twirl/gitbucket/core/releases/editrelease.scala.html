@@ -1,0 +1,38 @@
+@(content: Option[String], releaseId: Int,
+repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.helper.html.attached(repository, "releases"){
+<textarea id="edit-content" class="form-control">@content.getOrElse("")</textarea>
+}
+<div>
+  <input type="button" id="cancel-release" class="btn btn-danger" value="Cancel"/>
+  <input type="button" id="update-release" class="btn btn-default pull-right" value="Update comment"/>
+</div>
+<script>
+$(function(){
+  var callback = function(data){
+    $('#update, #cancel').removeAttr('disabled');
+    $('#release-note').empty().html(data.content);
+  };
+
+  $('#update-release').click(function(){
+    $('#update, #cancel').attr('disabled', 'disabled');
+    $.ajax({
+      url: '@context.path/@repository.owner/@repository.name/releases/edit/@releaseId',
+      type: 'POST',
+      data: {
+        content : $('#edit-content').val()
+      }
+    }).done(
+      callback
+    ).fail(function(req) {
+      $('#update, #cancel').removeAttr('disabled');
+    });
+  });
+
+  $('#cancel-release').click(function(){
+    $('#update, #cancel').attr('disabled', 'disabled');
+    $.get('@context.path/@repository.owner/@repository.name/releases/_data/@releaseId', callback);
+    return false;
+  });
+});
+</script>

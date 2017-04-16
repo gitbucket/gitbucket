@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.model.Account
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.service.{AccountService, RepositoryService}
+import gitbucket.core.service.{AccountService, RepositoryService, ReleaseService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
@@ -20,7 +20,11 @@ import org.apache.commons.io.{FileUtils, IOUtils}
  *
  * This servlet saves uploaded file.
  */
-class FileUploadController extends ScalatraServlet with FileUploadSupport with RepositoryService with AccountService {
+class FileUploadController extends ScalatraServlet
+  with FileUploadSupport
+  with RepositoryService
+  with AccountService
+  with ReleaseService{
 
   configureMultipartHandling(MultipartConfig(maxFileSize = Some(3 * 1024 * 1024)))
 
@@ -76,6 +80,25 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
         }, FileUtil.isUploadableType)
       }
     } getOrElse BadRequest()
+  }
+
+  post("/release/:owner/:repository/:id"){
+    session.get(Keys.Session.LoginAccount).collect { case loginAccount: Account =>
+      val owner = params("owner")
+      val repository = params("repository")
+      val releaseId = params("id").toInt
+      val release = getRelease(owner, repository, releaseId)
+      execute({ (file, fileId) =>
+        val fileName = file.getName
+        release.map { rel =>
+          createReleaseAsset(owner, repository, releaseId, fileId, fileName, file.size, loginAccount)
+          FileUtils.writeByteArrayToFile(new java.io.File(
+            getReleaseFilesDir(owner, repository) + s"/${rel.tag}",
+            fileId), file.get)
+          fileName
+        }
+      }, (_ => true))
+    }.getOrElse(BadRequest())
   }
 
   post("/import") {

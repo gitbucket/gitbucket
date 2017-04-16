@@ -1,0 +1,69 @@
+@(repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+tagReleaseMap: Map[String, gitbucket.core.model.Release],
+releaseAssetsMap: Map[gitbucket.core.model.Release, List[gitbucket.core.model.ReleaseAsset]],
+hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Releases" + s" - ${repository.owner}/${repository.name}", Some(repository)){
+@gitbucket.core.html.menu("releases", repository){
+<table class="table table-bordered table-releases">
+  <thead>
+  <tr><th>@tagReleaseMap.count(_ => true) releases</div></th></tr>
+  </thead>
+  <tbody>
+  @repository.tags.reverse.map{ tag =>
+  <tr>
+    <td>
+      @tagReleaseMap.get(tag.name).map{rel =>
+      <div class="col-md-1"><a href="@helpers.url(repository)/tree/@tag.name"><i class="octicon octicon-tag"></i>@tag.name</a></div>
+      <div class="col-md-11" style="border-left: 1px solid #eee">
+        <h3><a href="@helpers.url(repository)/releases/@rel.releaseId">@rel.name</a></h3>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <span class="muted">
+                @helpers.avatar(rel.author, 20)
+                @helpers.user(rel.author, styleClass="username strong")
+                released this @gitbucket.core.helper.html.datetimeago(rel.registeredDate)
+              </span>
+          </div>
+          <div class="panel-body release-note markdown-body">
+            @helpers.markdown(
+            markdown = rel.content getOrElse "No description provided.",
+            repository = repository,
+            enableWikiLink = false,
+            enableRefsLink = true,
+            enableLineBreaks = true,
+            enableTaskList = true,
+            hasWritePermission = hasWritePermission
+            )
+          </div>
+          <h2>Downloads</h2>
+          <ul style="list-style: none">
+            @releaseAssetsMap(rel).map{ asset =>
+            <li><i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@rel.releaseId/assets/@asset.fileName">@asset.label</a></li>
+            }
+          </ul>
+          <ul style="list-style: none;">
+            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(rel.tag)}.zip"><i class="octicon octicon-file-zip"></i>ZIP</a></li>
+            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(rel.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>TAR.GZ</a></li>
+          </ul>
+        </div>
+      </div>
+      }.getOrElse{
+      <div class="col-md-1">
+        @gitbucket.core.helper.html.datetimeago(tag.time) <i class="octicon octicon-tag"></i>
+      </div>
+      <div class="col-md-11" style="border-left: 1px solid #eee">
+        <a href="@helpers.url(repository)/tree/@tag.name"><i class="octicon octicon-tag"></i>@tag.name</a>
+        @if(hasWritePermission){
+        <div class="show-title pull-right">
+          <a class="btn btn-success" href="@helpers.url(repository)/releases/@tag.name/create">Create release</a>
+        </div>
+        }
+      </div>
+      }
+    </td>
+  </tr>
+  }
+  </tbody>
+</table>
+}}

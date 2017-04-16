@@ -63,4 +63,15 @@ protected[model] trait TemplateComponent { self: Profile =>
     def byBranch(owner: String, repository: String, branchName: String) = byRepository(owner, repository) && (branch === branchName.bind)
     def byBranch(owner: Rep[String], repository: Rep[String], branchName: Rep[String]) = byRepository(owner, repository) && (this.branch === branchName)
   }
+
+  trait ReleaseTemplate extends BasicTemplate { self: Table[_] =>
+    val releaseId = column[Int]("RELEASE_ID")
+
+    def byRelease(owner: String, repository: String, releaseId: Int) =
+      byRepository(owner, repository) && (this.releaseId === releaseId.bind)
+
+    def byRelease(userName: Rep[String], repositoryName: Rep[String], releaseId: Rep[Int]) =
+      byRepository(userName, repositoryName) && (this.releaseId === releaseId)
+  }
+
 }

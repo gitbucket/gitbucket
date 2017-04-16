@@ -3,7 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.util._
 import gitbucket.core.util.SyntaxSugars._
-import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role}
+import gitbucket.core.model.{Account, Collaborator, Repository, RepositoryOptions, Role, Release}
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.model.Profile.dateColumnType
@@ -216,6 +216,10 @@ trait RepositoryService { self: AccountService =>
         t.byRepository(repository.userName, repository.repositoryName) && (t.closed === false.bind)
       }.map(_.pullRequest).list
 
+      val releases = Releases.filter { t =>
+        t.byRepository(repository.userName, repository.repositoryName)
+      }.list
+
       new RepositoryInfo(
         JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName),
         repository,
@@ -225,6 +229,7 @@ trait RepositoryService { self: AccountService =>
           repository.originUserName.getOrElse(repository.userName),
           repository.originRepositoryName.getOrElse(repository.repositoryName)
         ),
+        releases.length,
         getRepositoryManagers(repository.userName))
     }
   }
@@ -458,20 +463,20 @@ trait RepositoryService { self: AccountService =>
 object RepositoryService {
 
   case class RepositoryInfo(owner: String, name: String, repository: Repository,
-    issueCount: Int, pullCount: Int, forkedCount: Int,
+    issueCount: Int, pullCount: Int, forkedCount: Int, releaseCount: Int,
     branchList: Seq[String], tags: Seq[JGitUtil.TagInfo], managers: Seq[String]) {
 
     /**
      * Creates instance with issue count and pull request count.
      */
-    def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, managers: Seq[String]) =
-      this(repo.owner, repo.name, model, issueCount, pullCount, forkedCount, repo.branchList, repo.tags, managers)
+    def this(repo: JGitUtil.RepositoryInfo, model: Repository, issueCount: Int, pullCount: Int, forkedCount: Int, releaseCount: Int, managers: Seq[String]) =
+      this(repo.owner, repo.name, model, issueCount, pullCount, forkedCount, releaseCount, repo.branchList, repo.tags, managers)
 
     /**
-     * Creates instance without issue count and pull request count.
+     * Creates instance without issue, pull request and release count.
      */
     def this(repo: JGitUtil.RepositoryInfo, model: Repository, 	forkedCount: Int, managers: Seq[String]) =
-      this(repo.owner, repo.name, model, 0, 0, forkedCount, repo.branchList, repo.tags, managers)
+      this(repo.owner, repo.name, model, 0, 0, forkedCount, 0, repo.branchList, repo.tags, managers)
 
     def httpUrl(implicit context: Context): String = RepositoryService.httpUrl(owner, name)
     def sshUrl(implicit context: Context): Option[String] = RepositoryService.sshUrl(owner, name)

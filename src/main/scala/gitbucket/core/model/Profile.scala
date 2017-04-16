@@ -55,5 +55,7 @@ trait CoreProfile extends ProfileProvider with Profile
   with WebHookEventComponent
   with ProtectedBranchComponent
   with DeployKeyComponent
+  with ReleaseComponent
+  with ReleaseAssetComponent
 
 object Profile extends CoreProfile
