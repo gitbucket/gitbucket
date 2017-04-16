@@ -1,4 +1,5 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.util.DatabaseConfig
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -20,7 +21,17 @@
             </tr>
             <tr>
               <td>DATABASE_URL</td>
-              <td>@gitbucket.core.util.DatabaseConfig.url</td>
+              @if(DatabaseConfig.url.startsWith("jdbc:h2:")) {
+              <td class="danger">
+                <p>@gitbucket.core.util.DatabaseConfig.url</p>
+                <p>Embedded H2 database should be used for evaluation purpose only.</p>
+                <p>
+                  Please configure using external database explained <a href="https://github.com/gitbucket/gitbucket/wiki/External-database-configuration">here</a>.
+                </p>
+              </td>
+              }else{
+                <td>@gitbucket.core.util.DatabaseConfig.url</td>
+              }
             </tr>
           </table>
           <!--====================================================================-->
