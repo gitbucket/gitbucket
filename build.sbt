@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "org.json4s"                      %% "json4s-jackson"               % "3.5.1",
   "io.github.gitbucket"             %% "scalatra-forms"               % "1.1.0",
   "commons-io"                      %  "commons-io"                   % "2.5",
-  "io.github.gitbucket"             %  "solidbase"                    % "1.0.1",
+  "io.github.gitbucket"             %  "solidbase"                    % "1.0.2",
   "io.github.gitbucket"             %  "markedj"                      % "1.0.10",
   "org.apache.commons"              %  "commons-compress"             % "1.13",
   "org.apache.commons"              %  "commons-email"                % "1.4",
@@ -54,7 +54,7 @@ libraryDependencies ++= Seq(
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",
   "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
-  "org.mockito"                     %  "mockito-core"                 % "2.7.21"         % "test",
+  "org.mockito"                     %  "mockito-core"                 % "2.7.22"         % "test",
   "com.wix"                         %  "wix-embedded-mysql"           % "2.1.4"          % "test",
   "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "1.23"           % "test"
 )
