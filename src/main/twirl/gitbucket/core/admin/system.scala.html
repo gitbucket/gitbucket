@@ -24,9 +24,9 @@
               @if(DatabaseConfig.url.startsWith("jdbc:h2:")) {
               <td class="danger">
                 <p>@gitbucket.core.util.DatabaseConfig.url</p>
-                <p>Embedded H2 database should be used for evaluation purpose only.</p>
                 <p>
-                  Please configure using external database explained <a href="https://github.com/gitbucket/gitbucket/wiki/External-database-configuration">here</a>.
+                  Your GitBucket is running on embedded H2 database.
+                  Recommend to <a href="https://github.com/gitbucket/gitbucket/wiki/External-database-configuration">configure to use external database</a> if you would like to use GitBucket for important purpose.
                 </p>
               </td>
               }else{
