@@ -262,11 +262,19 @@ trait RepositoryService { self: AccountService =>
           JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
-        getForkedCount(
-          repository.originUserName.getOrElse(repository.userName),
-          repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ),
-        getRepositoryManagers(repository.userName))
+        if(withoutPhysicalInfo){
+          -1
+        } else {
+          getForkedCount(
+            repository.originUserName.getOrElse(repository.userName),
+            repository.originRepositoryName.getOrElse(repository.repositoryName)
+          )
+        },
+        if(withoutPhysicalInfo){
+          Nil
+        } else {
+          getRepositoryManagers(repository.userName)
+        })
     }
   }
 
