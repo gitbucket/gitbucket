@@ -68,7 +68,7 @@ trait ReleaseControllerBase extends ControllerBase {
     getRelease(repository.owner, repository.name, releaseId).flatMap{ release =>
       getReleaseAsset(repository.owner, repository.name, releaseId, fileId).flatMap{ asset =>
         response.setHeader("Content-Disposition", s"attachment; filename=${asset.label}")
-        Some(RawData(FileUtil.getMimeType(asset.label), new java.io.File(getReleaseFilesDir(repository.owner, repository.name) + s"/${release.tag}", fileId)))
+        Some(RawData(FileUtil.getMimeType(asset.label), new java.io.File(getReleaseFilesDir(repository.owner, repository.name) + s"/${release.releaseId}", fileId)))
       }
     }.getOrElse(NotFound())
   })

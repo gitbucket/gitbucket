@@ -93,7 +93,7 @@ class FileUploadController extends ScalatraServlet
         release.map { rel =>
           createReleaseAsset(owner, repository, releaseId, fileId, fileName, file.size, loginAccount)
           FileUtils.writeByteArrayToFile(new java.io.File(
-            getReleaseFilesDir(owner, repository) + s"/${rel.tag}",
+            getReleaseFilesDir(owner, repository) + s"/${releaseId}",
             fileId), file.get)
           fileName
         }
