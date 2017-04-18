@@ -342,6 +342,8 @@ div.account-image {
 
 ul.dropdown-menu {
   padding: 2px 0;
+  overflow: auto;
+  max-height: 100vh; 
 }
 
 ul.dropdown-menu li {
