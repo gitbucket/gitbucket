@@ -300,7 +300,7 @@ trait RepositoryService { self: AccountService =>
       case None => Repositories filter(_.isPrivate === false.bind)
     }).filter { t =>
       repositoryUserName.map { userName => t.userName === userName.bind } getOrElse LiteralColumn(true)
-    }.sortBy(_.lastActivityDate desc).list.map{ repository =>
+    }.sortBy(_.lastActivityDate desc).list.map { repository =>
       new RepositoryInfo(
         if(withoutPhysicalInfo){
           new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
@@ -308,11 +308,19 @@ trait RepositoryService { self: AccountService =>
           JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
-        getForkedCount(
-          repository.originUserName.getOrElse(repository.userName),
-          repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ),
-        getRepositoryManagers(repository.userName))
+        if(withoutPhysicalInfo){
+          -1
+        } else {
+          getForkedCount(
+            repository.originUserName.getOrElse(repository.userName),
+            repository.originRepositoryName.getOrElse(repository.repositoryName)
+          )
+        },
+        if(withoutPhysicalInfo) {
+          Nil
+        } else {
+          getRepositoryManagers(repository.userName)
+        })
     }
   }
 
