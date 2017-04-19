@@ -139,6 +139,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
         }
       }
+      // Move release directory
+      defining(getReleaseFilesDir(repository.owner, repository.name)){ dir =>
+        if(dir.isDirectory) {
+          FileUtils.moveDirectory(dir, getReleaseFilesDir(repository.owner, form.repositoryName))
+        }
+      }
       // Delete parent directory
       FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
 
@@ -350,6 +356,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         defining(getLfsDir(repository.owner, repository.name)){ dir =>
           if(dir.isDirectory()) {
             FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
+          }
+        }
+        // Move release directory
+        defining(getReleaseFilesDir(repository.owner, repository.name)){ dir =>
+          if(dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getReleaseFilesDir(form.newOwner, repository.name))
           }
         }
         // Delere parent directory

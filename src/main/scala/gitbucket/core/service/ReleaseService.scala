@@ -15,15 +15,15 @@ trait ReleaseService {
 
   def createReleaseAsset(owner: String, repository: String, releaseId: Int, fileName: String, label: String, size: Long, loginAccount: Account)(implicit s: Session): Unit = {
     ReleaseAssets insert ReleaseAsset(
-      owner,
-      repository,
-      releaseId,
-      fileName,
-      label,
-      size,
-      loginAccount.userName,
-      currentDate,
-      currentDate
+      userName = owner,
+      repositoryName = repository,
+      releaseId = releaseId,
+      fileName = fileName,
+      label = label,
+      size = size,
+      uploader = loginAccount.userName,
+      registeredDate = currentDate,
+      updatedDate = currentDate
     )
   }
 
