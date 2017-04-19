@@ -31,6 +31,7 @@
     <column name="USER_NAME" type="varchar(100)" nullable="false"/>
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="RELEASE_ID" type="int" nullable="false"/>
+    <column name="RELEASE_ASSET_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
     <column name="FILE_NAME" type="varchar(260)" nullable="false"/>
     <column name="LABEL" type="varchar(100)" nullable="true"/>
     <column name="SIZE" type="bigint" nullable="false"/>

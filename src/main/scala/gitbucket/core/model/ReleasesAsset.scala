@@ -11,6 +11,7 @@ trait ReleaseAssetComponent extends TemplateComponent {
   lazy val ReleaseAssets = TableQuery[ReleaseAssets]
 
   class ReleaseAssets(tag : Tag) extends Table[ReleaseAsset](tag, "RELEASE_ASSET") with ReleaseTemplate {
+    val releaseAssetId = column[Int]("RELEASE_ASSET_ID", O AutoInc)
     val fileName = column[String]("FILE_NAME")
     val label = column[String]("LABEL")
     val size = column[Long]("SIZE")
@@ -18,7 +19,7 @@ trait ReleaseAssetComponent extends TemplateComponent {
     val registeredDate = column[Date]("REGISTERED_DATE")
     val updatedDate = column[Date]("UPDATED_DATE")
 
-    def * = (userName, repositoryName, releaseId, fileName, label, size, uploader, registeredDate, updatedDate) <> (ReleaseAsset.tupled, ReleaseAsset.unapply)
+    def * = (userName, repositoryName, releaseId, releaseAssetId, fileName, label, size, uploader, registeredDate, updatedDate) <> (ReleaseAsset.tupled, ReleaseAsset.unapply)
 
     def byPrimaryKey(owner: String, repository: String, releaseId: Int, fileName: String) = byRelease(owner, repository, releaseId) && (this.fileName === fileName.bind)
   }
@@ -29,6 +30,7 @@ case class ReleaseAsset(
   userName: String,
   repositoryName: String,
   releaseId: Int,
+  releaseAssetId: Int = 0,
   fileName: String,
   label: String,
   size: Long,
