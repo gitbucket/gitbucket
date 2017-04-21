@@ -4,7 +4,7 @@
 @gitbucket.core.html.menu("releases", repository){
 <form action="@helpers.url(repository)/releases/@tag/create" method="POST" validate="true" class="form-group">
   <div class="row-fluid">
-    <div class="col-md-9">
+    <div class="col-md-12">
       <h3>New release for @tag</h3>
       <span id="error-title" class="error"></span>
       <input type="text" id="release-name" name="name" class="form-control" value="" placeholder="Title" style="margin-bottom: 6px;" autofocus/>
