@@ -6,14 +6,7 @@ trait ReleaseComponent extends TemplateComponent {
   import profile.api._
   import self._
 
-  lazy val ReleaseId = TableQuery[ReleaseId]
   lazy val Releases = TableQuery[Releases]
-
-  class ReleaseId(tag: Tag) extends Table[(String, String, Int)](tag, "RELEASE_ID") with ReleaseTemplate {
-    def * = (userName, repositoryName, releaseId)
-
-    def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
-  }
 
   class Releases(tag_ : Tag) extends Table[Release](tag_, "RELEASE") with ReleaseTemplate {
     val name = column[String]("NAME")

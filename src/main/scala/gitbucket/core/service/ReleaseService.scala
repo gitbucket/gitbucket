@@ -55,10 +55,19 @@ trait ReleaseService {
 
   def createRelease(repository: RepositoryInfo, name: String, content:Option[String], tag: String,
     isDraft: Boolean, isPrerelease: Boolean, loginAccount: Account)(implicit context: Context, s: Session): Release = {
-    val releaseId = insertRelease(repository.owner, repository.name, loginAccount.userName, name, tag,
-    content, isDraft, isPrerelease)
-    val release = getRelease(repository.owner, repository.name, releaseId.toString).get
-    release
+    Releases insert Release(
+      userName = repository.owner,
+      repositoryName = repository.name,
+      name = name,
+      tag = tag,
+      author = loginAccount.userName,
+      content = content,
+      isDraft = isDraft,
+      isPrerelease = isPrerelease,
+      registeredDate = currentDate,
+      updatedDate = currentDate
+    )
+    getReleaseByTag(repository.owner, repository.name, tag).get
   }
 
   def getReleases(owner: String, repository: String)(implicit s: Session): List[Release] = {
@@ -67,6 +76,10 @@ trait ReleaseService {
 
   def getRelease(owner: String, repository: String, releaseId: Int)(implicit s: Session): Option[Release] = {
     Releases filter (_.byPrimaryKey(owner, repository, releaseId)) firstOption
+  }
+
+  def getReleaseByTag(owner: String, repository: String, tag: String)(implicit s: Session): Option[Release] = {
+    Releases filter (_.byTag(owner, repository, tag)) firstOption
   }
 
   def getRelease(owner: String, repository: String, releaseId: String)(implicit s: Session): Option[Release] = {
@@ -78,38 +91,6 @@ trait ReleaseService {
   def getReleaseTagMap(owner: String, repository: String)(implicit s: Session): Map[String, Release] = {
     val releases = getReleases(owner, repository)
     releases.map(rel => (rel.tag -> rel)).toMap
-  }
-
-  def insertRelease(owner: String, repository: String, loginUser: String, name: String, tag: String,
-    content: Option[String], isDraft: Boolean, isPrerelease: Boolean)(implicit s: Session): Int = {
-    // next id number
-    val id = sql"SELECT RELEASE_ID + 1 FROM RELEASE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
-      .firstOption.getOrElse(1)
-    Releases insert Release(
-      owner,
-      repository,
-      id,
-      name,
-      tag,
-      loginUser,
-      content,
-      isDraft,
-      isPrerelease,
-      currentDate,
-      currentDate
-    )
-
-    // increment issue id
-    if (id > 1){
-      ReleaseId
-        .filter(_.byPrimaryKey(owner, repository))
-        .map(_.releaseId)
-        .update(id) > 0
-    }else{
-      ReleaseId.insert(owner, repository, id)
-    }
-
-    id
   }
 
   def updateRelease(owner: String, repository: String, releaseId: Int, title: String, content: Option[String])(implicit s: Session): Int = {
