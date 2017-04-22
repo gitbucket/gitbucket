@@ -74,6 +74,8 @@ trait RepositoryService { self: AccountService =>
         val protectedBranches       = ProtectedBranches      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val protectedBranchContexts = ProtectedBranchContexts.filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val deployKeys              = DeployKeys             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val releases                = Releases               .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val releaseAssets           = ReleaseAssets          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
           (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
@@ -114,6 +116,8 @@ trait RepositoryService { self: AccountService =>
         ProtectedBranches      .insertAll(protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ProtectedBranchContexts.insertAll(protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         DeployKeys             .insertAll(deployKeys    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Releases               .insertAll(releases      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        ReleaseAssets          .insertAll(releaseAssets .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update source repository of pull requests
         PullRequests.filter { t =>
@@ -166,6 +170,8 @@ trait RepositoryService { self: AccountService =>
     WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     WebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
     DeployKeys    .filter(_.byRepository(userName, repositoryName)).delete
+    ReleaseAssets .filter(_.byRepository(userName, repositoryName)).delete
+    Releases      .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME

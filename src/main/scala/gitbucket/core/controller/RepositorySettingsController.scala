@@ -385,6 +385,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
+      FileUtils.deleteDirectory(getReleaseFilesDir(repository.owner, repository.name))
       val lfsDir = getLfsDir(repository.owner, repository.name)
       FileUtils.deleteDirectory(lfsDir)
       FileUtil.deleteDirectoryIfEmpty(lfsDir.getParentFile())
