@@ -125,13 +125,9 @@ $(function(){
   });
   $('#delete-release').click(function(){
     if(confirm('Are you sure you want to delete this?')) {
-      var id = $(this).closest('a').data('comment-id');
-      $.post('@helpers.url(repository)/issue_comments/delete/' + id,
+      $.post('@helpers.url(repository)/releases/delete/' + @release.releaseId,
       function(data){
-        if(data > 0) {
-          $('#comment-' + id).prev('div.issue-avatar-image').remove();
-          $('#comment-' + id).remove();
-        }
+        location.href = "@helpers.url(repository)/releases";
       });
     }
     return false;

@@ -88,10 +88,9 @@ trait ReleaseControllerBase extends ControllerBase {
     redirect(s"/${release.userName}/${release.repositoryName}/releases/${release.releaseId}")
   })
 
-  get("/:owner/:repository/release/delete/:id")(writableUsersOnly { repository =>
+  ajaxPost("/:owner/:repository/releases/delete/:id")(writableUsersOnly { repository =>
     deleteRelease(repository.owner, repository.name, params("id"))
-
-    redirect(s"/${repository.owner}/${repository.name}/releases")
+    org.json4s.jackson.Serialization.write(Map("message" -> "ok"))
   })
 
   ajaxPost("/:owner/:repository/releases/edit_title/:id", releaseTitleEditForm)(writableUsersOnly { (title, repository) =>
