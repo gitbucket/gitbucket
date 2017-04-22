@@ -66,6 +66,9 @@ repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit co
             <i class="octicon octicon-file"></i>
             <a href="@helpers.url(repository)/releases/@release.releaseId/assets/@asset.fileName">@asset.label</a>
             <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
+            @if(hasWritePermission){
+            <a href="#" data-asset-file-name="@asset.fileName" class="label label-danger delete-asset">Delete</a>
+            }
           </li>
           }
         </ul>
@@ -79,6 +82,16 @@ repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit co
 </div>
 <script>
 $(function(){
+  $('.delete-asset').click(function(){
+    var name = $(this).data('asset-file-name');
+    var url = '@helpers.url(repository)/releases/@release.releaseId/assets/delete/' + name;
+    var li = $(this).closest('li');
+    $.post(url,
+    function(data){
+      li.remove();
+    });
+    return false;
+  });
   $('#edit').click(function(){
     $('.edit-title').show();
     $('.show-title').hide();

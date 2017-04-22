@@ -49,8 +49,12 @@ trait ReleaseService {
     else None
   }
 
-  def deleteReleaseAssets(owner: String, repository: String, releaseId: Int)(implicit s: Session): Unit = {
+  def deleteReleaseAssets(owner: String, repository: String, releaseId: Int)(implicit s:Session): Unit = {
     ReleaseAssets.filter(x => x.byRelease(owner, repository, releaseId)) delete
+  }
+
+  def deleteReleaseAsset(owner: String, repository: String, releaseId: Int, fileId: String)(implicit s: Session): Unit = {
+    ReleaseAssets.filter(x => x.byPrimaryKey(owner, repository, releaseId, fileId)) delete
   }
 
   def createRelease(repository: RepositoryInfo, name: String, content:Option[String], tag: String,

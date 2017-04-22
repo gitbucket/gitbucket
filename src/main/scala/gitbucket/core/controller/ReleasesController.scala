@@ -1,13 +1,16 @@
 package gitbucket.core.controller
 
-import gitbucket.core.service.{RepositoryService, AccountService, ReleaseService, ActivityService}
-import gitbucket.core.util.{ReferrerAuthenticator, ReadableUsersAuthenticator, WritableUsersAuthenticator, FileUtil, Notifier}
+import java.io.File
+
+import gitbucket.core.service.{AccountService, ActivityService, ReleaseService, RepositoryService}
+import gitbucket.core.util.{FileUtil, Notifier, ReadableUsersAuthenticator, ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.view.Markdown
 import io.github.gitbucket.scalatra.forms._
 import gitbucket.core.releases.html
+import org.apache.commons.io.FileUtils
 
 class ReleaseController extends ReleaseControllerBase
   with RepositoryService
@@ -68,10 +71,24 @@ trait ReleaseControllerBase extends ControllerBase {
     getRelease(repository.owner, repository.name, releaseId).flatMap{ release =>
       getReleaseAsset(repository.owner, repository.name, releaseId, fileId).flatMap{ asset =>
         response.setHeader("Content-Disposition", s"attachment; filename=${asset.label}")
-        Some(RawData(FileUtil.getMimeType(asset.label), new java.io.File(getReleaseFilesDir(repository.owner, repository.name) + s"/${release.releaseId}", fileId)))
+        Some(RawData(FileUtil.getMimeType(asset.label), new File(getReleaseFilesDir(repository.owner, repository.name) + s"/${release.releaseId}", fileId)))
       }
     }.getOrElse(NotFound())
   })
+
+  ajaxPost("/:owner/:repository/releases/:id/assets/delete/:fileId")(writableUsersOnly { repository =>
+    val releaseId = params("id")
+    val fileId = params("fileId")
+    for(
+      release <- getRelease(repository.owner, repository.name, releaseId.toInt);
+      asset <- getReleaseAsset(repository.owner, repository.name, releaseId, fileId)
+    ){
+      FileUtils.forceDelete(new File(getReleaseFilesDir(repository.owner, repository.name) + s"/${release.releaseId}", fileId))
+    }
+    deleteReleaseAsset(repository.owner, repository.name, params("id").toInt, params("fileId"))
+    org.json4s.jackson.Serialization.write(Map("message" -> "ok"))
+  })
+
 
   get("/:owner/:repository/releases/:tag/create")(writableUsersOnly {repository =>
     val tag = params("tag")
@@ -89,6 +106,11 @@ trait ReleaseControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/releases/delete/:id")(writableUsersOnly { repository =>
+    for(
+      release <- getRelease(repository.owner, repository.name, params("id"))
+    ){
+      FileUtils.deleteDirectory(new File(getReleaseFilesDir(repository.owner, repository.name) + s"/${release.releaseId}"))
+    }
     deleteRelease(repository.owner, repository.name, params("id"))
     org.json4s.jackson.Serialization.write(Map("message" -> "ok"))
   })

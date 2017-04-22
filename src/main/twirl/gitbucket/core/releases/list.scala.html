@@ -13,21 +13,21 @@ hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context
   @repository.tags.reverse.map{ tag =>
   <tr>
     <td>
-      @tagReleaseMap.get(tag.name).map{rel =>
+      @tagReleaseMap.get(tag.name).map{release =>
       <div class="col-md-1"><a href="@helpers.url(repository)/tree/@tag.name"><i class="octicon octicon-tag"></i>@tag.name</a></div>
       <div class="col-md-11" style="border-left: 1px solid #eee">
-        <h3><a href="@helpers.url(repository)/releases/@rel.releaseId">@rel.name</a></h3>
+        <h3><a href="@helpers.url(repository)/releases/@release.releaseId">@release.name</a></h3>
         <div class="panel panel-default">
           <div class="panel-heading">
             <span class="muted">
-                @helpers.avatar(rel.author, 20)
-                @helpers.user(rel.author, styleClass="username strong")
-                released this @gitbucket.core.helper.html.datetimeago(rel.registeredDate)
+                @helpers.avatar(release.author, 20)
+                @helpers.user(release.author, styleClass="username strong")
+                released this @gitbucket.core.helper.html.datetimeago(release.registeredDate)
               </span>
           </div>
           <div class="panel-body release-note markdown-body">
             @helpers.markdown(
-            markdown = rel.content getOrElse "No description provided.",
+            markdown = release.content getOrElse "No description provided.",
             repository = repository,
             enableWikiLink = false,
             enableRefsLink = true,
@@ -38,13 +38,17 @@ hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context
           </div>
           <h2>Downloads</h2>
           <ul style="list-style: none">
-            @releaseAssetsMap(rel).map{ asset =>
-            <li><i class="octicon octicon-file"></i><a href="@helpers.url(repository)/releases/@rel.releaseId/assets/@asset.fileName">@asset.label</a></li>
+            @releaseAssetsMap(release).map{ asset =>
+            <li>
+              <i class="octicon octicon-file"></i>
+              <a href="@helpers.url(repository)/releases/@release.releaseId/assets/@asset.fileName">@asset.label</a>
+              <span class="label label-default">@helpers.readableSize(Some(asset.size))</span>
+            </li>
             }
           </ul>
           <ul style="list-style: none;">
-            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(rel.tag)}.zip"><i class="octicon octicon-file-zip"></i>ZIP</a></li>
-            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(rel.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>TAR.GZ</a></li>
+            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.zip"><i class="octicon octicon-file-zip"></i>ZIP</a></li>
+            <li><a href="@helpers.url(repository)/archive/@{helpers.encodeRefName(release.tag)}.tar.gz"><i class="octicon octicon-file-zip"></i>TAR.GZ</a></li>
           </ul>
         </div>
       </div>
