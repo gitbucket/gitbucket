@@ -143,6 +143,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       defining(getReleaseFilesDir(repository.owner, repository.name)){ dir =>
         if(dir.isDirectory) {
           FileUtils.moveDirectory(dir, getReleaseFilesDir(repository.owner, form.repositoryName))
+      // Move attached directory
+      defining(getAttachedDir(repository.owner, repository.name)){ dir =>
+        if(dir.isDirectory) {
+          FileUtils.moveDirectory(dir, getAttachedDir(repository.owner, form.repositoryName))
         }
       }
       // Delete parent directory
@@ -362,6 +366,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         defining(getReleaseFilesDir(repository.owner, repository.name)){ dir =>
           if(dir.isDirectory) {
             FileUtils.moveDirectory(dir, getReleaseFilesDir(form.newOwner, repository.name))
+        // Move attached directory
+        defining(getAttachedDir(repository.owner, repository.name)){ dir =>
+          if(dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getAttachedDir(form.newOwner, repository.name))
           }
         }
         // Delere parent directory

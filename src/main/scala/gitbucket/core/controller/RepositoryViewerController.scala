@@ -675,8 +675,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       val oid = git.getRepository.resolve(revision)
       val revCommit = JGitUtil.getRevCommitFromId(git, oid)
       val sha1 = oid.getName()     
-      val filename = repository.name + "-" +
-        (if(sha1.startsWith(revision)) sha1 else revision).replace('/','-') + suffix
+      val repositorySuffix = (if(sha1.startsWith(revision)) sha1 else revision).replace('/','-')
+      val filename = repository.name + "-" + repositorySuffix + suffix
 
       contentType = "application/octet-stream"
       response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
@@ -684,6 +684,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
       git.archive
          .setFormat(suffix.tail)
+         .setPrefix(repository.name + "-" + repositorySuffix + "/")
          .setTree(revCommit)
          .setOutputStream(response.getOutputStream)
          .call()
