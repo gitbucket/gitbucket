@@ -14,11 +14,11 @@
     } else {
       <li><form class="sidebar-form"><input type="text" id="filter-box" class="form-control input-sm" placeholder="Find repository"/></form></li>
       @userRepositories.zipWithIndex.map { case (repository, i) =>
-        <li class="repo-link">
+        <li class="repo-link treeview">
           @if(repository.owner == context.loginAccount.get.userName){
             <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <span class="strong">@repository.name</span></a>
           } else {
-            <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) @repository.owner/<span class="strong">@repository.name</span></a>
+          <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <span>@repository.owner/<span class="strong">@repository.name</span></span></a>
           }
         </li>
       }
@@ -30,8 +30,8 @@
     } else {
       <li><form class="sidebar-form"><input type="text" id="filter-box" class="form-control input-sm" placeholder="Find repository"/></form></li>
       @recentRepositories.zipWithIndex.map { case (repository, i) =>
-        <li class="repo-link">
-          <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) @repository.owner/<span class="strong">@repository.name</span></a>
+        <li class="repo-link treeview">
+          <a href="@helpers.url(repository)">@gitbucket.core.helper.html.repositoryicon(repository, false) <span>@repository.owner/<span class="strong">@repository.name</span></span></a>
         </li>
       }
     }

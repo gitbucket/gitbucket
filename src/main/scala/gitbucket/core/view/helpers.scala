@@ -412,4 +412,30 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    */
   def readableSize(size: Option[Long]): String = FileUtil.readableSize(size.getOrElse(0))
 
+
+  /**
+    *
+    * @param icon icon name: fa-* or octicon-*, for compatibility, it accepts name of octicon without octicon- prefix.
+    * @return icon tag String
+    */
+  def menuicon(icon:String): Html = {
+    icon match {
+      case i if i.startsWith("fa-") =>
+        Html(s"""<i class="menu-icon fa ${i}"></i>""")
+      case i if i.startsWith("octicon-") =>
+        Html(s"""<i class="menu-icon octicon ${i}"></i>""")
+      case i =>
+        Html(s"""<i class="menu-icon octicon octicon-${i}"></i>""")
+    }
+  }
+
+  /**
+    * make menu icon with octicon/font-awesome with Option[String]
+    * @param icon icon name: fa-* or octicon-*, for compatibility, it accepts name of octicon without octicon- prefix.
+    * @param defaultIcon default name for icon == None
+    * @return icon tag String
+    */
+  def menuicon(icon: Option[String], defaultIcon: String): Html = {
+    menuicon(icon.getOrElse(defaultIcon))
+  }
 }

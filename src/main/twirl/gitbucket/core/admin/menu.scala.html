@@ -1,26 +1,38 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 <div class="main-sidebar">
   <div class="sidebar">
     <ul class="sidebar-menu" id="system-admin-menu-container">
       <li@if(active=="users"){ class="active"}>
-        <a href="@context.path/admin/users">User management</a>
+        <a href="@context.path/admin/users">
+          @helpers.menuicon("octicon-person")<span>User management</span>
+        </a>
       </li>
       <li@if(active=="system"){ class="active"}>
-        <a href="@context.path/admin/system">System settings</a>
+        <a href="@context.path/admin/system">
+          @helpers.menuicon("octicon-gear")<span>System settings</span></a>
       </li>
       <li@if(active=="plugins"){ class="active"}>
-        <a href="@context.path/admin/plugins">Plugins</a>
+        <a href="@context.path/admin/plugins">
+          @helpers.menuicon("octicon-plug")<span>Plugins</span>
+        </a>
       </li>
       <li@if(active=="data"){ class="active"}>
-        <a href="@context.path/admin/data">Data export / import</a>
+        <a href="@context.path/admin/data">
+          @helpers.menuicon("octicon-database")<span>Data export / import</span>
+        </a>
       </li>
       <li>
-        <a href="@context.path/console/login.jsp" target="_blank">H2 console</a>
+        <a href="@context.path/console/login.jsp" target="_blank">
+          @helpers.menuicon("octicon-database")<span>H2 console</span>
+        </a>
       </li>
       @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
         @menu(context).map { link =>
           <li@if(active==link.id){ class="active"}>
-            <a href="@context.path/@link.path">@link.label</a>
+            <a href="@context.path/@link.path">
+              @helpers.menuicon(link.icon, "octicon-plug")<span>@link.label</span>
+            </a>
           </li>
         }
       }

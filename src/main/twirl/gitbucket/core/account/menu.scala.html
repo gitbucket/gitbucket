@@ -1,22 +1,35 @@
 @(active: String, ssh: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 <div class="main-sidebar">
   <div class="sidebar">
     <ul class="sidebar-menu">
       <li@if(active=="profile"){ class="active"}>
-        <a href="@context.path/@context.loginAccount.get.userName/_edit">Profile</a>
+        <a href="@context.path/@context.loginAccount.get.userName/_edit">
+          @helpers.menuicon("octicon-person")
+          <span>Profile</span>
+        </a>
       </li>
       @if(ssh){
       <li@if(active=="ssh"){ class="active"}>
-        <a href="@context.path/@context.loginAccount.get.userName/_ssh">SSH Keys</a>
+        <a href="@context.path/@context.loginAccount.get.userName/_ssh">
+          @helpers.menuicon("key")
+          <span>SSH Keys</span>
+        </a>
       </li>
       }
       <li@if(active=="application"){ class="active"}>
-        <a href="@context.path/@context.loginAccount.get.userName/_application">Applications</a>
+        <a href="@context.path/@context.loginAccount.get.userName/_application">
+          @helpers.menuicon("rocket")
+          <span>Applications</span>
+        </a>
       </li>
       @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
         @menu(context).map { link =>
           <li@if(active==link.id){ class="active"}>
-            <a href="@context.path/@link.path">@link.label</a>
+            <a href="@context.path/@link.path">
+              @helpers.menuicon(link.icon, "octicon-plug")
+              <span>@link.label</span>
+            </a>
           </li>
         }
       }
