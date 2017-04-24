@@ -268,8 +268,10 @@ li.repo-link, li.page-link {
   padding-top: 4px;
   padding-bottom: 4px;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+}
+body:not(.sidebar-collapse) li.repo-link, li.page-link{
+  overflow: hidden;
 }
 
 div.box-content-bottom {
@@ -343,7 +345,7 @@ div.account-image {
 ul.dropdown-menu {
   padding: 2px 0;
   overflow: auto;
-  max-height: 100vh; 
+  max-height: 100vh;
 }
 
 ul.dropdown-menu li {
@@ -1765,4 +1767,21 @@ body.page-load * {
     -ms-transition: none !important;
     -o-transition: none !important;
     transition: none !important;
+}
+
+body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.label.pull-right-container {
+  display: inline !important;
+  position: absolute;
+  top: 9px;
+  right: 7px;
+  text-align: center;
+  font-size: 9px;
+  padding: 2px 3px;
+  line-height: .9;
+}
+
+body.sidebar-collapse .main-sidebar li.treeview:hover span.label.pull-right-container {
+  left: 180px !important;
+  margin-left: 0px;
+  padding: 12px 20px 12px 20px;
 }
