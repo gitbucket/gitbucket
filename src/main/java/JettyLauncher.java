@@ -8,6 +8,8 @@ import java.security.ProtectionDomain;
 
 public class JettyLauncher {
     public static void main(String[] args) throws Exception {
+        System.setProperty("java.awt.headless", "true");
+
         String host = null;
         int port = 8080;
         InetSocketAddress address = null;
