@@ -32,7 +32,7 @@ $(function(){
   $('#@{filter}-input').keyup(function() {
     var inputVal = $('#@{filter}-input').val();
     $.each($('#@{filter}-input').parent().parent().find('a'), function(index, elem) {
-      if (!inputVal || !elem.text.trim() || elem.text.trim().lastIndexOf(inputVal, 0) >= 0) {
+      if (!inputVal || !elem.text.trim() || elem.text.trim().match(new RegExp(inputVal,'i'))) {
         $(elem).parent().show();
       } else {
         $(elem).parent().hide();
@@ -42,3 +42,4 @@ $(function(){
 });
 </script>
 }
+
