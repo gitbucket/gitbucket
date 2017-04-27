@@ -223,11 +223,12 @@ $(function(){
 </script>
 <script>
   function dropdownFilter(dropdownItem,placeHolder,id) {
-    $('<li><input id="'+id+'" type="text" class="form-control input-sm dropdown-filter-input" placeholder="'+placeHolder+'"/></li>').insertBefore($("li:has(a"+dropdownItem+"):first"));
+    $('<li><input id="' + id + '" type="text" class="form-control input-sm dropdown-filter-input" placeholder="' + placeHolder + '"/></li>')
+      .insertBefore($("li:has(a" + dropdownItem + "):first"));
     $('#'+id).keyup(function() {
       var inputVal = $('#'+id).val();
       $.each($('#'+id).parent().parent().find('a'), function(index, elem) {
-        if (!inputVal || !elem.text.trim() || elem.text.trim().match(new RegExp(inputVal, 'i'))) {
+        if (!inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0) {
           $(elem).parent().show();
         } else {
           $(elem).parent().hide();
