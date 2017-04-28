@@ -49,7 +49,7 @@ $(function(){
   $('#filter-box').keyup(function(){
     var inputVal = $('#filter-box').val();
     $.each($('li.repo-link a'), function(index, elem) {
-      if (!inputVal || !elem.text.trim() || elem.text.trim().match(new RegExp(inputVal,'i'))) {
+      if ( !inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0 ) {
         $(elem).parent().show();
       } else {
         $(elem).parent().hide();

@@ -31,7 +31,7 @@
     $('#branch-control-input').keyup(function() {
       var inputVal = $('#branch-control-input').val();
       $.each($('#branch-control-input').parent().parent().find('a'), function(index, elem) {
-        if (!inputVal || !elem.text.trim() || elem.text.trim().match(new RegExp(inputVal,'i'))) {
+        if (!inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0) {
           $(elem).parent().show();
         } else {
           $(elem).parent().hide();
