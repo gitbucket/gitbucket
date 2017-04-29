@@ -40,10 +40,6 @@ abstract class ControllerBase extends ScalatraFilter
     contentType = formats("json")
   }
 
-// TODO Scala 2.11
-//  // Don't set content type via Accept header.
-//  override def format(implicit request: HttpServletRequest) = ""
-
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = try {
     val httpRequest  = request.asInstanceOf[HttpServletRequest]
     val httpResponse = response.asInstanceOf[HttpServletResponse]
@@ -151,13 +147,17 @@ abstract class ControllerBase extends ScalatraFilter
       }
     }
 
-  // TODO Scala 2.11
-  override def url(path: String, params: Iterable[(String, Any)] = Iterable.empty,
-                   includeContextPath: Boolean = true, includeServletPath: Boolean = true,
-                   absolutize: Boolean = true, withSessionId: Boolean = true)
-                  (implicit request: HttpServletRequest, response: HttpServletResponse): String =
-    if (path.startsWith("http")) path
-    else baseUrl + super.url(path, params, false, false, false)
+  /**
+   * Extends scalatra-form's trim rule to eliminate CR and LF.
+   */
+  protected def trim2[T](valueType: SingleValueType[T]): SingleValueType[T] = new SingleValueType[T](){
+    def convert(value: String, messages: Messages): T = valueType.convert(trim(value), messages)
+
+    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Seq[(String, String)] =
+      valueType.validate(name, trim(value), params, messages)
+
+    private def trim(value: String): String = if(value == null) null else value.replaceAll("\r\n", "").trim
+  }
 
   /**
    * Use this method to response the raw data against XSS.

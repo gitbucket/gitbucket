@@ -342,6 +342,8 @@ div.account-image {
 
 ul.dropdown-menu {
   padding: 2px 0;
+  overflow: auto;
+  max-height: 100vh; 
 }
 
 ul.dropdown-menu li {
@@ -556,6 +558,7 @@ pre.commit-description {
   background-color: transparent;
   padding: 2px;
   margin: 0px;
+  white-space: pre-wrap;
 }
 
 #repository-url {

@@ -21,7 +21,7 @@ trait MilestonesService {
   def updateMilestone(milestone: Milestone)(implicit s: Session): Unit =
     Milestones
       .filter (t =>  t.byPrimaryKey(milestone.userName, milestone.repositoryName, milestone.milestoneId))
-      .map    (t => (t.title, t.description.?, t.dueDate.?, t.closedDate.?))
+      .map    (t => (t.title, t.description, t.dueDate, t.closedDate))
       .update (milestone.title, milestone.description, milestone.dueDate, milestone.closedDate)
 
   def openMilestone(milestone: Milestone)(implicit s: Session): Unit =

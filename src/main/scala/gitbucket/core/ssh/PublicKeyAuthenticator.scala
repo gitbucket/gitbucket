@@ -68,7 +68,7 @@ class PublicKeyAuthenticator(genericUser: String) extends PublickeyAuthenticator
   private def authenticateGenericUser(userName: String, key: PublicKey, session: ServerSession, genericUser: String)(implicit s: Session): Boolean = {
     // find all users having the key we got from ssh
     val possibleUserNames = getAllKeys().filter { sshKey =>
-      SshUtil.str2PublicKey(sshKey.publicKey).exists(_ == key)
+      SshUtil.str2PublicKey(sshKey.publicKey).contains(key)
     }.map(_.userName).distinct
 
     // determine the user - if different accounts share the same key, tough luck
@@ -85,7 +85,7 @@ class PublicKeyAuthenticator(genericUser: String) extends PublickeyAuthenticator
     }.getOrElse {
       // search deploy keys
       val existsDeployKey = getAllDeployKeys().exists { sshKey =>
-        SshUtil.str2PublicKey(sshKey.publicKey).exists(_ == key)
+        SshUtil.str2PublicKey(sshKey.publicKey).contains(key)
       }
       if(existsDeployKey){
         // found deploy key for repository

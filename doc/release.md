@@ -34,8 +34,6 @@ object GitBucketCoreModule extends Module("gitbucket-core",
 Generate release files
 --------
 
-Note: Release operation requires [Ant](http://ant.apache.org/) and [Maven](https://maven.apache.org/).
-
 ### Make release war file
 
 Run `sbt executable`. The release war file and fingerprint are generated into `target/executable/gitbucket.war`.
@@ -52,4 +50,12 @@ For plug-in development, we have to publish the GitBucket jar file to the Maven 
 $ sbt publish-signed
 ```
 
-Then operate release sequence at https://oss.sonatype.org/.
+Then logged-in https://oss.sonatype.org/ and delete following files from the staging repository:
+
+- gitbucket_2.12-x.x.x.war
+- gitbucket_2.12-x.x.x.war.asc
+- gitbucket_2.12-x.x.x.war.asc.md5
+- gitbucket_2.12-x.x.x.war.asc.sha1
+- gitbucket_2.12-x.x.x.war.md5
+
+At last, close and release the repository.

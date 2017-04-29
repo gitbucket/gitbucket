@@ -105,7 +105,7 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
         }
       }
       case AuthType.DeployKeyType(key) => {
-        getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).exists(_ == key)) match {
+        getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).contains(key)) match {
           case List(_) => true
           case _ => false
         }
@@ -123,7 +123,7 @@ abstract class DefaultGitCommand(val owner: String, val repoName: String) extend
         }
       }
       case AuthType.DeployKeyType(key) => {
-        getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).exists(_ == key)) match {
+        getDeployKeys(owner, repoName).filter(sshKey => SshUtil.str2PublicKey(sshKey.publicKey).contains(key)) match {
           case List(x) if x.allowWrite => true
           case _ => false
         }

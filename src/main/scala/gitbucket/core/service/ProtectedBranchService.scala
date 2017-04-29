@@ -76,7 +76,7 @@ object ProtectedBranchService {
     includeAdministrators: Boolean) extends AccountService with CommitStatusService {
 
     def isAdministrator(pusher: String)(implicit session: Session): Boolean =
-      pusher == owner || getGroupMembers(owner).filter(gm => gm.userName == pusher && gm.isManager).nonEmpty
+      pusher == owner || getGroupMembers(owner).exists(gm => gm.userName == pusher && gm.isManager)
 
     /**
      * Can't be force pushed

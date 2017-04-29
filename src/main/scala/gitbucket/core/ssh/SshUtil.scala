@@ -18,16 +18,17 @@ object SshUtil {
     val parts = key.split(" ")
     if (parts.size < 2) {
       logger.debug(s"Invalid PublicKey Format: ${key}")
-      return None
-    }
-    try {
-      val encodedKey = parts(1)
-      val decode = Base64.getDecoder.decode(Constants.encodeASCII(encodedKey))
-      Some(new ByteArrayBuffer(decode).getRawPublicKey)
-    } catch {
-      case e: Throwable =>
-        logger.debug(e.getMessage, e)
-        None
+      None
+    } else {
+      try {
+        val encodedKey = parts(1)
+        val decode = Base64.getDecoder.decode(Constants.encodeASCII(encodedKey))
+        Some(new ByteArrayBuffer(decode).getRawPublicKey)
+      } catch {
+        case e: Throwable =>
+          logger.debug(e.getMessage, e)
+          None
+      }
     }
   }
 

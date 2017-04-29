@@ -1,6 +1,6 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.10.0"
+val GitBucketVersion = "4.12.0"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.9.v20160517"
 
@@ -10,7 +10,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.2"
 
 // dependency settings
 resolvers ++= Seq(
@@ -21,8 +21,8 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.6.1.201703071140-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.6.1.201703071140-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.7.0.201704051617-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.7.0.201704051617-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"               % "3.5.0",
