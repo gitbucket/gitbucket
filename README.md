@@ -1,4 +1,4 @@
-GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
+0;95;0cGitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
 GitBucket is a Git web platform powered by Scala offering:
@@ -68,6 +68,11 @@ Support
 
 Release Notes
 -------------
+### 4.12 - 30 Apr 2017
+- Gist plug-in provides JavaScript to embed snippet
+- Dropdown menu filter in the branch comparing page
+- Caution for the embedded H2 database
+
 ### 4.11 - 1 Apr 2017
 - Deploy keys support
 - Auto generate avatar images
