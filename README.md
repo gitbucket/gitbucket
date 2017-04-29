@@ -69,7 +69,7 @@ Support
 Release Notes
 -------------
 ### 4.12 - 30 Apr 2017
-- Gist plug-in provides JavaScript to embed snippet
+- [Gist plug-in](https://github.com/gitbucket/gitbucket-gist-plugin) provides JavaScript to embed snippet
 - Dropdown menu filter in the branch comparing page
 - Caution for the embedded H2 database
 
