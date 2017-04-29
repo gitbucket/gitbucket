@@ -1,4 +1,6 @@
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
@@ -93,7 +95,9 @@ public class JettyLauncher {
             context.setInitParameter("org.scalatra.ForceHttps", "true");
         }
 
-        server.setHandler(context);
+        Handler handler = addStatisticsHandler(context);
+
+        server.setHandler(handler);
         server.setStopAtShutdown(true);
         server.setStopTimeout(7_000);
         server.start();
@@ -121,5 +125,13 @@ public class JettyLauncher {
             }
         }
         dir.delete();
+    }
+
+    private static Handler addStatisticsHandler(Handler handler) {
+        // The graceful shutdown is implemented via the statistics handler.
+        // See the following: https://bugs.eclipse.org/bugs/show_bug.cgi?id=420142
+        final StatisticsHandler statisticsHandler = new StatisticsHandler();
+        statisticsHandler.setHandler(handler);
+        return statisticsHandler;
     }
 }
