@@ -1,3 +1,5 @@
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -5,6 +7,8 @@ import java.io.File;
 import java.net.URL;
 import java.net.InetSocketAddress;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
+import java.util.Collection;
 
 public class JettyLauncher {
     public static void main(String[] args) throws Exception {
@@ -61,6 +65,11 @@ public class JettyLauncher {
 //        connector.setSoLingerTime(-1);
 //        connector.setPort(port);
 //        server.addConnector(connector);
+
+        // Disabling Server header
+        Arrays.stream(server.getConnectors()).map(Connector::getConnectionFactories).flatMap(Collection::stream)
+                .filter(HttpConnectionFactory.class::isInstance).map(HttpConnectionFactory.class::cast)
+                .map(HttpConnectionFactory::getHttpConfiguration).forEach(config -> config.setSendServerVersion(false));
 
         WebAppContext context = new WebAppContext();
 
