@@ -1,4 +1,7 @@
+import org.eclipse.jetty.server.ConnectionFactory;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -63,6 +66,15 @@ public class JettyLauncher {
 //        connector.setSoLingerTime(-1);
 //        connector.setPort(port);
 //        server.addConnector(connector);
+
+        // Disabling Server header
+        for (Connector connector : server.getConnectors()) {
+            for (ConnectionFactory factory : connector.getConnectionFactories()) {
+                if (factory instanceof HttpConnectionFactory) {
+                    ((HttpConnectionFactory) factory).getHttpConfiguration().setSendServerVersion(false);
+                }
+            }
+        }
 
         WebAppContext context = new WebAppContext();
 
