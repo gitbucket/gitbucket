@@ -1,31 +1,35 @@
 GitBucket [![Gitter chat](https://badges.gitter.im/gitbucket/gitbucket.png)](https://gitter.im/gitbucket/gitbucket) [![Build Status](https://travis-ci.org/gitbucket/gitbucket.svg?branch=master)](https://travis-ci.org/gitbucket/gitbucket)
 =========
 
-GitBucket is a Git platform powered by Scala offering:
+GitBucket is a Git web platform powered by Scala offering:
+
 - Easy installation
+- Intuitive UI
 - High extensibility by plugins
 - API compatibility with GitHub
 
+You can try an [online demo](https://gitbucket.herokuapp.com/) *(ID: root / Pass: root)* of GitBucket, and also get the latest information at [GitBucket News](https://gitbucket.github.io/gitbucket-news/).
+
 Features
 --------
-The current version of GitBucket provides a basic features below:
+The current version of GitBucket provides many features such as:
 
-- Public / Private Git repository (http and ssh access)
+- Public / Private Git repositories (with http/https and ssh access)
 - GitLFS support
-- Repository viewer includes online file editor
-- Issues, Pull request and Wiki for repositories
-- Activity timeline and email notification
+- Repository viewer including an online file editor
+- Issues, Pull Requests and Wiki for repositories
+- Activity timeline and email notifications
 - Account and group management with LDAP integration
-- Plug-in system
+- a Plug-in system
 
 If you want to try the development version of GitBucket, see the [Developer's Guide](https://github.com/gitbucket/gitbucket/blob/master/doc/how_to_run.md).
 
 Installation
 --------
-GitBucket requires **Java8**. You have to install it if it is not already installed.
+GitBucket requires **Java8**. You have to install it, if it is not already installed.
 
 1. Download the latest **gitbucket.war** from [the releases page](https://github.com/gitbucket/gitbucket/releases) and run it by `java -jar gitbucket.war`.
-2. Go to `http://[hostname]:8080/` and log in with **root** / **root**.
+2. Go to `http://[hostname]:8080/` and log in with ID: **root** / Pass: **root**.
 
 You can specify following options:
 
@@ -45,24 +49,30 @@ To upgrade GitBucket, replace `gitbucket.war` with the new version, after stoppi
 
 Plugins
 --------
-GitBucket has a plug-in system to allow extensions to GitBucket. We provide some official plug-ins:
+GitBucket has a plug-in system that allows extra functionality. Officially the following plug-ins are provided:
 
 - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
 - [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
+- [gitbucket-pages-plugin](https://github.com/gitbucket/gitbucket-pages-plugin)
 
 You can find more plugins made by the community at [GitBucket community plugins](http://gitbucket-plugins.github.io/).
 
 Support
 --------
 
-- If you have any questions about GitBucket, send it to the [gitter room](https://gitter.im/gitbucket/gitbucket) before opening an issue.
-- Make sure check whether there is the same question or request in the past.
-- When raise a new issue, write at least the subject in **English**.
-- We can also provide support in Japanese at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
-- The first priority of GitBucket is easy installation and API compatibility with GitHub, so we might reject if your request is against it.
+- If you have any questions about GitBucket, see [Wiki](https://github.com/gitbucket/gitbucket/wiki) and check issues whether there is a same question or request in the past.
+- If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
+- We can also provide support in Japanese other than English at [gitter room for Japanese](https://gitter.im/gitbucket/gitbucket_ja).
+- Write an issue in English. At least, write subject in English.
+- The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
 Release Notes
 -------------
+### 4.12 - 30 Apr 2017
+- [Gist plug-in](https://github.com/gitbucket/gitbucket-gist-plugin) provides JavaScript to embed snippet
+- Dropdown menu filter in the branch comparing page
+- Caution for the embedded H2 database
+
 ### 4.11 - 1 Apr 2017
 - Deploy keys support
 - Auto generate avatar images

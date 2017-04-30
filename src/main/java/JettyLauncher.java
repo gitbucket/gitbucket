@@ -1,4 +1,9 @@
+import org.eclipse.jetty.server.ConnectionFactory;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
@@ -8,6 +13,8 @@ import java.security.ProtectionDomain;
 
 public class JettyLauncher {
     public static void main(String[] args) throws Exception {
+        System.setProperty("java.awt.headless", "true");
+
         String host = null;
         int port = 8080;
         InetSocketAddress address = null;
@@ -60,6 +67,15 @@ public class JettyLauncher {
 //        connector.setPort(port);
 //        server.addConnector(connector);
 
+        // Disabling Server header
+        for (Connector connector : server.getConnectors()) {
+            for (ConnectionFactory factory : connector.getConnectionFactories()) {
+                if (factory instanceof HttpConnectionFactory) {
+                    ((HttpConnectionFactory) factory).getHttpConfiguration().setSendServerVersion(false);
+                }
+            }
+        }
+
         WebAppContext context = new WebAppContext();
 
         File tmpDir;
@@ -91,7 +107,9 @@ public class JettyLauncher {
             context.setInitParameter("org.scalatra.ForceHttps", "true");
         }
 
-        server.setHandler(context);
+        Handler handler = addStatisticsHandler(context);
+
+        server.setHandler(handler);
         server.setStopAtShutdown(true);
         server.setStopTimeout(7_000);
         server.start();
@@ -119,5 +137,13 @@ public class JettyLauncher {
             }
         }
         dir.delete();
+    }
+
+    private static Handler addStatisticsHandler(Handler handler) {
+        // The graceful shutdown is implemented via the statistics handler.
+        // See the following: https://bugs.eclipse.org/bugs/show_bug.cgi?id=420142
+        final StatisticsHandler statisticsHandler = new StatisticsHandler();
+        statisticsHandler.setHandler(handler);
+        return statisticsHandler;
     }
 }

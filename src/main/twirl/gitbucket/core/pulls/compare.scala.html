@@ -221,3 +221,27 @@ $(function(){
   }
 });
 </script>
+<script>
+  function dropdownFilter(dropdownItem,placeHolder,id) {
+    $('<li><input id="' + id + '" type="text" class="form-control input-sm dropdown-filter-input" placeholder="' + placeHolder + '"/></li>')
+      .insertBefore($("li:has(a" + dropdownItem + "):first"));
+    $('#'+id).keyup(function() {
+      var inputVal = $('#'+id).val();
+      $.each($('#'+id).parent().parent().find('a'), function(index, elem) {
+        if (!inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0) {
+          $(elem).parent().show();
+        } else {
+          $(elem).parent().hide();
+        }
+      });
+    });
+  }
+
+  $(function(){
+    dropdownFilter('.origin-owner', 'Find Repository...', 'origin-owner-control-input');
+    dropdownFilter('.origin-branch','Find Branch...',     'origin-branch-control-input');
+    dropdownFilter('.forked-owner', 'Find Repository...', 'forked-owner-control-input');
+    dropdownFilter('.forked-branch','Find Branch...',     'forked-branch-control-input');
+  });
+</script>
+

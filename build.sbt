@@ -1,6 +1,6 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.11.0"
+val GitBucketVersion = "4.12.0"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.4.3.v20170317"
 
@@ -10,7 +10,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.2"
 
 // dependency settings
 resolvers ++= Seq(
@@ -60,7 +60,7 @@ libraryDependencies ++= Seq(
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 

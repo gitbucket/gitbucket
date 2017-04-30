@@ -40,7 +40,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )
 
   val optionsForm = mapping(
-    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), identifier, renameRepositoryName))),
+    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), repository, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
     "issuesOption"      -> trim(label("Issues Option"      , text(required, featureOption))),
@@ -137,6 +137,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       defining(getLfsDir(repository.owner, repository.name)){ dir =>
         if(dir.isDirectory) {
           FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
+        }
+      }
+      // Move attached directory
+      defining(getAttachedDir(repository.owner, repository.name)){ dir =>
+        if(dir.isDirectory) {
+          FileUtils.moveDirectory(dir, getAttachedDir(repository.owner, form.repositoryName))
         }
       }
       // Delete parent directory
@@ -350,6 +356,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         defining(getLfsDir(repository.owner, repository.name)){ dir =>
           if(dir.isDirectory()) {
             FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
+          }
+        }
+        // Move attached directory
+        defining(getAttachedDir(repository.owner, repository.name)){ dir =>
+          if(dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getAttachedDir(form.newOwner, repository.name))
           }
         }
         // Delere parent directory
