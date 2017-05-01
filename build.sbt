@@ -2,7 +2,7 @@ val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.12.0"
 val ScalatraVersion = "2.5.0"
-val JettyVersion = "9.4.3.v20170317"
+val JettyVersion = "9.4.4.v20170414"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
 
@@ -38,13 +38,13 @@ libraryDependencies ++= Seq(
   "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.8",
   "joda-time"                       %  "joda-time"                    % "2.9.9",
   "com.novell.ldap"                 %  "jldap"                        % "4.3",
-  "com.h2database"                  %  "h2"                           % "1.4.194",
+  "com.h2database"                  %  "h2"                           % "1.4.195",
   "mysql"                           %  "mysql-connector-java"         % "6.0.6",
   "org.postgresql"                  %  "postgresql"                   % "42.0.0",
   "ch.qos.logback"                  %  "logback-classic"              % "1.2.3",
   "com.zaxxer"                      %  "HikariCP"                     % "2.6.1",
   "com.typesafe"                    %  "config"                       % "1.3.1",
-  "com.typesafe.akka"               %% "akka-actor"                   % "2.4.17",
+  "com.typesafe.akka"               %% "akka-actor"                   % "2.5.0",
   "fr.brouillard.oss.security.xhub" %  "xhub4j-core"                  % "1.0.0",
   "com.github.bkromhout"            %  "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     %  "cache2k-all"                  % "1.0.0.CR1",
