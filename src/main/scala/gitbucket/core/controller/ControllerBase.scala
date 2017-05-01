@@ -147,6 +147,13 @@ abstract class ControllerBase extends ScalatraFilter
       }
     }
 
+  override def url(path: String, params: Iterable[(String, Any)] = Iterable.empty,
+                   includeContextPath: Boolean = true, includeServletPath: Boolean = true,
+                   absolutize: Boolean = true, withSessionId: Boolean = true)
+                  (implicit request: HttpServletRequest, response: HttpServletResponse): String =
+    if (path.startsWith("http")) path
+    else baseUrl + super.url(path, params, false, false, false)
+
   /**
    * Extends scalatra-form's trim rule to eliminate CR and LF.
    */
