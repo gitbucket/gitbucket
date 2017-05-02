@@ -200,12 +200,14 @@ object PluginRegistry {
       using(fc.tryLock()){ lock =>
         if(lock == null){
           if(retry >= 3){ // Retry max 3 times
-            logger.info(s"Retire to load: ${from.getAbsolutePath}")
+            logger.info(s"Retire to install plugin: ${from.getAbsolutePath}")
           } else {
+            logger.info(s"Retry ${retry + 1} to install plugin: ${from.getAbsolutePath}")
             Thread.sleep(500)
             copyFile(from, to, retry + 1)
           }
         } else {
+          logger.info(s"Install plugin: ${from.getAbsolutePath}")
           FileUtils.copyFile(from, to)
         }
       }
@@ -341,6 +343,7 @@ class PluginWatchThread(context: ServletContext) extends Thread with SystemSetti
           gitbucket.core.servlet.Database() withTransaction { session =>
             logger.info("Reloading plugins...")
             PluginRegistry.reload(context, loadSystemSettings(), session.conn)
+            logger.info("Reloading finished.")
           }
         }
         detectedWatchKey.reset()
