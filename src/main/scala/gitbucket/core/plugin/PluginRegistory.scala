@@ -3,7 +3,7 @@ package gitbucket.core.plugin
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import java.nio.channels.{FileChannel, FileLock}
-import java.nio.file.{Paths, StandardOpenOption, StandardWatchEventKinds}
+import java.nio.file.{Files, Paths, StandardOpenOption, StandardWatchEventKinds}
 import java.util.Base64
 import javax.servlet.ServletContext
 
@@ -320,6 +320,9 @@ class PluginWatchThread(context: ServletContext) extends Thread with SystemSetti
 
   override def run(): Unit = {
     val path = Paths.get(PluginHome)
+    if(!Files.exists(path)){
+      Files.createDirectories(path)
+    }
     val fs = path.getFileSystem
     val watcher = fs.newWatchService
 
