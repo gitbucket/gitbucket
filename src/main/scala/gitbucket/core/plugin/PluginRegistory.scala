@@ -2,7 +2,8 @@ package gitbucket.core.plugin
 
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
-import java.nio.file.{Paths, StandardWatchEventKinds}
+import java.nio.channels.{FileChannel, FileLock}
+import java.nio.file.{Paths, StandardOpenOption, StandardWatchEventKinds}
 import java.util.Base64
 import javax.servlet.ServletContext
 
@@ -194,6 +195,23 @@ object PluginRegistry {
     }
   }
 
+  private def copyFile(from: File, to: File, retry: Int = 0): Unit = {
+    using(FileChannel.open(from.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)){ fc =>
+      using(fc.tryLock()){ lock =>
+        if(lock == null){
+          if(retry >= 3){ // Retry max 3 times
+            logger.info(s"Retire to load: ${from.getAbsolutePath}")
+          } else {
+            Thread.sleep(500)
+            copyFile(from, to, retry + 1)
+          }
+        } else {
+          FileUtils.copyFile(from, to)
+        }
+      }
+    }
+  }
+
   /**
    * Initializes all installed plugins.
    */
@@ -216,7 +234,7 @@ object PluginRegistry {
       files.foreach { pluginJar =>
         // Copy the plugin jar file to GITBUCKET_HOME/plugins/.installed
         val installedJar = new File(installedDir, pluginJar.getName)
-        FileUtils.copyFile(pluginJar, installedJar)
+        copyFile(pluginJar, installedJar)
 
         val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
