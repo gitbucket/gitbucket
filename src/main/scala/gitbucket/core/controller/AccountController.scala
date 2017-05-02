@@ -15,7 +15,6 @@ import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
-import java.util.Date
 
 
 class AccountController extends AccountControllerBase
@@ -61,31 +60,31 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val sshKeyForm = mapping(
     "title"     -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey" -> trim(label("Key"  , text(required, validPublicKey)))
+    "publicKey" -> trim2(label("Key" , text(required, validPublicKey)))
   )(SshKeyForm.apply)
 
   val personalTokenForm = mapping(
-    "note"     -> trim(label("Token", text(required, maxlength(100))))
+    "note" -> trim(label("Token", text(required, maxlength(100))))
   )(PersonalTokenForm.apply)
 
   case class NewGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String], members: String)
   case class EditGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
 
   val newGroupForm = mapping(
-    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
+    "groupName"   -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "description" -> trim(label("Group description", optional(text()))),
-    "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
-    "fileId"    -> trim(label("File ID"    ,optional(text()))),
-    "members"   -> trim(label("Members"    ,text(required, members)))
+    "url"         -> trim(label("URL"        ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"    ,optional(text()))),
+    "members"     -> trim(label("Members"    ,text(required, members)))
   )(NewGroupForm.apply)
 
   val editGroupForm = mapping(
-    "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
+    "groupName"   -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
     "description" -> trim(label("Group description", optional(text()))),
-    "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
-    "fileId"     -> trim(label("File ID"     ,optional(text()))),
-    "members"    -> trim(label("Members"     ,text(required, members))),
-    "clearImage" -> trim(label("Clear image" ,boolean()))
+    "url"         -> trim(label("URL"         ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"     ,optional(text()))),
+    "members"     -> trim(label("Members"     ,text(required, members))),
+    "clearImage"  -> trim(label("Clear image" ,boolean()))
   )(EditGroupForm.apply)
 
   case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
@@ -150,20 +149,21 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:userName/_avatar"){
     val userName = params("userName")
-    getAccountByUserName(userName).map{ account =>
+    contentType = "image/png"
+    getAccountByUserName(userName).flatMap{ account =>
       response.setDateHeader("Last-Modified", account.updatedDate.getTime)
       account.image.map{ image =>
-        RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
+        Some(RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image)))
       }.getOrElse{
-        contentType = "image/png"
-        (if (account.isGroupAccount) {
+        if (account.isGroupAccount) {
           TextAvatarUtil.textGroupAvatar(account.fullName)
         } else {
           TextAvatarUtil.textAvatar(account.fullName)
-        }).getOrElse(Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png"))
+        }
       }
     }.getOrElse{
-      NotFound()
+      response.setHeader("Cache-Control", "max-age=3600")
+      Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
     }
   }
 

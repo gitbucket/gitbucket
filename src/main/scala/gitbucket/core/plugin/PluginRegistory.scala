@@ -86,7 +86,7 @@ class PluginRegistry {
 
   def addRenderer(extension: String, renderer: Renderer): Unit = renderers += ((extension, renderer))
 
-  def getRenderer(extension: String): Renderer = renderers.get(extension).getOrElse(DefaultRenderer)
+  def getRenderer(extension: String): Renderer = renderers.getOrElse(extension, DefaultRenderer)
 
   def renderableExtensions: Seq[String] = renderers.keys.toSeq
 
@@ -220,7 +220,7 @@ object PluginRegistry {
 
         val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
-          val plugin = classLoader.loadClass("Plugin").newInstance().asInstanceOf[Plugin]
+          val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
           val pluginId = plugin.pluginId
 
           // Check duplication

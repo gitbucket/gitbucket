@@ -232,7 +232,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       oldFileName = form.oldFileName,
       content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
       charset     = form.charset,
-      message     = if(form.oldFileName.exists(_ == form.newFileName)){
+      message     = if(form.oldFileName.contains(form.newFileName)){
         form.message.getOrElse(s"Update ${form.newFileName}")
       } else {
         form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
@@ -614,7 +614,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
         val permission = JGitUtil.processTree(git, headTip){ (path, tree) =>
           // Add all entries except the editing file
-          if(!newPath.exists(_ == path) && !oldPath.exists(_ == path)){
+          if(!newPath.contains(path) && !oldPath.contains(path)){
             builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
           }
           // Retrieve permission if file exists to keep it
@@ -670,12 +670,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   private def archiveRepository(name: String, suffix: String, repository: RepositoryService.RepositoryInfo): Unit = {
     val revision = name.stripSuffix(suffix)
-
-    val filename = repository.name + "-" +
-      (if(revision.length == 40) revision.substring(0, 10) else revision).replace('/', '_') + suffix
-
+    
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(revision))
+      val oid = git.getRepository.resolve(revision)
+      val revCommit = JGitUtil.getRevCommitFromId(git, oid)
+      val sha1 = oid.getName()     
+      val repositorySuffix = (if(sha1.startsWith(revision)) sha1 else revision).replace('/','-')
+      val filename = repository.name + "-" + repositorySuffix + suffix
 
       contentType = "application/octet-stream"
       response.setHeader("Content-Disposition", s"attachment; filename=${filename}")
@@ -683,6 +684,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
       git.archive
          .setFormat(suffix.tail)
+         .setPrefix(repository.name + "-" + repositorySuffix + "/")
          .setTree(revCommit)
          .setOutputStream(response.getOutputStream)
          .call()

@@ -40,7 +40,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   )
 
   val optionsForm = mapping(
-    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), identifier, renameRepositoryName))),
+    "repositoryName"    -> trim(label("Repository Name"    , text(required, maxlength(100), repository, renameRepositoryName))),
     "description"       -> trim(label("Description"        , optional(text()))),
     "isPrivate"         -> trim(label("Repository Type"    , boolean())),
     "issuesOption"      -> trim(label("Issues Option"      , text(required, featureOption))),
@@ -63,7 +63,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   val deployKeyForm = mapping(
     "title"      -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey"  -> trim(label("Key"  , text(required))), // TODO duplication check in the repository?
+    "publicKey"  -> trim2(label("Key" , text(required))), // TODO duplication check in the repository?
     "allowWrite" -> trim(label("Key"  , boolean()))
   )(DeployKeyForm.apply)
 
@@ -139,6 +139,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
         }
       }
+      // Move attached directory
+      defining(getAttachedDir(repository.owner, repository.name)){ dir =>
+        if(dir.isDirectory) {
+          FileUtils.moveDirectory(dir, getAttachedDir(repository.owner, form.repositoryName))
+        }
+      }
       // Delete parent directory
       FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
 
@@ -157,7 +163,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
 
   /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
-    if(repository.branchList.find(_ == form.defaultBranch).isEmpty){
+    if(!repository.branchList.contains(form.defaultBranch)){
       redirect(s"/${repository.owner}/${repository.name}/settings/options")
     } else {
       saveRepositoryDefaultBranch(repository.owner, repository.name, form.defaultBranch)
@@ -174,7 +180,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/branches/:branch")(ownerOnly { repository =>
     import gitbucket.core.api._
     val branch = params("branch")
-    if(repository.branchList.find(_ == branch).isEmpty){
+    if(!repository.branchList.contains(branch)){
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
@@ -350,6 +356,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
         defining(getLfsDir(repository.owner, repository.name)){ dir =>
           if(dir.isDirectory()) {
             FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
+          }
+        }
+        // Move attached directory
+        defining(getAttachedDir(repository.owner, repository.name)){ dir =>
+          if(dir.isDirectory) {
+            FileUtils.moveDirectory(dir, getAttachedDir(form.newOwner, repository.name))
           }
         }
         // Delere parent directory

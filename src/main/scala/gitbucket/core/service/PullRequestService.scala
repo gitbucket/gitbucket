@@ -265,7 +265,7 @@ object PullRequestService {
       val summary = stateMap.map{ case (keyState, states) => states.size+" "+keyState.name }.mkString(", ")
       state -> summary
     }
-    lazy val statusesAndRequired:List[(CommitStatus, Boolean)] = statuses.map{ s => s -> branchProtection.contexts.exists(_==s.context) }
+    lazy val statusesAndRequired:List[(CommitStatus, Boolean)] = statuses.map{ s => s -> branchProtection.contexts.contains(s.context) }
     lazy val isAllSuccess = commitStateSummary._1==CommitState.SUCCESS
   }
 }

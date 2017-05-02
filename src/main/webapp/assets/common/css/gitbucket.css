@@ -342,6 +342,8 @@ div.account-image {
 
 ul.dropdown-menu {
   padding: 2px 0;
+  overflow: auto;
+  max-height: 100vh; 
 }
 
 ul.dropdown-menu li {
@@ -556,6 +558,7 @@ pre.commit-description {
   background-color: transparent;
   padding: 2px;
   margin: 0px;
+  white-space: pre-wrap;
 }
 
 #repository-url {
@@ -586,6 +589,7 @@ ul#commit-file-list {
 ul#commit-file-list li.border {
   padding-bottom: 2px;
   border-top: 1px solid #eee;
+  clear: right;
 }
 
 li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9 {

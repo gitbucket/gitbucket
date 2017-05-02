@@ -26,13 +26,13 @@ trait IndexControllerBase extends ControllerBase {
     "password" -> trim(label("Password", text(required)))
   )(SignInForm.apply)
 
-  val searchForm = mapping(
-    "query"      -> trim(text(required)),
-    "owner"      -> trim(text(required)),
-    "repository" -> trim(text(required))
-  )(SearchForm.apply)
-
-  case class SearchForm(query: String, owner: String, repository: String)
+//  val searchForm = mapping(
+//    "query"      -> trim(text(required)),
+//    "owner"      -> trim(text(required)),
+//    "repository" -> trim(text(required))
+//  )(SearchForm.apply)
+//
+//  case class SearchForm(query: String, owner: String, repository: String)
 
 
   get("/"){
@@ -163,7 +163,7 @@ trait IndexControllerBase extends ControllerBase {
 
   get("/search"){
     val query = params.getOrElse("query", "").trim.toLowerCase
-    val visibleRepositories = getVisibleRepositories(context.loginAccount, None)
+    val visibleRepositories = getVisibleRepositories(context.loginAccount, repositoryUserName = None, withoutPhysicalInfo = true)
     val repositories = visibleRepositories.filter { repository =>
       repository.name.toLowerCase.indexOf(query) >= 0 || repository.owner.toLowerCase.indexOf(query) >= 0
     }

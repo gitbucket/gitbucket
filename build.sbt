@@ -10,7 +10,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.2"
 
 // dependency settings
 resolvers ++= Seq(
@@ -21,8 +21,8 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.6.1.201703071140-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.6.1.201703071140-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.7.0.201704051617-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.7.0.201704051617-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"               % "3.5.0",
@@ -60,7 +60,7 @@ libraryDependencies ++= Seq(
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 
