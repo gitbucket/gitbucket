@@ -208,6 +208,13 @@
               </div>
             </div>
             <div class="form-group">
+              <label class="control-label col-md-3">Use mail address as user name</label>
+              <div class="col-md-9">
+                <input type="checkbox" name="ldap.useMailAddressAsUserName"@if(context.settings.ldap.flatMap(_.useMailAddressAsUserName).getOrElse(false)){ checked}/>
+                <span class="muted collapse in">If checked, use the part of the mail address that appears to the left of the @@ symbol (hereinafter called "PREFIX") as the user name. The user name attribute is used only to identify the user on login. Note: the PREFIX must be unique within the search base of the LDAP directory.</span>
+              </div>
+            </div>
+            <div class="form-group">
               <label class="control-label col-md-3" for="ldapAdditionalFilterCondition">Additional filter condition</label>
               <div class="col-md-9">
                 <input type="text" id="ldapAdditionalFilterCondition" name="ldap.additionalFilterCondition" class="form-control" value="@context.settings.ldap.map(_.additionalFilterCondition)"/>

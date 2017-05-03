@@ -46,6 +46,7 @@ trait SystemSettingsService {
           ldap.bindPassword.foreach(x => props.setProperty(LdapBindPassword, x))
           props.setProperty(LdapBaseDN, ldap.baseDN)
           props.setProperty(LdapUserNameAttribute, ldap.userNameAttribute)
+          ldap.useMailAddressAsUserName.foreach(x => props.setProperty(LdapUseMailAddressAsUserName, x.toString))
           ldap.additionalFilterCondition.foreach(x => props.setProperty(LdapAdditionalFilterCondition, x))
           ldap.fullNameAttribute.foreach(x => props.setProperty(LdapFullNameAttribute, x))
           ldap.mailAttribute.foreach(x => props.setProperty(LdapMailAddressAttribute, x))
@@ -103,6 +104,7 @@ trait SystemSettingsService {
             getOptionValue(props, LdapBindPassword, None),
             getValue(props, LdapBaseDN, ""),
             getValue(props, LdapUserNameAttribute, ""),
+            getOptionValue[Boolean](props, LdapUseMailAddressAsUserName, None),
             getOptionValue(props, LdapAdditionalFilterCondition, None),
             getOptionValue(props, LdapFullNameAttribute, None),
             getOptionValue(props, LdapMailAddressAttribute, None),
@@ -157,6 +159,7 @@ object SystemSettingsService {
     bindPassword: Option[String],
     baseDN: String,
     userNameAttribute: String,
+    useMailAddressAsUserName: Option[Boolean],
     additionalFilterCondition: Option[String],
     fullNameAttribute: Option[String],
     mailAttribute: Option[String],
@@ -213,6 +216,7 @@ object SystemSettingsService {
   private val LdapBindPassword = "ldap.bind_password"
   private val LdapBaseDN = "ldap.baseDN"
   private val LdapUserNameAttribute = "ldap.username_attribute"
+  private val LdapUseMailAddressAsUserName = "ldap.useMailAddressAsUserName"
   private val LdapAdditionalFilterCondition = "ldap.additional_filter_condition"
   private val LdapFullNameAttribute = "ldap.fullname_attribute"
   private val LdapMailAddressAttribute = "ldap.mail_attribute"

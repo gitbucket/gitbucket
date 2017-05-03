@@ -53,6 +53,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "bindPassword"             -> trim(label("Bind Password", optional(text()))),
         "baseDN"                   -> trim(label("Base DN", text(required))),
         "userNameAttribute"        -> trim(label("User name attribute", text(required))),
+        "useMailAddressAsUserName" -> trim(label("Use mail address as user name", optional(boolean()))),
         "additionalFilterCondition"-> trim(label("Additional filter condition", optional(text()))),
         "fullNameAttribute"        -> trim(label("Full name attribute", optional(text()))),
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
@@ -67,6 +68,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
       } else None,
       if(settings.ssh && settings.sshHost.isEmpty){
         Some("sshHost" -> "SSH host is required if SSH access is enabled.")
+      } else None,
+      if(settings.ldapAuthentication && settings.ldap.get.useMailAddressAsUserName.getOrElse(false) && settings.ldap.get.mailAttribute.getOrElse("").isEmpty){
+        Some("ldap.mailAttribute" -> "Mail address attribute is required if Use mail address as user name is checked.")
       } else None
     ).flatten
   }
