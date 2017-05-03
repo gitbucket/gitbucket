@@ -18,6 +18,7 @@ object LDAPUtil {
   private val logger = LoggerFactory.getLogger(getClass().getName())
 
   private val LDAP_DUMMY_MAL = "@ldap-devnull"
+  private val ENV_NAME_LDAP_BIND_PASSWORD = "GITBUCKET_LDAP_BIND_PASSWORD"
 
   /**
    * Returns true if mail address ends with "@ldap-devnull"
@@ -46,7 +47,7 @@ object LDAPUtil {
       host     = ldapSettings.host,
       port     = ldapSettings.port.getOrElse(SystemSettingsService.DefaultLdapPort),
       dn       = ldapSettings.bindDN.getOrElse(""),
-      password = ldapSettings.bindPassword.getOrElse(""),
+      password = ldapSettings.bindPassword.getOrElse(sys.env.getOrElse(ENV_NAME_LDAP_BIND_PASSWORD, "")),
       tls      = ldapSettings.tls.getOrElse(false),
       ssl      = ldapSettings.ssl.getOrElse(false),
       keystore = ldapSettings.keystore.getOrElse(""),
