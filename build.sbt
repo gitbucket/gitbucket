@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "org.apache.commons"              %  "commons-compress"             % "1.11",
   "org.apache.commons"              %  "commons-email"                % "1.4",
   "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.1",
-  "org.apache.sshd"                 %  "apache-sshd"                  % "1.2.0",
+  "org.apache.sshd"                 %  "apache-sshd"                  % "1.2.0" exclude("org.slf4j","slf4j-jdk14"),
   "org.apache.tika"                 %  "tika-core"                    % "1.13",
   "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.8",
   "joda-time"                       %  "joda-time"                    % "2.9.6",
