@@ -2,7 +2,9 @@
   prefix: String  = "",
   style : String  = "",
   right : Boolean = false,
-  filter: String = "")(body: Html)
+  filter: String = "",
+  uniqId: String = scala.util.Random.alphanumeric.take(4).mkString)(body: Html)
+@filterId = @{filter.toString.replaceAll("[^a-zA-Z0-9_]","_") + uniqId }
 <div class="btn-group" @if(style.nonEmpty){style="@style"}>
   <button
       class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
@@ -18,20 +20,20 @@
   </button>
   <ul class="dropdown-menu@if(right){ pull-right}">
     @if(filter.nonEmpty) {
-      <li><input id="@filter-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="Filter"/></li>
+      <li><input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter"/></li>
     }
     @body
   </ul>
 </div>
 @if(filter.nonEmpty) {
 <script>
-$(function(){
-  $('#@{filter}-input').parent().click(function(e) {
+$(window).load(function(){
+  $('#@{filterId}-input').parent().click(function(e) {
     e.stopPropagation();
   });
-  $('#@{filter}-input').keyup(function() {
-    var inputVal = $('#@{filter}-input').val();
-    $.each($('#@{filter}-input').parent().parent().find('a'), function(index, elem) {
+  $('#@{filterId}-input').keyup(function() {
+    var inputVal = $('#@{filterId}-input').val();
+    $.each($('#@{filterId}-input').parent().parent().find('a'), function(index, elem) {
       if ( !inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >=0 ) {
         $(elem).parent().show();
       } else {
