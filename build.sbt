@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "org.apache.tika"                 %  "tika-core"                    % "1.14",
   "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.8",
   "joda-time"                       %  "joda-time"                    % "2.9.9",
-  "com.novell.ldap"                 %  "jldap"                        % "4.3",
+  "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
   "com.h2database"                  %  "h2"                           % "1.4.195",
   "mysql"                           %  "mysql-connector-java"         % "6.0.6",
   "org.postgresql"                  %  "postgresql"                   % "42.0.0",
