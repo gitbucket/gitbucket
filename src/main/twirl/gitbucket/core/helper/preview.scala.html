@@ -44,6 +44,7 @@
 $(function(){
   @if(elastic){
     $('#content@uid').elastic();
+    $('#content@uid').trigger('blur');
   }
 
   $('#preview@uid').click(function(){
