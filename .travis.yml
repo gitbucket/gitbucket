@@ -8,6 +8,7 @@ before_script:
   - sudo apt-get install libaio1
   - sudo /etc/init.d/mysql stop
   - sudo /etc/init.d/postgresql stop
+  - sudo chmod +x /usr/local/bin/sbt
 cache:
   directories:
     - $HOME/.ivy2/cache
