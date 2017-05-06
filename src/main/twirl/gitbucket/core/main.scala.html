@@ -72,26 +72,34 @@
           <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
               @if(context.loginAccount.isDefined){
-                <li class="dropdown">
+                <li class="dropdown notifications-menu">
                   <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
                     <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
                   </a>
-                  <ul class="dropdown-menu pull-right">
-                    <li><a href="@context.path/new">New repository</a></li>
-                    <li><a href="@context.path/groups/new">New group</a></li>
+                  <ul class="dropdown-menu pull-right" style="width: auto;">
+                    <li>
+                      <ul class="menu">
+                        <li><a href="@context.path/new">New repository</a></li>
+                        <li><a href="@context.path/groups/new">New group</a></li>
+                      </ul>
+                    </li>
                   </ul>
                 </li>
-                <li class="dropdown">
+                <li class="dropdown notifications-menu">
                   <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @context.loginAccount.get.userName">
                     @helpers.avatar(context.loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
                   </a>
-                  <ul class="dropdown-menu pull-right">
-                    <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
-                    <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
-                    @if(context.loginAccount.get.isAdmin){
-                      <li><a href="@context.path/admin/users">System administration</a></li>
-                    }
-                    <li><a href="@context.path/signout">Sign out</a></li>
+                  <ul class="dropdown-menu pull-right" style="width: auto;">
+                    <li>
+                      <ul class="menu">
+                        <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
+                        <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
+                        @if(context.loginAccount.get.isAdmin){
+                          <li><a href="@context.path/admin/users">System administration</a></li>
+                        }
+                        <li><a href="@context.path/signout">Sign out</a></li>
+                      </ul>
+                    </li>
                   </ul>
                 </li>
               } else {
