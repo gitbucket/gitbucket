@@ -153,7 +153,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  post("/:owner/:repository/pull/:id/update_branch")(writableUsersOnly { baseRepository =>
+  post("/:owner/:repository/pull/:id/update_branch")(readableUsersOnly { baseRepository =>
     (for {
       issueId <- params("id").toIntOpt
       loginAccount <- context.loginAccount
@@ -217,7 +217,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           }
         }
       }
-      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+      redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
 
     }) getOrElse NotFound()
   })
