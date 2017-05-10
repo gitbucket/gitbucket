@@ -9,7 +9,9 @@
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
   isEditable: Boolean,
   isManageable: Boolean,
+  isManageableForkedRepository: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  forkedRepository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo],
   flash: Map[String, String])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.IssueComment
@@ -83,7 +85,7 @@
           @flash.get("info").map{ info =>
             <div class="alert alert-info">@info</div>
           }
-          @gitbucket.core.pulls.html.conversation(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, isEditable, isManageable, repository)
+          @gitbucket.core.pulls.html.conversation(issue, pullreq, comments, issueLabels, collaborators, milestones, labels, isEditable, isManageable, isManageableForkedRepository, repository, forkedRepository)
         </div>
         <div class="tab-pane" id="commits">
           @gitbucket.core.pulls.html.commits(dayByDayCommits, Some(comments), repository)
