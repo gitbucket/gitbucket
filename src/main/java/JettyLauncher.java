@@ -96,6 +96,9 @@ public class JettyLauncher {
         }
         context.setTempDirectory(tmpDir);
 
+        // Disabling the directory listing feature.
+        context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
         URL location = domain.getCodeSource().getLocation();
 
