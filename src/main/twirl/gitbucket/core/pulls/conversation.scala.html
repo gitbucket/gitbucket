@@ -7,7 +7,9 @@
   labels: List[gitbucket.core.model.Label],
   isEditable: Boolean,
   isManageable: Boolean,
-  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+  isManageableForkedRepository: Boolean,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  forkedRepository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <div class="col-md-9">
   <div id="comment-list">
@@ -26,11 +28,11 @@
         </div>
       </div>
     }
-    @if(isManageable && issue.closed && pullreq.userName == pullreq.requestUserName && merged &&
-      pullreq.repositoryName == pullreq.requestRepositoryName && repository.branchList.contains(pullreq.requestBranch)){
+    @if(isManageableForkedRepository && issue.closed && merged &&
+      forkedRepository.map(r => (r.branchList.contains(pullreq.requestBranch) && r.repository.defaultBranch != pullreq.requestBranch)).getOrElse(false)){
       <div class="issue-comment-box" style="background-color: #d0eeff;">
         <div class="box-content"class="issue-content" style="border: 1px solid #87a8c9; padding: 10px;">
-          <a href="@helpers.url(repository)/pull/@issue.issueId/delete/@helpers.encodeRefName(pullreq.requestBranch)" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
+          <a href="@helpers.url(repository)/pull/@issue.issueId/delete_branch" class="btn btn-info pull-right delete-branch" data-name="@pullreq.requestBranch">Delete branch</a>
           <div>
             <span class="strong">Pull request successfully merged and closed</span>
           </div>
@@ -56,11 +58,9 @@ $(function(){
     $.get('@helpers.url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
   }
 
-  @if(isManageable){
-    $('.delete-branch').click(function(e){
-      var branchName = $(e.target).data('name');
-      return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
-    });
-  }
+  $('.delete-branch').click(function(e){
+    var branchName = $(e.target).data('name');
+    return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
+  });
 });
 </script>

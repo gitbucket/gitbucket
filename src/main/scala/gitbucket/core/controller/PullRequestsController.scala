@@ -97,7 +97,9 @@ trait PullRequestsControllerBase extends ControllerBase {
             diffs,
             isEditable(repository),
             isManageable(repository),
+            hasDeveloperRole(pullreq.requestUserName, pullreq.requestRepositoryName, context.loginAccount),
             repository,
+            getRepository(pullreq.requestUserName, pullreq.requestRepositoryName),
             flash.toMap.map(f => f._1 -> f._2.toString))
         }
       }
@@ -138,19 +140,33 @@ trait PullRequestsControllerBase extends ControllerBase {
     } getOrElse NotFound()
   })
 
-  get("/:owner/:repository/pull/:id/delete/*")(writableUsersOnly { repository =>
-    params("id").toIntOpt.map { issueId =>
-      val branchName = multiParams("splat").head
-      val userName   = context.loginAccount.get.userName
-      if(repository.repository.defaultBranch != branchName){
-        using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
-          git.branchDelete().setForce(true).setBranchNames(branchName).call()
-          recordDeleteBranchActivity(repository.owner, repository.name, userName, branchName)
+  get("/:owner/:repository/pull/:id/delete_branch")(readableUsersOnly { baseRepository =>
+    (for {
+      issueId <- params("id").toIntOpt
+      loginAccount <- context.loginAccount
+      (issue, pullreq) <- getPullRequest(baseRepository.owner, baseRepository.name, issueId)
+      owner = pullreq.requestUserName
+      name  = pullreq.requestRepositoryName
+      if hasDeveloperRole(owner, name, context.loginAccount)
+    } yield {
+      val repository = getRepository(owner, name).get
+      val branchProtection = getProtectedBranchInfo(owner, name, pullreq.requestBranch)
+      if(branchProtection.enabled){
+        flash += "error" -> s"branch ${pullreq.requestBranch} is protected."
+      } else {
+        if(repository.repository.defaultBranch != pullreq.requestBranch){
+          val userName = context.loginAccount.get.userName
+          using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
+            git.branchDelete().setForce(true).setBranchNames(pullreq.requestBranch).call()
+            recordDeleteBranchActivity(repository.owner, repository.name, userName, pullreq.requestBranch)
+          }
+          createComment(baseRepository.owner, baseRepository.name, userName, issueId, pullreq.requestBranch, "delete_branch")
+        } else {
+          flash += "error" -> s"""Can't delete the default branch "${pullreq.requestBranch}"."""
         }
       }
-      createComment(repository.owner, repository.name, userName, issueId, branchName, "delete_branch")
-      redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
-    } getOrElse NotFound()
+      redirect(s"/${baseRepository.owner}/${baseRepository.name}/pull/${issueId}")
+    }) getOrElse NotFound()
   })
 
   post("/:owner/:repository/pull/:id/update_branch")(readableUsersOnly { baseRepository =>
