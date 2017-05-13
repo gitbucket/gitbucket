@@ -9,6 +9,7 @@ import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
 import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
+import org.webjars.WebJarAssetLocator
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -231,6 +232,17 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Returns the url to the path of assets.
    */
   def assets(path: String)(implicit context: Context): String = s"${context.path}/assets${path}?${hashQuery}"
+
+  val webjarsLocator: WebJarAssetLocator = new WebJarAssetLocator()
+
+  /**
+   * Returns the url to the path of webjars.
+   */
+  def webjars(webjar: String, exactPath: String)(implicit context: Context): String = {
+    val fullPath = webjarsLocator.getFullPathExact(webjar, exactPath)
+    if(fullPath == null) throw new IllegalArgumentException(s"WebJar resouce not found: ${webjar}, ${exactPath}")
+    context.path + fullPath.replaceFirst("^META-INF/resources", "")
+  }
 
   /**
    * Generates the text link to the account page.

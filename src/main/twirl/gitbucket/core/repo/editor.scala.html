@@ -72,9 +72,9 @@
     </form>
   }
 }
-<script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
-<script type="text/javascript" src="@helpers.assets("/vendors/jsdifflib/difflib.js")"></script>
-<link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
+<script src="@helpers.webjars("ace", "src-min-noconflict/ace.js")" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="@helpers.webjars("jsdifflib", "difflib.js")"></script>
+<link href="@helpers.webjars("jsdifflib", "diffview.css")" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
