@@ -375,10 +375,10 @@ trait PullRequestsControllerBase extends ControllerBase {
               title,
               commits,
               diffs,
-              (forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
+              ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
                 case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
                 case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-              },
+              }).filter { case (owner, name) => hasGuestRole(owner, name, context.loginAccount) },
               commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
               originId,
               forkedId,
