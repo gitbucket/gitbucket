@@ -3,7 +3,7 @@
   style : String  = "",
   right : Boolean = false,
   filter: String = "")(body: Html)
-@defining(if(filter.isEmpty) "" else filter + "-" + scala.util.Random.alphanumeric.take(4).mkString){ filterId =>
+@defining(if(filter.isEmpty) "" else filter.replaceAll("[^a-zA-Z0-9]","_") + "-" + scala.util.Random.alphanumeric.take(4).mkString){ filterId =>
   <div class="btn-group" @if(style.nonEmpty){style="@style"}>
     <button
         class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
