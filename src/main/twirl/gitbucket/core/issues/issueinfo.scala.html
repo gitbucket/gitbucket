@@ -11,7 +11,7 @@
   <span class="muted small strong">Labels</span>
   @if(isManageable){
     <div class="pull-right">
-      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = "labels") {
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("labels", "Filter Labels")) {
         @labels.map { label =>
           <li>
             <a href="#" class="toggle-label" data-label-id="@label.labelId">
@@ -36,7 +36,7 @@
   <span class="muted small strong">Milestone</span>
   @if(isManageable){
     <div class="pull-right">
-      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = "milestone") {
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("milestone", "Filter Milestone")) {
         <li><a href="javascript:void(0);" class="milestone" data-id=""><i class="octicon octicon-x"></i> Clear this milestone</a></li>
         @milestones.filter(_._1.closedDate.isEmpty).map { case (milestone, _, _) =>
           <li>
@@ -88,7 +88,7 @@
   <span class="muted small strong">Assignee</span>
   @if(isManageable){
     <div class="pull-right">
-      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = "assignee") {
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("assignee", "Filter Assignee")) {
         <li><a href="javascript:void(0);" class="assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
         @collaborators.map { collaborator =>
           <li>

@@ -2,8 +2,8 @@
   prefix: String  = "",
   style : String  = "",
   right : Boolean = false,
-  filter: String = "")(body: Html)
-@defining(if(filter.isEmpty) "" else filter + "-" + scala.util.Random.alphanumeric.take(4).mkString){ filterId =>
+  filter: (String, String)  = ("",""))(body: Html)
+@defining(if(filter._1.isEmpty) "" else filter._1 + "-" + scala.util.Random.alphanumeric.take(4).mkString){ filterId =>
   <div class="btn-group" @if(style.nonEmpty){style="@style"}>
     <button
         class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
@@ -19,7 +19,7 @@
     </button>
     <ul class="dropdown-menu@if(right){ pull-right}">
       @if(filterId.nonEmpty) {
-        <li><input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter"/></li>
+        <li><input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter._2"/></li>
       }
       @body
     </ul>
