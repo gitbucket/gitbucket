@@ -18,7 +18,7 @@
       </a>
     </li>
   }
-  @gitbucket.core.helper.html.dropdown("Organization"){
+  @gitbucket.core.helper.html.dropdown("Organization", filter = ("organization", "Find Organization...")){
     @groups.map { group =>
       <li>
         <a href="@((if(condition.groups.contains(group)) condition.copy(groups = condition.groups - group) else condition.copy(groups = condition.groups + group)).toURL)">

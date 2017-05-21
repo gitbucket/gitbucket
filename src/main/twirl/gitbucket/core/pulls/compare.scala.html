@@ -20,23 +20,23 @@
   @gitbucket.core.html.menu("pulls", repository){
     <div class="pullreq-info">
       <div id="compare-edit">
-        @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork") {
+        @gitbucket.core.helper.html.dropdown(originRepository.owner + "/" + originRepository.name, "base fork", filter=("origin_repo", "Find Repository...")) {
           @members.map { case (owner, name) =>
             <li><a href="#" class="origin-owner" data-owner="@owner" data-name="@name">@gitbucket.core.helper.html.checkicon(owner == originRepository.owner) @owner/@name</a></li>
           }
         }
-        @gitbucket.core.helper.html.dropdown(originId, "base") {
+        @gitbucket.core.helper.html.dropdown(originId, "base", filter=("origin_branch", "Find Branch...")) {
           @originRepository.branchList.map { branch =>
             <li><a href="#" class="origin-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == originId) @branch</a></li>
           }
         }
         ...
-        @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork") {
+        @gitbucket.core.helper.html.dropdown(forkedRepository.owner + "/" + forkedRepository.name, "head fork", filter=("forked_repo", "Find Repository...")) {
           @members.map { case (owner, name) =>
             <li><a href="#" class="forked-owner" data-owner="@owner" data-name="@name">@gitbucket.core.helper.html.checkicon(owner == forkedRepository.owner) @owner/@name</a></li>
           }
         }
-        @gitbucket.core.helper.html.dropdown(forkedId, "compare") {
+        @gitbucket.core.helper.html.dropdown(forkedId, "compare", filter=("forked_branch", "Find Branch...")) {
           @forkedRepository.branchList.map { branch =>
             <li><a href="#" class="forked-branch" data-branch="@helpers.encodeRefName(branch)">@gitbucket.core.helper.html.checkicon(branch == forkedId) @branch</a></li>
           }
@@ -221,27 +221,3 @@ $(function(){
   }
 });
 </script>
-<script>
-  function dropdownFilter(dropdownItem,placeHolder,id) {
-    $('<li><input id="' + id + '" type="text" class="form-control input-sm dropdown-filter-input" placeholder="' + placeHolder + '"/></li>')
-      .insertBefore($("li:has(a" + dropdownItem + "):first"));
-    $('#'+id).keyup(function() {
-      var inputVal = $('#'+id).val();
-      $.each($('#'+id).parent().parent().find('a'), function(index, elem) {
-        if (!inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >= 0) {
-          $(elem).parent().show();
-        } else {
-          $(elem).parent().hide();
-        }
-      });
-    });
-  }
-
-  $(function(){
-    dropdownFilter('.origin-owner', 'Find Repository...', 'origin-owner-control-input');
-    dropdownFilter('.origin-branch','Find Branch...',     'origin-branch-control-input');
-    dropdownFilter('.forked-owner', 'Find Repository...', 'forked-owner-control-input');
-    dropdownFilter('.forked-branch','Find Branch...',     'forked-branch-control-input');
-  });
-</script>
-
