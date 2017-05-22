@@ -27,7 +27,7 @@
       <th style="background-color: #eee;">
         <input type="checkbox"/>
         <span id="table-issues-control">
-          @gitbucket.core.helper.html.dropdown("Author") {
+          @gitbucket.core.helper.html.dropdown("Author", filter = ("author", "Find Author...")) {
             @collaborators.map { collaborator =>
               <li>
                 <a href="@condition.copy(author = (if(condition.author == Some(collaborator)) None else Some(collaborator))).toURL">
@@ -37,7 +37,7 @@
               </li>
             }
           }
-          @gitbucket.core.helper.html.dropdown("Label") {
+          @gitbucket.core.helper.html.dropdown("Label", filter = ("label", "Find Label...")) {
             @labels.map { label =>
               <li>
                 <a href="@condition.copy(labels = (if(condition.labels.contains(label.labelName)) condition.labels - label.labelName else condition.labels + label.labelName)).toURL">
@@ -48,7 +48,7 @@
               </li>
             }
           }
-          @gitbucket.core.helper.html.dropdown("Milestone") {
+          @gitbucket.core.helper.html.dropdown("Milestone", filter = ("milestone", "Find Milestone...")) {
             <li>
               <a href="@condition.copy(milestone = (if(condition.milestone == Some(None)) None else Some(None))).toURL">
                 @gitbucket.core.helper.html.checkicon(condition.milestone == Some(None)) Issues with no milestone
@@ -62,7 +62,7 @@
               </li>
             }
           }
-          @gitbucket.core.helper.html.dropdown("Assignee") {
+          @gitbucket.core.helper.html.dropdown("Assignee", filter = ("assignee", "Find Assignee...")) {
             <li>
               <a href="@condition.copy(assigned = (if(condition.assigned == Some(None)) None else Some(None))).toURL">
                 @gitbucket.core.helper.html.checkicon(condition.assigned == Some(None)) Assigned to nobody
@@ -116,7 +116,7 @@
               <li><a href="javascript:void(0);" class="toggle-state" data-id="open">Open</a></li>
               <li><a href="javascript:void(0);" class="toggle-state" data-id="close">Close</a></li>
             }
-            @gitbucket.core.helper.html.dropdown("Label") {
+            @gitbucket.core.helper.html.dropdown("Label", filter = ("label", "Find Label...")) {
               @labels.map { label =>
                 <li>
                   <a href="javascript:void(0);" class="toggle-label" data-id="@label.labelId">
@@ -127,13 +127,13 @@
                 </li>
               }
             }
-            @gitbucket.core.helper.html.dropdown("Milestone") {
+            @gitbucket.core.helper.html.dropdown("Milestone", filter = ("milestone", "Find Milestone...")) {
               <li><a href="javascript:void(0);" class="toggle-milestone" data-id="">No milestone</a></li>
               @milestones.filter(_.closedDate.isEmpty).map { milestone =>
                 <li><a href="javascript:void(0);" class="toggle-milestone" data-id="@milestone.milestoneId">@milestone.title</a></li>
               }
             }
-            @gitbucket.core.helper.html.dropdown("Assignee") {
+            @gitbucket.core.helper.html.dropdown("Assignee", filter = ("assignee", "Find Assignee...")) {
               <li><a href="javascript:void(0);" class="toggle-assign" data-name=""><i class="octicon octicon-x"></i> Clear assignee</a></li>
               @collaborators.map { collaborator =>
                 <li><a href="javascript:void(0);" class="toggle-assign" data-name="@collaborator"><i class="octicon"></i>@helpers.avatar(collaborator, 20) @collaborator</a></li>
