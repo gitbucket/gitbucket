@@ -343,7 +343,7 @@ div.account-image {
 ul.dropdown-menu {
   padding: 2px 0;
   overflow: auto;
-  max-height: 100vh; 
+  max-height: 100vh;
 }
 
 ul.dropdown-menu li {
@@ -413,7 +413,7 @@ div.headbar {
 /* Sign-in form */
 /****************************************************************************/
 div.signin-form {
-  width: 350px;
+  width: 300px;
   margin: 30px auto;
 }
 
