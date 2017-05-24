@@ -81,7 +81,7 @@ trait RepositoryService { self: AccountService =>
 
         Repositories.filter { t =>
           (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
-        }.map { t => t.originUserName -> t.originRepositoryName }.update(newUserName, newRepositoryName)
+        }.map { t => t.parentUserName -> t.parentRepositoryName }.update(newUserName, newRepositoryName)
 
         // Updates activity fk before deleting repository because activity is sorted by activityId
         // and it can't be changed by deleting-and-inserting record.
