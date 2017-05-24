@@ -6,13 +6,13 @@ import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import gitbucket.core.service.SystemSettingsService
 import gitbucket.core.service.SystemSettingsService.SshAddress
-import gitbucket.core.util.{Directory}
+import gitbucket.core.util.{Directory, SshServerBuilder}
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider
 import org.slf4j.LoggerFactory
 
 object SshServer {
   private val logger = LoggerFactory.getLogger(SshServer.getClass)
-  private val server = org.apache.sshd.server.SshServer.setUpDefaultServer()
+  private val server = new SshServerBuilder().build() //org.apache.sshd.server.SshServer.setUpDefaultServer()
   private val active = new AtomicBoolean(false)
 
   private def configure(sshAddress: SshAddress, baseUrl: String) = {
