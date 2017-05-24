@@ -10,21 +10,18 @@
       <div class="alert alert-danger">branch @branch is protected.</div>
     }
     <form method="POST" action="@helpers.url(repository)/upload" id="upload-form">
-      @*
-      <span class="error" id="error-newFileName"></span>
-      *@
       <div class="head">
         <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
-        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
         }
         <input type="hidden" name="branch" id="branch" value="@branch"/>
         <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
       </div>
       <table class="table table-bordered">
         <tr>
-          <td style="padding: 0px; background-color: #f4f4f4; border: 1px #ddd solid;">
-            <div id="upload-area" style="text-align: center; padding-top: 20px; padding-bottom: 20px; font-size: 120%;">
+          <td id="upload-td">
+            <div id="upload-area">
               Drag files here to add them to your repository
             </div>
             <ul id="upload-files">
@@ -50,19 +47,6 @@
     </form>
   }
 }
-<style type="text/css">
-ul#upload-files {
-  list-style: none;
-  padding-left: 0px;
-  margin-bottom: 0px;
-}
-
-li.upload-file {
-  border-top: 1px #f4f4f4 solid;
-  background-color: white;
-  padding: 4px;
-}
-</style>
 <script>
 $(function(){
   $('#upload-area').dropzone({

@@ -450,13 +450,6 @@ table.branches>thead>tr>th, table.branches>tbody>tr>td{
 .branches .muted-link:hover{
   color: #4183c4;
 }
-/*
-.branches .branch-details{
-  display: inline-block;
-  width: 490px;
-  margin-right: 10px;
-}
-*/
 .branches .branch-name{
   color: #4183c4;
   display: inline-block;
@@ -487,6 +480,32 @@ table.branches>thead>tr>th, table.branches>tbody>tr>td{
   padding: 0 3px;
 }
 
+td#upload-td {
+  padding: 0px;
+  background-color: #f4f4f4;
+  border: 1px #ddd solid;
+}
+
+div#upload-area {
+  text-align: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  font-size: 120%;
+}
+
+ul#upload-files {
+  list-style: none;
+  padding-left: 0px;
+  margin-bottom: 0px;
+}
+
+li.upload-file {
+  border-top: 1px #f4f4f4 solid;
+  background-color: white;
+  padding: 4px;
+}
+
+
 /****************************************************************************/
 /* Activity */
 /****************************************************************************/
@@ -501,6 +520,7 @@ p.description {
   color: gray;
 }
 
+/*
 a.header-link {
   color: #888;
   font-size: 90%;
@@ -533,6 +553,7 @@ a.header-link:hover i.octicon-x{
     background-color: #4183c4;
     color: #FFF;
 }
+*/
 
 table.table-file-list td.latest-commit {
   padding-top: 4px;
