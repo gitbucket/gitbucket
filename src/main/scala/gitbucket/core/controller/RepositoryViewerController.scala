@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import java.io.FileInputStream
+import java.io.File
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import gitbucket.core.plugin.PluginRegistry
@@ -18,14 +18,12 @@ import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
 import io.github.gitbucket.scalatra.forms._
-import org.apache.commons.io.IOUtils
+import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
-import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.treewalk._
 import org.scalatra._
 
 
@@ -44,6 +42,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   ArchiveCommand.registerFormat("zip", new ZipFormat)
   ArchiveCommand.registerFormat("tar.gz", new TgzFormat)
+
+  case class UploadForm(
+    branch: String,
+    path: String,
+    uploadFiles: String,
+    message: Option[String]
+  )
 
   case class EditorForm(
     branch: String,
@@ -70,6 +75,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     content: String,
     issueId: Option[Int]
   )
+
+  val uploadForm = mapping(
+    "branch"        -> trim(label("Branch", text(required))),
+    "path"          -> trim(label("Path", text())),
+    "uploadFiles"   -> trim(label("Upload files", text(required))),
+    "message"       -> trim(label("Message", optional(text()))),
+  )(UploadForm.apply)
 
   val editorForm = mapping(
     "branch"        -> trim(label("Branch", text(required))),
@@ -173,9 +185,36 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
     html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
-      None, JGitUtil.ContentInfo("text", None, None, Some("UTF-8")),
-      protectedBranch)
+      None, JGitUtil.ContentInfo("text", None, None, Some("UTF-8")), protectedBranch)
   })
+
+  get("/:owner/:repository/upload/*")(writableUsersOnly { repository =>
+    val (branch, path) = repository.splitPath(multiParams("splat").head)
+    val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
+    html.upload(branch, repository, if(path.length == 0) Nil else path.split("/").toList, protectedBranch)
+  })
+
+  post("/:owner/:repository/upload", uploadForm)(writableUsersOnly { (form, repository) =>
+    val files = form.uploadFiles.split("\n").map { line =>
+      val i = line.indexOf(":")
+      CommitFile(line.substring(0, i).trim, line.substring(i + 1).trim)
+    }
+
+    commitFiles(
+      repository = repository,
+      branch     = form.branch,
+      path       = form.path,
+      files      = files,
+      message    = form.message.getOrElse(s"Add files via upload")
+    )
+
+    if(form.path.length == 0){
+      redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}")
+    } else {
+      redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}/${form.path}")
+    }
+  })
+
 
   get("/:owner/:repository/edit/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
@@ -547,65 +586,30 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  /**
-   * Upload file to a branch.
-   */
-  post("/:owner/:repository/files/upload")(writableUsersOnly { repository =>
-    defining(repository.owner, repository.name){ case (owner, name) =>
-      (for {
-        data <- extractFromJsonBody[UploadFiles] if data.isValid
-      } yield {
-        Directory.getAttachedDir(owner, name) match {
-          case dir if (dir.exists && dir.isDirectory) =>
-            val _commitFiles = data.fileIds.map { case (fileName, id) =>
-              dir.listFiles.find(_.getName.startsWith(id + ".")).map { file =>
-                CommitFile(id, fileName, using(new FileInputStream(file))(IOUtils.toByteArray))
-              }
-            }.toList
-
-            val finalCommitFiles = _commitFiles.flatten
-            if(finalCommitFiles.size == data.fileIds.size) {
-              commitFiles(
-                repository,
-                files = finalCommitFiles,
-                branch = data.branch,
-                path = data.path,
-                message = data.message)
-            }
-            else {
-              org.scalatra.NotAcceptable(
-                s"""{"message":
-                    |"$repository doesn't contain all the files you specified in the body"}""".stripMargin)
-            }
-
-          case _ => org.scalatra.NotFound(s"""{"message": "$repository doesn't contain any attached files"}""")
-        }
-
-      }) getOrElse
-        org.scalatra.NotAcceptable("""{"message": "FileIds can't be an empty list"}""")
-
-    }
-  })
-
   case class UploadFiles(branch: String, path: String, fileIds : Map[String,String], message: String) {
     lazy val isValid: Boolean = fileIds.size > 0
   }
 
-  case class CommitFile(fileId: String, name: String, fileBytes: Array[Byte])
+  case class CommitFile(id: String, name: String)
 
   private def commitFiles(repository: RepositoryService.RepositoryInfo,
-                          files: List[CommitFile],
+                          files: Seq[CommitFile],
                           branch: String, path: String, message: String) = {
+    // prepend path to the filename
+    val newFiles = files.map { file =>
+      file.copy(name = if(path.length == 0) file.name else s"${path}/${file.name}")
+    }
 
-    _commitFile(repository, branch, path, message) { case (git, headTip, builder, inserter) =>
+    _commitFile(repository, branch, message) { case (git, headTip, builder, inserter) =>
       JGitUtil.processTree(git, headTip) { (path, tree) =>
-        builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+        if(!newFiles.exists(_.name.contains(path))) {
+          builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+        }
       }
 
-      files.foreach { item =>
-        val fileName = item.name
-        val bytes = item.fileBytes
-        builder.add(JGitUtil.createDirCacheEntry(fileName,
+      newFiles.foreach { file =>
+        val bytes = FileUtils.readFileToByteArray(new File(getTemporaryDir(session.getId), file.id))
+        builder.add(JGitUtil.createDirCacheEntry(file.name,
           FileMode.REGULAR_FILE, inserter.insert(Constants.OBJ_BLOB, bytes)))
         builder.finish()
       }
@@ -619,7 +623,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val newPath = newFileName.map { newFileName => if(path.length == 0) newFileName else s"${path}/${newFileName}" }
     val oldPath = oldFileName.map { oldFileName => if(path.length == 0) oldFileName else s"${path}/${oldFileName}" }
 
-    _commitFile(repository, branch, path, message){ case (git, headTip, builder, inserter) =>
+    _commitFile(repository, branch, message){ case (git, headTip, builder, inserter) =>
       val permission = JGitUtil.processTree(git, headTip){ (path, tree) =>
         // Add all entries except the editing file
         if(!newPath.contains(path) && !oldPath.contains(path)){
@@ -639,7 +643,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   }
 
   private def _commitFile(repository: RepositoryService.RepositoryInfo,
-    branch: String, path: String, message: String)(f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => Unit) = {
+    branch: String, message: String)(f: (Git, ObjectId, DirCacheBuilder, ObjectInserter) => Unit) = {
 
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>

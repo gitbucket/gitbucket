@@ -31,6 +31,13 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     }, FileUtil.isImage)
   }
 
+  post("/tmp"){
+    execute({ (file, fileId) =>
+      FileUtils.writeByteArrayToFile(new java.io.File(getTemporaryDir(session.getId), fileId), file.get)
+      session += Keys.Session.Upload(fileId) -> file.name
+    }, _ => true)
+  }
+
   post("/file/:owner/:repository"){
     execute({ (file, fileId) =>
       FileUtils.writeByteArrayToFile(new java.io.File(

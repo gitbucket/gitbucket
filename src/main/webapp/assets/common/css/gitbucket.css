@@ -38,9 +38,7 @@ h6 {
 
 .octicon,.mega-octicon{
   color : #999;
-  width: 14px;
-  height: 14px;
-  /*font-size: 14px;*/
+  font-size: 14px;
   text-align: center;
 }
 
