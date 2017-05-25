@@ -36,27 +36,29 @@ h6 {
   font-size: 18px;
 }
 
-.octicon,.mega-octicon{
+.octicon {
   color : #999;
   font-size: 14px;
   text-align: center;
 }
 
-.mega-octicon{
+.mega-octicon {
+  color : #999;
+  text-align: center;
   width: 32px;
   height: 32px;
 }
 
-.octicon.active,.mega-octicon.active{
+.octicon.active,.mega-octicon.active {
   color : #333;
 }
 
-.octicon-cloud-download{
+.octicon-cloud-download {
   color: #333;
   margin-right: 5px;
 }
 
-.head .octicon, .head .mega-octicon{
+.head .octicon, .head .mega-octicon {
   color : #BBB;
 }
 
