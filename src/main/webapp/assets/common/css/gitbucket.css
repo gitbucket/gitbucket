@@ -520,41 +520,6 @@ p.description {
   color: gray;
 }
 
-/*
-a.header-link {
-  color: #888;
-  font-size: 90%;
-}
-
-a.header-link strong {
-  color: black;
-}
-
-a.header-link:hover {
-  color: #4183c4;
-  text-decoration: none;
-}
-
-a.header-link:hover i.octicon, a.header-link:hover strong{
-  color: inherit;
-}
-
-a.header-link i.octicon-x{
-    opacity: 1;
-    width: 20px;
-    height: 20px;
-    margin-right: 3px;
-    color: #FFF;
-    line-height: 20px;
-    background-color: #777;
-    border-radius: 3px;
-}
-a.header-link:hover i.octicon-x{
-    background-color: #4183c4;
-    color: #FFF;
-}
-*/
-
 table.table-file-list td.latest-commit {
   padding-top: 4px;
   padding-bottom: 4px;
