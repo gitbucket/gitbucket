@@ -172,7 +172,7 @@ object PluginRegistry {
     if(pluginDir.exists && pluginDir.isDirectory){
       pluginDir.listFiles(new FilenameFilter {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-      }).foreach { pluginJar =>
+      }).sortBy(_.getName).foreach { pluginJar =>
         val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
           val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
