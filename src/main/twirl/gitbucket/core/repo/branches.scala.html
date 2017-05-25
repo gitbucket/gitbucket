@@ -57,13 +57,13 @@
                         helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
                       }.getOrElse {
                         helpers.encodeRefName(repository.repository.defaultBranch)
-                      }}...@{helpers.encodeRefName(branch.name)}?expand=1" class="btn btn-default">New Pull request</a>
+                      }}...@{helpers.encodeRefName(branch.name)}?expand=1" class="btn btn-default btn-sm">New Pull request</a>
                     } else {
                       <a href="@helpers.url(repository)/compare/@{repository.repository.parentUserName.map { parent =>
                         helpers.urlEncode(parent) + ":" + helpers.encodeRefName(repository.repository.defaultBranch)
                       }.getOrElse {
                         helpers.encodeRefName(repository.repository.defaultBranch)
-                      }}...@{helpers.encodeRefName(branch.name)}" class="btn btn-default">Compare</a>
+                      }}...@{helpers.encodeRefName(branch.name)}" class="btn btn-default btn-sm">Compare</a>
                     }
                   }
                   @if(hasWritePermission){

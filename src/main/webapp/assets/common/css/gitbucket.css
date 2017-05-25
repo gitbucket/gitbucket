@@ -479,6 +479,13 @@ table.branches>thead>tr>th, table.branches>tbody>tr>td{
 .branches .a-b-count-widget .count-half .count-value{
   padding: 0 3px;
 }
+.branches .branch-a-b-count span.badge {
+  font-size: 100%;
+}
+
+div.branch-action a.label {
+  font-size: 100%;
+}
 
 td#upload-td {
   padding: 0px;
