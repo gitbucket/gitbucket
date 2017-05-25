@@ -1,6 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.WebHook
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.pulls.html
 import gitbucket.core.service.CommitStatusService
 import gitbucket.core.service.MergeService
@@ -277,7 +278,10 @@ trait PullRequestsControllerBase extends ControllerBase {
             // call web hook
             callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
-            // notifications
+            // call hooks
+            PluginRegistry().getPullRequestHooks.foreach(_.merged(issue, repository))
+
+            // notifications  TODO move to plugin
             Notifier().toNotify(repository, issue, "merge"){
               Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
             }
@@ -484,7 +488,10 @@ trait PullRequestsControllerBase extends ControllerBase {
         // extract references and create refer comment
         createReferComment(owner, name, issue, form.title + " " + form.content.getOrElse(""), context.loginAccount.get)
 
-        // notifications
+        // call hooks
+        PluginRegistry().getPullRequestHooks.foreach(_.created(issue, repository))
+
+        // notifications  TODO move to plugin
         Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
           Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
         }

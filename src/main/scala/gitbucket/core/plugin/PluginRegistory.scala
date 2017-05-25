@@ -6,7 +6,7 @@ import java.util.Base64
 import javax.servlet.ServletContext
 
 import gitbucket.core.controller.{Context, ControllerBase}
-import gitbucket.core.model.Account
+import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
@@ -17,6 +17,7 @@ import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.slf4j.LoggerFactory
+import play.twirl.api.Html
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -36,6 +37,8 @@ class PluginRegistry {
   receiveHooks += new ProtectedBranchReceiveHook()
 
   private val repositoryHooks = new ListBuffer[RepositoryHook]
+  private val issueHooks = new ListBuffer[IssueHook]
+  private val pullRequestHooks = new ListBuffer[PullRequestHook]
   private val globalMenus = new ListBuffer[(Context) => Option[Link]]
   private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
   private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
@@ -43,6 +46,7 @@ class PluginRegistry {
   private val systemSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
+  private val issueSidebars = new ListBuffer[(Issue, RepositoryInfo, Context) => Option[Html]]
   private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
   private val textDecorators = new ListBuffer[TextDecorator]
 
@@ -107,6 +111,14 @@ class PluginRegistry {
 
   def getRepositoryHooks: Seq[RepositoryHook] = repositoryHooks.toSeq
 
+  def addIssueHook(issueHook: IssueHook): Unit = issueHooks += issueHook
+
+  def getIssueHooks: Seq[IssueHook] = issueHooks.toSeq
+
+  def addPullRequestHook(pullRequestHook: PullRequestHook): Unit = pullRequestHooks += pullRequestHook
+
+  def getPullRequestHooks: Seq[PullRequestHook] = pullRequestHooks.toSeq
+
   def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus += globalMenu
 
   def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.toSeq
@@ -134,6 +146,10 @@ class PluginRegistry {
   def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = dashboardTabs += dashboardTab
 
   def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
+
+  def addIssueSidebar(issueSidebar: (Issue, RepositoryInfo, Context) => Option[Html]): Unit = issueSidebars += issueSidebar
+
+  def getIssueSidebars: Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = issueSidebars.toSeq
 
   def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = assetsMappings += assetsMapping
 

@@ -112,6 +112,9 @@
   <input type="hidden" name="assignedUserName" value=""/>
 }
 @issue.map { issue =>
+  @gitbucket.core.plugin.PluginRegistry().getIssueSidebars.map { sidebar =>
+    @sidebar(issue, repository, context)
+  }
   <hr/>
   <div style="margin-bottom: 14px;">
     @defining((issue.openedUserName :: comments.map(_.commentedUserName)).distinct){ participants =>

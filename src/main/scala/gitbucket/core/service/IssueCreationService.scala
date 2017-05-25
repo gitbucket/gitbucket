@@ -3,11 +3,11 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.util.Notifier
 import gitbucket.core.util.Implicits._
 
-// TODO: Merged with IssuesService?
 trait IssueCreationService {
 
   self: RepositoryService with WebHookIssueCommentService with LabelsService with IssuesService with ActivityService =>
@@ -46,7 +46,10 @@ trait IssueCreationService {
     // call web hooks
     callIssuesWebHook("opened", repository, issue, context.baseUrl, loginAccount)
 
-    // notifications
+    // call hooks
+    PluginRegistry().getIssueHooks.foreach(_.created(issue, repository))
+
+    // notifications TODO move to plugin
     Notifier().toNotify(repository, issue, body.getOrElse("")) {
       Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
     }
