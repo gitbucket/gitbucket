@@ -38,9 +38,7 @@ h6 {
 
 .octicon,.mega-octicon{
   color : #999;
-  width: 14px;
-  height: 14px;
-  /*font-size: 14px;*/
+  font-size: 14px;
   text-align: center;
 }
 
@@ -452,13 +450,6 @@ table.branches>thead>tr>th, table.branches>tbody>tr>td{
 .branches .muted-link:hover{
   color: #4183c4;
 }
-/*
-.branches .branch-details{
-  display: inline-block;
-  width: 490px;
-  margin-right: 10px;
-}
-*/
 .branches .branch-name{
   color: #4183c4;
   display: inline-block;
@@ -489,6 +480,32 @@ table.branches>thead>tr>th, table.branches>tbody>tr>td{
   padding: 0 3px;
 }
 
+td#upload-td {
+  padding: 0px;
+  background-color: #f4f4f4;
+  border: 1px #ddd solid;
+}
+
+div#upload-area {
+  text-align: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  font-size: 120%;
+}
+
+ul#upload-files {
+  list-style: none;
+  padding-left: 0px;
+  margin-bottom: 0px;
+}
+
+li.upload-file {
+  border-top: 1px #f4f4f4 solid;
+  background-color: white;
+  padding: 4px;
+}
+
+
 /****************************************************************************/
 /* Activity */
 /****************************************************************************/
@@ -501,39 +518,6 @@ div[class^="activity-icon"] i{
 /****************************************************************************/
 p.description {
   color: gray;
-}
-
-a.header-link {
-  color: #888;
-  font-size: 90%;
-}
-
-a.header-link strong {
-  color: black;
-}
-
-a.header-link:hover {
-  color: #4183c4;
-  text-decoration: none;
-}
-
-a.header-link:hover i.octicon, a.header-link:hover strong{
-  color: inherit;
-}
-
-a.header-link i.octicon-x{
-    opacity: 1;
-    width: 20px;
-    height: 20px;
-    margin-right: 3px;
-    color: #FFF;
-    line-height: 20px;
-    background-color: #777;
-    border-radius: 3px;
-}
-a.header-link:hover i.octicon-x{
-    background-color: #4183c4;
-    color: #FFF;
 }
 
 table.table-file-list td.latest-commit {

@@ -51,6 +51,7 @@
 @if(isManageable){
 <script>
 $(function(){
+  @*
   $('a.header-link').mouseover(function(e){
     var target = e.target;
     if(e.target.tagName != 'A'){
@@ -70,6 +71,7 @@ $(function(){
     $(target).children('img.header-icon-hover').css('display', 'none');
     $(target).children('img.header-icon'      ).css('display', 'inline');
   });
+  *@
 
   $('.table-issues input[type=checkbox]').change(function(){
     var all = $('.table-issues input[type=checkbox][value]');

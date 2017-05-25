@@ -1,0 +1,87 @@
+@(branch: String,
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
+  pathList: List[String],
+  protectedBranch: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@import gitbucket.core.util.FileUtil
+@gitbucket.core.html.main(s"Upload Files at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
+  @gitbucket.core.html.menu("files", repository){
+    @if(protectedBranch){
+      <div class="alert alert-danger">branch @branch is protected.</div>
+    }
+    <form method="POST" action="@helpers.url(repository)/upload" id="upload-form">
+      <div class="head">
+        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
+        @pathList.zipWithIndex.map { case (section, i) =>
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+        }
+        <input type="hidden" name="branch" id="branch" value="@branch"/>
+        <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
+      </div>
+      <table class="table table-bordered">
+        <tr>
+          <td id="upload-td">
+            <div id="upload-area">
+              Drag files here to add them to your repository
+            </div>
+            <ul id="upload-files">
+            </ul>
+          </td>
+        </tr>
+      </table>
+      <div class="panel panel-default issue-comment-box">
+        <div class="panel-body">
+          <div>
+            <strong>Commit changes</strong>
+          </div>
+          <div class="form-group">
+            <input type="text" name="message" class="form-control"/>
+          </div>
+          <div style="text-align: right;">
+            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@{pathList.mkString("/")}" class="btn btn-danger">Cancel</a>
+            <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
+            <input type="hidden" id="upload-files-data" name="uploadFiles" value=""/>
+          </div>
+        </div>
+      </div>
+    </form>
+  }
+}
+<script>
+$(function(){
+  $('#upload-area').dropzone({
+    url: '@context.path/upload/tmp',
+    maxFilesize: 10,
+    clickable: true,
+    previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
+    success: function(file, id) {
+      file.previewElement.remove();
+      $('#upload-files').append($('<li class="upload-file">')
+        .append($('<span>').data('id', id).text(file.name))
+        .append($('<a class="delete" href="javascript:void(0);" style="margin-left: 4px;">(delete)</a>')));
+      updateCommitButtonStatus();
+    }
+  });
+
+  $('#upload-form').submit(function(){
+    try {
+      var data = '';
+      $.each($('li.upload-file span'), function(i, e){
+        data = data + $(e).data('id') + ':' + $(e).text() + '\n';
+      });
+      $('#upload-files-data').val(data);
+    } catch(e){
+      console.log(e);
+    }
+  });
+
+  $(document).on('click', 'a.delete', function(e){
+     $(e.target).parent().remove();
+    updateCommitButtonStatus();
+  });
+
+  function updateCommitButtonStatus(){
+    $('#commit').attr('disabled', $('.upload-file').length == 0);
+  }
+});
+</script>
