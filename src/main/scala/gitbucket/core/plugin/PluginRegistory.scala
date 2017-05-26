@@ -33,6 +33,7 @@ class PluginRegistry {
     "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
   )
   private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
+  private val accountHooks = new ListBuffer[AccountHook]
   private val receiveHooks = new ListBuffer[ReceiveHook]
   receiveHooks += new ProtectedBranchReceiveHook()
 
@@ -102,6 +103,10 @@ class PluginRegistry {
       }
     }
   }
+
+  def addAccountHook(accountHook: AccountHook): Unit = accountHooks += accountHook
+
+  def getAccountHooks: Seq[AccountHook] = accountHooks.toSeq
 
   def addReceiveHook(commitHook: ReceiveHook): Unit = receiveHooks += commitHook
 

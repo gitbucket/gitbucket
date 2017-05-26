@@ -72,6 +72,16 @@ abstract class Plugin {
   def repositoryRoutings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[GitRepositoryRouting] = Nil
 
   /**
+   * Override to add account hooks.
+   */
+  val accountHooks: Seq[AccountHook] = Nil
+
+  /**
+   * Override to add account hooks.
+   */
+  def accountHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[AccountHook] = Nil
+
+  /**
    * Override to add receive hooks.
    */
   val receiveHooks: Seq[ReceiveHook] = Nil
@@ -240,6 +250,9 @@ abstract class Plugin {
     }
     (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { routing =>
       registry.addRepositoryRouting(routing)
+    }
+    (accountHooks ++ accountHooks(registry, context, settings)).foreach { accountHook =>
+      registry.addAccountHook(accountHook)
     }
     (receiveHooks ++ receiveHooks(registry, context, settings)).foreach { receiveHook =>
       registry.addReceiveHook(receiveHook)

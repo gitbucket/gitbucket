@@ -225,7 +225,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           //          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
           //          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
           //        }
-          // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+          // Remove from GROUP_MEMBER and COLLABORATOR
           removeUserRelatedData(userName)
         }
 
@@ -239,6 +239,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           isRemoved    = form.isRemoved))
 
         updateImage(userName, form.fileId, form.clearImage)
+
+        // call hooks
+        if(form.isRemoved) PluginRegistry().getAccountHooks.foreach(_.deleted(userName))
+
         redirect("/admin/users")
       }
     } getOrElse NotFound()

@@ -206,9 +206,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
-//      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+        // Remove from GROUP_MEMBER and COLLABORATOR
         removeUserRelatedData(userName)
         updateAccount(account.copy(isRemoved = true))
+
+        // call hooks
+        PluginRegistry().getAccountHooks.foreach(_.deleted(userName))
+
         session.invalidate
         redirect("/")
       }
