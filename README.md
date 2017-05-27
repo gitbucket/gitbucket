@@ -68,6 +68,11 @@ Support
 
 Release Notes
 -------------
+### 4.13 - 29 May 2017
+- Uploading files into the repository
+- HTML is available in Markdown
+- Added filter box to dropdown menus
+
 ### 4.12 - 30 Apr 2017
 - [Gist plug-in](https://github.com/gitbucket/gitbucket-gist-plugin) provides JavaScript to embed snippet
 - Dropdown menu filter in the branch comparing page
