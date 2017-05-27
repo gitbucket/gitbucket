@@ -1,5 +1,6 @@
 @(issue: gitbucket.core.model.Issue,
   pullreq: gitbucket.core.model.PullRequest,
+  commits: Seq[gitbucket.core.util.JGitUtil.CommitInfo],
   comments: List[gitbucket.core.model.Comment],
   issueLabels: List[gitbucket.core.model.Label],
   collaborators: List[String],
@@ -48,16 +49,12 @@
 </div>
 <script>
 $(function(){
-  $('#cancel-merge-pull-request').click(function(){
-    $('#confirm-merge-form').hide();
-    $('#merge-pull-request').show();
-  });
-
-  var checkConflict = $('.check-conflict').show();
-  if(checkConflict.length){
-    $.get('@helpers.url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+  @if(commits.nonEmpty){
+    var checkConflict = $('.check-conflict').show();
+    if(checkConflict.length){
+      $.get('@helpers.url(repository)/pull/@issue.issueId/mergeguide', function(data){ $('.check-conflict').html(data); });
+    }
   }
-
   $('.delete-branch').click(function(e){
     var branchName = $(e.target).data('name');
     return confirm('Are you sure you want to remove the ' + branchName + ' branch?');
