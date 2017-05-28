@@ -88,10 +88,14 @@
           @gitbucket.core.pulls.html.conversation(issue, pullreq, commits, comments, issueLabels, collaborators, milestones, labels, isEditable, isManageable, isManageableForkedRepository, repository, forkedRepository)
         </div>
         <div class="tab-pane" id="commits">
-          @gitbucket.core.pulls.html.commits(dayByDayCommits, Some(comments), repository)
+          @if(commits.nonEmpty){
+            @gitbucket.core.pulls.html.commits(dayByDayCommits, Some(comments), repository)
+          }
         </div>
         <div class="tab-pane" id="files">
-          @gitbucket.core.helper.html.diff(diffs, repository, commits.headOption.map(_.id), commits.lastOption.map(_.id), true, Some(pullreq.issueId), isManageable, true)
+          @if(commits.nonEmpty){
+            @gitbucket.core.helper.html.diff(diffs, repository, commits.headOption.map(_.id), commits.lastOption.map(_.id), true, Some(pullreq.issueId), isManageable, true)
+          }
         </div>
       </div>
     }
