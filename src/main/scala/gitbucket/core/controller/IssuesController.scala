@@ -76,7 +76,7 @@ trait IssuesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues")(referrersOnly { repository =>
     val q = request.getParameter("q")
     if(Option(q).exists(_.contains("is:pr"))){
-      redirect(s"/${repository.owner}/${repository.name}/pulls?q=" + StringUtil.urlEncode(q))
+      redirect(s"/${repository.owner}/${repository.name}/pulls?q=${StringUtil.urlEncode(q)}")
     } else {
       searchIssues(repository)
     }
@@ -84,17 +84,21 @@ trait IssuesControllerBase extends ControllerBase {
 
   get("/:owner/:repository/issues/:id")(referrersOnly { repository =>
     defining(repository.owner, repository.name, params("id")){ case (owner, name, issueId) =>
-      getIssue(owner, name, issueId) map {
-        html.issue(
-          _,
-          getComments(owner, name, issueId.toInt),
-          getIssueLabels(owner, name, issueId.toInt),
-          getAssignableUserNames(owner, name),
-          getMilestonesWithIssueCount(owner, name),
-          getLabels(owner, name),
-          isIssueEditable(repository),
-          isIssueManageable(repository),
-          repository)
+      getIssue(owner, name, issueId) map { issue =>
+        if(issue.isPullRequest){
+          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+        } else {
+          html.issue(
+            issue,
+            getComments(owner, name, issueId.toInt),
+            getIssueLabels(owner, name, issueId.toInt),
+            getAssignableUserNames(owner, name),
+            getMilestonesWithIssueCount(owner, name),
+            getLabels(owner, name),
+            isIssueEditable(repository),
+            isIssueManageable(repository),
+            repository)
+        }
       } getOrElse NotFound()
     }
   })
