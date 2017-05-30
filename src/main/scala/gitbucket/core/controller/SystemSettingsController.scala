@@ -277,13 +277,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         if(form.isRemoved){
           // Remove from GROUP_MEMBER
           updateGroupMembers(form.groupName, Nil)
-          // Remove repositories
-          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-            deleteRepository(groupName, repositoryName)
-            FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
-          }
+//          // Remove repositories
+//          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+//            deleteRepository(groupName, repositoryName)
+//            FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+//            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+//            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+//          }
         } else {
           // Update GROUP_MEMBER
           updateGroupMembers(form.groupName, members)
