@@ -312,13 +312,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     defining(params("groupName")){ groupName =>
       // Remove from GROUP_MEMBER
       updateGroupMembers(groupName, Nil)
-      // Remove repositories
-      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-        deleteRepository(groupName, repositoryName)
-        FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+      // Disable group
+      getAccountByUserName(groupName, false).foreach { account =>
+        updateGroup(groupName, account.description, account.url, true)
       }
+//      // Remove repositories
+//      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+//        deleteRepository(groupName, repositoryName)
+//        FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+//        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+//        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+//      }
     }
     redirect("/")
   })
