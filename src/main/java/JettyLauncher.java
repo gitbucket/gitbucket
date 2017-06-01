@@ -39,6 +39,9 @@ public class JettyLauncher {
                                 contextPath = "/" + contextPath;
                             }
                             break;
+                        case "--max_file_size":
+                            System.setProperty("gitbucket.maxFileSize", dim[2]);
+                            break;
                         case "--gitbucket.home":
                             System.setProperty("gitbucket.home", dim[1]);
                             break;
