@@ -163,7 +163,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       }
     }.getOrElse{
       response.setHeader("Cache-Control", "max-age=3600")
-      Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
+      Thread.currentThread.getContextClassLoader.getResourceAsStream("/noimage.png")
     }
   }
 
