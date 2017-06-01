@@ -106,7 +106,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val newUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password"    -> trim(label("Password"     ,text(required, maxlength(20)))),
+    "password"    -> trim(label("Password"     ,text(required, maxlength(20), password))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress()))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
@@ -117,7 +117,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val editUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier))),
-    "password"    -> trim(label("Password"     ,optional(text(maxlength(20))))),
+    "password"    -> trim(label("Password"     ,optional(text(maxlength(20), password)))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress("userName")))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
