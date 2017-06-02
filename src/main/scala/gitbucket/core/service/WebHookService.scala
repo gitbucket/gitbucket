@@ -42,7 +42,7 @@ trait WebHookService {
   def getWebHooksByEvent(owner: String, repository: String, event: WebHook.Event)(implicit s: Session): List[WebHook] =
      WebHooks.filter(_.byRepository(owner, repository))
        .join(WebHookEvents).on { (wh, whe) => whe.byWebHook(wh) }
-       .filter { case (wh, whe) => whe.event === event.bind}
+       .filter { case (wh, whe) => whe.event === event.bind }
        .map{ case (wh, whe) => wh }
        .list.distinct
 
