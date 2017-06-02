@@ -80,7 +80,7 @@ object LDAPUtil {
       } else {
         findMailAddress(conn, userDN, ldapSettings.userNameAttribute, userName, ldapSettings.mailAttribute.get) match {
           case Some(mailAddress) => Right(LDAPUserInfo(
-            userName    = getUserNameFromMailAddress(userName),
+            userName    = getUserNameFromMailAddress(if (ldapSettings.useMailAddressAsUserName.getOrElse(false)) mailAddress else userName),
             fullName    = ldapSettings.fullNameAttribute.flatMap { fullNameAttribute =>
               findFullName(conn, userDN, ldapSettings.userNameAttribute, userName, fullNameAttribute)
             }.getOrElse(userName),
