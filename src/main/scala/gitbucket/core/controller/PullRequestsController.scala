@@ -281,11 +281,6 @@ trait PullRequestsControllerBase extends ControllerBase {
             // call hooks
             PluginRegistry().getPullRequestHooks.foreach(_.merged(issue, repository))
 
-            // notifications  TODO move to plugin
-            Notifier().toNotify(repository, issue, "merge"){
-              Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
-            }
-
             redirect(s"/${owner}/${name}/pull/${issueId}")
           }
         }
@@ -490,11 +485,6 @@ trait PullRequestsControllerBase extends ControllerBase {
 
         // call hooks
         PluginRegistry().getPullRequestHooks.foreach(_.created(issue, repository))
-
-        // notifications  TODO move to plugin
-        Notifier().toNotify(repository, issue, form.content.getOrElse("")) {
-          Notifier.msgPullRequest(s"${context.baseUrl}/${owner}/${name}/pull/${issueId}")
-        }
       }
 
       redirect(s"/${owner}/${name}/pull/${issueId}")

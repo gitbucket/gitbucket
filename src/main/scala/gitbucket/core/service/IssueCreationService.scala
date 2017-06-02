@@ -5,7 +5,6 @@ import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.util.Notifier
 import gitbucket.core.util.Implicits._
 
 trait IssueCreationService {
@@ -49,10 +48,6 @@ trait IssueCreationService {
     // call hooks
     PluginRegistry().getIssueHooks.foreach(_.created(issue, repository))
 
-    // notifications TODO move to plugin
-    Notifier().toNotify(repository, issue, body.getOrElse("")) {
-      Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
-    }
     issue
   }
 

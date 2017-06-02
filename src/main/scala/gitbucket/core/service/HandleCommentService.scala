@@ -6,7 +6,6 @@ import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.util.Notifier
 
 trait HandleCommentService {
   self: RepositoryService with IssuesService with ActivityService
@@ -85,22 +84,6 @@ trait HandleCommentService {
               PluginRegistry().getPullRequestHooks.foreach(_.reopened(issue, repository))
             else
               PluginRegistry().getIssueHooks.foreach(_.reopened(issue, repository))
-        }
-
-        // notifications  // TODO move to plugin
-        Notifier() match {
-          case f =>
-            content foreach {
-              f.toNotify(repository, issue, _){
-                Notifier.msgComment(s"${context.baseUrl}/${owner}/${name}/${
-                  if(issue.isPullRequest) "pull" else "issues"}/${issue.issueId}#comment-${commentId.get}")
-              }
-            }
-            action foreach {
-              f.toNotify(repository, issue, _){
-                Notifier.msgStatus(s"${context.baseUrl}/${owner}/${name}/issues/${issue.issueId}")
-              }
-            }
         }
 
         commentId.map( issue -> _ )

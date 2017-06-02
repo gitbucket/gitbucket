@@ -17,6 +17,7 @@ When the ```CLOSED``` column value is updated, GitBucket does the notification.
 Notified users are as follows:
 
 * individual repository's owner
+* group members of group repository
 * collaborators
 * participants
 
