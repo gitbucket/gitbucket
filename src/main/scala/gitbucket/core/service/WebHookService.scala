@@ -496,9 +496,16 @@ object WebHookService {
       repository: RepositoryInfo,
       repositoryUser: Account,
       sender: Account
+    ): WebHookGollumPayload = apply(Seq((action, pageName, sha)), repository, repositoryUser, sender)
+
+    def apply(
+      pages: Seq[(String, String, String)],
+      repository: RepositoryInfo,
+      repositoryUser: Account,
+      sender: Account
     ): WebHookGollumPayload = {
       WebHookGollumPayload(
-        pages = Seq(
+        pages = pages.map { case (action, pageName, sha) =>
           WebHookGollumPagePayload(
             action = action,
             page_name = pageName,
@@ -506,7 +513,7 @@ object WebHookService {
             sha = sha,
             html_url = ApiPath(s"/${RepositoryName(repository).fullName}/wiki/${StringUtil.urlDecode(pageName)}")
           )
-        ),
+        },
         repository = ApiRepository(repository, repositoryUser),
         sender = ApiUser(sender)
       )
