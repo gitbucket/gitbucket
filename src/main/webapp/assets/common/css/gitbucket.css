@@ -264,16 +264,6 @@ div.box-content {
   border-radius: 3px;
 }
 
-li.repo-link, li.page-link {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-body:not(.sidebar-collapse) li.repo-link, li.page-link{
-  overflow: hidden;
-}
-
 div.box-content-bottom {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -1845,19 +1835,14 @@ body.page-load * {
   transition: none !important;
 }
 
-body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.label.pull-right-container {
+body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-right-container {
   display: inline !important;
   position: absolute;
-  top: 9px;
-  right: 7px;
-  text-align: center;
+  top: 8px;
+  right: 0px;
   font-size: 9px;
-  padding: 2px 3px;
-  line-height: .9;
 }
 
-body.sidebar-collapse .main-sidebar li.treeview:hover span.label.pull-right-container {
-  left: 180px !important;
-  margin-left: 0px;
-  padding: 12px 20px 12px 20px;
+body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.pull-right-container span.label {
+  padding: 2px 4px;
 }

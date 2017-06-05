@@ -2,7 +2,6 @@
   personalTokens: List[gitbucket.core.model.AccessToken],
   gneratedToken: Option[(gitbucket.core.model.AccessToken, String)])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Applications"){
-<div class="container body">
   @gitbucket.core.account.html.menu("application", context.settings.ssh){
     <div class="panel panel-default">
       <div class="panel-heading strong">Personal access tokens</div>
@@ -49,5 +48,4 @@
       </div>
     </form>
   }
-</div>
 }

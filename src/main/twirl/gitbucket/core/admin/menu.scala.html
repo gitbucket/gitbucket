@@ -1,37 +1,42 @@
 @(active: String)(body: Html)(implicit context: gitbucket.core.controller.Context)
-@import gitbucket.core.view.helpers
 <div class="main-sidebar">
   <div class="sidebar">
     <ul class="sidebar-menu" id="system-admin-menu-container">
-      <li@if(active=="users"){ class="active"}>
+      <li class="menu-item-hover @if(active=="users"){active}">
         <a href="@context.path/admin/users">
-          @helpers.menuicon("octicon-person")<span>User management</span>
+          <i class="menu-icon octicon octicon-person"></i>
+          <span>User management</span>
         </a>
       </li>
-      <li@if(active=="system"){ class="active"}>
+      <li class="menu-item-hover @if(active=="system"){active}">
         <a href="@context.path/admin/system">
-          @helpers.menuicon("octicon-gear")<span>System settings</span></a>
+          <i class="menu-icon octicon octicon-gear"></i>
+          <span>System settings</span></a>
       </li>
-      <li@if(active=="plugins"){ class="active"}>
+      <li class="menu-item-hover @if(active=="plugins"){active}">
         <a href="@context.path/admin/plugins">
-          @helpers.menuicon("octicon-plug")<span>Plugins</span>
+          <i class="menu-icon octicon octicon-plug"></i>
+          <span>Plugins</span>
         </a>
       </li>
-      <li@if(active=="data"){ class="active"}>
+      <li class="menu-item-hover @if(active=="data"){active}">
         <a href="@context.path/admin/data">
-          @helpers.menuicon("octicon-database")<span>Data export / import</span>
+          <i class="menu-icon octicon octicon-database"></i>
+          <span>Data export / import</span>
         </a>
       </li>
-      <li>
+      <li class="menu-item-hover">
         <a href="@context.path/console/login.jsp" target="_blank">
-          @helpers.menuicon("octicon-database")<span>H2 console</span>
+          <i class="menu-icon octicon octicon-database"></i>
+          <span>H2 console</span>
         </a>
       </li>
       @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
         @menu(context).map { link =>
           <li@if(active==link.id){ class="active"}>
             <a href="@context.path/@link.path">
-              @helpers.menuicon(link.icon, "octicon-plug")<span>@link.label</span>
+              <i class="menu-icon octicon octicon-plug"></i>
+              <span>@link.label</span>
             </a>
           </li>
         }
