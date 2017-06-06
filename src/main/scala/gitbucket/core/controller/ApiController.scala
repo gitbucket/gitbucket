@@ -33,6 +33,7 @@ class ApiController extends ApiControllerBase
   with WebHookIssueCommentService
   with WikiService
   with ActivityService
+  with PrioritiesService
   with OwnerAuthenticator
   with UsersAuthenticator
   with GroupManagerAuthenticator
@@ -52,6 +53,7 @@ trait ApiControllerBase extends ControllerBase {
     with RepositoryCreationService
     with IssueCreationService
     with HandleCommentService
+    with PrioritiesService
     with OwnerAuthenticator
     with UsersAuthenticator
     with GroupManagerAuthenticator
@@ -365,6 +367,7 @@ trait ApiControllerBase extends ControllerBase {
           data.body,
           data.assignees.headOption,
           milestone.map(_.milestoneId),
+          None,
           data.labels,
           loginAccount)
         JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount)))

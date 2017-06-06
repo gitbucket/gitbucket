@@ -823,13 +823,22 @@ div.issue-comment-action .octicon.danger {
   color: #fff;
 }
 
-.nav-pills > li > span.issue-label {
+.nav-pills > li > span.issue-label, .issue-priority {
   display: block;
   padding: 0px 8px 2px 8px;
   margin-top: 2px;
   -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
           border-radius: 5px;
+}
+
+.issue-priority {
+  font-size: 90%;
+}
+
+.issue-priority-inline {
+  font-size: 100%;
+  display: inline;
 }
 
 div.attachable {

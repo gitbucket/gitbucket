@@ -3,6 +3,7 @@
   issueLabels: List[gitbucket.core.model.Label],
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
@@ -32,6 +33,40 @@
   @gitbucket.core.issues.html.labellist(issueLabels)
 </ul>
 <hr/>
+
+<div style="margin-bottom: 14px;">
+  <span class="muted small strong">Priority</span>
+  @if(isManageable){
+    <div class="pull-right">
+      @gitbucket.core.helper.html.dropdown("Edit", right = true, filter = ("priority", "Filter Priority")) {
+        <li><a href="javascript:void(0);" class="priority" data-id=""><i class="octicon octicon-x"></i> Clear priority</a></li>
+        @priorities.map { priority =>
+          <li>
+            <a href="javascript:void(0);" class="priority" data-id="@priority.priorityId" data-name="@priority.priorityName" data-color="#@priority.color" data-font-color="#@priority.fontColor">
+              @gitbucket.core.helper.html.checkicon(issue.flatMap(is => is.priorityId).map(id => id == priority.priorityId).getOrElse(false))
+              <span class="label" style="background-color: #@priority.color;">&nbsp;</span>
+              @priority.priorityName
+            </a>
+          </li>
+        }
+      }
+    </div>
+  }
+</div>
+<span id="label-priority">
+  @issue.flatMap(_.priorityId).map { priorityId =>
+    @priorities.collect { case priority if(priority.priorityId == priorityId) =>
+      <a class="issue-priority" style="background-color: #@priority.color; color: #@priority.fontColor;" href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open">@priority.priorityName</a>
+    }
+  }.getOrElse {
+    <span class="muted small">No priority</span>
+  }
+</span>
+@if(issue.isEmpty){
+  <input type="hidden" name="priorityId" value=""/>
+}
+<hr/>
+
 <div style="margin-bottom: 14px;">
   <span class="muted small strong">Milestone</span>
   @if(isManageable){
@@ -152,6 +187,19 @@ $(function(){
     );
   });
 
+  $('a.priority').click(function(){
+    var priorityName = $(this).data('name');
+    var priorityId = $(this).data('id');
+    var color = $(this).data('color');
+    var fontColor = $(this).data('font-color');
+    $.post('@helpers.url(repository)/issues/@issue.issueId/priority',
+      { priorityId: priorityId },
+      function(data){
+        displayPriority(priorityName, priorityId, color, fontColor);
+      }
+    );
+  });
+
   $('a.assign').click(function(){
     var $this = $(this);
     var userName = $this.data('name');
@@ -188,6 +236,15 @@ $(function(){
     $('input[name=milestoneId]').val(milestoneId);
   });
 
+  $('a.priority').click(function(){
+    var priorityName = $(this).data('name');
+    var priorityId = $(this).data('id');
+    var color = $(this).data('color');
+    var fontColor = $(this).data('font-color');
+    displayPriority(priorityName, priorityId, color, fontColor);
+    $('input[name=priorityId]').val(priorityId);
+  });
+
   $('a.assign').click(function(){
     var $this = $(this);
     var userName = $this.data('name');
@@ -219,6 +276,22 @@ $(function(){
         $('#milestone-progress-area').html(progress);
       }
       $('a.milestone[data-id=' + milestoneId + '] i').addClass('octicon-check');
+    }
+  }
+
+  function displayPriority(priorityName, priorityId, color, fontColor){
+    $('a.priority i.octicon-check').removeClass('octicon-check');
+    if(priorityId == ''){
+      $('#label-priority').html($('<span class="muted small">').text('No priority'));
+    } else {
+      $('#label-priority').html($('<a class="issue-priority">').text(priorityName)
+        .attr('href', '@helpers.url(repository)/issues?priority=' + encodeURIComponent(priorityName) + '&state=open')
+        .css({
+          "background-color": color,
+          "color": fontColor
+        }));
+
+      $('a.priority[data-id=' + priorityId + '] i').addClass('octicon-check');
     }
   }
 

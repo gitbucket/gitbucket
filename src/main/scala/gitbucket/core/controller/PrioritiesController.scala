@@ -27,7 +27,7 @@ trait PrioritiesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues/priorities")(referrersOnly { repository =>
     html.list(
       getPriorities(repository.owner, repository.name),
-      Map.empty, // TODO
+      countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
@@ -40,7 +40,7 @@ trait PrioritiesControllerBase extends ControllerBase {
     val priorityId = createPriority(repository.owner, repository.name, form.priorityName, form.color.substring(1))
     html.priority(
       getPriority(repository.owner, repository.name, priorityId).get,
-      Map.empty, // TODO,
+      countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })
@@ -55,7 +55,7 @@ trait PrioritiesControllerBase extends ControllerBase {
     updatePriority(repository.owner, repository.name, params("priorityId").toInt, form.priorityName, form.color.substring(1))
     html.priority(
       getPriority(repository.owner, repository.name, params("priorityId").toInt).get,
-      Map.empty, // TODO,
+      countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
       repository,
       hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
   })

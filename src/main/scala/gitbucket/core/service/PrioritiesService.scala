@@ -50,7 +50,11 @@ trait PrioritiesService {
   }
 
   def deletePriority(owner: String, repository: String, priorityId: Int)(implicit s: Session): Unit = {
-    // TODO update affected issues
+    Issues.filter(_.byRepository(owner, repository))
+      .filter(_.priorityId === priorityId)
+      .map(_.priorityId?)
+      .update(None)
+
     Priorities.filter(_.byPrimaryKey(owner, repository, priorityId)).delete
   }
 }

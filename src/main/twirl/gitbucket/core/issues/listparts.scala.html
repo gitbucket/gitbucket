@@ -6,6 +6,7 @@
   condition: gitbucket.core.service.IssuesService.IssueSearchCondition,
   collaborators: List[String] = Nil,
   milestones: List[gitbucket.core.model.Milestone] = Nil,
+  priorities: List[gitbucket.core.model.Priority] = Nil,
   labels: List[gitbucket.core.model.Label] = Nil,
   repository: Option[gitbucket.core.service.RepositoryService.RepositoryInfo] = None,
   isManageable: Boolean = false)(implicit context: gitbucket.core.controller.Context)
@@ -44,6 +45,22 @@
                   @gitbucket.core.helper.html.checkicon(condition.labels.contains(label.labelName))
                   <span style="background-color: #@label.color;" class="label-color">&nbsp;&nbsp;</span>
                   @label.labelName
+                </a>
+              </li>
+            }
+          }
+          @gitbucket.core.helper.html.dropdown("Priority", filter = ("priority", "Find Priority...")) {
+            <li>
+              <a href="@condition.copy(priority = (if(condition.priority == Some(None)) None else Some(None))).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.priority == Some(None)) Issues with no priority
+              </a>
+            </li>
+            @priorities.map { priority =>
+              <li>
+                <a href="@condition.copy(priority = (if(condition.priority == Some(Some(priority.priorityName))) None else Some(Some(priority.priorityName)))).toURL">
+                  @gitbucket.core.helper.html.checkicon(condition.priority == Some(Some(priority.priorityName)))
+                  <span style="background-color: #@priority.color;" class="label-color">&nbsp;&nbsp;</span>
+                  @priority.priorityName
                 </a>
               </li>
             }
@@ -89,6 +106,16 @@
               </a>
             </li>
             <li>
+              <a href="@condition.copy(sort="priority", direction="asc").toURL">
+                @gitbucket.core.helper.html.checkicon(condition.sort == "priority"  && condition.direction == "asc") Highest priority
+              </a>
+            </li>
+            <li>
+              <a href="@condition.copy(sort="priority", direction="desc" ).toURL">
+                @gitbucket.core.helper.html.checkicon(condition.sort == "priority"  && condition.direction == "desc") Lowest priority
+              </a>
+            </li>
+            <li>
               <a href="@condition.copy(sort="comments", direction="desc").toURL">
                 @gitbucket.core.helper.html.checkicon(condition.sort == "comments"  && condition.direction == "desc") Most commented
               </a>
@@ -125,6 +152,14 @@
                     @label.labelName
                   </a>
                 </li>
+              }
+            }
+            @gitbucket.core.helper.html.dropdown("Priority", filter = ("priority", "Find Priority...")) {
+              <li><a href="javascript:void(0);" class="toggle-priority" data-id="">No priority</a></li>
+              @priorities.map { priority =>
+                <li><a href="javascript:void(0);" class="toggle-priority" data-id="@priority.priorityId">
+                  <span style="background-color: #@priority.color;" class="label">&nbsp;</span>
+                  @priority.priorityName</a></li>
               }
             }
             @gitbucket.core.helper.html.dropdown("Milestone", filter = ("milestone", "Find Milestone...")) {
@@ -171,7 +206,7 @@
         </td>
       </tr>
     }
-    @issues.map { case IssueInfo(issue, labels, milestone, commentCount, commitStatus) =>
+    @issues.map { case IssueInfo(issue, labels, milestone, priority, commentCount, commitStatus) =>
       <tr>
         <td style="padding-top: 12px; padding-bottom: 12px;">
           @if(isManageable){
@@ -208,6 +243,10 @@
           </span>
           <div class="small muted" style="margin-left: 12px; margin-top: 2px;">
             #@issue.issueId opened @gitbucket.core.helper.html.datetimeago(issue.registeredDate) by @helpers.user(issue.openedUserName, styleClass="username")
+            @priority.map(priority => priorities.filter(p => p.priorityName == priority).head).map { priority =>
+            <span style="margin: 20px;"><a href="@condition.copy(priority = Some(Some(priority.priorityName))).toURL" class="username"><i class="octicon octicon-flame"></i>
+              <span class="issue-priority issue-priority-inline" style="background-color: #@priority.color; color: #@priority.fontColor;">@priority.priorityName</span></a></span>
+            }
             @milestone.map { milestone =>
               <span style="margin: 20px;"><a href="@condition.copy(milestone = Some(Some(milestone))).toURL" class="username"><i class="octicon octicon-milestone"></i> @milestone</a></span>
             }

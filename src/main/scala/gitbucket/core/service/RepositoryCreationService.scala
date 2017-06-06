@@ -10,7 +10,7 @@ import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
 
 trait RepositoryCreationService {
-  self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService =>
+  self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService with PrioritiesService =>
 
   def createRepository(loginAccount: Account, owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
                       (implicit s: Session) {
@@ -29,6 +29,9 @@ trait RepositoryCreationService {
 
     // Insert default labels
     insertDefaultLabels(owner, name)
+
+    // Insert default priorities
+    insertDefaultPriorities(owner, name)
 
     // Create the actual repository
     val gitdir = getRepositoryDir(owner, name)
@@ -74,5 +77,9 @@ trait RepositoryCreationService {
     createLabel(userName, repositoryName, "wontfix", "ffffff")
   }
 
-
+  def insertDefaultPriorities(userName: String, repositoryName: String)(implicit s: Session): Unit = {
+    createPriority(userName, repositoryName, "high", "fc2929")
+    createPriority(userName, repositoryName, "medium", "fcc629")
+    createPriority(userName, repositoryName, "low", "acacac")
+  }
 }
