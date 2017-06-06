@@ -943,6 +943,18 @@ pre.reset.discussion-item-content-text{
   color: white;
 }
 
+.priority-sort-handle {
+  margin-top: 3px;
+  padding-right: 10px;
+}
+
+.priority-sort-handle i::before {
+  cursor: move;
+  display: block;
+  width: 0.5em;
+  overflow: hidden;
+}
+
 /****************************************************************************/
 /* Pull request */
 /****************************************************************************/

@@ -1,0 +1,63 @@
+@(priority: Option[gitbucket.core.model.Priority],
+  repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@defining(priority.map(_.priorityId).getOrElse("new")){ priorityId =>
+<div id="edit-priority-area-@priorityId">
+  <form class="form-inline">
+    <input type="text" id="priorityName-@priorityId" style="width: 300px; float: left; margin-right: 4px;" class="form-control" value="@priority.map(_.priorityName)"@if(priorityId == "new"){ placeholder="New priority name"}/>
+    <div id="priority-color-@priorityId" class="input-group color bscp" data-color="#@priority.map(_.color).getOrElse("888888")" data-color-format="hex" style="width: 100px; float: left;">
+      <input type="text" class="form-control" id="priorityColor-@priorityId" value="#@priority.map(_.color).getOrElse("888888")" style="width: 100px;">
+      <span class="input-group-addon"><i style="background-color: #@priority.map(_.color).getOrElse("888888");"></i></span>
+    </div>
+    <script>
+    $('div#priority-color-@priorityId').colorpicker({format: "hex"});
+    </script>
+    <span class="pull-right">
+      <span id="priority-error-@priorityId" class="error"></span>
+      <input type="button" id="cancel-@priorityId" class="btn btn-default priority-edit-cancel" value="Cancel">
+      <input type="button" id="submit-@priorityId" class="btn btn-success" style="margin-bottom: 0px;" value="@(if(priorityId == "new") "Create priority"  else "Save changes")"/>
+    </span>
+  </form>
+</div>
+<script>
+$(function(){
+  $('#submit-@priorityId').click(function(e){
+    $.post('@helpers.url(repository)/issues/priorities/@{if(priorityId == "new") "new" else priorityId + "/edit"}', {
+      'priorityName' : $('#priorityName-@priorityId').val(),
+      'priorityColor': $('#priorityColor-@priorityId').val()
+    }, function(data, status){
+      $('div#edit-priority-area-@priorityId').remove();
+      @if(priorityId == "new"){
+        $('#new-priority-table').hide();
+        // Insert row into the top of table
+        $('#priorities-table tbody').append(data);
+      } else {
+        // Replace table row
+        $('#priority-row-@priorityId').after(data).remove();
+      }
+      $('#priority-no-priorities').hide();
+      updatePriorityCount();
+    }).fail(function(xhr, status, error){
+      var errors = JSON.parse(xhr.responseText);
+      if(errors.priorityName){
+        $('span#priority-error-@priorityId').text(errors.priorityName);
+      } else if(errors.priorityColor){
+        $('span#priority-error-@priorityId').text(errors.priorityColor);
+      } else {
+        $('span#priority-error-@priorityId').text('error');
+      }
+    });
+    return false;
+  });
+
+  $('#cancel-@priorityId').click(function(e){
+    $('div#edit-priority-area-@priorityId').remove();
+    @if(priorityId == "new"){
+      $('#new-priority-table').hide();
+    } else {
+      $('#priority-@priorityId').show();
+    }
+  });
+});
+</script>
+}
