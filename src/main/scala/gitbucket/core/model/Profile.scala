@@ -47,6 +47,7 @@ trait CoreProfile extends ProfileProvider with Profile
   with IssueCommentComponent
   with IssueLabelComponent
   with LabelComponent
+  with PriorityComponent
   with MilestoneComponent
   with PullRequestComponent
   with RepositoryComponent

@@ -38,6 +38,20 @@ protected[model] trait TemplateComponent { self: Profile =>
       byRepository(owner, repository) && (this.labelName === labelName.bind)
   }
 
+  trait PriorityTemplate extends BasicTemplate { self: Table[_] =>
+    val priorityId = column[Int]("PRIORITY_ID")
+    val priorityName = column[String]("PRIORITY_NAME")
+
+    def byPriority(owner: String, repository: String, priorityId: Int) =
+      byRepository(owner, repository) && (this.priorityId === priorityId.bind)
+
+    def byPriority(userName: Rep[String], repositoryName: Rep[String], priorityId: Rep[Int]) =
+      byRepository(userName, repositoryName) && (this.priorityId === priorityId)
+
+    def byPriority(owner: String, repository: String, priorityName: String) =
+      byRepository(owner, repository) && (this.priorityName === priorityName.bind)
+  }
+
   trait MilestoneTemplate extends BasicTemplate { self: Table[_] =>
     val milestoneId = column[Int]("MILESTONE_ID")
 
