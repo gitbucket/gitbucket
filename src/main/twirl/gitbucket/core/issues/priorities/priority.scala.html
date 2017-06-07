@@ -8,7 +8,7 @@
     <div class="milestone row" id="priority-@priority.priorityId">
       <div class="col-md-2">
         @if(hasWritePermission) {
-        <div class="pull-left priority-sort-handle" style="margin-top: 3px"><i class="octicon octicon-grabber" style="font-size: 2em"></i></div>
+        <div class="pull-left priority-sort-handle" style="margin-top: 3px"><i class="octicon octicon-grabber"></i></div>
         }
         <div style="margin-top: 6px">
           <a href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" id="priority-row-content-@priority.priorityId">

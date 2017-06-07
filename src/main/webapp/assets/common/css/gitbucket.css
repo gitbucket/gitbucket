@@ -962,6 +962,7 @@ pre.reset.discussion-item-content-text{
   display: block;
   width: 0.5em;
   overflow: hidden;
+  font-size: 2em;
 }
 
 .priority-default {
