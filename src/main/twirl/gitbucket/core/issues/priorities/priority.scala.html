@@ -18,10 +18,19 @@
           </a>
         </div>
       </div>
-      <div class="col-md-6">
+      <div class="@if(hasWritePermission){col-md-6} else {col-md-8}">
         <span>@priority.description</span>
       </div>
-      <div class="@if(hasWritePermission){col-md-2} else {col-md-4}">
+      <div class="col-md-1">
+        <div class="pull-right">
+          @if(hasWritePermission){
+            <a href="javascript:void(0);" onclick="setDefaultPriority(@priority.priorityId)" data-id="@priority.priorityId"><i class="octicon octicon-star priority-default@if(priority.isDefault){ priority-default-selected}" title="@if(priority.isDefault){Default} else {Set as default}"></i></a>
+          } else if(priority.isDefault) {
+            <i class="octicon octicon-star priority-default priority-default-selected" title="Default"></i>
+          }
+        </div>
+      </div>
+      <div class="col-md-1">
         <div class="pull-right">
           <span class="muted">@counts.get(priority.priorityName).getOrElse(0) open issues</span>
         </div>

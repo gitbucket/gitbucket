@@ -4,6 +4,7 @@
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
   priorities: List[gitbucket.core.model.Priority],
+  defaultPriority: Option[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
   isManageable: Boolean,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
@@ -43,7 +44,7 @@
         @priorities.map { priority =>
           <li>
             <a href="javascript:void(0);" class="priority" data-id="@priority.priorityId" data-name="@priority.priorityName" data-color="#@priority.color" data-font-color="#@priority.fontColor" title="@priority.description">
-              @gitbucket.core.helper.html.checkicon(issue.flatMap(is => is.priorityId).map(id => id == priority.priorityId).getOrElse(false))
+              @gitbucket.core.helper.html.checkicon(issue.flatMap(_.priorityId).orElse(defaultPriority.map(_.priorityId)).map(id => id == priority.priorityId).getOrElse(false))
               <span class="label" style="background-color: #@priority.color;">&nbsp;</span>
               @priority.priorityName
             </a>
@@ -54,7 +55,7 @@
   }
 </div>
 <span id="label-priority">
-  @issue.flatMap(_.priorityId).map { priorityId =>
+  @issue.flatMap(_.priorityId).orElse(defaultPriority.map(_.priorityId)).map { priorityId =>
     @priorities.collect { case priority if(priority.priorityId == priorityId) =>
       <a class="issue-priority" style="background-color: #@priority.color; color: #@priority.fontColor;" href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" title="@priority.description">@priority.priorityName</a>
     }
@@ -63,7 +64,7 @@
   }
 </span>
 @if(issue.isEmpty){
-  <input type="hidden" name="priorityId" value=""/>
+  <input type="hidden" name="priorityId" value="@defaultPriority.map(_.priorityId).map(_.toString).getOrElse("")"/>
 }
 <hr/>
 

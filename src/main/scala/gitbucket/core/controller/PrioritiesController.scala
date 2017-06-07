@@ -71,6 +71,11 @@ trait PrioritiesControllerBase extends ControllerBase {
     Ok()
   })
 
+  ajaxPost("/:owner/:repository/issues/priorities/default")(writableUsersOnly { (repository) =>
+    setDefaultPriority(repository.owner, repository.name, params("priorityId").toInt)
+    Ok()
+  })
+
   ajaxPost("/:owner/:repository/issues/priorities/:priorityId/delete")(writableUsersOnly { repository =>
     deletePriority(repository.owner, repository.name, params("priorityId").toInt)
     Ok()

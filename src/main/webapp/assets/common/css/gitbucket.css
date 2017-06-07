@@ -964,6 +964,15 @@ pre.reset.discussion-item-content-text{
   overflow: hidden;
 }
 
+.priority-default {
+  font-size: 1.5em;
+  color: #ccc;
+}
+
+.priority-default-selected {
+  color: #3c8dbc;
+}
+
 /****************************************************************************/
 /* Pull request */
 /****************************************************************************/

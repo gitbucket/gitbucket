@@ -101,4 +101,14 @@ function updatePriorityCount() {
   var $counter = $('#priority-row-header span');
   $counter.text($counter.text().replace(/\d+/, $('tr.priority-row').size()));
 }
+
+function setDefaultPriority(priorityId){
+  $.post('@helpers.url(repository)/issues/priorities/default',
+    { priorityId: priorityId },
+    function(){
+      $('.priority-default').removeClass('priority-default-selected');
+      $('a[data-id="' + priorityId + '"] .priority-default').addClass('priority-default-selected');
+    }
+  );
+}
 </script>

@@ -114,6 +114,7 @@ trait IssuesControllerBase extends ControllerBase {
           getAssignableUserNames(owner, name),
           getMilestones(owner, name),
           getPriorities(owner, name),
+          getDefaultPriority(owner, name),
           getLabels(owner, name),
           isIssueManageable(repository),
           getContentTemplate(repository, "ISSUE_TEMPLATE"),

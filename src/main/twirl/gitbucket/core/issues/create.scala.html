@@ -1,6 +1,7 @@
 @(collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
   priorities: List[gitbucket.core.model.Priority],
+  defaultPriority: Option[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
   isManageable: Boolean,
   content: String,
@@ -30,7 +31,7 @@
           </div>
         </div>
         <div class="col-md-3">
-          @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, labels, isManageable, repository)
+          @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map(x => (x, 0, 0)), priorities, defaultPriority, labels, isManageable, repository)
         </div>
       </div>
     </form>

@@ -83,5 +83,7 @@ trait RepositoryCreationService {
     createPriority(userName, repositoryName, "high", "Issues should be addressed before a final product is delivered. If the issue cannot be resolved before delivery, it should be prioritized for the next release.", "fc9629")
     createPriority(userName, repositoryName, "important", "Issues can be shipped with a final product, but should be reviewed before the next release.", "fccd29")
     createPriority(userName, repositoryName, "default", "Default.", "acacac")
+
+    setDefaultPriority(userName, repositoryName, getPriority(userName, repositoryName, "default").get.priorityId)
   }
 }
