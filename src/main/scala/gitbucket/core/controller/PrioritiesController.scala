@@ -16,10 +16,11 @@ trait PrioritiesControllerBase extends ControllerBase {
   self: PrioritiesService with IssuesService with RepositoryService
     with ReferrerAuthenticator with WritableUsersAuthenticator =>
 
-  case class PriorityForm(priorityName: String, color: String)
+  case class PriorityForm(priorityName: String, description: String, color: String)
 
   val priorityForm = mapping(
     "priorityName"  -> trim(label("Priority name", text(required, priorityName, uniquePriorityName, maxlength(100)))),
+    "description"   -> trim(label("Description", text(required, maxlength(255)))),
     "priorityColor" -> trim(label("Color", text(required, color)))
   )(PriorityForm.apply)
 
@@ -37,7 +38,7 @@ trait PrioritiesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/priorities/new", priorityForm)(writableUsersOnly { (form, repository) =>
-    val priorityId = createPriority(repository.owner, repository.name, form.priorityName, form.color.substring(1))
+    val priorityId = createPriority(repository.owner, repository.name, form.priorityName, form.description, form.color.substring(1))
     html.priority(
       getPriority(repository.owner, repository.name, priorityId).get,
       countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),
@@ -52,7 +53,7 @@ trait PrioritiesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/priorities/:priorityId/edit", priorityForm)(writableUsersOnly { (form, repository) =>
-    updatePriority(repository.owner, repository.name, params("priorityId").toInt, form.priorityName, form.color.substring(1))
+    updatePriority(repository.owner, repository.name, params("priorityId").toInt, form.priorityName, form.description, form.color.substring(1))
     html.priority(
       getPriority(repository.owner, repository.name, params("priorityId").toInt).get,
       countIssueGroupByPriorities(repository.owner, repository.name, IssuesService.IssueSearchCondition(), Map.empty),

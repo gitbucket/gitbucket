@@ -78,8 +78,8 @@ trait RepositoryCreationService {
   }
 
   def insertDefaultPriorities(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    createPriority(userName, repositoryName, "high", "fc2929")
-    createPriority(userName, repositoryName, "medium", "fcc629")
-    createPriority(userName, repositoryName, "low", "acacac")
+    createPriority(userName, repositoryName, "high", "high", "fc2929")
+    createPriority(userName, repositoryName, "medium", "medium", "fcc629")
+    createPriority(userName, repositoryName, "low", "low", "acacac")
   }
 }

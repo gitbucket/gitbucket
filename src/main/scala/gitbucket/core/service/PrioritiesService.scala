@@ -15,7 +15,7 @@ trait PrioritiesService {
   def getPriority(owner: String, repository: String, priorityName: String)(implicit s: Session): Option[Priority] =
     Priorities.filter(_.byPriority(owner, repository, priorityName)).firstOption
 
-  def createPriority(owner: String, repository: String, priorityName: String, color: String)(implicit s: Session): Int = {
+  def createPriority(owner: String, repository: String, priorityName: String, description: String, color: String)(implicit s: Session): Int = {
     val ordering = Priorities.filter(_.byRepository(owner, repository))
       .list
       .map(p => p.ordering)
@@ -27,16 +27,17 @@ trait PrioritiesService {
       userName       = owner,
       repositoryName = repository,
       priorityName   = priorityName,
+      description    = description,
       ordering       = ordering,
       color          = color
     )
   }
 
-  def updatePriority(owner: String, repository: String, priorityId: Int, priorityName: String, color: String)
+  def updatePriority(owner: String, repository: String, priorityId: Int, priorityName: String, description: String, color: String)
                  (implicit s: Session): Unit =
     Priorities.filter(_.byPrimaryKey(owner, repository, priorityId))
-          .map(t => (t.priorityName, t.color))
-          .update(priorityName, color)
+          .map(t => (t.priorityName, t.description, t.color))
+          .update(priorityName, description, color)
 
   def reorderPriorities(owner: String, repository: String, order: Map[Int, Int])
                     (implicit s: Session): Unit = {

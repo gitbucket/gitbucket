@@ -42,7 +42,7 @@
         <li><a href="javascript:void(0);" class="priority" data-id=""><i class="octicon octicon-x"></i> Clear priority</a></li>
         @priorities.map { priority =>
           <li>
-            <a href="javascript:void(0);" class="priority" data-id="@priority.priorityId" data-name="@priority.priorityName" data-color="#@priority.color" data-font-color="#@priority.fontColor">
+            <a href="javascript:void(0);" class="priority" data-id="@priority.priorityId" data-name="@priority.priorityName" data-color="#@priority.color" data-font-color="#@priority.fontColor" title="@priority.description">
               @gitbucket.core.helper.html.checkicon(issue.flatMap(is => is.priorityId).map(id => id == priority.priorityId).getOrElse(false))
               <span class="label" style="background-color: #@priority.color;">&nbsp;</span>
               @priority.priorityName
@@ -56,7 +56,7 @@
 <span id="label-priority">
   @issue.flatMap(_.priorityId).map { priorityId =>
     @priorities.collect { case priority if(priority.priorityId == priorityId) =>
-      <a class="issue-priority" style="background-color: #@priority.color; color: #@priority.fontColor;" href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open">@priority.priorityName</a>
+      <a class="issue-priority" style="background-color: #@priority.color; color: #@priority.fontColor;" href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" title="@priority.description">@priority.priorityName</a>
     }
   }.getOrElse {
     <span class="muted small">No priority</span>
@@ -190,12 +190,13 @@ $(function(){
   $('a.priority').click(function(){
     var priorityName = $(this).data('name');
     var priorityId = $(this).data('id');
+    var description = $(this).attr('title');
     var color = $(this).data('color');
     var fontColor = $(this).data('font-color');
     $.post('@helpers.url(repository)/issues/@issue.issueId/priority',
       { priorityId: priorityId },
       function(data){
-        displayPriority(priorityName, priorityId, color, fontColor);
+        displayPriority(priorityName, priorityId, description, color, fontColor);
       }
     );
   });
@@ -239,9 +240,10 @@ $(function(){
   $('a.priority').click(function(){
     var priorityName = $(this).data('name');
     var priorityId = $(this).data('id');
+    var description = $(this).attr('title');
     var color = $(this).data('color');
     var fontColor = $(this).data('font-color');
-    displayPriority(priorityName, priorityId, color, fontColor);
+    displayPriority(priorityName, priorityId, description, color, fontColor);
     $('input[name=priorityId]').val(priorityId);
   });
 
@@ -279,13 +281,14 @@ $(function(){
     }
   }
 
-  function displayPriority(priorityName, priorityId, color, fontColor){
+  function displayPriority(priorityName, priorityId, description, color, fontColor){
     $('a.priority i.octicon-check').removeClass('octicon-check');
     if(priorityId == ''){
       $('#label-priority').html($('<span class="muted small">').text('No priority'));
     } else {
       $('#label-priority').html($('<a class="issue-priority">').text(priorityName)
         .attr('href', '@helpers.url(repository)/issues?priority=' + encodeURIComponent(priorityName) + '&state=open')
+        .attr('title', description)
         .css({
           "background-color": color,
           "color": fontColor

@@ -6,18 +6,20 @@
 <tr id="priority-row-@priority.priorityId" class="priority-row">
   <td style="padding-top: 15px; padding-bottom: 15px;">
     <div class="milestone row" id="priority-@priority.priorityId">
-      <div class="col-md-8">
+      <div class="col-md-2">
         @if(hasWritePermission) {
         <div class="pull-left priority-sort-handle" style="margin-top: 3px"><i class="octicon octicon-grabber" style="font-size: 2em"></i></div>
         }
         <div style="margin-top: 6px">
           <a href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" id="priority-row-content-@priority.priorityId">
             <span style="background-color: #@priority.color; color: #@priority.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">
-              <i class="octicon octicon-flame" style="color: #@priority.fontColor;"></i>
-              @priority.priorityName
+              <i class="octicon octicon-flame" style="color: #@priority.fontColor;"></i>&nbsp;@priority.priorityName
             </span>
           </a>
         </div>
+      </div>
+      <div class="col-md-6">
+        <span>@priority.description</span>
       </div>
       <div class="@if(hasWritePermission){col-md-2} else {col-md-4}">
         <div class="pull-right">

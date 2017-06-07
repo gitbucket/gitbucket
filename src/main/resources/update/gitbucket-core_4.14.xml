@@ -5,6 +5,7 @@
     <column name="REPOSITORY_NAME" type="varchar(100)" nullable="false"/>
     <column name="PRIORITY_ID" type="int" nullable="false" autoIncrement="true" unique="true"/>
     <column name="PRIORITY_NAME" type="varchar(100)" nullable="false"/>
+    <column name="DESCRIPTION" type="varchar(255)" nullable="false"/>
     <column name="ORDERING" type="int" nullable="false"/>
     <column name="COLOR" type="char(6)" nullable="false"/>
   </createTable>
