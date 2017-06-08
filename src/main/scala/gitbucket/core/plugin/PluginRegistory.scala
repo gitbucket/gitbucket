@@ -39,7 +39,11 @@ class PluginRegistry {
 
   private val repositoryHooks = new ListBuffer[RepositoryHook]
   private val issueHooks = new ListBuffer[IssueHook]
+  issueHooks += new gitbucket.core.util.Notifier.IssueHook()
+
   private val pullRequestHooks = new ListBuffer[PullRequestHook]
+  pullRequestHooks += new gitbucket.core.util.Notifier.PullRequestHook()
+
   private val globalMenus = new ListBuffer[(Context) => Option[Link]]
   private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
   private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
