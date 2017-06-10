@@ -4,10 +4,14 @@ import com.typesafe.config.ConfigFactory
 import java.io.File
 
 import Directory._
-import com.github.takezoe.slick.blocking.{BlockingH2Driver, BlockingMySQLDriver, BlockingJdbcProfile}
+import ConfigUtil._
+import com.github.takezoe.slick.blocking.{BlockingH2Driver, BlockingJdbcProfile, BlockingMySQLDriver}
+import gitbucket.core.util.SyntaxSugars.defining
 import liquibase.database.AbstractJdbcDatabase
 import liquibase.database.core.{H2Database, MySQLDatabase, PostgresDatabase}
 import org.apache.commons.io.FileUtils
+
+import scala.reflect.ClassTag
 
 object DatabaseConfig {
 
@@ -30,14 +34,14 @@ object DatabaseConfig {
     ConfigFactory.parseFile(file)
   }
 
-  private lazy val dbUrl = config.getString("db.url")
+  private lazy val dbUrl = getValue("db.url", config.getString) //config.getString("db.url")
 
   def url(directory: Option[String]): String =
     dbUrl.replace("${DatabaseHome}", directory.getOrElse(DatabaseHome))
 
   lazy val url                : String = url(None)
-  lazy val user               : String = config.getString("db.user")
-  lazy val password           : String = config.getString("db.password")
+  lazy val user               : String = getValue("db.user", config.getString)
+  lazy val password           : String = getValue("db.password", config.getString)
   lazy val jdbcDriver         : String = DatabaseType(url).jdbcDriver
   lazy val slickDriver        : BlockingJdbcProfile  = DatabaseType(url).slickDriver
   lazy val liquiDriver        : AbstractJdbcDatabase = DatabaseType(url).liquiDriver
@@ -47,8 +51,16 @@ object DatabaseConfig {
   lazy val minimumIdle        : Option[Int]    = getOptionValue("db.minimumIdle"      , config.getInt)
   lazy val maximumPoolSize    : Option[Int]    = getOptionValue("db.maximumPoolSize"  , config.getInt)
 
+  private def getValue[T](path: String, f: String => T): T = {
+    getSystemProperty(path).getOrElse(getEnvironmentVariable(path).getOrElse{
+      f(path)
+    })
+  }
+
   private def getOptionValue[T](path: String, f: String => T): Option[T] = {
-    if(config.hasPath(path)) Some(f(path)) else None
+    getSystemProperty(path).orElse(getEnvironmentVariable(path).orElse {
+      if(config.hasPath(path)) Some(f(path)) else None
+    })
   }
 
 }
@@ -98,4 +110,34 @@ object DatabaseType {
       (s append '"').toString
     }
   }
+}
+
+object ConfigUtil {
+
+  def getEnvironmentVariable[A](key: String): Option[A] = {
+    val value = System.getenv("GITBUCKET_" + key.toUpperCase.replace('.', '_'))
+    if(value != null && value.nonEmpty){
+      Some(convertType(value)).asInstanceOf[Option[A]]
+    } else {
+      None
+    }
+  }
+
+  def getSystemProperty[A](key: String): Option[A] = {
+    val value = System.getProperty("gitbucket." + key)
+    if(value != null && value.nonEmpty){
+      Some(convertType(value)).asInstanceOf[Option[A]]
+    } else {
+      None
+    }
+  }
+
+  def convertType[A: ClassTag](value: String) =
+    defining(implicitly[ClassTag[A]].runtimeClass){ c =>
+      if(c == classOf[Boolean])  value.toBoolean
+      else if(c == classOf[Long]) value.toLong
+      else if(c == classOf[Int]) value.toInt
+      else value
+    }
+
 }
