@@ -3,6 +3,7 @@ package gitbucket.core.service
 import gitbucket.core.model.Priority
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.util.StringUtil
 
 trait PrioritiesService {
 
@@ -29,7 +30,7 @@ trait PrioritiesService {
       userName       = owner,
       repositoryName = repository,
       priorityName   = priorityName,
-      description    = description,
+      description    = StringUtil.emptyToNone(description),
       isDefault      = isDefault,
       ordering       = ordering,
       color          = color
@@ -39,8 +40,8 @@ trait PrioritiesService {
   def updatePriority(owner: String, repository: String, priorityId: Int, priorityName: String, description: String, color: String)
                  (implicit s: Session): Unit =
     Priorities.filter(_.byPrimaryKey(owner, repository, priorityId))
-          .map(t => (t.priorityName, t.description, t.color))
-          .update(priorityName, description, color)
+          .map(t => (t.priorityName, t.description.?, t.color))
+          .update(priorityName, StringUtil.emptyToNone(description), color)
 
   def reorderPriorities(owner: String, repository: String, order: Map[Int, Int])
                     (implicit s: Session): Unit = {

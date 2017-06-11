@@ -12,7 +12,7 @@ trait PriorityComponent extends TemplateComponent { self: Profile =>
     val ordering = column[Int]("ORDERING")
     val isDefault = column[Boolean]("IS_DEFAULT")
     val color = column[String]("COLOR")
-    def * = (userName, repositoryName, priorityId, priorityName, description, isDefault, ordering, color) <> (Priority.tupled, Priority.unapply)
+    def * = (userName, repositoryName, priorityId, priorityName, description.?, isDefault, ordering, color) <> (Priority.tupled, Priority.unapply)
 
     def byPrimaryKey(owner: String, repository: String, priorityId: Int) = byPriority(owner, repository, priorityId)
     def byPrimaryKey(userName: Rep[String], repositoryName: Rep[String], priorityId: Rep[Int]) = byPriority(userName, repositoryName, priorityId)
@@ -24,7 +24,7 @@ case class Priority (
   repositoryName: String,
   priorityId: Int = 0,
   priorityName: String,
-  description: String,
+  description: Option[String],
   isDefault: Boolean,
   ordering: Int = 0,
   color: String){

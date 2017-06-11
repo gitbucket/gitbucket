@@ -57,7 +57,7 @@
             </li>
             @priorities.map { priority =>
               <li>
-                <a href="@condition.copy(priority = (if(condition.priority == Some(Some(priority.priorityName))) None else Some(Some(priority.priorityName)))).toURL" title="@priority.description">
+                <a href="@condition.copy(priority = (if(condition.priority == Some(Some(priority.priorityName))) None else Some(Some(priority.priorityName)))).toURL"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
                   @gitbucket.core.helper.html.checkicon(condition.priority == Some(Some(priority.priorityName)))
                   <span style="background-color: #@priority.color;" class="label-color">&nbsp;&nbsp;</span>
                   @priority.priorityName
@@ -157,7 +157,7 @@
             @gitbucket.core.helper.html.dropdown("Priority", filter = ("priority", "Find Priority...")) {
               <li><a href="javascript:void(0);" class="toggle-priority" data-id="">No priority</a></li>
               @priorities.map { priority =>
-                <li><a href="javascript:void(0);" class="toggle-priority" data-id="@priority.priorityId" title="@priority.description">
+                <li><a href="javascript:void(0);" class="toggle-priority" data-id="@priority.priorityId"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
                   <span style="background-color: #@priority.color;" class="label">&nbsp;</span>
                   @priority.priorityName</a></li>
               }
@@ -244,7 +244,7 @@
           <div class="small muted" style="margin-left: 12px; margin-top: 2px;">
             #@issue.issueId opened @gitbucket.core.helper.html.datetimeago(issue.registeredDate) by @helpers.user(issue.openedUserName, styleClass="username")
             @priority.map(priority => priorities.filter(p => p.priorityName == priority).head).map { priority =>
-            <span style="margin: 20px;"><a href="@condition.copy(priority = Some(Some(priority.priorityName))).toURL" class="username" title="@priority.description"><i class="octicon octicon-flame"></i>
+            <span style="margin: 20px;"><a href="@condition.copy(priority = Some(Some(priority.priorityName))).toURL" class="username"@if(!priority.description.isEmpty) { title="@priority.description.get" }><i class="octicon octicon-flame"></i>
               <span class="issue-priority issue-priority-inline" style="background-color: #@priority.color; color: #@priority.fontColor;">@priority.priorityName</span></a></span>
             }
             @milestone.map { milestone =>

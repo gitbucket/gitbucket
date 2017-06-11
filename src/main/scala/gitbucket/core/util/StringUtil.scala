@@ -137,5 +137,5 @@ object StringUtil {
 //    b.toString
 //  }
 
-
+  def emptyToNone(str: String): Option[String] = Option(str).map(_.trim).flatMap(s => if (s.isEmpty) None else Some(s));
 }

@@ -20,7 +20,7 @@ trait PrioritiesControllerBase extends ControllerBase {
 
   val priorityForm = mapping(
     "priorityName"  -> trim(label("Priority name", text(required, priorityName, uniquePriorityName, maxlength(100)))),
-    "description"   -> trim(label("Description", text(required, maxlength(255)))),
+    "description"   -> trim(label("Description", text(maxlength(255)))),
     "priorityColor" -> trim(label("Color", text(required, color)))
   )(PriorityForm.apply)
 

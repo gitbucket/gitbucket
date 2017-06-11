@@ -12,7 +12,7 @@
     <script>
     $('div#priority-color-@priorityId').colorpicker({format: "hex"});
     </script>
-    <input type="text" id="description-@priorityId" style="width: 500px; float: left; margin-left: 4px;" class="form-control" value="@priority.map(_.description)" placeholder="Description..." />
+    <input type="text" id="description-@priorityId" style="width: 500px; float: left; margin-left: 4px;" class="form-control" value="@priority.flatMap(_.description).getOrElse("")" placeholder="Description..." />
     <span class="pull-right">
       <span id="priority-error-@priorityId" class="error"></span>
       <input type="button" id="cancel-@priorityId" class="btn btn-default priority-edit-cancel" value="Cancel">

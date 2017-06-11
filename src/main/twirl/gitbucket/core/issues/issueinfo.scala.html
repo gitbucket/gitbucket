@@ -43,7 +43,7 @@
         <li><a href="javascript:void(0);" class="priority" data-id=""><i class="octicon octicon-x"></i> Clear priority</a></li>
         @priorities.map { priority =>
           <li>
-            <a href="javascript:void(0);" class="priority" data-id="@priority.priorityId" data-name="@priority.priorityName" data-color="#@priority.color" data-font-color="#@priority.fontColor" title="@priority.description">
+            <a href="javascript:void(0);" class="priority" data-id="@priority.priorityId" data-name="@priority.priorityName" data-color="#@priority.color" data-font-color="#@priority.fontColor"@if(!priority.description.isEmpty) { title="@priority.description.get" }>
               @gitbucket.core.helper.html.checkicon(issue.flatMap(_.priorityId).orElse(defaultPriority.map(_.priorityId)).map(id => id == priority.priorityId).getOrElse(false))
               <span class="label" style="background-color: #@priority.color;">&nbsp;</span>
               @priority.priorityName
@@ -57,7 +57,7 @@
 <span id="label-priority">
   @issue.flatMap(_.priorityId).orElse(defaultPriority.map(_.priorityId)).map { priorityId =>
     @priorities.collect { case priority if(priority.priorityId == priorityId) =>
-      <a class="issue-priority" style="background-color: #@priority.color; color: #@priority.fontColor;" href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" title="@priority.description">@priority.priorityName</a>
+      <a class="issue-priority" style="background-color: #@priority.color; color: #@priority.fontColor;" href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open"@if(!priority.description.isEmpty) { title="@priority.description.get" }>@priority.priorityName</a>
     }
   }.getOrElse {
     <span class="muted small">No priority</span>

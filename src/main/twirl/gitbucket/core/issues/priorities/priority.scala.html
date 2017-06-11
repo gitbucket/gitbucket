@@ -19,7 +19,7 @@
         </div>
       </div>
       <div class="@if(hasWritePermission){col-md-6} else {col-md-8}">
-        <span>@priority.description</span>
+        <span>@priority.description.getOrElse("")</span>
       </div>
       <div class="col-md-1">
         <div class="pull-right">
