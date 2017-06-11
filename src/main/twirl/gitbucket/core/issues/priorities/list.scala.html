@@ -103,11 +103,21 @@ function updatePriorityCount() {
 }
 
 function setDefaultPriority(priorityId){
+  var $a = $('a[data-id="' + priorityId + '"].priority-default');
+  var isDefault = $a.data('default');
   $.post('@helpers.url(repository)/issues/priorities/default',
-    { priorityId: priorityId },
+    { priorityId: isDefault ? '' : priorityId },
     function(){
-      $('.priority-default').removeClass('priority-default-selected');
-      $('a[data-id="' + priorityId + '"] .priority-default').addClass('priority-default-selected');
+      $('.priority-default')
+        .removeClass('priority-default-selected')
+        .data('default', false)
+        .attr('title', 'Set as default');
+      if (!isDefault) {
+        $a
+          .addClass('priority-default-selected')
+          .data('default', true)
+          .attr('title', 'Unset as default');
+      }
     }
   );
 }

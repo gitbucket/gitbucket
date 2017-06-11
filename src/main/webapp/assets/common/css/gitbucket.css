@@ -965,12 +965,12 @@ pre.reset.discussion-item-content-text{
   font-size: 2em;
 }
 
-.priority-default {
+.priority-default .octicon {
   font-size: 1.5em;
   color: #ccc;
 }
 
-.priority-default-selected {
+.priority-default-selected .octicon {
   color: #3c8dbc;
 }
 

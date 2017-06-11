@@ -84,6 +84,6 @@ trait RepositoryCreationService {
     createPriority(userName, repositoryName, "important", "Issues can be shipped with a final product, but should be reviewed before the next release.", "fccd29")
     createPriority(userName, repositoryName, "default", "Default.", "acacac")
 
-    setDefaultPriority(userName, repositoryName, getPriority(userName, repositoryName, "default").get.priorityId)
+    setDefaultPriority(userName, repositoryName, getPriority(userName, repositoryName, "default").map(_.priorityId))
   }
 }

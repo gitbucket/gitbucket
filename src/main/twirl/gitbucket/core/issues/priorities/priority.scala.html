@@ -24,7 +24,7 @@
       <div class="col-md-1">
         <div class="pull-right">
           @if(hasWritePermission){
-            <a href="javascript:void(0);" onclick="setDefaultPriority(@priority.priorityId)" data-id="@priority.priorityId"><i class="octicon octicon-star priority-default@if(priority.isDefault){ priority-default-selected}" title="@if(priority.isDefault){Default} else {Set as default}"></i></a>
+            <a href="javascript:void(0);" onclick="setDefaultPriority(@priority.priorityId)" data-id="@priority.priorityId" data-default="@priority.isDefault" class="priority-default@if(priority.isDefault){ priority-default-selected}" title="@if(priority.isDefault){Unset as default} else {Set as default}"><i class="octicon octicon-star"></i></a>
           } else if(priority.isDefault) {
             <i class="octicon octicon-star priority-default priority-default-selected" title="Default"></i>
           }

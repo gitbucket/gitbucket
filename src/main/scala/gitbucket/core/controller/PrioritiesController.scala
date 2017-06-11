@@ -72,7 +72,7 @@ trait PrioritiesControllerBase extends ControllerBase {
   })
 
   ajaxPost("/:owner/:repository/issues/priorities/default")(writableUsersOnly { (repository) =>
-    setDefaultPriority(repository.owner, repository.name, params("priorityId").toInt)
+    setDefaultPriority(repository.owner, repository.name, priorityId("priorityId"))
     Ok()
   })
 
@@ -80,6 +80,8 @@ trait PrioritiesControllerBase extends ControllerBase {
     deletePriority(repository.owner, repository.name, params("priorityId").toInt)
     Ok()
   })
+
+  val priorityId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
 
   /**
    * Constraint for the identifier such as user name, repository name or page name.

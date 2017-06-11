@@ -24,14 +24,12 @@ trait PrioritiesService {
       .map(m => m + 1)
       .getOrElse(0)
 
-    val isDefault = getDefaultPriority(owner, repository).isEmpty
-
     Priorities returning Priorities.map(_.priorityId) insert Priority(
       userName       = owner,
       repositoryName = repository,
       priorityName   = priorityName,
       description    = StringUtil.emptyToNone(description),
-      isDefault      = isDefault,
+      isDefault      = false,
       ordering       = ordering,
       color          = color
     )
@@ -71,16 +69,16 @@ trait PrioritiesService {
       .headOption
   }
 
-  def setDefaultPriority(owner: String, repository: String, priorityId: Int)(implicit s: Session): Unit = {
+  def setDefaultPriority(owner: String, repository: String, priorityId: Option[Int])(implicit s: Session): Unit = {
     Priorities
       .filter(_.byRepository(owner, repository))
       .filter(_.isDefault)
       .map(_.isDefault)
       .update(false)
 
-    Priorities
-      .filter(_.byPrimaryKey(owner, repository, priorityId))
+    priorityId.foreach(id => Priorities
+      .filter(_.byPrimaryKey(owner, repository, id))
       .map(_.isDefault)
-      .update(true)
+      .update(true))
   }
 }
