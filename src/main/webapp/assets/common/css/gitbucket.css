@@ -264,14 +264,6 @@ div.box-content {
   border-radius: 3px;
 }
 
-li.repo-link, li.page-link {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 div.box-content-bottom {
   background-color: white;
   border: 1px solid #d8d8d8;
@@ -1841,4 +1833,16 @@ body.page-load * {
   -ms-transition: none !important;
   -o-transition: none !important;
   transition: none !important;
+}
+
+body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-right-container {
+  display: inline !important;
+  position: absolute;
+  top: 8px;
+  right: 0px;
+  font-size: 9px;
+}
+
+body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.pull-right-container span.label {
+  padding: 2px 4px;
 }
