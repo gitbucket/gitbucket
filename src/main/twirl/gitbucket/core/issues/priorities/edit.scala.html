@@ -43,6 +43,8 @@ $(function(){
       var errors = JSON.parse(xhr.responseText);
       if(errors.priorityName){
         $('span#priority-error-@priorityId').text(errors.priorityName);
+      } else if(errors.description){
+        $('span#priority-error-@priorityId').text(errors.description);
       } else if(errors.priorityColor){
         $('span#priority-error-@priorityId').text(errors.priorityColor);
       } else {
