@@ -78,11 +78,11 @@ trait RepositoryCreationService {
   }
 
   def insertDefaultPriorities(userName: String, repositoryName: String)(implicit s: Session): Unit = {
-    createPriority(userName, repositoryName, "highest", "All defects at this priority must be fixed before any public product is delivered.", "fc2929")
-    createPriority(userName, repositoryName, "very high", "Issues must be addressed before a final product is delivered.", "fc5629")
-    createPriority(userName, repositoryName, "high", "Issues should be addressed before a final product is delivered. If the issue cannot be resolved before delivery, it should be prioritized for the next release.", "fc9629")
-    createPriority(userName, repositoryName, "important", "Issues can be shipped with a final product, but should be reviewed before the next release.", "fccd29")
-    createPriority(userName, repositoryName, "default", "Default.", "acacac")
+    createPriority(userName, repositoryName, "highest", Some("All defects at this priority must be fixed before any public product is delivered."), "fc2929")
+    createPriority(userName, repositoryName, "very high", Some("Issues must be addressed before a final product is delivered."), "fc5629")
+    createPriority(userName, repositoryName, "high", Some("Issues should be addressed before a final product is delivered. If the issue cannot be resolved before delivery, it should be prioritized for the next release."), "fc9629")
+    createPriority(userName, repositoryName, "important", Some("Issues can be shipped with a final product, but should be reviewed before the next release."), "fccd29")
+    createPriority(userName, repositoryName, "default", Some("Default."), "acacac")
 
     setDefaultPriority(userName, repositoryName, getPriority(userName, repositoryName, "default").map(_.priorityId))
   }

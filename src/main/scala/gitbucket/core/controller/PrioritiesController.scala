@@ -16,11 +16,11 @@ trait PrioritiesControllerBase extends ControllerBase {
   self: PrioritiesService with IssuesService with RepositoryService
     with ReferrerAuthenticator with WritableUsersAuthenticator =>
 
-  case class PriorityForm(priorityName: String, description: String, color: String)
+  case class PriorityForm(priorityName: String, description: Option[String], color: String)
 
   val priorityForm = mapping(
     "priorityName"  -> trim(label("Priority name", text(required, priorityName, uniquePriorityName, maxlength(100)))),
-    "description"   -> trim(label("Description", text(maxlength(255)))),
+    "description"   -> trim(label("Description", optional(text(maxlength(255))))),
     "priorityColor" -> trim(label("Color", text(required, color)))
   )(PriorityForm.apply)
 
