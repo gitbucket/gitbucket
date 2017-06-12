@@ -24,14 +24,14 @@ class PullRequestsController extends PullRequestsControllerBase
   with RepositoryService with AccountService with IssuesService with PullRequestService with MilestonesService with LabelsService
   with CommitsService with ActivityService with WebHookPullRequestService
   with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator
-  with CommitStatusService with MergeService with ProtectedBranchService
+  with CommitStatusService with MergeService with ProtectedBranchService with PrioritiesService
 
 
 trait PullRequestsControllerBase extends ControllerBase {
   self: RepositoryService with AccountService with IssuesService with MilestonesService with LabelsService
     with CommitsService with ActivityService with PullRequestService with WebHookPullRequestService
     with ReadableUsersAuthenticator with ReferrerAuthenticator with WritableUsersAuthenticator
-    with CommitStatusService with MergeService with ProtectedBranchService =>
+    with CommitStatusService with MergeService with ProtectedBranchService with PrioritiesService =>
 
   val pullRequestForm = mapping(
     "title"                 -> trim(label("Title"  , text(required, maxlength(100)))),
@@ -45,6 +45,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     "commitIdTo"            -> trim(text(required, maxlength(40))),
     "assignedUserName"      -> trim(optional(text())),
     "milestoneId"           -> trim(optional(number())),
+    "priorityId"            -> trim(optional(number())),
     "labelNames"            -> trim(optional(text()))
   )(PullRequestForm.apply)
 
@@ -64,6 +65,7 @@ trait PullRequestsControllerBase extends ControllerBase {
     commitIdTo: String,
     assignedUserName: Option[String],
     milestoneId: Option[Int],
+    priorityId: Option[Int],
     labelNames: Option[String]
   )
 
@@ -93,6 +95,7 @@ trait PullRequestsControllerBase extends ControllerBase {
             getIssueLabels(owner, name, issueId),
             getAssignableUserNames(owner, name),
             getMilestonesWithIssueCount(owner, name),
+            getPriorities(owner, name),
             getLabels(owner, name),
             commits,
             diffs,
@@ -390,6 +393,7 @@ trait PullRequestsControllerBase extends ControllerBase {
               hasDeveloperRole(originRepository.owner, originRepository.name, context.loginAccount),
               getAssignableUserNames(originRepository.owner, originRepository.name),
               getMilestones(originRepository.owner, originRepository.name),
+              getPriorities(originRepository.owner, originRepository.name),
               getLabels(originRepository.owner, originRepository.name)
             )
           }
@@ -445,6 +449,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         content = form.content,
         assignedUserName = if (manageable) form.assignedUserName else None,
         milestoneId = if (manageable) form.milestoneId else None,
+        priorityId = if (manageable) form.priorityId else None,
         isPullRequest = true)
 
       createPullRequest(
@@ -518,6 +523,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         page,
         getAssignableUserNames(owner, repoName),
         getMilestones(owner, repoName),
+        getPriorities(owner, repoName),
         getLabels(owner, repoName),
         countIssue(condition.copy(state = "open"  ), true, owner -> repoName),
         countIssue(condition.copy(state = "closed"), true, owner -> repoName),

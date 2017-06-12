@@ -3,6 +3,7 @@
   page: Int,
   collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
+  priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
   openCount: Int,
   closedCount: Int,
@@ -38,7 +39,7 @@
         }
       }
     </form>
-    @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, labels, Some(repository), isManageable)
+    @gitbucket.core.issues.html.listparts(target, issues, page, openCount, closedCount, condition, collaborators, milestones, priorities, labels, Some(repository), isManageable)
     @if(isManageable){
       <form id="batcheditForm" method="POST">
         <input type="hidden" name="value"/>
@@ -118,6 +119,9 @@ $(function(){
   });
   $('a.toggle-milestone').click(function(){
     submitBatchEdit('@helpers.url(repository)/issues/batchedit/milestone', $(this).data('id'));
+  });
+  $('a.toggle-priority').click(function(){
+    submitBatchEdit('@helpers.url(repository)/issues/batchedit/priority', $(this).data('id'));
   });
 });
 </script>

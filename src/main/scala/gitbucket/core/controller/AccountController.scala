@@ -20,13 +20,13 @@ import org.scalatra.BadRequest
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService with RepositoryCreationService
+  with AccessTokenService with WebHookService with PrioritiesService with RepositoryCreationService
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AccessTokenService with WebHookService with RepositoryCreationService =>
+    with AccessTokenService with WebHookService with PrioritiesService with RepositoryCreationService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             description: Option[String], url: Option[String], fileId: Option[String])

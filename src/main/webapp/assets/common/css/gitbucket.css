@@ -823,13 +823,22 @@ div.issue-comment-action .octicon.danger {
   color: #fff;
 }
 
-.nav-pills > li > span.issue-label {
+.nav-pills > li > span.issue-label, .issue-priority {
   display: block;
   padding: 0px 8px 2px 8px;
   margin-top: 2px;
   -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
           border-radius: 5px;
+}
+
+.issue-priority {
+  font-size: 90%;
+}
+
+.issue-priority-inline {
+  font-size: 100%;
+  display: inline;
 }
 
 div.attachable {
@@ -941,6 +950,28 @@ pre.reset.discussion-item-content-text{
   background-color: #6cc644;
   padding-top: 1px;
   color: white;
+}
+
+.priority-sort-handle {
+  margin-top: 3px;
+  padding-right: 10px;
+}
+
+.priority-sort-handle i::before {
+  cursor: move;
+  display: block;
+  width: 0.5em;
+  overflow: hidden;
+  font-size: 2em;
+}
+
+.priority-default .octicon {
+  font-size: 1.5em;
+  color: #ccc;
+}
+
+.priority-default-selected .octicon {
+  color: #3c8dbc;
 }
 
 /****************************************************************************/

@@ -14,6 +14,7 @@
   hasOriginWritePermission: Boolean,
   collaborators: List[String],
   milestones: List[gitbucket.core.model.Milestone],
+  priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Pull requests - ${repository.owner}/${repository.name}", Some(repository)){
@@ -81,7 +82,7 @@
               </div>
             </div>
             <div class="col-md-3">
-              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), labels, hasOriginWritePermission, repository)
+              @gitbucket.core.issues.html.issueinfo(None, Nil, Nil, collaborators, milestones.map((_, 0, 0)), priorities, None, labels, hasOriginWritePermission, repository)
             </div>
           </div>
         </form>

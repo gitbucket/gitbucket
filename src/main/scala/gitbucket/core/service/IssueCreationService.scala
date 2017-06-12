@@ -12,7 +12,7 @@ trait IssueCreationService {
   self: RepositoryService with WebHookIssueCommentService with LabelsService with IssuesService with ActivityService =>
 
   def createIssue(repository: RepositoryInfo, title:String, body:Option[String],
-                  assignee: Option[String], milestoneId: Option[Int], labelNames: Seq[String],
+                  assignee: Option[String], milestoneId: Option[Int], priorityId: Option[Int], labelNames: Seq[String],
                   loginAccount: Account)(implicit context: Context, s: Session) : Issue = {
 
     val owner = repository.owner
@@ -23,7 +23,8 @@ trait IssueCreationService {
     // insert issue
     val issueId = insertIssue(owner, name, userName, title, body,
       if (manageable) assignee else None,
-      if (manageable) milestoneId else None)
+      if (manageable) milestoneId else None,
+      if (manageable) priorityId else None)
     val issue: Issue = getIssue(owner, name, issueId.toString).get
 
     // insert labels

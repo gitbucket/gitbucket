@@ -4,6 +4,7 @@
   issueLabels: List[gitbucket.core.model.Label],
   collaborators: List[String],
   milestones: List[(gitbucket.core.model.Milestone, Int, Int)],
+  priorities: List[gitbucket.core.model.Priority],
   labels: List[gitbucket.core.model.Label],
   dayByDayCommits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   diffs: Seq[gitbucket.core.util.JGitUtil.DiffInfo],
@@ -85,7 +86,7 @@
           @flash.get("info").map{ info =>
             <div class="alert alert-info">@info</div>
           }
-          @gitbucket.core.pulls.html.conversation(issue, pullreq, commits, comments, issueLabels, collaborators, milestones, labels, isEditable, isManageable, isManageableForkedRepository, repository, forkedRepository)
+          @gitbucket.core.pulls.html.conversation(issue, pullreq, commits, comments, issueLabels, collaborators, milestones, priorities, labels, isEditable, isManageable, isManageableForkedRepository, repository, forkedRepository)
         </div>
         <div class="tab-pane" id="commits">
           @if(commits.nonEmpty){

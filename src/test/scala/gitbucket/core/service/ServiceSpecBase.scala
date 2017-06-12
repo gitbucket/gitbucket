@@ -62,6 +62,7 @@ trait ServiceSpecBase {
       content          = None,
       assignedUserName = None,
       milestoneId      = None,
+      priorityId       = None,
       isPullRequest    = true)
   }
 
