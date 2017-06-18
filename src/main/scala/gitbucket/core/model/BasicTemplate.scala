@@ -7,6 +7,10 @@ protected[model] trait TemplateComponent { self: Profile =>
     val userName = column[String]("USER_NAME")
     val repositoryName = column[String]("REPOSITORY_NAME")
 
+    def byAccount(userName: String) = (this.userName === userName.bind)
+
+    def byAccount(userName: Rep[String]) = (this.userName === userName)
+
     def byRepository(owner: String, repository: String) =
       (userName === owner.bind) && (repositoryName === repository.bind)
 
