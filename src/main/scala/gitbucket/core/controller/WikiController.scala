@@ -1,6 +1,6 @@
 package gitbucket.core.controller
 
-import gitbucket.core.model.{WebHook, WebHookEvent}
+import gitbucket.core.model.WebHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.WebHookService.WebHookGollumPayload
 import gitbucket.core.wiki.html
