@@ -33,9 +33,9 @@
             <fieldset class="form-group">
               <label class="strong">Content type</label>
               <div></div>
-              <select name="ctype">
-              	<option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>	
-              	<option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>	
+              <select name="ctype" class="form-control" style="width: 500px;">
+              	<option value="@WebHookContentType.FORM.code" @if(webHook.ctype == WebHookContentType.FORM){selected}>@WebHookContentType.FORM.ctype</option>
+              	<option value="@WebHookContentType.JSON.code" @if(webHook.ctype == WebHookContentType.JSON){selected}>@WebHookContentType.JSON.ctype</option>
                </select>
             </fieldset>
             <fieldset class="form-group">
@@ -55,7 +55,9 @@
             <label class="checkbox"><input type="checkbox" @check("events",Deployment) />Deployment <small class="help-block">Repository deployed. </small> </label>
             <label class="checkbox"><input type="checkbox" @check("events",DeploymentStatus) />Deployment status <small class="help-block">Deployment status updated from the API. </small> </label>
             <label class="checkbox"><input type="checkbox" @check("events",Fork) />Fork <small class="help-block">Repository forked. </small> </label>
+            -->
             <label class="checkbox"><input type="checkbox" @check("events",Gollum) />Gollum <small class="help-block">Wiki page updated. </small> </label>
+            <!--
             <label class="checkbox"><input type="checkbox" @check("events",Member) />Member <small class="help-block">Collaborator added to a non-organization repository. </small> </label>
             <label class="checkbox"><input type="checkbox" @check("events",PageBuild) />Page build <small class="help-block">Pages site built. </small> </label>
             <label class="checkbox"><input type="checkbox" @check("events",Public) />Public <small class="help-block">Repository changes from private to public. </small> </label>

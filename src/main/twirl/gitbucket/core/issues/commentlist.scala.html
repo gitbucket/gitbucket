@@ -46,7 +46,9 @@
             } else {
               referenced the @issueOrPullRequest()
             }
-            @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
+            <a href="@helpers.url(repository)/issues/@issue.get.issueId#comment-@comment.commentId">
+              @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
+            </a>
           </span>
           @if(comment.action != "commit" && comment.action != "merge" && comment.action != "refer"
                 && (isManageable || context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false))){

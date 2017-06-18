@@ -1,12 +1,14 @@
 package gitbucket.core.plugin
 
 import javax.servlet.ServletContext
+
 import gitbucket.core.controller.{Context, ControllerBase}
-import gitbucket.core.model.Account
+import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.SyntaxSugars._
 import io.github.gitbucket.solidbase.model.Version
+import play.twirl.api.Html
 
 /**
  * Trait for define plugin interface.
@@ -70,6 +72,16 @@ abstract class Plugin {
   def repositoryRoutings(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[GitRepositoryRouting] = Nil
 
   /**
+   * Override to add account hooks.
+   */
+  val accountHooks: Seq[AccountHook] = Nil
+
+  /**
+   * Override to add account hooks.
+   */
+  def accountHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[AccountHook] = Nil
+
+  /**
    * Override to add receive hooks.
    */
   val receiveHooks: Seq[ReceiveHook] = Nil
@@ -88,6 +100,26 @@ abstract class Plugin {
    * Override to add repository hooks.
    */
   def repositoryHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[RepositoryHook] = Nil
+
+  /**
+   * Override to add issue hooks.
+   */
+  val issueHooks: Seq[IssueHook] = Nil
+
+  /**
+   * Override to add issue hooks.
+   */
+  def issueHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[IssueHook] = Nil
+
+  /**
+   * Override to add pull request hooks.
+   */
+  val pullRequestHooks: Seq[PullRequestHook] = Nil
+
+  /**
+   * Override to add pull request hooks.
+   */
+  def pullRequestHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[PullRequestHook] = Nil
 
   /**
    * Override to add global menus.
@@ -160,6 +192,16 @@ abstract class Plugin {
   def dashboardTabs(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Context) => Option[Link]] = Nil
 
   /**
+   * Override to add issue sidebars.
+   */
+  val issueSidebars: Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = Nil
+
+  /**
+   * Override to add issue sidebars.
+   */
+  def issueSidebars(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = Nil
+
+  /**
    * Override to add assets mappings.
    */
   val assetsMappings: Seq[(String, String)] = Nil
@@ -209,11 +251,20 @@ abstract class Plugin {
     (repositoryRoutings ++ repositoryRoutings(registry, context, settings)).foreach { routing =>
       registry.addRepositoryRouting(routing)
     }
+    (accountHooks ++ accountHooks(registry, context, settings)).foreach { accountHook =>
+      registry.addAccountHook(accountHook)
+    }
     (receiveHooks ++ receiveHooks(registry, context, settings)).foreach { receiveHook =>
       registry.addReceiveHook(receiveHook)
     }
     (repositoryHooks ++ repositoryHooks(registry, context, settings)).foreach { repositoryHook =>
       registry.addRepositoryHook(repositoryHook)
+    }
+    (issueHooks ++ issueHooks(registry, context, settings)).foreach { issueHook =>
+      registry.addIssueHook(issueHook)
+    }
+    (pullRequestHooks ++ pullRequestHooks(registry, context, settings)).foreach { pullRequestHook =>
+      registry.addPullRequestHook(pullRequestHook)
     }
     (globalMenus ++ globalMenus(registry, context, settings)).foreach { globalMenu =>
       registry.addGlobalMenu(globalMenu)
@@ -235,6 +286,9 @@ abstract class Plugin {
     }
     (dashboardTabs ++ dashboardTabs(registry, context, settings)).foreach { dashboardTab =>
       registry.addDashboardTab(dashboardTab)
+    }
+    (issueSidebars ++ issueSidebars(registry, context, settings)).foreach { issueSidebar =>
+      registry.addIssueSidebar(issueSidebar)
     }
     (assetsMappings ++ assetsMappings(registry, context, settings)).foreach { assetMapping =>
       registry.addAssetsMapping((assetMapping._1, assetMapping._2, getClass.getClassLoader))

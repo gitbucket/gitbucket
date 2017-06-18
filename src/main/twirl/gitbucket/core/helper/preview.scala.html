@@ -38,16 +38,17 @@
     </div>
   </div>
 </div>
-<link  href="@helpers.assets/vendors/google-code-prettify/prettify.css" type="text/css" rel="stylesheet"/>
-<script src="@helpers.assets/vendors/google-code-prettify/prettify.js"></script>
+<link  href="@helpers.assets("/vendors/google-code-prettify/prettify.css")" type="text/css" rel="stylesheet"/>
+<script src="@helpers.assets("/vendors/google-code-prettify/prettify.js")"></script>
 <script>
 $(function(){
   @if(elastic){
     $('#content@uid').elastic();
+    $('#content@uid').trigger('blur');
   }
 
   $('#preview@uid').click(function(){
-    $('#preview-area@uid').html('<img src="@helpers.assets/common/images/indicator.gif"> Previewing...');
+    $('#preview-area@uid').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
     $.post('@helpers.url(repository)/_preview', {
       content          : $('#content@uid').val(),
       enableWikiLink   : @enableWikiLink,

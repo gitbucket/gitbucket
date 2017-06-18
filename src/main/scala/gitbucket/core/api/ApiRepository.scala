@@ -37,7 +37,7 @@ object ApiRepository{
       name           = repository.repositoryName,
       full_name      = s"${repository.userName}/${repository.repositoryName}",
       description    = repository.description.getOrElse(""),
-      watchers       = 0,
+      watchers       = watchers,
       forks          = forkedCount,
       `private`      = repository.isPrivate,
       default_branch = repository.defaultBranch,

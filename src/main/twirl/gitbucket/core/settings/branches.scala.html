@@ -46,14 +46,12 @@
               </form>
             </p>
 
-            <table class="table table-bordered table-hover branches">
+            <table class="table table-hover branches">
               @protectedBranchList.map { branch =>
                 <tr>
                   <td>
                     <span class="branch-name">@branch</span>
-                    <span class="branch-action">
-                      <a href="@helpers.url(repository)/settings/branches/@helpers.encodeRefName(branch)" class="btn btn-small btn-default">Edit</a>
-                    </span>
+                    <a href="@helpers.url(repository)/settings/branches/@helpers.urlEncode(branch)" class="btn btn-sm btn-default pull-right">Edit</a>
                   </td>
                 </tr>
               }

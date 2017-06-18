@@ -46,7 +46,6 @@
           </td>
         </tr>
       </table>
-      <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
       <div class="panel panel-default issue-comment-box">
         <div class="panel-body">
           <div>
@@ -72,9 +71,9 @@
     </form>
   }
 }
-<script src="@helpers.assets/vendors/ace/ace.js" type="text/javascript" charset="utf-8"></script>
-<script type="text/javascript" src="@helpers.assets/vendors/jsdifflib/difflib.js"></script>
-<link href="@helpers.assets/vendors/jsdifflib/diffview.css" type="text/css" rel="stylesheet" />
+<script src="@helpers.assets("/vendors/ace/ace.js")" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="@helpers.assets("/vendors/jsdifflib/difflib.js")"></script>
+<link href="@helpers.assets("/vendors/jsdifflib/diffview.css")" type="text/css" rel="stylesheet" />
 <script>
 $(function(){
   $('#editor').text($('#initial').val());
@@ -132,7 +131,7 @@ $(function(){
 
     @if(fileName.map(helpers.isRenderable _).getOrElse(false)) {
       // update preview
-      $('#preview').html('<img src="@helpers.assets/common/images/indicator.gif"> Previewing...');
+      $('#preview').html('<img src="@helpers.assets("/common/images/indicator.gif")"> Previewing...');
       $.post('@helpers.url(repository)/_preview', {
         content          : editor.getValue(),
         enableWikiLink   : false,

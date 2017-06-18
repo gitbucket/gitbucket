@@ -20,13 +20,13 @@ import org.scalatra.BadRequest
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService with RepositoryCreationService
+  with AccessTokenService with WebHookService with PrioritiesService with RepositoryCreationService
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AccessTokenService with WebHookService with RepositoryCreationService =>
+    with AccessTokenService with WebHookService with PrioritiesService with RepositoryCreationService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             description: Option[String], url: Option[String], fileId: Option[String])
@@ -40,7 +40,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
+    "password"    -> trim(label("Password"     , text(required, maxlength(20), password))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
     "description" -> trim(label("bio"          , optional(text()))),
@@ -49,7 +49,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   )(AccountNewForm.apply)
 
   val editForm = mapping(
-    "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
+    "password"    -> trim(label("Password"     , optional(text(maxlength(20), password)))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
     "description" -> trim(label("bio"          , optional(text()))),
@@ -60,31 +60,31 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val sshKeyForm = mapping(
     "title"     -> trim(label("Title", text(required, maxlength(100)))),
-    "publicKey" -> trim(label("Key"  , text(required, validPublicKey)))
+    "publicKey" -> trim2(label("Key" , text(required, validPublicKey)))
   )(SshKeyForm.apply)
 
   val personalTokenForm = mapping(
-    "note"     -> trim(label("Token", text(required, maxlength(100))))
+    "note" -> trim(label("Token", text(required, maxlength(100))))
   )(PersonalTokenForm.apply)
 
   case class NewGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String], members: String)
   case class EditGroupForm(groupName: String, description: Option[String], url: Option[String], fileId: Option[String], members: String, clearImage: Boolean)
 
   val newGroupForm = mapping(
-    "groupName" -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
+    "groupName"   -> trim(label("Group name" ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
     "description" -> trim(label("Group description", optional(text()))),
-    "url"       -> trim(label("URL"        ,optional(text(maxlength(200))))),
-    "fileId"    -> trim(label("File ID"    ,optional(text()))),
-    "members"   -> trim(label("Members"    ,text(required, members)))
+    "url"         -> trim(label("URL"        ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"    ,optional(text()))),
+    "members"     -> trim(label("Members"    ,text(required, members)))
   )(NewGroupForm.apply)
 
   val editGroupForm = mapping(
-    "groupName"  -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
+    "groupName"   -> trim(label("Group name"  ,text(required, maxlength(100), identifier))),
     "description" -> trim(label("Group description", optional(text()))),
-    "url"        -> trim(label("URL"         ,optional(text(maxlength(200))))),
-    "fileId"     -> trim(label("File ID"     ,optional(text()))),
-    "members"    -> trim(label("Members"     ,text(required, members))),
-    "clearImage" -> trim(label("Clear image" ,boolean()))
+    "url"         -> trim(label("URL"         ,optional(text(maxlength(200))))),
+    "fileId"      -> trim(label("File ID"     ,optional(text()))),
+    "members"     -> trim(label("Members"     ,text(required, members))),
+    "clearImage"  -> trim(label("Clear image" ,boolean()))
   )(EditGroupForm.apply)
 
   case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
@@ -197,10 +197,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:userName/_avatar"){
     val userName = params("userName")
-    getAccountByUserName(userName).flatMap(_.image).map { image =>
-      RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image))
-    } getOrElse {
-      contentType = "image/png"
+    contentType = "image/png"
+    getAccountByUserName(userName).flatMap{ account =>
+      response.setDateHeader("Last-Modified", account.updatedDate.getTime)
+      account.image.map{ image =>
+        Some(RawData(FileUtil.getMimeType(image), new java.io.File(getUserUploadDir(userName), image)))
+      }.getOrElse{
+        if (account.isGroupAccount) {
+          TextAvatarUtil.textGroupAvatar(account.fullName)
+        } else {
+          TextAvatarUtil.textAvatar(account.fullName)
+        }
+      }
+    }.getOrElse{
+      response.setHeader("Cache-Control", "max-age=3600")
       Thread.currentThread.getContextClassLoader.getResourceAsStream("noimage.png")
     }
   }
@@ -244,9 +254,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
-//      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+        // Remove from GROUP_MEMBER and COLLABORATOR
         removeUserRelatedData(userName)
         updateAccount(account.copy(isRemoved = true))
+
+        // call hooks
+        PluginRegistry().getAccountHooks.foreach(_.deleted(userName))
+
         session.invalidate
         redirect("/")
       }
@@ -450,13 +464,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     defining(params("groupName")){ groupName =>
       // Remove from GROUP_MEMBER
       updateGroupMembers(groupName, Nil)
-      // Remove repositories
-      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-        deleteRepository(groupName, repositoryName)
-        FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+      // Disable group
+      getAccountByUserName(groupName, false).foreach { account =>
+        updateGroup(groupName, account.description, account.url, true)
       }
+//      // Remove repositories
+//      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+//        deleteRepository(groupName, repositoryName)
+//        FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+//        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+//        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+//      }
     }
     redirect("/")
   })

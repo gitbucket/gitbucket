@@ -66,6 +66,7 @@ trait RepositoryService { self: AccountService =>
         val issues                  = Issues                 .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val pullRequests            = PullRequests           .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val labels                  = Labels                 .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val priorities              = Priorities             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueComments           = IssueComments          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueLabels             = IssueLabels            .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val commitComments          = CommitComments         .filter(_.byRepository(oldUserName, oldRepositoryName)).list
@@ -73,6 +74,7 @@ trait RepositoryService { self: AccountService =>
         val collaborators           = Collaborators          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val protectedBranches       = ProtectedBranches      .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val protectedBranchContexts = ProtectedBranchContexts.filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val deployKeys              = DeployKeys             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
 
         Repositories.filter { t =>
           (t.originUserName === oldUserName.bind) && (t.originRepositoryName === oldRepositoryName.bind)
@@ -80,7 +82,7 @@ trait RepositoryService { self: AccountService =>
 
         Repositories.filter { t =>
           (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
-        }.map { t => t.originUserName -> t.originRepositoryName }.update(newUserName, newRepositoryName)
+        }.map { t => t.parentUserName -> t.parentRepositoryName }.update(newUserName, newRepositoryName)
 
         // Updates activity fk before deleting repository because activity is sorted by activityId
         // and it can't be changed by deleting-and-inserting record.
@@ -94,14 +96,19 @@ trait RepositoryService { self: AccountService =>
         RepositoryWebHooks     .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         RepositoryWebHookEvents.insertAll(webHookEvents .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Milestones   .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Priorities   .insertAll(priorities    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueId      .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
 
         val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
+        val newPriorities = Priorities.filter(_.byRepository(newUserName, newRepositoryName)).list
         Issues.insertAll(issues.map { x => x.copy(
           userName       = newUserName,
           repositoryName = newRepositoryName,
           milestoneId    = x.milestoneId.map { id =>
             newMilestones.find(_.title == milestones.find(_.milestoneId == id).get.title).get.milestoneId
+          },
+          priorityId    = x.priorityId.map { id =>
+            newPriorities.find(_.priorityName == priorities.find(_.priorityId == id).get.priorityName).get.priorityId
           }
         )} :_*)
 
@@ -112,6 +119,7 @@ trait RepositoryService { self: AccountService =>
         CommitStatuses         .insertAll(commitStatuses.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ProtectedBranches      .insertAll(protectedBranches.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         ProtectedBranchContexts.insertAll(protectedBranchContexts.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        DeployKeys             .insertAll(deployKeys    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update source repository of pull requests
         PullRequests.filter { t =>
@@ -121,11 +129,6 @@ trait RepositoryService { self: AccountService =>
         // Convert labelId
         val oldLabelMap = labels.map(x => (x.labelId, x.labelName)).toMap
         val newLabelMap = Labels.filter(_.byRepository(newUserName, newRepositoryName)).map(x => (x.labelName, x.labelId)).list.toMap
-        IssueLabels.insertAll(issueLabels.map(x => x.copy(
-          labelId        = newLabelMap(oldLabelMap(x.labelId)),
-          userName       = newUserName,
-          repositoryName = newRepositoryName
-        )) :_*)
         IssueLabels.insertAll(issueLabels.map(x => x.copy(
           labelId        = newLabelMap(oldLabelMap(x.labelId)),
           userName       = newUserName,
@@ -164,10 +167,12 @@ trait RepositoryService { self: AccountService =>
     IssueComments .filter(_.byRepository(userName, repositoryName)).delete
     PullRequests  .filter(_.byRepository(userName, repositoryName)).delete
     Issues        .filter(_.byRepository(userName, repositoryName)).delete
+    Priorities    .filter(_.byRepository(userName, repositoryName)).delete
     IssueId       .filter(_.byRepository(userName, repositoryName)).delete
     Milestones    .filter(_.byRepository(userName, repositoryName)).delete
     RepositoryWebHooks      .filter(_.byRepository(userName, repositoryName)).delete
     RepositoryWebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
+    DeployKeys    .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
 
     // Update ORIGIN_USER_NAME and ORIGIN_REPOSITORY_NAME
@@ -264,11 +269,19 @@ trait RepositoryService { self: AccountService =>
           JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
-        getForkedCount(
-          repository.originUserName.getOrElse(repository.userName),
-          repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ),
-        getRepositoryManagers(repository.userName))
+        if(withoutPhysicalInfo){
+          -1
+        } else {
+          getForkedCount(
+            repository.originUserName.getOrElse(repository.userName),
+            repository.originRepositoryName.getOrElse(repository.repositoryName)
+          )
+        },
+        if(withoutPhysicalInfo){
+          Nil
+        } else {
+          getRepositoryManagers(repository.userName)
+        })
     }
   }
 
@@ -302,7 +315,7 @@ trait RepositoryService { self: AccountService =>
       case None => Repositories filter(_.isPrivate === false.bind)
     }).filter { t =>
       repositoryUserName.map { userName => t.userName === userName.bind } getOrElse LiteralColumn(true)
-    }.sortBy(_.lastActivityDate desc).list.map{ repository =>
+    }.sortBy(_.lastActivityDate desc).list.map { repository =>
       new RepositoryInfo(
         if(withoutPhysicalInfo){
           new JGitUtil.RepositoryInfo(repository.userName, repository.repositoryName)
@@ -310,11 +323,19 @@ trait RepositoryService { self: AccountService =>
           JGitUtil.getRepositoryInfo(repository.userName, repository.repositoryName)
         },
         repository,
-        getForkedCount(
-          repository.originUserName.getOrElse(repository.userName),
-          repository.originRepositoryName.getOrElse(repository.repositoryName)
-        ),
-        getRepositoryManagers(repository.userName))
+        if(withoutPhysicalInfo){
+          -1
+        } else {
+          getForkedCount(
+            repository.originUserName.getOrElse(repository.userName),
+            repository.originRepositoryName.getOrElse(repository.repositoryName)
+          )
+        },
+        if(withoutPhysicalInfo) {
+          Nil
+        } else {
+          getRepositoryManagers(repository.userName)
+        })
     }
   }
 

@@ -2,25 +2,42 @@
 <div class="main-sidebar">
   <div class="sidebar">
     <ul class="sidebar-menu" id="system-admin-menu-container">
-      <li@if(active=="users"){ class="active"}>
-        <a href="@context.path/admin/users">User management</a>
+      <li class="menu-item-hover @if(active=="users"){active}">
+        <a href="@context.path/admin/users">
+          <i class="menu-icon octicon octicon-person"></i>
+          <span>User management</span>
+        </a>
       </li>
-      <li@if(active=="system"){ class="active"}>
-        <a href="@context.path/admin/system">System settings</a>
+      <li class="menu-item-hover @if(active=="system"){active}">
+        <a href="@context.path/admin/system">
+          <i class="menu-icon octicon octicon-gear"></i>
+          <span>System settings</span></a>
       </li>
-      <li@if(active=="plugins"){ class="active"}>
-        <a href="@context.path/admin/plugins">Plugins</a>
+      <li class="menu-item-hover @if(active=="plugins"){active}">
+        <a href="@context.path/admin/plugins">
+          <i class="menu-icon octicon octicon-plug"></i>
+          <span>Plugins</span>
+        </a>
       </li>
-      <li@if(active=="data"){ class="active"}>
-        <a href="@context.path/admin/data">Data export / import</a>
+      <li class="menu-item-hover @if(active=="data"){active}">
+        <a href="@context.path/admin/data">
+          <i class="menu-icon octicon octicon-database"></i>
+          <span>Data export / import</span>
+        </a>
       </li>
-      <li>
-        <a href="@context.path/console/login.jsp" target="_blank">H2 console</a>
+      <li class="menu-item-hover">
+        <a href="@context.path/console/login.jsp" target="_blank">
+          <i class="menu-icon octicon octicon-database"></i>
+          <span>H2 console</span>
+        </a>
       </li>
       @gitbucket.core.plugin.PluginRegistry().getSystemSettingMenus.map { menu =>
         @menu(context).map { link =>
           <li@if(active==link.id){ class="active"}>
-            <a href="@context.path/@link.path">@link.label</a>
+            <a href="@context.path/@link.path">
+              <i class="menu-icon octicon octicon-plug"></i>
+              <span>@link.label</span>
+            </a>
           </li>
         }
       }

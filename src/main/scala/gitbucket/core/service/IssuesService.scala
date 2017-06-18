@@ -97,6 +97,30 @@ trait IssuesService {
       .list.toMap
   }
 
+  /**
+    * Returns the Map which contains issue count for each priority.
+    *
+    * @param owner the repository owner
+    * @param repository the repository name
+    * @param condition the search condition
+    * @return the Map which contains issue count for each priority (key is priority name, value is issue count)
+    */
+  def countIssueGroupByPriorities(owner: String, repository: String, condition: IssueSearchCondition,
+                              filterUser: Map[String, String])(implicit s: Session): Map[String, Int] = {
+
+    searchIssueQuery(Seq(owner -> repository), condition.copy(labels = Set.empty), false)
+      .join(Priorities).on { case t1 ~ t2 =>
+        t1.byPriority(t2.userName, t2.repositoryName, t2.priorityId)
+      }
+      .groupBy { case t1 ~ t2 =>
+        t2.priorityName
+      }
+      .map { case priorityName ~ t =>
+        priorityName -> t.length
+      }
+      .list.toMap
+  }
+
   def getCommitStatues(userName: String, repositoryName: String, issueId: Int)(implicit s: Session): Option[CommitStatusInfo] = {
     val status = PullRequests
       .filter { pr =>
@@ -111,7 +135,7 @@ trait IssuesService {
       val (_, cs) = status.head
       Some(CommitStatusInfo(
         count        = status.length,
-        successCount = status.filter(_._2.state == CommitState.SUCCESS).length,
+        successCount = status.count(_._2.state == CommitState.SUCCESS),
         context      = (if(status.length == 1) Some(cs.context) else None),
         state        = (if(status.length == 1) Some(cs.state)   else None),
         targetUrl    = (if(status.length == 1) cs.targetUrl     else None),
@@ -136,21 +160,23 @@ trait IssuesService {
                  (implicit s: Session): List[IssueInfo] = {
     // get issues and comment count and labels
     val result = searchIssueQueryBase(condition, pullRequest, offset, limit, repos)
-        .joinLeft (IssueLabels) .on { case t1 ~ t2 ~ i ~ t3           => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
-        .joinLeft (Labels)      .on { case t1 ~ t2 ~ i ~ t3 ~ t4      => t3.map(_.byLabel(t4.userName, t4.repositoryName, t4.labelId)) }
-        .joinLeft (Milestones)  .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
-        .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 => i asc }
-        .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 =>
-          (t1, t2.commentCount, t4.map(_.labelId), t4.map(_.labelName), t4.map(_.color), t5.map(_.title))
+        .joinLeft (IssueLabels) .on { case t1 ~ t2 ~ i ~ t3                => t1.byIssue(t3.userName, t3.repositoryName, t3.issueId) }
+        .joinLeft (Labels)      .on { case t1 ~ t2 ~ i ~ t3 ~ t4           => t3.map(_.byLabel(t4.userName, t4.repositoryName, t4.labelId)) }
+        .joinLeft (Milestones)  .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5      => t1.byMilestone(t5.userName, t5.repositoryName, t5.milestoneId) }
+        .joinLeft (Priorities)  .on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => t1.byPriority(t6.userName, t6.repositoryName, t6.priorityId) }
+        .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => i asc }
+        .map { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 =>
+          (t1, t2.commentCount, t4.map(_.labelId), t4.map(_.labelName), t4.map(_.color), t5.map(_.title), t6.map(_.priorityName))
         }
         .list
         .splitWith { (c1, c2) => c1._1.userName == c2._1.userName && c1._1.repositoryName == c2._1.repositoryName && c1._1.issueId == c2._1.issueId }
 
     result.map { issues => issues.head match {
-      case (issue, commentCount, _, _, _, milestone) =>
+      case (issue, commentCount, _, _, _, milestone, priority) =>
         IssueInfo(issue,
          issues.flatMap { t => t._3.map (Label(issue.userName, issue.repositoryName, _, t._4.get, t._5.get))} toList,
          milestone,
+         priority,
          commentCount,
          getCommitStatues(issue.userName, issue.repositoryName, issue.issueId))
     }} toList
@@ -204,6 +230,10 @@ trait IssuesService {
             case "asc"  => t1.updatedDate asc
             case "desc" => t1.updatedDate desc
           }
+          case "priority" => condition.direction match {
+            case "asc"  => t2.priority asc
+            case "desc" => t2.priority desc
+          }
         }
       }
       .drop(offset).take(limit).zipWithIndex
@@ -219,6 +249,7 @@ trait IssuesService {
         .foldLeft[Rep[Boolean]](false) ( _ || _ ) &&
       (t1.closed           === (condition.state == "closed").bind) &&
       (t1.milestoneId.?      isEmpty, condition.milestone == Some(None)) &&
+      (t1.priorityId.?       isEmpty, condition.priority == Some(None)) &&
       (t1.assignedUserName.? isEmpty, condition.assigned  == Some(None)) &&
       (t1.openedUserName   === condition.author.get.bind, condition.author.isDefined) &&
       (t1.pullRequest      === pullRequest.bind) &&
@@ -227,6 +258,11 @@ trait IssuesService {
         (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.milestoneId)) &&
         (t2.title === condition.milestone.get.get.bind)
       } exists, condition.milestone.flatten.isDefined) &&
+      // Priority filter
+      (Priorities filter { t2 =>
+        (t2.byPrimaryKey(t1.userName, t1.repositoryName, t1.priorityId)) &&
+          (t2.priorityName === condition.priority.get.get.bind)
+      } exists, condition.priority.flatten.isDefined) &&
       // Assignee filter
       (t1.assignedUserName === condition.assigned.get.get.bind, condition.assigned.flatten.isDefined) &&
       // Label filter
@@ -253,7 +289,7 @@ trait IssuesService {
     }
 
   def insertIssue(owner: String, repository: String, loginUser: String, title: String, content: Option[String],
-                  assignedUserName: Option[String], milestoneId: Option[Int],
+                  assignedUserName: Option[String], milestoneId: Option[Int], priorityId: Option[Int],
                   isPullRequest: Boolean = false)(implicit s: Session): Int = {
     // next id number
     sql"SELECT ISSUE_ID + 1 FROM ISSUE_ID WHERE USER_NAME = $owner AND REPOSITORY_NAME = $repository FOR UPDATE".as[Int]
@@ -264,6 +300,7 @@ trait IssuesService {
         id,
         loginUser,
         milestoneId,
+        priorityId,
         assignedUserName,
         title,
         content,
@@ -314,6 +351,10 @@ trait IssuesService {
 
   def updateMilestoneId(owner: String, repository: String, issueId: Int, milestoneId: Option[Int])(implicit s: Session): Int = {
     Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.milestoneId?).update (milestoneId)
+  }
+
+  def updatePriorityId(owner: String, repository: String, issueId: Int, priorityId: Option[Int])(implicit s: Session): Int = {
+    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.priorityId?).update (priorityId)
   }
 
   def updateComment(commentId: Int, content: String)(implicit s: Session): Int = {
@@ -430,6 +471,7 @@ object IssuesService {
   case class IssueSearchCondition(
       labels: Set[String] = Set.empty,
       milestone: Option[Option[String]] = None,
+      priority: Option[Option[String]] = None,
       author: Option[String] = None,
       assigned: Option[Option[String]] = None,
       mentioned: Option[String] = None,
@@ -459,6 +501,10 @@ object IssuesService {
           case Some(x) => s"milestone:${x}"
           case None    => "no:milestone"
         }},
+        priority.map { _ match {
+          case Some(x) => s"priority:${x}"
+          case None    => "no:priority"
+        }},
         (sort, direction) match {
           case ("created" , "desc") => None
           case ("created" , "asc" ) => Some("sort:created-asc")
@@ -466,6 +512,8 @@ object IssuesService {
           case ("comments", "asc" ) => Some("sort:comments-asc")
           case ("updated" , "desc") => Some("sort:updated-desc")
           case ("updated" , "asc" ) => Some("sort:updated-asc")
+          case ("priority", "desc") => Some("sort:priority-desc")
+          case ("priority", "asc" ) => Some("sort:priority-asc")
           case x                    => throw new MatchError(x)
         },
         visibility.map(visibility => s"visibility:${visibility}")
@@ -479,6 +527,10 @@ object IssuesService {
         milestone.map {
           case Some(x) => "milestone=" + urlEncode(x)
           case None    => "milestone=none"
+        },
+        priority.map {
+          case Some(x) => "priority=" + urlEncode(x)
+          case None    => "priority=none"
         },
         author   .map(x => "author="    + urlEncode(x)),
         assigned.map {
@@ -512,6 +564,10 @@ object IssuesService {
           case "none" => None
           case x      => Some(x)
         },
+        param(request, "priority").map {
+          case "none" => None
+          case x      => Some(x)
+        },
         param(request, "author"),
         param(request, "assigned").map {
           case "none" => None
@@ -519,7 +575,7 @@ object IssuesService {
         },
         param(request, "mentioned"),
         param(request, "state",     Seq("open", "closed")).getOrElse("open"),
-        param(request, "sort",      Seq("created", "comments", "updated")).getOrElse("created"),
+        param(request, "sort",      Seq("created", "comments", "updated", "priority")).getOrElse("created"),
         param(request, "direction", Seq("asc", "desc")).getOrElse("desc"),
         param(request, "visibility"),
         param(request, "groups").map(_.split(",").toSet).getOrElse(Set.empty)
@@ -535,6 +591,6 @@ object IssuesService {
 
   case class CommitStatusInfo(count: Int, successCount: Int, context: Option[String], state: Option[CommitState], targetUrl: Option[String], description: Option[String])
 
-  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], commentCount: Int, status:Option[CommitStatusInfo])
+  case class IssueInfo(issue: Issue, labels: List[Label], milestone: Option[String], priority: Option[String], commentCount: Int, status:Option[CommitStatusInfo])
 
 }

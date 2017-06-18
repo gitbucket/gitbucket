@@ -18,9 +18,9 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
   private val logger = LoggerFactory.getLogger(classOf[GitAuthenticationFilter])
 
   def init(config: FilterConfig) = {}
-  
+
   def destroy(): Unit = {}
-  
+
   def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain): Unit = {
     val request  = req.asInstanceOf[HttpServletRequest]
     val response = res.asInstanceOf[HttpServletResponse]
@@ -51,21 +51,21 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
 
   private def pluginRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
                                settings: SystemSettings, isUpdating: Boolean, filter: GitRepositoryFilter): Unit = {
-    implicit val r = request
+    Database() withSession { implicit session =>
+      val account = for {
+        auth <- Option(request.getHeader("Authorization"))
+        Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
+        account <- authenticate(settings, username, password)
+      } yield {
+        request.setAttribute(Keys.Request.UserName, account.userName)
+        account
+      }
 
-    val account = for {
-      auth <- Option(request.getHeader("Authorization"))
-      Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
-      account <- authenticate(settings, username, password)
-    } yield {
-      request.setAttribute(Keys.Request.UserName, account.userName)
-      account
-    }
-
-    if(filter.filter(request.gitRepositoryPath, account.map(_.userName), settings, isUpdating)){
-      chain.doFilter(request, response)
-    } else {
-      AuthUtil.requireAuth(response)
+      if (filter.filter(request.gitRepositoryPath, account.map(_.userName), settings, isUpdating)) {
+        chain.doFilter(request, response)
+      } else {
+        AuthUtil.requireAuth(response)
+      }
     }
   }
 
@@ -85,8 +85,13 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
                   auth <- Option(request.getHeader("Authorization"))
                   Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
                   account <- authenticate(settings, username, password)
-                } yield if (isUpdating || repository.repository.isPrivate) {
+                } yield if (isUpdating) {
                   if (hasDeveloperRole(repository.owner, repository.name, Some(account))) {
+                    request.setAttribute(Keys.Request.UserName, account.userName)
+                    true
+                  } else false
+                } else if(repository.repository.isPrivate){
+                  if (hasGuestRole(repository.owner, repository.name, Some(account))) {
                     request.setAttribute(Keys.Request.UserName, account.userName)
                     true
                   } else false

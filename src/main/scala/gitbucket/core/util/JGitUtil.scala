@@ -538,6 +538,7 @@ object JGitUtil {
       } else {
         // initial commit
         using(new TreeWalk(git.getRepository)){ treeWalk =>
+          treeWalk.setRecursive(true)
           treeWalk.addTree(revCommit.getTree)
           val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
           while(treeWalk.next){
@@ -951,7 +952,7 @@ object JGitUtil {
    * @return the last modified commit of specified path
    */
   def getLastModifiedCommit(git: Git, startCommit: RevCommit, path: String): RevCommit = {
-    return git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
+    git.log.add(startCommit).addPath(path).setMaxCount(1).call.iterator.next
   }
 
   def getBranches(owner: String, name: String, defaultBranch: String, origin: Boolean): Seq[BranchInfo] = {

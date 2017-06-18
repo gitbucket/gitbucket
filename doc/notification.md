@@ -1,7 +1,7 @@
 Notification Email
 ========
 
-GitBucket sends email to target users by enabling the notification email by an administrator.
+GitBucket can send email notification to users if this feature is enabled by an administrator.
 
 The timing of the notification are as follows:
 
@@ -17,7 +17,8 @@ When the ```CLOSED``` column value is updated, GitBucket does the notification.
 Notified users are as follows:
 
 * individual repository's owner
+* group members of group repository
 * collaborators
 * participants
 
-However, the operation in person is excluded from the target.
+However, the person performing the operation is excluded from the notification.

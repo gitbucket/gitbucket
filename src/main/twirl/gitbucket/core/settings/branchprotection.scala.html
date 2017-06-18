@@ -33,30 +33,30 @@
                   Sorry, we couldn’t find any status checks in the last week for this repository.<br />
                   Please create a commit status by API (<a href="https://developer.github.com/v3/repos/statuses/">Learn more about status checks on GitHub</a>)
                 </div>
-              }else{
-              <div class="js-has_required_statuses" style="display:none">
-                <div class="panel panel-default">
-                  <div class="panel-heading">Choose which status checks must pass before branches can be merged into <b>@branch</b>.</div>
-                  <div class="panel-body">
-                    @knownContexts.map { context =>
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" name="contexts" value="@context" onclick="update()" @check(protection.status.contexts.find(_ == context))>
-                          <span>@context</span>
-                        </label>
-                      </div>
-                    }
+              } else {
+                <div class="js-has_required_statuses" style="display:none">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">Choose which status checks must pass before branches can be merged into <b>@branch</b>.</div>
+                    <div class="panel-body">
+                      @knownContexts.map { context =>
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" name="contexts" value="@context" onclick="update()" @check(protection.status.contexts.find(_ == context))>
+                            <span>@context</span>
+                          </label>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
+                      <span class="strong">Include administrators</span>
+                    </label>
+                    <p class="help-block">Enforce required status checks for repository administrators.</p>
                   </div>
                 </div>
-
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" name="enforce_for_admins" onclick="update()" @check(protection.status.enforcement_level.name=="everyone")>
-                    <span class="strong">Include administrators</span>
-                  </label>
-                  <p class="help-block">Enforce required status checks for repository administrators.</p>
-                </div>
-              </div>
               }
             </div>
             <input class="btn btn-success js-submit-btn" type="submit" value="Save changes" />

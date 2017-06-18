@@ -1,8 +1,8 @@
 package gitbucket.core.ssh
 
 import java.security.PublicKey
+import java.util.Base64
 
-import org.apache.commons.codec.binary.Base64
 import org.apache.sshd.common.config.keys.KeyUtils
 import org.apache.sshd.common.util.buffer.ByteArrayBuffer
 import org.eclipse.jgit.lib.Constants
@@ -18,16 +18,17 @@ object SshUtil {
     val parts = key.split(" ")
     if (parts.size < 2) {
       logger.debug(s"Invalid PublicKey Format: ${key}")
-      return None
-    }
-    try {
-      val encodedKey = parts(1)
-      val decode = Base64.decodeBase64(Constants.encodeASCII(encodedKey))
-      Some(new ByteArrayBuffer(decode).getRawPublicKey)
-    } catch {
-      case e: Throwable =>
-        logger.debug(e.getMessage, e)
-        None
+      None
+    } else {
+      try {
+        val encodedKey = parts(1)
+        val decode = Base64.getDecoder.decode(Constants.encodeASCII(encodedKey))
+        Some(new ByteArrayBuffer(decode).getRawPublicKey)
+      } catch {
+        case e: Throwable =>
+          logger.debug(e.getMessage, e)
+          None
+      }
     }
   }
 

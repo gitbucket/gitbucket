@@ -166,8 +166,8 @@ trait AccountService {
 
   def updateGroup(groupName: String, description: Option[String], url: Option[String], removed: Boolean)(implicit s: Session): Unit =
     Accounts.filter(_.userName === groupName.bind)
-      .map(t => (t.url.?, t.description.?, t.removed))
-      .update(url, description, removed)
+      .map(t => (t.url.?, t.description.?, t.updatedDate, t.removed))
+      .update(url, description, currentDate, removed)
 
   def updateGroupMembers(groupName: String, members: List[(String, Boolean)])(implicit s: Session): Unit = {
     GroupMembers.filter(_.groupName === groupName.bind).delete
