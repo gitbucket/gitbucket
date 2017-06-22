@@ -20,7 +20,7 @@ object JsonFormat {
       { case x: Date => JString(parserISO.print(new DateTime(x).withZone(DateTimeZone.UTC))) }
     )
   ) + FieldSerializer[ApiUser]() +
-    FieldSerializer[ApiPullRequest]() +
+    FieldSerializer[ApiPullRequest](FieldSerializer.ignore("gitbucket$core$service$AccountService$$logger")) +
     FieldSerializer[ApiRepository]() +
     FieldSerializer[ApiCommitListItem.Parent]() +
     FieldSerializer[ApiCommitListItem]() +

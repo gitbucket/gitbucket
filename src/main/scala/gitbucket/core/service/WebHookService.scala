@@ -430,7 +430,7 @@ object WebHookService {
         baseRepository: RepositoryInfo,
         baseOwner: Account,
         sender: Account,
-        mergedComment: Option[(IssueComment, Account)]): WebHookPullRequestPayload = {
+        mergedComment: Option[(IssueComment, Account)])(implicit s: Session): WebHookPullRequestPayload = {
 
       val headRepoPayload = ApiRepository(headRepository, headOwner)
       val baseRepoPayload = ApiRepository(baseRepository, baseOwner)
@@ -502,7 +502,7 @@ object WebHookService {
       baseOwner: Account,
       sender: Account,
       mergedComment: Option[(IssueComment, Account)]
-    ) : WebHookPullRequestReviewCommentPayload = {
+    )(implicit s: Session) : WebHookPullRequestReviewCommentPayload = {
       val headRepoPayload = ApiRepository(headRepository, headOwner)
       val baseRepoPayload = ApiRepository(baseRepository, baseOwner)
       val senderPayload = ApiUser(sender)

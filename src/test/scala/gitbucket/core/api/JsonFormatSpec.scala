@@ -281,7 +281,8 @@ class JsonFormatSpec extends FunSuite {
     merged_by     = Some(apiUser),
     title         = "new-feature",
     body          = "Please pull these awesome changes",
-    user          = apiUser
+    user          = apiUser,
+    assignee      = Left(apiUser)
   )
 
   val apiPullRequestJson = s"""{
@@ -311,6 +312,7 @@ class JsonFormatSpec extends FunSuite {
     "title": "new-feature",
     "body": "Please pull these awesome changes",
     "user": $apiUserJson,
+    "assignee": $apiUserJson,
     "html_url": "${context.baseUrl}/octocat/Hello-World/pull/1347",
     "url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347",
     "commits_url": "${context.baseUrl}/api/v3/repos/octocat/Hello-World/pulls/1347/commits",

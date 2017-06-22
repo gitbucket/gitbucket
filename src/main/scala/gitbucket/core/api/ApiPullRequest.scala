@@ -2,6 +2,9 @@ package gitbucket.core.api
 
 import gitbucket.core.model.{Account, Issue, IssueComment, PullRequest}
 import java.util.Date
+import gitbucket.core.service.AccountService
+import gitbucket.core.model.Profile._
+import gitbucket.core.model.Profile.profile.blockingApi._
 
 
 /**
@@ -19,7 +22,8 @@ case class ApiPullRequest(
   merged_by: Option[ApiUser],
   title: String,
   body: String,
-  user: ApiUser) {
+  user: ApiUser,
+  assignee: Either[ApiUser,AnyRef]) extends AccountService {
   val html_url            = ApiPath(s"${base.repo.html_url.path}/pull/${number}")
   //val diff_url            = ApiPath(s"${base.repo.html_url.path}/pull/${number}.diff")
   //val patch_url           = ApiPath(s"${base.repo.html_url.path}/pull/${number}.patch")
@@ -40,7 +44,7 @@ object ApiPullRequest{
     baseRepo: ApiRepository,
     user: ApiUser,
     mergedComment: Option[(IssueComment, Account)]
-  ): ApiPullRequest =
+  )(implicit s: Session): ApiPullRequest =
     ApiPullRequest(
       number     = issue.issueId,
       updated_at = issue.updatedDate,
@@ -59,7 +63,8 @@ object ApiPullRequest{
       merged_by  = mergedComment.map { case (_, account) => ApiUser(account) },
       title      = issue.title,
       body       = issue.content.getOrElse(""),
-      user       = user
+      user       = user,
+      assignee   = if (issue.assignedUserName == None) Right(null) else Left(ApiUser(getAccountByUserName(issue.assignedUserName.getOrElse("")).get))
     )
 
   case class Commit(
@@ -69,4 +74,7 @@ object ApiPullRequest{
     val label = if( baseOwner == repo.owner.login ){ ref }else{ s"${repo.owner.login}:${ref}" }
     val user = repo.owner
   }
+
+  def getAccountByUserName(userName: String, includeRemoved: Boolean = false)(implicit s: Session): Option[Account] = 
+    Accounts filter(t => (t.userName === userName.bind) && (t.removed === false.bind, !includeRemoved)) firstOption
 }
