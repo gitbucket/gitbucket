@@ -2,10 +2,7 @@ language: scala
 sudo: true
 script:
   - sbt test
-jdk:
-  - oraclejdk8
 before_script:
-  - sudo apt-get install libaio1
   - sudo /etc/init.d/mysql stop
   - sudo /etc/init.d/postgresql stop
   - sudo chmod +x /usr/local/bin/sbt
@@ -19,10 +16,20 @@ cache:
     - $HOME/.embedpostgresql
 matrix:
   include:
+  - jdk: oraclejdk8
+    addons:
+      apt:
+        packages:
+        - libaio1
   - dist: trusty
     group: edge
     sudo: required
     jdk: oraclejdk9
+    addons:
+      apt:
+        packages:
+        - libaio1
+        - oracle-java9-installer
     script:
     # https://github.com/sbt/sbt/pull/2951
     - git clone https://github.com/retronym/java9-rt-export
@@ -31,6 +38,7 @@ matrix:
     - jdk_switcher use oraclejdk8
     - sbt package
     - jdk_switcher use oraclejdk9
+    - java -version
     - mkdir -p $HOME/.sbt/0.13/java9-rt-ext; java -jar target/java9-rt-export-*.jar $HOME/.sbt/0.13/java9-rt-ext/rt.jar
     - jar tf $HOME/.sbt/0.13/java9-rt-ext/rt.jar | grep java/lang/Object
     - cd ..
