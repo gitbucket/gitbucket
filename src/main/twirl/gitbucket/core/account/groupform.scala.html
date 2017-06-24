@@ -52,14 +52,14 @@
     </div>
   </div>
   <fieldset class="border-top">
-    @if(account.isDefined){
+    @if(account.isDefined && !admin){
       <div class="pull-right">
         <a href="@helpers.url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
       </div>
     }
     <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create group} else {Update group}"/>
-    @if(account.isDefined){
-      <a href="@helpers.url(account.get.userName)" class="btn btn-default">Cancel</a>
+    @if(admin){
+      <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
     }
   </fieldset>
 </form>

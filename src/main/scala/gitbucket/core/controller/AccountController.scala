@@ -456,7 +456,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:groupName/_editgroup")(managersOnly {
     defining(params("groupName")){ groupName =>
       // TODO Don't use Option.get
-      html.editgroup(getAccountByUserName(groupName, true).get, getGroupMembers(groupName))
+      html.editgroup(getAccountByUserName(groupName, true).get, getGroupMembers(groupName), flash.get("info"))
     }
   })
 
@@ -499,7 +499,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        }
 
         updateImage(form.groupName, form.fileId, form.clearImage)
-        redirect(s"/${form.groupName}")
+
+        flash += "info" -> "Account information has been updated."
+        redirect(s"/${groupName}/_editgroup")
 
       } getOrElse NotFound()
     }
