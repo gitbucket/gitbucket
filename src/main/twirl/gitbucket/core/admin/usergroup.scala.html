@@ -5,7 +5,8 @@
       account match {
         case Some(x) => s"${context.path}/admin/users/${x.userName}/_editgroup"
         case None    => s"${context.path}/admin/users/_newgroup"
-      }
+      },
+      true
     )
   }
 }

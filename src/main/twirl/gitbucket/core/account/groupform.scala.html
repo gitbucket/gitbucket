@@ -1,6 +1,7 @@
 @(account: Option[gitbucket.core.model.Account],
   members: List[gitbucket.core.model.GroupMember],
-  formUrl: String)(implicit context: gitbucket.core.controller.Context)
+  formUrl: String,
+  admin: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 <form id="form" method="post" action="@formUrl" validate="true">
   <div class="row">
@@ -11,6 +12,12 @@
           <span id="error-groupName" class="error"></span>
         </div>
         <input type="text" name="groupName" id="groupName" class="form-control" value="@account.map(_.userName)"@if(account.isDefined){ readonly}/>
+        @if(account.isDefined && admin){
+          <label for="removed">
+            <input type="checkbox" name="removed" id="removed" value="true" @if(account.get.isRemoved){checked}/>
+            Disable
+          </label>
+        }
       </fieldset>
       <fieldset class="form-group">
         <label class="strong">URL (Optional)</label>
