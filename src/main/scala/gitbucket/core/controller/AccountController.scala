@@ -317,10 +317,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:userName/_hooks")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
-      gitbucket.core.account.html.webhook(account,
-        if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-        getAccountWebHooks(account.userName)
-      )
+      gitbucket.core.account.html.hooks(account, getAccountWebHooks(account.userName), flash.get("info"))
     } getOrElse NotFound()
   })
 
@@ -331,7 +328,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       val webhook = AccountWebHook(userName, "", WebHookContentType.FORM, None)
-      html.edithooks(webhook, Set(WebHook.Push), account, if (account.isGroupAccount) Nil else getGroupsByUserName(userName), flash.get("info"), true)
+      html.edithook(webhook, Set(WebHook.Push), account, true)
     } getOrElse NotFound()
   })
 
@@ -360,11 +357,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    */
   get("/:userName/_hooks/edit")(oneselfOnly {
     val userName = params("userName")
-    getAccountByUserName(userName).map { account =>
+    getAccountByUserName(userName).flatMap { account =>
       getAccountWebHook(userName, params("url")).map { case (webhook, events) =>
-        html.edithooks(webhook, events, account, if (account.isGroupAccount) Nil else getGroupsByUserName(userName), flash.get("info"), false)
-      } getOrElse NotFound()
-    }
+        html.edithook(webhook, events, account, false)
+      }
+    } getOrElse NotFound()
   })
 
   /**
@@ -381,7 +378,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
    * Send the test request to registered account web hook URLs.
    */
   ajaxPost("/:userName/_hooks/test")(oneselfOnly {
-    // TODO copied & pasted??
+    // TODO Is it possible to merge with [[RepositorySettingsController.ajaxPost]]?
     import scala.concurrent.duration._
     import scala.concurrent._
     import scala.util.control.NonFatal

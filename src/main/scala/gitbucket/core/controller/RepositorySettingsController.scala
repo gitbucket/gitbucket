@@ -222,7 +222,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
     val webhook = RepositoryWebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
-    html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
+    html.edithook(webhook, Set(WebHook.Push), repository, true)
   })
 
   /**
@@ -311,7 +311,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
     getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
-      html.edithooks(webhook, events, repository, flash.get("info"), false)
+      html.edithook(webhook, events, repository, false)
     } getOrElse NotFound()
   })
 
