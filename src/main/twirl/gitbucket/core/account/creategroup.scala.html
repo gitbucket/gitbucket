@@ -3,7 +3,12 @@
   <div class="content-wrapper main-center">
     <div class="content body">
       <h2>Create group</h2>
-      @gitbucket.core.account.html.groupform(None, members, s"${context.path}/groups/new", false)
+      <form id="form" method="post" action="@context.path/groups/new" validate="true">
+        @gitbucket.core.account.html.groupform(None, members, false)
+        <fieldset class="border-top">
+          <input type="submit" class="btn btn-success" value="Create group"/>
+        </fieldset>
+      </form>
     </div>
   </div>
 }

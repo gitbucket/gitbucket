@@ -1,12 +1,19 @@
 @(account: Option[gitbucket.core.model.Account], members: List[gitbucket.core.model.GroupMember])(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main(if(account.isEmpty) "New group" else "Update group"){
   @gitbucket.core.admin.html.menu("users"){
-    @gitbucket.core.account.html.groupform(account, members,
-      account match {
-        case Some(x) => s"${context.path}/admin/users/${x.userName}/_editgroup"
-        case None    => s"${context.path}/admin/users/_newgroup"
-      },
-      true
-    )
+    <form id="form" method="post" action="@context.path/admin/users/@(account.map(x => s"${x.userName}/_editgroup").getOrElse("_newgroup"))" validate="true">
+      @gitbucket.core.account.html.groupform(account, members, true
+      )
+      <fieldset class="border-top">
+        @if(account.isDefined){
+          <div class="pull-right">
+            <a href="@helpers.url(account.get.userName)/_deletegroup" id="delete" class="btn btn-danger">Delete group</a>
+          </div>
+        }
+        <input type="submit" class="btn btn-success" value="@if(account.isEmpty){Create group} else {Update group}"/>
+        <a href="@context.path/admin/users" class="btn btn-default">Cancel</a>
+      </fieldset>
+    </form>
   }
 }
