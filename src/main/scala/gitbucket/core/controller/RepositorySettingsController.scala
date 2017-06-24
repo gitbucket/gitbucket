@@ -297,7 +297,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           "headers" -> _headers(req.getAllHeaders),
           "payload" -> json
         )).recover(toErrorMap), 20 seconds),
-        "responce" -> Await.result(resFuture.map(res => Map(
+        "response" -> Await.result(resFuture.map(res => Map(
           "status"  -> res.getStatusLine(),
           "body"    -> EntityUtils.toString(res.getEntity()),
           "headers" -> _headers(res.getAllHeaders())

@@ -170,13 +170,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
             context.loginAccount.exists(x => members.exists { member => member.userName == x.userName && member.isManager }))
         }
 
-        // Webhooks
-        case "webhooks" =>
-          gitbucket.core.account.html.webhook(account,
-            if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
-            getAccountWebHooks(account.userName)
-          )
-
         // Repositories
         case _ => {
           val members = getGroupMembers(account.userName)
@@ -321,40 +314,50 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/${userName}/_application")
   })
 
+  get("/:userName/_hooks")(oneselfOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName).map { account =>
+      gitbucket.core.account.html.webhook(account,
+        if(account.isGroupAccount) Nil else getGroupsByUserName(userName),
+        getAccountWebHooks(account.userName)
+      )
+    } getOrElse NotFound()
+  })
+
   /**
-    * Display the account web hook edit page.
-    */
+   * Display the account web hook edit page.
+   */
   get("/:userName/_hooks/new")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
       val webhook = AccountWebHook(userName, "", WebHookContentType.FORM, None)
       html.edithooks(webhook, Set(WebHook.Push), account, if (account.isGroupAccount) Nil else getGroupsByUserName(userName), flash.get("info"), true)
-    }
+    } getOrElse NotFound()
   })
 
   /**
-    * Add the account web hook URL.
-    */
+   * Add the account web hook URL.
+   */
   post("/:userName/_hooks/new", accountWebHookForm(false))(oneselfOnly { form =>
     val userName = params("userName")
     addAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
     flash += "info" -> s"Webhook ${form.url} created"
-    redirect(s"/${userName}?tab=webhooks")
+    redirect(s"/${userName}/_hooks")
   })
 
   /**
-    * Delete the account web hook URL.
-    */
+   * Delete the account web hook URL.
+   */
   get("/:userName/_hooks/delete")(oneselfOnly {
     val userName = params("userName")
     deleteAccountWebHook(userName, params("url"))
     flash += "info" -> s"Webhook ${params("url")} deleted"
-    redirect(s"/${userName}?tab=webhooks")
+    redirect(s"/${userName}/_hooks")
   })
 
   /**
-    * Display the account web hook edit page.
-    */
+   * Display the account web hook edit page.
+   */
   get("/:userName/_hooks/edit")(oneselfOnly {
     val userName = params("userName")
     getAccountByUserName(userName).map { account =>
@@ -365,20 +368,20 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   })
 
   /**
-    * Update account web hook settings.
-    */
+   * Update account web hook settings.
+   */
   post("/:userName/_hooks/edit", accountWebHookForm(true))(oneselfOnly { form =>
     val userName = params("userName")
     updateAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
     flash += "info" -> s"webhook ${form.url} updated"
-    redirect(s"/${userName}?tab=webhooks")
+    redirect(s"/${userName}/_hooks")
   })
 
   /**
-    * Send the test request to registered account web hook URLs.
-    */
+   * Send the test request to registered account web hook URLs.
+   */
   ajaxPost("/:userName/_hooks/test")(oneselfOnly {
-    import scala.collection.JavaConverters._
+    // TODO copied & pasted??
     import scala.concurrent.duration._
     import scala.concurrent._
     import scala.util.control.NonFatal
@@ -413,7 +416,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
         "headers" -> _headers(req.getAllHeaders),
         "payload" -> json
       )).recover(toErrorMap), 20 seconds),
-      "responce" -> Await.result(resFuture.map(res => Map(
+      "response" -> Await.result(resFuture.map(res => Map(
         "status"  -> res.getStatusLine(),
         "body"    -> EntityUtils.toString(res.getEntity()),
         "headers" -> _headers(res.getAllHeaders())

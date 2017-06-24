@@ -22,6 +22,12 @@
           <span>Applications</span>
         </a>
       </li>
+      <li class="menu-item-hover @if(active=="hooks"){active}">
+        <a href="@context.path/@context.loginAccount.get.userName/_hooks">
+          <i class="menu-icon octicon octicon-plug"></i>
+          <span>Service Hooks</span>
+        </a>
+      </li>
       @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
         @menu(context).map { link =>
           <li class="menu-item-hover @if(active==link.id){active}">

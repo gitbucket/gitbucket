@@ -19,4 +19,20 @@
   </addColumn>
 
   <addForeignKeyConstraint constraintName="IDX_ISSUE_FK3" baseTableName="ISSUE" baseColumnNames="PRIORITY_ID" referencedTableName="PRIORITY" referencedColumnNames="PRIORITY_ID"/>
+
+  <createTable tableName="ACCOUNT_WEB_HOOK">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="URL" type="varchar(200)" nullable="false"/>
+    <column name="TOKEN" type="varchar(100)" nullable="true"/>
+    <column name="CTYPE" type="varchar(10)" nullable="true"/>
+  </createTable>
+
+  <addPrimaryKey constraintName="IDX_ACCOUNT_WEB_HOOK_PK" tableName="ACCOUNT_WEB_HOOK" columnNames="USER_NAME, URL"/>
+  <addForeignKeyConstraint constraintName="IDX_ACCOUNT_WEB_HOOK_FK0" baseTableName="ACCOUNT_WEB_HOOK" baseColumnNames="USER_NAME" referencedTableName="ACCOUNT" referencedColumnNames="USER_NAME"/>
+
+  <createTable tableName="ACCOUNT_WEB_HOOK_EVENT">
+    <column name="USER_NAME" type="varchar(100)" nullable="false"/>
+    <column name="URL" type="varchar(200)" nullable="false"/>
+    <column name="EVENT" type="varchar(30)" nullable="false"/>
+  </createTable>
 </changeSet>

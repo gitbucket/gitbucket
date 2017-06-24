@@ -169,14 +169,14 @@ $(function(){
         }
         $("#req-headers").html(headers(e.request));
         $("#req-payload").text(e.request && e.request.payload ? JSON.stringify(JSON.parse(e.request.payload),undefined,4) : "");
-        $("#res-success").toggle(e.responce && !e.responce.error);
-        $("#res-errors").toggle(e.responce && !!e.responce.error);
-        $("#res-errors-body").text(e.responce.error);
-        var success = !!(e.responce && e.responce.status && /^2\d\d$/.test(e.responce.status.statusCode));
-        $("#res-status").text((e.responce && e.responce.status && e.responce.status.statusCode) || "ERROR");
+        $("#res-success").toggle(e.response && !e.response.error);
+        $("#res-errors").toggle(e.response && !!e.response.error);
+        $("#res-errors-body").text(e.response.error);
+        var success = !!(e.response && e.response.status && /^2\d\d$/.test(e.response.status.statusCode));
+        $("#res-status").text((e.response && e.response.status && e.response.status.statusCode) || "ERROR");
         $("#res-status").toggleClass("badge-success", success).toggleClass("badge-important", !success);
-        $("#res-headers").html(headers(e.responce));
-        $("#res-body").text(e.responce && e.responce.body ? e.responce.body : "");
+        $("#res-headers").html(headers(e.response));
+        $("#res-body").text(e.response && e.response.body ? e.response.body : "");
       },
       error:function (e) {
         if(e) {
