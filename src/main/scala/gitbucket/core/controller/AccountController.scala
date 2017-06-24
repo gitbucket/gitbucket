@@ -456,7 +456,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   get("/:groupName/_editgroup")(managersOnly {
     defining(params("groupName")){ groupName =>
       // TODO Don't use Option.get
-      html.editgroup(getAccountByUserName(groupName, true).get, getGroupMembers(groupName), flash.get("info"))
+      getAccountByUserName(groupName, true).map { account =>
+        html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
+      } getOrElse NotFound()
     }
   })
 
