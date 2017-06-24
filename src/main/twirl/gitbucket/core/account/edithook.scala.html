@@ -4,7 +4,7 @@
   create: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Service Hooks"){
-  @gitbucket.core.account.html.menu("hooks", context.settings.ssh){
+  @gitbucket.core.account.html.menu("hooks", account.userName, account.isGroupAccount){
     @gitbucket.core.settings.html.edithookform(
       webHook, events, create,
       helpers.url(account.userName) + "/_hooks/new",

@@ -1,0 +1,9 @@
+@(members: List[gitbucket.core.model.GroupMember])(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Create group"){
+  <div class="content-wrapper main-center">
+    <div class="content body">
+      <h2>Create group</h2>
+      @gitbucket.core.account.html.groupform(None, members)
+    </div>
+  </div>
+}

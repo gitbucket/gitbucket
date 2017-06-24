@@ -2,7 +2,7 @@
 @import gitbucket.core.util.LDAPUtil
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main("Edit your profile"){
-  @gitbucket.core.account.html.menu("profile", context.settings.ssh){
+  @gitbucket.core.account.html.menu("profile", context.loginAccount.get.userName, false){
     @gitbucket.core.helper.html.information(info)
     @gitbucket.core.helper.html.error(error)
     @if(LDAPUtil.isDummyMailAddress(account)){<div class="alert alert-danger">Please register your mail address.</div>}

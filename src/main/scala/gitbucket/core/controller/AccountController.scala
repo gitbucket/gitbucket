@@ -13,7 +13,6 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
 import io.github.gitbucket.scalatra.forms._
-import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 
@@ -440,7 +439,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   get("/groups/new")(usersOnly {
-    html.group(None, List(GroupMember("", context.loginAccount.get.userName, true)))
+    html.creategroup(List(GroupMember("", context.loginAccount.get.userName, true)))
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
@@ -456,7 +455,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:groupName/_editgroup")(managersOnly {
     defining(params("groupName")){ groupName =>
-      html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
+      // TODO Don't use Option.get
+      html.editgroup(getAccountByUserName(groupName, true).get, getGroupMembers(groupName))
     }
   })
 

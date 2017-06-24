@@ -1,41 +1,49 @@
-@(active: String, ssh: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
+@(active: String, userName: String, group: Boolean)(body: Html)(implicit context: gitbucket.core.controller.Context)
 <div class="main-sidebar">
   <div class="sidebar">
     <ul class="sidebar-menu">
-      <li class="menu-item-hover @if(active=="profile"){active}">
-        <a href="@context.path/@context.loginAccount.get.userName/_edit">
-          <i class="menu-icon octicon octicon-person"></i>
-          <span>Profile</span>
-        </a>
-      </li>
-      @if(ssh){
-      <li class="menu-item-hover @if(active=="ssh"){active}">
-        <a href="@context.path/@context.loginAccount.get.userName/_ssh">
-          <i class="menu-icon octicon octicon-key"></i>
-          <span>SSH Keys</span>
-        </a>
-      </li>
-      }
-      <li class="menu-item-hover @if(active=="application"){active}">
-        <a href="@context.path/@context.loginAccount.get.userName/_application">
-          <i class="menu-icon octicon octicon-rocket"></i>
-          <span>Applications</span>
-        </a>
-      </li>
-      <li class="menu-item-hover @if(active=="hooks"){active}">
-        <a href="@context.path/@context.loginAccount.get.userName/_hooks">
-          <i class="menu-icon octicon octicon-zap"></i>
-          <span>Service Hooks</span>
-        </a>
-      </li>
-      @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
-        @menu(context).map { link =>
-          <li class="menu-item-hover @if(active==link.id){active}">
-            <a href="@context.path/@link.path">
-              <i class="menu-icon octicon octicon-plug"></i>
-              <span>@link.label</span>
+      @if(group){
+        <li class="menu-item-hover @if(active=="profile"){active}">
+          <a href="@context.path/@userName/_editgroup">
+            <i class="menu-icon octicon octicon-person"></i> <span>Profile</span>
+          </a>
+        </li>
+        <li class="menu-item-hover @if(active=="hooks"){active}">
+          <a href="@context.path/@userName/_hooks">
+            <i class="menu-icon octicon octicon-zap"></i> <span>Service Hooks</span>
+          </a>
+        </li>
+      } else {
+        <li class="menu-item-hover @if(active=="profile"){active}">
+          <a href="@context.path/@userName/_edit">
+            <i class="menu-icon octicon octicon-person"></i> <span>Profile</span>
+          </a>
+        </li>
+        @if(context.settings.ssh){
+          <li class="menu-item-hover @if(active=="ssh"){active}">
+            <a href="@context.path/@userName/_ssh">
+              <i class="menu-icon octicon octicon-key"></i> <span>SSH Keys</span>
             </a>
           </li>
+        }
+        <li class="menu-item-hover @if(active=="application"){active}">
+          <a href="@context.path/@userName/_application">
+            <i class="menu-icon octicon octicon-rocket"></i> <span>Applications</span>
+          </a>
+        </li>
+        <li class="menu-item-hover @if(active=="hooks"){active}">
+          <a href="@context.path/@userName/_hooks">
+            <i class="menu-icon octicon octicon-zap"></i> <span>Service Hooks</span>
+          </a>
+        </li>
+        @gitbucket.core.plugin.PluginRegistry().getAccountSettingMenus.map { menu =>
+          @menu(context).map { link =>
+            <li class="menu-item-hover @if(active==link.id){active}">
+              <a href="@context.path/@link.path">
+                <i class="menu-icon octicon octicon-plug"></i> <span>@link.label</span>
+              </a>
+            </li>
+          }
         }
       }
     </ul>

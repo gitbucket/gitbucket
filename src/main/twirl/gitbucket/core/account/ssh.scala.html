@@ -1,7 +1,7 @@
 @(account: gitbucket.core.model.Account, sshKeys: List[gitbucket.core.model.SshKey])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.ssh.SshUtil
 @gitbucket.core.html.main("SSH Keys"){
-  @gitbucket.core.account.html.menu("ssh", context.settings.ssh){
+  @gitbucket.core.account.html.menu("ssh", context.loginAccount.get.userName, false){
     <div class="panel panel-default">
       <div class="panel-heading strong">SSH Keys</div>
       <div class="panel-body">
