@@ -11,7 +11,8 @@
 @check(name: String, event: Event) = {
   name="@(name).@event.name" value="on" @if(events(event)){checked}
 }
-<div class="panel-heading strong">Webhook / Manage webhook</div>
+<div class="panel panel-default">
+  <div class="panel-heading strong">Webhook / Manage webhook</div>
   <div class="panel-body">
     <form method="POST" validate="true">
       <fieldset class="form-group">
