@@ -3,7 +3,7 @@
   <div class="content-wrapper main-center">
     <div class="content body">
       <h2>Create group</h2>
-      @gitbucket.core.account.html.groupform(None, members)
+      @gitbucket.core.account.html.groupform(None, members, s"${context.path}/groups/new")
     </div>
   </div>
 }
