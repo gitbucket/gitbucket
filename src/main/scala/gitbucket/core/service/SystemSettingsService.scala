@@ -220,24 +220,6 @@ object SystemSettingsService {
   private val LdapSsl = "ldap.ssl"
   private val LdapKeystore = "ldap.keystore"
 
-//  private def getEnvironmentVariable[A](key: String): Option[A] = {
-//    val value = System.getenv("GITBUCKET_" + key.toUpperCase.replace('.', '_'))
-//    if(value != null && value.nonEmpty){
-//      Some(convertType(value)).asInstanceOf[Option[A]]
-//    } else {
-//      None
-//    }
-//  }
-//
-//  private def getSystemProperty[A](key: String): Option[A] = {
-//    val value = System.getProperty("gitbucket." + key)
-//    if(value != null && value.nonEmpty){
-//      Some(convertType(value)).asInstanceOf[Option[A]]
-//    } else {
-//      None
-//    }
-//  }
-
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {
     getSystemProperty(key).getOrElse(getEnvironmentVariable(key).getOrElse {
       defining(props.getProperty(key)){ value =>
@@ -261,12 +243,5 @@ object SystemSettingsService {
       }
     })
   }
-
-//  private def convertType[A: ClassTag](value: String) =
-//    defining(implicitly[ClassTag[A]].runtimeClass){ c =>
-//      if(c == classOf[Boolean])  value.toBoolean
-//      else if(c == classOf[Int]) value.toInt
-//      else value
-//    }
 
 }
