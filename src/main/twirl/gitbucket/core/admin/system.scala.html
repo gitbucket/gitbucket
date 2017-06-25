@@ -191,6 +191,7 @@
               <div class="col-md-9">
                 <input type="password" id="ldapBindPassword" name="ldap.bindPassword" class="form-control" value="@context.settings.ldap.map(_.bindPassword)"/>
                 <span id="error-ldap_bindPassword" class="error"></span>
+                <span class="muted collapse in">If you use the environment variable "GITBUCKET_LDAP_BIND_PASSWORD", leave this field blank.</span>
               </div>
             </div>
             <div class="form-group">
