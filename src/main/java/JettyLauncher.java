@@ -134,17 +134,6 @@ public class JettyLauncher {
         return new File(System.getProperty("user.home"), ".gitbucket");
     }
 
-    private static void deleteDirectory(File dir){
-        for(File file: dir.listFiles()){
-            if(file.isFile()){
-                file.delete();
-            } else if(file.isDirectory()){
-                deleteDirectory(file);
-            }
-        }
-        dir.delete();
-    }
-
     private static Handler addStatisticsHandler(Handler handler) {
         // The graceful shutdown is implemented via the statistics handler.
         // See the following: https://bugs.eclipse.org/bugs/show_bug.cgi?id=420142
