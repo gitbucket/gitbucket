@@ -133,21 +133,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
         }
       }
-      // Move lfs directory
-      defining(getLfsDir(repository.owner, repository.name)){ dir =>
+      // Move files directory
+      defining(getRepositoryFilesDir(repository.owner, repository.name)){ dir =>
         if(dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
+          FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
         }
       }
-      // Move attached directory
-      defining(getAttachedDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getAttachedDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Delete parent directory
-      FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
-
       // Call hooks
       PluginRegistry().getRepositoryHooks.foreach(_.renamed(repository.owner, repository.name, form.repositoryName))
     }

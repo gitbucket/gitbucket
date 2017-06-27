@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.account.html
 import gitbucket.core.helper
-import gitbucket.core.model.{GroupMember, Role, WebHook, WebHookContentType, AccountWebHook, RepositoryWebHook, RepositoryWebHookEvent}
+import gitbucket.core.model.{AccountWebHook, GroupMember, RepositoryWebHook, RepositoryWebHookEvent, Role, WebHook, WebHookContentType}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
@@ -13,6 +13,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
 import io.github.gitbucket.scalatra.forms._
+import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 
@@ -603,6 +604,12 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           JGitUtil.cloneRepository(
             getWikiRepositoryDir(repository.owner, repository.name),
             getWikiRepositoryDir(accountName, repository.name))
+
+          // Copy files
+          FileUtils.copyDirectory(
+            Directory.getRepositoryFilesDir(repository.owner, repository.name),
+            Directory.getRepositoryFilesDir(accountName, repository.name)
+          )
 
           // Record activity
           recordForkActivity(repository.owner, repository.name, loginUserName, accountName)

@@ -59,8 +59,8 @@ trait RepositoryService { self: AccountService =>
       (Repositories filter { t => t.byRepository(oldUserName, oldRepositoryName) } firstOption).map { repository =>
         Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
-        val webHooks                = RepositoryWebHooks               .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val webHookEvents           = RepositoryWebHookEvents          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val webHooks                = RepositoryWebHooks     .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val webHookEvents           = RepositoryWebHookEvents.filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val milestones              = Milestones             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueId                 = IssueId                .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issues                  = Issues                 .filter(_.byRepository(oldUserName, oldRepositoryName)).list
