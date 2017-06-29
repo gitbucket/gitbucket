@@ -25,6 +25,7 @@ import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
 import org.scalatra._
+import org.scalatra.i18n.Messages
 
 
 class RepositoryViewerController extends RepositoryViewerControllerBase
@@ -94,7 +95,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "lineSeparator" -> trim(label("Line Separator", text(required))),
     "newFileName"   -> trim(label("Filename", text(required))),
     "oldFileName"   -> trim(label("Old filename", optional(text()))),
-    "commit"        -> trim(label("Commit", text(required)))
+    "commit"        -> trim(label("Commit", text(required, conflict)))
   )(EditorForm.apply)
 
   val deleteForm = mapping(
@@ -102,7 +103,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "path"     -> trim(label("Path", text())),
     "message"  -> trim(label("Message", optional(text()))),
     "fileName" -> trim(label("Filename", text(required))),
-    "commit"        -> trim(label("Commit", text(required)))
+    "commit"   -> trim(label("Commit", text(required, conflict)))
   )(DeleteForm.apply)
 
   val commentForm = mapping(
@@ -274,21 +275,17 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/create", editorForm)(writableUsersOnly { (form, repository) =>
-    try {
-      commitFile(
-        repository  = repository,
-        branch      = form.branch,
-        path        = form.path,
-        newFileName = Some(form.newFileName),
-        oldFileName = None,
-        content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
-        charset     = form.charset,
-        message     = form.message.getOrElse(s"Create ${form.newFileName}"),
-        commit      = form.commit
-      )
-    } catch {
-      case e: Exception => flash += "error" -> e.getMessage
-    }
+    commitFile(
+      repository  = repository,
+      branch      = form.branch,
+      path        = form.path,
+      newFileName = Some(form.newFileName),
+      oldFileName = None,
+      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+      charset     = form.charset,
+      message     = form.message.getOrElse(s"Create ${form.newFileName}"),
+      commit      = form.commit
+    )
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
       if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
@@ -296,52 +293,41 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/update", editorForm)(writableUsersOnly { (form, repository) =>
-    try {
-      commitFile(
-        repository  = repository,
-        branch      = form.branch,
-        path        = form.path,
-        newFileName = Some(form.newFileName),
-        oldFileName = form.oldFileName,
-        content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
-        charset     = form.charset,
-        message     = if (form.oldFileName.contains(form.newFileName)) {
-          form.message.getOrElse(s"Update ${form.newFileName}")
-        } else {
-          form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
-        },
-        commit      = form.commit
-      )
-    } catch {
-      case e: Exception => flash += "error" -> e.getMessage
-    }
+    commitFile(
+      repository  = repository,
+      branch      = form.branch,
+      path        = form.path,
+      newFileName = Some(form.newFileName),
+      oldFileName = form.oldFileName,
+      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+      charset     = form.charset,
+      message     = if (form.oldFileName.contains(form.newFileName)) {
+        form.message.getOrElse(s"Update ${form.newFileName}")
+      } else {
+        form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
+      },
+      commit      = form.commit
+    )
+
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
       if (form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
     }")
   })
 
   post("/:owner/:repository/remove", deleteForm)(writableUsersOnly { (form, repository) =>
-    try {
-      commitFile(
-        repository  = repository,
-        branch      = form.branch,
-        path        = form.path,
-        newFileName = None,
-        oldFileName = Some(form.fileName),
-        content     = "",
-        charset     = "",
-        message     = form.message.getOrElse(s"Delete ${form.fileName}"),
-        commit      = form.commit
-      )
+    commitFile(
+      repository  = repository,
+      branch      = form.branch,
+      path        = form.path,
+      newFileName = None,
+      oldFileName = Some(form.fileName),
+      content     = "",
+      charset     = "",
+      message     = form.message.getOrElse(s"Delete ${form.fileName}"),
+      commit      = form.commit
+    )
 
-      redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}${if(form.path.length == 0) "" else form.path}")
-    } catch {
-      case e: Exception =>
-        flash += "error" -> e.getMessage
-        redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
-          if (form.path.length == 0) urlEncode(form.fileName) else s"${form.path}/${urlEncode(form.fileName)}"
-        }")
-    }
+    redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}${if(form.path.length == 0) "" else form.path}")
   })
 
   get("/:owner/:repository/raw/*")(referrersOnly { repository =>
@@ -376,8 +362,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             latestCommit       = new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
             hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
             isBlame            = request.paths(2) == "blame",
-            isLfsFile          = isLfsFile(git, objectId),
-            error              = flash.get("error")
+            isLfsFile          = isLfsFile(git, objectId)
           )
         }
       } getOrElse NotFound()
@@ -683,9 +668,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val oldPath = oldFileName.map { oldFileName => if(path.length == 0) oldFileName else s"${path}/${oldFileName}" }
 
     _commitFile(repository, branch, message){ case (git, headTip, builder, inserter) =>
-      if(headTip.getName != commit){
-        throw new RuntimeException("Commit was rejected. Maybe another user pushed new commits before you.")
-      } else {
+      if(headTip.getName == commit){
         val permission = JGitUtil.processTree(git, headTip) { (path, tree) =>
           // Add all entries except the editing file
           if (!newPath.contains(path) && !oldPath.contains(path)) {
@@ -832,6 +815,26 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
+
+  private def conflict: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] = {
+      val owner      = params("owner")
+      val repository = params("repository")
+      val branch     = params("branch")
+
+      LockUtil.lock(s"${owner}/${repository}") {
+        using(Git.open(getRepositoryDir(owner, repository))) { git =>
+          val headName = s"refs/heads/${branch}"
+          val headTip = git.getRepository.resolve(headName)
+          if(headTip.getName != value){
+            Some("Someone pushed new commits before you. Please reload this page and re-apply your changes.")
+          } else {
+            None
+          }
+        }
+      }
+    }
+  }
 
   override protected def renderUncaughtException(e: Throwable)(implicit request: HttpServletRequest, response: HttpServletResponse): Unit = {
     e.printStackTrace()

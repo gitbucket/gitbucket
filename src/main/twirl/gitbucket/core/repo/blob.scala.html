@@ -5,11 +5,10 @@
   latestCommit: gitbucket.core.util.JGitUtil.CommitInfo,
   hasWritePermission: Boolean,
   isBlame: Boolean,
-  isLfsFile: Boolean,
-  error: Option[Any] = None)(implicit context: gitbucket.core.controller.Context)
+  isLfsFile: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${helpers.encodeRefName(branch)} - ${repository.owner}/${repository.name}", Some(repository)) {
-  @gitbucket.core.html.menu("files", repository, None, error){
+  @gitbucket.core.html.menu("files", repository){
     <div class="head">
       <div class="pull-right hide-if-blame"><div class="btn-group">
         <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
