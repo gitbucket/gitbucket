@@ -13,6 +13,7 @@
     }
     <form method="POST" action="@helpers.url(repository)/@if(fileName.isEmpty){create}else{update}" validate="true">
       <span class="error" id="error-newFileName"></span>
+      <span class="error" id="error-commit"></span>
       <div class="head">
         <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
@@ -47,7 +48,6 @@
           </td>
         </tr>
       </table>
-      <span class="error" id="error-commit"></span>
       <div class="panel panel-default issue-comment-box">
         <div class="panel-body">
           <div>
