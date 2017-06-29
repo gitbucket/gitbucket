@@ -20,13 +20,15 @@
         <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
         <input type="hidden" name="commit" id="commit" value="@commit"/>
       </div>
-      <table class="table table-bordered">
-        <th style="font-weight: normal;" class="box-header">
-          @fileName
-          <div class="pull-right align-right">
-            <a href="@helpers.url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-small">View</a>
-          </div>
-        </th>
+      <table class="table table-bordered diff-outside">
+        <tr>
+          <th style="font-weight: normal;" class="box-header">
+            <span class="monospace">@fileName</span>
+            <div class="pull-right align-right">
+              <a href="@helpers.url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-default btn-sm">View</a>
+            </div>
+          </th>
+        </tr>
         <tr>
           <td>
             <div id="diffText"></div>
