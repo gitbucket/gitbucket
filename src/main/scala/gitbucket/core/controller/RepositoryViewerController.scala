@@ -58,14 +58,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     charset: String,
     lineSeparator: String,
     newFileName: String,
-    oldFileName: Option[String]
+    oldFileName: Option[String],
+    commit: String
   )
 
   case class DeleteForm(
     branch: String,
     path: String,
     message: Option[String],
-    fileName: String
+    fileName: String,
+    commit: String
   )
 
   case class CommentForm(
@@ -91,14 +93,16 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     "charset"       -> trim(label("Charset", text(required))),
     "lineSeparator" -> trim(label("Line Separator", text(required))),
     "newFileName"   -> trim(label("Filename", text(required))),
-    "oldFileName"   -> trim(label("Old filename", optional(text())))
+    "oldFileName"   -> trim(label("Old filename", optional(text()))),
+    "commit"        -> trim(label("Commit", text(required)))
   )(EditorForm.apply)
 
   val deleteForm = mapping(
     "branch"   -> trim(label("Branch", text(required))),
     "path"     -> trim(label("Path", text())),
     "message"  -> trim(label("Message", optional(text()))),
-    "fileName" -> trim(label("Filename", text(required)))
+    "fileName" -> trim(label("Filename", text(required))),
+    "commit"        -> trim(label("Commit", text(required)))
   )(DeleteForm.apply)
 
   val commentForm = mapping(
@@ -184,8 +188,20 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   get("/:owner/:repository/new/*")(writableUsersOnly { repository =>
     val (branch, path) = repository.splitPath(multiParams("splat").head)
     val protectedBranch = getProtectedBranchInfo(repository.owner, repository.name, branch).needStatusCheck(context.loginAccount.get.userName)
-    html.editor(branch, repository, if(path.length == 0) Nil else path.split("/").toList,
-      None, JGitUtil.ContentInfo("text", None, None, Some("UTF-8")), protectedBranch)
+
+    using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+      val revCommit = JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(branch))
+
+      html.editor(
+        branch          = branch,
+        repository      = repository,
+        pathList        = if (path.length == 0) Nil else path.split("/").toList,
+        fileName        = None,
+        content         = JGitUtil.ContentInfo("text", None, None, Some("UTF-8")),
+        protectedBranch = protectedBranch,
+        commit          = revCommit.getName
+      )
+    }
   })
 
   get("/:owner/:repository/upload/*")(writableUsersOnly { repository =>
@@ -225,9 +241,15 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
       getPathObjectId(git, path, revCommit).map { objectId =>
         val paths = path.split("/")
-        html.editor(branch, repository, paths.take(paths.size - 1).toList, Some(paths.last),
-          JGitUtil.getContentInfo(git, path, objectId),
-          protectedBranch)
+        html.editor(
+          branch          = branch,
+          repository      = repository,
+          pathList        = paths.take(paths.size - 1).toList,
+          fileName        = Some(paths.last),
+          content         = JGitUtil.getContentInfo(git, path, objectId),
+          protectedBranch = protectedBranch,
+          commit          = revCommit.getName
+        )
       } getOrElse NotFound()
     }
   })
@@ -239,23 +261,34 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
       getPathObjectId(git, path, revCommit).map { objectId =>
         val paths = path.split("/")
-        html.delete(branch, repository, paths.take(paths.size - 1).toList, paths.last,
-          JGitUtil.getContentInfo(git, path, objectId))
+        html.delete(
+          branch     = branch,
+          repository = repository,
+          pathList   = paths.take(paths.size - 1).toList,
+          fileName   = paths.last,
+          content    = JGitUtil.getContentInfo(git, path, objectId),
+          commit     = revCommit.getName
+        )
       } getOrElse NotFound()
     }
   })
 
   post("/:owner/:repository/create", editorForm)(writableUsersOnly { (form, repository) =>
-    commitFile(
-      repository  = repository,
-      branch      = form.branch,
-      path        = form.path,
-      newFileName = Some(form.newFileName),
-      oldFileName = None,
-      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
-      charset     = form.charset,
-      message     = form.message.getOrElse(s"Create ${form.newFileName}")
-    )
+    try {
+      commitFile(
+        repository  = repository,
+        branch      = form.branch,
+        path        = form.path,
+        newFileName = Some(form.newFileName),
+        oldFileName = None,
+        content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+        charset     = form.charset,
+        message     = form.message.getOrElse(s"Create ${form.newFileName}"),
+        commit      = form.commit
+      )
+    } catch {
+      case e: Exception => flash += "error" -> e.getMessage
+    }
 
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
       if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
@@ -263,31 +296,52 @@ trait RepositoryViewerControllerBase extends ControllerBase {
   })
 
   post("/:owner/:repository/update", editorForm)(writableUsersOnly { (form, repository) =>
-    commitFile(
-      repository  = repository,
-      branch      = form.branch,
-      path        = form.path,
-      newFileName = Some(form.newFileName),
-      oldFileName = form.oldFileName,
-      content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
-      charset     = form.charset,
-      message     = if(form.oldFileName.contains(form.newFileName)){
-        form.message.getOrElse(s"Update ${form.newFileName}")
-      } else {
-        form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
-      }
-    )
-
+    try {
+      commitFile(
+        repository  = repository,
+        branch      = form.branch,
+        path        = form.path,
+        newFileName = Some(form.newFileName),
+        oldFileName = form.oldFileName,
+        content     = appendNewLine(convertLineSeparator(form.content, form.lineSeparator), form.lineSeparator),
+        charset     = form.charset,
+        message     = if (form.oldFileName.contains(form.newFileName)) {
+          form.message.getOrElse(s"Update ${form.newFileName}")
+        } else {
+          form.message.getOrElse(s"Rename ${form.oldFileName.get} to ${form.newFileName}")
+        },
+        commit      = form.commit
+      )
+    } catch {
+      case e: Exception => flash += "error" -> e.getMessage
+    }
     redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
-      if(form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
+      if (form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
     }")
   })
 
   post("/:owner/:repository/remove", deleteForm)(writableUsersOnly { (form, repository) =>
-    commitFile(repository, form.branch, form.path, None, Some(form.fileName), "", "",
-      form.message.getOrElse(s"Delete ${form.fileName}"))
+    try {
+      commitFile(
+        repository  = repository,
+        branch      = form.branch,
+        path        = form.path,
+        newFileName = None,
+        oldFileName = Some(form.fileName),
+        content     = "",
+        charset     = "",
+        message     = form.message.getOrElse(s"Delete ${form.fileName}"),
+        commit      = form.commit
+      )
 
-    redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}${if(form.path.length == 0) "" else form.path}")
+      redirect(s"/${repository.owner}/${repository.name}/tree/${form.branch}${if(form.path.length == 0) "" else form.path}")
+    } catch {
+      case e: Exception =>
+        flash += "error" -> e.getMessage
+        redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
+          if (form.path.length == 0) urlEncode(form.fileName) else s"${form.path}/${urlEncode(form.fileName)}"
+        }")
+    }
   })
 
   get("/:owner/:repository/raw/*")(referrersOnly { repository =>
@@ -314,12 +368,17 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           // Download (This route is left for backword compatibility)
           responseRawFile(git, objectId, path, repository)
         } else {
-          html.blob(id, repository, path.split("/").toList,
-            JGitUtil.getContentInfo(git, path, objectId),
-            new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
-            hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
-            request.paths(2) == "blame",
-            isLfsFile(git, objectId))
+          html.blob(
+            branch             = id,
+            repository         = repository,
+            pathList           = path.split("/").toList,
+            content            = JGitUtil.getContentInfo(git, path, objectId),
+            latestCommit       = new JGitUtil.CommitInfo(JGitUtil.getLastModifiedCommit(git, revCommit, path)),
+            hasWritePermission = hasDeveloperRole(repository.owner, repository.name, context.loginAccount),
+            isBlame            = request.paths(2) == "blame",
+            isLfsFile          = isLfsFile(git, objectId),
+            error              = flash.get("error")
+          )
         }
       } getOrElse NotFound()
     }
@@ -618,27 +677,31 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   private def commitFile(repository: RepositoryService.RepositoryInfo,
     branch: String, path: String, newFileName: Option[String], oldFileName: Option[String],
-    content: String, charset: String, message: String) = {
+    content: String, charset: String, message: String, commit: String) = {
 
     val newPath = newFileName.map { newFileName => if(path.length == 0) newFileName else s"${path}/${newFileName}" }
     val oldPath = oldFileName.map { oldFileName => if(path.length == 0) oldFileName else s"${path}/${oldFileName}" }
 
     _commitFile(repository, branch, message){ case (git, headTip, builder, inserter) =>
-      val permission = JGitUtil.processTree(git, headTip){ (path, tree) =>
-        // Add all entries except the editing file
-        if(!newPath.contains(path) && !oldPath.contains(path)){
-          builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
-        }
-        // Retrieve permission if file exists to keep it
-        oldPath.collect { case x if x == path => tree.getEntryFileMode.getBits }
-      }.flatten.headOption
+      if(headTip.getName != commit){
+        throw new RuntimeException("Commit was rejected. Maybe another user pushed new commits before you.")
+      } else {
+        val permission = JGitUtil.processTree(git, headTip) { (path, tree) =>
+          // Add all entries except the editing file
+          if (!newPath.contains(path) && !oldPath.contains(path)) {
+            builder.add(JGitUtil.createDirCacheEntry(path, tree.getEntryFileMode, tree.getEntryObjectId))
+          }
+          // Retrieve permission if file exists to keep it
+          oldPath.collect { case x if x == path => tree.getEntryFileMode.getBits }
+        }.flatten.headOption
 
-      newPath.foreach { newPath =>
-        builder.add(JGitUtil.createDirCacheEntry(newPath,
-          permission.map { bits => FileMode.fromBits(bits) } getOrElse FileMode.REGULAR_FILE,
-          inserter.insert(Constants.OBJ_BLOB, content.getBytes(charset))))
+        newPath.foreach { newPath =>
+          builder.add(JGitUtil.createDirCacheEntry(newPath,
+            permission.map { bits => FileMode.fromBits(bits) } getOrElse FileMode.REGULAR_FILE,
+            inserter.insert(Constants.OBJ_BLOB, content.getBytes(charset))))
+        }
+        builder.finish()
       }
-      builder.finish()
     }
   }
 

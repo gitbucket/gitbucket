@@ -3,7 +3,8 @@
   pathList: List[String],
   fileName: Option[String],
   content: gitbucket.core.util.JGitUtil.ContentInfo,
-  protectedBranch: Boolean)(implicit context: gitbucket.core.controller.Context)
+  protectedBranch: Boolean,
+  commit: String)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(if(fileName.isEmpty) "New File" else s"Editing ${fileName.get} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
@@ -60,11 +61,12 @@
             } else {
               <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)/@{(pathList ++ Seq(fileName.get)).mkString("/")}" class="btn btn-danger">Cancel</a>
             }
-            <input type="submit" id="commit" class="btn btn-success" value="Commit changes" disabled="true"/>
+            <input type="submit" id="commitButton" class="btn btn-success" value="Commit changes" disabled="true"/>
             <input type="hidden" id="charset" name="charset" value="@content.charset"/>
             <input type="hidden" id="lineSeparator" name="lineSeparator" value="@content.lineSeparator"/>
             <input type="hidden" id="content" name="content" value=""/>
             <input type="hidden" id="initial" value="@content.content"/>
+            <input type="hidden" id="commit" name="commit" value="@commit"/>
           </div>
         </div>
       </div>
@@ -94,9 +96,9 @@ $(function(){
 
   function updateCommitButtonStatus(){
     if(editor.getValue() == $('#initial').val() && $('#newFileName').val() == $('#oldFileName').val()){
-      $('#commit').attr('disabled', true);
+      $('#commitButton').attr('disabled', true);
     } else {
-      $('#commit').attr('disabled', false);
+      $('#commitButton').attr('disabled', false);
     }
   }
 
@@ -112,7 +114,7 @@ $(function(){
     updateCommitButtonStatus();
   });
 
-  $('#commit').click(function(){
+  $('#commitButton').click(function(){
     $('#content').val(editor.getValue());
   });
 
