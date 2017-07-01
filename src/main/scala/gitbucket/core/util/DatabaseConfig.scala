@@ -92,7 +92,7 @@ object DatabaseType {
   }
 
   object MySQL extends DatabaseType {
-    val jdbcDriver = "com.mysql.jdbc.Driver"
+    val jdbcDriver = "org.mariadb.jdbc.Driver"
     val slickDriver = BlockingMySQLDriver
     val liquiDriver = new MySQLDatabase()
   }
