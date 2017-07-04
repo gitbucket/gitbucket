@@ -21,6 +21,7 @@ import play.twirl.api.Html
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import com.github.zafarkhaja.semver.Version
 
 class PluginRegistry {
 
@@ -197,7 +198,16 @@ object PluginRegistry {
     if(pluginDir.exists && pluginDir.isDirectory){
       pluginDir.listFiles(new FilenameFilter {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-      }).sortBy(_.getName).foreach { pluginJar =>
+      }).map { file =>
+        val Array(name, version) = file.getName.split("_2.12-")
+        (name, Version.valueOf(version.replaceFirst("\\.jar$", "")), file)
+      }.groupBy { case (name, _, _) =>
+        name
+      }.map { case (name, versions) =>
+        // Adopt the latest version
+        versions.sortBy { case (name, version, file) => version }.reverse.head._3
+      }.toSeq.sortBy(_.getName).foreach { pluginJar =>
+        logger.info(s"Initialize ${pluginJar.getName}")
         val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
           val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
@@ -222,7 +232,6 @@ object PluginRegistry {
             description   = plugin.description,
             pluginClass   = plugin
           ))
-
         } catch {
           case e: Throwable => {
             logger.error(s"Error during plugin initialization: ${pluginJar.getAbsolutePath}", e)
