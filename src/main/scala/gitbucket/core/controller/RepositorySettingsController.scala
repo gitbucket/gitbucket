@@ -150,7 +150,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   get("/:owner/:repository/settings/branches")(ownerOnly { repository =>
     val protecteions = getProtectedBranchList(repository.owner, repository.name)
     html.branches(repository, protecteions, flash.get("info"))
-  });
+  })
 
   /** Update default branch */
   post("/:owner/:repository/settings/update_default_branch", defaultBranchForm)(ownerOnly { (form, repository) =>
