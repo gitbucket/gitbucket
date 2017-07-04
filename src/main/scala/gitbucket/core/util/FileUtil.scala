@@ -68,9 +68,24 @@ object FileUtil {
 
   def readableSize(size: Long): String = FileUtils.byteCountToDisplaySize(size)
 
+  /**
+   * Delete the given directory if it's empty.
+   * Do nothing if the given File is not a directory or not empty.
+   */
   def deleteDirectoryIfEmpty(dir: File): Unit = {
     if(dir.isDirectory() && dir.list().isEmpty) {
       FileUtils.deleteDirectory(dir)
     }
   }
+
+  /**
+   * Delete file or directory forcibly.
+   */
+  def deleteIfExists(file: java.io.File): java.io.File = {
+    if(file.exists){
+      FileUtils.forceDelete(file)
+    }
+    file
+  }
+
 }
