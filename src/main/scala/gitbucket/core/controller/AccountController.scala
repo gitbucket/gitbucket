@@ -594,6 +594,8 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
           // Insert default labels
           insertDefaultLabels(accountName, repository.name)
+          // Insert default priorities
+          insertDefaultPriorities(accountName, repository.name)
 
           // clone repository actually
           JGitUtil.cloneRepository(
@@ -604,12 +606,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           JGitUtil.cloneRepository(getWikiRepositoryDir(repository.owner, repository.name),
             FileUtil.deleteIfExists(getWikiRepositoryDir(accountName, repository.name)))
 
-          // Copy files
-          val repositoryFilesDir = getRepositoryFilesDir(repository.owner, repository.name)
-          if(repositoryFilesDir.exists){
-            FileUtils.copyDirectory(
-              repositoryFilesDir,
-              FileUtil.deleteIfExists(getRepositoryFilesDir(accountName, repository.name)))
+          // Copy LFS files
+          val lfsDir = getLfsDir(repository.owner, repository.name)
+          if(lfsDir.exists){
+            FileUtils.copyDirectory(lfsDir, FileUtil.deleteIfExists(getLfsDir(accountName, repository.name)))
           }
 
           // Record activity
