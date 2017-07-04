@@ -598,18 +598,19 @@ trait AccountControllerBase extends AccountManagementControllerBase {
           // clone repository actually
           JGitUtil.cloneRepository(
             getRepositoryDir(repository.owner, repository.name),
-            getRepositoryDir(accountName, repository.name))
+            FileUtil.deleteIfExists(getRepositoryDir(accountName, repository.name)))
 
           // Create Wiki repository
-          JGitUtil.cloneRepository(
-            getWikiRepositoryDir(repository.owner, repository.name),
-            getWikiRepositoryDir(accountName, repository.name))
+          JGitUtil.cloneRepository(getWikiRepositoryDir(repository.owner, repository.name),
+            FileUtil.deleteIfExists(getWikiRepositoryDir(accountName, repository.name)))
 
           // Copy files
-          FileUtils.copyDirectory(
-            Directory.getRepositoryFilesDir(repository.owner, repository.name),
-            Directory.getRepositoryFilesDir(accountName, repository.name)
-          )
+          val repositoryFilesDir = getRepositoryFilesDir(repository.owner, repository.name)
+          if(repositoryFilesDir.exists){
+            FileUtils.copyDirectory(
+              repositoryFilesDir,
+              FileUtil.deleteIfExists(getRepositoryFilesDir(accountName, repository.name)))
+          }
 
           // Record activity
           recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
