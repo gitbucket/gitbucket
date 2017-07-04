@@ -71,11 +71,13 @@ Support
 
 Release Notes
 -------------
-### 4.14 - 1 Jul 2017
+### 4.14.1 - 4 Jul 2017
+- Bug fix: Possibility of error in forking repository
 
+### 4.14 - 1 Jul 2017
 - Support priority in issues and pull requests
 - Show icons when the sidebar is collapsed
-- Support gollumn events in web hook
+- Support gollum events in web hook
 - Support account (user / group) level web hook
 - Add `--max_file_size` option
 - Configuration by system property or environment variable
