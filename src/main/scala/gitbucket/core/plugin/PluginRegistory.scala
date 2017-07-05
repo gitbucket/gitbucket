@@ -208,7 +208,7 @@ object PluginRegistry {
    */
   def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
     instance.getPlugins()
-      .collect { case (plugin, true) if plugin.pluginId == plugin => plugin }
+      .collect { case (plugin, true) if plugin.pluginId == pluginId => plugin }
       .foreach { plugin =>
 //      try {
 //        plugin.pluginClass.uninstall(instance, context, settings)
@@ -216,30 +216,61 @@ object PluginRegistry {
 //        case e: Exception =>
 //          logger.error(s"Error during uninstalling plugin: ${plugin.pluginJar.getName}", e)
 //      }
-      shutdown(context, settings)
-      plugin.pluginJar.delete()
-      instance = new PluginRegistry()
-      initialize(context, settings, conn)
-    }
+        shutdown(context, settings)
+        plugin.pluginJar.delete()
+        instance = new PluginRegistry()
+        initialize(context, settings, conn)
+      }
   }
 
-  private def copyFile(from: File, to: File, retry: Int = 0): Unit = {
-    using(FileChannel.open(from.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)){ fc =>
-      using(fc.tryLock()){ lock =>
-        if(lock == null){
-          if(retry >= 3){ // Retry max 3 times
-            logger.info(s"Retire to install plugin: ${from.getAbsolutePath}")
-          } else {
-            logger.info(s"Retry ${retry + 1} to install plugin: ${from.getAbsolutePath}")
-            Thread.sleep(500)
-            copyFile(from, to, retry + 1)
-          }
-        } else {
-          logger.info(s"Install plugin: ${from.getAbsolutePath}")
-          FileUtils.copyFile(from, to)
-        }
+  /**
+   * Install a specified plugin from local repository.
+   */
+  def install(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
+    instance.getPlugins()
+      .collect { case (plugin, false) if plugin.pluginId == pluginId => plugin }
+      .foreach { plugin =>
+        FileUtils.copyFile(plugin.pluginJar, new File(PluginHome, plugin.pluginJar.getName))
+
+        shutdown(context, settings)
+        instance = new PluginRegistry()
+        initialize(context, settings, conn)
       }
-    }
+  }
+
+//  private def copyFile(from: File, to: File, retry: Int = 0): Unit = {
+//    using(FileChannel.open(from.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)){ fc =>
+//      using(fc.tryLock()){ lock =>
+//        if(lock == null){
+//          if(retry >= 3){ // Retry max 3 times
+//            logger.info(s"Retire to install plugin: ${from.getAbsolutePath}")
+//          } else {
+//            logger.info(s"Retry ${retry + 1} to install plugin: ${from.getAbsolutePath}")
+//            Thread.sleep(500)
+//            copyFile(from, to, retry + 1)
+//          }
+//        } else {
+//          logger.info(s"Install plugin: ${from.getAbsolutePath}")
+//          FileUtils.copyFile(from, to)
+//        }
+//      }
+//    }
+//  }
+
+  private class PluginJarFileFilter extends FilenameFilter {
+    override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
+  }
+
+  private def listPluginJars(dir: File): Seq[File] = {
+    dir.listFiles(new PluginJarFileFilter()).map { file =>
+      val Array(name, version) = file.getName.split("_2.12-")
+      (name, Version.valueOf(version.replaceFirst("\\.jar$", "")), file)
+    }.groupBy { case (name, _, _) =>
+      name
+    }.map { case (name, versions) =>
+      // Adopt the latest version
+      versions.sortBy { case (name, version, file) => version }.reverse.head._3
+    }.toSeq.sortBy(_.getName)
   }
 
   /**
@@ -256,28 +287,20 @@ object PluginRegistry {
     }
     installedDir.mkdir()
 
-    if(pluginDir.exists && pluginDir.isDirectory){
-      val files = pluginDir.listFiles(new FilenameFilter {
-        override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-      }).map { file =>
-        val Array(name, version) = file.getName.split("_2.12-")
-        (name, Version.valueOf(version.replaceFirst("\\.jar$", "")), file)
-      }.groupBy { case (name, _, _) =>
-        name
-      }.map { case (name, versions) =>
-        // Adopt the latest version
-        versions.sortBy { case (name, version, file) => version }.reverse.head._3
-      }.toSeq.sortBy(_.getName).foreach { pluginJar =>
+    if(pluginDir.exists && pluginDir.isDirectory) {
+      listPluginJars(pluginDir).foreach { pluginJar =>
+        val installedJar = new File(installedDir, pluginJar.getName)
+        FileUtils.copyFile(pluginJar, installedJar)
+
         logger.info(s"Initialize ${pluginJar.getName}")
-        val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
+        val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
           val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
-          val pluginId = plugin.pluginId
-
-//          // Check duplication
-//          instance.getPlugins().find(_.pluginId == pluginId).foreach { x =>
-//            throw new IllegalStateException(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
-//          }
+          //          val pluginId = plugin.pluginId
+          //          // Check duplication
+          //          instance.getPlugins().find(_.pluginId == pluginId).foreach { x =>
+          //            throw new IllegalStateException(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
+          //          }
 
           // Migration
           val solidbase = new Solidbase()
@@ -286,7 +309,7 @@ object PluginRegistry {
           // Check database version
           val databaseVersion = manager.getCurrentVersion(plugin.pluginId)
           val pluginVersion = plugin.versions.last.getVersion
-          if(databaseVersion != pluginVersion){
+          if (databaseVersion != pluginVersion) {
             throw new IllegalStateException(s"Plugin version is ${pluginVersion}, but database version is ${databaseVersion}")
           }
 
@@ -305,6 +328,38 @@ object PluginRegistry {
         } catch {
           case e: Throwable => {
             logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
+          }
+        }
+      }
+
+      // Scan repository
+      val repositoryDir = new File(PluginHome, ".repository")
+      if (repositoryDir.exists) {
+        listPluginJars(repositoryDir).foreach { pluginJar =>
+          val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
+          try {
+            val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
+
+            val enableSameOrNewer = instance.plugins.exists { case (installedPlugin, true) =>
+              installedPlugin.pluginId == plugin.pluginId &&
+                Version.valueOf(installedPlugin.pluginVersion).greaterThanOrEqualTo(Version.valueOf(plugin.versions.last.getVersion))
+            }
+
+            if(!enableSameOrNewer){
+              instance.addPlugin(PluginInfo(
+                pluginId      = plugin.pluginId,
+                pluginName    = plugin.pluginName,
+                pluginVersion = plugin.versions.last.getVersion,
+                description   = plugin.description,
+                pluginClass   = plugin,
+                pluginJar     = pluginJar,
+                classLoader   = classLoader
+              ), false)
+            }
+          } catch {
+            case e: Throwable => {
+              logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
+            }
           }
         }
       }
