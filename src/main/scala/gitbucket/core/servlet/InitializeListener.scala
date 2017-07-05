@@ -114,9 +114,13 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       val cl = Thread.currentThread.getContextClassLoader
       try {
         using(cl.getResourceAsStream("plugins/plugins")){ pluginsFile =>
+          val pluginRepositoryDir = new File(PluginHome, ".repository")
+          if(!pluginRepositoryDir.exists){
+            pluginRepositoryDir.mkdirs()
+          }
           val plugins = IOUtils.toString(pluginsFile, "UTF-8").split("\n").map(_.trim)
           plugins.collect { case plugin if plugin.nonEmpty && !plugin.startsWith("#") =>
-            val file = new File(PluginHome, plugin)
+            val file = new File(pluginRepositoryDir, plugin)
             logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
             using(cl.getResourceAsStream("plugins/" + plugin), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
           }

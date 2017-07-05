@@ -297,8 +297,10 @@ object PluginRegistry {
             pluginName    = plugin.pluginName,
             pluginVersion = plugin.versions.last.getVersion,
             description   = plugin.description,
-            pluginClass   = plugin
-          ))
+            pluginClass   = plugin,
+            pluginJar     = pluginJar,
+            classLoader   = classLoader
+          ), true)
 
         } catch {
           case e: Throwable => {
