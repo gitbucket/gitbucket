@@ -2,11 +2,13 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   pathList: List[String],
   fileName: String,
-  content: gitbucket.core.util.JGitUtil.ContentInfo)(implicit context: gitbucket.core.controller.Context)
+  content: gitbucket.core.util.JGitUtil.ContentInfo,
+  commit: String)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"Deleting ${context.path} at ${fileName} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
     <form method="POST" action="@helpers.url(repository)/remove" validate="true">
+      <span class="error" id="error-commit"></span>
       <div class="head">
         <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
         @pathList.zipWithIndex.map { case (section, i) =>
@@ -16,14 +18,17 @@
         <input type="hidden" name="fileName" id="fileName" value="@fileName"/>
         <input type="hidden" name="branch" id="branch" value="@branch"/>
         <input type="hidden" name="path" id="path" value="@pathList.mkString("/")"/>
+        <input type="hidden" name="commit" id="commit" value="@commit"/>
       </div>
-      <table class="table table-bordered">
-        <th style="font-weight: normal;" class="box-header">
-          @fileName
-          <div class="pull-right align-right">
-            <a href="@helpers.url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-small">View</a>
-          </div>
-        </th>
+      <table class="table table-bordered diff-outside">
+        <tr>
+          <th style="font-weight: normal;" class="box-header">
+            <span class="monospace">@fileName</span>
+            <div class="pull-right align-right">
+              <a href="@helpers.url(repository)/blob/@branch/@{(pathList ::: List(fileName)).mkString("/")}" class="btn btn-default btn-sm">View</a>
+            </div>
+          </th>
+        </tr>
         <tr>
           <td>
             <div id="diffText"></div>
@@ -32,18 +37,17 @@
           </td>
         </tr>
       </table>
-      <div class="issue-avatar-image">@helpers.avatarLink(context.loginAccount.get.userName, 48)</div>
-        <div class="box issue-comment-box">
-        <div class="box-content">
+      <div class="panel panel-default issue-comment-box">
+        <div class="panel-body">
           <div>
             <strong>Commit changes</strong>
           </div>
-          <div>
-            <input type="text" name="message" style="width: 98%;"/>
+          <div class="form-group">
+            <input type="text" name="message" class="form-control"/>
           </div>
           <div style="text-align: right;">
             <a href="@helpers.url(repository)/blob/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-danger">Cancel</a>
-            <input type="submit" id="commit" class="btn btn-success" value="Commit changes"/>
+            <input type="submit" id="commitButton" class="btn btn-success" value="Commit changes"/>
           </div>
         </div>
       </div>

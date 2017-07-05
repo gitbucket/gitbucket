@@ -15,11 +15,15 @@
     <link href="@helpers.assets("/vendors/colorpicker/css/bootstrap-colorpicker.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/google-code-prettify/prettify.css")" type="text/css" rel="stylesheet"/>
     <link href="@helpers.assets("/vendors/facebox/facebox.css")" rel="stylesheet"/>
-    <link href="@helpers.assets("/vendors/AdminLTE-2.3.8/css/AdminLTE.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/AdminLTE-2.3.8/css/skins/skin-blue.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/AdminLTE-2.3.11/css/AdminLTE.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/AdminLTE-2.3.11/css/skins/skin-blue.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/font-awesome-4.6.3/css/font-awesome.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.structure.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.theme.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/common/css/gitbucket.css")" rel="stylesheet">
     <script src="@helpers.assets("/vendors/jquery/jquery-1.12.2.min.js")"></script>
+    <script src="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.js")"></script>
     <script src="@helpers.assets("/vendors/dropzone/dropzone.js")"></script>
     <script src="@helpers.assets("/common/js/validation.js")"></script>
     <script src="@helpers.assets("/common/js/gitbucket.js")"></script>
@@ -36,13 +40,13 @@
     @repository.map { repository =>
       <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
     }
-    <script src="@helpers.assets("/vendors/AdminLTE-2.3.8/js/app.js")" type="text/javascript"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-2.3.11/js/app.js")" type="text/javascript"></script>
   </head>
-  <body class="skin-blue page-load @if(context.sidebarCollapse){sidebar-collapse}">
+  <body class="skin-blue page-load @if(body.toString.contains("menu-item-hover")){sidebar-mini} @if(context.sidebarCollapse){sidebar-collapse}">
     <div class="wrapper">
       <header class="main-header">
         <a href="@context.path/" class="logo">
-          <img src="@helpers.assets("/common/images/gitbucket.png")" style="width: 24px; height: 24px; display: inline;"/>
+          <img src="@helpers.assets("/common/images/gitbucket.svg")" style="width: 24px; height: 24px; display: inline;"/>
           GitBucket
           <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span>
         </a>
@@ -72,26 +76,34 @@
           <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
               @if(context.loginAccount.isDefined){
-                <li class="dropdown">
+                <li class="dropdown notifications-menu">
                   <a class="dropdown-toggle menu" data-toggle="dropdown" href="#">
                     <i class="octicon octicon-plus" style="color: black;"></i><span class="caret" style="color: black; vertical-align: middle;"></span>
                   </a>
-                  <ul class="dropdown-menu pull-right">
-                    <li><a href="@context.path/new">New repository</a></li>
-                    <li><a href="@context.path/groups/new">New group</a></li>
+                  <ul class="dropdown-menu pull-right" style="width: auto;">
+                    <li>
+                      <ul class="menu">
+                        <li><a href="@context.path/new">New repository</a></li>
+                        <li><a href="@context.path/groups/new">New group</a></li>
+                      </ul>
+                    </li>
                   </ul>
                 </li>
-                <li class="dropdown">
+                <li class="dropdown notifications-menu">
                   <a class="dropdown-toggle menu" data-toggle="dropdown" href="#" data-toggle="tooltip" data-placement="bottom" title="Signed is as @context.loginAccount.get.userName">
                     @helpers.avatar(context.loginAccount.get.userName, 16)<span class="caret" style="color: black; vertical-align: middle;"></span>
                   </a>
-                  <ul class="dropdown-menu pull-right">
-                    <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
-                    <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
-                    @if(context.loginAccount.get.isAdmin){
-                      <li><a href="@context.path/admin/users">System administration</a></li>
-                    }
-                    <li><a href="@context.path/signout">Sign out</a></li>
+                  <ul class="dropdown-menu pull-right" style="width: auto;">
+                    <li>
+                      <ul class="menu">
+                        <li><a href="@helpers.url(context.loginAccount.get.userName)">Your profile</a></li>
+                        <li><a href="@helpers.url(context.loginAccount.get.userName)/_edit">Account settings</a></li>
+                        @if(context.loginAccount.get.isAdmin){
+                          <li><a href="@context.path/admin/users">System administration</a></li>
+                        }
+                        <li><a href="@context.path/signout">Sign out</a></li>
+                      </ul>
+                    </li>
                   </ul>
                 </li>
               } else {

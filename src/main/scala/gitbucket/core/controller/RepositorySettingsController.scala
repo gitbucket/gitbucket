@@ -1,7 +1,7 @@
 package gitbucket.core.controller
 
 import gitbucket.core.settings.html
-import gitbucket.core.model.WebHook
+import gitbucket.core.model.{WebHook, RepositoryWebHook}
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
@@ -133,21 +133,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           FileUtils.moveDirectory(dir, getWikiRepositoryDir(repository.owner, form.repositoryName))
         }
       }
-      // Move lfs directory
-      defining(getLfsDir(repository.owner, repository.name)){ dir =>
+      // Move files directory
+      defining(getRepositoryFilesDir(repository.owner, repository.name)){ dir =>
         if(dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getLfsDir(repository.owner, form.repositoryName))
+          FileUtils.moveDirectory(dir, getRepositoryFilesDir(repository.owner, form.repositoryName))
         }
       }
-      // Move attached directory
-      defining(getAttachedDir(repository.owner, repository.name)){ dir =>
-        if(dir.isDirectory) {
-          FileUtils.moveDirectory(dir, getAttachedDir(repository.owner, form.repositoryName))
-        }
-      }
-      // Delete parent directory
-      FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
-
       // Call hooks
       PluginRegistry().getRepositoryHooks.foreach(_.renamed(repository.owner, repository.name, form.repositoryName))
     }
@@ -221,8 +212,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Display the web hook edit page.
    */
   get("/:owner/:repository/settings/hooks/new")(ownerOnly { repository =>
-    val webhook = WebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
-    html.edithooks(webhook, Set(WebHook.Push), repository, flash.get("info"), true)
+    val webhook = RepositoryWebHook(repository.owner, repository.name, "", WebHookContentType.FORM, None)
+    html.edithook(webhook, Set(WebHook.Push), repository, true)
   })
 
   /**
@@ -260,7 +251,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       val url = params("url")
       val token = Some(params("token"))
       val ctype = WebHookContentType.valueOf(params("ctype"))
-      val dummyWebHookInfo = WebHook(repository.owner, repository.name, url, ctype, token)
+      val dummyWebHookInfo = RepositoryWebHook(repository.owner, repository.name, url, ctype, token)
       val dummyPayload = {
         val ownerAccount = getAccountByUserName(repository.owner).get
         val commits = if(JGitUtil.isEmpty(git)) List.empty else git.log
@@ -297,7 +288,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
           "headers" -> _headers(req.getAllHeaders),
           "payload" -> json
         )).recover(toErrorMap), 20 seconds),
-        "responce" -> Await.result(resFuture.map(res => Map(
+        "response" -> Await.result(resFuture.map(res => Map(
           "status"  -> res.getStatusLine(),
           "body"    -> EntityUtils.toString(res.getEntity()),
           "headers" -> _headers(res.getAllHeaders())
@@ -311,7 +302,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    */
   get("/:owner/:repository/settings/hooks/edit")(ownerOnly { repository =>
     getWebHook(repository.owner, repository.name, params("url")).map{ case (webhook, events) =>
-      html.edithooks(webhook, events, repository, flash.get("info"), false)
+      html.edithook(webhook, events, repository, false)
     } getOrElse NotFound()
   })
 
@@ -364,7 +355,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
             FileUtils.moveDirectory(dir, getAttachedDir(form.newOwner, repository.name))
           }
         }
-        // Delere parent directory
+        // Delete parent directory
         FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
 
         // Call hooks

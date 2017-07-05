@@ -8,7 +8,7 @@ import java.util.Base64
 import javax.servlet.ServletContext
 
 import gitbucket.core.controller.{Context, ControllerBase}
-import gitbucket.core.model.Account
+import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.service.ProtectedBranchService.ProtectedBranchReceiveHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService
@@ -21,9 +21,11 @@ import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
+import play.twirl.api.Html
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import com.github.zafarkhaja.semver.Version
 
 class PluginRegistry {
 
@@ -36,10 +38,17 @@ class PluginRegistry {
     "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
   )
   private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
+  private val accountHooks = new ListBuffer[AccountHook]
   private val receiveHooks = new ListBuffer[ReceiveHook]
   receiveHooks += new ProtectedBranchReceiveHook()
 
   private val repositoryHooks = new ListBuffer[RepositoryHook]
+  private val issueHooks = new ListBuffer[IssueHook]
+  issueHooks += new gitbucket.core.util.Notifier.IssueHook()
+
+  private val pullRequestHooks = new ListBuffer[PullRequestHook]
+  pullRequestHooks += new gitbucket.core.util.Notifier.PullRequestHook()
+
   private val globalMenus = new ListBuffer[(Context) => Option[Link]]
   private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
   private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
@@ -47,6 +56,7 @@ class PluginRegistry {
   private val systemSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
   private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
+  private val issueSidebars = new ListBuffer[(Issue, RepositoryInfo, Context) => Option[Html]]
   private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
   private val textDecorators = new ListBuffer[TextDecorator]
 
@@ -103,6 +113,10 @@ class PluginRegistry {
     }
   }
 
+  def addAccountHook(accountHook: AccountHook): Unit = accountHooks += accountHook
+
+  def getAccountHooks: Seq[AccountHook] = accountHooks.toSeq
+
   def addReceiveHook(commitHook: ReceiveHook): Unit = receiveHooks += commitHook
 
   def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
@@ -110,6 +124,14 @@ class PluginRegistry {
   def addRepositoryHook(repositoryHook: RepositoryHook): Unit = repositoryHooks += repositoryHook
 
   def getRepositoryHooks: Seq[RepositoryHook] = repositoryHooks.toSeq
+
+  def addIssueHook(issueHook: IssueHook): Unit = issueHooks += issueHook
+
+  def getIssueHooks: Seq[IssueHook] = issueHooks.toSeq
+
+  def addPullRequestHook(pullRequestHook: PullRequestHook): Unit = pullRequestHooks += pullRequestHook
+
+  def getPullRequestHooks: Seq[PullRequestHook] = pullRequestHooks.toSeq
 
   def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus += globalMenu
 
@@ -138,6 +160,10 @@ class PluginRegistry {
   def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = dashboardTabs += dashboardTab
 
   def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
+
+  def addIssueSidebar(issueSidebar: (Issue, RepositoryInfo, Context) => Option[Html]): Unit = issueSidebars += issueSidebar
+
+  def getIssueSidebars: Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = issueSidebars.toSeq
 
   def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = assetsMappings += assetsMapping
 
@@ -233,14 +259,17 @@ object PluginRegistry {
     if(pluginDir.exists && pluginDir.isDirectory){
       val files = pluginDir.listFiles(new FilenameFilter {
         override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-      }).sortBy(_.lastModified() * -1)
-
-      files.foreach { pluginJar =>
-        // Copy the plugin jar file to GITBUCKET_HOME/plugins/.installed
-        val installedJar = new File(installedDir, pluginJar.getName)
-        copyFile(pluginJar, installedJar)
-
-        val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
+      }).map { file =>
+        val Array(name, version) = file.getName.split("_2.12-")
+        (name, Version.valueOf(version.replaceFirst("\\.jar$", "")), file)
+      }.groupBy { case (name, _, _) =>
+        name
+      }.map { case (name, versions) =>
+        // Adopt the latest version
+        versions.sortBy { case (name, version, file) => version }.reverse.head._3
+      }.toSeq.sortBy(_.getName).foreach { pluginJar =>
+        logger.info(s"Initialize ${pluginJar.getName}")
+        val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
           val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
           val pluginId = plugin.pluginId
@@ -268,10 +297,9 @@ object PluginRegistry {
             pluginName    = plugin.pluginName,
             pluginVersion = plugin.versions.last.getVersion,
             description   = plugin.description,
-            pluginClass   = plugin,
-            pluginJar     = pluginJar,
-            classLoader   = classLoader
-          ), true)
+            pluginClass   = plugin
+          ))
+
         } catch {
           case e: Throwable => {
             logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)

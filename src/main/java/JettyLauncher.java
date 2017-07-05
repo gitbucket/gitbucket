@@ -39,6 +39,9 @@ public class JettyLauncher {
                                 contextPath = "/" + contextPath;
                             }
                             break;
+                        case "--max_file_size":
+                            System.setProperty("gitbucket.maxFileSize", dim[2]);
+                            break;
                         case "--gitbucket.home":
                             System.setProperty("gitbucket.home", dim[1]);
                             break;
@@ -96,6 +99,9 @@ public class JettyLauncher {
         }
         context.setTempDirectory(tmpDir);
 
+        // Disabling the directory listing feature.
+        context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+
         ProtectionDomain domain = JettyLauncher.class.getProtectionDomain();
         URL location = domain.getCodeSource().getLocation();
 
@@ -126,17 +132,6 @@ public class JettyLauncher {
             return new File(home);
         }
         return new File(System.getProperty("user.home"), ".gitbucket");
-    }
-
-    private static void deleteDirectory(File dir){
-        for(File file: dir.listFiles()){
-            if(file.isFile()){
-                file.delete();
-            } else if(file.isDirectory()){
-                deleteDirectory(file);
-            }
-        }
-        dir.delete();
     }
 
     private static Handler addStatisticsHandler(Handler handler) {

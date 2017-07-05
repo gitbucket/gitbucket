@@ -10,7 +10,7 @@ import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.lib.{FileMode, Constants}
 
 trait RepositoryCreationService {
-  self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService =>
+  self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService with PrioritiesService =>
 
   def createRepository(loginAccount: Account, owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
                       (implicit s: Session) {
@@ -29,6 +29,9 @@ trait RepositoryCreationService {
 
     // Insert default labels
     insertDefaultLabels(owner, name)
+
+    // Insert default priorities
+    insertDefaultPriorities(owner, name)
 
     // Create the actual repository
     val gitdir = getRepositoryDir(owner, name)
@@ -74,5 +77,13 @@ trait RepositoryCreationService {
     createLabel(userName, repositoryName, "wontfix", "ffffff")
   }
 
+  def insertDefaultPriorities(userName: String, repositoryName: String)(implicit s: Session): Unit = {
+    createPriority(userName, repositoryName, "highest", Some("All defects at this priority must be fixed before any public product is delivered."), "fc2929")
+    createPriority(userName, repositoryName, "very high", Some("Issues must be addressed before a final product is delivered."), "fc5629")
+    createPriority(userName, repositoryName, "high", Some("Issues should be addressed before a final product is delivered. If the issue cannot be resolved before delivery, it should be prioritized for the next release."), "fc9629")
+    createPriority(userName, repositoryName, "important", Some("Issues can be shipped with a final product, but should be reviewed before the next release."), "fccd29")
+    createPriority(userName, repositoryName, "default", Some("Default."), "acacac")
 
+    setDefaultPriority(userName, repositoryName, getPriority(userName, repositoryName, "default").map(_.priorityId))
+  }
 }

@@ -106,7 +106,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val newUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password"    -> trim(label("Password"     ,text(required, maxlength(20)))),
+    "password"    -> trim(label("Password"     ,text(required, maxlength(20), password))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress()))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
@@ -117,7 +117,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val editUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier))),
-    "password"    -> trim(label("Password"     ,optional(text(maxlength(20))))),
+    "password"    -> trim(label("Password"     ,optional(text(maxlength(20), password)))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress("userName")))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
@@ -241,7 +241,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           //          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
           //          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
           //        }
-          // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+          // Remove from GROUP_MEMBER and COLLABORATOR
           removeUserRelatedData(userName)
         }
 
@@ -255,6 +255,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           isRemoved    = form.isRemoved))
 
         updateImage(userName, form.fileId, form.clearImage)
+
+        // call hooks
+        if(form.isRemoved) PluginRegistry().getAccountHooks.foreach(_.deleted(userName))
+
         redirect("/admin/users")
       }
     } getOrElse NotFound()
@@ -293,13 +297,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         if(form.isRemoved){
           // Remove from GROUP_MEMBER
           updateGroupMembers(form.groupName, Nil)
-          // Remove repositories
-          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-            deleteRepository(groupName, repositoryName)
-            FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
-          }
+//          // Remove repositories
+//          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+//            deleteRepository(groupName, repositoryName)
+//            FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+//            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+//            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+//          }
         } else {
           // Update GROUP_MEMBER
           updateGroupMembers(form.groupName, members)

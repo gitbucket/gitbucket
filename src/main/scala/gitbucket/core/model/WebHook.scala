@@ -1,22 +1,5 @@
 package gitbucket.core.model
 
-trait WebHookComponent extends TemplateComponent { self: Profile =>
-  import profile.api._
-
-  implicit val whContentTypeColumnType = MappedColumnType.base[WebHookContentType, String](whct => whct.code , code => WebHookContentType.valueOf(code))
-  
-  lazy val WebHooks = TableQuery[WebHooks]
-
-  class WebHooks(tag: Tag) extends Table[WebHook](tag, "WEB_HOOK") with BasicTemplate {
-    val url = column[String]("URL")
-    val token = column[Option[String]]("TOKEN")
-    val ctype = column[WebHookContentType]("CTYPE")
-    def * = (userName, repositoryName, url, ctype, token) <> ((WebHook.apply _).tupled, WebHook.unapply)
-
-    def byPrimaryKey(owner: String, repository: String, url: String) = byRepository(owner, repository) && (this.url === url.bind)
-  }
-}
-
 abstract sealed case class WebHookContentType(code: String, ctype: String)
 
 object WebHookContentType {
@@ -33,13 +16,11 @@ object WebHookContentType {
   def valueOpt(code: String): Option[WebHookContentType] = map.get(code)
 }
 
-case class WebHook(
-  userName: String,
-  repositoryName: String,
-  url: String,
-  ctype: WebHookContentType,
-  token: Option[String]
-)
+trait WebHook{
+  val url: String
+  val ctype: WebHookContentType
+  val token: Option[String]
+}
 
 object WebHook {
   abstract sealed class Event(val name: String)
@@ -86,6 +67,7 @@ object WebHook {
       TeamAdd,
       Watch
     )
+
     private val map: Map[String,Event] = values.map(e => e.name -> e).toMap
     def valueOf(name: String): Event = map(name)
     def valueOpt(name: String): Option[Event] = map.get(name)

@@ -43,6 +43,7 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
     context.mount(new RepositoryViewerController, "/*")
     context.mount(new WikiController, "/*")
     context.mount(new LabelsController, "/*")
+    context.mount(new PrioritiesController, "/*")
     context.mount(new MilestonesController, "/*")
     context.mount(new IssuesController, "/*")
     context.mount(new PullRequestsController, "/*")

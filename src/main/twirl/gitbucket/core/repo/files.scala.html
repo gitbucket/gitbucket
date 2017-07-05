@@ -22,7 +22,7 @@
     s"${(repository.name :: pathList).mkString("/")} at ${helpers.encodeRefName(branch)} - ${repository.owner}/${repository.name}"
   }, Some(repository)) {
   @gitbucket.core.html.menu("files", repository, Some(branch), info, error){
-    <div class="head">
+    <div class="head" style="height: 24px;">
       <div class="pull-right">
         <div class="btn-group">
           <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t"><i class="octicon octicon-search"></i></a>
@@ -67,27 +67,24 @@
           </div>
         </div>
       }
-      @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
-        @repository.branchList.map { x =>
-          <li><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+      <div class="pull-left">
+        @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
+          @repository.branchList.map { x =>
+            <li><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+          }
         }
-      }
-      @if(pathList.isEmpty){
-        @*
-        @branchPullRequest.map{ case (pullRequest, issue) =>
-          <a href="@url(repository)/pull/@pullRequest.issueId" class="btn btn-sm btn-pullrequest-branch" title="@issue.title" data-toggle="tooltip">View #@pullRequest.issueId</a>
-        }.getOrElse {
-          <a href="@url(repository)/compare?head=@urlEncode(encodeRefName(branch))" class="btn btn-sm btn-success" @if(loginAccount.isEmpty){disabled}>New pull request</a>
+        @if(pathList.nonEmpty){
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
+          @pathList.zipWithIndex.map { case (section, i) =>
+            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+          }
         }
-        *@
-      } else {
-        <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
-        @pathList.zipWithIndex.map { case (section, i) =>
-          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
-        }
-      }
+      </div>
       @if(hasWritePermission){
-        <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file here"><i class="octicon octicon-plus"></i></a>
+        <div class="btn-group pull-left" style="margin-left: 4px;">
+          <a href="@helpers.url(repository)/new/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Create a new file"><i class="octicon octicon-plus"></i></a>
+          <a href="@helpers.url(repository)/upload/@helpers.encodeRefName(branch)/@pathList.mkString("/")" class="btn btn-sm btn-default pc" title="Upload files"><i class="octicon octicon-cloud-upload"></i></a>
+        </div>
       }
     </div>
     <table class="table table-hover">

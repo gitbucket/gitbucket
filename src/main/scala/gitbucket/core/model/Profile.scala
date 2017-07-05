@@ -16,6 +16,11 @@ trait Profile {
   )
 
   /**
+    * WebHookBase.Event Column Types
+    */
+  implicit val eventColumnType = MappedColumnType.base[WebHook.Event, String](_.name, WebHook.Event.valueOf(_))
+
+  /**
    * Extends Column to add conditional condition
    */
   implicit class RichColumn(c1: Rep[Boolean]){
@@ -47,12 +52,15 @@ trait CoreProfile extends ProfileProvider with Profile
   with IssueCommentComponent
   with IssueLabelComponent
   with LabelComponent
+  with PriorityComponent
   with MilestoneComponent
   with PullRequestComponent
   with RepositoryComponent
   with SshKeyComponent
-  with WebHookComponent
-  with WebHookEventComponent
+  with RepositoryWebHookComponent
+  with RepositoryWebHookEventComponent
+  with AccountWebHookComponent
+  with AccountWebHookEventComponent
   with ProtectedBranchComponent
   with DeployKeyComponent
 

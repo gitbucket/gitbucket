@@ -3,17 +3,16 @@ package gitbucket.core.service
 import gitbucket.core.controller.Context
 import gitbucket.core.model.{Account, Issue}
 import gitbucket.core.model.Profile.profile.blockingApi._
+import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.RepositoryService.RepositoryInfo
-import gitbucket.core.util.Notifier
 import gitbucket.core.util.Implicits._
 
-// TODO: Merged with IssuesService?
 trait IssueCreationService {
 
   self: RepositoryService with WebHookIssueCommentService with LabelsService with IssuesService with ActivityService =>
 
   def createIssue(repository: RepositoryInfo, title:String, body:Option[String],
-                  assignee: Option[String], milestoneId: Option[Int], labelNames: Seq[String],
+                  assignee: Option[String], milestoneId: Option[Int], priorityId: Option[Int], labelNames: Seq[String],
                   loginAccount: Account)(implicit context: Context, s: Session) : Issue = {
 
     val owner = repository.owner
@@ -24,7 +23,8 @@ trait IssueCreationService {
     // insert issue
     val issueId = insertIssue(owner, name, userName, title, body,
       if (manageable) assignee else None,
-      if (manageable) milestoneId else None)
+      if (manageable) milestoneId else None,
+      if (manageable) priorityId else None)
     val issue: Issue = getIssue(owner, name, issueId.toString).get
 
     // insert labels
@@ -46,10 +46,9 @@ trait IssueCreationService {
     // call web hooks
     callIssuesWebHook("opened", repository, issue, context.baseUrl, loginAccount)
 
-    // notifications
-    Notifier().toNotify(repository, issue, body.getOrElse("")) {
-      Notifier.msgIssue(s"${context.baseUrl}/${owner}/${name}/issues/${issueId}")
-    }
+    // call hooks
+    PluginRegistry().getIssueHooks.foreach(_.created(issue, repository))
+
     issue
   }
 

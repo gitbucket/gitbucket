@@ -1,6 +1,6 @@
 package gitbucket.core.servlet
 
-import java.io.File
+import java.io.{File, FileOutputStream}
 
 import akka.event.Logging
 import com.typesafe.config.ConfigFactory
@@ -9,15 +9,18 @@ import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
+import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.JDBCUtil._
 import gitbucket.core.model.Profile.profile.blockingApi._
 import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
-import javax.servlet.{ServletContextListener, ServletContextEvent}
-import org.apache.commons.io.FileUtils
+import javax.servlet.{ServletContextEvent, ServletContextListener}
+
+import org.apache.commons.io.{FileUtils, IOUtils}
 import org.slf4j.LoggerFactory
-import akka.actor.{Actor, Props, ActorSystem}
+import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+
 import scala.collection.JavaConverters._
 
 /**
@@ -104,6 +107,22 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       val gitbucketVersion = GitBucketCoreModule.getVersions.asScala.last.getVersion
       if(databaseVersion != gitbucketVersion){
         throw new IllegalStateException(s"Initialization failed. GitBucket version is ${gitbucketVersion}, but database version is ${databaseVersion}.")
+      }
+
+      // Install bundled plugins
+      logger.info("Install bundled plugins")
+      val cl = Thread.currentThread.getContextClassLoader
+      try {
+        using(cl.getResourceAsStream("plugins/plugins")){ pluginsFile =>
+          val plugins = IOUtils.toString(pluginsFile, "UTF-8").split("\n").map(_.trim)
+          plugins.collect { case plugin if plugin.nonEmpty && !plugin.startsWith("#") =>
+            val file = new File(PluginHome, plugin)
+            logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
+            using(cl.getResourceAsStream("plugins/" + plugin), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
+          }
+        }
+      } catch {
+        case e: Exception => logger.error("Error in installing bundled plugin", e)
       }
 
       // Load plugins

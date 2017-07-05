@@ -286,11 +286,11 @@ $(function(){
     var table = diffText.closest("table[data-diff-id]");
     var i = table.data("diff-id");
     var ignoreWhiteSpace = table.find('.ignore-whitespace').prop('checked');
-    diffUsingJS('oldText-'+i, 'newText-'+i, diffText.attr('id'), viewType, ignoreWhiteSpace);
+    diffUsingJS('oldText-' + i, 'newText-' + i, diffText.attr('id'), viewType, ignoreWhiteSpace);
     var add = diffText.find("table").attr("add") * 1;
     var del = diffText.find("table").attr("del") * 1;
-    table.find(".diffstat").text(add+del+" ").append(renderStatBar(add,del)).attr("title",add+" additions & "+del+" deletions").tooltip();
-    $('span.diffstat[data-diff-id="'+i+'"]')
+    table.find(".diffstat").text(add + del + " ").append(renderStatBar(add, del)).attr("title", add + " additions & " + del + " deletions").tooltip();
+    $('span.diffstat[data-diff-id="' + i + '"]')
         .html('<span class="text-diff-added">+' + add + '</span><span class="text-diff-deleted">-' + del + '</span>')
         .append(renderStatBar(add, del).attr('title', (add + del) + " lines changed").tooltip());
 

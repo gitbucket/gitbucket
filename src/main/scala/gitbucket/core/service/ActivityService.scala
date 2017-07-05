@@ -59,7 +59,7 @@ trait ActivityService {
     Activities insert Activity(userName, repositoryName, activityUserName,
       "open_issue",
       s"[user:${activityUserName}] opened issue [issue:${userName}/${repositoryName}#${issueId}]",
-      Some(title), 
+      Some(title),
       currentDate)
 
   def recordCloseIssueActivity(userName: String, repositoryName: String, activityUserName: String, issueId: Int, title: String)
@@ -132,10 +132,10 @@ trait ActivityService {
     Activities insert Activity(userName, repositoryName, activityUserName,
       "push",
       s"[user:${activityUserName}] pushed to [branch:${userName}/${repositoryName}#${branchName}] at [repo:${userName}/${repositoryName}]",
-      Some(commits.map { commit => commit.id + ":" + commit.shortMessage }.mkString("\n")),
+      Some(commits.take(5).map { commit => commit.id + ":" + commit.shortMessage }.mkString("\n")),
       currentDate)
 
-  def recordCreateTagActivity(userName: String, repositoryName: String, activityUserName: String, 
+  def recordCreateTagActivity(userName: String, repositoryName: String, activityUserName: String,
       tagName: String, commits: List[JGitUtil.CommitInfo])(implicit s: Session): Unit =
     Activities insert Activity(userName, repositoryName, activityUserName,
       "create_tag",
@@ -167,7 +167,7 @@ trait ActivityService {
       None,
       currentDate)
 
-  def recordForkActivity(userName: String, repositoryName: String, activityUserName: String, forkedUserName: String)(implicit s: Session): Unit = 
+  def recordForkActivity(userName: String, repositoryName: String, activityUserName: String, forkedUserName: String)(implicit s: Session): Unit =
     Activities insert Activity(userName, repositoryName, activityUserName,
       "fork",
       s"[user:${activityUserName}] forked [repo:${userName}/${repositoryName}] to [repo:${forkedUserName}/${repositoryName}]",

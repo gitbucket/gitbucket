@@ -27,6 +27,7 @@ class IssuesController extends IssuesControllerBase
   with PullRequestService
   with WebHookIssueCommentService
   with CommitsService
+  with PrioritiesService
 
 trait IssuesControllerBase extends ControllerBase {
   self: IssuesService
@@ -41,10 +42,11 @@ trait IssuesControllerBase extends ControllerBase {
     with ReferrerAuthenticator
     with WritableUsersAuthenticator
     with PullRequestService
-    with WebHookIssueCommentService =>
+    with WebHookIssueCommentService
+    with PrioritiesService =>
 
   case class IssueCreateForm(title: String, content: Option[String],
-    assignedUserName: Option[String], milestoneId: Option[Int], labelNames: Option[String])
+    assignedUserName: Option[String], milestoneId: Option[Int], priorityId: Option[Int], labelNames: Option[String])
   case class CommentForm(issueId: Int, content: String)
   case class IssueStateForm(issueId: Int, content: Option[String])
 
@@ -53,6 +55,7 @@ trait IssuesControllerBase extends ControllerBase {
       "content"          -> trim(optional(text())),
       "assignedUserName" -> trim(optional(text())),
       "milestoneId"      -> trim(optional(number())),
+      "priorityId"       -> trim(optional(number())),
       "labelNames"       -> trim(optional(text()))
     )(IssueCreateForm.apply)
 
@@ -76,7 +79,7 @@ trait IssuesControllerBase extends ControllerBase {
   get("/:owner/:repository/issues")(referrersOnly { repository =>
     val q = request.getParameter("q")
     if(Option(q).exists(_.contains("is:pr"))){
-      redirect(s"/${repository.owner}/${repository.name}/pulls?q=" + StringUtil.urlEncode(q))
+      redirect(s"/${repository.owner}/${repository.name}/pulls?q=${StringUtil.urlEncode(q)}")
     } else {
       searchIssues(repository)
     }
@@ -84,17 +87,22 @@ trait IssuesControllerBase extends ControllerBase {
 
   get("/:owner/:repository/issues/:id")(referrersOnly { repository =>
     defining(repository.owner, repository.name, params("id")){ case (owner, name, issueId) =>
-      getIssue(owner, name, issueId) map {
-        html.issue(
-          _,
-          getComments(owner, name, issueId.toInt),
-          getIssueLabels(owner, name, issueId.toInt),
-          getAssignableUserNames(owner, name),
-          getMilestonesWithIssueCount(owner, name),
-          getLabels(owner, name),
-          isIssueEditable(repository),
-          isIssueManageable(repository),
-          repository)
+      getIssue(owner, name, issueId) map { issue =>
+        if(issue.isPullRequest){
+          redirect(s"/${repository.owner}/${repository.name}/pull/${issueId}")
+        } else {
+          html.issue(
+            issue,
+            getComments(owner, name, issueId.toInt),
+            getIssueLabels(owner, name, issueId.toInt),
+            getAssignableUserNames(owner, name),
+            getMilestonesWithIssueCount(owner, name),
+            getPriorities(owner, name),
+            getLabels(owner, name),
+            isIssueEditable(repository),
+            isIssueManageable(repository),
+            repository)
+        }
       } getOrElse NotFound()
     }
   })
@@ -105,6 +113,8 @@ trait IssuesControllerBase extends ControllerBase {
         html.create(
           getAssignableUserNames(owner, name),
           getMilestones(owner, name),
+          getPriorities(owner, name),
+          getDefaultPriority(owner, name),
           getLabels(owner, name),
           isIssueManageable(repository),
           getContentTemplate(repository, "ISSUE_TEMPLATE"),
@@ -121,6 +131,7 @@ trait IssuesControllerBase extends ControllerBase {
         form.content,
         form.assignedUserName,
         form.milestoneId,
+        form.priorityId,
         form.labelNames.toArray.flatMap(_.split(",")),
         context.loginAccount.get)
 
@@ -287,6 +298,11 @@ trait IssuesControllerBase extends ControllerBase {
     } getOrElse Ok()
   })
 
+  ajaxPost("/:owner/:repository/issues/:id/priority")(writableUsersOnly { repository =>
+    updatePriorityId(repository.owner, repository.name, params("id").toInt, priorityId("priorityId"))
+    Ok("updated")
+  })
+
   post("/:owner/:repository/issues/batchedit/state")(writableUsersOnly { repository =>
     defining(params.get("value")){ action =>
       action match {
@@ -331,6 +347,14 @@ trait IssuesControllerBase extends ControllerBase {
     }
   })
 
+  post("/:owner/:repository/issues/batchedit/priority")(writableUsersOnly { repository =>
+    defining(priorityId("value")){ value =>
+      executeBatch(repository) {
+        updatePriorityId(repository.owner, repository.name, _, value)
+      }
+    }
+  })
+
   get("/:owner/:repository/_attached/:file")(referrersOnly { repository =>
     (Directory.getAttachedDir(repository.owner, repository.name) match {
       case dir if(dir.exists && dir.isDirectory) =>
@@ -344,6 +368,7 @@ trait IssuesControllerBase extends ControllerBase {
 
   val assignedUserName = (key: String) => params.get(key) filter (_.trim != "")
   val milestoneId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
+  val priorityId: String => Option[Int] = (key: String) => params.get(key).flatMap(_.toIntOpt)
 
   private def executeBatch(repository: RepositoryService.RepositoryInfo)(execute: Int => Unit) = {
     params("checked").split(',') map(_.toInt) foreach execute
@@ -366,6 +391,7 @@ trait IssuesControllerBase extends ControllerBase {
           page,
           getAssignableUserNames(owner, repoName),
           getMilestones(owner, repoName),
+          getPriorities(owner, repoName),
           getLabels(owner, repoName),
           countIssue(condition.copy(state = "open"  ), false, owner -> repoName),
           countIssue(condition.copy(state = "closed"), false, owner -> repoName),

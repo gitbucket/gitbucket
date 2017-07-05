@@ -59,13 +59,14 @@ trait RepositoryService { self: AccountService =>
       (Repositories filter { t => t.byRepository(oldUserName, oldRepositoryName) } firstOption).map { repository =>
         Repositories insert repository.copy(userName = newUserName, repositoryName = newRepositoryName)
 
-        val webHooks                = WebHooks               .filter(_.byRepository(oldUserName, oldRepositoryName)).list
-        val webHookEvents           = WebHookEvents          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val webHooks                = RepositoryWebHooks     .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val webHookEvents           = RepositoryWebHookEvents.filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val milestones              = Milestones             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueId                 = IssueId                .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issues                  = Issues                 .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val pullRequests            = PullRequests           .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val labels                  = Labels                 .filter(_.byRepository(oldUserName, oldRepositoryName)).list
+        val priorities              = Priorities             .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueComments           = IssueComments          .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val issueLabels             = IssueLabels            .filter(_.byRepository(oldUserName, oldRepositoryName)).list
         val commitComments          = CommitComments         .filter(_.byRepository(oldUserName, oldRepositoryName)).list
@@ -81,7 +82,7 @@ trait RepositoryService { self: AccountService =>
 
         Repositories.filter { t =>
           (t.parentUserName === oldUserName.bind) && (t.parentRepositoryName === oldRepositoryName.bind)
-        }.map { t => t.originUserName -> t.originRepositoryName }.update(newUserName, newRepositoryName)
+        }.map { t => t.parentUserName -> t.parentRepositoryName }.update(newUserName, newRepositoryName)
 
         // Updates activity fk before deleting repository because activity is sorted by activityId
         // and it can't be changed by deleting-and-inserting record.
@@ -92,17 +93,22 @@ trait RepositoryService { self: AccountService =>
 
         deleteRepository(oldUserName, oldRepositoryName)
 
-        WebHooks     .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
-        WebHookEvents.insertAll(webHookEvents .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        RepositoryWebHooks     .insertAll(webHooks      .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        RepositoryWebHookEvents.insertAll(webHookEvents .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         Milestones   .insertAll(milestones    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
+        Priorities   .insertAll(priorities    .map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
         IssueId      .insertAll(issueId       .map(_.copy(_1       = newUserName, _2             = newRepositoryName)) :_*)
 
         val newMilestones = Milestones.filter(_.byRepository(newUserName, newRepositoryName)).list
+        val newPriorities = Priorities.filter(_.byRepository(newUserName, newRepositoryName)).list
         Issues.insertAll(issues.map { x => x.copy(
           userName       = newUserName,
           repositoryName = newRepositoryName,
           milestoneId    = x.milestoneId.map { id =>
             newMilestones.find(_.title == milestones.find(_.milestoneId == id).get.title).get.milestoneId
+          },
+          priorityId    = x.priorityId.map { id =>
+            newPriorities.find(_.priorityName == priorities.find(_.priorityId == id).get.priorityName).get.priorityId
           }
         )} :_*)
 
@@ -161,10 +167,11 @@ trait RepositoryService { self: AccountService =>
     IssueComments .filter(_.byRepository(userName, repositoryName)).delete
     PullRequests  .filter(_.byRepository(userName, repositoryName)).delete
     Issues        .filter(_.byRepository(userName, repositoryName)).delete
+    Priorities    .filter(_.byRepository(userName, repositoryName)).delete
     IssueId       .filter(_.byRepository(userName, repositoryName)).delete
     Milestones    .filter(_.byRepository(userName, repositoryName)).delete
-    WebHooks      .filter(_.byRepository(userName, repositoryName)).delete
-    WebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
+    RepositoryWebHooks      .filter(_.byRepository(userName, repositoryName)).delete
+    RepositoryWebHookEvents .filter(_.byRepository(userName, repositoryName)).delete
     DeployKeys    .filter(_.byRepository(userName, repositoryName)).delete
     Repositories  .filter(_.byRepository(userName, repositoryName)).delete
 

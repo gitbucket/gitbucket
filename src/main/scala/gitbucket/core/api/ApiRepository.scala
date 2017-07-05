@@ -53,4 +53,14 @@ object ApiRepository{
   def forPushPayload(repositoryInfo: RepositoryInfo, owner: ApiUser): ApiRepository =
     ApiRepository(repositoryInfo.repository, owner, forkedCount=repositoryInfo.forkedCount, urlIsHtmlUrl=true)
 
+  def forDummyPayload(owner: ApiUser): ApiRepository =
+    ApiRepository(
+      name="dummy",
+      full_name=s"${owner.login}/dummy",
+      description="",
+      watchers=0,
+      forks=0,
+      `private`=false,
+      default_branch="master",
+      owner=owner)(true)
 }

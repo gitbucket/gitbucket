@@ -38,8 +38,11 @@ You can specify following options:
 - `--host=[HOSTNAME]`
 - `--gitbucket.home=[DATA_DIR]`
 - `--temp_dir=[TEMP_DIR]`
+- `--max_file_size=[MAX_FILE_SIZE]`
 
 `TEMP_DIR` is used as the [temporary directory for the jetty application context](https://www.eclipse.org/jetty/documentation/9.3.x/ref-temporary-directories.html). This is the directory into which the `gitbucket.war` file is unpacked, the source files are compiled, etc. If given this parameter **must** match the path of an existing directory or the application will quit reporting an error; if not given the path used will be a `tmp` directory inside the gitbucket home.
+
+`MAX_FILE_SIZE` is the max file size for upload files.
 
 You can also deploy `gitbucket.war` to a servlet container which supports Servlet 3.0 (like Jetty, Tomcat, JBoss, etc)
 
@@ -68,6 +71,22 @@ Support
 
 Release Notes
 -------------
+### 4.14.1 - 4 Jul 2017
+- Bug fix: Possibility of error in forking repository
+
+### 4.14 - 1 Jul 2017
+- Support priority in issues and pull requests
+- Show icons when the sidebar is collapsed
+- Support gollum events in web hook
+- Support account (user / group) level web hook
+- Add `--max_file_size` option
+- Configuration by system property or environment variable
+
+### 4.13 - 29 May 2017
+- Uploading files into the repository
+- HTML is available in Markdown
+- Added filter box to dropdown menus
+
 ### 4.12 - 30 Apr 2017
 - [Gist plug-in](https://github.com/gitbucket/gitbucket-gist-plugin) provides JavaScript to embed snippet
 - Dropdown menu filter in the branch comparing page
