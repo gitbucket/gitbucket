@@ -18,10 +18,13 @@ import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.slf4j.LoggerFactory
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
 import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
 
 import scala.collection.JavaConverters._
+
 
 /**
  * Initialize GitBucket system.
@@ -57,44 +60,11 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       val manager = new JDBCVersionManager(conn)
 
       // Check version
-      val versionFile = new File(GitBucketHome, "version")
-
-      if(versionFile.exists()){
-        val version = FileUtils.readFileToString(versionFile, "UTF-8")
-        if(version == "3.14"){
-          // Initialization for GitBucket 3.14
-          logger.info("Migration to GitBucket 4.x start")
-
-          // Backup current data
-          val dataMvFile = new File(GitBucketHome, "data.mv.db")
-          if(dataMvFile.exists) {
-            FileUtils.copyFile(dataMvFile, new File(GitBucketHome, "data.mv.db_3.14"))
-          }
-          val dataTraceFile = new File(GitBucketHome, "data.trace.db")
-          if(dataTraceFile.exists) {
-            FileUtils.copyFile(dataTraceFile, new File(GitBucketHome, "data.trace.db_3.14"))
-          }
-
-          // Change form
-          manager.initialize()
-          manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
-          conn.select("SELECT PLUGIN_ID, VERSION FROM PLUGIN"){ rs =>
-            manager.updateVersion(rs.getString("PLUGIN_ID"), rs.getString("VERSION"))
-          }
-          conn.update("DROP TABLE PLUGIN")
-          versionFile.delete()
-
-          logger.info("Migration to GitBucket 4.x completed")
-
-        } else {
-          throw new Exception("GitBucket can't migrate from this version. Please update to 3.14 at first.")
-        }
-      }
+      checkVersion(manager, conn)
 
       // Run normal migration
       logger.info("Start schema update")
-      val solidbase = new Solidbase()
-      solidbase.migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
+      new Solidbase().migrate(conn, Thread.currentThread.getContextClassLoader, DatabaseConfig.liquiDriver, GitBucketCoreModule)
 
       // Rescue code for users who updated from 3.14 to 4.0.0
       // https://github.com/gitbucket/gitbucket/issues/1227
@@ -110,24 +80,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       }
 
       // Install bundled plugins
-      logger.info("Install bundled plugins")
-      val cl = Thread.currentThread.getContextClassLoader
-      try {
-        using(cl.getResourceAsStream("plugins/plugins")){ pluginsFile =>
-          val pluginRepositoryDir = new File(PluginHome, ".repository")
-          if(!pluginRepositoryDir.exists){
-            pluginRepositoryDir.mkdirs()
-          }
-          val plugins = IOUtils.toString(pluginsFile, "UTF-8").split("\n").map(_.trim)
-          plugins.collect { case plugin if plugin.nonEmpty && !plugin.startsWith("#") =>
-            val file = new File(pluginRepositoryDir, plugin)
-            logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
-            using(cl.getResourceAsStream("plugins/" + plugin), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
-          }
-        }
-      } catch {
-        case e: Exception => logger.error("Error in installing bundled plugin", e)
-      }
+      installBundledPlugins()
 
       // Load plugins
       logger.info("Initialize plugins")
@@ -140,7 +93,74 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     scheduler.schedule("Daily", system.actorOf(Props[DeleteOldActivityActor]), "DeleteOldActivity")
   }
 
+  private def checkVersion(manager: JDBCVersionManager, conn: java.sql.Connection): Unit = {
+    logger.info("Check version")
+    val versionFile = new File(GitBucketHome, "version")
 
+    if(versionFile.exists()){
+      val version = FileUtils.readFileToString(versionFile, "UTF-8")
+      if(version == "3.14"){
+        // Initialization for GitBucket 3.14
+        logger.info("Migration to GitBucket 4.x start")
+
+        // Backup current data
+        val dataMvFile = new File(GitBucketHome, "data.mv.db")
+        if(dataMvFile.exists) {
+          FileUtils.copyFile(dataMvFile, new File(GitBucketHome, "data.mv.db_3.14"))
+        }
+        val dataTraceFile = new File(GitBucketHome, "data.trace.db")
+        if(dataTraceFile.exists) {
+          FileUtils.copyFile(dataTraceFile, new File(GitBucketHome, "data.trace.db_3.14"))
+        }
+
+        // Change form
+        manager.initialize()
+        manager.updateVersion(GitBucketCoreModule.getModuleId, "4.0.0")
+        conn.select("SELECT PLUGIN_ID, VERSION FROM PLUGIN"){ rs =>
+          manager.updateVersion(rs.getString("PLUGIN_ID"), rs.getString("VERSION"))
+        }
+        conn.update("DROP TABLE PLUGIN")
+        versionFile.delete()
+
+        logger.info("Migration to GitBucket 4.x completed")
+
+      } else {
+        throw new Exception("GitBucket can't migrate from this version. Please update to 3.14 at first.")
+      }
+    }
+  }
+
+  private def installBundledPlugins(): Unit = {
+    logger.info("Install bundled plugins")
+    val cl = Thread.currentThread.getContextClassLoader
+    try {
+      using(cl.getResourceAsStream("plugins/plugins.json")){ pluginsFile =>
+        val pluginRepositoryDir = new File(PluginHome, ".repository")
+        if(!pluginRepositoryDir.exists){
+          pluginRepositoryDir.mkdirs()
+        }
+
+        implicit val formats = DefaultFormats
+        val plugins = parse(IOUtils.toString(pluginsFile, "UTF-8")).extract[Seq[Plugin]]
+        plugins.foreach { plugin =>
+          val file = new File(pluginRepositoryDir, plugin.filename)
+          if(!file.exists){
+            logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
+            using(cl.getResourceAsStream("plugins/" + plugin), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
+
+            if(plugin.default){
+              logger.info(s"Enable ${file.getName} in default")
+              FileUtils.copyFile(file, new File(PluginHome, plugin.filename))
+            }
+          }
+        }
+      }
+    } catch {
+      case e: Exception => logger.error("Error in installing bundled plugin", e)
+    }
+  }
+
+  case class Plugin(filename: String, default: Boolean = false)
 
   override def contextDestroyed(event: ServletContextEvent): Unit = {
     // Shutdown Quartz scheduler

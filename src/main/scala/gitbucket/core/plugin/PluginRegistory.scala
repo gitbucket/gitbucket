@@ -2,8 +2,7 @@ package gitbucket.core.plugin
 
 import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
-import java.nio.channels.{FileChannel, FileLock}
-import java.nio.file.{Files, Paths, StandardOpenOption, StandardWatchEventKinds}
+import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
 import javax.servlet.ServletContext
 
@@ -237,25 +236,6 @@ object PluginRegistry {
         initialize(context, settings, conn)
       }
   }
-
-//  private def copyFile(from: File, to: File, retry: Int = 0): Unit = {
-//    using(FileChannel.open(from.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE)){ fc =>
-//      using(fc.tryLock()){ lock =>
-//        if(lock == null){
-//          if(retry >= 3){ // Retry max 3 times
-//            logger.info(s"Retire to install plugin: ${from.getAbsolutePath}")
-//          } else {
-//            logger.info(s"Retry ${retry + 1} to install plugin: ${from.getAbsolutePath}")
-//            Thread.sleep(500)
-//            copyFile(from, to, retry + 1)
-//          }
-//        } else {
-//          logger.info(s"Install plugin: ${from.getAbsolutePath}")
-//          FileUtils.copyFile(from, to)
-//        }
-//      }
-//    }
-//  }
 
   private class PluginJarFileFilter extends FilenameFilter {
     override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
