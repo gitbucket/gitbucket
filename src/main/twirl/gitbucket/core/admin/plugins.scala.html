@@ -1,4 +1,4 @@
-@(plugins: List[gitbucket.core.plugin.PluginInfo], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@(plugins: List[(gitbucket.core.plugin.PluginInfo, Boolean)], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
     @gitbucket.core.helper.html.information(info)
@@ -8,12 +8,12 @@
     <h1>Installed plugins</h1>
     @if(plugins.size > 0) {
       <ul>
-      @plugins.map { plugin =>
+      @plugins.map { case (plugin, enabled) =>
         <li><a href="#@plugin.pluginId">@plugin.pluginId:@plugin.pluginVersion</a></li>
       }
       </ul>
 
-      @plugins.map { plugin =>
+      @plugins.map { case (plugin, enabled) =>
         <div class="panel panel-default">
           <div class="panel-heading strong" id="@plugin.pluginId">
             <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall" method="POST" class="pull-right uninstall-form">

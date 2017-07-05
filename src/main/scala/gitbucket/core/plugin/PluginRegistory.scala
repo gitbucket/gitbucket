@@ -27,7 +27,7 @@ import scala.collection.mutable.ListBuffer
 
 class PluginRegistry {
 
-  private val plugins = new ListBuffer[PluginInfo]
+  private val plugins = new ListBuffer[(PluginInfo, Boolean)]
   private val javaScripts = new ListBuffer[(String, String)]
   private val controllers = new ListBuffer[(ControllerBase, String)]
   private val images = mutable.Map[String, String]()
@@ -53,9 +53,9 @@ class PluginRegistry {
   private val suggestionProviders = new ListBuffer[SuggestionProvider]
   suggestionProviders += new UserNameSuggestionProvider()
 
-  def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
+  def addPlugin(pluginInfo: PluginInfo, enabled: Boolean): Unit = plugins += ((pluginInfo, enabled))
 
-  def getPlugins(): List[PluginInfo] = plugins.toList
+  def getPlugins(): List[(PluginInfo, Boolean)] = plugins.toList
 
   def addImage(id: String, bytes: Array[Byte]): Unit = {
     val encoded = Base64.getEncoder.encodeToString(bytes)
@@ -181,7 +181,9 @@ object PluginRegistry {
    * Uninstall a specified plugin.
    */
   def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
-    instance.getPlugins().find(_.pluginId == pluginId).foreach { plugin =>
+    instance.getPlugins()
+      .collect { case (plugin, true) if plugin.pluginId == plugin => plugin }
+      .foreach { plugin =>
 //      try {
 //        plugin.pluginClass.uninstall(instance, context, settings)
 //      } catch {
@@ -243,10 +245,10 @@ object PluginRegistry {
           val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
           val pluginId = plugin.pluginId
 
-          // Check duplication
-          instance.getPlugins().find(_.pluginId == pluginId).foreach { x =>
-            throw new IllegalStateException(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
-          }
+//          // Check duplication
+//          instance.getPlugins().find(_.pluginId == pluginId).foreach { x =>
+//            throw new IllegalStateException(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
+//          }
 
           // Migration
           val solidbase = new Solidbase()
@@ -269,7 +271,7 @@ object PluginRegistry {
             pluginClass   = plugin,
             pluginJar     = pluginJar,
             classLoader   = classLoader
-          ))
+          ), true)
         } catch {
           case e: Throwable => {
             logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
@@ -285,7 +287,9 @@ object PluginRegistry {
   }
 
   def shutdown(context: ServletContext, settings: SystemSettings): Unit = synchronized {
-    instance.getPlugins().foreach { plugin =>
+    instance.getPlugins()
+      .collect { case (plugin, true) => plugin }
+      .foreach { plugin =>
       try {
         plugin.pluginClass.shutdown(instance, context, settings)
       } catch {
