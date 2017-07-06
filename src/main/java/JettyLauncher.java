@@ -40,7 +40,7 @@ public class JettyLauncher {
                             }
                             break;
                         case "--max_file_size":
-                            System.setProperty("gitbucket.maxFileSize", dim[2]);
+                            System.setProperty("gitbucket.maxFileSize", dim[1]);
                             break;
                         case "--gitbucket.home":
                             System.setProperty("gitbucket.home", dim[1]);
