@@ -24,11 +24,11 @@ import play.twirl.api.Html
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import com.github.zafarkhaja.semver.Version
+import com.github.zafarkhaja.semver.{Version => Semver}
 
 class PluginRegistry {
 
-  private val plugins = new ListBuffer[(PluginInfo, Boolean)]
+  private val plugins = new ListBuffer[PluginInfo]
   private val javaScripts = new ListBuffer[(String, String)]
   private val controllers = new ListBuffer[(ControllerBase, String)]
   private val images = mutable.Map[String, String]()
@@ -62,9 +62,9 @@ class PluginRegistry {
   private val suggestionProviders = new ListBuffer[SuggestionProvider]
   suggestionProviders += new UserNameSuggestionProvider()
 
-  def addPlugin(pluginInfo: PluginInfo, enabled: Boolean): Unit = plugins += ((pluginInfo, enabled))
+  def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
 
-  def getPlugins(): List[(PluginInfo, Boolean)] = plugins.toList
+  def getPlugins(): List[PluginInfo] = plugins.toList
 
   def addImage(id: String, bytes: Array[Byte]): Unit = {
     val encoded = Base64.getEncoder.encodeToString(bytes)
@@ -207,7 +207,7 @@ object PluginRegistry {
    */
   def uninstall(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
     instance.getPlugins()
-      .collect { case (plugin, true) if plugin.pluginId == pluginId => plugin }
+      .collect { case plugin if plugin.pluginId == pluginId => plugin }
       .foreach { plugin =>
 //      try {
 //        plugin.pluginClass.uninstall(instance, context, settings)
@@ -223,18 +223,14 @@ object PluginRegistry {
   }
 
   /**
-   * Install a specified plugin from local repository.
+   * Install a plugin from a specified jar file.
    */
-  def install(pluginId: String, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
-    instance.getPlugins()
-      .collect { case (plugin, false) if plugin.pluginId == pluginId => plugin }
-      .foreach { plugin =>
-        FileUtils.copyFile(plugin.pluginJar, new File(PluginHome, plugin.pluginJar.getName))
+  def install(file: File, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
+    FileUtils.copyFile(file, new File(PluginHome, file.getName))
 
-        shutdown(context, settings)
-        instance = new PluginRegistry()
-        initialize(context, settings, conn)
-      }
+    shutdown(context, settings)
+    instance = new PluginRegistry()
+    initialize(context, settings, conn)
   }
 
   private class PluginJarFileFilter extends FilenameFilter {
@@ -244,7 +240,7 @@ object PluginRegistry {
   private def listPluginJars(dir: File): Seq[File] = {
     dir.listFiles(new PluginJarFileFilter()).map { file =>
       val Array(name, version) = file.getName.split("_2.12-")
-      (name, Version.valueOf(version.replaceFirst("\\.jar$", "")), file)
+      (name, Semver.valueOf(version.replaceFirst("\\.jar$", "")), file)
     }.groupBy { case (name, _, _) =>
       name
     }.map { case (name, versions) =>
@@ -303,44 +299,10 @@ object PluginRegistry {
             pluginClass   = plugin,
             pluginJar     = pluginJar,
             classLoader   = classLoader
-          ), true)
+          ))
 
         } catch {
-          case e: Throwable => {
-            logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
-          }
-        }
-      }
-
-      // Scan repository
-      val repositoryDir = new File(PluginHome, ".repository")
-      if (repositoryDir.exists) {
-        listPluginJars(repositoryDir).foreach { pluginJar =>
-          val classLoader = new URLClassLoader(Array(pluginJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
-          try {
-            val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
-
-            val enableSameOrNewer = instance.plugins.exists { case (installedPlugin, true) =>
-              installedPlugin.pluginId == plugin.pluginId &&
-                Version.valueOf(installedPlugin.pluginVersion).greaterThanOrEqualTo(Version.valueOf(plugin.versions.last.getVersion))
-            }
-
-            if(!enableSameOrNewer){
-              instance.addPlugin(PluginInfo(
-                pluginId      = plugin.pluginId,
-                pluginName    = plugin.pluginName,
-                pluginVersion = plugin.versions.last.getVersion,
-                description   = plugin.description,
-                pluginClass   = plugin,
-                pluginJar     = pluginJar,
-                classLoader   = classLoader
-              ), false)
-            }
-          } catch {
-            case e: Throwable => {
-              logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
-            }
-          }
+          case e: Throwable => logger.error(s"Error during plugin initialization: ${pluginJar.getName}", e)
         }
       }
     }
@@ -352,9 +314,7 @@ object PluginRegistry {
   }
 
   def shutdown(context: ServletContext, settings: SystemSettings): Unit = synchronized {
-    instance.getPlugins()
-      .collect { case (plugin, true) => plugin }
-      .foreach { plugin =>
+    instance.getPlugins().foreach { plugin =>
       try {
         plugin.pluginClass.shutdown(instance, context, settings)
       } catch {
@@ -369,17 +329,29 @@ object PluginRegistry {
 
 }
 
-case class Link(id: String, label: String, path: String, icon: Option[String] = None)
+case class Link(
+  id: String,
+  label: String,
+  path: String,
+  icon: Option[String] = None
+)
+
+class PluginInfoBase(
+  val pluginId: String,
+  val pluginName: String,
+  val pluginVersion: String,
+  val description: String
+)
 
 case class PluginInfo(
-  pluginId: String,
-  pluginName: String,
-  pluginVersion: String,
-  description: String,
+  override val pluginId: String,
+  override val pluginName: String,
+  override val pluginVersion: String,
+  override val description: String,
   pluginClass: Plugin,
   pluginJar: File,
   classLoader: URLClassLoader
-)
+) extends PluginInfoBase(pluginId, pluginName, pluginVersion, description)
 
 class PluginWatchThread(context: ServletContext) extends Thread with SystemSettingsService {
   import gitbucket.core.model.Profile.profile.blockingApi._

@@ -1,4 +1,4 @@
-@(plugins: List[(gitbucket.core.plugin.PluginInfo, Boolean)], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
+@(plugins: List[(gitbucket.core.plugin.PluginInfoBase, Boolean)], info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Plugins"){
   @gitbucket.core.admin.html.menu("plugins") {
     @gitbucket.core.helper.html.information(info)
@@ -17,11 +17,11 @@
         <div class="panel panel-default">
           <div class="panel-heading strong" id="@plugin.pluginId">
             @if(enabled){
-              <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/_uninstall" method="POST" class="pull-right uninstall-form">
+              <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/@{plugin.pluginVersion}/_uninstall" method="POST" class="pull-right uninstall-form">
                 <input type="submit" value="Uninstall" class="btn btn-danger btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
               </form>
             } else {
-              <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/_install" method="POST" class="pull-right install-form">
+              <form action="@{context.path}/admin/plugins/@{plugin.pluginId}/@{plugin.pluginVersion}/_install" method="POST" class="pull-right install-form">
                 <input type="submit" value="Install" class="btn btn-success btn-sm" style="position: relative; top: -5px; left: 10px;" data-name="@plugin.pluginName">
               </form>
             }

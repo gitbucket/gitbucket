@@ -5,7 +5,7 @@ import java.io.{File, FileOutputStream}
 import akka.event.Logging
 import com.typesafe.config.ConfigFactory
 import gitbucket.core.GitBucketCoreModule
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{PluginRegistry, PluginRepository}
 import gitbucket.core.service.{ActivityService, SystemSettingsService}
 import gitbucket.core.util.DatabaseConfig
 import gitbucket.core.util.Directory._
@@ -18,10 +18,9 @@ import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.slf4j.LoggerFactory
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
 import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+import com.github.zafarkhaja.semver.{Version => Semver}
 
 import scala.collection.JavaConverters._
 
@@ -80,7 +79,7 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
       }
 
       // Install bundled plugins
-      installBundledPlugins()
+      extractBundledPlugins(gitbucketVersion)
 
       // Load plugins
       logger.info("Initialize plugins")
@@ -130,37 +129,37 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     }
   }
 
-  private def installBundledPlugins(): Unit = {
-    logger.info("Install bundled plugins")
+  private def extractBundledPlugins(gitbucketVersion: String): Unit = {
+    logger.info("Extract bundled plugins")
     val cl = Thread.currentThread.getContextClassLoader
     try {
       using(cl.getResourceAsStream("plugins/plugins.json")){ pluginsFile =>
-        val pluginRepositoryDir = new File(PluginHome, ".repository")
-        if(!pluginRepositoryDir.exists){
-          pluginRepositoryDir.mkdirs()
-        }
+        val pluginsJson = IOUtils.toString(pluginsFile, "UTF-8")
 
-        implicit val formats = DefaultFormats
-        val plugins = parse(IOUtils.toString(pluginsFile, "UTF-8")).extract[Seq[Plugin]]
+        FileUtils.forceMkdir(PluginRepository.LocalRepositoryDir)
+        FileUtils.write(PluginRepository.LocalRepositoryIndexFile, pluginsJson, "UTF-8")
+
+        val plugins = PluginRepository.parsePluginJson(pluginsJson)
         plugins.foreach { plugin =>
-          val file = new File(pluginRepositoryDir, plugin.filename)
-          if(!file.exists){
-            logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
-            using(cl.getResourceAsStream("plugins/" + plugin), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
+          plugin.versions.sortBy { x => Semver.valueOf(x.version) }.reverse.zipWithIndex.foreach { case (version, i) =>
+            val file = new File(PluginRepository.LocalRepositoryDir, version.file)
+            if(!file.exists) {
+              logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
+              FileUtils.forceMkdirParent(file)
+              using(cl.getResourceAsStream("plugins/" + version.file), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
 
-            if(plugin.default){
-              logger.info(s"Enable ${file.getName} in default")
-              FileUtils.copyFile(file, new File(PluginHome, plugin.filename))
+              if(plugin.default && i == 0){
+                logger.info(s"Enable ${file.getName} in default")
+                FileUtils.copyFile(file, new File(PluginHome, version.file))
+              }
             }
           }
         }
       }
     } catch {
-      case e: Exception => logger.error("Error in installing bundled plugin", e)
+      case e: Exception => logger.error("Error in extracting bundled plugin", e)
     }
   }
-
-  case class Plugin(filename: String, default: Boolean = false)
 
   override def contextDestroyed(event: ServletContextEvent): Unit = {
     // Shutdown Quartz scheduler

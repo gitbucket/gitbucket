@@ -6,7 +6,7 @@ import gitbucket.core.admin.html
 import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
 import gitbucket.core.util.{AdminAuthenticator, Mailer}
 import gitbucket.core.ssh.SshServer
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{PluginInfoBase, PluginRegistry, PluginRepository}
 import SystemSettingsService._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
@@ -15,6 +15,10 @@ import gitbucket.core.util.StringUtil._
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.scalatra.i18n.Messages
+import com.github.zafarkhaja.semver.{Version => Semver}
+import gitbucket.core.GitBucketCoreModule
+import scala.collection.JavaConverters._
+
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with RepositoryService with AdminAuthenticator
@@ -181,7 +185,32 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    html.plugins(PluginRegistry().getPlugins(), flash.get("info"))
+    // Installed plugins
+    val enabledPlugins = PluginRegistry().getPlugins()
+
+    val gitbucketVersion = Semver.valueOf(GitBucketCoreModule.getVersions.asScala.last.getVersion)
+
+    // Plugins in the local repository
+    val repositoryPlugins = PluginRepository.getPlugins()
+      .filterNot { meta =>
+        enabledPlugins.exists { plugin => plugin.pluginId == meta.id &&
+          Semver.valueOf(plugin.pluginVersion).greaterThanOrEqualTo(Semver.valueOf(meta.latestVersion.version))
+        }
+      }.map { meta =>
+        (meta, meta.versions.reverse.find { version => gitbucketVersion.satisfies(version.range) })
+      }.collect { case (meta, Some(version)) =>
+        new PluginInfoBase(
+          pluginId      = meta.id,
+          pluginName    = meta.name,
+          pluginVersion = version.version,
+          description   = meta.description
+        )
+      }
+
+    // Merge
+    val plugins = enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false))
+
+    html.plugins(plugins, flash.get("info"))
   })
 
   post("/admin/plugins/_reload")(adminOnly {
@@ -190,24 +219,35 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
     redirect("/admin/plugins")
   })
 
-  post("/admin/plugins/:pluginId/_uninstall")(adminOnly {
+  post("/admin/plugins/:pluginId/:version/_uninstall")(adminOnly {
     val pluginId = params("pluginId")
+    val version  = params("version")
     PluginRegistry().getPlugins()
-      .collect { case (plugin, true) if plugin.pluginId == pluginId => plugin }
+      .collect { case plugin if (plugin.pluginId == pluginId && plugin.pluginVersion == version) => plugin }
       .foreach { _ =>
-      PluginRegistry.uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-      flash += "info" -> s"${pluginId} was uninstalled."
-    }
+        PluginRegistry.uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+        flash += "info" -> s"${pluginId} was uninstalled."
+      }
     redirect("/admin/plugins")
   })
 
-  post("/admin/plugins/:pluginId/_install")(adminOnly {
+  post("/admin/plugins/:pluginId/:version/_install")(adminOnly {
     val pluginId = params("pluginId")
-    PluginRegistry().getPlugins()
-      .collect { case (plugin, false) if plugin.pluginId == pluginId => plugin }
-      .foreach { _ =>
-        PluginRegistry.install(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
-        flash += "info" -> s"${pluginId} was installed."
+    val version  = params("version")
+    /// TODO!!!!
+    PluginRepository.getPlugins()
+      .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version) )}
+      .foreach { case (meta, version) =>
+        version.foreach { version =>
+          // TODO Install version!
+          PluginRegistry.install(
+            new java.io.File(PluginHome, s".repository/${version.file}"),
+            request.getServletContext,
+            loadSystemSettings(),
+            request2Session(request).conn
+          )
+          flash += "info" -> s"${pluginId} was installed."
+        }
       }
     redirect("/admin/plugins")
   })
