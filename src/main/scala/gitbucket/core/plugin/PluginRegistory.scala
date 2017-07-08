@@ -239,15 +239,7 @@ object PluginRegistry {
   private def listPluginJars(dir: File): Seq[File] = {
     dir.listFiles(new FilenameFilter {
       override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-    }).map { file =>
-      val Array(name, version) = file.getName.split("_2.12-")
-      (name, Semver.valueOf(version.replaceFirst("\\.jar$", "")), file)
-    }.groupBy { case (name, _, _) =>
-      name
-    }.map { case (name, versions) =>
-      // Adopt the latest version
-      versions.sortBy { case (name, version, file) => version }.reverse.head._3
-    }.toSeq.sortBy(_.getName)
+    }).toSeq.sortBy(_.getName).reverse
   }
 
   /**
@@ -265,7 +257,10 @@ object PluginRegistry {
     installedDir.mkdir()
 
     if(pluginDir.exists && pluginDir.isDirectory) {
-      listPluginJars(pluginDir).foreach { pluginJar =>
+      pluginDir.listFiles(new FilenameFilter {
+        override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
+      }).toSeq.sortBy(_.getName).reverse.foreach { pluginJar =>
+
         val installedJar = new File(installedDir, pluginJar.getName)
         FileUtils.copyFile(pluginJar, installedJar)
 
@@ -273,11 +268,11 @@ object PluginRegistry {
         val classLoader = new URLClassLoader(Array(installedJar.toURI.toURL), Thread.currentThread.getContextClassLoader)
         try {
           val plugin = classLoader.loadClass("Plugin").getDeclaredConstructor().newInstance().asInstanceOf[Plugin]
-          //          val pluginId = plugin.pluginId
-          //          // Check duplication
-          //          instance.getPlugins().find(_.pluginId == pluginId).foreach { x =>
-          //            throw new IllegalStateException(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
-          //          }
+          val pluginId = plugin.pluginId
+          // Check duplication
+          instance.getPlugins().find(_.pluginId == pluginId).foreach { x =>
+            throw new IllegalStateException(s"Plugin ${pluginId} is duplicated. ${x.pluginJar.getName} is available.")
+          }
 
           // Migration
           val solidbase = new Solidbase()
