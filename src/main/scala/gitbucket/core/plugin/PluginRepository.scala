@@ -27,8 +27,6 @@ case class PluginMetadata(
   id: String,
   name: String,
   description: String,
-  provider: String,
-  homepage: String,
   versions: Seq[VersionDef],
   default: Boolean = false
 ){

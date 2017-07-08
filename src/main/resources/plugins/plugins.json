@@ -3,8 +3,6 @@
     "id": "notifications",
     "name": "Notifications Plugin",
     "description": "Provides Notifications feature on GitBucket.",
-    "provider": "GitBucket Organization",
-    "homepage": "https://github.com/gitbucket/gitbucket-notifications-plugin",
     "versions": [
       {
         "version": "1.0.0",
@@ -18,8 +16,6 @@
     "id": "emoji",
     "name": "Emoji Plugin",
     "description": "Provides Emoji support for GitBucket.",
-    "provider": "GitBucket Organization",
-    "homepage": "https://github.com/gitbucket/gitbucket-emoji-plugin",
     "versions": [
       {
         "version": "4.4.0",
@@ -33,8 +29,6 @@
     "id": "gist",
     "name": "Gist Plugin",
     "description": "Provides Gist feature on GitBucket.",
-    "provider": "GitBucket Organization",
-    "homepage": "https://github.com/gitbucket/gitbucket-gist-plugin",
     "versions": [
       {
         "version": "4.9.0",
