@@ -1,6 +1,6 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.14.1"
+val GitBucketVersion = "4.15.0-SNAPSHOT"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.19.v20170502"
 
@@ -21,8 +21,8 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.7.0.201704051617-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.7.0.201704051617-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.8.0.201706111038-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.8.0.201706111038-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"               % "3.5.1",

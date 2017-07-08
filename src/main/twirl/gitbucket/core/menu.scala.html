@@ -74,6 +74,11 @@
         @gitbucket.core.helper.html.information(info)
         @gitbucket.core.helper.html.error(error)
         <div class="head">
+          <div class="pull-right">
+            @gitbucket.core.plugin.PluginRegistry().getRepositoryHeaders.map { repositoryHeaderComponent =>
+              @repositoryHeaderComponent(repository, context)
+            }
+          </div>
           @gitbucket.core.helper.html.repositoryicon(repository, true)
           <a href="@helpers.url(repository.owner)">@repository.owner</a> / <a href="@helpers.url(repository)" class="strong">@repository.name</a>
 

@@ -48,6 +48,7 @@ class PluginRegistry {
   private val pullRequestHooks = new ListBuffer[PullRequestHook]
   pullRequestHooks += new gitbucket.core.util.Notifier.PullRequestHook()
 
+  private val repositoryHeaders = new ListBuffer[(RepositoryInfo, Context) => Option[Html]]
   private val globalMenus = new ListBuffer[(Context) => Option[Link]]
   private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
   private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
@@ -131,6 +132,10 @@ class PluginRegistry {
   def addPullRequestHook(pullRequestHook: PullRequestHook): Unit = pullRequestHooks += pullRequestHook
 
   def getPullRequestHooks: Seq[PullRequestHook] = pullRequestHooks.toSeq
+
+  def addRepositoryHeader(repositoryHeader: (RepositoryInfo, Context) => Option[Html]): Unit = repositoryHeaders += repositoryHeader
+
+  def getRepositoryHeaders: Seq[(RepositoryInfo, Context) => Option[Html]] = repositoryHeaders.toSeq
 
   def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus += globalMenu
 

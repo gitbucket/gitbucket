@@ -122,6 +122,16 @@ abstract class Plugin {
   def pullRequestHooks(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[PullRequestHook] = Nil
 
   /**
+   * Override to add repository headers.
+   */
+  val repositoryHeaders: Seq[(RepositoryInfo, Context) => Option[Html]] = Nil
+
+  /**
+   * Override to add repository headers.
+   */
+  def repositoryHeaders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[(RepositoryInfo, Context) => Option[Html]] = Nil
+
+  /**
    * Override to add global menus.
    */
   val globalMenus: Seq[(Context) => Option[Link]] = Nil
@@ -266,6 +276,9 @@ abstract class Plugin {
     (pullRequestHooks ++ pullRequestHooks(registry, context, settings)).foreach { pullRequestHook =>
       registry.addPullRequestHook(pullRequestHook)
     }
+    (repositoryHeaders ++ repositoryHeaders(registry, context, settings)).foreach { repositoryHeader =>
+      registry.addRepositoryHeader(repositoryHeader)
+    }
     (globalMenus ++ globalMenus(registry, context, settings)).foreach { globalMenu =>
       registry.addGlobalMenu(globalMenu)
     }
@@ -287,8 +300,8 @@ abstract class Plugin {
     (dashboardTabs ++ dashboardTabs(registry, context, settings)).foreach { dashboardTab =>
       registry.addDashboardTab(dashboardTab)
     }
-    (issueSidebars ++ issueSidebars(registry, context, settings)).foreach { issueSidebar =>
-      registry.addIssueSidebar(issueSidebar)
+    (issueSidebars ++ issueSidebars(registry, context, settings)).foreach { issueSidebarComponent =>
+      registry.addIssueSidebar(issueSidebarComponent)
     }
     (assetsMappings ++ assetsMappings(registry, context, settings)).foreach { assetMapping =>
       registry.addAssetsMapping((assetMapping._1, assetMapping._2, getClass.getClassLoader))
