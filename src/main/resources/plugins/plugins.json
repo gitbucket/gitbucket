@@ -12,6 +12,22 @@
         "file": "gitbucket-gist-plugin_2.12-4.9.0.jar"
       }
     ],
+    "default": false
+  },
+  {
+    "id": "notifications",
+    "name": "Notification Plugin",
+    "description": "Send issues and pull request notification via email.",
+    "provider": "GitBucket Organization",
+    "homepage": "https://github.com/gitbucket/gitbucket-notifications-plugin",
+    "versions": [
+      {
+        "version": "1.0.0",
+        "range": ">4.15.0-SNAPSHOT",
+        "file": "gitbucket-gist-notifications_2.12-1.0.0.jar"
+      }
+    ],
     "default": true
   }
+
 ]
