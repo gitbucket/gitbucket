@@ -1,23 +1,8 @@
 [
   {
-    "id": "gist",
-    "name": "Gist Plugin",
-    "description": "Provides Gist feature on GitBucket.",
-    "provider": "GitBucket Organization",
-    "homepage": "https://github.com/gitbucket/gitbucket-gist-plugin",
-    "versions": [
-      {
-        "version": "4.9.0",
-        "range": ">4.14.0",
-        "file": "gitbucket-gist-plugin_2.12-4.9.0.jar"
-      }
-    ],
-    "default": false
-  },
-  {
     "id": "notifications",
-    "name": "Notification Plugin",
-    "description": "Send issues and pull request notification via email.",
+    "name": "Notifications Plugin",
+    "description": "Provides Notifications feature on GitBucket.",
     "provider": "GitBucket Organization",
     "homepage": "https://github.com/gitbucket/gitbucket-notifications-plugin",
     "versions": [
@@ -28,6 +13,35 @@
       }
     ],
     "default": true
+  },
+  {
+    "id": "emoji",
+    "name": "Emoji Plugin",
+    "description": "Provides Emoji support for GitBucket.",
+    "provider": "GitBucket Organization",
+    "homepage": "https://github.com/gitbucket/gitbucket-emoji-plugin",
+    "versions": [
+      {
+        "version": "4.4.0",
+        "range": ">=4.10.0",
+        "file": "gitbucket-emoji-plugin_2.12-4.4.0.jar"
+      }
+    ],
+    "default": true
+  },
+  {
+    "id": "gist",
+    "name": "Gist Plugin",
+    "description": "Provides Gist feature on GitBucket.",
+    "provider": "GitBucket Organization",
+    "homepage": "https://github.com/gitbucket/gitbucket-gist-plugin",
+    "versions": [
+      {
+        "version": "4.9.0",
+        "range": ">=4.14.0",
+        "file": "gitbucket-gist-plugin_2.12-4.9.0.jar"
+      }
+    ],
+    "default": false
   }
-
 ]

@@ -236,12 +236,10 @@ object PluginRegistry {
     initialize(context, settings, conn)
   }
 
-  private class PluginJarFileFilter extends FilenameFilter {
-    override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
-  }
-
   private def listPluginJars(dir: File): Seq[File] = {
-    dir.listFiles(new PluginJarFileFilter()).map { file =>
+    dir.listFiles(new FilenameFilter {
+      override def accept(dir: File, name: String): Boolean = name.endsWith(".jar")
+    }).map { file =>
       val Array(name, version) = file.getName.split("_2.12-")
       (name, Semver.valueOf(version.replaceFirst("\\.jar$", "")), file)
     }.groupBy { case (name, _, _) =>
