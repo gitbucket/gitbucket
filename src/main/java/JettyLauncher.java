@@ -48,6 +48,9 @@ public class JettyLauncher {
                         case "--temp_dir":
                             tmpDirPath = dim[1];
                             break;
+                        case "--plugin_dir":
+                            System.setProperty("gitbucket.pluginDir", dim[1]);
+                            break;
                     }
                 }
             }

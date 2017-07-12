@@ -32,7 +32,7 @@ object Directory {
 
   val DatabaseHome = s"${GitBucketHome}/data"
 
-  val PluginHome = s"${GitBucketHome}/plugins"
+  val PluginHome = Option(System.getProperty("gitbucket.pluginDir")).getOrElse(s"${GitBucketHome}/plugins")
 
   val TemporaryHome = s"${GitBucketHome}/tmp"
 
