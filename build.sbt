@@ -50,6 +50,7 @@ libraryDependencies ++= Seq(
   "org.cache2k"                     %  "cache2k-all"                  % "1.0.0.CR1",
   "com.enragedginger"               %% "akka-quartz-scheduler"        % "1.6.0-akka-2.4.x" exclude("c3p0","c3p0"),
   "net.coobird"                     %  "thumbnailator"                % "0.4.8",
+  "com.github.zafarkhaja"           %  "java-semver"                  % "0.9.0",
   "org.eclipse.jetty"               %  "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",

@@ -31,9 +31,8 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
     // Register controllers
     context.mount(new AnonymousAccessController, "/*")
 
-    PluginRegistry().getControllers.foreach { case (controller, path) =>
-      context.mount(controller, path)
-    }
+    context.addFilter("pluginControllerFilter", new PluginControllerFilter)
+    context.getFilterRegistration("pluginControllerFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
 
     context.mount(new IndexController, "/")
     context.mount(new ApiController, "/api/v3")
