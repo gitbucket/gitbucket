@@ -6,8 +6,8 @@
     "versions": [
       {
         "version": "1.0.0",
-        "range": ">4.15.0-SNAPSHOT",
-        "file": "gitbucket-gist-notifications_2.12-1.0.0.jar"
+        "range": ">4.15.0",
+        "file": "gitbucket-notifications-plugin_2.12-1.0.0.jar"
       }
     ],
     "default": true
