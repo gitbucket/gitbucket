@@ -163,7 +163,7 @@ object MergeService{
         case e: NoMergeBaseException => true
       }
       val mergeTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeTip ))
-      val committer = mergeTipCommit.getCommitterIdent;
+      val committer = mergeTipCommit.getCommitterIdent
       def updateBranch(treeId:ObjectId, message:String, branchName:String){
         // creates merge commit
         val mergeCommitId = createMergeCommit(treeId, committer, message)

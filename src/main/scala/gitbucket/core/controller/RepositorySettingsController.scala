@@ -393,7 +393,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   post("/:owner/:repository/settings/gc")(ownerOnly { repository =>
     LockUtil.lock(s"${repository.owner}/${repository.name}") {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        git.gc();
+        git.gc()
       }
     }
     flash += "info" -> "Garbage collection has been executed."

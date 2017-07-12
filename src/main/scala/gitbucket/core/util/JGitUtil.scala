@@ -994,13 +994,13 @@ object JGitUtil {
 
   def getBlame(git: Git, id: String, path: String): Iterable[BlameInfo] = {
     Option(git.getRepository.resolve(id)).map{ commitId =>
-      val blamer = new org.eclipse.jgit.api.BlameCommand(git.getRepository);
+      val blamer = new org.eclipse.jgit.api.BlameCommand(git.getRepository)
       blamer.setStartCommit(commitId)
       blamer.setFilePath(path)
       val blame = blamer.call()
       var blameMap = Map[String, JGitUtil.BlameInfo]()
       var idLine = List[(String, Int)]()
-      val commits = 0.to(blame.getResultContents().size()-1).map{ i =>
+      val commits = 0.to(blame.getResultContents().size() - 1).map{ i =>
         val c = blame.getSourceCommit(i)
         if(!blameMap.contains(c.name)){
           blameMap += c.name -> JGitUtil.BlameInfo(
@@ -1010,7 +1010,7 @@ object JGitUtil {
             c.getAuthorIdent.getWhen,
             Option(git.log.add(c).addPath(blame.getSourcePath(i)).setSkip(1).setMaxCount(2).call.iterator.next)
               .map(_.name),
-            if(blame.getSourcePath(i)==path){ None }else{ Some(blame.getSourcePath(i)) },
+            if(blame.getSourcePath(i)==path){ None } else { Some(blame.getSourcePath(i)) },
             c.getCommitterIdent.getWhen,
             c.getShortMessage,
             Set.empty)
