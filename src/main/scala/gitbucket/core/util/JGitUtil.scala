@@ -14,7 +14,7 @@ import org.eclipse.jgit.revwalk.filter._
 import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.treewalk.filter._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
+import org.eclipse.jgit.errors.{ConfigInvalidException, IncorrectObjectTypeException, MissingObjectException}
 import org.eclipse.jgit.transport.RefSpec
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -226,9 +226,14 @@ object JGitUtil {
             ref.getName.stripPrefix("refs/heads/")
           }.toList,
           // tags
-          git.tagList.call.asScala.map { ref =>
-            val revCommit = getRevCommitFromId(git, ref.getObjectId)
-            TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName)
+          git.tagList.call.asScala.flatMap { ref =>
+            try {
+              val revCommit = getRevCommitFromId(git, ref.getObjectId)
+              Some(TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName))
+            } catch {
+              case _: IncorrectObjectTypeException =>
+                None
+            }
           }.sortBy(_.time).toList
         )
       } catch {
