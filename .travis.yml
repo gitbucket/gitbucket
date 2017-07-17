@@ -29,7 +29,11 @@ matrix:
       apt:
         packages:
         - libaio1
-        - oracle-java9-installer
+    before_install:
+    - cd ~
+    - wget http://download.java.net/java/jdk9/archive/178/binaries/jdk-9+178_linux-x64_bin.tar.gz
+    - tar -xzf jdk-9+178_linux-x64_bin.tar.gz
+    - cd -
     script:
     # https://github.com/sbt/sbt/pull/2951
     - git clone https://github.com/retronym/java9-rt-export
@@ -37,7 +41,9 @@ matrix:
     - git checkout 1019a2873d057dd7214f4135e84283695728395d
     - jdk_switcher use oraclejdk8
     - sbt package
-    - jdk_switcher use oraclejdk9
+#    - jdk_switcher use oraclejdk9
+    - export JAVA_HOME=~/jdk-9
+    - PATH=$JAVA_HOME/bin:$PATH
     - java -version
     - mkdir -p $HOME/.sbt/0.13/java9-rt-ext; java -jar target/java9-rt-export-*.jar $HOME/.sbt/0.13/java9-rt-ext/rt.jar
     - jar tf $HOME/.sbt/0.13/java9-rt-ext/rt.jar | grep java/lang/Object
