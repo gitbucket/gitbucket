@@ -16,7 +16,7 @@
 <div class="tabbable">
   <ul class="nav nav-tabs fill-width" style="margin-bottom: 10px;">
     <li class="active"><a href="#tab@uid" data-toggle="tab">Write</a></li>
-    <li><a href="#tab@(uid+1)" data-toggle="tab" id="preview@uid">Preview</a></li>
+    <li><a href="#tab@(uid + 1)" data-toggle="tab" id="preview@uid">Preview</a></li>
   </ul>
   <div class="tab-content">
     <div class="tab-pane active" style="margin-top: 4px;" id="tab@uid">
@@ -32,7 +32,7 @@
         generateScript    = !enableWikiLink
       )(textarea)
     </div>
-    <div class="tab-pane" id="tab@(uid+1)">
+    <div class="tab-pane" id="tab@(uid + 1)">
       <div class="markdown-body" id="preview-area@uid">
       </div>
     </div>

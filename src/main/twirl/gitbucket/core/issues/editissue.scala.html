@@ -1,11 +1,21 @@
 @(content: Option[String], issueId: Int,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
-@gitbucket.core.helper.html.attached(repository, "issues"){
-  <textarea id="edit-content" class="form-control">@content.getOrElse("")</textarea>
-}
-<div>
-  <input type="button" id="cancel-issue" class="btn btn-danger" value="Cancel"/>
-  <input type="button" id="update-issue" class="btn btn-default pull-right" value="Update comment"/>
+@gitbucket.core.helper.html.preview(
+  repository         = repository,
+  content            = content.getOrElse(""),
+  enableWikiLink     = false,
+  enableRefsLink     = true,
+  enableLineBreaks   = true,
+  enableTaskList     = true,
+  hasWritePermission = true,
+  completionContext  = "issues",
+  style              = "",
+  elastic            = true,
+  tabIndex           = 1
+)
+<div class="pull-right">
+  <input type="button" id="cancel-issue" class="btn btn-default" value="Cancel"/>
+  <input type="button" id="update-issue" class="btn btn-success" value="Update comment"/>
 </div>
 <script>
 $(function(){
@@ -16,13 +26,12 @@ $(function(){
   };
 
   $('#update-issue').click(function(){
+    var content = $(this).parent().parent().find('textarea[name=content]').val();
     $('#update, #cancel').attr('disabled', 'disabled');
     $.ajax({
       url: '@context.path/@repository.owner/@repository.name/issues/edit/@issueId',
       type: 'POST',
-      data: {
-        content : $('#edit-content').val()
-      }
+      data: { content : content }
     }).done(
       callback
     ).fail(function(req) {
