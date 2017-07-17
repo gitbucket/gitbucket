@@ -31,8 +31,9 @@ matrix:
         - libaio1
     before_install:
     - cd ~
-    - wget http://download.java.net/java/jdk9/archive/178/binaries/jdk-9+178_linux-x64_bin.tar.gz
-    - tar -xzf jdk-9+178_linux-x64_bin.tar.gz
+    - JDK9_URL=`curl http://jdk.java.net/9/ | grep "lin64JDK" | grep "tar.gz\"" | sed -e "s/\"/ /g" | awk '{print $5}'`
+    - wget -O jdk-9_linux-x64_bin.tar.gz $JDK9_URL
+    - tar -xzf jdk-9_linux-x64_bin.tar.gz
     - cd -
     script:
     # https://github.com/sbt/sbt/pull/2951
