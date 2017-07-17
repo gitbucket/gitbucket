@@ -1,9 +1,19 @@
 @(content: String, commentId: Int,
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo)(implicit context: gitbucket.core.controller.Context)
 <span id="error-edit-content-@commentId" class="error"></span>
-@gitbucket.core.helper.html.attached(repository, "issues"){
-  <textarea id="edit-content-@commentId" class="form-control">@content</textarea>
-}
+@gitbucket.core.helper.html.preview(
+  repository         = repository,
+  content            = content,
+  enableWikiLink     = false,
+  enableRefsLink     = true,
+  enableLineBreaks   = true,
+  enableTaskList     = true,
+  hasWritePermission = true,
+  completionContext  = "issues",
+  style              = "",
+  elastic            = true,
+  tabIndex           = 1
+)
 <div>
   <input type="button" id="cancel-comment-@commentId" class="btn btn-danger" value="Cancel"/>
   <input type="button" id="update-comment-@commentId" class="btn btn-default pull-right" value="Update comment"/>
@@ -17,13 +27,14 @@ $(function(){
   };
 
   $('#update-comment-@commentId').click(function(){
+    var content = $(this).parent().parent().find('textarea[name=content]').val();
     $('#update-comment-@commentId, #cancel-comment-@commentId').attr('disabled', 'disabled');
     $.ajax({
       url: '@context.path/@repository.owner/@repository.name/issue_comments/edit/@commentId',
       type: 'POST',
       data: {
         issueId : 0,	// TODO
-        content : $('#edit-content-@commentId').val()
+        content : content
       }
     }).done(
       callback
