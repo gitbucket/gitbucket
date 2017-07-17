@@ -12,6 +12,7 @@ $(function(){
   var callback = function(data){
     $('#update, #cancel').removeAttr('disabled');
     $('#issueContent').empty().html(data.content);
+    prettyPrint();
   };
 
   $('#update-issue').click(function(){
