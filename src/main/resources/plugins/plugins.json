@@ -31,9 +31,9 @@
     "description": "Provides Gist feature on GitBucket.",
     "versions": [
       {
-        "version": "4.9.0",
+        "version": "4.9.1",
         "range": ">=4.14.0",
-        "file": "gitbucket-gist-plugin_2.12-4.9.0.jar"
+        "file": "gitbucket-gist-plugin_2.12-4.9.1.jar"
       }
     ],
     "default": false
