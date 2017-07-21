@@ -57,7 +57,8 @@ libraryDependencies ++= Seq(
   "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
   "org.mockito"                     %  "mockito-core"                 % "2.7.22"         % "test",
   "com.wix"                         %  "wix-embedded-mysql"           % "2.1.4"          % "test",
-  "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "2.0"            % "test"
+  "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "2.0"            % "test",
+  "net.i2p.crypto"                  % "eddsa"                         % "0.1.0"
 )
 
 // Compiler settings
