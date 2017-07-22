@@ -564,17 +564,6 @@ pre.commit-description {
   font-family: monospace;
 }
 
-#repository-url-copy {
-  /*height: 18px;*/
-  padding-top: 2px;
-}
-
-#repository-url-copy > i {
-  margin-left: -4px;
-  margin-right: -4px;
-}
-
-
 ul#commit-file-list {
   list-style-type: none;
   padding-left: 0px;
