@@ -20,7 +20,7 @@
           @status.statusesAndRequired.map { case (status, required) =>
             <div class="build-status-item">
               <div class="pull-right">
-                @if(required){ <span class="label">Required</span> }
+                @if(required){ <span class="label label-success">Required</span> }
                 @status.targetUrl.map { url => <a href="@url">Details</a> }
               </div>
               <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
