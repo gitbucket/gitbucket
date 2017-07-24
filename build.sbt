@@ -152,8 +152,9 @@ executableKey := {
 
   val json = IO read(Keys.baseDirectory.value / "plugins.json")
   PluginsJson.parse(json).foreach { case (plugin, version) =>
-    IO download(new java.net.URL(s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"),
-      pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
+    val url = s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
+    log info s"Download: ${url}"
+    IO download(new java.net.URL(url), pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
   }
 
   // zip it up
