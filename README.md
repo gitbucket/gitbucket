@@ -71,6 +71,13 @@ Support
 
 Release Notes
 -------------
+### 4.15.0 - 5 Aug 2017 (Plan)
+- Bundle GitBucket organization plugins
+- Notifications plugin
+- Plugin hot deployment
+- Markdown preview in comment editing forms
+- Support ed25519 keys for SSH
+
 ### 4.14.1 - 4 Jul 2017
 - Bug fix: Possibility of error in forking repository
 
