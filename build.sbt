@@ -1,6 +1,6 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.15.0-SNAPSHOT"
+val GitBucketVersion = "4.15.0"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.19.v20170502"
 
@@ -145,12 +145,25 @@ executableKey := {
     IO copyFile (classDir / name, temp / name)
   }
 
+  // include plugins
+  val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
+  IO createDirectory (pluginsDir)
+  IO copyFile(Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
+  val plugins = Seq(
+    ("gitbucket-gist-plugin", "4.9.1"),
+    ("gitbucket-emoji-plugin", "4.4.0")
+  )
+  plugins.foreach { case (plugin, version) =>
+    IO download(new java.net.URL(s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"),
+      pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
+  }
+
   // zip it up
   IO delete (temp / "META-INF" / "MANIFEST.MF")
   val contentMappings   = (temp.*** --- PathFinder(temp)).get pair relativeTo(temp)
   val manifest          = new JarManifest
-  manifest.getMainAttributes put (AttrName.MANIFEST_VERSION,    "1.0")
-  manifest.getMainAttributes put (AttrName.MAIN_CLASS,          "JettyLauncher")
+  manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
+  manifest.getMainAttributes put (AttrName.MAIN_CLASS,       "JettyLauncher")
   val outputFile    = workDir / warName
   IO jar (contentMappings, outputFile, manifest)
 

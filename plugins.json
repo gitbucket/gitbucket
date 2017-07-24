@@ -1,18 +1,5 @@
 [
   {
-    "id": "notifications",
-    "name": "Notifications Plugin",
-    "description": "Provides Notifications feature on GitBucket.",
-    "versions": [
-      {
-        "version": "1.0.0",
-        "range": ">=4.15.0",
-        "file": "gitbucket-notifications-plugin_2.12-1.0.0.jar"
-      }
-    ],
-    "default": true
-  },
-  {
     "id": "emoji",
     "name": "Emoji Plugin",
     "description": "Provides Emoji support for GitBucket.",
@@ -31,9 +18,9 @@
     "description": "Provides Gist feature on GitBucket.",
     "versions": [
       {
-        "version": "4.9.2",
-        "range": ">=4.15.0",
-        "file": "gitbucket-gist-plugin_2.12-4.9.2.jar"
+        "version": "4.9.1",
+        "range": ">=4.14.0",
+        "file": "gitbucket-gist-plugin_2.12-4.9.1.jar"
       }
     ],
     "default": false
