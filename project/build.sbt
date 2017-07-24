@@ -1,1 +1,1 @@
-libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.1"
+libraryDependencies += "com.eclipsesource.minimal-json" % "minimal-json" % "0.9.4"

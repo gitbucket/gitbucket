@@ -149,11 +149,9 @@ executableKey := {
   val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
   IO createDirectory (pluginsDir)
   IO copyFile(Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
-  val plugins = Seq(
-    ("gitbucket-gist-plugin", "4.9.1"),
-    ("gitbucket-emoji-plugin", "4.4.0")
-  )
-  plugins.foreach { case (plugin, version) =>
+
+  val json = IO read(Keys.baseDirectory.value / "plugins.json")
+  PluginsJson.parse(json).foreach { case (plugin, version) =>
     IO download(new java.net.URL(s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"),
       pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
   }
