@@ -134,23 +134,25 @@ class InitializeListener extends ServletContextListener with SystemSettingsServi
     val cl = Thread.currentThread.getContextClassLoader
     try {
       using(cl.getResourceAsStream("plugins/plugins.json")){ pluginsFile =>
-        val pluginsJson = IOUtils.toString(pluginsFile, "UTF-8")
+        if(pluginsFile != null){
+          val pluginsJson = IOUtils.toString(pluginsFile, "UTF-8")
 
-        FileUtils.forceMkdir(PluginRepository.LocalRepositoryDir)
-        FileUtils.write(PluginRepository.LocalRepositoryIndexFile, pluginsJson, "UTF-8")
+          FileUtils.forceMkdir(PluginRepository.LocalRepositoryDir)
+          FileUtils.write(PluginRepository.LocalRepositoryIndexFile, pluginsJson, "UTF-8")
 
-        val plugins = PluginRepository.parsePluginJson(pluginsJson)
-        plugins.foreach { plugin =>
-          plugin.versions.sortBy { x => Semver.valueOf(x.version) }.reverse.zipWithIndex.foreach { case (version, i) =>
-            val file = new File(PluginRepository.LocalRepositoryDir, version.file)
-            if(!file.exists) {
-              logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
-              FileUtils.forceMkdirParent(file)
-              using(cl.getResourceAsStream("plugins/" + version.file), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
+          val plugins = PluginRepository.parsePluginJson(pluginsJson)
+          plugins.foreach { plugin =>
+            plugin.versions.sortBy { x => Semver.valueOf(x.version) }.reverse.zipWithIndex.foreach { case (version, i) =>
+              val file = new File(PluginRepository.LocalRepositoryDir, version.file)
+              if(!file.exists) {
+                logger.info(s"Copy ${plugin} to ${file.getAbsolutePath}")
+                FileUtils.forceMkdirParent(file)
+                using(cl.getResourceAsStream("plugins/" + version.file), new FileOutputStream(file)){ case (in, out) => IOUtils.copy(in, out) }
 
-              if(plugin.default && i == 0){
-                logger.info(s"Enable ${file.getName} in default")
-                FileUtils.copyFile(file, new File(PluginHome, version.file))
+                if(plugin.default && i == 0){
+                  logger.info(s"Enable ${file.getName} in default")
+                  FileUtils.copyFile(file, new File(PluginHome, version.file))
+                }
               }
             }
           }
