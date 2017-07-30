@@ -36,8 +36,7 @@ trait IssuesService {
       .filter(_.action === "merge".bind)
       .join(Accounts).on { case  t1 ~ t2 => t1.commentedUserName === t2.userName }
       .map { case t1 ~ t2 => (t1, t2)}
-      .list
-      .collectFirst { case (comment, account) if comment.action == "merge" => (comment, account) }
+      .firstOption
   }
 
   def getComment(owner: String, repository: String, commentId: String)(implicit s: Session): Option[IssueComment] = {
