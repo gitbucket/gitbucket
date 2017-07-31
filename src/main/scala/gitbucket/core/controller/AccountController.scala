@@ -232,6 +232,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound()
   })
 
+  get("/captures/(.*)".r) {
+    multiParams("captures").head
+  }
+
   get("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
