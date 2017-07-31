@@ -75,8 +75,9 @@ Release Notes
 - Bundle GitBucket organization plugins
 - Notifications plugin
 - Plugin hot deployment
-- Markdown preview in comment editing forms
+- Update Slick to 3.2.1 from 3.2.0
 - Support ed25519 keys for SSH
+- Markdown preview in comment editing forms
 
 ### 4.14.1 - 4 Jul 2017
 - Bug fix: Possibility of error in forking repository
