@@ -193,7 +193,7 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name){ case (owner, name) =>
       getComment(owner, name, params("id")).map { comment =>
         if(isEditableContent(owner, name, comment.commentedUserName)){
-          updateComment(comment.commentId, form.content)
+          updateComment(comment.issueId, comment.commentId, form.content)
           redirect(s"/${owner}/${name}/issue_comments/_data/${comment.commentId}")
         } else Unauthorized()
       } getOrElse NotFound()
@@ -204,7 +204,7 @@ trait IssuesControllerBase extends ControllerBase {
     defining(repository.owner, repository.name){ case (owner, name) =>
       getComment(owner, name, params("id")).map { comment =>
         if(isEditableContent(owner, name, comment.commentedUserName)){
-          Ok(deleteComment(comment.commentId))
+          Ok(deleteComment(comment.issueId, comment.commentId))
         } else Unauthorized()
       } getOrElse NotFound()
     }

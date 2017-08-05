@@ -327,6 +327,7 @@ trait IssuesService {
 
   def createComment(owner: String, repository: String, loginUser: String,
       issueId: Int, content: String, action: String)(implicit s: Session): Int = {
+    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
     IssueComments returning IssueComments.map(_.commentId) insert IssueComment(
       userName          = owner,
       repositoryName    = repository,
@@ -342,31 +343,33 @@ trait IssuesService {
     Issues
       .filter (_.byPrimaryKey(owner, repository, issueId))
       .map { t => (t.title, t.content.?, t.updatedDate) }
-      .update (title, content, currentDate)
+      .update(title, content, currentDate)
   }
 
   def updateAssignedUserName(owner: String, repository: String, issueId: Int, assignedUserName: Option[String])(implicit s: Session): Int = {
-    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.assignedUserName?).update (assignedUserName)
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(t => (t.assignedUserName?, t.updatedDate)).update(assignedUserName, currentDate)
   }
 
   def updateMilestoneId(owner: String, repository: String, issueId: Int, milestoneId: Option[Int])(implicit s: Session): Int = {
-    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.milestoneId?).update (milestoneId)
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(t => (t.milestoneId?, t.updatedDate)).update(milestoneId, currentDate)
   }
 
   def updatePriorityId(owner: String, repository: String, issueId: Int, priorityId: Option[Int])(implicit s: Session): Int = {
-    Issues.filter (_.byPrimaryKey(owner, repository, issueId)).map(_.priorityId?).update (priorityId)
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(t => (t.priorityId?, t.updatedDate)).update(priorityId, currentDate)
   }
 
-  def updateComment(commentId: Int, content: String)(implicit s: Session): Int = {
-    IssueComments.filter (_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).update(content, currentDate)
+  def updateComment(issueId: Int, commentId: Int, content: String)(implicit s: Session): Int = {
+    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+    IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.updatedDate)).update(content, currentDate)
   }
 
-  def deleteComment(commentId: Int)(implicit s: Session): Int = {
-    IssueComments filter (_.byPrimaryKey(commentId)) delete
+  def deleteComment(issueId: Int, commentId: Int)(implicit s: Session): Int = {
+    Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
+    IssueComments.filter(_.byPrimaryKey(commentId)).delete
   }
 
   def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean)(implicit s: Session): Int = {
-    (Issues filter (_.byPrimaryKey(owner, repository, issueId)) map(t => (t.closed, t.updatedDate))).update((closed, currentDate))
+    Issues.filter(_.byPrimaryKey(owner, repository, issueId)).map(t => (t.closed, t.updatedDate)).update(closed, currentDate)
   }
 
   /**

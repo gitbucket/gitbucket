@@ -50,7 +50,7 @@ trait HandleCommentService {
             id
         }
 
-        actionActivity foreach ( _ (owner, name, userName, issue.issueId, issue.title) )
+        actionActivity.foreach { f => f(owner, name, userName, issue.issueId, issue.title) }
 
         // call web hooks
         action match {
