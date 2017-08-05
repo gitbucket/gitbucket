@@ -23,7 +23,7 @@
         "file": "gitbucket-emoji-plugin_2.12-4.4.0.jar"
       }
     ],
-    "default": true
+    "default": false
   },
   {
     "id": "gist",
@@ -36,7 +36,7 @@
         "file": "gitbucket-gist-plugin_2.12-4.10.0.jar"
       }
     ],
-    "default": true
+    "default": false
   },
   {
     "id": "pages",
@@ -49,6 +49,6 @@
         "file": "gitbucket-pages-plugin_2.12-1.5.0.jar"
       }
     ],
-    "default": true
+    "default": false
   }
 ]

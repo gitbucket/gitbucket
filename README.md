@@ -57,6 +57,7 @@ GitBucket has a plug-in system that allows extra functionality. Officially the f
 - [gitbucket-gist-plugin](https://github.com/gitbucket/gitbucket-gist-plugin)
 - [gitbucket-emoji-plugin](https://github.com/gitbucket/gitbucket-emoji-plugin)
 - [gitbucket-pages-plugin](https://github.com/gitbucket/gitbucket-pages-plugin)
+- [gitbucket-notifications-plugin](https://github.com/gitbucket/gitbucket-notifications-plugin)
 
 You can find more plugins made by the community at [GitBucket community plugins](http://gitbucket-plugins.github.io/).
 
@@ -71,12 +72,13 @@ Support
 
 Release Notes
 -------------
-### 4.15.0 - 5 Aug 2017 (Plan)
+### 4.15.0 - 5 Aug 2017
 - Bundle GitBucket organization plugins
 - Notifications plugin
 - Plugin hot deployment
-- Markdown preview in comment editing forms
+- Update Slick to 3.2.1 from 3.2.0
 - Support ed25519 keys for SSH
+- Markdown preview in comment editing forms
 
 ### 4.14.1 - 4 Jul 2017
 - Bug fix: Possibility of error in forking repository

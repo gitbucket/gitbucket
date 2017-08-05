@@ -152,7 +152,11 @@ executableKey := {
 
   val json = IO read(Keys.baseDirectory.value / "plugins.json")
   PluginsJson.parse(json).foreach { case (plugin, version) =>
-    val url = s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
+    val url = if(plugin == "gitbucket-pages-plugin"){
+      s"https://github.com/gitbucket/${plugin}/releases/download/v${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
+    } else {
+      s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
+    }
     log info s"Download: ${url}"
     IO download(new java.net.URL(url), pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
   }
