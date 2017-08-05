@@ -72,7 +72,7 @@ Support
 
 Release Notes
 -------------
-### 4.15.0 - 5 Aug 2017 (Plan)
+### 4.15.0 - 5 Aug 2017
 - Bundle GitBucket organization plugins
 - Notifications plugin
 - Plugin hot deployment
