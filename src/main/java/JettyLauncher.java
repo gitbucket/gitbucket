@@ -51,6 +51,9 @@ public class JettyLauncher {
                         case "--plugin_dir":
                             System.setProperty("gitbucket.pluginDir", dim[1]);
                             break;
+                        case "--validate_password":
+                            System.setProperty("gitbucket.validate.password", dim[1]);
+                            break;
                     }
                 }
             }
