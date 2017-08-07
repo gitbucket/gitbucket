@@ -24,49 +24,49 @@ import play.twirl.api.Html
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConverters._
 
 class PluginRegistry {
 
-  private val plugins = new ListBuffer[PluginInfo]
-  private val javaScripts = new ListBuffer[(String, String)]
-  private val controllers = new ListBuffer[(ControllerBase, String)]
-  private val images = mutable.Map[String, String]()
-  private val renderers = mutable.Map[String, Renderer]()
-  renderers ++= Seq(
-    "md" -> MarkdownRenderer, "markdown" -> MarkdownRenderer
-  )
-  private val repositoryRoutings = new ListBuffer[GitRepositoryRouting]
-  private val accountHooks = new ListBuffer[AccountHook]
-  private val receiveHooks = new ListBuffer[ReceiveHook]
-  receiveHooks += new ProtectedBranchReceiveHook()
+  private val plugins = new java.util.concurrent.ConcurrentLinkedQueue[PluginInfo] // new ListBuffer[PluginInfo]
+  private val javaScripts = new java.util.concurrent.ConcurrentLinkedQueue[(String, String)] //new ListBuffer[(String, String)] with mutable.SynchronizedBuffer[(String, String)]
+  private val controllers = new java.util.concurrent.ConcurrentLinkedQueue[(ControllerBase, String)] //new ListBuffer[(ControllerBase, String)]
+  private val images = new java.util.concurrent.ConcurrentHashMap[String, String] //mutable.Map[String, String]()
+  private val renderers = new java.util.concurrent.ConcurrentHashMap[String, Renderer] // mutable.Map[String, Renderer]()
+  renderers.put("md", MarkdownRenderer)
+  renderers.put("markdown", MarkdownRenderer)
+  private val repositoryRoutings = new java.util.concurrent.ConcurrentLinkedQueue[GitRepositoryRouting] // new ListBuffer[GitRepositoryRouting]
+  private val accountHooks = new java.util.concurrent.ConcurrentLinkedQueue[AccountHook] // new ListBuffer[AccountHook]
+  private val receiveHooks = new java.util.concurrent.ConcurrentLinkedQueue[ReceiveHook] // new ListBuffer[ReceiveHook]
+  receiveHooks.add(new ProtectedBranchReceiveHook())
 
-  private val repositoryHooks = new ListBuffer[RepositoryHook]
-  private val issueHooks = new ListBuffer[IssueHook]
+  private val repositoryHooks = new java.util.concurrent.ConcurrentLinkedQueue[RepositoryHook]
+  private val issueHooks = new java.util.concurrent.ConcurrentLinkedQueue[IssueHook]
 
-  private val pullRequestHooks = new ListBuffer[PullRequestHook]
+  private val pullRequestHooks = new java.util.concurrent.ConcurrentLinkedQueue[PullRequestHook]
 
-  private val repositoryHeaders = new ListBuffer[(RepositoryInfo, Context) => Option[Html]]
-  private val globalMenus = new ListBuffer[(Context) => Option[Link]]
-  private val repositoryMenus = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
-  private val repositorySettingTabs = new ListBuffer[(RepositoryInfo, Context) => Option[Link]]
-  private val profileTabs = new ListBuffer[(Account, Context) => Option[Link]]
-  private val systemSettingMenus = new ListBuffer[(Context) => Option[Link]]
-  private val accountSettingMenus = new ListBuffer[(Context) => Option[Link]]
-  private val dashboardTabs = new ListBuffer[(Context) => Option[Link]]
-  private val issueSidebars = new ListBuffer[(Issue, RepositoryInfo, Context) => Option[Html]]
-  private val assetsMappings = new ListBuffer[(String, String, ClassLoader)]
-  private val textDecorators = new ListBuffer[TextDecorator]
+  private val repositoryHeaders = new java.util.concurrent.ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Html]]
+  private val globalMenus = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val repositoryMenus = new java.util.concurrent.ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Link]]
+  private val repositorySettingTabs = new java.util.concurrent.ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Link]]
+  private val profileTabs = new java.util.concurrent.ConcurrentLinkedQueue[(Account, Context) => Option[Link]]
+  private val systemSettingMenus = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val accountSettingMenus = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val dashboardTabs = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val issueSidebars = new java.util.concurrent.ConcurrentLinkedQueue[(Issue, RepositoryInfo, Context) => Option[Html]]
+  private val assetsMappings = new java.util.concurrent.ConcurrentLinkedQueue[(String, String, ClassLoader)]
+  private val textDecorators = new java.util.concurrent.ConcurrentLinkedQueue[TextDecorator]
 
-  private val suggestionProviders = new ListBuffer[SuggestionProvider]
-  suggestionProviders += new UserNameSuggestionProvider()
+  private val suggestionProviders = new java.util.concurrent.ConcurrentLinkedQueue[SuggestionProvider]
+  suggestionProviders.add(new UserNameSuggestionProvider())
 
-  def addPlugin(pluginInfo: PluginInfo): Unit = plugins += pluginInfo
+  def addPlugin(pluginInfo: PluginInfo): Unit = plugins.add(pluginInfo)
 
-  def getPlugins(): List[PluginInfo] = plugins.toList
+  def getPlugins(): List[PluginInfo] = plugins.asScala.toList
 
   def addImage(id: String, bytes: Array[Byte]): Unit = {
     val encoded = Base64.getEncoder.encodeToString(bytes)
-    images += ((id, encoded))
+    images.put(id, encoded)
   }
 
   @deprecated("Use addImage(id: String, bytes: Array[Byte]) instead", "3.4.0")
@@ -79,28 +79,28 @@ class PluginRegistry {
     addImage(id, bytes)
   }
 
-  def getImage(id: String): String = images(id)
+  def getImage(id: String): String = images.get(id)
 
-  def addController(path: String, controller: ControllerBase): Unit = controllers += ((controller, path))
+  def addController(path: String, controller: ControllerBase): Unit = controllers.add((controller, path))
 
   @deprecated("Use addController(path: String, controller: ControllerBase) instead", "3.4.0")
   def addController(controller: ControllerBase, path: String): Unit = addController(path, controller)
 
-  def getControllers(): Seq[(ControllerBase, String)] = controllers.toSeq
+  def getControllers(): Seq[(ControllerBase, String)] = controllers.asScala.toSeq
 
-  def addJavaScript(path: String, script: String): Unit = javaScripts += ((path, script))
+  def addJavaScript(path: String, script: String): Unit = javaScripts.add((path, script)) //javaScripts += ((path, script))
 
-  def getJavaScript(currentPath: String): List[String] = javaScripts.filter(x => currentPath.matches(x._1)).toList.map(_._2)
+  def getJavaScript(currentPath: String): List[String] = javaScripts.asScala.filter(x => currentPath.matches(x._1)).toList.map(_._2)
 
-  def addRenderer(extension: String, renderer: Renderer): Unit = renderers += ((extension, renderer))
+  def addRenderer(extension: String, renderer: Renderer): Unit = renderers.put(extension, renderer)
 
-  def getRenderer(extension: String): Renderer = renderers.getOrElse(extension, DefaultRenderer)
+  def getRenderer(extension: String): Renderer = renderers.asScala.getOrElse(extension, DefaultRenderer)
 
-  def renderableExtensions: Seq[String] = renderers.keys.toSeq
+  def renderableExtensions: Seq[String] = renderers.keys.asScala.toSeq
 
-  def addRepositoryRouting(routing: GitRepositoryRouting): Unit = repositoryRoutings += routing
+  def addRepositoryRouting(routing: GitRepositoryRouting): Unit = repositoryRoutings.add(routing)
 
-  def getRepositoryRoutings(): Seq[GitRepositoryRouting] = repositoryRoutings.toSeq
+  def getRepositoryRoutings(): Seq[GitRepositoryRouting] = repositoryRoutings.asScala.toSeq
 
   def getRepositoryRouting(repositoryPath: String): Option[GitRepositoryRouting] = {
     PluginRegistry().getRepositoryRoutings().find {
@@ -110,73 +110,73 @@ class PluginRegistry {
     }
   }
 
-  def addAccountHook(accountHook: AccountHook): Unit = accountHooks += accountHook
+  def addAccountHook(accountHook: AccountHook): Unit = accountHooks.add(accountHook)
 
-  def getAccountHooks: Seq[AccountHook] = accountHooks.toSeq
+  def getAccountHooks: Seq[AccountHook] = accountHooks.asScala.toSeq
 
-  def addReceiveHook(commitHook: ReceiveHook): Unit = receiveHooks += commitHook
+  def addReceiveHook(commitHook: ReceiveHook): Unit = receiveHooks.add(commitHook)
 
-  def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.toSeq
+  def getReceiveHooks: Seq[ReceiveHook] = receiveHooks.asScala.toSeq
 
-  def addRepositoryHook(repositoryHook: RepositoryHook): Unit = repositoryHooks += repositoryHook
+  def addRepositoryHook(repositoryHook: RepositoryHook): Unit = repositoryHooks.add(repositoryHook)
 
-  def getRepositoryHooks: Seq[RepositoryHook] = repositoryHooks.toSeq
+  def getRepositoryHooks: Seq[RepositoryHook] = repositoryHooks.asScala.toSeq
 
-  def addIssueHook(issueHook: IssueHook): Unit = issueHooks += issueHook
+  def addIssueHook(issueHook: IssueHook): Unit = issueHooks.add(issueHook)
 
-  def getIssueHooks: Seq[IssueHook] = issueHooks.toSeq
+  def getIssueHooks: Seq[IssueHook] = issueHooks.asScala.toSeq
 
-  def addPullRequestHook(pullRequestHook: PullRequestHook): Unit = pullRequestHooks += pullRequestHook
+  def addPullRequestHook(pullRequestHook: PullRequestHook): Unit = pullRequestHooks.add(pullRequestHook)
 
-  def getPullRequestHooks: Seq[PullRequestHook] = pullRequestHooks.toSeq
+  def getPullRequestHooks: Seq[PullRequestHook] = pullRequestHooks.asScala.toSeq
 
-  def addRepositoryHeader(repositoryHeader: (RepositoryInfo, Context) => Option[Html]): Unit = repositoryHeaders += repositoryHeader
+  def addRepositoryHeader(repositoryHeader: (RepositoryInfo, Context) => Option[Html]): Unit = repositoryHeaders.add(repositoryHeader)
 
-  def getRepositoryHeaders: Seq[(RepositoryInfo, Context) => Option[Html]] = repositoryHeaders.toSeq
+  def getRepositoryHeaders: Seq[(RepositoryInfo, Context) => Option[Html]] = repositoryHeaders.asScala.toSeq
 
-  def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus += globalMenu
+  def addGlobalMenu(globalMenu: (Context) => Option[Link]): Unit = globalMenus.add(globalMenu)
 
-  def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.toSeq
+  def getGlobalMenus: Seq[(Context) => Option[Link]] = globalMenus.asScala.toSeq
 
-  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = repositoryMenus += repositoryMenu
+  def addRepositoryMenu(repositoryMenu: (RepositoryInfo, Context) => Option[Link]): Unit = repositoryMenus.add(repositoryMenu)
 
-  def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.toSeq
+  def getRepositoryMenus: Seq[(RepositoryInfo, Context) => Option[Link]] = repositoryMenus.asScala.toSeq
 
-  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = repositorySettingTabs += repositorySettingTab
+  def addRepositorySettingTab(repositorySettingTab: (RepositoryInfo, Context) => Option[Link]): Unit = repositorySettingTabs.add(repositorySettingTab)
 
-  def getRepositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = repositorySettingTabs.toSeq
+  def getRepositorySettingTabs: Seq[(RepositoryInfo, Context) => Option[Link]] = repositorySettingTabs.asScala.toSeq
 
-  def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = profileTabs += profileTab
+  def addProfileTab(profileTab: (Account, Context) => Option[Link]): Unit = profileTabs.add(profileTab)
 
-  def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.toSeq
+  def getProfileTabs: Seq[(Account, Context) => Option[Link]] = profileTabs.asScala.toSeq
 
-  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit = systemSettingMenus += systemSettingMenu
+  def addSystemSettingMenu(systemSettingMenu: (Context) => Option[Link]): Unit = systemSettingMenus.add(systemSettingMenu)
 
-  def getSystemSettingMenus: Seq[(Context) => Option[Link]] = systemSettingMenus.toSeq
+  def getSystemSettingMenus: Seq[(Context) => Option[Link]] = systemSettingMenus.asScala.toSeq
 
-  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit = accountSettingMenus += accountSettingMenu
+  def addAccountSettingMenu(accountSettingMenu: (Context) => Option[Link]): Unit = accountSettingMenus.add(accountSettingMenu)
 
-  def getAccountSettingMenus: Seq[(Context) => Option[Link]] = accountSettingMenus.toSeq
+  def getAccountSettingMenus: Seq[(Context) => Option[Link]] = accountSettingMenus.asScala.toSeq
 
-  def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = dashboardTabs += dashboardTab
+  def addDashboardTab(dashboardTab: (Context) => Option[Link]): Unit = dashboardTabs.add(dashboardTab)
 
-  def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.toSeq
+  def getDashboardTabs: Seq[(Context) => Option[Link]] = dashboardTabs.asScala.toSeq
 
-  def addIssueSidebar(issueSidebar: (Issue, RepositoryInfo, Context) => Option[Html]): Unit = issueSidebars += issueSidebar
+  def addIssueSidebar(issueSidebar: (Issue, RepositoryInfo, Context) => Option[Html]): Unit = issueSidebars.add(issueSidebar)
 
-  def getIssueSidebars: Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = issueSidebars.toSeq
+  def getIssueSidebars: Seq[(Issue, RepositoryInfo, Context) => Option[Html]] = issueSidebars.asScala.toSeq
 
-  def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = assetsMappings += assetsMapping
+  def addAssetsMapping(assetsMapping: (String, String, ClassLoader)): Unit = assetsMappings.add(assetsMapping)
 
-  def getAssetsMappings: Seq[(String, String, ClassLoader)] = assetsMappings.toSeq
+  def getAssetsMappings: Seq[(String, String, ClassLoader)] = assetsMappings.asScala.toSeq
 
-  def addTextDecorator(textDecorator: TextDecorator): Unit = textDecorators += textDecorator
+  def addTextDecorator(textDecorator: TextDecorator): Unit = textDecorators.add(textDecorator)
 
-  def getTextDecorators: Seq[TextDecorator] = textDecorators.toSeq
+  def getTextDecorators: Seq[TextDecorator] = textDecorators.asScala.toSeq
 
-  def addSuggestionProvider(suggestionProvider: SuggestionProvider): Unit = suggestionProviders += suggestionProvider
+  def addSuggestionProvider(suggestionProvider: SuggestionProvider): Unit = suggestionProviders.add(suggestionProvider)
 
-  def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.toSeq
+  def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.asScala.toSeq
 }
 
 /**
