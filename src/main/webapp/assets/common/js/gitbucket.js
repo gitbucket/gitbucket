@@ -443,7 +443,7 @@ function string_score(string, word) {
  * @param word    {String}        search word
  * @param strings {Array[String]} search targets
  * @param limit   {Integer}       result limit
- * @return {Array[{score:"float matching score", string:"string target string", matchingPositions:"Array[Interger] matchng positions"}]}
+ * @return {Array[{score:"float matching score", string:"string target string", matchingPositions:"Array[Integer] matching positions"}]}
  */
 function string_score_sort(word, strings, limit){
   var ret = [], i=0, l = (word==="")?Math.min(strings.length, limit):strings.length;
@@ -466,7 +466,7 @@ function string_score_sort(word, strings, limit){
 }
 /**
  * highlight by result.
- * @param score {string:"string target string", matchingPositions:"Array[Interger] matchng positions"}
+ * @param score {string:"string target string", matchingPositions:"Array[Integer] matching positions"}
  * @param highlight tag ex: '<b>'
  * @return array of highlighted html elements.
  */

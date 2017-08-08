@@ -12,7 +12,7 @@
         </tr>
       </thead>
       <tbody>
-        @repository.tags.reverse.map { tag =>
+        @repository.tags.reverseMap { tag =>
           <tr>
             <td><a href="@helpers.url(repository)/tree/@helpers.encodeRefName(tag.name)">@tag.name</a></td>
             <td>@gitbucket.core.helper.html.datetimeago(tag.time, false)</td>

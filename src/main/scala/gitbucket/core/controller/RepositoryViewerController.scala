@@ -213,7 +213,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
   post("/:owner/:repository/upload", uploadForm)(writableUsersOnly { (form, repository) =>
     val files = form.uploadFiles.split("\n").map { line =>
-      val i = line.indexOf(":")
+      val i = line.indexOf(':')
       CommitFile(line.substring(0, i).trim, line.substring(i + 1).trim)
     }
 
@@ -222,7 +222,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       branch     = form.branch,
       path       = form.path,
       files      = files,
-      message    = form.message.getOrElse(s"Add files via upload")
+      message    = form.message.getOrElse("Add files via upload")
     )
 
     if(form.path.length == 0){
@@ -630,8 +630,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  case class UploadFiles(branch: String, path: String, fileIds : Map[String,String], message: String) {
-    lazy val isValid: Boolean = fileIds.size > 0
+  case class UploadFiles(branch: String, path: String, fileIds: Map[String,String], message: String) {
+    lazy val isValid: Boolean = fileIds.nonEmpty
   }
 
   case class CommitFile(id: String, name: String)

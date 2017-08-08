@@ -135,7 +135,7 @@ trait RepositoryService { self: AccountService =>
           repositoryName = newRepositoryName
         )) :_*)
 
-        // TODO Drop transfered owner from collaborators?
+        // TODO Drop transferred owner from collaborators?
         Collaborators.insertAll(collaborators.map(_.copy(userName = newUserName, repositoryName = newRepositoryName)) :_*)
 
         // Update activity messages

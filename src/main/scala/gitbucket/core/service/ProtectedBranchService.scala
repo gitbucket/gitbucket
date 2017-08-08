@@ -18,10 +18,11 @@ trait ProtectedBranchService {
       .filter(_._1.byPrimaryKey(owner, repository, branch))
       .list
       .groupBy(_._1)
+      .headOption
       .map { p => p._1 -> p._2.flatMap(_._2) }
       .map { case (t1, contexts) =>
         new ProtectedBranchInfo(t1.userName, t1.repositoryName, true, contexts, t1.statusCheckAdmin)
-      }.headOption
+      }
 
   def getProtectedBranchInfo(owner: String, repository: String, branch: String)(implicit session: Session): ProtectedBranchInfo =
     getProtectedBranchInfoOpt(owner, repository, branch).getOrElse(ProtectedBranchInfo.disabled(owner, repository))

@@ -163,7 +163,7 @@ abstract class ControllerBase extends ScalatraFilter
     override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Seq[(String, String)] =
       valueType.validate(name, trim(value), params, messages)
 
-    private def trim(value: String): String = if(value == null) null else value.replaceAll("\r\n", "").trim
+    private def trim(value: String): String = if(value == null) null else value.replace("\r\n", "").trim
   }
 
   /**

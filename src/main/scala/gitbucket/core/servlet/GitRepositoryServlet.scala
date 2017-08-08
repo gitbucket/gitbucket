@@ -166,7 +166,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
         if(repository.endsWith(".wiki")){
           defining(request) { implicit r =>
-            receivePack.setPostReceiveHook(new WikiCommitHook(owner, repository.replaceFirst("\\.wiki$", ""), pusher, baseUrl))
+            receivePack.setPostReceiveHook(new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl))
           }
         }
       }

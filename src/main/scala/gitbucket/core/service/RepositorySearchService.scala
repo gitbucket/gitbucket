@@ -67,7 +67,7 @@ trait RepositorySearchService { self: IssuesService =>
         files.map { case (path, text) =>
           val (highlightText, lineNumber) = getHighlightText(text, query)
           FileSearchResult(
-            path.replaceFirst("\\.md$", ""),
+            path.stripSuffix(".md"),
             commits(path).getCommitterIdent.getWhen,
             highlightText,
             lineNumber)
