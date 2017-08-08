@@ -32,7 +32,7 @@ class HelpersSpec extends FunSpec with MockitoSugar {
       assert(after == """Example Project. <a href="http://example.com">http://example.com</a>""")
     }
 
-    it("should convert a mulitple links within text") {
+    it("should convert a multiple links within text") {
       val before = "Example Project. http://example.com. (See also https://github.com/)"
       val after = detectAndRenderLinks(before, repository)
       assert(after == """Example Project. <a href="http://example.com">http://example.com</a>. (See also <a href="https://github.com/">https://github.com/</a>)""")

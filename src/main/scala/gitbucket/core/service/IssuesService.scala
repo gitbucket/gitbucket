@@ -503,14 +503,14 @@ object IssuesService {
       ).flatten ++
       labels.map(label => s"label:${label}") ++
       List(
-        milestone.map { _ match {
+        milestone.map {
           case Some(x) => s"milestone:${x}"
           case None    => "no:milestone"
-        }},
-        priority.map { _ match {
+        },
+        priority.map {
           case Some(x) => s"priority:${x}"
           case None    => "no:priority"
-        }},
+        },
         (sort, direction) match {
           case ("created" , "desc") => None
           case ("created" , "asc" ) => Some("sort:created-asc")

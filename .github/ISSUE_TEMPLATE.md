@@ -1,4 +1,4 @@
-### Before submitting an issue to Gitbucket I have first:
+### Before submitting an issue to GitBucket I have first:
 
 - [] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
 - [] searched for similar already existing issue
@@ -9,7 +9,7 @@
 ## Issue
 **Impacted version**: xxxx
 
-**Deployment mode**: *explain here how you use gitbucket : standalone app, under webcontainer (which one), with an http frontend (nginx, httpd, ...)*
+**Deployment mode**: *explain here how you use GitBucket : standalone app, under webcontainer (which one), with an http frontend (nginx, httpd, ...)*
 
 **Problem description**:
 - *be as explicit has you can*
