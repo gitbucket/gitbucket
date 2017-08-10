@@ -18,7 +18,7 @@ wget https://github.com/gitbucket/gitbucket/releases/download/$VERSION/gitbucket
 
 cp gitbucket.war         ~/rpmbuild/SOURCES/
 cp gitbucket.init        ~/rpmbuild/SOURCES/
-cp ../../gitbucket.conf  ~/rpmbuild/SOURCES/
+sed "s/GITBUCKET_VERSION=\(.*\)/GITBUCKET_VERSION=$VERSION/" ../../gitbucket.conf > ~/rpmbuild/SOURCES/gitbucket.conf
 sed "s/Version:\(\s\+\).*/Version:\1$VERSION/" gitbucket.spec > ~/rpmbuild/SPECS/gitbucket.spec
 
 cd ~
