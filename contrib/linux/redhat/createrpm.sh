@@ -7,13 +7,14 @@ if [ $# -ne 1 ]; then
 fi
 export VERSION=$1
 
+export originaldir=`pwd`
+rm -f  *.rpm
 rm -rf ~/rpmbuild
 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 export currentdir=$(cd $(dirname $0); pwd)
 cd $currentdir
-rm   *.rpm
-rm   gitbucket.war
+rm   -f gitbucket.war
 wget https://github.com/gitbucket/gitbucket/releases/download/$VERSION/gitbucket.war
 
 cp gitbucket.war         ~/rpmbuild/SOURCES/
@@ -23,7 +24,8 @@ sed "s/Version:\(\s\+\).*/Version:\1$VERSION/" gitbucket.spec > ~/rpmbuild/SPECS
 
 cd ~
 rpmbuild -ba rpmbuild/SPECS/gitbucket.spec
-cp           rpmbuild/RPMS/noarch/gitbucket*.rpm $currentdir
+echo cp      rpmbuild/RPMS/noarch/gitbucket*.rpm $originaldir
+cp           rpmbuild/RPMS/noarch/gitbucket*.rpm $originaldir
 
 
 
