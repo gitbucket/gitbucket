@@ -7,12 +7,12 @@ if [ $# -ne 1 ]; then
 fi
 export VERSION=$1
 
-rm *.rpm
 rm -rf ~/rpmbuild
 mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 export currentdir=$(cd $(dirname $0); pwd)
 cd $currentdir
+rm   *.rpm
 rm   gitbucket.war
 wget https://github.com/gitbucket/gitbucket/releases/download/$VERSION/gitbucket.war
 
