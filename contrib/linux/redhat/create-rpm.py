@@ -2,7 +2,6 @@
 
 import os
 import shutil
-import urllib
 import glob
 from optparse import OptionParser
 
@@ -60,10 +59,28 @@ def get_script_directory():
 download gitbucket.war from github.com
 """
 def get_gitbucket_war_file(filepath, version):
+    import urllib2
     URL = "https://github.com/gitbucket/gitbucket/releases/download/" + version + "/gitbucket.war"
-    
+
+    # remove gitbucket.war
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+    CHUNK = 512 * 1024
+    result = urllib2.urlopen(URL)
+    length = result.headers['content-length']
+
     print "downloading from " + URL
-    urllib.urlretrieve(URL, filepath)
+    total = 0
+    with open(filepath, 'wb') as f:
+        while True:
+            chunk = result.read(CHUNK)
+            if not chunk:
+                break
+            total += len(chunk)
+            percent = 100 * total / int(length)
+            print "downloading " + str(total) + " bytes" + " / " + str(length) + " bytes" + " (" + str(percent) + " %" + ")"
+            f.write(chunk)
 
 """
 open bitbucket.conf and replace the settings based on the command line options
@@ -134,10 +151,6 @@ def main():
     
     gitbucket_war_path = "gitbucket.war"
 
-    # remove gitbucket.war
-    if os.path.exists(gitbucket_war_path):
-        os.remove(gitbucket_war_path)
-    
     # get gitbucket.war from github.com
     get_gitbucket_war_file(gitbucket_war_path, options.version)
 
