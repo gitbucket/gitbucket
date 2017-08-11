@@ -25,15 +25,27 @@ def move_rpm_files(src_dir, dst_dir):
          shutil.move(file, dst_dir)
 
 """
+get a subdirectory of rpmbuild
+"""
+def get_rpm_directory(dir):
+    home = os.environ["HOME"]
+    return os.path.join(home, "rpmbuild", dir)
+
+"""
 remove existing rpmbuild directory and recreate it
 """
 def create_rpmbuild_directory():
-    home = os.environ["HOME"]
     subdirs = ["BUILD","RPMS","SOURCES","SPECS","SRPMS"]
     
-    shutil.rmtree(os.path.join(home, "rpmbuild"))
+    rpmbuild = get_rpm_directory("")
+    
+    # remove rpmbuild
+    if os.path.exists(rpmbuild):
+        print "removing " + rpmbuild
+        shutil.rmtree(rpmbuild)
+
     for subdir in subdirs:
-        dir = os.path.join(home, "rpmbuild", subdir)
+        dir = os.path.join(rpmbuild, subdir)
         print("creating: " + dir)
         os.makedirs(dir)
 
@@ -97,13 +109,6 @@ def process_gitbucket_spec(orgfile, newfile, options):
     
     fin.close()
     fout.close()
-
-"""
-get a subdirectory of rpmbuild
-"""
-def get_rpm_directory(dir):
-    home = os.environ["HOME"]
-    return os.path.join(home, "rpmbuild", dir)
 
 """
 main function
