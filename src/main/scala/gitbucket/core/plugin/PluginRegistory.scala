@@ -4,6 +4,9 @@ import java.io.{File, FilenameFilter, InputStream}
 import java.net.URLClassLoader
 import java.nio.file.{Files, Paths, StandardWatchEventKinds}
 import java.util.Base64
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.ServletContext
 
 import gitbucket.core.controller.{Context, ControllerBase}
@@ -22,42 +25,40 @@ import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConverters._
 
 class PluginRegistry {
 
-  private val plugins = new java.util.concurrent.ConcurrentLinkedQueue[PluginInfo] // new ListBuffer[PluginInfo]
-  private val javaScripts = new java.util.concurrent.ConcurrentLinkedQueue[(String, String)] //new ListBuffer[(String, String)] with mutable.SynchronizedBuffer[(String, String)]
-  private val controllers = new java.util.concurrent.ConcurrentLinkedQueue[(ControllerBase, String)] //new ListBuffer[(ControllerBase, String)]
-  private val images = new java.util.concurrent.ConcurrentHashMap[String, String] //mutable.Map[String, String]()
-  private val renderers = new java.util.concurrent.ConcurrentHashMap[String, Renderer] // mutable.Map[String, Renderer]()
+  private val plugins = new ConcurrentLinkedQueue[PluginInfo]
+  private val javaScripts = new ConcurrentLinkedQueue[(String, String)]
+  private val controllers = new ConcurrentLinkedQueue[(ControllerBase, String)]
+  private val images = new ConcurrentHashMap[String, String]
+  private val renderers = new ConcurrentHashMap[String, Renderer]
   renderers.put("md", MarkdownRenderer)
   renderers.put("markdown", MarkdownRenderer)
-  private val repositoryRoutings = new java.util.concurrent.ConcurrentLinkedQueue[GitRepositoryRouting] // new ListBuffer[GitRepositoryRouting]
-  private val accountHooks = new java.util.concurrent.ConcurrentLinkedQueue[AccountHook] // new ListBuffer[AccountHook]
-  private val receiveHooks = new java.util.concurrent.ConcurrentLinkedQueue[ReceiveHook] // new ListBuffer[ReceiveHook]
+  private val repositoryRoutings = new ConcurrentLinkedQueue[GitRepositoryRouting]
+  private val accountHooks = new ConcurrentLinkedQueue[AccountHook]
+  private val receiveHooks = new ConcurrentLinkedQueue[ReceiveHook]
   receiveHooks.add(new ProtectedBranchReceiveHook())
 
-  private val repositoryHooks = new java.util.concurrent.ConcurrentLinkedQueue[RepositoryHook]
-  private val issueHooks = new java.util.concurrent.ConcurrentLinkedQueue[IssueHook]
+  private val repositoryHooks = new ConcurrentLinkedQueue[RepositoryHook]
+  private val issueHooks = new ConcurrentLinkedQueue[IssueHook]
 
-  private val pullRequestHooks = new java.util.concurrent.ConcurrentLinkedQueue[PullRequestHook]
+  private val pullRequestHooks = new ConcurrentLinkedQueue[PullRequestHook]
 
-  private val repositoryHeaders = new java.util.concurrent.ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Html]]
-  private val globalMenus = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
-  private val repositoryMenus = new java.util.concurrent.ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Link]]
-  private val repositorySettingTabs = new java.util.concurrent.ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Link]]
-  private val profileTabs = new java.util.concurrent.ConcurrentLinkedQueue[(Account, Context) => Option[Link]]
-  private val systemSettingMenus = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
-  private val accountSettingMenus = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
-  private val dashboardTabs = new java.util.concurrent.ConcurrentLinkedQueue[(Context) => Option[Link]]
-  private val issueSidebars = new java.util.concurrent.ConcurrentLinkedQueue[(Issue, RepositoryInfo, Context) => Option[Html]]
-  private val assetsMappings = new java.util.concurrent.ConcurrentLinkedQueue[(String, String, ClassLoader)]
-  private val textDecorators = new java.util.concurrent.ConcurrentLinkedQueue[TextDecorator]
+  private val repositoryHeaders = new ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Html]]
+  private val globalMenus = new ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val repositoryMenus = new ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Link]]
+  private val repositorySettingTabs = new ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Link]]
+  private val profileTabs = new ConcurrentLinkedQueue[(Account, Context) => Option[Link]]
+  private val systemSettingMenus = new ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val accountSettingMenus = new ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val dashboardTabs = new ConcurrentLinkedQueue[(Context) => Option[Link]]
+  private val issueSidebars = new ConcurrentLinkedQueue[(Issue, RepositoryInfo, Context) => Option[Html]]
+  private val assetsMappings = new ConcurrentLinkedQueue[(String, String, ClassLoader)]
+  private val textDecorators = new ConcurrentLinkedQueue[TextDecorator]
 
-  private val suggestionProviders = new java.util.concurrent.ConcurrentLinkedQueue[SuggestionProvider]
+  private val suggestionProviders = new ConcurrentLinkedQueue[SuggestionProvider]
   suggestionProviders.add(new UserNameSuggestionProvider())
 
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins.add(pluginInfo)
@@ -190,6 +191,7 @@ object PluginRegistry {
 
   private var watcher: PluginWatchThread = null
   private var extraWatcher: PluginWatchThread = null
+  private val initializing = new AtomicBoolean(false)
 
   /**
    * Returns the PluginRegistry singleton instance.
@@ -229,9 +231,8 @@ object PluginRegistry {
    * Install a plugin from a specified jar file.
    */
   def install(file: File, context: ServletContext, settings: SystemSettings, conn: java.sql.Connection): Unit = synchronized {
-    FileUtils.copyFile(file, new File(PluginHome, file.getName))
-
     shutdown(context, settings)
+    FileUtils.copyFile(file, new File(PluginHome, file.getName))
     instance = new PluginRegistry()
     initialize(context, settings, conn)
   }
@@ -323,6 +324,14 @@ object PluginRegistry {
     instance.getPlugins().foreach { plugin =>
       try {
         plugin.pluginClass.shutdown(instance, context, settings)
+        if(watcher != null){
+          watcher.interrupt()
+          watcher = null
+        }
+        if(extraWatcher != null){
+          extraWatcher.interrupt()
+          extraWatcher = null
+        }
       } catch {
         case e: Exception => {
           logger.error(s"Error during plugin shutdown: ${plugin.pluginJar.getName}", e)
