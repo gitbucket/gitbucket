@@ -93,7 +93,7 @@ object JGitUtil {
 
     val summary = getSummaryMessage(fullMessage, shortMessage)
 
-    val description = defining(fullMessage.trim.indexOf("\n")){ i =>
+    val description = defining(fullMessage.trim.indexOf('\n')){ i =>
       if(i >= 0){
         Some(fullMessage.trim.substring(i).trim)
       } else None
@@ -293,7 +293,7 @@ object JGitUtil {
       @tailrec
       def findLastCommits(result:List[(ObjectId, FileMode, String, String, Option[String], RevCommit)],
                           restList:List[((ObjectId, FileMode, String, String, Option[String]), Map[RevCommit, RevCommit])],
-                          revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, String, Option[String], RevCommit)] ={
+                          revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, String, Option[String], RevCommit)] = {
         if(restList.isEmpty){
           result
         } else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
@@ -364,9 +364,9 @@ object JGitUtil {
           (file1.isDirectory, file2.isDirectory) match {
             case (true , false) => true
             case (false, true ) => false
-           case _ => file1.name.compareTo(file2.name) < 0
+            case _ => file1.name.compareTo(file2.name) < 0
           }
-        }.toList
+        }
     }
   }
 
@@ -374,7 +374,7 @@ object JGitUtil {
    * Returns the first line of the commit message.
    */
   private def getSummaryMessage(fullMessage: String, shortMessage: String): String = {
-    defining(fullMessage.trim.indexOf("\n")){ i =>
+    defining(fullMessage.trim.indexOf('\n')){ i =>
       defining(if(i >= 0) fullMessage.trim.substring(0, i).trim else fullMessage){ firstLine =>
         if(firstLine.length > shortMessage.length) shortMessage else firstLine
       }

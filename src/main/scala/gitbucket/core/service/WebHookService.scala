@@ -367,9 +367,9 @@ object WebHookService {
     repository: ApiRepository
   ) extends FieldSerializable with WebHookPayload {
     val compare = commits.size match {
-      case 0 => ApiPath(s"/${repository.full_name}") // maybe test hook on un-initalied repository
+      case 0 => ApiPath(s"/${repository.full_name}") // maybe test hook on un-initialized repository
       case 1 => ApiPath(s"/${repository.full_name}/commit/${after}")
-      case _ if before.filterNot(_=='0').isEmpty => ApiPath(s"/${repository.full_name}/compare/${commits.head.id}^...${after}")
+      case _ if before.forall(_=='0') => ApiPath(s"/${repository.full_name}/compare/${commits.head.id}^...${after}")
       case _ => ApiPath(s"/${repository.full_name}/compare/${before}...${after}")
     }
     val head_commit = commits.lastOption

@@ -59,7 +59,7 @@ GitBucket has a plug-in system that allows extra functionality. Officially the f
 - [gitbucket-pages-plugin](https://github.com/gitbucket/gitbucket-pages-plugin)
 - [gitbucket-notifications-plugin](https://github.com/gitbucket/gitbucket-notifications-plugin)
 
-You can find more plugins made by the community at [GitBucket community plugins](http://gitbucket-plugins.github.io/).
+You can find more plugins made by the community at [GitBucket community plugins](https://gitbucket-plugins.github.io/).
 
 Support
 --------

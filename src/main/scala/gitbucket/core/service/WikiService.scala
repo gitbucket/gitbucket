@@ -237,7 +237,7 @@ trait WikiService {
           builder.finish()
           val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
             Constants.HEAD, committer.fullName, committer.mailAddress,
-            if(message.trim.length == 0) {
+            if(message.trim.isEmpty) {
               if(removed){
                 s"Rename ${currentPageName} to ${newPageName}"
               } else if(created){

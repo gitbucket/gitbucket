@@ -71,7 +71,7 @@
       </div>
     </div>
       @if(content.viewType == "text"){
-        @defining(helpers.isRenderable(pathList.reverse.head)){ isRenderable =>
+        @defining(helpers.isRenderable(pathList.last)){ isRenderable =>
           @if(!isBlame && isRenderable) {
             <div class="box-content-bottom markdown-body" style="padding-left: 20px; padding-right: 20px;">
               @helpers.renderMarkup(pathList, content.content.get, branch, repository, false, false, true)

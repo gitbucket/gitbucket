@@ -1,4 +1,4 @@
-### Before submitting a pull-request to Gitbucket I have first:
+### Before submitting a pull-request to GitBucket I have first:
 
 - [] read the [contribution guidelines](https://github.com/gitbucket/gitbucket/blob/master/.github/CONTRIBUTING.md)
 - [] rebased my branch over master

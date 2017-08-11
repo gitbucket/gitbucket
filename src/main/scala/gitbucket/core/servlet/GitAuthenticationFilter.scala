@@ -74,7 +74,7 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
     val action = request.paths match {
       case Array(_, repositoryOwner, repositoryName, _*) =>
         Database() withSession { implicit session =>
-          getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", "")) match {
+          getRepository(repositoryOwner, repositoryName.replaceFirst("(\\.wiki)?\\.git$", "")) match {
             case Some(repository) => {
               val execute = if (!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess) {
                 // Authentication is not required
