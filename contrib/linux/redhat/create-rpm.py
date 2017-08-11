@@ -84,13 +84,11 @@ enum releases at github.com and returns them as a list
 def enum_release(owner, repos):
     import urllib2
     import re
-    import json
 
-    # https://api.github.com/repos/owner/repos/releases
+    # https://api.github.com/repos/<owner>/<repos>/releases
     URL = '/'.join(["https://api.github.com/repos", owner, repos, "releases"])
 
     result = urllib2.urlopen(URL)
-    length = result.headers['content-length']
 
     # "tag_name":"x.xx.x"
     re_release = re.compile(r'"tag_name":"(?P<version>.+?)",')
