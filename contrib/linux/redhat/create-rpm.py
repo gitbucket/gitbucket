@@ -108,12 +108,6 @@ def enum_release(owner, repos):
     return releases
 
 """
-enum releases for gitbucket
-"""
-def enum_gitbucket_release():
-    return enum_release('gitbucket', 'gitbucket')
-
-"""
 open bitbucket.conf and replace the settings based on the command line options
 """
 def process_gitbucket_conf(orgfile, newfile, options):
@@ -159,24 +153,9 @@ def process_gitbucket_spec(orgfile, newfile, options):
     fout.close()
 
 """
-main function
+create rpm
 """
-def main():
-    parser = OptionParser()
-    parser.add_option("--version", dest="version",
-                      help="specify gitbucket version")
-    parser.add_option("--port",
-                      action="store", dest="port", default=8080,
-                      help="specify port number")
-
-    (options, args) = parser.parse_args()
-    
-    if options.version == None:
-         releases = enum_gitbucket_release()
-         if len(releases) == 0:
-            print "no available version"
-            sys.exit(1)
-         options.version = releases[0]
+def create_rpm(options):
 
     # remove and create directories for rpmbuild
     create_rpmbuild_directory()
@@ -227,6 +206,48 @@ def main():
     src_rpm_directory = os.path.join(RPMS, "noarch")
     cwd = os.getcwd()
     move_rpm_files(src_rpm_directory, cwd)
+
+
+"""
+enum releases for gitbucket
+"""
+def enum_gitbucket_release():
+    releases = enum_release('gitbucket', 'gitbucket')
+    return releases
+
+"""
+main function
+"""
+def main():
+    parser = OptionParser()
+    parser.add_option("--version", dest="version",
+                      help="specify gitbucket version")
+    parser.add_option("--port",
+                      action="store", dest="port", default=8080,
+                      help="specify port number")
+    parser.add_option("--command",
+                      action="store", dest="command",
+                      help="list or create")
+
+    (options, args) = parser.parse_args()
+
+    if options.command == None:
+         parser.error("--command must be specified")
+
+    if options.command == "create":
+        if options.version == None:
+            releases = enum_gitbucket_release()
+            if len(releases) == 0:
+               print "no available version"
+               sys.exit(1)
+            options.version = releases[0]
+        create_rpm(options)
+    elif options.command == "list-version":
+        releases = enum_gitbucket_release()
+        for release in releases:
+            print release
+    else:
+        print "command must be create or list"
 
 if __name__ == "__main__":
     main()
