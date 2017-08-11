@@ -6,22 +6,17 @@ import glob
 from optparse import OptionParser
 
 """
-remove existing rpm files
-"""
-def remove_rpm_files():
-    cwd = os.getcwd()
-
-    for file in glob.glob(os.path.join(cwd, "*.rpm")):
-         print(file)
-         os.remove(file)
-
-"""
-move created rpm files by rpmbuild to current directory
+move rpm files created by rpmbuild to current directory
 """
 def move_rpm_files(src_dir, dst_dir):
     for file in glob.glob(os.path.join(src_dir, "*.rpm")):
-         print("moving " + file + " to " + dst_dir)
-         shutil.move(file, dst_dir)
+         base      = os.path.basename(file)
+         dst_file  = os.path.join(dst_dir, base)
+
+         print("moving " + file + " to " + dst_file)
+         if os.path.exists(dst_file):
+             os.remove(dst_file)
+         shutil.move(file, dst_file)
 
 """
 get a subdirectory of rpmbuild
@@ -142,9 +137,6 @@ def main():
     
     if options.version == None:
          parser.error("--version must be specified")
-
-    # remove existing rpm files
-    remove_rpm_files()
 
     # remove and create directories for rpmbuild
     create_rpmbuild_directory()
