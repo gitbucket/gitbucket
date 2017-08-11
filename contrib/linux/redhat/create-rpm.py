@@ -235,12 +235,17 @@ def main():
          parser.error("--command must be specified")
 
     if options.command == "create":
+        releases = enum_gitbucket_release()
+        if len(releases) == 0:
+           print "no available version"
+           sys.exit(1)
+
         if options.version == None:
-            releases = enum_gitbucket_release()
-            if len(releases) == 0:
-               print "no available version"
-               sys.exit(1)
             options.version = releases[0]
+        elif options.version not in releases:
+           print "not valid version: " + options.version
+           print "use '--command list-version' to show available versions"
+           sys.exit(1)
         create_rpm(options)
     elif options.command == "list-version":
         releases = enum_gitbucket_release()
