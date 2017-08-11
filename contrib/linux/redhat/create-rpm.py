@@ -227,7 +227,7 @@ def main():
                       help="specify port number")
     parser.add_option("--command",
                       action="store", dest="command",
-                      help="list or create")
+                      help="list-version or create")
 
     (options, args) = parser.parse_args()
 
@@ -247,7 +247,7 @@ def main():
         for release in releases:
             print release
     else:
-        print "command must be create or list"
+        print "command must be create or list-version"
 
 if __name__ == "__main__":
     main()
