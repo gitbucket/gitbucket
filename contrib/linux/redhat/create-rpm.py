@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import sys
 import shutil
 import glob
 from optparse import OptionParser
@@ -55,7 +56,7 @@ download gitbucket.war from github.com
 """
 def get_gitbucket_war_file(filepath, version):
     import urllib2
-    URL = "https://github.com/gitbucket/gitbucket/releases/download/" + version + "/gitbucket.war"
+    URL = '/'.join(["https://github.com/gitbucket/gitbucket/releases/download", version, "gitbucket.war"])
 
     # remove gitbucket.war
     if os.path.exists(filepath):
@@ -76,6 +77,41 @@ def get_gitbucket_war_file(filepath, version):
             percent = 100 * total / int(length)
             print "downloading " + str(total) + " bytes" + " / " + str(length) + " bytes" + " (" + str(percent) + " %" + ")"
             f.write(chunk)
+
+"""
+enum releases at github.com and returns them as a list
+"""
+def enum_release(owner, repos):
+    import urllib2
+    import re
+    import json
+
+    # https://api.github.com/repos/owner/repos/releases
+    URL = '/'.join(["https://api.github.com/repos", owner, repos, "releases"])
+
+    result = urllib2.urlopen(URL)
+    length = result.headers['content-length']
+
+    # "tag_name":"x.xx.x"
+    re_release = re.compile(r'"tag_name":"(?P<version>.+?)",')
+
+    content = ""
+    for data in result:
+        content += data
+
+    releases = []
+    iterator = re_release.finditer(content)
+    for match in iterator:
+        group = match.group('version')
+        releases.append(group)
+
+    return releases
+
+"""
+enum releases for gitbucket
+"""
+def enum_gitbucket_release():
+    return enum_release('gitbucket', 'gitbucket')
 
 """
 open bitbucket.conf and replace the settings based on the command line options
@@ -136,7 +172,11 @@ def main():
     (options, args) = parser.parse_args()
     
     if options.version == None:
-         parser.error("--version must be specified")
+         releases = enum_gitbucket_release()
+         if len(releases) == 0:
+            print "no available version"
+            sys.exit(1)
+         options.version = releases[0]
 
     # remove and create directories for rpmbuild
     create_rpmbuild_directory()
