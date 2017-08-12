@@ -235,6 +235,10 @@ def main():
                       action="store", dest="command",
                       help="list-version or create")
 
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
     (options, args) = parser.parse_args()
 
     if options.command == None:
