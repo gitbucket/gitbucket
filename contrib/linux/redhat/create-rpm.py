@@ -24,7 +24,11 @@ get a subdirectory of rpmbuild
 """
 def get_rpm_directory(dir):
     cwd = os.getcwd()
-    return os.path.join(cwd, "rpmbuild", dir)
+    if len(dir) > 0:
+        return os.path.join(cwd, "rpmbuild", dir)
+    else:
+        return os.path.join(cwd, "rpmbuild")
+        
 
 """
 remove existing rpmbuild directory and recreate it
