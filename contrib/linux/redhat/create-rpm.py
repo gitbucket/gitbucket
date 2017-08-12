@@ -194,6 +194,8 @@ def create_rpm(options):
 
     cmd = "rpmbuild -ba " + dst_gitbucket_spec + " --define '_topdir " + get_rpm_directory("") + "'"
     print cmd
+    sys.stdout.flush()
+
     proc = Popen( cmd, shell=True )
     proc.wait()
 
