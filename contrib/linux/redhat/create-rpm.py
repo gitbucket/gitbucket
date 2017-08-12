@@ -23,8 +23,8 @@ def move_rpm_files(src_dir, dst_dir):
 get a subdirectory of rpmbuild
 """
 def get_rpm_directory(dir):
-    home = os.environ["HOME"]
-    return os.path.join(home, "rpmbuild", dir)
+    cwd = os.getcwd()
+    return os.path.join(cwd, "rpmbuild", dir)
 
 """
 remove existing rpmbuild directory and recreate it
@@ -191,7 +191,7 @@ def create_rpm(options):
     import subprocess
     from subprocess import Popen
 
-    cmd = "rpmbuild -ba " + dst_gitbucket_spec
+    cmd = "rpmbuild -ba " + dst_gitbucket_spec + " --define '_topdir " + get_rpm_directory("") + "'"
     print cmd
     proc = Popen( cmd, shell=True )
     proc.wait()
@@ -205,6 +205,11 @@ def create_rpm(options):
     cwd = os.getcwd()
     move_rpm_files(src_rpm_directory, cwd)
 
+    # remove rpmbuild directory
+    rpmbuild = get_rpm_directory("")
+    if os.path.exists(rpmbuild):
+        print "removing " + rpmbuild
+        shutil.rmtree(rpmbuild)
 
 """
 enum releases for gitbucket
