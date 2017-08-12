@@ -76,6 +76,7 @@ def get_gitbucket_war_file(filepath, version):
             total += len(chunk)
             percent = 100 * total / int(length)
             print "downloading " + str(total) + " bytes" + " / " + str(length) + " bytes" + " (" + str(percent) + " %" + ")"
+            sys.stdout.flush()
             f.write(chunk)
 
 """
