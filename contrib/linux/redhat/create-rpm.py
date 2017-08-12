@@ -213,6 +213,14 @@ def enum_gitbucket_release():
     releases = enum_release('gitbucket', 'gitbucket')
     return releases
 
+def is_rpmbuild_available():
+    import distutils.spawn
+
+    if distutils.spawn.find_executable('rpmbuild') != None:
+       return True
+    else:
+       return False
+
 """
 main function
 """
@@ -235,15 +243,19 @@ def main():
     if options.command == "create":
         releases = enum_gitbucket_release()
         if len(releases) == 0:
-           print "no available version"
-           sys.exit(1)
+            print "no available version"
+            sys.exit(1)
+
+        if is_rpmbuild_available() != True:
+            print "you need to install rpmbuild in advance with 'dnf install rpm-build'"
+            sys.exit(1)
 
         if options.version == None:
-            options.version = releases[0]
+           options.version = releases[0]
         elif options.version not in releases:
-           print "not valid version: " + options.version
-           print "use '--command list-version' to show available versions"
-           sys.exit(1)
+            print "not valid version: " + options.version
+            print "use '--command list-version' to show available versions"
+            sys.exit(1)
         create_rpm(options)
     elif options.command == "list-version":
         releases = enum_gitbucket_release()
@@ -254,3 +266,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
