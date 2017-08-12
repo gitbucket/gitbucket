@@ -10,9 +10,11 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
-import gitbucket.core.view.helpers.{renderMarkup, isRenderable}
+import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import org.eclipse.jgit.api.Git
-import org.scalatra.{NoContent, UnprocessableEntity, Created}
+import org.eclipse.jgit.revwalk.RevWalk
+import org.scalatra.{Created, NoContent, UnprocessableEntity}
+
 import scala.collection.JavaConverters._
 
 class ApiController extends ApiControllerBase
@@ -49,6 +51,7 @@ trait ApiControllerBase extends ControllerBase {
     with LabelsService
     with MilestonesService
     with PullRequestService
+    with CommitsService
     with CommitStatusService
     with RepositoryCreationService
     with IssueCreationService
@@ -626,6 +629,50 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(ApiCombinedCommitStatus(sha, statuses, ApiRepository(repository, owner)))
     }) getOrElse NotFound()
   })
+
+
+  get("/api/v3/repos/:owner/:repo/commits/:sha")(referrersOnly { repository =>
+    val owner = repository.owner
+    val name  = repository.name
+    val sha   = params("sha")
+
+    using(Git.open(getRepositoryDir(owner, name))){ git =>
+      val repo = git.getRepository
+      val objectId = repo.resolve(sha)
+      val commitInfo = using(new RevWalk(repo)){ revWalk =>
+        new CommitInfo(revWalk.parseCommit(objectId))
+      }
+
+      JsonFormat(ApiCommits(
+        repositoryName = RepositoryName(repository),
+        commitInfo     = commitInfo,
+        diffs          = JGitUtil.getDiffs(git, commitInfo.parents.head, commitInfo.id, true),
+        author         = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
+        committer      = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
+        commentCount   = getCommitComment(repository.owner, repository.name, sha).size
+      ))
+    }
+  })
+
+  private def getAccount(userName: String, email: String): Account = {
+    getAccountByMailAddress(email).getOrElse {
+      Account(
+        userName = userName,
+        fullName = userName,
+        mailAddress = email,
+        password = "xxx",
+        isAdmin = false,
+        url = None,
+        registeredDate = new java.util.Date(),
+        updatedDate = new java.util.Date(),
+        lastLoginDate = None,
+        image = None,
+        isGroupAccount = false,
+        isRemoved = true,
+        description = None
+      )
+    }
+  }
 
   private def isEditable(owner: String, repository: String, author: String)(implicit context: Context): Boolean =
     hasDeveloperRole(owner, repository, context.loginAccount) || author == context.loginAccount.get.userName
