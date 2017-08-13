@@ -1,8 +1,10 @@
 package gitbucket.core.controller
 
+import gitbucket.core.model.WebHook
 import gitbucket.core.service.RepositoryService.RepositoryInfo
+import gitbucket.core.service.WebHookService.WebHookGollumPayload
 import gitbucket.core.wiki.html
-import gitbucket.core.service.{AccountService, ActivityService, RepositoryService, WikiService}
+import gitbucket.core.service._
 import gitbucket.core.util._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
@@ -13,11 +15,12 @@ import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
 
 class WikiController extends WikiControllerBase
-  with WikiService with RepositoryService with AccountService with ActivityService
+  with WikiService with RepositoryService with AccountService with ActivityService with WebHookService
   with ReadableUsersAuthenticator with ReferrerAuthenticator
 
 trait WikiControllerBase extends ControllerBase {
-  self: WikiService with RepositoryService with ActivityService with ReadableUsersAuthenticator with ReferrerAuthenticator =>
+  self: WikiService with RepositoryService with AccountService with ActivityService with WebHookService
+    with ReadableUsersAuthenticator with ReferrerAuthenticator =>
 
   case class WikiPageEditForm(pageName: String, content: String, message: Option[String], currentPageName: String, id: String)
 
@@ -136,6 +139,11 @@ trait WikiControllerBase extends ControllerBase {
         ).map { commitId =>
           updateLastActivityDate(repository.owner, repository.name)
           recordEditWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName, commitId)
+          callWebHookOf(repository.owner, repository.name, WebHook.Gollum){
+            getAccountByUserName(repository.owner).map { repositoryUser =>
+              WebHookGollumPayload("edited", form.pageName, commitId, repository, repositoryUser, loginAccount)
+            }
+          }
         }
         if(notReservedPageName(form.pageName)) {
           redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")
@@ -155,11 +163,24 @@ trait WikiControllerBase extends ControllerBase {
   post("/:owner/:repository/wiki/_new", newForm)(readableUsersOnly { (form, repository) =>
     if(isEditable(repository)){
       defining(context.loginAccount.get){ loginAccount =>
-        saveWikiPage(repository.owner, repository.name, form.currentPageName, form.pageName,
-          form.content, loginAccount, form.message.getOrElse(""), None)
-
-        updateLastActivityDate(repository.owner, repository.name)
-        recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+        saveWikiPage(
+          repository.owner,
+          repository.name,
+          form.currentPageName,
+          form.pageName,
+          form.content,
+          loginAccount,
+          form.message.getOrElse(""),
+          None
+        ).map { commitId =>
+          updateLastActivityDate(repository.owner, repository.name)
+          recordCreateWikiPageActivity(repository.owner, repository.name, loginAccount.userName, form.pageName)
+          callWebHookOf(repository.owner, repository.name, WebHook.Gollum){
+            getAccountByUserName(repository.owner).map { repositoryUser =>
+              WebHookGollumPayload("created", form.pageName, commitId, repository, repositoryUser, loginAccount)
+            }
+          }
+        }
 
         if(notReservedPageName(form.pageName)) {
           redirect(s"/${repository.owner}/${repository.name}/wiki/${StringUtil.urlEncode(form.pageName)}")

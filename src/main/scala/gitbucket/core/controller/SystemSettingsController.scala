@@ -6,7 +6,7 @@ import gitbucket.core.admin.html
 import gitbucket.core.service.{AccountService, RepositoryService, SystemSettingsService}
 import gitbucket.core.util.{AdminAuthenticator, Mailer}
 import gitbucket.core.ssh.SshServer
-import gitbucket.core.plugin.PluginRegistry
+import gitbucket.core.plugin.{PluginInfoBase, PluginRegistry, PluginRepository}
 import SystemSettingsService._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
@@ -15,6 +15,10 @@ import gitbucket.core.util.StringUtil._
 import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.scalatra.i18n.Messages
+import com.github.zafarkhaja.semver.{Version => Semver}
+import gitbucket.core.GitBucketCoreModule
+import scala.collection.JavaConverters._
+
 
 class SystemSettingsController extends SystemSettingsControllerBase
   with AccountService with RepositoryService with AdminAuthenticator
@@ -106,7 +110,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val newUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password"    -> trim(label("Password"     ,text(required, maxlength(20)))),
+    "password"    -> trim(label("Password"     ,text(required, maxlength(20), password))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress()))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
@@ -117,7 +121,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   val editUserForm = mapping(
     "userName"    -> trim(label("Username"     ,text(required, maxlength(100), identifier))),
-    "password"    -> trim(label("Password"     ,optional(text(maxlength(20))))),
+    "password"    -> trim(label("Password"     ,optional(text(maxlength(20), password)))),
     "fullName"    -> trim(label("Full Name"    ,text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" ,text(required, maxlength(100), uniqueMailAddress("userName")))),
     "isAdmin"     -> trim(label("User Type"    ,boolean())),
@@ -181,7 +185,71 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   })
 
   get("/admin/plugins")(adminOnly {
-    html.plugins(PluginRegistry().getPlugins())
+    // Installed plugins
+    val enabledPlugins = PluginRegistry().getPlugins()
+
+    val gitbucketVersion = Semver.valueOf(GitBucketCoreModule.getVersions.asScala.last.getVersion)
+
+    // Plugins in the local repository
+    val repositoryPlugins = PluginRepository.getPlugins()
+      .filterNot { meta =>
+        enabledPlugins.exists { plugin => plugin.pluginId == meta.id &&
+          Semver.valueOf(plugin.pluginVersion).greaterThanOrEqualTo(Semver.valueOf(meta.latestVersion.version))
+        }
+      }.map { meta =>
+        (meta, meta.versions.reverse.find { version => gitbucketVersion.satisfies(version.range) })
+      }.collect { case (meta, Some(version)) =>
+        new PluginInfoBase(
+          pluginId      = meta.id,
+          pluginName    = meta.name,
+          pluginVersion = version.version,
+          description   = meta.description
+        )
+      }
+
+    // Merge
+    val plugins = enabledPlugins.map((_, true)) ++ repositoryPlugins.map((_, false))
+
+    html.plugins(plugins, flash.get("info"))
+  })
+
+  post("/admin/plugins/_reload")(adminOnly {
+    PluginRegistry.reload(request.getServletContext(), loadSystemSettings(), request2Session(request).conn)
+    flash += "info" -> "All plugins were reloaded."
+    redirect("/admin/plugins")
+  })
+
+  post("/admin/plugins/:pluginId/:version/_uninstall")(adminOnly {
+    val pluginId = params("pluginId")
+    val version  = params("version")
+    PluginRegistry().getPlugins()
+      .collect { case plugin if (plugin.pluginId == pluginId && plugin.pluginVersion == version) => plugin }
+      .foreach { _ =>
+        PluginRegistry.uninstall(pluginId, request.getServletContext, loadSystemSettings(), request2Session(request).conn)
+        flash += "info" -> s"${pluginId} was uninstalled."
+      }
+    redirect("/admin/plugins")
+  })
+
+  post("/admin/plugins/:pluginId/:version/_install")(adminOnly {
+    val pluginId = params("pluginId")
+    val version  = params("version")
+    /// TODO!!!!
+    PluginRepository.getPlugins()
+      .collect { case meta if meta.id == pluginId => (meta, meta.versions.find(_.version == version) )}
+      .foreach { case (meta, version) =>
+        version.foreach { version =>
+          // TODO Install version!
+          PluginRegistry.install(
+            new java.io.File(PluginHome, s".repository/${version.file}"),
+            request.getServletContext,
+            loadSystemSettings(),
+            request2Session(request).conn
+          )
+          flash += "info" -> s"${pluginId} was installed."
+        }
+      }
+    redirect("/admin/plugins")
   })
 
 
@@ -225,7 +293,7 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           //          FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
           //          FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
           //        }
-          // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+          // Remove from GROUP_MEMBER and COLLABORATOR
           removeUserRelatedData(userName)
         }
 
@@ -239,6 +307,10 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
           isRemoved    = form.isRemoved))
 
         updateImage(userName, form.fileId, form.clearImage)
+
+        // call hooks
+        if(form.isRemoved) PluginRegistry().getAccountHooks.foreach(_.deleted(userName))
+
         redirect("/admin/users")
       }
     } getOrElse NotFound()
@@ -277,13 +349,13 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         if(form.isRemoved){
           // Remove from GROUP_MEMBER
           updateGroupMembers(form.groupName, Nil)
-          // Remove repositories
-          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
-            deleteRepository(groupName, repositoryName)
-            FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
-          }
+//          // Remove repositories
+//          getRepositoryNamesOfUser(form.groupName).foreach { repositoryName =>
+//            deleteRepository(groupName, repositoryName)
+//            FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+//            FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+//            FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+//          }
         } else {
           // Update GROUP_MEMBER
           updateGroupMembers(form.groupName, members)

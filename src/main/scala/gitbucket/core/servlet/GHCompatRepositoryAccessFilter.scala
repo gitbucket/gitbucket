@@ -23,10 +23,11 @@ class GHCompatRepositoryAccessFilter extends Filter with SystemSettingsService {
     val agent = request.getHeader("USER-AGENT")
     val response = res.asInstanceOf[HttpServletResponse]
     val requestPath = request.getRequestURI.substring(request.getContextPath.length)
+    val queryString = if (request.getQueryString != null) "?" + request.getQueryString else ""
 
     requestPath match {
       case githubRepositoryPattern() if agent != null && agent.toLowerCase.indexOf("git") >= 0 =>
-        response.sendRedirect(baseUrl + "/git" + requestPath)
+        response.sendRedirect(baseUrl + "/git" + requestPath + queryString)
       case _ =>
         chain.doFilter(req, res)
     }

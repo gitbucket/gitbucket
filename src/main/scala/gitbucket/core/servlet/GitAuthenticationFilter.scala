@@ -51,21 +51,21 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
 
   private def pluginRepository(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain,
                                settings: SystemSettings, isUpdating: Boolean, filter: GitRepositoryFilter): Unit = {
-    implicit val r = request
+    Database() withSession { implicit session =>
+      val account = for {
+        auth <- Option(request.getHeader("Authorization"))
+        Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
+        account <- authenticate(settings, username, password)
+      } yield {
+        request.setAttribute(Keys.Request.UserName, account.userName)
+        account
+      }
 
-    val account = for {
-      auth <- Option(request.getHeader("Authorization"))
-      Array(username, password) = AuthUtil.decodeAuthHeader(auth).split(":", 2)
-      account <- authenticate(settings, username, password)
-    } yield {
-      request.setAttribute(Keys.Request.UserName, account.userName)
-      account
-    }
-
-    if(filter.filter(request.gitRepositoryPath, account.map(_.userName), settings, isUpdating)){
-      chain.doFilter(request, response)
-    } else {
-      AuthUtil.requireAuth(response)
+      if (filter.filter(request.gitRepositoryPath, account.map(_.userName), settings, isUpdating)) {
+        chain.doFilter(request, response)
+      } else {
+        AuthUtil.requireAuth(response)
+      }
     }
   }
 
@@ -74,7 +74,7 @@ class GitAuthenticationFilter extends Filter with RepositoryService with Account
     val action = request.paths match {
       case Array(_, repositoryOwner, repositoryName, _*) =>
         Database() withSession { implicit session =>
-          getRepository(repositoryOwner, repositoryName.replaceFirst("\\.wiki\\.git$|\\.git$", "")) match {
+          getRepository(repositoryOwner, repositoryName.replaceFirst("(\\.wiki)?\\.git$", "")) match {
             case Some(repository) => {
               val execute = if (!isUpdating && !repository.repository.isPrivate && settings.allowAnonymousAccess) {
                 // Authentication is not required

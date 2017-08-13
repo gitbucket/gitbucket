@@ -1,8 +1,8 @@
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.11.0"
+val GitBucketVersion = "4.15.0"
 val ScalatraVersion = "2.5.0"
-val JettyVersion = "9.3.9.v20160517"
+val JettyVersion = "9.3.19.v20170502"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
 
@@ -10,7 +10,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.3"
 
 // dependency settings
 resolvers ++= Seq(
@@ -21,46 +21,48 @@ resolvers ++= Seq(
   "amateras-snapshot" at "http://amateras.sourceforge.jp/mvn-snapshot/"
 )
 libraryDependencies ++= Seq(
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.7.0.201704051617-r",
-  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.7.0.201704051617-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.http.server" % "4.8.0.201706111038-r",
+  "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.8.0.201706111038-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
-  "org.json4s"                      %% "json4s-jackson"               % "3.5.0",
+  "org.json4s"                      %% "json4s-jackson"               % "3.5.1",
   "io.github.gitbucket"             %% "scalatra-forms"               % "1.1.0",
-  "commons-io"                      %  "commons-io"                   % "2.4",
-  "io.github.gitbucket"             %  "solidbase"                    % "1.0.0",
-  "io.github.gitbucket"             %  "markedj"                      % "1.0.10",
-  "org.apache.commons"              %  "commons-compress"             % "1.11",
+  "commons-io"                      %  "commons-io"                   % "2.5",
+  "io.github.gitbucket"             %  "solidbase"                    % "1.0.2",
+  "io.github.gitbucket"             %  "markedj"                      % "1.0.14",
+  "org.apache.commons"              %  "commons-compress"             % "1.13",
   "org.apache.commons"              %  "commons-email"                % "1.4",
-  "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.1",
-  "org.apache.sshd"                 %  "apache-sshd"                  % "1.2.0",
-  "org.apache.tika"                 %  "tika-core"                    % "1.13",
-  "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.8",
-  "joda-time"                       %  "joda-time"                    % "2.9.6",
+  "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.3",
+  "org.apache.sshd"                 %  "apache-sshd"                  % "1.4.0" exclude("org.slf4j","slf4j-jdk14"),
+  "org.apache.tika"                 %  "tika-core"                    % "1.14",
+  "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.9",
+  "joda-time"                       %  "joda-time"                    % "2.9.9",
   "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
-  "com.h2database"                  %  "h2"                           % "1.4.192",
-  "mysql"                           %  "mysql-connector-java"         % "5.1.39",
-  "org.postgresql"                  %  "postgresql"                   % "9.4.1208",
-  "ch.qos.logback"                  %  "logback-classic"              % "1.1.7",
-  "com.zaxxer"                      %  "HikariCP"                     % "2.4.6",
-  "com.typesafe"                    %  "config"                       % "1.3.0",
-  "com.typesafe.akka"               %% "akka-actor"                   % "2.4.12",
+  "com.h2database"                  %  "h2"                           % "1.4.195",
+  "org.mariadb.jdbc"                %  "mariadb-java-client"          % "2.0.3",
+  "org.postgresql"                  %  "postgresql"                   % "42.0.0",
+  "ch.qos.logback"                  %  "logback-classic"              % "1.2.3",
+  "com.zaxxer"                      %  "HikariCP"                     % "2.6.1",
+  "com.typesafe"                    %  "config"                       % "1.3.1",
+  "com.typesafe.akka"               %% "akka-actor"                   % "2.5.0",
   "fr.brouillard.oss.security.xhub" %  "xhub4j-core"                  % "1.0.0",
   "com.github.bkromhout"            %  "java-diff-utils"              % "2.1.1",
   "org.cache2k"                     %  "cache2k-all"                  % "1.0.0.CR1",
   "com.enragedginger"               %% "akka-quartz-scheduler"        % "1.6.0-akka-2.4.x" exclude("c3p0","c3p0"),
   "net.coobird"                     %  "thumbnailator"                % "0.4.8",
+  "com.github.zafarkhaja"           %  "java-semver"                  % "0.9.0",
   "org.eclipse.jetty"               %  "jetty-webapp"                 % JettyVersion     % "provided",
   "javax.servlet"                   %  "javax.servlet-api"            % "3.1.0"          % "provided",
   "junit"                           %  "junit"                        % "4.12"           % "test",
   "org.scalatra"                    %% "scalatra-scalatest"           % ScalatraVersion  % "test",
-  "org.mockito"                     %  "mockito-core"                 % "2.7.16"         % "test",
+  "org.mockito"                     %  "mockito-core"                 % "2.7.22"         % "test",
   "com.wix"                         %  "wix-embedded-mysql"           % "2.1.4"          % "test",
-  "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "1.14"           % "test"
+  "ru.yandex.qatools.embed"         %  "postgresql-embedded"          % "2.0"            % "test",
+  "net.i2p.crypto"                  % "eddsa"                         % "0.1.0"
 )
 
 // Compiler settings
-scalacOptions := Seq("-deprecation", "-language:postfixOps")
+scalacOptions := Seq("-deprecation", "-language:postfixOps", "-opt:l:method")
 javacOptions in compile ++= Seq("-target", "8", "-source", "8")
 javaOptions in Jetty += "-Dlogback.configurationFile=/logback-dev.xml"
 
@@ -143,12 +145,28 @@ executableKey := {
     IO copyFile (classDir / name, temp / name)
   }
 
+  // include plugins
+  val pluginsDir = temp / "WEB-INF" / "classes" / "plugins"
+  IO createDirectory (pluginsDir)
+  IO copyFile(Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
+
+  val json = IO read(Keys.baseDirectory.value / "plugins.json")
+  PluginsJson.parse(json).foreach { case (plugin, version) =>
+    val url = if(plugin == "gitbucket-pages-plugin"){
+      s"https://github.com/gitbucket/${plugin}/releases/download/v${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
+    } else {
+      s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
+    }
+    log info s"Download: ${url}"
+    IO download(new java.net.URL(url), pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
+  }
+
   // zip it up
   IO delete (temp / "META-INF" / "MANIFEST.MF")
   val contentMappings   = (temp.*** --- PathFinder(temp)).get pair relativeTo(temp)
   val manifest          = new JarManifest
-  manifest.getMainAttributes put (AttrName.MANIFEST_VERSION,    "1.0")
-  manifest.getMainAttributes put (AttrName.MAIN_CLASS,          "JettyLauncher")
+  manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
+  manifest.getMainAttributes put (AttrName.MAIN_CLASS,       "JettyLauncher")
   val outputFile    = workDir / warName
   IO jar (contentMappings, outputFile, manifest)
 

@@ -1,0 +1,16 @@
+@(webHook: gitbucket.core.model.AccountWebHook,
+  events: Set[gitbucket.core.model.WebHook.Event],
+  account: gitbucket.core.model.Account,
+  create: Boolean)(implicit context: gitbucket.core.controller.Context)
+@import gitbucket.core.view.helpers
+@gitbucket.core.html.main("Service Hooks"){
+  @gitbucket.core.account.html.menu("hooks", account.userName, account.isGroupAccount){
+    @gitbucket.core.settings.html.edithookform(
+      webHook, events, create,
+      helpers.url(account.userName) + "/_hooks/new",
+      helpers.url(account.userName) + "/_hooks/edit",
+      helpers.url(account.userName) + "/_hooks/delete",
+      helpers.url(account.userName) + "/_hooks/test"
+    )
+  }
+}

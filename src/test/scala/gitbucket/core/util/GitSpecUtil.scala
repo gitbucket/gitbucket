@@ -84,7 +84,7 @@ object GitSpecUtil {
       throw new RuntimeException("conflict!")
     }
     val mergeTipCommit = using(new RevWalk( repository ))(_.parseCommit( mergeTip ))
-    val committer = mergeTipCommit.getCommitterIdent;
+    val committer = mergeTipCommit.getCommitterIdent
     // creates merge commit
     val mergeCommit = new CommitBuilder()
     mergeCommit.setTreeId(merger.getResultTreeId)

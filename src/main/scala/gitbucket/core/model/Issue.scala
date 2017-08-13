@@ -13,12 +13,13 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
     def byPrimaryKey(owner: String, repository: String) = byRepository(owner, repository)
   }
 
-  class IssueOutline(tag: Tag) extends Table[(String, String, Int, Int)](tag, "ISSUE_OUTLINE_VIEW") with IssueTemplate {
+  class IssueOutline(tag: Tag) extends Table[(String, String, Int, Int, Int)](tag, "ISSUE_OUTLINE_VIEW") with IssueTemplate {
     val commentCount = column[Int]("COMMENT_COUNT")
-    def * = (userName, repositoryName, issueId, commentCount)
+    val priority = column[Int]("PRIORITY")
+    def * = (userName, repositoryName, issueId, commentCount, priority)
   }
 
-  class Issues(tag: Tag) extends Table[Issue](tag, "ISSUE") with IssueTemplate with MilestoneTemplate {
+  class Issues(tag: Tag) extends Table[Issue](tag, "ISSUE") with IssueTemplate with MilestoneTemplate with PriorityTemplate {
     val openedUserName = column[String]("OPENED_USER_NAME")
     val assignedUserName = column[String]("ASSIGNED_USER_NAME")
     val title = column[String]("TITLE")
@@ -27,7 +28,7 @@ trait IssueComponent extends TemplateComponent { self: Profile =>
     val registeredDate = column[java.util.Date]("REGISTERED_DATE")
     val updatedDate = column[java.util.Date]("UPDATED_DATE")
     val pullRequest = column[Boolean]("PULL_REQUEST")
-    def * = (userName, repositoryName, issueId, openedUserName, milestoneId.?, assignedUserName.?, title, content.?, closed, registeredDate, updatedDate, pullRequest) <> (Issue.tupled, Issue.unapply)
+    def * = (userName, repositoryName, issueId, openedUserName, milestoneId.?, priorityId.?, assignedUserName.?, title, content.?, closed, registeredDate, updatedDate, pullRequest) <> (Issue.tupled, Issue.unapply)
 
     def byPrimaryKey(owner: String, repository: String, issueId: Int) = byIssue(owner, repository, issueId)
   }
@@ -39,6 +40,7 @@ case class Issue(
   issueId: Int,
   openedUserName: String,
   milestoneId: Option[Int],
+  priorityId: Option[Int],
   assignedUserName: Option[String],
   title: String,
   content: Option[String],

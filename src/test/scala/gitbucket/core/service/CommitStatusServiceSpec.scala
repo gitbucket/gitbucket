@@ -39,7 +39,7 @@ class CommitStatusServiceSpec extends FunSuite with ServiceSpecBase with CommitS
     assert(getCommitStatus(fixture1.userName, fixture1.repositoryName, id) == Some(fixture1.copy(commitStatusId=id)))
     // other one can update
     val tester2 = generateNewAccount("tester2")
-    val time2 = new java.util.Date();
+    val time2 = new java.util.Date()
     val id2 = createCommitStatus(
       userName    = fixture1.userName,
       repositoryName = fixture1.repositoryName,

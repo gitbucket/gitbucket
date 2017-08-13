@@ -1,7 +1,7 @@
 JRebel integration (optional)
 =============================
 
-[JRebel](http://zeroturnaround.com/software/jrebel/) is a JVM plugin that makes developing web apps much faster.
+[JRebel](https://zeroturnaround.com/software/jrebel/) is a JVM plugin that makes developing web apps much faster.
 JRebel is generally able to eliminate the need for the following slow "app restart" in sbt following a code change:
 
 ```
@@ -22,12 +22,12 @@ Sign up for a [usage plan](https://my.jrebel.com/). You will need to create an a
 
 ## 2. Download JRebel
 
-Download the most recent ["nosetup" JRebel zip](http://zeroturnaround.com/software/jrebel/download/prev-releases/).
+Download the most recent ["nosetup" JRebel zip](https://zeroturnaround.com/software/jrebel/download/prev-releases/).
 Next, unzip the downloaded file.
 
 ## 3. Activate
 
-Follow the [instructions on the JRebel website](http://zeroturnaround.com/software/jrebel/download/prev-releases/) to activate your downloaded JRebel.
+Follow the [instructions on the JRebel website](https://zeroturnaround.com/software/jrebel/download/prev-releases/) to activate your downloaded JRebel.
 
 You can use the default settings for all the configurations.
 

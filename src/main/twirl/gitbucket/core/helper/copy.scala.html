@@ -3,12 +3,12 @@
   <div class="input-group" style="margin-bottom: 0px;">
     @html
     <span class="input-group-btn">
-      <span id="@copyButtonId" class="btn btn-default" @if(style.nonEmpty){style="@style"}
+      <span id="@copyButtonId" class="btn btn-sm btn-default" @if(style.nonEmpty){style="@style"}
         data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="octicon octicon-clippy"></i></span>
     </span>
   </div>
 } else {
-  <span id="@copyButtonId" class="btn btn-default" @if(style.nonEmpty){style="@style"}
+  <span id="@copyButtonId" class="btn btn-sm btn-default" @if(style.nonEmpty){style="@style"}
     data-clipboard-text="@value" data-placement="bottom" title="copy to clipboard"><i class="octicon octicon-clippy"></i></span>
 }
 <script>
@@ -18,7 +18,7 @@
   if (document.queryCommandSupported('copy')) {
     var title = $('#@copyButtonId').attr('title');
     $('#@copyButtonId').tooltip({
-      @* if default container is used then 2 lines tooltip text is displayd because tooptip width is narrow. *@
+      @* if default container is used then 2 lines tooltip text is displayed because tooptip width is narrow. *@
       container: 'body'
     });
     $('#@copyButtonId').on('click', function() {

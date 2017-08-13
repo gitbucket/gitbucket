@@ -33,6 +33,7 @@ class ApiController extends ApiControllerBase
   with WebHookIssueCommentService
   with WikiService
   with ActivityService
+  with PrioritiesService
   with OwnerAuthenticator
   with UsersAuthenticator
   with GroupManagerAuthenticator
@@ -52,6 +53,7 @@ trait ApiControllerBase extends ControllerBase {
     with RepositoryCreationService
     with IssueCreationService
     with HandleCommentService
+    with PrioritiesService
     with OwnerAuthenticator
     with UsersAuthenticator
     with GroupManagerAuthenticator
@@ -365,6 +367,7 @@ trait ApiControllerBase extends ControllerBase {
           data.body,
           data.assignees.headOption,
           milestone.map(_.milestoneId),
+          None,
           data.labels,
           loginAccount)
         JsonFormat(ApiIssue(issue, RepositoryName(repository), ApiUser(loginAccount)))
@@ -378,7 +381,7 @@ trait ApiControllerBase extends ControllerBase {
   get("/api/v3/repos/:owner/:repository/issues/:id/comments")(referrersOnly { repository =>
     (for{
       issueId  <- params("id").toIntOpt
-      comments =  getCommentsForApi(repository.owner, repository.name, issueId.toInt)
+      comments =  getCommentsForApi(repository.owner, repository.name, issueId)
     } yield {
       JsonFormat(comments.map{ case (issueComment, user, issue) => ApiComment(issueComment, RepositoryName(repository), issueId, ApiUser(user), issue.isPullRequest) })
     }) getOrElse NotFound()

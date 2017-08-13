@@ -14,7 +14,7 @@ import org.eclipse.jgit.revwalk.filter._
 import org.eclipse.jgit.treewalk._
 import org.eclipse.jgit.treewalk.filter._
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
-import org.eclipse.jgit.errors.{ConfigInvalidException, MissingObjectException}
+import org.eclipse.jgit.errors.{ConfigInvalidException, IncorrectObjectTypeException, MissingObjectException}
 import org.eclipse.jgit.transport.RefSpec
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -93,7 +93,7 @@ object JGitUtil {
 
     val summary = getSummaryMessage(fullMessage, shortMessage)
 
-    val description = defining(fullMessage.trim.indexOf("\n")){ i =>
+    val description = defining(fullMessage.trim.indexOf('\n')){ i =>
       if(i >= 0){
         Some(fullMessage.trim.substring(i).trim)
       } else None
@@ -226,9 +226,14 @@ object JGitUtil {
             ref.getName.stripPrefix("refs/heads/")
           }.toList,
           // tags
-          git.tagList.call.asScala.map { ref =>
-            val revCommit = getRevCommitFromId(git, ref.getObjectId)
-            TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName)
+          git.tagList.call.asScala.flatMap { ref =>
+            try {
+              val revCommit = getRevCommitFromId(git, ref.getObjectId)
+              Some(TagInfo(ref.getName.stripPrefix("refs/tags/"), revCommit.getCommitterIdent.getWhen, revCommit.getName))
+            } catch {
+              case _: IncorrectObjectTypeException =>
+                None
+            }
           }.sortBy(_.time).toList
         )
       } catch {
@@ -288,7 +293,7 @@ object JGitUtil {
       @tailrec
       def findLastCommits(result:List[(ObjectId, FileMode, String, String, Option[String], RevCommit)],
                           restList:List[((ObjectId, FileMode, String, String, Option[String]), Map[RevCommit, RevCommit])],
-                          revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, String, Option[String], RevCommit)] ={
+                          revIterator:java.util.Iterator[RevCommit]): List[(ObjectId, FileMode, String, String, Option[String], RevCommit)] = {
         if(restList.isEmpty){
           result
         } else if(!revIterator.hasNext){ // maybe, revCommit has only 1 log. other case, restList be empty
@@ -359,9 +364,9 @@ object JGitUtil {
           (file1.isDirectory, file2.isDirectory) match {
             case (true , false) => true
             case (false, true ) => false
-           case _ => file1.name.compareTo(file2.name) < 0
+            case _ => file1.name.compareTo(file2.name) < 0
           }
-        }.toList
+        }
     }
   }
 
@@ -369,7 +374,7 @@ object JGitUtil {
    * Returns the first line of the commit message.
    */
   private def getSummaryMessage(fullMessage: String, shortMessage: String): String = {
-    defining(fullMessage.trim.indexOf("\n")){ i =>
+    defining(fullMessage.trim.indexOf('\n')){ i =>
       defining(if(i >= 0) fullMessage.trim.substring(0, i).trim else fullMessage){ firstLine =>
         if(firstLine.length > shortMessage.length) shortMessage else firstLine
       }
@@ -994,13 +999,13 @@ object JGitUtil {
 
   def getBlame(git: Git, id: String, path: String): Iterable[BlameInfo] = {
     Option(git.getRepository.resolve(id)).map{ commitId =>
-      val blamer = new org.eclipse.jgit.api.BlameCommand(git.getRepository);
+      val blamer = new org.eclipse.jgit.api.BlameCommand(git.getRepository)
       blamer.setStartCommit(commitId)
       blamer.setFilePath(path)
       val blame = blamer.call()
       var blameMap = Map[String, JGitUtil.BlameInfo]()
       var idLine = List[(String, Int)]()
-      val commits = 0.to(blame.getResultContents().size()-1).map{ i =>
+      val commits = 0.to(blame.getResultContents().size() - 1).map{ i =>
         val c = blame.getSourceCommit(i)
         if(!blameMap.contains(c.name)){
           blameMap += c.name -> JGitUtil.BlameInfo(
@@ -1010,7 +1015,7 @@ object JGitUtil {
             c.getAuthorIdent.getWhen,
             Option(git.log.add(c).addPath(blame.getSourcePath(i)).setSkip(1).setMaxCount(2).call.iterator.next)
               .map(_.name),
-            if(blame.getSourcePath(i)==path){ None }else{ Some(blame.getSourcePath(i)) },
+            if(blame.getSourcePath(i)==path){ None } else { Some(blame.getSourcePath(i)) },
             c.getCommitterIdent.getWhen,
             c.getShortMessage,
             Set.empty)

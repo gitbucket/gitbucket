@@ -20,6 +20,19 @@ trait Validations {
   }
 
   /**
+   * Constraint for the password.
+   */
+  def password: Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+      if(System.getProperty("gitbucket.validate.password") != "false" && !value.matches("[a-zA-Z0-9\\-_.]+")){
+        Some(s"${name} contains invalid character.")
+      } else {
+        None
+      }
+  }
+
+
+  /**
    * Constraint for the repository identifier.
    */
   def repository: Constraint = new Constraint(){

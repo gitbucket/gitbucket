@@ -128,7 +128,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
                    repository: RepositoryService.RepositoryInfo,
                    enableWikiLink: Boolean, enableRefsLink: Boolean, enableAnchor: Boolean)(implicit context: Context): Html = {
 
-    val fileName  = filePath.reverse.head.toLowerCase
+    val fileName  = filePath.last.toLowerCase
     val extension = FileUtil.getExtension(fileName)
     val renderer  = PluginRegistry().getRenderer(extension)
     renderer.render(RenderRequest(filePath, fileContent, branch, repository, enableWikiLink, enableRefsLink, enableAnchor, context))

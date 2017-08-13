@@ -2,9 +2,10 @@ package gitbucket.core.controller
 
 import gitbucket.core.account.html
 import gitbucket.core.helper
-import gitbucket.core.model.{GroupMember, Role}
+import gitbucket.core.model.{AccountWebHook, GroupMember, RepositoryWebHook, RepositoryWebHookEvent, Role, WebHook, WebHookContentType}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
+import gitbucket.core.service.WebHookService._
 import gitbucket.core.ssh.SshUtil
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
@@ -16,17 +17,16 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 
-
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
   with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-  with AccessTokenService with WebHookService with RepositoryCreationService
+  with AccessTokenService with WebHookService with PrioritiesService with RepositoryCreationService
 
 
 trait AccountControllerBase extends AccountManagementControllerBase {
   self: AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
     with OneselfAuthenticator with UsersAuthenticator with GroupManagerAuthenticator with ReadableUsersAuthenticator
-    with AccessTokenService with WebHookService with RepositoryCreationService =>
+    with AccessTokenService with WebHookService with PrioritiesService with RepositoryCreationService =>
 
   case class AccountNewForm(userName: String, password: String, fullName: String, mailAddress: String,
                             description: Option[String], url: Option[String], fileId: Option[String])
@@ -40,7 +40,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   val newForm = mapping(
     "userName"    -> trim(label("User name"    , text(required, maxlength(100), identifier, uniqueUserName, reservedNames))),
-    "password"    -> trim(label("Password"     , text(required, maxlength(20)))),
+    "password"    -> trim(label("Password"     , text(required, maxlength(20), password))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress()))),
     "description" -> trim(label("bio"          , optional(text()))),
@@ -49,7 +49,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   )(AccountNewForm.apply)
 
   val editForm = mapping(
-    "password"    -> trim(label("Password"     , optional(text(maxlength(20))))),
+    "password"    -> trim(label("Password"     , optional(text(maxlength(20), password)))),
     "fullName"    -> trim(label("Full Name"    , text(required, maxlength(100)))),
     "mailAddress" -> trim(label("Mail Address" , text(required, maxlength(100), uniqueMailAddress("userName")))),
     "description" -> trim(label("bio"          , optional(text()))),
@@ -108,6 +108,47 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   val accountForm = mapping(
     "account" -> trim(label("Group/User name", text(required, validAccountName)))
   )(AccountForm.apply)
+
+  // for account web hook url addition.
+  case class AccountWebHookForm(url: String, events: Set[WebHook.Event], ctype: WebHookContentType, token: Option[String])
+
+  def accountWebHookForm(update:Boolean) = mapping(
+    "url"    -> trim(label("url", text(required, accountWebHook(update)))),
+    "events" -> accountWebhookEvents,
+    "ctype" -> label("ctype", text()),
+    "token" -> optional(trim(label("token", text(maxlength(100)))))
+  )(
+    (url, events, ctype, token) => AccountWebHookForm(url, events, WebHookContentType.valueOf(ctype), token)
+  )
+  /**
+    * Provides duplication check for web hook url. duplicated from RepositorySettingsController.scala
+    */
+  private def accountWebHook(needExists: Boolean): Constraint = new Constraint(){
+    override def validate(name: String, value: String, messages: Messages): Option[String] =
+      if(getAccountWebHook(params("userName"), value).isDefined != needExists){
+        Some(if(needExists){
+          "URL had not been registered yet."
+        } else {
+          "URL had been registered already."
+        })
+      } else {
+        None
+      }
+  }
+
+  private def accountWebhookEvents = new ValueType[Set[WebHook.Event]]{
+    def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = {
+      WebHook.Event.values.flatMap { t =>
+        params.get(name + "." + t.name).map(_ => t)
+      }.toSet
+    }
+    def validate(name: String, params: Map[String, String], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
+      Seq(name -> messages("error.required").format(name))
+    } else {
+      Nil
+    }
+  }
+
 
   /**
    * Displays user information.
@@ -191,6 +232,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     } getOrElse NotFound()
   })
 
+  get("/captures/(.*)".r) {
+    multiParams("captures").head
+  }
+
   get("/:userName/_delete")(oneselfOnly {
     val userName = params("userName")
 
@@ -206,9 +251,13 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        FileUtils.deleteDirectory(getWikiRepositoryDir(userName, repositoryName))
 //        FileUtils.deleteDirectory(getTemporaryDir(userName, repositoryName))
 //      }
-//      // Remove from GROUP_MEMBER, COLLABORATOR and REPOSITORY
+        // Remove from GROUP_MEMBER and COLLABORATOR
         removeUserRelatedData(userName)
         updateAccount(account.copy(isRemoved = true))
+
+        // call hooks
+        PluginRegistry().getAccountHooks.foreach(_.deleted(userName))
+
         session.invalidate
         redirect("/")
       }
@@ -269,6 +318,113 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     redirect(s"/${userName}/_application")
   })
 
+  get("/:userName/_hooks")(oneselfOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName).map { account =>
+      gitbucket.core.account.html.hooks(account, getAccountWebHooks(account.userName), flash.get("info"))
+    } getOrElse NotFound()
+  })
+
+  /**
+   * Display the account web hook edit page.
+   */
+  get("/:userName/_hooks/new")(oneselfOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName).map { account =>
+      val webhook = AccountWebHook(userName, "", WebHookContentType.FORM, None)
+      html.edithook(webhook, Set(WebHook.Push), account, true)
+    } getOrElse NotFound()
+  })
+
+  /**
+   * Add the account web hook URL.
+   */
+  post("/:userName/_hooks/new", accountWebHookForm(false))(oneselfOnly { form =>
+    val userName = params("userName")
+    addAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
+    flash += "info" -> s"Webhook ${form.url} created"
+    redirect(s"/${userName}/_hooks")
+  })
+
+  /**
+   * Delete the account web hook URL.
+   */
+  get("/:userName/_hooks/delete")(oneselfOnly {
+    val userName = params("userName")
+    deleteAccountWebHook(userName, params("url"))
+    flash += "info" -> s"Webhook ${params("url")} deleted"
+    redirect(s"/${userName}/_hooks")
+  })
+
+  /**
+   * Display the account web hook edit page.
+   */
+  get("/:userName/_hooks/edit")(oneselfOnly {
+    val userName = params("userName")
+    getAccountByUserName(userName).flatMap { account =>
+      getAccountWebHook(userName, params("url")).map { case (webhook, events) =>
+        html.edithook(webhook, events, account, false)
+      }
+    } getOrElse NotFound()
+  })
+
+  /**
+   * Update account web hook settings.
+   */
+  post("/:userName/_hooks/edit", accountWebHookForm(true))(oneselfOnly { form =>
+    val userName = params("userName")
+    updateAccountWebHook(userName, form.url, form.events, form.ctype, form.token)
+    flash += "info" -> s"webhook ${form.url} updated"
+    redirect(s"/${userName}/_hooks")
+  })
+
+  /**
+   * Send the test request to registered account web hook URLs.
+   */
+  ajaxPost("/:userName/_hooks/test")(oneselfOnly {
+    // TODO Is it possible to merge with [[RepositorySettingsController.ajaxPost]]?
+    import scala.concurrent.duration._
+    import scala.concurrent._
+    import scala.util.control.NonFatal
+    import org.apache.http.util.EntityUtils
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    def _headers(h: Array[org.apache.http.Header]): Array[Array[String]] = h.map { h => Array(h.getName, h.getValue) }
+
+    val userName = params("userName")
+    val url = params("url")
+    val token = Some(params("token"))
+    val ctype = WebHookContentType.valueOf(params("ctype"))
+    val dummyWebHookInfo = RepositoryWebHook(userName, "dummy", url, ctype, token)
+    val dummyPayload = {
+      val ownerAccount = getAccountByUserName(userName).get
+      WebHookPushPayload.createDummyPayload(ownerAccount)
+    }
+
+    val (webHook, json, reqFuture, resFuture) = callWebHook(WebHook.Push, List(dummyWebHookInfo), dummyPayload).head
+
+    val toErrorMap: PartialFunction[Throwable, Map[String,String]] = {
+      case e: java.net.UnknownHostException => Map("error"-> ("Unknown host " + e.getMessage))
+      case e: java.lang.IllegalArgumentException => Map("error"-> ("invalid url"))
+      case e: org.apache.http.client.ClientProtocolException => Map("error"-> ("invalid url"))
+      case NonFatal(e) => Map("error"-> (e.getClass + " "+ e.getMessage))
+    }
+
+    contentType = formats("json")
+    org.json4s.jackson.Serialization.write(Map(
+      "url" -> url,
+      "request" -> Await.result(reqFuture.map(req => Map(
+        "headers" -> _headers(req.getAllHeaders),
+        "payload" -> json
+      )).recover(toErrorMap), 20 seconds),
+      "response" -> Await.result(resFuture.map(res => Map(
+        "status"  -> res.getStatusLine(),
+        "body"    -> EntityUtils.toString(res.getEntity()),
+        "headers" -> _headers(res.getAllHeaders())
+      )).recover(toErrorMap), 20 seconds)
+    ))
+  })
+
   get("/register"){
     if(context.settings.allowAccountRegistration){
       if(context.loginAccount.isDefined){
@@ -288,7 +444,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   get("/groups/new")(usersOnly {
-    html.group(None, List(GroupMember("", context.loginAccount.get.userName, true)))
+    html.creategroup(List(GroupMember("", context.loginAccount.get.userName, true)))
   })
 
   post("/groups/new", newGroupForm)(usersOnly { form =>
@@ -304,7 +460,10 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:groupName/_editgroup")(managersOnly {
     defining(params("groupName")){ groupName =>
-      html.group(getAccountByUserName(groupName, true), getGroupMembers(groupName))
+      // TODO Don't use Option.get
+      getAccountByUserName(groupName, true).map { account =>
+        html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
+      } getOrElse NotFound()
     }
   })
 
@@ -312,13 +471,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     defining(params("groupName")){ groupName =>
       // Remove from GROUP_MEMBER
       updateGroupMembers(groupName, Nil)
-      // Remove repositories
-      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
-        deleteRepository(groupName, repositoryName)
-        FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
-        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
-        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+      // Disable group
+      getAccountByUserName(groupName, false).foreach { account =>
+        updateGroup(groupName, account.description, account.url, true)
       }
+//      // Remove repositories
+//      getRepositoryNamesOfUser(groupName).foreach { repositoryName =>
+//        deleteRepository(groupName, repositoryName)
+//        FileUtils.deleteDirectory(getRepositoryDir(groupName, repositoryName))
+//        FileUtils.deleteDirectory(getWikiRepositoryDir(groupName, repositoryName))
+//        FileUtils.deleteDirectory(getTemporaryDir(groupName, repositoryName))
+//      }
     }
     redirect("/")
   })
@@ -343,7 +506,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 //        }
 
         updateImage(form.groupName, form.fileId, form.clearImage)
-        redirect(s"/${form.groupName}")
+
+        flash += "info" -> "Account information has been updated."
+        redirect(s"/${groupName}/_editgroup")
 
       } getOrElse NotFound()
     }
@@ -433,16 +598,23 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
           // Insert default labels
           insertDefaultLabels(accountName, repository.name)
+          // Insert default priorities
+          insertDefaultPriorities(accountName, repository.name)
 
           // clone repository actually
           JGitUtil.cloneRepository(
             getRepositoryDir(repository.owner, repository.name),
-            getRepositoryDir(accountName, repository.name))
+            FileUtil.deleteIfExists(getRepositoryDir(accountName, repository.name)))
 
           // Create Wiki repository
-          JGitUtil.cloneRepository(
-            getWikiRepositoryDir(repository.owner, repository.name),
-            getWikiRepositoryDir(accountName, repository.name))
+          JGitUtil.cloneRepository(getWikiRepositoryDir(repository.owner, repository.name),
+            FileUtil.deleteIfExists(getWikiRepositoryDir(accountName, repository.name)))
+
+          // Copy LFS files
+          val lfsDir = getLfsDir(repository.owner, repository.name)
+          if(lfsDir.exists){
+            FileUtils.copyDirectory(lfsDir, FileUtil.deleteIfExists(getLfsDir(accountName, repository.name)))
+          }
 
           // Record activity
           recordForkActivity(repository.owner, repository.name, loginUserName, accountName)

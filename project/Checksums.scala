@@ -1,7 +1,6 @@
-import java.security.MessageDigest;
+import java.security.MessageDigest
 import scala.annotation._
 import sbt._
-import sbt.Using._
 
 object Checksums {
   private val bufferSize = 2048

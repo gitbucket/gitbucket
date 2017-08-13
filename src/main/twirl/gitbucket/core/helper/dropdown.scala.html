@@ -2,43 +2,45 @@
   prefix: String  = "",
   style : String  = "",
   right : Boolean = false,
-  filter: String = "")(body: Html)
-<div class="btn-group" @if(style.nonEmpty){style="@style"}>
-  <button
-      class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
-    @if(value.isEmpty){
-      <i class="octicon octicon-gear"></i>
-    } else {
-      @if(prefix.nonEmpty){
-        <span class="muted">@prefix:</span>
-      }
-      <span class="strong">@value</span>
-    }
-    <span class="caret"></span>
-  </button>
-  <ul class="dropdown-menu@if(right){ pull-right}">
-    @if(filter.nonEmpty) {
-      <li><input id="@filter-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="Filter"/></li>
-    }
-    @body
-  </ul>
-</div>
-@if(filter.nonEmpty) {
-<script>
-$(function(){
-  $('#@{filter}-input').parent().click(function(e) {
-    e.stopPropagation();
-  });
-  $('#@{filter}-input').keyup(function() {
-    var inputVal = $('#@{filter}-input').val();
-    $.each($('#@{filter}-input').parent().parent().find('a'), function(index, elem) {
-      if (!inputVal || !elem.text.trim() || elem.text.trim().lastIndexOf(inputVal, 0) >= 0) {
-        $(elem).parent().show();
+  filter: (String, String)  = ("",""))(body: Html)
+@defining(if(filter._1.isEmpty) "" else filter._1 + "-" + scala.util.Random.alphanumeric.take(4).mkString){ filterId =>
+  <div class="btn-group" @if(style.nonEmpty){style="@style"}>
+    <button
+        class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
+      @if(value.isEmpty){
+        <i class="octicon octicon-gear"></i>
       } else {
-        $(elem).parent().hide();
+        @if(prefix.nonEmpty){
+          <span class="muted">@prefix:</span>
+        }
+        <span class="strong">@value</span>
       }
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu@if(right){ pull-right}">
+      @if(filterId.nonEmpty) {
+        <li><input id="@filterId-input" type="text" class="form-control input-sm dropdown-filter-input" placeholder="@filter._2"/></li>
+      }
+      @body
+    </ul>
+  </div>
+  @if(filterId.nonEmpty) {
+    <script>
+    $(window).load(function(){
+      $('#@{filterId}-input').parent().click(function(e) {
+        e.stopPropagation();
+      });
+      $('#@{filterId}-input').keyup(function() {
+        var inputVal = $('#@{filterId}-input').val();
+        $.each($('#@{filterId}-input').parent().parent().find('a'), function(index, elem) {
+          if ( !inputVal || !elem.text.trim() || elem.text.trim().toLowerCase().indexOf(inputVal.toLowerCase()) >=0 ) {
+            $(elem).parent().show();
+          } else {
+            $(elem).parent().hide();
+          }
+        });
+      });
     });
-  });
-});
-</script>
+    </script>
+  }
 }
