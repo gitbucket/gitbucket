@@ -251,7 +251,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           using(Git.open(getRepositoryDir(owner, name))) { git =>
             // mark issue as merged and close.
             val loginAccount = context.loginAccount.get
-            createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
+            val commentId = createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
             createComment(owner, name, loginAccount.userName, issueId, "Close", "close")
             updateClosed(owner, name, issueId, true)
 
@@ -282,7 +282,10 @@ trait PullRequestsControllerBase extends ControllerBase {
             callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
             // call hooks
-            PluginRegistry().getPullRequestHooks.foreach(_.merged(issue, repository))
+            PluginRegistry().getPullRequestHooks.foreach{ h =>
+              h.addedComment(commentId, form.message, issue, repository)
+              h.merged(issue, repository)
+            }
 
             redirect(s"/${owner}/${name}/pull/${issueId}")
           }
