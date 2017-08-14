@@ -19,8 +19,12 @@ import SystemSettingsService.Smtp
  * Please see the plugin for details.
  */
 trait Notifier {
+  def toNotify(subject: String, htmlMsg: String)
+    (recipients: Account => Session => Seq[String])(implicit context: Context): Unit = {
+    toNotify(subject, htmlMsg, None)(recipients)
+  }
 
-  def toNotify(subject: String, msg: String)
+  def toNotify(subject: String, htmlMsg: String, textMsg: Option[String])
               (recipients: Account => Session => Seq[String])(implicit context: Context): Unit
 
 }
@@ -35,7 +39,7 @@ object Notifier {
 class Mailer(private val smtp: Smtp) extends Notifier {
   private val logger = LoggerFactory.getLogger(classOf[Mailer])
 
-  def toNotify(subject: String, msg: String)
+  def toNotify(subject: String, htmlMsg: String, textMsg: Option[String] = None)
               (recipients: Account => Session => Seq[String])(implicit context: Context): Unit = {
     context.loginAccount.foreach { loginAccount =>
       val database = Database()
@@ -43,7 +47,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       val f = Future {
         database withSession { session =>
           recipients(loginAccount)(session) foreach { to =>
-            send(to, subject, msg, loginAccount)
+            send(to, subject, htmlMsg, loginAccount, textMsg)
           }
         }
         "Notifications Successful."
@@ -55,7 +59,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
     }
   }
 
-  def send(to: String, subject: String, msg: String, loginAccount: Account): Unit = {
+  def send(to: String, subject: String, htmlMsg: String, loginAccount: Account, textMsg: Option[String] = None): Unit = {
     val email = new HtmlEmail
     email.setHostName(smtp.host)
     email.setSmtpPort(smtp.port.get)
@@ -80,13 +84,16 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       }
     email.setCharset("UTF-8")
     email.setSubject(subject)
-    email.setHtmlMsg(msg)
+    email.setHtmlMsg(htmlMsg)
+    textMsg.foreach{ msg =>
+      email.setTextMsg(msg)
+    }
 
     email.addTo(to).send
   }
 
 }
 class MockMailer extends Notifier {
-  def toNotify(subject: String, msg: String)
+  def toNotify(subject: String, htmlMsg: String, textMsg: Option[String] = None)
               (recipients: Account => Session => Seq[String])(implicit context: Context): Unit = ()
 }
