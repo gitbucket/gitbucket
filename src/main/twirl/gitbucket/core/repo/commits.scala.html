@@ -70,19 +70,19 @@
                       val (summary, summaryText) = getSummary(statuses)
                       (statuses, summary, summaryText)
                     }){ case (statuses, summaryState, summaryText) =>
-                      @if(!statuses.isEmpty){
+                      @if(statuses.nonEmpty){
                         @helpers.commitStateIcon(summaryState)
                         <strong class="text-@{summaryState.name}">@helpers.commitStateText(summaryState, commit.id)</strong>
-                        <span class="text-@{summaryState.name}">— @summaryText checks</span>
+                        <span class="text-@{summaryState.name}">- @summaryText checks</span>
                         <a href="#" class="toggle-check">Show all checks</a>
                         <div style="display: none;">
                           @statuses.map{ status =>
                           <div class="build-status-item">
                             <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
                             <strong>@status.context</strong>
-                            @status.description.map { desc => <span class="muted">— @desc</span> }
+                            @status.description.map { desc => <span class="muted">- @desc</span> }
                             <span>
-                              @status.targetUrl.map { url => — <a href="@url">Details</a> }
+                              @status.targetUrl.map { url => - <a href="@url">Details</a> }
                             </span>
                           </div>
                           }
@@ -116,10 +116,9 @@
       $(function () {
         $('.toggle-check').click(function(){
           var div = $(this).next('div');
-          console.log(div);
           if(div.is(':visible')){
             $(this).text('Show all checks');
-          }else{
+          } else {
             $(this).text('Hide all checks');
           }
           div.toggle();
