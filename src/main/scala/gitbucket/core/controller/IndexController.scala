@@ -112,16 +112,19 @@ trait IndexControllerBase extends ControllerBase {
     contentType = formats("json")
     val user  = params("user").toBoolean
     val group = params("group").toBoolean
+    val allUsers = getAllUsers(false)
+      .withFilter { t => (user, group) match {
+        case (true, true) => true
+        case (true, false) => !t.isGroupAccount
+        case (false, true) => t.isGroupAccount
+        case (false, false) => false
+      }}
     org.json4s.jackson.Serialization.write(
       Map("options" -> (
-        getAllUsers(false)
-          .withFilter { t => (user, group) match {
-            case (true, true) => true
-            case (true, false) => !t.isGroupAccount
-            case (false, true) => t.isGroupAccount
-            case (false, false) => false
-          }}.map { t => t.userName }
-      ))
+        allUsers.map { t => t.userName }
+      ),
+        "nameMap" -> allUsers.map{t => t.userName -> t.fullName}.toMap
+      )
     )
   })
 

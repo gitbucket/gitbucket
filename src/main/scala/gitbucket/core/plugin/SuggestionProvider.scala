@@ -21,7 +21,7 @@ class UserNameSuggestionProvider extends SuggestionProvider {
   override val prefix: String = "@"
   override val context: Seq[String] = Seq("issues")
   override def values(repository: RepositoryInfo): Seq[String] = Nil
-  override def template(implicit context: Context): String = "'@' + value"
+  override def template(implicit context: Context): String = "'@' + value + '/' + nameMap[value]"
   override def additionalScript(implicit context: Context): String =
-    s"""$$.get('${context.path}/_user/proposals', { query: '', user: true, group: false }, function (data) { user = data.options; });"""
+    s"""var nameMap = {};$$.get('${context.path}/_user/proposals', { query: '', user: true, group: false }, function (data) { user = data.options; nameMap = data.nameMap;});"""
 }
