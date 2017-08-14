@@ -13,7 +13,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import gitbucket.core.model.{Account, WebHook}
+import gitbucket.core.model.{Account, CommitState, CommitStatus, WebHook}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
@@ -174,13 +174,24 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val (branchName, path) = repository.splitPath(multiParams("splat").head)
     val page = params.get("page").flatMap(_.toIntOpt).getOrElse(1)
 
+    def getStatuses(sha: String): List[CommitStatus] = {
+      getCommitStatues(repository.owner, repository.name, sha)
+    }
+
+    def getSummary(statuses: List[CommitStatus]): (CommitState, String) = {
+      val stateMap = statuses.groupBy(_.state)
+      val state = CommitState.combine(stateMap.keySet)
+      val summary = stateMap.map{ case (keyState, states) => states.size+" "+keyState.name }.mkString(", ")
+      state -> summary
+    }
+
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       JGitUtil.getCommitLog(git, branchName, page, 30, path) match {
         case Right((logs, hasNext)) =>
           html.commits(if(path.isEmpty) Nil else path.split("/").toList, branchName, repository,
             logs.splitWith{ (commit1, commit2) =>
               view.helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
-            }, page, hasNext, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
+            }, page, hasNext, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), getStatuses, getSummary)
         case Left(_) => NotFound()
       }
     }

@@ -4,7 +4,9 @@
   commits: Seq[Seq[gitbucket.core.util.JGitUtil.CommitInfo]],
   page: Int,
   hasNext: Boolean,
-  hasWritePermission: Boolean)(implicit context: gitbucket.core.controller.Context)
+  hasWritePermission: Boolean,
+  getStatuses: String => List[gitbucket.core.model.CommitStatus],
+  getSummary: List[gitbucket.core.model.CommitStatus] => (gitbucket.core.model.CommitState, String))(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
 @gitbucket.core.html.main(s"${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
@@ -63,6 +65,30 @@
                   }
                   @helpers.user(commit.committerName, commit.committerEmailAddress, "username")
                   <span class="muted">committed @gitbucket.core.helper.html.datetimeago(commit.commitTime)</span>
+                    @defining({
+                      val statuses = getStatuses(commit.id)
+                      val (summary, summaryText) = getSummary(statuses)
+                      (statuses, summary, summaryText)
+                    }){ case (statuses, summaryState, summaryText) =>
+                      @if(!statuses.isEmpty){
+                        @helpers.commitStateIcon(summaryState)
+                        <strong class="text-@{summaryState.name}">@helpers.commitStateText(summaryState, commit.id)</strong>
+                        <span class="text-@{summaryState.name}">— @summaryText checks</span>
+                        <a href="#" class="toggle-check">Show all checks</a>
+                        <div style="display: none;">
+                          @statuses.map{ status =>
+                          <div class="build-status-item">
+                            <span class="build-status-icon text-@{status.state.name}">@helpers.commitStateIcon(status.state)</span>
+                            <strong>@status.context</strong>
+                            @status.description.map { desc => <span class="muted">— @desc</span> }
+                            <span>
+                              @status.targetUrl.map { url => — <a href="@url">Details</a> }
+                            </span>
+                          </div>
+                          }
+                        </div>
+                      }
+                    }
                 </div>
               </div>
             </div>
@@ -86,5 +112,20 @@
         }
       </ul>
     </nav>
+    <script>
+      $(function () {
+        $('.toggle-check').click(function(){
+          var div = $(this).next('div');
+          console.log(div);
+          if(div.is(':visible')){
+            $(this).text('Show all checks');
+          }else{
+            $(this).text('Hide all checks');
+          }
+          div.toggle();
+          return false;
+        });
+      })
+    </script>
   }
 }
