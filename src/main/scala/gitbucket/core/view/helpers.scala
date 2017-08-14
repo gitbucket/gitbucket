@@ -412,4 +412,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    */
   def readableSize(size: Option[Long]): String = FileUtil.readableSize(size.getOrElse(0))
 
+
+  /**
+    * returns selected skin-name
+    */
+  def skinName(implicit context: Context): String = context.settings.skinName
+
 }
