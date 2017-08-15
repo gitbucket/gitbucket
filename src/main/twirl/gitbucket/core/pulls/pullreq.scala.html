@@ -17,6 +17,16 @@
 @import gitbucket.core.view.helpers
 @import gitbucket.core.model.IssueComment
 @import gitbucket.core.model.CommitComment
+@pullreqdesc(pullreq: gitbucket.core.model.PullRequest) = {
+  @if(pullreq.userName == pullreq.requestUserName) {
+    into <code class="branch-name" style="@helpers.branchColorStyle(pullreq.branch)">@pullreq.branch</code>
+    from <code class="branch-name" style="@helpers.branchColorStyle(pullreq.requestBranch)">@pullreq.requestBranch</code>
+    in same repository
+  }else{
+    into <code class="branch-name" style="@helpers.branchColorStyle(pullreq.branch)">@pullreq.userName:@pullreq.branch</code>
+    from <code class="branch-name" style="@helpers.branchColorStyle(pullreq.requestBranch)">@pullreq.requestUserName:@pullreq.requestBranch</code>
+  }
+}
 @gitbucket.core.html.main(s"${issue.title} - Pull request #${issue.issueId} - ${repository.owner}/${repository.name}", Some(repository)){
   @gitbucket.core.html.menu("pulls", repository){
     @defining(dayByDayCommits.flatten){ commits =>
@@ -49,24 +59,24 @@
             case comment: IssueComment => Some(comment)
             case _ => None
           }.find(_.action == "merge").map{ comment =>
-            <span class="label label-info issue-status">Merged</span>
+            <span class="label label-info issue-status"><i class="octicon octicon-git-merge"></i>Merged</span>
             <span class="muted">
-              @helpers.user(comment.commentedUserName, styleClass="username strong") merged @commits.size @helpers.plural(commits.size, "commit")
-              into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+              @helpers.avatarLink(comment.commentedUserName, 16, label=true, styleClass="username strong") merged @commits.size @helpers.plural(commits.size, "commit")
+              @pullreqdesc(pullreq)
               @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
             </span>
           }.getOrElse {
-            <span class="label label-important issue-status">Closed</span>
+            <span class="label label-important issue-status"><i class="octicon octicon-git-pull-request"></i>Closed</span>
             <span class="muted">
-              @helpers.user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @helpers.plural(commits.size, "commit")
-              into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+              @helpers.avatarLink(issue.openedUserName, 16, label=true, styleClass="username strong") wants to merge @commits.size @helpers.plural(commits.size, "commit")
+              @pullreqdesc(pullreq)
             </span>
           }
         } else {
-          <span class="label label-success issue-status">Open</span>
+          <span class="label label-success issue-status"><i class="octicon octicon-git-pull-request"></i>Open</span>
           <span class="muted">
-            @helpers.user(issue.openedUserName, styleClass="username strong") wants to merge @commits.size @helpers.plural(commits.size, "commit")
-            into <code>@pullreq.userName:@pullreq.branch</code> from <code>@pullreq.requestUserName:@pullreq.requestBranch</code>
+            @helpers.avatarLink(issue.openedUserName, 16, label=true, styleClass="username strong") wants to merge @commits.size @helpers.plural(commits.size, "commit")
+            @pullreqdesc(pullreq)
           </span>
         }
       </div>

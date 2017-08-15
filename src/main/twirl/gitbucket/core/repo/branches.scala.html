@@ -15,7 +15,9 @@
         <tr>
           <td class="branch-details">
             @if(isProtected){ <span class="octicon octicon-shield" title="This branch is protected"></span> }
-            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch.name)" class="branch-name">@branch.name</a>
+            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch.name)" class="branch-name" style="@helpers.branchColorStyle(branch.name)">
+              <i class="octicon octicon-git-branch"></i>@branch.name
+            </a>
             <span class="branch-meta">
               <span>Updated @gitbucket.core.helper.html.datetimeago(branch.commitTime, false)
                 by <span>@helpers.user(branch.committerName, branch.committerEmailAddress, "muted-link")</span>
@@ -44,12 +46,18 @@
                     <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title">#@issue.issueId</a>
                     @if(issue.closed) {
                       @if(info.isMerged){
-                        <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-info">Merged</a>
+                        <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-info">
+                          <i class="octicon octicon-git-merge"></i>Merged
+                        </a>
                       } else {
-                        <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-important">Closed</a>
+                        <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-important">
+                          <i class="octicon octicon-git-pull-request"></i>Closed
+                        </a>
                       }
                     } else {
-                      <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-success">Open</a>
+                      <a href="@helpers.url(repository)/pull/@issue.issueId" title="@issue.title" class="label label-success">
+                        <i class="octicon octicon-git-pull-request"></i>Open
+                      </a>
                     }
                   }.getOrElse{
                     @if(context.loginAccount.isDefined){
