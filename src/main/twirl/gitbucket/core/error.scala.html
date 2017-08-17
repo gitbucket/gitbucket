@@ -3,15 +3,19 @@
   <div class="content-wrapper main-center">
     <div class="content body">
       <h1>@title</h1>
-      @e.map { ex =>
-        <h2>@ex.getMessage</h2>
-        <table class="table table-condensed table-striped table-hover">
-          <tbody>
-          @ex.getStackTrace.map{ st =>
-          <tr><td>@st</td></tr>
-          }
-          </tbody>
-        </table>
+      @if(context.loginAccount.map{_.isAdmin}.getOrElse(false) || context.settings.debug){
+        @e.map { ex =>
+          <h2>@ex.getMessage</h2>
+          <table class="table table-condensed table-striped table-hover">
+            <tbody>
+            @ex.getStackTrace.map{ st =>
+            <tr><td>@st</td></tr>
+            }
+            </tbody>
+          </table>
+        }
+      } else {
+        <div>Please contact your administrator.</div>
       }
     </div>
   </div>

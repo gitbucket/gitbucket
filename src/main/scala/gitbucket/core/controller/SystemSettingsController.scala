@@ -62,8 +62,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
-        "keystore"                 -> trim(label("Keystore", optional(text())))
-    )(Ldap.apply))
+        "keystore"                 -> trim(label("Keystore", optional(text()))),
+    )(Ldap.apply)),
+    "debug" -> trim(label("Debug", boolean()))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if(settings.ssh && settings.baseUrl.isEmpty){
