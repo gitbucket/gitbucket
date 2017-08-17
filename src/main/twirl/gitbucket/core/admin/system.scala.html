@@ -370,7 +370,7 @@
                 "skin-yellow",
                 "skin-yellow-light",
                 ).map{ skin =>
-                  <option @if(skin == helpers.skinName){selected}>@skin</option>
+                  <option @if(skin == context.settings.skinName){selected}>@skin</option>
                 }
               </select>
             </div>
