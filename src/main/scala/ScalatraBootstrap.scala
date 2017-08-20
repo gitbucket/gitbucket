@@ -25,10 +25,9 @@ class ScalatraBootstrap extends LifeCycle with SystemSettingsService {
     context.getFilterRegistration("gitAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/git/*")
     context.addFilter("apiAuthenticationFilter", new ApiAuthenticationFilter)
     context.getFilterRegistration("apiAuthenticationFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/api/v3/*")
-    context.addFilter("ghCompatRepositoryAccessFilter", new GHCompatRepositoryAccessFilter)
-    context.getFilterRegistration("ghCompatRepositoryAccessFilter").addMappingForUrlPatterns(EnumSet.allOf(classOf[DispatcherType]), true, "/*")
 
     // Register controllers
+    context.mount(new GitHubCompatibleAccessController, "/*")
     context.mount(new AnonymousAccessController, "/*")
 
     context.addFilter("pluginControllerFilter", new PluginControllerFilter)
