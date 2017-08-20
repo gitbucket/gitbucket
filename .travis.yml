@@ -1,5 +1,7 @@
 language: scala
 sudo: true
+jdk: 
+  - oraclejdk8
 script:
   - sbt test
 before_script:
@@ -14,40 +16,3 @@ cache:
     - $HOME/.coursier
     - $HOME/.embedmysql
     - $HOME/.embedpostgresql
-matrix:
-  include:
-  - jdk: oraclejdk8
-    addons:
-      apt:
-        packages:
-        - libaio1
-  - dist: trusty
-    group: edge
-    sudo: required
-    jdk: oraclejdk9
-    addons:
-      apt:
-        packages:
-        - libaio1
-    before_install:
-    - cd ~
-    - JDK9_URL=`curl http://jdk.java.net/9/ | grep "lin64JDK" | grep "tar.gz\"" | sed -e "s/\"/ /g" | awk '{print $5}'`
-    - wget -O jdk-9_linux-x64_bin.tar.gz $JDK9_URL
-    - tar -xzf jdk-9_linux-x64_bin.tar.gz
-    - cd -
-    script:
-    # https://github.com/sbt/sbt/pull/2951
-    - git clone https://github.com/retronym/java9-rt-export
-    - cd java9-rt-export/
-    - git checkout 1019a2873d057dd7214f4135e84283695728395d
-    - jdk_switcher use oraclejdk8
-    - sbt package
-#    - jdk_switcher use oraclejdk9
-    - export JAVA_HOME=~/jdk-9
-    - PATH=$JAVA_HOME/bin:$PATH
-    - java -version
-    - mkdir -p $HOME/.sbt/0.13/java9-rt-ext; java -jar target/java9-rt-export-*.jar $HOME/.sbt/0.13/java9-rt-ext/rt.jar
-    - jar tf $HOME/.sbt/0.13/java9-rt-ext/rt.jar | grep java/lang/Object
-    - cd ..
-    - wget https://raw.githubusercontent.com/paulp/sbt-extras/9ade5fa54914ca8aded44105bf4b9a60966f3ccd/sbt && chmod +x ./sbt
-    - ./sbt -Dscala.ext.dirs=$HOME/.sbt/0.13/java9-rt-ext test
