@@ -62,8 +62,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "mailAttribute"            -> trim(label("Mail address attribute", optional(text()))),
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
-        "keystore"                 -> trim(label("Keystore", optional(text()))),
+        "keystore"                 -> trim(label("Keystore", optional(text())))
     )(Ldap.apply)),
+    "skinName" -> trim(label("AdminLTE skin name", text(required))),
     "debug" -> trim(label("Debug", boolean()))
   )(SystemSettings.apply).verifying { settings =>
     Vector(

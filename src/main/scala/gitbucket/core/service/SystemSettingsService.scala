@@ -54,6 +54,7 @@ trait SystemSettingsService {
           ldap.keystore.foreach(x => props.setProperty(LdapKeystore, x))
         }
       }
+      props.setProperty(SkinName, settings.skinName.toString)
       props.setProperty(Debug, settings.debug.toString)
       using(new java.io.FileOutputStream(GitBucketConf)){ out =>
         props.store(out, null)
@@ -113,6 +114,7 @@ trait SystemSettingsService {
         } else {
           None
         },
+        getValue(props, SkinName, "skin-blue"),
         getValue(props, Debug, false)
       )
     }
@@ -139,6 +141,7 @@ object SystemSettingsService {
     smtp: Option[Smtp],
     ldapAuthentication: Boolean,
     ldap: Option[Ldap],
+    skinName: String,
     debug: Boolean){
     def baseUrl(request: HttpServletRequest): String = baseUrl.fold(request.baseUrl)(_.stripSuffix("/"))
 
@@ -222,6 +225,7 @@ object SystemSettingsService {
   private val LdapTls = "ldap.tls"
   private val LdapSsl = "ldap.ssl"
   private val LdapKeystore = "ldap.keystore"
+  private val SkinName = "skinName"
   private val Debug = "debug"
 
   private def getValue[A: ClassTag](props: java.util.Properties, key: String, default: A): A = {

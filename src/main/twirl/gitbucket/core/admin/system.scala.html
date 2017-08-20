@@ -1,5 +1,6 @@
 @(info: Option[Any])(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.util.DatabaseConfig
+@import gitbucket.core.view.helpers
 @gitbucket.core.html.main("System settings"){
   @gitbucket.core.admin.html.menu("system"){
     @gitbucket.core.helper.html.information(info)
@@ -344,6 +345,36 @@
             </div>
           </div>
           *@
+          <!--====================================================================-->
+          <!-- AdminLTE SkinName -->
+          <!--====================================================================-->
+          <hr>
+          <label class="strong">
+            AdminLTE skin name
+          </label>
+          <div class="form-group">
+            <label class="control-label col-md-3" for="skinName">Skin name</label>
+            <div class="col-md-9">
+              <select id="skinName" name="skinName">
+                @Seq(
+                "skin-black",
+                "skin-black-light",
+                "skin-blue",
+                "skin-blue-light",
+                "skin-green",
+                "skin-green-light",
+                "skin-purple",
+                "skin-purple-light",
+                "skin-red",
+                "skin-red-light",
+                "skin-yellow",
+                "skin-yellow-light",
+                ).map{ skin =>
+                  <option @if(skin == context.settings.skinName){selected}>@skin</option>
+                }
+              </select>
+            </div>
+          </div>
         </div>
       </div>
       <div class="align-right" style="margin-top: 20px;">
