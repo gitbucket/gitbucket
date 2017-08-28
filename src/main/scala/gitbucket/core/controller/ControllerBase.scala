@@ -26,6 +26,7 @@ import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.treewalk._
 import org.apache.commons.io.IOUtils
+import org.slf4j.LoggerFactory
 
 /**
  * Provides generic features for controller implementations.
@@ -33,6 +34,8 @@ import org.apache.commons.io.IOUtils
 abstract class ControllerBase extends ScalatraFilter
   with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
   with SystemSettingsService {
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   implicit val jsonFormats = gitbucket.core.api.JsonFormat.jsonFormats
 
@@ -146,6 +149,20 @@ abstract class ControllerBase extends ScalatraFilter
         }
       }
     }
+
+  error{
+    case e => {
+      logger.error(s"Catch unhandled error in request: ${request}", e)
+      if(request.hasAttribute(Keys.Request.Ajax)){
+        org.scalatra.InternalServerError()
+      } else if(request.hasAttribute(Keys.Request.APIv3)){
+        contentType = formats("json")
+        org.scalatra.InternalServerError(ApiError("Internal Server Error"))
+      } else {
+        org.scalatra.InternalServerError(gitbucket.core.html.error("Internal Server Error", Some(e)))
+      }
+    }
+  }
 
   override def url(path: String, params: Iterable[(String, Any)] = Iterable.empty,
                    includeContextPath: Boolean = true, includeServletPath: Boolean = true,
