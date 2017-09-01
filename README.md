@@ -72,6 +72,11 @@ Support
 
 Release Notes
 -------------
+### 4.16.0 - 2 Sep 2017
+- AdminLTE color skin support
+- Improve unexpected error handling
+- Show commit status on the commits list
+
 ### 4.15.0 - 5 Aug 2017
 - Bundle GitBucket organization plugins
 - Notifications plugin
