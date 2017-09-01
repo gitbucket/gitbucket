@@ -73,7 +73,7 @@ Support
 Release Notes
 -------------
 ### 4.16.0 - 2 Sep 2017
-- AdminLTE color skin support
+- Support AdminLTE color skin
 - Improve unexpected error handling
 - Show commit status on the commits list
 
