@@ -40,5 +40,6 @@ object GitBucketCoreModule extends Module("gitbucket-core",
     new SqlMigration("update/gitbucket-core_4.14.sql")
   ),
   new Version("4.14.1"),
-  new Version("4.15.0")
+  new Version("4.15.0"),
+  new Version("4.16.0")
 )
