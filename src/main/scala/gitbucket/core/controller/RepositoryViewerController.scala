@@ -478,9 +478,13 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     val comment = getCommitComment(repository.owner, repository.name, commentId.toString).get
     form.issueId match {
       case Some(issueId) =>
-        recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, issueId, form.content)
-        callPullRequestReviewCommentWebHook("create", comment, repository, issueId, context.baseUrl, context.loginAccount.get)
-      case None => recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
+        getPullRequest(repository.owner, repository.name, issueId).foreach { case (issue, pullRequest) =>
+          recordCommentPullRequestActivity(repository.owner, repository.name, context.loginAccount.get.userName, issueId, form.content)
+          PluginRegistry().getPullRequestHooks.foreach(_.addedComment(commentId, form.content, issue, repository))
+          callPullRequestReviewCommentWebHook("create", comment, repository, issue, pullRequest, context.baseUrl, context.loginAccount.get)
+        }
+      case None =>
+        recordCommentCommitActivity(repository.owner, repository.name, context.loginAccount.get.userName, id, form.content)
     }
     helper.html.commitcomment(comment, hasDeveloperRole(repository.owner, repository.name, context.loginAccount), repository)
   })

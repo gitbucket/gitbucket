@@ -324,8 +324,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   get("/:owner/:repository/compare/*...*")(referrersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, originId) = parseCompareIdentifie(origin, forkedRepository.owner)
-    val (forkedOwner, forkedId) = parseCompareIdentifie(forked, forkedRepository.owner)
+    val (originOwner, originId) = parseCompareIdentifier(origin, forkedRepository.owner)
+    val (forkedOwner, forkedId) = parseCompareIdentifier(forked, forkedRepository.owner)
 
     (for(
       originRepositoryName <- if(originOwner == forkedOwner) {
@@ -411,8 +411,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(readableUsersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
-    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
+    val (originOwner, tmpOriginBranch) = parseCompareIdentifier(origin, forkedRepository.owner)
+    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifier(forked, forkedRepository.owner)
 
     (for(
       originRepositoryName <- if(originOwner == forkedOwner){
@@ -505,7 +505,7 @@ trait PullRequestsControllerBase extends ControllerBase {
    * - "owner:branch" to ("owner", "branch")
    * - "branch" to ("defaultOwner", "branch")
    */
-  private def parseCompareIdentifie(value: String, defaultOwner: String): (String, String) =
+  private def parseCompareIdentifier(value: String, defaultOwner: String): (String, String) =
     if(value.contains(':')){
       val array = value.split(":")
       (array(0), array(1))
