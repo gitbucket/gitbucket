@@ -24,7 +24,7 @@ class PluginControllerFilter extends Filter {
     val controller = PluginRegistry().getControllers().filter { case (_, path) =>
       val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI
       val start = path.replaceFirst("/\\*$", "/")
-      path.endsWith("/*") && (requestUri + "/").startsWith(start)
+      (requestUri + "/").startsWith(start)
     }
 
     val filterChainWrapper = controller.foldLeft(chain){ case (chain, (controller, _)) =>
