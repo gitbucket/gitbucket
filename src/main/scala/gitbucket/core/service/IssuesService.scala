@@ -455,9 +455,8 @@ trait IssuesService {
   def createIssueComment(owner: String, repository: String, commit: CommitInfo)(implicit s: Session): Unit = {
     extractIssueId(commit.fullMessage).foreach { issueId =>
       if(getIssue(owner, repository, issueId).isDefined){
-        getAccountByMailAddress(commit.committerEmailAddress).foreach { account =>
-          createComment(owner, repository, account.userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
-        }
+        val userName = getAccountByMailAddress(commit.committerEmailAddress).map(_.userName).getOrElse(commit.committerName)
+        createComment(owner, repository, userName, issueId.toInt, commit.fullMessage + " " + commit.id, "commit")
       }
     }
   }
