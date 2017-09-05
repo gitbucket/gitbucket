@@ -5,7 +5,7 @@ import org.scalatest.FunSpec
 
 class GitCommandFactorySpec extends FunSpec {
 
-  val factory = new GitCommandFactory("http://localhost:8080")
+  val factory = new GitCommandFactory("http://localhost:8080", None)
 
   describe("createCommand") {
     it("should return GitReceivePack when command is git-receive-pack"){
