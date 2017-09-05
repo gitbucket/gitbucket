@@ -154,7 +154,7 @@ class DefaultGitUploadPack(owner: String, repoName: String) extends DefaultGitCo
   }
 }
 
-class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) extends DefaultGitCommand(owner, repoName)
+class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String, sshUrl: Option[String]) extends DefaultGitCommand(owner, repoName)
     with RepositoryService with AccountService with DeployKeyService {
 
   override protected def runTask(authType: AuthType): Unit = {
@@ -169,7 +169,7 @@ class DefaultGitReceivePack(owner: String, repoName: String, baseUrl: String) ex
         val repository = git.getRepository
         val receive = new ReceivePack(repository)
         if (!repoName.endsWith(".wiki")) {
-          val hook = new CommitLogHook(owner, repoName, userName(authType), baseUrl)
+          val hook = new CommitLogHook(owner, repoName, userName(authType), baseUrl, sshUrl)
           receive.setPreReceiveHook(hook)
           receive.setPostReceiveHook(hook)
         }
@@ -216,7 +216,7 @@ class PluginGitReceivePack(repoName: String, routing: GitRepositoryRouting) exte
 }
 
 
-class GitCommandFactory(baseUrl: String) extends CommandFactory {
+class GitCommandFactory(baseUrl: String, sshUrl: Option[String]) extends CommandFactory {
   private val logger = LoggerFactory.getLogger(classOf[GitCommandFactory])
 
   override def createCommand(command: String): Command = {
@@ -227,7 +227,7 @@ class GitCommandFactory(baseUrl: String) extends CommandFactory {
       case SimpleCommandRegex ("upload" , repoName) if(pluginRepository(repoName)) => new PluginGitUploadPack (repoName, routing(repoName))
       case SimpleCommandRegex ("receive", repoName) if(pluginRepository(repoName)) => new PluginGitReceivePack(repoName, routing(repoName))
       case DefaultCommandRegex("upload" , owner, repoName) => new DefaultGitUploadPack (owner, repoName)
-      case DefaultCommandRegex("receive", owner, repoName) => new DefaultGitReceivePack(owner, repoName, baseUrl)
+      case DefaultCommandRegex("receive", owner, repoName) => new DefaultGitReceivePack(owner, repoName, baseUrl, sshUrl)
       case _ => new UnknownCommand(command)
     }
   }

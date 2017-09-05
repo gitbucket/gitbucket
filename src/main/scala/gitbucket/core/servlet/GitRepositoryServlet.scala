@@ -156,9 +156,13 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
         logger.debug("repository:" + owner + "/" + repository)
 
+        val settings = loadSystemSettings()
+        val baseUrl = settings.baseUrl(request)
+        val sshUrl  = settings.sshAddress.map { x => s"${x.genericUser}@${x.host}:${x.port}" }
+
         if(!repository.endsWith(".wiki")){
           defining(request) { implicit r =>
-            val hook = new CommitLogHook(owner, repository, pusher, baseUrl)
+            val hook = new CommitLogHook(owner, repository, pusher, baseUrl, sshUrl)
             receivePack.setPreReceiveHook(hook)
             receivePack.setPostReceiveHook(hook)
           }
@@ -166,7 +170,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
         if(repository.endsWith(".wiki")){
           defining(request) { implicit r =>
-            receivePack.setPostReceiveHook(new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl))
+            receivePack.setPostReceiveHook(new WikiCommitHook(owner, repository.stripSuffix(".wiki"), pusher, baseUrl, sshUrl))
           }
         }
       }
@@ -178,7 +182,7 @@ class GitBucketReceivePackFactory extends ReceivePackFactory[HttpServletRequest]
 
 import scala.collection.JavaConverters._
 
-class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String)
+class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
   extends PostReceiveHook with PreReceiveHook
   with RepositoryService with AccountService with IssuesService with ActivityService with PullRequestService with WebHookService
   with WebHookPullRequestService with CommitsService {
@@ -219,7 +223,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
           val pushedIds = scala.collection.mutable.Set[String]()
           commands.asScala.foreach { command =>
             logger.debug(s"commandType: ${command.getType}, refName: ${command.getRefName}")
-            implicit val apiContext = api.JsonFormat.Context(baseUrl)
+            implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
             val refName = command.getRefName.split("/")
             val branchName = refName.drop(2).mkString("/")
             val commits = if (refName(1) == "tags") {
@@ -320,7 +324,7 @@ class CommitLogHook(owner: String, repository: String, pusher: String, baseUrl: 
 
 }
 
-class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl: String)
+class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl: String, sshUrl: Option[String])
   extends PostReceiveHook with WebHookService with AccountService with RepositoryService {
 
   private val logger = LoggerFactory.getLogger(classOf[WikiCommitHook])
@@ -329,7 +333,7 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
     Database() withTransaction { implicit session =>
       try {
         commands.asScala.headOption.foreach { command =>
-          implicit val apiContext = api.JsonFormat.Context(baseUrl)
+          implicit val apiContext = api.JsonFormat.Context(baseUrl, sshUrl)
           val refName = command.getRefName.split("/")
           val commitIds = if (refName(1) == "tags") {
             None

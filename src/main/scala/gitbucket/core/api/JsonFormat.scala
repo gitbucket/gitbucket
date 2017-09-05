@@ -10,7 +10,7 @@ import scala.util.Try
 
 object JsonFormat {
 
-  case class Context(baseUrl: String)
+  case class Context(baseUrl: String, sshUrl: Option[String])
 
   val parserISO = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
 
@@ -40,21 +40,24 @@ object JsonFormat {
     FieldSerializer[ApiCommits.File]() +
     ApiBranchProtection.enforcementLevelSerializer
 
-  def apiPathSerializer(c: Context) = new CustomSerializer[ApiPath](format =>
-    (
-      {
-        case JString(s) if s.startsWith(c.baseUrl) => ApiPath(s.substring(c.baseUrl.length))
-        case JString(s) => throw new MappingException("Can't convert " + s + " to ApiPath")
-      },
-      {
-        case ApiPath(path) => JString(c.baseUrl + path)
-      }
-    )
-  )
+  def apiPathSerializer(c: Context) = new CustomSerializer[ApiPath](_ => ({
+    case JString(s) if s.startsWith(c.baseUrl) => ApiPath(s.substring(c.baseUrl.length))
+    case JString(s) => throw new MappingException("Can't convert " + s + " to ApiPath")
+  }, {
+    case ApiPath(path) => JString(c.baseUrl + path)
+  }))
+
+  def sshPathSerializer(c: Context) = new CustomSerializer[SshPath](_ => ({
+    case JString(s) if c.sshUrl.exists(sshUrl => s.startsWith(sshUrl)) => SshPath(s.substring(c.sshUrl.get.length))
+    case JString(s) => throw new MappingException("Can't convert " + s + " to ApiPath")
+  }, {
+    case SshPath(path) => c.sshUrl.map { sshUrl => JString(sshUrl + path) } getOrElse JNothing
+  }))
 
   /**
    * convert object to json string
    */
-  def apply(obj: AnyRef)(implicit c: Context): String = Serialization.write(obj)(jsonFormats + apiPathSerializer(c))
+  def apply(obj: AnyRef)(implicit c: Context): String =
+    Serialization.write(obj)(jsonFormats + apiPathSerializer(c) + sshPathSerializer(c))
 
 }

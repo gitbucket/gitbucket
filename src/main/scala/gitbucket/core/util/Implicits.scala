@@ -22,7 +22,8 @@ object Implicits {
   // Convert to slick session.
   implicit def request2Session(implicit request: HttpServletRequest): JdbcBackend#Session = Database.getSession(request)
 
-  implicit def context2ApiJsonFormatContext(implicit context: Context): JsonFormat.Context = JsonFormat.Context(context.baseUrl)
+  implicit def context2ApiJsonFormatContext(implicit context: Context): JsonFormat.Context =
+    JsonFormat.Context(context.baseUrl, context.settings.sshAddress.map { x => s"${x.genericUser}@${x.host}:${x.port}" })
 
   implicit class RichSeq[A](private val seq: Seq[A]) extends AnyVal {
 
@@ -77,11 +78,6 @@ object Implicits {
 
     def gitRepositoryPath: String = request.getRequestURI.replaceFirst("^" + quote(request.getContextPath) + "/git/", "/")
 
-    def baseUrl:String = {
-      val url = request.getRequestURL.toString
-      val len = url.length - (request.getRequestURI.length - request.getContextPath.length)
-      url.substring(0, len).stripSuffix("/")
-    }
   }
 
   implicit class RichSession(private val session: HttpSession) extends AnyVal {
