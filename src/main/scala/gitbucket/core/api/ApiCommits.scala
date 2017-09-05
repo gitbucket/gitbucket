@@ -26,20 +26,12 @@ object ApiCommits {
     committer: ApiPersonIdent,
     message: String,
     comment_count: Int,
-    tree: Tree,
-    verification: Verification
+    tree: Tree
   )
 
   case class Tree(
     url: ApiPath,
-    tree: String
-  )
-
-  case class Verification(
-    verified: Boolean,
-    reason: String //,
-    //  signature: String,
-    //  payload: String
+    sha: String
   )
 
   case class Stats(
@@ -62,7 +54,6 @@ object ApiCommits {
 
   def apply(repositoryName: RepositoryName, commitInfo: CommitInfo, diffs: Seq[DiffInfo], author: Account, committer: Account,
             commentCount: Int): ApiCommits = {
-    // Is there better way to get diff status?
     val files = diffs.map { diff =>
       var additions = 0
       var deletions = 0
@@ -111,13 +102,7 @@ object ApiCommits {
         comment_count = commentCount,
         tree = Tree(
           url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/tree/${commitInfo.id}"), // TODO This endpoint has not been implemented yet.
-          tree = commitInfo.id
-        ),
-        verification = Verification( // TODO
-          verified = false,
-          reason = "" //,
-//          signature = "",
-//          payload = ""
+          sha = commitInfo.id
         )
       ),
       author = ApiUser(author),
@@ -125,7 +110,7 @@ object ApiCommits {
       parents = commitInfo.parents.map { parent =>
         Tree(
           url = ApiPath(s"/api/v3/repos/${repositoryName.fullName}/tree/${parent}"), // TODO This endpoint has not been implemented yet.
-          tree = parent
+          sha = parent
         )
       },
       stats = Stats(

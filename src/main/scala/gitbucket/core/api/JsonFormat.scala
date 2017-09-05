@@ -36,7 +36,6 @@ object JsonFormat {
     FieldSerializer[ApiCommits]() +
     FieldSerializer[ApiCommits.Commit]() +
     FieldSerializer[ApiCommits.Tree]() +
-    FieldSerializer[ApiCommits.Verification]() +
     FieldSerializer[ApiCommits.Stats]() +
     FieldSerializer[ApiCommits.File]() +
     ApiBranchProtection.enforcementLevelSerializer
