@@ -12,6 +12,7 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util._
 import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.revwalk.RevWalk
 import org.scalatra.{Created, NoContent, UnprocessableEntity}
 
 import scala.collection.JavaConverters._
