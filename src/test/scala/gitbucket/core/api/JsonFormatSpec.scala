@@ -282,7 +282,7 @@ class JsonFormatSpec extends FunSuite {
     title         = "new-feature",
     body          = "Please pull these awesome changes",
     user          = apiUser,
-    assignee      = Left(apiUser)
+    assignee      = Some(apiUser)
   )
 
   val apiPullRequestJson = s"""{

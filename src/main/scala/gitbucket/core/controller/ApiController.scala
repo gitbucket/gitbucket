@@ -498,7 +498,7 @@ trait ApiControllerBase extends ControllerBase {
     val condition = IssueSearchCondition(request)
     val baseOwner = getAccountByUserName(repository.owner).get
 
-    val issues: List[(Issue, Account, Int, PullRequest, Repository, Account, Account)] =
+    val issues: List[(Issue, Account, Int, PullRequest, Repository, Account, Option[Account])] =
       searchPullRequestByApi(
         condition = condition,
         offset    = (page - 1) * PullRequestLimit,
@@ -513,6 +513,7 @@ trait ApiControllerBase extends ControllerBase {
         headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
         user          = ApiUser(issueUser),
+        assignee      = assignee.map(ApiUser.apply),
         mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       )
     })
@@ -529,6 +530,7 @@ trait ApiControllerBase extends ControllerBase {
       baseOwner <- users.get(repository.owner)
       headOwner <- users.get(pullRequest.requestUserName)
       issueUser <- users.get(issue.openedUserName)
+      assignee  =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
       headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
     } yield {
       JsonFormat(ApiPullRequest(
@@ -537,6 +539,7 @@ trait ApiControllerBase extends ControllerBase {
         headRepo      = ApiRepository(headRepo, ApiUser(headOwner)),
         baseRepo      = ApiRepository(repository, ApiUser(baseOwner)),
         user          = ApiUser(issueUser),
+        assignee      = assignee.map(ApiUser.apply),
         mergedComment = getMergedComment(repository.owner, repository.name, issue.issueId)
       ))
     }) getOrElse NotFound()
