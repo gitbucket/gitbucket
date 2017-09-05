@@ -1,8 +1,22 @@
-@(title: String)(implicit context: gitbucket.core.controller.Context)
+@(title: String, e: Option[Throwable]=None)(implicit context: gitbucket.core.controller.Context)
 @gitbucket.core.html.main("Error"){
   <div class="content-wrapper main-center">
     <div class="content body">
       <h1>@title</h1>
+      @if(context.loginAccount.map{_.isAdmin}.getOrElse(false)){
+        @e.map { ex =>
+          <h2>@ex.getMessage</h2>
+          <table class="table table-condensed table-striped table-hover">
+            <tbody>
+            @ex.getStackTrace.map{ st =>
+            <tr><td>@st</td></tr>
+            }
+            </tbody>
+          </table>
+        }
+      } else {
+        <div>Please contact your administrator.</div>
+      }
     </div>
   </div>
 }

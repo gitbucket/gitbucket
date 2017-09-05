@@ -264,6 +264,7 @@ object PluginRegistry {
 
     (extraJars ++ pluginJars).foreach { pluginJar =>
       val installedJar = new File(installedDir, pluginJar.getName)
+
       FileUtils.copyFile(pluginJar, installedJar)
 
       logger.info(s"Initialize ${pluginJar.getName}")
@@ -400,12 +401,15 @@ class PluginWatchThread(context: ServletContext, dir: String) extends Thread wit
           events.foreach { event =>
             logger.info(event.kind + ": " + event.context)
           }
-
-          gitbucket.core.servlet.Database() withTransaction { session =>
-            logger.info("Reloading plugins...")
-            PluginRegistry.reload(context, loadSystemSettings(), session.conn)
-            logger.info("Reloading finished.")
-          }
+          new Thread {
+            override def run(): Unit = {
+                gitbucket.core.servlet.Database() withTransaction { session =>
+                logger.info("Reloading plugins...")
+                PluginRegistry.reload(context, loadSystemSettings(), session.conn)
+                logger.info("Reloading finished.")
+              }
+            }
+          }.start()
         }
         detectedWatchKey.reset()
       }

@@ -296,13 +296,13 @@ trait WebHookPullRequestService extends WebHookService {
 
 trait WebHookPullRequestReviewCommentService extends WebHookService {
   self: AccountService with RepositoryService with PullRequestService with IssuesService with CommitsService =>
-  def callPullRequestReviewCommentWebHook(action: String, comment: CommitComment, repository: RepositoryService.RepositoryInfo, issueId: Int, baseUrl: String, sender: Account)
+  def callPullRequestReviewCommentWebHook(action: String, comment: CommitComment, repository: RepositoryService.RepositoryInfo,
+                                          issue: Issue, pullRequest: PullRequest, baseUrl: String, sender: Account)
                                          (implicit s: Session, c: JsonFormat.Context): Unit = {
     import WebHookService._
     callWebHookOf(repository.owner, repository.name, WebHook.PullRequestReviewComment){
+      val users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set(sender))
       for{
-        (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
-        users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set(sender))
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
         issueUser <- users.get(issue.openedUserName)

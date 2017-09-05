@@ -63,7 +63,8 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
         "tls"                      -> trim(label("Enable TLS", optional(boolean()))),
         "ssl"                      -> trim(label("Enable SSL", optional(boolean()))),
         "keystore"                 -> trim(label("Keystore", optional(text())))
-    )(Ldap.apply))
+    )(Ldap.apply)),
+    "skinName" -> trim(label("AdminLTE skin name", text(required)))
   )(SystemSettings.apply).verifying { settings =>
     Vector(
       if(settings.ssh && settings.baseUrl.isEmpty){
@@ -174,8 +175,9 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
   post("/admin/system/sendmail", sendMailForm)(adminOnly { form =>
     try {
       new Mailer(form.smtp).send(form.testAddress,
-        "Test message from GitBucket", "This is a test message from GitBucket.",
-        context.loginAccount.get)
+        "Test message from GitBucket", context.loginAccount.get,
+        "This is a test message from GitBucket.", None
+        )
 
       "Test mail has been sent to: " + form.testAddress
 

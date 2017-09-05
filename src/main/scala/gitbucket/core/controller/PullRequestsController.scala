@@ -251,7 +251,7 @@ trait PullRequestsControllerBase extends ControllerBase {
           using(Git.open(getRepositoryDir(owner, name))) { git =>
             // mark issue as merged and close.
             val loginAccount = context.loginAccount.get
-            createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
+            val commentId = createComment(owner, name, loginAccount.userName, issueId, form.message, "merge")
             createComment(owner, name, loginAccount.userName, issueId, "Close", "close")
             updateClosed(owner, name, issueId, true)
 
@@ -282,7 +282,10 @@ trait PullRequestsControllerBase extends ControllerBase {
             callPullRequestWebHook("closed", repository, issueId, context.baseUrl, context.loginAccount.get)
 
             // call hooks
-            PluginRegistry().getPullRequestHooks.foreach(_.merged(issue, repository))
+            PluginRegistry().getPullRequestHooks.foreach{ h =>
+              h.addedComment(commentId, form.message, issue, repository)
+              h.merged(issue, repository)
+            }
 
             redirect(s"/${owner}/${name}/pull/${issueId}")
           }
@@ -321,8 +324,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   get("/:owner/:repository/compare/*...*")(referrersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, originId) = parseCompareIdentifie(origin, forkedRepository.owner)
-    val (forkedOwner, forkedId) = parseCompareIdentifie(forked, forkedRepository.owner)
+    val (originOwner, originId) = parseCompareIdentifier(origin, forkedRepository.owner)
+    val (forkedOwner, forkedId) = parseCompareIdentifier(forked, forkedRepository.owner)
 
     (for(
       originRepositoryName <- if(originOwner == forkedOwner) {
@@ -408,8 +411,8 @@ trait PullRequestsControllerBase extends ControllerBase {
 
   ajaxGet("/:owner/:repository/compare/*...*/mergecheck")(readableUsersOnly { forkedRepository =>
     val Seq(origin, forked) = multiParams("splat")
-    val (originOwner, tmpOriginBranch) = parseCompareIdentifie(origin, forkedRepository.owner)
-    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifie(forked, forkedRepository.owner)
+    val (originOwner, tmpOriginBranch) = parseCompareIdentifier(origin, forkedRepository.owner)
+    val (forkedOwner, tmpForkedBranch) = parseCompareIdentifier(forked, forkedRepository.owner)
 
     (for(
       originRepositoryName <- if(originOwner == forkedOwner){
@@ -502,7 +505,7 @@ trait PullRequestsControllerBase extends ControllerBase {
    * - "owner:branch" to ("owner", "branch")
    * - "branch" to ("defaultOwner", "branch")
    */
-  private def parseCompareIdentifie(value: String, defaultOwner: String): (String, String) =
+  private def parseCompareIdentifier(value: String, defaultOwner: String): (String, String) =
     if(value.contains(':')){
       val array = value.split(":")
       (array(0), array(1))

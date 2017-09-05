@@ -5,14 +5,13 @@ import gitbucket.core.model._
 import gitbucket.core.service.IssuesService.IssueSearchCondition
 import gitbucket.core.service.PullRequestService._
 import gitbucket.core.service._
-import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
-import gitbucket.core.util.JGitUtil._
-import gitbucket.core.util._
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util.JGitUtil._
+import gitbucket.core.util.SyntaxSugars._
+import gitbucket.core.util._
 import gitbucket.core.view.helpers.{isRenderable, renderMarkup}
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.revwalk.RevWalk
 import org.scalatra.{Created, NoContent, UnprocessableEntity}
 
 import scala.collection.JavaConverters._
@@ -127,10 +126,10 @@ trait ApiControllerBase extends ControllerBase {
   /**
     * https://developer.github.com/v3/repos/branches/#get-branch
     */
-  get ("/api/v3/repos/:owner/:repo/branches/:branch")(referrersOnly { repository =>
+  get ("/api/v3/repos/:owner/:repo/branches/*")(referrersOnly { repository =>
     //import gitbucket.core.api._
     (for{
-      branch     <- params.get("branch") if repository.branchList.contains(branch)
+      branch <- params.get("splat") if repository.branchList.contains(branch)
       br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
     } yield {
       val protection = getProtectedBranchInfo(repository.owner, repository.name, branch)
@@ -289,10 +288,10 @@ trait ApiControllerBase extends ControllerBase {
   /**
    * https://developer.github.com/v3/repos/#enabling-and-disabling-branch-protection
    */
-  patch("/api/v3/repos/:owner/:repo/branches/:branch")(ownerOnly { repository =>
+  patch("/api/v3/repos/:owner/:repo/branches/*")(ownerOnly { repository =>
     import gitbucket.core.api._
     (for{
-      branch     <- params.get("branch") if repository.branchList.contains(branch)
+      branch     <- params.get("splat") if repository.branchList.contains(branch)
       protection <- extractFromJsonBody[ApiBranchProtection.EnablingAndDisabling].map(_.protection)
       br <- getBranches(repository.owner, repository.name, repository.repository.defaultBranch, repository.repository.originUserName.isEmpty).find(_.name == branch)
     } yield {
