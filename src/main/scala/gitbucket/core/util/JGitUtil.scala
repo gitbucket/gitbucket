@@ -1,5 +1,7 @@
 package gitbucket.core.util
 
+import java.io.ByteArrayOutputStream
+
 import gitbucket.core.service.RepositoryService
 import org.eclipse.jgit.api.Git
 import Directory._
@@ -22,6 +24,7 @@ import java.util.function.Consumer
 
 import org.cache2k.{Cache2kBuilder, CacheEntry}
 import org.eclipse.jgit.api.errors.{InvalidRefNameException, JGitInternalException, NoHeadException, RefAlreadyExistsException}
+import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.slf4j.LoggerFactory
 
@@ -114,7 +117,8 @@ object JGitUtil {
     newObjectId: Option[String],
     oldMode: String,
     newMode: String,
-    tooLarge: Boolean
+    tooLarge: Boolean,
+    patch: Option[String]
   )
 
   /**
@@ -515,9 +519,10 @@ object JGitUtil {
   }
 
   /**
-   * Returns the tuple of diff of the given commit and the previous commit id.
+   * Returns the tuple of diff of the given commit and parent commit ids.
+   * DiffInfos returned from this method don't include the patch property.
    */
-  def getDiffs(git: Git, id: String, fetchContent: Boolean = true): (List[DiffInfo], Option[String]) = {
+  def getDiffs(git: Git, id: String, fetchContent: Boolean): (List[DiffInfo], Option[String]) = {
     @scala.annotation.tailrec
     def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[RevCommit]): List[RevCommit] =
       i.hasNext match {
@@ -538,7 +543,7 @@ object JGitUtil {
         } else {
           commits(1)
         }
-        (getDiffs(git, oldCommit.getName, id, fetchContent), Some(oldCommit.getName))
+        (getDiffs(git, oldCommit.getName, id, fetchContent, false), Some(oldCommit.getName))
 
       } else {
         // initial commit
@@ -551,7 +556,7 @@ object JGitUtil {
             buffer.append((if(!fetchContent){
               DiffInfo(
                 changeType  = ChangeType.ADD,
-                oldPath     = null,
+                oldPath     = "",
                 newPath     = treeWalk.getPathString,
                 oldContent  = None,
                 newContent  = None,
@@ -561,12 +566,13 @@ object JGitUtil {
                 newObjectId = Option(treeWalk.getObjectId(0)).map(_.name),
                 oldMode     = treeWalk.getFileMode(0).toString,
                 newMode     = treeWalk.getFileMode(0).toString,
-                tooLarge    = false
+                tooLarge    = false,
+                patch       = None
               )
             } else {
               DiffInfo(
                 changeType  = ChangeType.ADD,
-                oldPath     = null,
+                oldPath     = "",
                 newPath     = treeWalk.getPathString,
                 oldContent  = None,
                 newContent  = JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray),
@@ -576,7 +582,8 @@ object JGitUtil {
                 newObjectId = Option(treeWalk.getObjectId(0)).map(_.name),
                 oldMode     = treeWalk.getFileMode(0).toString,
                 newMode     = treeWalk.getFileMode(0).toString,
-                tooLarge    = false
+                tooLarge    = false,
+                patch       = None
               )
             }))
           }
@@ -586,7 +593,7 @@ object JGitUtil {
     }
   }
 
-  def getDiffs(git: Git, from: String, to: String, fetchContent: Boolean): List[DiffInfo] = {
+  def getDiffs(git: Git, from: String, to: String, fetchContent: Boolean, makePatch: Boolean): List[DiffInfo] = {
     val reader = git.getRepository.newObjectReader
     val oldTreeIter = new CanonicalTreeParser
     oldTreeIter.reset(reader, git.getRepository.resolve(from + "^{tree}"))
@@ -612,7 +619,8 @@ object JGitUtil {
           newObjectId = Option(diff.getNewId).map(_.name),
           oldMode     = diff.getOldMode.toString,
           newMode     = diff.getNewMode.toString,
-          tooLarge    = true
+          tooLarge    = true,
+          patch       = None
         )
       } else {
         val oldIsImage = FileUtil.isImage(diff.getOldPath)
@@ -630,7 +638,8 @@ object JGitUtil {
             newObjectId = Option(diff.getNewId).map(_.name),
             oldMode     = diff.getOldMode.toString,
             newMode     = diff.getNewMode.toString,
-            tooLarge    = false
+            tooLarge    = false,
+            patch       = (if(makePatch) Some(makePatchFromDiffEntry(git, diff)) else None)
           )
         } else {
           DiffInfo(
@@ -645,13 +654,23 @@ object JGitUtil {
             newObjectId = Option(diff.getNewId).map(_.name),
             oldMode     = diff.getOldMode.toString,
             newMode     = diff.getNewMode.toString,
-            tooLarge    = false
+            tooLarge    = false,
+            patch       = (if(makePatch) Some(makePatchFromDiffEntry(git, diff)) else None)
           )
         }
       }
     }.toList
   }
 
+  private def makePatchFromDiffEntry(git: Git, diff: DiffEntry): String = {
+    val out = new ByteArrayOutputStream()
+    using(new DiffFormatter(out)){ formatter =>
+      formatter.setRepository(git.getRepository)
+      formatter.format(diff)
+      val patch = new String(out.toByteArray)
+      patch.split("\n").drop(4).mkString("\n")
+    }
+  }
 
   /**
    * Returns the list of branch names of the specified commit.

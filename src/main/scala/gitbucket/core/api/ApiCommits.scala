@@ -5,9 +5,6 @@ import gitbucket.core.util.JGitUtil.{CommitInfo, DiffInfo}
 import gitbucket.core.util.RepositoryName
 import org.eclipse.jgit.diff.DiffEntry.ChangeType
 import ApiCommits._
-import difflib.{Delta, DiffUtils}
-
-import scala.collection.JavaConverters._
 
 case class ApiCommits(
   url: ApiPath,
@@ -65,35 +62,21 @@ object ApiCommits {
 
   def apply(repositoryName: RepositoryName, commitInfo: CommitInfo, diffs: Seq[DiffInfo], author: Account, committer: Account,
             commentCount: Int): ApiCommits = {
-
+    // Is there better way to get diff status?
     val files = diffs.map { diff =>
       var additions = 0
       var deletions = 0
-      var changes = 0
 
-      diff.changeType match {
-        case ChangeType.ADD => {
-          additions = additions + diff.newContent.getOrElse("").replace("\r\n", "\n").split("\n").size
-        }
-        case ChangeType.MODIFY => {
-          val oldLines = diff.oldContent.getOrElse("").replace("\r\n", "\n").split("\n")
-          val newLines = diff.newContent.getOrElse("").replace("\r\n", "\n").split("\n")
-          val patch = DiffUtils.diff(oldLines.toList.asJava, newLines.toList.asJava)
-          patch.getDeltas.asScala.map { delta =>
-            additions = additions + delta.getRevised.getLines.size
-            deletions = deletions + delta.getOriginal.getLines.size
-          }
-        }
-        case ChangeType.DELETE => {
-          deletions = deletions + diff.oldContent.getOrElse("").replace("\r\n", "\n").split("\n").size
-        }
+      diff.patch.getOrElse("").split("\n").foreach { line =>
+        if(line.startsWith("+")) additions = additions + 1
+        if(line.startsWith("-")) deletions = deletions + 1
       }
 
       File(
         filename = if(diff.changeType == ChangeType.DELETE){ diff.oldPath } else { diff.newPath },
         additions = additions,
         deletions = deletions,
-        changes = changes,
+        changes = additions + deletions,
         status = diff.changeType match {
           case ChangeType.ADD    => "added"
           case ChangeType.MODIFY => "modified"
@@ -111,7 +94,7 @@ object ApiCommits {
         } else {
           ApiPath(s"/${repositoryName.fullName}/blob/${commitInfo.id}/${diff.newPath}")
         },
-        patch = "" // TODO
+        patch = diff.patch.getOrElse("")
       )
     }
 

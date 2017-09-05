@@ -630,7 +630,9 @@ trait ApiControllerBase extends ControllerBase {
     }) getOrElse NotFound()
   })
 
-
+  /**
+   * https://developer.github.com/v3/repos/commits/#get-a-single-commit
+   */
   get("/api/v3/repos/:owner/:repo/commits/:sha")(referrersOnly { repository =>
     val owner = repository.owner
     val name  = repository.name
@@ -646,7 +648,7 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(ApiCommits(
         repositoryName = RepositoryName(repository),
         commitInfo     = commitInfo,
-        diffs          = JGitUtil.getDiffs(git, commitInfo.parents.head, commitInfo.id, true),
+        diffs          = JGitUtil.getDiffs(git, commitInfo.parents.head, commitInfo.id, false, true),
         author         = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
         committer      = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
         commentCount   = getCommitComment(repository.owner, repository.name, sha).size
