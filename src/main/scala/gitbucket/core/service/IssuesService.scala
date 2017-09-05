@@ -202,15 +202,16 @@ trait IssuesService {
    * @return (issue, issueUser, commentCount, pullRequest, headRepo, headOwner)
    */
   def searchPullRequestByApi(condition: IssueSearchCondition, offset: Int, limit: Int, repos: (String, String)*)
-                            (implicit s: Session): List[(Issue, Account, Int, PullRequest, Repository, Account)] = {
+                            (implicit s: Session): List[(Issue, Account, Int, PullRequest, Repository, Account, Option[Account])] = {
     // get issues and comment count and labels
     searchIssueQueryBase(condition, true, offset, limit, repos)
-      .join(PullRequests).on { case t1 ~ t2 ~ i ~ t3                => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
-      .join(Repositories).on { case t1 ~ t2 ~ i ~ t3 ~ t4           => t4.byRepository(t1.userName, t1.repositoryName) }
-      .join(Accounts    ).on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5      => t5.userName === t1.openedUserName }
-      .join(Accounts    ).on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => t6.userName === t4.userName }
-      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => i asc }
-      .map    { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 => (t1, t5, t2.commentCount, t3, t4, t6) }
+      .join    (PullRequests).on { case t1 ~ t2 ~ i ~ t3                     => t3.byPrimaryKey(t1.userName, t1.repositoryName, t1.issueId) }
+      .join    (Repositories).on { case t1 ~ t2 ~ i ~ t3 ~ t4                => t4.byRepository(t1.userName, t1.repositoryName) }
+      .join    (Accounts    ).on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5           => t5.userName === t1.openedUserName }
+      .join    (Accounts    ).on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6      => t6.userName === t4.userName }
+      .joinLeft(Accounts    ).on { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => t7.userName === t1.assignedUserName}
+      .sortBy { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => i asc }
+      .map    { case t1 ~ t2 ~ i ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 => (t1, t5, t2.commentCount, t3, t4, t6, t7) }
       .list
   }
 

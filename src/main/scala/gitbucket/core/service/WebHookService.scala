@@ -228,16 +228,18 @@ trait WebHookPullRequestService extends WebHookService {
     callWebHookOf(repository.owner, repository.name, WebHook.PullRequest){
       for{
         (issue, pullRequest) <- getPullRequest(repository.owner, repository.name, issueId)
-        users = getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set(sender))
+        users     =  getAccountsByUserNames(Set(repository.owner, pullRequest.requestUserName, issue.openedUserName), Set(sender))
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
         issueUser <- users.get(issue.openedUserName)
+        assignee  =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
         headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
       } yield {
         WebHookPullRequestPayload(
           action         = action,
           issue          = issue,
           issueUser      = issueUser,
+          assignee       = assignee,
           pullRequest    = pullRequest,
           headRepository = headRepo,
           headOwner      = headOwner,
@@ -273,12 +275,14 @@ trait WebHookPullRequestService extends WebHookService {
     import WebHookService._
     for{
       ((issue, issueUser, pullRequest, baseOwner, headOwner), webHooks) <- getPullRequestsByRequestForWebhook(requestRepository.owner, requestRepository.name, requestBranch)
+      assignee =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
       baseRepo <- getRepository(pullRequest.userName, pullRequest.repositoryName)
     } yield {
       val payload = WebHookPullRequestPayload(
         action         = action,
         issue          = issue,
         issueUser      = issueUser,
+        assignee       = assignee,
         pullRequest    = pullRequest,
         headRepository = requestRepository,
         headOwner      = headOwner,
@@ -306,6 +310,7 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
         baseOwner <- users.get(repository.owner)
         headOwner <- users.get(pullRequest.requestUserName)
         issueUser <- users.get(issue.openedUserName)
+        assignee  =  issue.assignedUserName.flatMap { userName => getAccountByUserName(userName, false) }
         headRepo  <- getRepository(pullRequest.requestUserName, pullRequest.requestRepositoryName)
       } yield {
         WebHookPullRequestReviewCommentPayload(
@@ -313,6 +318,7 @@ trait WebHookPullRequestReviewCommentService extends WebHookService {
           comment        = comment,
           issue          = issue,
           issueUser      = issueUser,
+          assignee       = assignee,
           pullRequest    = pullRequest,
           headRepository = headRepo,
           headOwner      = headOwner,
@@ -424,6 +430,7 @@ object WebHookService {
     def apply(action: String,
         issue: Issue,
         issueUser: Account,
+        assignee: Option[Account],
         pullRequest: PullRequest,
         headRepository: RepositoryInfo,
         headOwner: Account,
@@ -441,6 +448,7 @@ object WebHookService {
         headRepo      = headRepoPayload,
         baseRepo      = baseRepoPayload,
         user          = ApiUser(issueUser),
+        assignee      = assignee.map(ApiUser.apply),
         mergedComment = mergedComment
       )
 
@@ -495,6 +503,7 @@ object WebHookService {
       comment: CommitComment,
       issue: Issue,
       issueUser: Account,
+      assignee: Option[Account],
       pullRequest: PullRequest,
       headRepository: RepositoryInfo,
       headOwner: Account,
@@ -502,7 +511,7 @@ object WebHookService {
       baseOwner: Account,
       sender: Account,
       mergedComment: Option[(IssueComment, Account)]
-    ) : WebHookPullRequestReviewCommentPayload = {
+    ): WebHookPullRequestReviewCommentPayload = {
       val headRepoPayload = ApiRepository(headRepository, headOwner)
       val baseRepoPayload = ApiRepository(baseRepository, baseOwner)
       val senderPayload = ApiUser(sender)
@@ -521,6 +530,7 @@ object WebHookService {
           headRepo      = headRepoPayload,
           baseRepo      = baseRepoPayload,
           user          = ApiUser(issueUser),
+          assignee      = assignee.map(ApiUser.apply),
           mergedComment = mergedComment
         ),
         repository   = baseRepoPayload,
