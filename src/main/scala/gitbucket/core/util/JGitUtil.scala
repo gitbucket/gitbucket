@@ -667,7 +667,7 @@ object JGitUtil {
     using(new DiffFormatter(out)){ formatter =>
       formatter.setRepository(git.getRepository)
       formatter.format(diff)
-      val patch = new String(out.toByteArray)
+      val patch = new String(out.toByteArray) // TODO charset???
       patch.split("\n").drop(4).mkString("\n")
     }
   }
