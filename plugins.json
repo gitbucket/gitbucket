@@ -41,7 +41,7 @@
   {
     "id": "pages",
     "name": "Pages Plugin",
-    "description": "Project pages for gitbucket",
+    "description": "Project pages for GitBucket",
     "versions": [
       {
         "version": "1.5.0",
