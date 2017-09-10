@@ -413,6 +413,15 @@ trait RepositoryService { self: AccountService =>
     q1.union(q2).list.filter { x => filter.isEmpty || filter.exists(_.name == x._2) }.map(_._1)
   }
 
+  def hasOwnerRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+    loginAccount match {
+      case Some(a) if(a.isAdmin) => true
+      case Some(a) if(a.userName == owner) => true
+      case Some(a) if(getGroupMembers(owner).exists(_.userName == a.userName)) => true
+      case Some(a) if(getCollaboratorUserNames(owner, repository, Seq(Role.ADMIN)).contains(a.userName)) => true
+      case _ => false
+    }
+  }
 
   def hasDeveloperRole(owner: String, repository: String, loginAccount: Option[Account])(implicit s: Session): Boolean = {
     loginAccount match {
