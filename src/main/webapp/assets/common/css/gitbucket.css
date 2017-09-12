@@ -438,10 +438,6 @@ div.repository-content {
   margin-left: 40px;
 }
 
-table.branches>thead>tr>th {
-  padding: 12px;
-}
-
 table.branches>tbody>tr>td{
   padding: 12px;
   line-height: 30px;
