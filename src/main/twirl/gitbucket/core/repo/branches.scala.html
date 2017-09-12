@@ -7,7 +7,7 @@
     <table class="table table-hover branches">
       <thead>
         <tr>
-          <th style="background: #f5f5f5;color: #666;" colspan="3">All branches</th>
+          <th colspan="3">All branches</th>
         </tr>
       </thead>
       <tbody>
@@ -15,7 +15,7 @@
         <tr>
           <td class="branch-details">
             @if(isProtected){ <span class="octicon octicon-shield" title="This branch is protected"></span> }
-            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch.name)" class="branch-name">@branch.name</a>
+            <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch.name)">@branch.name</a>
             <span class="branch-meta">
               <span>Updated @gitbucket.core.helper.html.datetimeago(branch.commitTime, false)
                 by <span>@helpers.user(branch.committerName, branch.committerEmailAddress, "muted-link")</span>
@@ -36,7 +36,7 @@
               }
             }
           </td>
-          <td>
+          <td class="text-right">
             <div class="branch-action">
               @if(repository.repository.defaultBranch != branch.name){
                 @branch.mergeInfo.map{ info =>

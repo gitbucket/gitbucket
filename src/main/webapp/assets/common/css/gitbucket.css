@@ -392,8 +392,8 @@ a.btn-danger:hover .octicon {
 /* Head Menu */
 /****************************************************************************/
 div.headbar {
-  padding-top: 19px;
-  margin-bottom: 20px;
+  padding-top: 4px;
+  margin-bottom: 8px;
 }
 
 /****************************************************************************/
@@ -438,8 +438,13 @@ div.repository-content {
   margin-left: 40px;
 }
 
-table.branches>thead>tr>th, table.branches>tbody>tr>td{
+table.branches>thead>tr>th {
   padding: 12px;
+}
+
+table.branches>tbody>tr>td{
+  padding: 12px;
+  line-height: 30px;
 }
 
 .branches .muted-link{
@@ -448,15 +453,6 @@ table.branches>thead>tr>th, table.branches>tbody>tr>td{
 
 .branches .muted-link:hover{
   color: #4183c4;
-}
-
-.branches .branch-name{
-  color: #4183c4;
-  display: inline-block;
-  padding: 2px 6px;
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  background-color: rgba(209,227,237,0.5);
-  border-radius: 3px;
 }
 
 .branches .branch-meta{
