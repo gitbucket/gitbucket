@@ -4,19 +4,19 @@
 @defining(priority.map(_.priorityId).getOrElse("new")){ priorityId =>
 <div id="edit-priority-area-@priorityId">
   <form class="form-inline">
-    <input type="text" id="priorityName-@priorityId" style="width: 300px; float: left; margin-right: 4px;" class="form-control" value="@priority.map(_.priorityName)"@if(priorityId == "new"){ placeholder="New priority name"}/>
+    <input type="text" id="priorityName-@priorityId" style="width: 200px; float: left; margin-right: 4px;" class="form-control input-sm" value="@priority.map(_.priorityName)"@if(priorityId == "new"){ placeholder="New priority name"}/>
     <div id="priority-color-@priorityId" class="input-group color bscp" data-color="#@priority.map(_.color).getOrElse("888888")" data-color-format="hex" style="width: 100px; float: left;">
-      <input type="text" class="form-control" id="priorityColor-@priorityId" value="#@priority.map(_.color).getOrElse("888888")" style="width: 100px;">
+      <input type="text" class="form-control input-sm" id="priorityColor-@priorityId" value="#@priority.map(_.color).getOrElse("888888")" style="width: 100px;">
       <span class="input-group-addon"><i style="background-color: #@priority.map(_.color).getOrElse("888888");"></i></span>
     </div>
     <script>
     $('div#priority-color-@priorityId').colorpicker({format: "hex"});
     </script>
-    <input type="text" id="description-@priorityId" style="width: 500px; float: left; margin-left: 4px;" class="form-control" value="@priority.flatMap(_.description).getOrElse("")" placeholder="Description..." />
+    <input type="text" id="description-@priorityId" style="width: 500px; float: left; margin-left: 4px;" class="form-control input-sm" value="@priority.flatMap(_.description).getOrElse("")" placeholder="Description..." />
     <span class="pull-right">
       <span id="priority-error-@priorityId" class="error"></span>
-      <input type="button" id="cancel-@priorityId" class="btn btn-default priority-edit-cancel" value="Cancel">
-      <input type="button" id="submit-@priorityId" class="btn btn-success" style="margin-bottom: 0px;" value="@(if(priorityId == "new") "Create priority"  else "Save changes")"/>
+      <input type="button" id="cancel-@priorityId" class="btn btn-sm btn-default priority-edit-cancel" value="Cancel">
+      <input type="button" id="submit-@priorityId" class="btn btn-sm btn-success" style="margin-bottom: 0px;" value="@(if(priorityId == "new") "Create priority"  else "Save changes")"/>
     </span>
   </form>
 </div>

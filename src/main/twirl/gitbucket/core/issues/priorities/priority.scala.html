@@ -10,9 +10,9 @@
         @if(hasWritePermission) {
         <div class="pull-left priority-sort-handle" style="margin-top: 3px"><i class="octicon octicon-grabber"></i></div>
         }
-        <div style="margin-top: 6px">
+        <div>
           <a href="@helpers.url(repository)/issues?priority=@helpers.urlEncode(priority.priorityName)&state=open" id="priority-row-content-@priority.priorityId">
-            <span style="background-color: #@priority.color; color: #@priority.fontColor; padding: 8px; font-size: 120%; border-radius: 4px;">
+            <span style="background-color: #@priority.color; color: #@priority.fontColor; padding: 8px; border-radius: 4px;">
               <i class="octicon octicon-flame" style="color: #@priority.fontColor;"></i>&nbsp;@priority.priorityName
             </span>
           </a>
