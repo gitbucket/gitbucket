@@ -8,7 +8,7 @@ import gitbucket.core.model.CommitState
 import gitbucket.core.plugin.{PluginRegistry, RenderRequest}
 import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{RepositoryService, RequestCache}
-import gitbucket.core.util.{FileUtil, JGitUtil, StringUtil}
+import gitbucket.core.util.{ColorUtil, FileUtil, JGitUtil, StringUtil}
 import play.twirl.api.{Html, HtmlFormat}
 
 /**
@@ -243,13 +243,13 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    * Generates the avatar link to the account page.
    * If user does not exist or disabled, this method returns avatar image without link.
    */
-  def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false, label: Boolean = false)
+  def avatarLink(userName: String, size: Int, mailAddress: String = "", tooltip: Boolean = false, label: Boolean = false, styleClass: String = "")
                 (implicit context: Context): Html = {
 
     val avatarHtml = avatar(userName, size, tooltip, mailAddress)
     val contentHtml = if(label == true) Html(avatarHtml.body + " " + userName) else avatarHtml
 
-    userWithContent(userName, mailAddress)(contentHtml)
+    userWithContent(userName, mailAddress, styleClass)(contentHtml)
   }
 
   /**
@@ -412,4 +412,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
    */
   def readableSize(size: Option[Long]): String = FileUtil.readableSize(size.getOrElse(0))
 
+  def branchColorStyle(branchName: String): String = {
+    val (bgColor, fgColor) = ColorUtil.getStrandomColors(branchName, 0.44f, 0.87f)
+    val (bgR, bgG, bgB) = (bgColor.getRed, bgColor.getGreen, bgColor.getBlue)
+    val fgColorInt = fgColor.getRGB() & 0xffffff
+    f"""color: #${fgColorInt}%06x;background-color: rgba($bgR, $bgG, $bgB, 0.5);"""
+  }
 }

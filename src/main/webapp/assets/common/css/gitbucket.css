@@ -1868,3 +1868,14 @@ body.sidebar-collapse .main-sidebar li.menu-item-hover:not(:hover) span.pull-rig
 body.sidebar-collapse .main-sidebar li.treeview:not(:hover) span.pull-right-container span.label {
   padding: 2px 4px;
 }
+
+/****************************************************************************/
+/* Misc */
+/****************************************************************************/
+.label .octicon {
+  color: inherit;
+}
+
+.branch-name .octicon {
+  color: inherit;
+}

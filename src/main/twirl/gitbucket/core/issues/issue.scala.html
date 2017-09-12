@@ -36,12 +36,12 @@
     </div>
     <div style="margin-bottom: 15px">
       @if(issue.closed) {
-        <span class="label label-important issue-status">Closed</span>
+        <span class="label label-important issue-status"><i class="octicon octicon-issue-closed"></i>Closed</span>
       } else {
-        <span class="label label-success issue-status">Open</span>
+        <span class="label label-success issue-status"><i class="octicon octicon-issue-opened"></i>Open</span>
       }
       <span class="muted">
-        @helpers.user(issue.openedUserName, styleClass="username strong") opened this issue @gitbucket.core.helper.html.datetimeago(issue.registeredDate) - @defining(
+        @helpers.avatarLink(issue.openedUserName, 16, label=true, styleClass="username strong") opened this issue @gitbucket.core.helper.html.datetimeago(issue.registeredDate) - @defining(
           comments.count( _.action.contains("comment") )
         ){ count =>
           @count @helpers.plural(count, "comment")
