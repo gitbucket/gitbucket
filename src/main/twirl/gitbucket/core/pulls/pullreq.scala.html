@@ -23,7 +23,7 @@
       <div>
         <div class="show-title pull-right">
           @if(isManageable || context.loginAccount.map(_.userName == issue.openedUserName).getOrElse(false)){
-            <a class="btn" href="#" id="edit">Edit</a>
+            <a class="btn btn-default" href="#" id="edit">Edit</a>
           }
           @if(context.loginAccount.isDefined){
             <a class="btn btn-success" href="@helpers.url(repository)/compare">New pull request</a>
