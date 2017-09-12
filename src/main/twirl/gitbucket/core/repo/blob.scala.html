@@ -29,6 +29,7 @@
         </ol>
         <span>Older</span>
       </div>
+      <div id="branchCtrlWrapper" style="display:inline;">
       @gitbucket.core.helper.html.branchcontrol(
         branch,
         repository,
@@ -38,6 +39,7 @@
           <li><a href="@helpers.url(repository)/blob/@helpers.encodeRefName(x)/@pathList.mkString("/")">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
         }
       }
+      </div>
       <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)">@repository.name</a> /
       @pathList.zipWithIndex.map { case (section, i) =>
         @if(i == pathList.length - 1){
@@ -130,14 +132,18 @@ $(window).load(function(){
         }
         var line = pos[i].id.replace(/^L/,'');
         var hash = location.hash;
+        var commitUrl = '@helpers.url(repository)/blob/@latestCommit.id/@pathList.mkString("/")';
         if(e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)){
           var lines = hash.split('-');
-          location.hash = lines[0] + '-L' + line;
+          window.history.pushState('', '', commitUrl + lines[0] + '-L' + line);
         } else {
           var p = $("#L"+line).attr('id',"");
-          location.hash = '#L' + line;
+          window.history.pushState('', '', commitUrl + '#L' + line);
           p.attr('id','L'+line);
         }
+        $("#branchCtrlWrapper .btn .muted").text("tree:");
+        $("#branchCtrlWrapper .btn .strong").text("@latestCommit.id.substring(0, 10)");
+        updateHighlighting();
       }).appendTo(pre);
     }
   }
