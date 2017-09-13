@@ -11,6 +11,7 @@
   @gitbucket.core.html.menu("files", repository){
     <div class="head">
       <div class="pull-right hide-if-blame"><div class="btn-group">
+        <a href="@helpers.url(repository)/blob/@latestCommit.id/@pathList.mkString("/")" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
         <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
       </div></div>
       <div class="line-age-legend">
