@@ -257,7 +257,7 @@ object PluginRegistry {
     if(installedDir.exists){
       FileUtils.deleteDirectory(installedDir)
     }
-    installedDir.mkdir()
+    installedDir.mkdirs()
 
     val pluginJars = listPluginJars(pluginDir)
     val extraJars = extraPluginDir.map { extraDir => listPluginJars(new File(extraDir)) }.getOrElse(Nil)
