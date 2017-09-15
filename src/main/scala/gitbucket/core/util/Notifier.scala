@@ -47,7 +47,7 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       val f = Future {
         database withSession { session =>
           recipients(loginAccount)(session) foreach { to =>
-            send(to, subject, loginAccount, textMsg, htmlMsg)
+            send(to, subject, textMsg, htmlMsg, Some(loginAccount))
           }
         }
         "Notifications Successful."
@@ -57,10 +57,6 @@ class Mailer(private val smtp: Smtp) extends Notifier {
         case Failure(t) => logger.error("Notifications Failed.", t)
       }
     }
-  }
-
-  def send(to: String, subject: String, loginAccount: Account, textMsg: String, htmlMsg: Option[String] = None): Unit = {
-    send(to, subject, textMsg, htmlMsg, Some(loginAccount))
   }
 
   def send(to: String, subject: String, textMsg: String, htmlMsg: Option[String] = None, loginAccount: Option[Account] = None): Unit = {
