@@ -60,6 +60,10 @@ class Mailer(private val smtp: Smtp) extends Notifier {
   }
 
   def send(to: String, subject: String, loginAccount: Account, textMsg: String, htmlMsg: Option[String] = None): Unit = {
+    send(to, subject, textMsg, htmlMsg, Some(loginAccount))
+  }
+
+  def send(to: String, subject: String, textMsg: String, htmlMsg: Option[String] = None, loginAccount: Option[Account] = None): Unit = {
     val email = new HtmlEmail
     email.setHostName(smtp.host)
     email.setSmtpPort(smtp.port.get)
@@ -77,8 +81,8 @@ class Mailer(private val smtp: Smtp) extends Notifier {
       email.setStartTLSRequired(starttls)
     }
     smtp.fromAddress
-      .map (_ -> smtp.fromName.getOrElse(loginAccount.userName))
-      .orElse (Some("notifications@gitbucket.com" -> loginAccount.userName))
+      .map (_ -> smtp.fromName.getOrElse(loginAccount.map(_.userName).getOrElse("GitBucket")))
+      .orElse (Some("notifications@gitbucket.com" -> loginAccount.map(_.userName).getOrElse("GitBucket")))
       .foreach { case (address, name) =>
         email.setFrom(address, name)
       }
