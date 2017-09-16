@@ -57,7 +57,7 @@
         @menuitem("/network/members", "fork", "Forks", "repo-forked", repository.forkedCount)
       }
       @if(context.loginAccount.isDefined && (context.loginAccount.get.isAdmin || repository.managers.contains(context.loginAccount.get.userName))){
-        @menuitem("/settings", "settings", "Settings", "tools")
+        @menuitem("/settings", "settings", "Settings", "gear")
       }
       @gitbucket.core.plugin.PluginRegistry().getRepositoryMenus.map { menu =>
         @menu(repository, context).map { link =>
