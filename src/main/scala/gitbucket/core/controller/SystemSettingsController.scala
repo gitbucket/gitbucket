@@ -174,11 +174,12 @@ trait SystemSettingsControllerBase extends AccountManagementControllerBase {
 
   post("/admin/system/sendmail", sendMailForm)(adminOnly { form =>
     try {
-      new Mailer(form.smtp).send(form.testAddress,
-        "Test message from GitBucket",
-        "This is a test message from GitBucket.",
-        None,
-        context.loginAccount
+      new Mailer(context.settings.copy(smtp = Some(form.smtp), notification = true)).send(
+        to           = form.testAddress,
+        subject      = "Test message from GitBucket",
+        textMsg      = "This is a test message from GitBucket.",
+        htmlMsg      = None,
+        loginAccount = context.loginAccount
       )
 
       "Test mail has been sent to: " + form.testAddress
