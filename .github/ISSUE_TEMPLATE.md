@@ -16,4 +16,3 @@
 - *describe the problem and its symptoms*
 - *explain how to reproduce*
 - *attach whatever information that can help understanding the context (screen capture, log files)*
-- *do your best to use a correct english (re-read yourself)*
