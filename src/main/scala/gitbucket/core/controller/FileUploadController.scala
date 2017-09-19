@@ -80,7 +80,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
               builder.finish()
 
               val newHeadId = JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
-                Constants.HEAD, loginAccount.userName, loginAccount.mailAddress, s"Uploaded ${fileName}")
+                Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, s"Uploaded ${fileName}")
 
               fileName
             }

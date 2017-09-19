@@ -717,7 +717,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         f(git, headTip, builder, inserter)
 
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
-          headName, loginAccount.userName, loginAccount.mailAddress, message)
+          headName, loginAccount.fullName, loginAccount.mailAddress, message)
 
         inserter.flush()
         inserter.close()
