@@ -46,12 +46,13 @@ trait ProtectedBranchService {
 
 object ProtectedBranchService {
 
-  class ProtectedBranchReceiveHook extends ReceiveHook with ProtectedBranchService {
+  class ProtectedBranchReceiveHook extends ReceiveHook with ProtectedBranchService with RepositoryService with AccountService {
     override def preReceive(owner: String, repository: String, receivePack: ReceivePack, command: ReceiveCommand, pusher: String)
                            (implicit session: Session): Option[String] = {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if(branch != command.getRefName){
-        if(command.getType == ReceiveCommand.Type.DELETE && branch == "test1"){ // TODO check default branch
+        val repositoryInfo = getRepository(owner, repository)
+        if(command.getType == ReceiveCommand.Type.DELETE && repositoryInfo.exists(_.repository.defaultBranch == branch)){
           Some(s"refusing to delete the branch: ${command.getRefName}.")
         } else {
           getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack.isAllowNonFastForwards, command, pusher)
