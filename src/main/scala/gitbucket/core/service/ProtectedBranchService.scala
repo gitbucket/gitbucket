@@ -51,7 +51,11 @@ object ProtectedBranchService {
                            (implicit session: Session): Option[String] = {
       val branch = command.getRefName.stripPrefix("refs/heads/")
       if(branch != command.getRefName){
-        getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack.isAllowNonFastForwards, command, pusher)
+        if(command.getType == ReceiveCommand.Type.DELETE && branch == "test1"){ // TODO check default branch
+          Some(s"refusing to delete the branch: ${command.getRefName}.")
+        } else {
+          getProtectedBranchInfo(owner, repository, branch).getStopReason(receivePack.isAllowNonFastForwards, command, pusher)
+        }
       } else {
         None
       }
