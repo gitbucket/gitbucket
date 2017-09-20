@@ -22,7 +22,7 @@ object SshServer {
     provider.setOverwriteAllowed(false)
     server.setKeyPairProvider(provider)
     server.setPublickeyAuthenticator(new PublicKeyAuthenticator(sshAddress.genericUser))
-    server.setCommandFactory(new GitCommandFactory(baseUrl))
+    server.setCommandFactory(new GitCommandFactory(baseUrl, Some(s"${sshAddress.genericUser}@${sshAddress.host}:${sshAddress.port}")))
     server.setShellFactory(new NoShell(sshAddress))
   }
 
