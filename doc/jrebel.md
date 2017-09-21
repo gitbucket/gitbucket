@@ -117,4 +117,4 @@ And you reload browser, JRebel give notice of that it has reloaded classes:
 
 ## 6. Limitations
 
-JRebel is nearly always able to eliminate the need to explicitly reload your container after a code change. However, if you change any of your routes patterns, there is nothing JRebel can do, you will have to restart Jetty by `jetty:quickstart`.
+JRebel is nearly always able to eliminate the need to explicitly reload your container after a code change. However, if you change any of your routing patterns, there is nothing JRebel can do, you will have to restart by `jetty:quickstart`.
