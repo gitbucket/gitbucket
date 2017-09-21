@@ -65,8 +65,6 @@ $(function(){
   url: '@context.path/upload/file/@repository.owner/@repository.name',
   maxFilesize: 10,
   clickable: @clickable,
-  acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
-  dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
   previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
   success: function(file, id) {
     var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) +

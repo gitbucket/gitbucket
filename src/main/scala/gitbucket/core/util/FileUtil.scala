@@ -28,8 +28,6 @@ object FileUtil {
 
   def isImage(name: String): Boolean = getMimeType(name).startsWith("image/")
 
-  def isUploadableType(name: String): Boolean = mimeTypeWhiteList contains getMimeType(name)
-
   def isLarge(size: Long): Boolean = (size > 1024 * 1000)
 
   def isText(content: Array[Byte]): Boolean = !content.contains(0)
@@ -52,16 +50,6 @@ object FileUtil {
       FileUtils.deleteDirectory(dir)
     }
   }
-
-  val mimeTypeWhiteList: Array[String] = Array(
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "image/gif",
-      "image/jpeg",
-      "image/png",
-      "text/plain")
 
   def getLfsFilePath(owner: String, repository: String, oid: String): String =
     Directory.getLfsDir(owner, repository) + "/" + oid
