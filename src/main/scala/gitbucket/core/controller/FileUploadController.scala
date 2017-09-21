@@ -48,7 +48,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
       FileUtils.writeByteArrayToFile(new java.io.File(
         getAttachedDir(params("owner"), params("repository")),
         fileId + "." + FileUtil.getExtension(file.getName)), file.get)
-    }, FileUtil.isUploadableType)
+    }, _ => true)
   }
 
   post("/wiki/:owner/:repository"){
@@ -85,7 +85,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
               fileName
             }
           }
-        }, FileUtil.isUploadableType)
+        }, _ => true)
       }
     } getOrElse BadRequest()
   }
@@ -113,7 +113,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     }
   }
 
-  private def execute(f: (FileItem, String) => Unit, mimeTypeChcker: (String) => Boolean) = fileParams.get("file") match {
+  private def execute(f: (FileItem, String) => Unit , mimeTypeChcker: (String) => Boolean) = fileParams.get("file") match {
     case Some(file) if(mimeTypeChcker(file.name)) =>
       defining(FileUtil.generateFileId){ fileId =>
         f(file, fileId)

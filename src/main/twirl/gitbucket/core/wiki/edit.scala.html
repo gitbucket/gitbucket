@@ -50,8 +50,6 @@ $(function(){
       url: '@context.path/upload/wiki/@repository.owner/@repository.name',
       maxFilesize: 10,
       clickable: false,
-      acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
-      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
       previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
         var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) + '](' + file.name + ')';
@@ -62,8 +60,6 @@ $(function(){
     $('.clickable').dropzone({
       url: '@context.path/upload/wiki/@repository.owner/@repository.name',
       maxFilesize: 10,
-      acceptedFiles: @Html(FileUtil.mimeTypeWhiteList.mkString("'", ",", "'")),
-      dictInvalidFileType: 'Unfortunately, we don\'t support that file type. Try again with a PNG, GIF, JPG, DOCX, PPTX, XLSX, TXT, or PDF.',
       previewTemplate: "<div class=\"dz-preview\">\n  <div class=\"dz-progress\"><span class=\"dz-upload\" data-dz-uploadprogress>Uploading your files...</span></div>\n  <div class=\"dz-error-message\"><span data-dz-errormessage></span></div>\n</div>",
       success: function(file, id) {
         var attachFile = (file.type.match(/image\/.*/) ? '\n![' + file.name.split('.')[0] : '\n[' + file.name) + '](' + file.name + ')';
@@ -78,7 +74,7 @@ $(function(){
   }
 
   $('#delete').click(function(){
-    return confirm('Are you sure you want to delete this page?'); 
+    return confirm('Are you sure you want to delete this page?');
   });
 });
 </script>
