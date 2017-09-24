@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "io.github.gitbucket"             %% "scalatra-forms"               % "1.1.0",
   "commons-io"                      %  "commons-io"                   % "2.5",
   "io.github.gitbucket"             %  "solidbase"                    % "1.0.2",
-  "io.github.gitbucket"             %  "markedj"                      % "1.0.14",
+  "io.github.gitbucket"             %  "markedj"                      % "1.0.15",
   "org.apache.commons"              %  "commons-compress"             % "1.13",
   "org.apache.commons"              %  "commons-email"                % "1.4",
   "org.apache.httpcomponents"       %  "httpclient"                   % "4.5.3",
