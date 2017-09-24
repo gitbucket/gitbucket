@@ -72,7 +72,7 @@ Release Notes
 -------------
 ### 4.17.0 - 30 Sep 2017
 - [gitbucket-ci-plugin](https://github.com/takezoe/gitbucket-ci-plugin) is available
-- Transfer URL with commit ID
+- Transferring to URL with commit ID
 - Drop uploadable file type limitation
 - Improve Mailer API
 - Web API and webhook enhancement
