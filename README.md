@@ -70,6 +70,13 @@ Support
 
 Release Notes
 -------------
+### 4.17.0 - 30 Sep 2017
+- [gitbucket-ci-plugin](https://github.com/takezoe/gitbucket-ci-plugin) is available
+- Transfer URL with commit ID
+- Drop uploadable file type limitation
+- Improve Mailer API
+- Web API and webhook enhancement
+
 ### 4.16.0 - 2 Sep 2017
 - Support AdminLTE color skin
 - Improve unexpected error handling
