@@ -61,6 +61,10 @@ GitBucket has a plug-in system that allows extra functionality. Officially the f
 
 You can find more plugins made by the community at [GitBucket community plugins](https://gitbucket-plugins.github.io/).
 
+Docker
+------
+You can also use gitbucket inside a docker container. Please have a lock at the [repository](https://gitbucket.pgollor.de/docker/gitbucket) or see [docker hub](https://hub.docker.com/r/pgollor/gitbucket/).
+
 Support
 --------
 
