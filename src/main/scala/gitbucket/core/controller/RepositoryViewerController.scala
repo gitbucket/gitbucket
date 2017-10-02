@@ -24,6 +24,7 @@ import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
+import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 import org.scalatra._
 import org.scalatra.i18n.Messages
 
@@ -722,34 +723,58 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         inserter.flush()
         inserter.close()
 
-        // update refs
-        val refUpdate = git.getRepository.updateRef(headName)
-        refUpdate.setNewObjectId(commitId)
-        refUpdate.setForceUpdate(false)
-        refUpdate.setRefLogIdent(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
-        refUpdate.update()
+        val receivePack = new ReceivePack(git.getRepository)
+        val receiveCommand = new ReceiveCommand(headTip, commitId, headName)
 
-        // update pull request
-        updatePullRequests(repository.owner, repository.name, branch)
+        // call post commit hook
+        val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
+          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, loginAccount.userName)
+        }.headOption
 
-        // record activity
-        val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-        recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+        error match {
+          case Some(error) =>
+            // commit is rejected
+            // TODO Notify commit failure to edited user
+            val refUpdate = git.getRepository.updateRef(headName)
+            refUpdate.setNewObjectId(headTip)
+            refUpdate.setForceUpdate(true)
+            refUpdate.update()
 
-        // create issue comment by commit message
-        createIssueComment(repository.owner, repository.name, commitInfo)
+          case None =>
+            // update refs
+            val refUpdate = git.getRepository.updateRef(headName)
+            refUpdate.setNewObjectId(commitId)
+            refUpdate.setForceUpdate(false)
+            refUpdate.setRefLogIdent(new PersonIdent(loginAccount.fullName, loginAccount.mailAddress))
+            refUpdate.update()
 
-        // close issue by commit message
-        closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
+            // update pull request
+            updatePullRequests(repository.owner, repository.name, branch)
 
-        //call web hook
-        callPullRequestWebHookByRequestBranch("synchronize", repository, branch, context.baseUrl, loginAccount)
-        val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
-        callWebHookOf(repository.owner, repository.name, WebHook.Push) {
-          getAccountByUserName(repository.owner).map{ ownerAccount =>
-            WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount,
-              oldId = headTip, newId = commitId)
-          }
+            // record activity
+            val commitInfo = new CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+            recordPushActivity(repository.owner, repository.name, loginAccount.userName, branch, List(commitInfo))
+
+            // create issue comment by commit message
+            createIssueComment(repository.owner, repository.name, commitInfo)
+
+            // close issue by commit message
+            closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
+
+            // call post commit hook
+            PluginRegistry().getReceiveHooks.foreach { hook =>
+              hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, loginAccount.userName)
+            }
+
+            //call web hook
+            callPullRequestWebHookByRequestBranch("synchronize", repository, branch, context.baseUrl, loginAccount)
+            val commit = new JGitUtil.CommitInfo(JGitUtil.getRevCommitFromId(git, commitId))
+            callWebHookOf(repository.owner, repository.name, WebHook.Push) {
+              getAccountByUserName(repository.owner).map{ ownerAccount =>
+                WebHookPushPayload(git, loginAccount, headName, repository, List(commit), ownerAccount,
+                  oldId = headTip, newId = commitId)
+              }
+            }
         }
       }
     }
