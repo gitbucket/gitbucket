@@ -24,6 +24,7 @@ import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}
 import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
+import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 import org.scalatra._
 import org.scalatra.i18n.Messages
 
@@ -719,6 +720,18 @@ trait RepositoryViewerControllerBase extends ControllerBase {
         val commitId = JGitUtil.createNewCommit(git, inserter, headTip, builder.getDirCache.writeTree(inserter),
           headName, loginAccount.userName, loginAccount.mailAddress, message)
 
+        val receivePack = new ReceivePack(git.getRepository)
+        val receiveCommand = new ReceiveCommand(headTip, commitId, headName)
+
+        // call post commit hook
+        val error = PluginRegistry().getReceiveHooks.flatMap { hook =>
+          hook.preReceive(repository.owner, repository.name, receivePack, receiveCommand, loginAccount.userName)
+        }.headOption
+
+        if(error.isDefined){
+          // ...
+        }
+
         inserter.flush()
         inserter.close()
 
@@ -741,6 +754,11 @@ trait RepositoryViewerControllerBase extends ControllerBase {
 
         // close issue by commit message
         closeIssuesFromMessage(message, loginAccount.userName, repository.owner, repository.name)
+
+        // call post commit hook
+        PluginRegistry().getReceiveHooks.foreach { hook =>
+          hook.postReceive(repository.owner, repository.name, receivePack, receiveCommand, loginAccount.userName)
+        }
 
         //call web hook
         callPullRequestWebHookByRequestBranch("synchronize", repository, branch, context.baseUrl, loginAccount)
