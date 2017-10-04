@@ -351,7 +351,6 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
                 diffs._1.collect { case diff if diff.newPath.toLowerCase.endsWith(".md") =>
                   val action = if(diff.changeType == ChangeType.ADD) "created" else "edited"
                   val fileName = diff.newPath
-                  //println(action + " - " + fileName + " - " + commit.id)
                   (action, fileName, commit.id)
                 }
               }

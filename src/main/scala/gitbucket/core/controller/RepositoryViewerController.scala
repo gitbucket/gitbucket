@@ -432,7 +432,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     try {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))) { revCommit =>
-          JGitUtil.getDiffs(git, id, false) match {
+          JGitUtil.getDiffs(git, id, true) match {
             case (diffs, oldCommitId) =>
               html.commit(id, new JGitUtil.CommitInfo(revCommit),
                 JGitUtil.getBranchesOfCommit(git, revCommit.getName),
