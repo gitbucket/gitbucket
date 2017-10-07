@@ -1,11 +1,10 @@
 package gitbucket.core.service
 
-import gitbucket.core.model.{ProtectedBranch, ProtectedBranchContext, CommitState}
+import gitbucket.core.model.{Session => _, _}
 import gitbucket.core.plugin.ReceiveHook
 import gitbucket.core.model.Profile._
 import gitbucket.core.model.Profile.profile.blockingApi._
-
-import org.eclipse.jgit.transport.{ReceivePack, ReceiveCommand}
+import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
 
 
 trait ProtectedBranchService {
@@ -79,10 +78,19 @@ object ProtectedBranchService {
      * Include administrators
      * Enforce required status checks for repository administrators.
      */
-    includeAdministrators: Boolean) extends AccountService with CommitStatusService {
+    includeAdministrators: Boolean) extends AccountService with RepositoryService with CommitStatusService {
 
     def isAdministrator(pusher: String)(implicit session: Session): Boolean =
-      pusher == owner || getGroupMembers(owner).exists(gm => gm.userName == pusher && gm.isManager)
+      pusher == owner || getGroupMembers(owner).exists(gm => gm.userName == pusher && gm.isManager) ||
+        getCollaborators(owner, repository).exists { case (collaborator, isGroup) =>
+          if(collaborator.role == Role.ADMIN.name){
+            if(isGroup){
+              getGroupMembers(collaborator.collaboratorName).exists(gm => gm.userName == pusher)
+            } else {
+              collaborator.collaboratorName == pusher
+            }
+          } else false
+        }
 
     /**
      * Can't be force pushed
