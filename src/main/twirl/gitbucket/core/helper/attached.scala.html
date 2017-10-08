@@ -11,7 +11,9 @@
 $(function(){
   @gitbucket.core.plugin.PluginRegistry().getSuggestionProviders.map { provider =>
     @if(provider.context.contains(completionContext)){
-      var @provider.id = @Html(helpers.json(provider.values(repository)));
+      var @provider.id = @Html(helpers.json(provider.options(repository).map { case (value, label) =>
+        Map("value" -> value, "label" -> label)
+      }));
       @Html(provider.additionalScript)
     }
   }
@@ -23,14 +25,14 @@ $(function(){
           match: /\B@{provider.prefix}([\-+\w]*)$/,
           search: function (term, callback) {
             callback($.map(@{provider.id}, function (proposal) {
-              return proposal.indexOf(term) === 0 ? proposal : null;
+              return proposal.value.indexOf(term) === 0 ? proposal : null;
             }));
           },
-          template: function (value) {
+          template: function (option) {
             return @{Html(provider.template)};
           },
-          replace: function (value) {
-            return '@{provider.prefix}' + value + '@{provider.suffix}';
+          replace: function (option) {
+            return '@{provider.prefix}' + @{Html(provider.replace)} + '@{provider.suffix}';
           },
           index: 1
         },
