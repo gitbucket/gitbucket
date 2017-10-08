@@ -1161,7 +1161,8 @@ table.diff tbody tr.not-diff:hover td {
 .not-diff > .comment-box-container {
   white-space: normal;
   line-height: initial;
-  padding: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .diff .oldline:before, .diff .newline:before {
