@@ -44,7 +44,7 @@
   <script>
     $('.btn-inline-comment').click(function(e) {
       e.preventDefault();
-      $form = $(e.target).attr('disabled', 'disabled').closest('form');
+      var $form = $(e.target).attr('disabled', 'disabled').closest('form');
       var param = {};
       $($form.serializeArray()).each(function(i, v) {
         param[v.name] = v.value;
@@ -64,7 +64,16 @@
         } else {
           tmp = '<td colspan="3" class="comment-box-container"></td>'
         }
-        $form.closest('tr').removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
+        var $tr = $form.closest('tr.not-diff');
+
+        // Apply comment
+        $tr.removeClass('inline-comment-form').html(tmp).find('.comment-box-container').html(data);
+
+        // Show reply comment form
+        var replyComment = $tr.prev().find('.reply-comment').closest('.not-diff').show();
+        replyComment.remove();
+        $tr.after(replyComment);
+
         $('#comment-list').append(data);
         if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
           $('#comment-list').children('.inline-comment').hide();
