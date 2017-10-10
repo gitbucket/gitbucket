@@ -1,3 +1,5 @@
+import com.typesafe.sbt.license.{LicenseInfo, DepModuleInfo}
+
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.17.0"
@@ -237,3 +239,8 @@ pomExtra := (
     </developer>
   </developers>
 )
+
+licenseOverrides := {
+  case DepModuleInfo("com.github.bkromhout", "java-diff-utils", _) =>
+    LicenseInfo(LicenseCategory.Apache, "Apache-2.0", "http://www.apache.org/licenses/LICENSE-2.0")
+}
