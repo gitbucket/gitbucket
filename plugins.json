@@ -18,9 +18,9 @@
     "description": "Provides Emoji support for GitBucket.",
     "versions": [
       {
-        "version": "4.4.0",
-        "range": ">=4.10.0",
-        "file": "gitbucket-emoji-plugin_2.12-4.4.0.jar"
+        "version": "4.5.0",
+        "range": ">=4.18.0",
+        "file": "gitbucket-emoji-plugin_2.12-4.5.0.jar"
       }
     ],
     "default": false
