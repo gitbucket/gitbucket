@@ -2,7 +2,7 @@ import com.typesafe.sbt.license.{LicenseInfo, DepModuleInfo}
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
-val GitBucketVersion = "4.17.0"
+val GitBucketVersion = "4.18.0"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.19.v20170502"
 
