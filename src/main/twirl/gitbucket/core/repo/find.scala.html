@@ -105,7 +105,9 @@ $(function(){
       $(".no-results").hide();
       for(var i = 0; i < p.length; i++){
         var row = template.clone();
-        row.find("a").attr("href", pathBase + "/" + p[i].string).html(string_score_highlight(p[i], '<b>'));
+//        console.log('Path base: ' + pathBase);
+//        console.log('Path rest ' + p[i].string);
+        row.find("a").attr("href", pathBase + "/" + encodeURIComponent(p[i].string).replace('%2F', '/')).html(string_score_highlight(p[i], '<b>'));
         if(cursor == i){
           row.addClass("navigation-focus");
         }
