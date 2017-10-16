@@ -59,19 +59,19 @@ $(function(){
     if(e.keyCode == 40){ // DOWN
       e.preventDefault();
       e.stopPropagation();
-      changeCursor(cursor+1);
-    }else if(e.keyCode==38){ // UP
+      changeCursor(cursor + 1);
+    }else if(e.keyCode == 38){ // UP
       e.preventDefault();
       e.stopPropagation();
-      changeCursor(cursor-1);
-    }else if(e.keyCode==13){ // ENTER
+      changeCursor(cursor - 1);
+    }else if(e.keyCode == 13){ // ENTER
       e.preventDefault();
       e.stopPropagation();
       target = $(".tree-browser-result.navigation-focus a");
       if(target[0]){
         target[0].click();
       }
-    }else if(e.keyCode==27){ // ESC
+    }else if(e.keyCode == 27){ // ESC
       e.preventDefault();
       e.stopPropagation();
       history.back();
@@ -90,23 +90,23 @@ $(function(){
   }
   function filter(){
     var v = $('#tree-finder-field').val();
-    if(v==preKeyword || paths.length==0){
+    if(v == preKeyword || paths.length == 0){
       return;
     }
     scrollIntoView('#tree-finder-field');
-    preKeyword=v;
-    cursor=0;
+    preKeyword = v;
+    cursor = 0;
     var p = string_score_sort(v, paths, 50);
     res.html("");
-    if(p.length==0){
+    if(p.length == 0){
       $(".no-results").show();
       return;
     }else{
       $(".no-results").hide();
-      for(var i=0;i < p.length;i++){
+      for(var i = 0; i < p.length; i++){
         var row = template.clone();
-        row.find("a").attr("href",pathBase+"/"+p[i].string).html(string_score_highlight(p[i], '<b>'));
-        if(cursor==i){
+        row.find("a").attr("href", pathBase + "/" + p[i].string).html(string_score_highlight(p[i], '<b>'));
+        if(cursor == i){
           row.addClass("navigation-focus");
         }
         row.appendTo(res);
