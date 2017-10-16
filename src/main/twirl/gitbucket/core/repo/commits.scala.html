@@ -12,11 +12,7 @@
   @gitbucket.core.html.menu("files", repository){
     <div class="head">
       @if(pathList.isEmpty){
-        @gitbucket.core.helper.html.branchcontrol(
-          branch,
-          repository,
-          hasWritePermission
-        ){
+        @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
           @repository.branchList.map { x =>
             <li><a href="@helpers.url(repository)/commits/@helpers.encodeRefName(x)">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
           }
@@ -29,7 +25,7 @@
           @if(i == pathList.length - 1){
             <span class="strong">@section</span>
           } else {
-            <a class="strong" href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+            <a class="strong" href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
           }
         }
       }

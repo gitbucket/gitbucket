@@ -7,11 +7,11 @@
   isBlame: Boolean,
   isLfsFile: Boolean)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-@gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${helpers.encodeRefName(branch)} - ${repository.owner}/${repository.name}", Some(repository)) {
+@gitbucket.core.html.main(s"${(repository.name :: pathList).mkString("/")} at ${branch} - ${repository.owner}/${repository.name}", Some(repository)) {
   @gitbucket.core.html.menu("files", repository){
     <div class="head">
       <div class="pull-right hide-if-blame"><div class="btn-group">
-        <a href="@helpers.url(repository)/blob/@latestCommit.id/@pathList.mkString("/")" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
+        <a href="@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-hotkey="y" style="display: none;">Transfer to URL with SHA</a>
         <a href="@helpers.url(repository)/find/@helpers.encodeRefName(branch)" class="btn btn-sm btn-default" data-hotkey="t">Find file</a>
       </div></div>
       <div class="line-age-legend">
@@ -31,13 +31,9 @@
         <span>Older</span>
       </div>
       <div id="branchCtrlWrapper" style="display:inline;">
-      @gitbucket.core.helper.html.branchcontrol(
-        branch,
-        repository,
-        hasWritePermission
-      ){
+      @gitbucket.core.helper.html.branchcontrol(branch, repository, hasWritePermission){
         @repository.branchList.map { x =>
-          <li><a href="@helpers.url(repository)/blob/@helpers.encodeRefName(x)/@pathList.mkString("/")">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
+          <li><a href="@helpers.url(repository)/blob/@helpers.encodeRefName((x :: pathList).mkString("/"))">@gitbucket.core.helper.html.checkicon(x == branch) @x</a></li>
         }
       }
       </div>
@@ -46,7 +42,7 @@
         @if(i == pathList.length - 1){
           @section
         } else {
-          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName(branch)/@pathList.take(i + 1).mkString("/")">@section</a> /
+          <a href="@helpers.url(repository)/tree/@helpers.encodeRefName((branch :: pathList.take(i + 1)).mkString("/"))">@section</a> /
         }
       }
       @if(isLfsFile){
@@ -61,15 +57,16 @@
       <a href="@helpers.url(repository)/commit/@latestCommit.id" class="commit-message">@helpers.link(latestCommit.summary, repository)</a>
       <div class="btn-group pull-right">
         @if(hasWritePermission && content.viewType == "text" && repository.branchList.contains(branch)){
-          <a class="btn btn-sm btn-default" href="@helpers.url(repository)/edit/@helpers.encodeRefName(branch)/@pathList.mkString("/")">Edit</a>
+          <a class="btn btn-sm btn-default" href="@helpers.url(repository)/edit/@helpers.encodeRefName((branch :: pathList).mkString("/"))">Edit</a>
         }
-        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@pathList.mkString("/")">Raw</a>
+        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/raw/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))">Raw</a>
         @if(content.viewType == "text"){
-          <a class="btn btn-sm btn-default blame-action" href="@helpers.url(repository)/blame/@latestCommit.id/@pathList.mkString("/")" data-url="@helpers.url(repository)/get-blame/@latestCommit.id/@pathList.mkString("/")" data-repository="@helpers.url(repository)">Blame</a>
+          <a class="btn btn-sm btn-default blame-action" href="@helpers.url(repository)/blame/@latestCommit.id/@helpers.encodeRefName(pathList.mkString("/"))"
+            data-url="@helpers.url(repository)/get-blame/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))" data-repository="@helpers.url(repository)">Blame</a>
         }
-        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName(branch)/@pathList.mkString("/")">History</a>
+        <a class="btn btn-sm btn-default" href="@helpers.url(repository)/commits/@helpers.encodeRefName((branch :: pathList).mkString("/"))">History</a>
         @if(hasWritePermission && repository.branchList.contains(branch)){
-          <a class="btn btn-sm btn-danger" href="@helpers.url(repository)/remove/@helpers.encodeRefName(branch)/@pathList.mkString("/")">Delete</a>
+          <a class="btn btn-sm btn-danger" href="@helpers.url(repository)/remove/@helpers.encodeRefName((branch :: pathList).mkString("/"))">Delete</a>
         }
       </div>
     </div>
@@ -88,12 +85,12 @@
       }
       @if(content.viewType == "image"){
         <div class="box-content-bottom">
-          <img src="@helpers.url(repository)/raw/@helpers.encodeRefName(branch)/@pathList.mkString("/")"/>
+          <img src="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))"/>
         </div>
       }
       @if(content.viewType == "large" || content.viewType == "binary"){
         <div class="box-content-bottom" style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-          <a href="@helpers.url(repository)/raw/@helpers.encodeRefName(branch)/@pathList.mkString("/")">View Raw</a><br>
+          <a href="@helpers.url(repository)/raw/@helpers.encodeRefName((branch :: pathList).mkString("/"))">View Raw</a><br>
           <br>
           (Sorry about that, but we can't show files that are this big right now)
         </div>
@@ -133,7 +130,7 @@ $(window).load(function(){
         }
         var line = pos[i].id.replace(/^L/,'');
         var hash = location.hash;
-        var commitUrl = '@helpers.url(repository)/blob/@latestCommit.id/@pathList.mkString("/")';
+        var commitUrl = '@helpers.url(repository)/blob/@helpers.encodeRefName((latestCommit.id :: pathList).mkString("/"))';
         if(e.shiftKey == true && hash.match(/#L\d+(-L\d+)?/)){
           var lines = hash.split('-');
           window.history.pushState('', '', commitUrl + lines[0] + '-L' + line);
@@ -170,7 +167,7 @@ $(window).load(function(){
       updateSourceLineNum();
       return;
     }
-    $(document.body).toggleClass('no-box-shadow', document.body.style.boxShadow===undefined);
+    $(document.body).toggleClass('no-box-shadow', document.body.style.boxShadow === undefined);
     $('.blame-action').addClass("active");
     var base = $('<div class="blame">').css({height: pre.height()}).prependTo(pre.parents("div.box-content-bottom"));
     base.parent().addClass("blame-container");
