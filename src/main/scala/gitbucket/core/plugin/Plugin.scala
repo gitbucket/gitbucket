@@ -8,6 +8,7 @@ import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.SystemSettingsService.SystemSettings
 import gitbucket.core.util.SyntaxSugars._
 import io.github.gitbucket.solidbase.model.Version
+import org.apache.sshd.server.Command
 import play.twirl.api.Html
 
 /**
@@ -242,6 +243,17 @@ abstract class Plugin {
   def suggestionProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[SuggestionProvider] = Nil
 
   /**
+   * Override to add ssh command providers.
+   */
+  val sshCommandProviders: Seq[PartialFunction[String, Command]] = Nil
+
+  /**
+   * Override to add ssh command providers.
+   */
+  def sshCommandProviders(registry: PluginRegistry, context: ServletContext, settings: SystemSettings): Seq[PartialFunction[String, Command]] = Nil
+
+
+  /**
    * This method is invoked in initialization of plugin system.
    * Register plugin functionality to PluginRegistry.
    */
@@ -311,6 +323,9 @@ abstract class Plugin {
     }
     (suggestionProviders ++ suggestionProviders(registry, context, settings)).foreach { suggestionProvider =>
       registry.addSuggestionProvider(suggestionProvider)
+    }
+    (sshCommandProviders ++ sshCommandProviders(registry, context, settings)).foreach { sshCommandProvider =>
+      registry.addSshCommandProvider(sshCommandProvider)
     }
   }
 
