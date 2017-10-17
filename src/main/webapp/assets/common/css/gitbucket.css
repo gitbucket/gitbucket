@@ -131,6 +131,12 @@ span.header-version {
   font-size: small;
 }
 
+.main-header .logo img {
+  width: 24px;
+  height: 24px;
+  display: inline;
+}
+
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
