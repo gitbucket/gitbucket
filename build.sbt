@@ -6,7 +6,7 @@ val GitBucketVersion = "4.18.0"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.19.v20170502"
 
-lazy val root = (project in file(".")).enablePlugins(SbtTwirl, JettyPlugin)
+lazy val root = (project in file(".")).enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin)
 
 sourcesInBase := false
 organization := Organization
@@ -89,17 +89,17 @@ assemblyMergeStrategy in assembly := {
 }
 
 // JRebel
-Seq(jrebelSettings: _*)
+//Seq(jrebelSettings: _*)
 
-jrebel.webLinks += (target in webappPrepare).value
-jrebel.enabled := System.getenv().get("JREBEL") != null
+//jrebel.webLinks += (target in webappPrepare).value
+//jrebel.enabled := System.getenv().get("JREBEL") != null
 javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { path =>
-  Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
+ Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
 }
 
 // Create executable war file
-val executableConfig = config("executable").hide
-Keys.ivyConfigurations += executableConfig
+val ExecutableConfig = config("executable-config").hide
+Keys.ivyConfigurations += ExecutableConfig
 libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-security"     % JettyVersion % "executable",
   "org.eclipse.jetty" % "jetty-webapp"       % JettyVersion % "executable",
@@ -128,7 +128,7 @@ executableKey := {
   IO delete temp
 
   // include jetty classes
-  val jettyJars = Keys.update.value select configurationFilter(name = executableConfig.name)
+  val jettyJars = Keys.update.value select configurationFilter(name = ExecutableConfig.name)
   jettyJars foreach { jar =>
     IO unzip (jar, temp, (name:String) =>
       (name startsWith "javax/") ||
@@ -160,17 +160,17 @@ executableKey := {
       s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
     }
     log info s"Download: ${url}"
-    IO download(new java.net.URL(url), pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
+    IO transfer(new java.net.URL(url).openStream, pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
   }
 
   // zip it up
   IO delete (temp / "META-INF" / "MANIFEST.MF")
-  val contentMappings   = (temp.*** --- PathFinder(temp)).get pair relativeTo(temp)
+  val contentMappings   = (temp.allPaths --- PathFinder(temp)).get pair { file => IO.relativizeFile(temp, file) }
   val manifest          = new JarManifest
   manifest.getMainAttributes put (AttrName.MANIFEST_VERSION, "1.0")
   manifest.getMainAttributes put (AttrName.MAIN_CLASS,       "JettyLauncher")
   val outputFile    = workDir / warName
-  IO jar (contentMappings, outputFile, manifest)
+  IO jar (contentMappings.map { case (file, path) => (file, path.toString) } , outputFile, manifest)
 
   // generate checksums
   Seq(
