@@ -10,7 +10,7 @@
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @if(showIndex){
   <div class="pull-right" style="margin-bottom: 10px;">
-    <div class="btn-group" data-toggle="buttons-radio">
+    <div class="btn-group" data-toggle="buttons">
       <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
       <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
     </div>
@@ -151,20 +151,21 @@ $(function(){
   }
   window.viewType = 1;
   if(("&" + location.search.substring(1)).indexOf("&diff=split") != -1){
-    $('.container').removeClass('container').addClass('container-wide');
     window.viewType = 0;
   }
   renderDiffs();
 
   $('#btn-unified').click(function(){
     window.viewType = 1;
-    $('.container-wide').removeClass('container-wide').addClass('container');
+    $('#btn-unified').addClass('active');
+    $('#btn-split').removeClass('active');
     renderDiffs();
   });
 
   $('#btn-split').click(function(){
     window.viewType = 0;
-    $('.container').removeClass('container').addClass('container-wide');
+    $('#btn-unified').removeClass('active');
+    $('#btn-split').addClass('active');
     renderDiffs();
   });
 
@@ -174,6 +175,7 @@ $(function(){
     }
     $(this).closest('table').find('.not-diff').toggle();
   });
+
   $('.ignore-whitespace').change(function() {
     renderOneDiff($(this).closest("table").find(".diffText"), viewType);
   });
@@ -188,22 +190,56 @@ $(function(){
     }
     return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
   }
+
   if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
     $('#comment-list').children('.inline-comment').hide();
   }
+
+  function showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr){
+    // assemble Ajax url
+    var url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
+    if (!isNaN(oldLineNumber) && oldLineNumber) {
+      url += ('&oldLineNumber=' + oldLineNumber)
+    }
+    if (!isNaN(newLineNumber) && newLineNumber) {
+      url += ('&newLineNumber=' + newLineNumber)
+    }
+    // send Ajax request
+    $.get(url, { dataType : 'html' }, function(responseContent) {
+      // create container
+      var tmp;
+      if (!isNaN(oldLineNumber) && oldLineNumber) {
+        if (!isNaN(newLineNumber) && newLineNumber) {
+          tmp = getInlineContainer();
+        } else {
+          tmp = getInlineContainer('old');
+        }
+      } else {
+        tmp = getInlineContainer('new');
+      }
+      // add comment textarea
+      tmp.addClass('inline-comment-form').children('.comment-box-container').html(responseContent);
+      $tr.nextAll(':not(.not-diff):first').before(tmp);
+      // hide reply comment field
+      $(tmp).closest('.not-diff').prev().find('.reply-comment').closest('.not-diff').hide();
+      // focus textarea
+      tmp.find('textarea').focus();
+    });
+  }
+
+  // Add comment button
   $('.diff-outside').on('click','table.diff .add-comment',function() {
     var $this  = $(this);
     var $tr    = $this.closest('tr');
     var $check = $this.closest('table:not(.diff)').find('.toggle-notes');
-    var url    = '';
+    //var url    = '';
     if (!$check.prop('checked')) {
       $check.prop('checked', true).trigger('change');
     }
     if (!$tr.nextAll(':not(.not-diff):first').prev().hasClass('inline-comment-form')) {
       var commitId = $this.closest('.table-bordered').attr('commitId'),
       fileName = $this.closest('.table-bordered').attr('fileName'),
-      oldLineNumber, newLineNumber,
-      url = '@helpers.url(repository)/commit/' + commitId + '/comment/_form?fileName=' + fileName@issueId.map { id => + '&issueId=@id' };
+      oldLineNumber, newLineNumber;
       if (viewType == 0) {
         oldLineNumber = $this.parent().prev('.oldline').attr('line-number');
         newLineNumber = $this.parent().prev('.newline').attr('line-number');
@@ -211,30 +247,27 @@ $(function(){
         oldLineNumber = $this.parent().prevAll('.oldline').attr('line-number');
         newLineNumber = $this.parent().prevAll('.newline').attr('line-number');
       }
-      if (!isNaN(oldLineNumber) && oldLineNumber) {
-        url += ('&oldLineNumber=' + oldLineNumber)
-      }
-      if (!isNaN(newLineNumber) && newLineNumber) {
-        url += ('&newLineNumber=' + newLineNumber)
-      }
-      $.get(url, { dataType : 'html' }, function(responseContent) {
-        var tmp;
-        if (!isNaN(oldLineNumber) && oldLineNumber) {
-          if (!isNaN(newLineNumber) && newLineNumber) {
-            tmp = getInlineContainer();
-          } else {
-            tmp = getInlineContainer('old');
-          }
-        } else {
-          tmp = getInlineContainer('new');
-        }
-        tmp.addClass('inline-comment-form').children('.comment-box-container').html(responseContent);
-        $tr.nextAll(':not(.not-diff):first').before(tmp);
-      });
+
+      showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr);
     }
   }).on('click', 'table.diff .btn-default', function() {
+    // Cancel comment form
+    $(this).closest('.not-diff').prev().find('.reply-comment').closest('.not-diff').show();
     $(this).closest('.inline-comment-form').remove();
   });
+
+  // Reply comment
+  $('.diff-outside').on('click', '.reply-comment',function(){
+    var $this = $(this);
+    var $tr    = $this.closest('tr');
+    var commitId = $this.closest('.table-bordered').attr('commitId');
+    var fileName = $this.data('filename');
+    var oldLineNumber = $this.data('oldline');
+    var newLineNumber = $this.data('newline');
+
+    showCommentForm(commitId, fileName, oldLineNumber, newLineNumber, $tr);
+  });
+
   function renderOneCommitCommentIntoDiff($v, diff){
     var filename = $v.attr('filename');
     var oldline  = $v.attr('oldline');
@@ -257,6 +290,7 @@ $(function(){
       tmp.hide();
     }
   }
+
   function renderStatBar(add, del){
     if(add + del > 5){
       if(add){
@@ -282,6 +316,7 @@ $(function(){
     }
     return ret;
   }
+
   function renderOneDiff(diffText, viewType){
     var table = diffText.closest("table[data-diff-id]");
     var i = table.data("diff-id");
@@ -305,12 +340,59 @@ $(function(){
         }
       });
     }
+    return table;
   }
+
+  function renderReplyComment($table){
+    var elements = {};
+    var filename, newline, oldline;
+    $table.find('.comment-box-container .inline-comment').each(function(i, e){
+      filename = $(e).attr('filename');
+      newline = $(e).attr('newline');
+      oldline = $(e).attr('oldline');
+      var key = filename + '-' + newline + '-' + oldline;
+      elements[key] = {
+        element: $(e),
+        filename: filename,
+        newline: newline,
+        oldline: oldline
+      };
+    });
+    for(var key in elements){
+      filename = elements[key]['filename'];
+      oldline = elements[key]['oldline'];
+      newline = elements[key]['newline'];
+
+      var $v = $('<div class="commit-comment-box reply-comment-box">')
+        .append($('<input type="text" class="form-control reply-comment" placeholder="Reply...">')
+          .data('filename', filename)
+          .data('newline',  newline)
+          .data('oldline',  oldline));
+
+      var tmp;
+      if (typeof oldline !== 'undefined') {
+        if (typeof newline !== 'undefined') {
+          tmp = getInlineContainer();
+        } else {
+          tmp = getInlineContainer('old');
+        }
+        tmp.children('td:first').html($v);
+      } else {
+        tmp = getInlineContainer('new');
+        tmp.children('td:last').html($v);
+      }
+      elements[key]['element'].closest('.not-diff').after(tmp);
+    }
+  }
+
   function renderDiffs(){
     var i = 0, diffs = $('.diffText');
     function render(){
       if(diffs[i]){
-        renderOneDiff($(diffs[i]), viewType);
+        var $table = renderOneDiff($(diffs[i]), viewType);
+        @if(hasWritePermission) {
+          renderReplyComment($table);
+        }
         i++;
         setTimeout(render);
       }

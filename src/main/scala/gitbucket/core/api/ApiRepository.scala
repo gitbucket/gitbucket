@@ -24,6 +24,7 @@ case class ApiRepository(
   val http_url  = ApiPath(s"/git/${full_name}.git")
   val clone_url = ApiPath(s"/git/${full_name}.git")
   val html_url  = ApiPath(s"/${full_name}")
+  val ssh_url   = Some(SshPath(s":${full_name}.git"))
 }
 
 object ApiRepository{
@@ -55,12 +56,13 @@ object ApiRepository{
 
   def forDummyPayload(owner: ApiUser): ApiRepository =
     ApiRepository(
-      name="dummy",
-      full_name=s"${owner.login}/dummy",
-      description="",
-      watchers=0,
-      forks=0,
-      `private`=false,
-      default_branch="master",
-      owner=owner)(true)
+      name           = "dummy",
+      full_name      = s"${owner.login}/dummy",
+      description    = "",
+      watchers       = 0,
+      forks          = 0,
+      `private`      = false,
+      default_branch = "master",
+      owner          = owner
+    )(true)
 }

@@ -22,7 +22,7 @@ class JsonFormatSpec extends FunSuite {
   }
   val sha1 = "6dcb09b5b57875f334f61aebed695e2e4193db5e"
   val repo1Name = RepositoryName("octocat/Hello-World")
-  implicit val context = JsonFormat.Context("http://gitbucket.exmple.com")
+  implicit val context = JsonFormat.Context("http://gitbucket.exmple.com", None)
 
   val apiUser = ApiUser(
     login = "octocat",

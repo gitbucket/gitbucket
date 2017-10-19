@@ -121,7 +121,12 @@ trait IndexControllerBase extends ControllerBase {
             case (true, false) => !t.isGroupAccount
             case (false, true) => t.isGroupAccount
             case (false, false) => false
-          }}.map { t => t.userName }
+          }}.map { t =>
+            Map(
+              "label" -> s"<b>@${t.userName}</b> ${t.fullName}",
+              "value" -> t.userName
+            )
+          }
       ))
     )
   })

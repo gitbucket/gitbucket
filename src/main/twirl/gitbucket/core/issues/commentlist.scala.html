@@ -201,7 +201,6 @@ $(function(){
       $.post('@helpers.url(repository)/issue_comments/delete/' + id,
       function(data){
         if(data > 0) {
-          $('#comment-' + id).prev('div.issue-avatar-image').remove();
           $('#comment-' + id).remove();
         }
       });
@@ -230,7 +229,6 @@ $(function(){
       function(data){
         if(data > 0) {
           $('.commit-comment-' + id).closest('.not-diff').remove();
-          $('.commit-comment-' + id).closest('.inline-comment').remove();
         }
       });
     }

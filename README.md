@@ -70,6 +70,19 @@ Support
 
 Release Notes
 -------------
+### 4.18.0 - 14 Oct 2017
+- Form to reply to review comment
+- Display fullname in username suggestion
+- Commit hook plugins are applied to online editing
+- Improve gitbucket-ci-plugin
+
+### 4.17.0 - 30 Sep 2017
+- [gitbucket-ci-plugin](https://github.com/takezoe/gitbucket-ci-plugin) is available
+- Transferring to URL with commit ID
+- Drop uploadable file type limitation
+- Improve Mailer API
+- Web API and webhook enhancement
+
 ### 4.16.0 - 2 Sep 2017
 - Support AdminLTE color skin
 - Improve unexpected error handling

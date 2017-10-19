@@ -9,3 +9,4 @@ Developer's Guide
  * [Automatic Schema Updating](auto_update.md)
  * [Release Operation](release.md)
  * [JRebel integration (optional)](jrebel.md)
+ * [Licenses](licenses.md)

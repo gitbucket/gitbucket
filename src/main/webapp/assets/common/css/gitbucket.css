@@ -131,6 +131,12 @@ span.header-version {
   font-size: small;
 }
 
+.main-header .logo img {
+  width: 24px;
+  height: 24px;
+  display: inline;
+}
+
 /* ======================================================================== */
 /* General Styles */
 /* ======================================================================== */
@@ -147,11 +153,6 @@ div.head div.forked {
 
 div.container {
   width: 100%;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-div.container-wide {
   padding-left: 10px;
   padding-right: 10px;
 }
@@ -1161,7 +1162,8 @@ table.diff tbody tr.not-diff:hover td {
 .not-diff > .comment-box-container {
   white-space: normal;
   line-height: initial;
-  padding: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .diff .oldline:before, .diff .newline:before {
