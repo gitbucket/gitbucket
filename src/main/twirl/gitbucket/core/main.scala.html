@@ -10,51 +10,52 @@
     <link rel="icon" href="@helpers.assets("/common/images/gitbucket.png")" type="image/vnd.microsoft.icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="@helpers.assets("/vendors/google-fonts/css/source-sans-pro.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/bootstrap-3.3.6/css/bootstrap.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/octicons-4.2.0/octicons.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/bootstrap-3.3.7/css/bootstrap.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/octicons-4.4.0/octicons.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/bootstrap-datetimepicker-4.17.44/css/bootstrap-datetimepicker.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/colorpicker/css/bootstrap-colorpicker.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/colorpicker/css/bootstrap-colorpicker.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/google-code-prettify/prettify.css")" type="text/css" rel="stylesheet"/>
     <link href="@helpers.assets("/vendors/facebox/facebox.css")" rel="stylesheet"/>
-    <link href="@helpers.assets("/vendors/AdminLTE-2.3.11/css/AdminLTE.min.css")" rel="stylesheet">
-    <link href="@helpers.assets(s"/vendors/AdminLTE-2.3.11/css/skins/${context.settings.skinName}.min.css")" rel="stylesheet">
-    <link href="@helpers.assets("/vendors/font-awesome-4.6.3/css/font-awesome.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/AdminLTE-2.4.2/css/AdminLTE.min.css")" rel="stylesheet">
+    <link href="@helpers.assets(s"/vendors/AdminLTE-2.4.2/css/skins/${context.settings.skinName}.min.css")" rel="stylesheet">
+    <link href="@helpers.assets("/vendors/font-awesome-4.7.0/css/font-awesome.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.structure.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/vendors/jquery-ui/jquery-ui.theme.min.css")" rel="stylesheet">
     <link href="@helpers.assets("/common/css/gitbucket.css")" rel="stylesheet">
-    <script src="@helpers.assets("/vendors/jquery/jquery-1.12.2.min.js")"></script>
+    <script src="@helpers.assets("/vendors/jquery/jquery-3.2.1.min.js")"></script>
     <script src="@helpers.assets("/vendors/jquery-ui/jquery-ui.min.js")"></script>
-    <script src="@helpers.assets("/vendors/dropzone/dropzone.js")"></script>
+    <script src="@helpers.assets("/vendors/dropzone/dropzone.min.js")"></script>
     <script src="@helpers.assets("/common/js/validation.js")"></script>
     <script src="@helpers.assets("/common/js/gitbucket.js")"></script>
-    <script src="@helpers.assets("/vendors/bootstrap-3.3.6/js/bootstrap.js")"></script>
-    <script src="@helpers.assets("/vendors/bootstrap3-typeahead/bootstrap3-typeahead.js")"></script>
+    <script src="@helpers.assets("/vendors/bootstrap-3.3.7/js/bootstrap.min.js")"></script>
+    <script src="@helpers.assets("/vendors/bootstrap3-typeahead/bootstrap3-typeahead.min.js")"></script>
     <script src="@helpers.assets("/vendors/bootstrap-datetimepicker-4.17.44/js/moment.min.js")"></script>
     <script src="@helpers.assets("/vendors/bootstrap-datetimepicker-4.17.44/js/bootstrap-datetimepicker.min.js")"></script>
-    <script src="@helpers.assets("/vendors/colorpicker/js/bootstrap-colorpicker.js")"></script>
+    <script src="@helpers.assets("/vendors/colorpicker/js/bootstrap-colorpicker.min.js")"></script>
     <script src="@helpers.assets("/vendors/google-code-prettify/prettify.js")"></script>
     <script src="@helpers.assets("/vendors/elastic/jquery.elastic.source.js")"></script>
     <script src="@helpers.assets("/vendors/facebox/facebox.js")"></script>
     <script src="@helpers.assets("/vendors/jquery-hotkeys/jquery.hotkeys.js")"></script>
-    <script src="@helpers.assets("/vendors/jquery-textcomplete-1.6.2/jquery.textcomplete.js")"></script>
+    <script src="@helpers.assets("/vendors/jquery-textcomplete-1.8.4/jquery.textcomplete.min.js")"></script>
     @repository.map { repository =>
       <meta name="go-import" content="@context.baseUrl.replaceFirst("^https?://", "")/@repository.owner/@repository.name git @repository.httpUrl" />
     }
-    <script src="@helpers.assets("/vendors/AdminLTE-2.3.11/js/app.js")" type="text/javascript"></script>
+    <script src="@helpers.assets("/vendors/AdminLTE-2.4.2/js/adminlte.min.js")" type="text/javascript"></script>
   </head>
   <body class="@context.settings.skinName page-load @if(body.toString.contains("menu-item-hover")){sidebar-mini} @if(context.sidebarCollapse){sidebar-collapse}">
     <div class="wrapper">
       <header class="main-header">
         <a href="@context.path/" class="logo">
-          <img src="@helpers.assets("/common/images/gitbucket.svg")" style="width: 24px; height: 24px; display: inline;"/>
-          GitBucket
-          <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span>
+          <span class="logo-mini"><img src="@helpers.assets("/common/images/gitbucket.svg")" alt="GitBucket" /></span>
+          <span class="logo-lg"><img src="@helpers.assets("/common/images/gitbucket.svg")" alt="GitBucket" />
+          <span class="header-title strong">GitBucket</span>
+          <span class="header-version">@gitbucket.core.GitBucketCoreModule.getVersions.last.getVersion</span></span>
         </a>
         <nav class="navbar navbar-static-top" role="navigation">
           <!-- Sidebar toggle button-->
           @if(body.toString.contains("main-sidebar")){
-            <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+            <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
               <span class="sr-only">Toggle navigation</span>
             </a>
           }
