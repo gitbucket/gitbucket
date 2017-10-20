@@ -56,7 +56,6 @@
           <a href="@context.path/@account.userName/_delete" class="btn btn-danger" id="delete">Delete account</a>
         </div>
         <input type="submit" class="btn btn-success" value="Save"/>
-        @if(!LDAPUtil.isDummyMailAddress(account)){<a href="@helpers.url(account.userName)" class="btn btn-default">Cancel</a>}
       </div>
     </form>
   }
