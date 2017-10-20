@@ -14,7 +14,7 @@ sourcesInBase := false
 organization := Organization
 name := Name
 version := GitBucketVersion
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.4"
 
 // dependency settings
 resolvers ++= Seq(
