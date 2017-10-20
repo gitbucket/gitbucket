@@ -6,7 +6,9 @@ val GitBucketVersion = "4.18.0"
 val ScalatraVersion = "2.5.0"
 val JettyVersion = "9.3.19.v20170502"
 
-lazy val root = (project in file(".")).enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin)
+lazy val root = (project in file(".")).enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin).settings(
+
+)
 
 sourcesInBase := false
 organization := Organization
@@ -98,7 +100,7 @@ javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { p
 }
 
 // Create executable war file
-val ExecutableConfig = config("executable-config").hide
+val ExecutableConfig = config("executable").hide
 Keys.ivyConfigurations += ExecutableConfig
 libraryDependencies ++= Seq(
   "org.eclipse.jetty" % "jetty-security"     % JettyVersion % "executable",
