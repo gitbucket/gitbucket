@@ -22,6 +22,7 @@ import io.github.gitbucket.solidbase.Solidbase
 import io.github.gitbucket.solidbase.manager.JDBCVersionManager
 import io.github.gitbucket.solidbase.model.Module
 import org.apache.commons.io.FileUtils
+import org.apache.sshd.server.Command
 import org.slf4j.LoggerFactory
 import play.twirl.api.Html
 
@@ -40,12 +41,9 @@ class PluginRegistry {
   private val accountHooks = new ConcurrentLinkedQueue[AccountHook]
   private val receiveHooks = new ConcurrentLinkedQueue[ReceiveHook]
   receiveHooks.add(new ProtectedBranchReceiveHook())
-
   private val repositoryHooks = new ConcurrentLinkedQueue[RepositoryHook]
   private val issueHooks = new ConcurrentLinkedQueue[IssueHook]
-
   private val pullRequestHooks = new ConcurrentLinkedQueue[PullRequestHook]
-
   private val repositoryHeaders = new ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Html]]
   private val globalMenus = new ConcurrentLinkedQueue[(Context) => Option[Link]]
   private val repositoryMenus = new ConcurrentLinkedQueue[(RepositoryInfo, Context) => Option[Link]]
@@ -57,9 +55,9 @@ class PluginRegistry {
   private val issueSidebars = new ConcurrentLinkedQueue[(Issue, RepositoryInfo, Context) => Option[Html]]
   private val assetsMappings = new ConcurrentLinkedQueue[(String, String, ClassLoader)]
   private val textDecorators = new ConcurrentLinkedQueue[TextDecorator]
-
   private val suggestionProviders = new ConcurrentLinkedQueue[SuggestionProvider]
   suggestionProviders.add(new UserNameSuggestionProvider())
+  private val sshCommandProviders = new ConcurrentLinkedQueue[PartialFunction[String, Command]]()
 
   def addPlugin(pluginInfo: PluginInfo): Unit = plugins.add(pluginInfo)
 
@@ -178,6 +176,10 @@ class PluginRegistry {
   def addSuggestionProvider(suggestionProvider: SuggestionProvider): Unit = suggestionProviders.add(suggestionProvider)
 
   def getSuggestionProviders: Seq[SuggestionProvider] = suggestionProviders.asScala.toSeq
+
+  def addSshCommandProvider(sshCommandProvider: PartialFunction[String, Command]): Unit = sshCommandProviders.add(sshCommandProvider)
+
+  def getSshCommandProviders: Seq[PartialFunction[String, Command]] = sshCommandProviders.asScala.toSeq
 }
 
 /**
