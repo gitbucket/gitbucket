@@ -1,6 +1,6 @@
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
-addSbtPlugin("com.typesafe.sbt"     % "sbt-twirl"         % "1.3.7")
+addSbtPlugin("com.typesafe.sbt"     % "sbt-twirl"         % "1.3.12")
 addSbtPlugin("com.eed3si9n"         % "sbt-assembly"      % "0.14.5")
 //addSbtPlugin("com.earldouglas"      % "xsbt-web-plugin"   % "4.0.0")
 //addSbtPlugin("fi.gekkio.sbtplugins" % "sbt-jrebel-plugin" % "0.10.0")
