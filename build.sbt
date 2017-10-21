@@ -99,6 +99,11 @@ javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { p
  Seq("-noverify", "-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled", s"-javaagent:${path}")
 }
 
+// Exclude a war file from published artifacts
+packagedArtifacts := {
+  packagedArtifacts.value.filterNot { case (artifact, file) => file.getName.endsWith(".war") }
+}
+
 // Create executable war file
 val ExecutableConfig = config("executable").hide
 Keys.ivyConfigurations += ExecutableConfig
