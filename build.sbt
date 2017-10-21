@@ -1,4 +1,5 @@
 import com.typesafe.sbt.license.{LicenseInfo, DepModuleInfo}
+import com.typesafe.sbt.pgp.PgpKeys._
 
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
@@ -100,7 +101,7 @@ javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { p
 }
 
 // Exclude a war file from published artifacts
-packagedArtifacts := {
+signedArtifacts := {
   packagedArtifacts.value.filterNot { case (artifact, file) => file.getName.endsWith(".war") }
 }
 
@@ -197,7 +198,7 @@ executableKey := {
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (version.value.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else                             Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  else                                         Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
 publishMavenStyle := true
 pomIncludeRepository := { _ => false }
