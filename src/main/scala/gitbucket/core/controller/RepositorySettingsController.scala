@@ -343,20 +343,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
             FileUtils.moveDirectory(dir, getWikiRepositoryDir(form.newOwner, repository.name))
           }
         }
-        // Move lfs directory
-        defining(getLfsDir(repository.owner, repository.name)){ dir =>
-          if(dir.isDirectory()) {
-            FileUtils.moveDirectory(dir, getLfsDir(form.newOwner, repository.name))
-          }
-        }
-        // Move attached directory
-        defining(getAttachedDir(repository.owner, repository.name)){ dir =>
+        // Move files directory
+        defining(getRepositoryFilesDir(repository.owner, repository.name)){ dir =>
           if(dir.isDirectory) {
-            FileUtils.moveDirectory(dir, getAttachedDir(form.newOwner, repository.name))
+            FileUtils.moveDirectory(dir, getRepositoryFilesDir(form.newOwner, repository.name))
           }
         }
-        // Delete parent directory
-        FileUtil.deleteDirectoryIfEmpty(getRepositoryFilesDir(repository.owner, repository.name))
 
         // Call hooks
         PluginRegistry().getRepositoryHooks.foreach(_.transferred(repository.owner, form.newOwner, repository.name))
@@ -376,9 +368,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       FileUtils.deleteDirectory(getRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getWikiRepositoryDir(repository.owner, repository.name))
       FileUtils.deleteDirectory(getTemporaryDir(repository.owner, repository.name))
-      val lfsDir = getLfsDir(repository.owner, repository.name)
-      FileUtils.deleteDirectory(lfsDir)
-      FileUtil.deleteDirectoryIfEmpty(lfsDir.getParentFile())
+      FileUtils.deleteDirectory(getRepositoryFilesDir(repository.owner, repository.name))
 
       // Call hooks
       PluginRegistry().getRepositoryHooks.foreach(_.deleted(repository.owner, repository.name))
