@@ -44,7 +44,7 @@ libraryDependencies ++= Seq(
   "joda-time"                       %  "joda-time"                    % "2.9.9",
   "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
   "com.h2database"                  %  "h2"                           % "1.4.195",
-  "org.mariadb.jdbc"                %  "mariadb-java-client"          % "2.0.3",
+  "org.mariadb.jdbc"                %  "mariadb-java-client"          % "2.1.2",
   "org.postgresql"                  %  "postgresql"                   % "42.0.0",
   "ch.qos.logback"                  %  "logback-classic"              % "1.2.3",
   "com.zaxxer"                      %  "HikariCP"                     % "2.6.1",
