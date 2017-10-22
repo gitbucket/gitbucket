@@ -584,6 +584,11 @@ pre.blob {
   font-size: 12px;
 }
 
+div.markdown-body pre.plain {
+  background: white;
+  font-size: 14px;
+}
+
 #readme {
   margin-top: 20px;
 }

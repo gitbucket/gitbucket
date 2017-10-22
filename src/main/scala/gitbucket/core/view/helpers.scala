@@ -346,10 +346,10 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
   }
 
   // This pattern comes from: http://stackoverflow.com/a/4390768/1771641 (extract-url-from-string)
-  private[this] val detectAndRenderLinksRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
+  private[this] val urlRegex = """(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,13}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))""".r
 
-  def detectAndRenderLinks(text: String, repository: RepositoryInfo)(implicit context: Context): String = {
-    val matches = detectAndRenderLinksRegex.findAllMatchIn(text).toSeq
+  def urlLink(text: String): String = {
+    val matches = urlRegex.findAllMatchIn(text).toSeq
 
     val (x, pos) = matches.foldLeft((collection.immutable.Seq.empty[Html], 0)){ case ((x, pos), m) =>
       val url  = m.group(0)
@@ -361,8 +361,7 @@ object helpers extends AvatarImageProvider with LinkConverter with RequestCache 
     }
     // append rest fragment
     val out = if (pos < text.length) x :+ HtmlFormat.escape(text.substring(pos)) else x
-
-    decorateHtml(HtmlFormat.fill(out).toString, repository)
+    HtmlFormat.fill(out).toString
   }
 
   /**
