@@ -35,7 +35,7 @@
         @menu(context).map { link =>
           <li@if(active==link.id){ class="active"}>
             <a href="@context.path/@link.path">
-              <i class="menu-icon octicon octicon-plug"></i>
+              <i class="menu-icon octicon octicon-@link.icon.getOrElse("plug")"></i>
               <span>@link.label</span>
             </a>
           </li>
