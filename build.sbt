@@ -4,7 +4,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.19.0-SNAPSHOT"
-val ScalatraVersion = "2.5.2"
+val ScalatraVersion = "2.5.3"
 val JettyVersion = "9.4.7.v20170914"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin).settings(
