@@ -41,7 +41,6 @@ libraryDependencies ++= Seq(
   "org.apache.sshd"                 %  "apache-sshd"                  % "1.4.0" exclude("org.slf4j","slf4j-jdk14"),
   "org.apache.tika"                 %  "tika-core"                    % "1.14",
   "com.github.takezoe"              %% "blocking-slick-32"            % "0.0.10",
-  "joda-time"                       %  "joda-time"                    % "2.9.9",
   "com.novell.ldap"                 %  "jldap"                        % "2009-10-07",
   "com.h2database"                  %  "h2"                           % "1.4.195",
   "org.mariadb.jdbc"                %  "mariadb-java-client"          % "2.1.2",
