@@ -6,7 +6,7 @@ import gitbucket.core.service._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.{Keys, LDAPUtil, ReferrerAuthenticator, UsersAuthenticator}
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.scalatra.Ok
 
 

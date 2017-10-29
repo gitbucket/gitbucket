@@ -8,7 +8,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
 import gitbucket.core.view
 import gitbucket.core.view.Markdown
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.scalatra.{BadRequest, Ok}
 
 

@@ -4,7 +4,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 val Organization = "io.github.gitbucket"
 val Name = "gitbucket"
 val GitBucketVersion = "4.19.0-SNAPSHOT"
-val ScalatraVersion = "2.5.3"
+val ScalatraVersion = "2.6.0-SNAPSHOT"
 val JettyVersion = "9.4.7.v20170914"
 
 lazy val root = (project in file(".")).enablePlugins(SbtTwirl, ScalatraPlugin, JRebelPlugin).settings(
@@ -30,8 +30,8 @@ libraryDependencies ++= Seq(
   "org.eclipse.jgit"                %  "org.eclipse.jgit.archive"     % "4.9.0.201710071750-r",
   "org.scalatra"                    %% "scalatra"                     % ScalatraVersion,
   "org.scalatra"                    %% "scalatra-json"                % ScalatraVersion,
+  "org.scalatra"                    %% "scalatra-forms"               % ScalatraVersion,
   "org.json4s"                      %% "json4s-jackson"               % "3.5.1",
-  "io.github.gitbucket"             %% "scalatra-forms"               % "1.1.0",
   "commons-io"                      %  "commons-io"                   % "2.5",
   "io.github.gitbucket"             %  "solidbase"                    % "1.0.2",
   "io.github.gitbucket"             %  "markedj"                      % "1.0.15",

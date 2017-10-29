@@ -12,7 +12,7 @@ import gitbucket.core.util.Implicits._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.StringUtil._
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.scalatra.i18n.Messages
 import com.github.zafarkhaja.semver.{Version => Semver}
