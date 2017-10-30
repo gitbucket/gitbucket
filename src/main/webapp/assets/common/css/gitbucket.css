@@ -864,6 +864,105 @@ li.task-list-item input.task-list-item-checkbox {
   vertical-align: middle;
 }
 
+/****************************************************************************/
+/* Issue/Pull comments as timeline */
+/****************************************************************************/
+.timeline>li>.octicon{
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    line-height: 30px;
+    position: absolute;
+    color: #666;
+    background: #d2d6de;
+    border-radius: 50%;
+    text-align: center;
+    left: 18px;
+    top: 0;
+}
+
+.timeline>li>.timeline-item{
+  border: 1px solid #ddd;
+}
+
+.panel-default>.panel-heading.current-user{
+  background: #f0fcff;
+}
+
+.timeline>li>.timeline-item{
+  margin-right: 0px;
+  margin-bottom: 0px;
+}
+
+.timeline>li>.timeline-item>.timeline-header.current-user{
+  background: #f0fcff;
+}
+.timeline>li>.timeline-item>.timeline-header{
+  background: #f5f5f5;
+}
+.timeline>li>.timeline-item>.timeline-body{
+  margin-left: 10px;
+}
+
+.timeline>li>.avatar{
+    font-size: 15px;
+    line-height: 30px;
+    position: absolute;
+    color: #666;
+    background: #d2d6de;
+    text-align: center;
+    left: 18px;
+    top: 0;
+}
+
+.timeline>.time-label.current-user>span{
+  border: 1px solid #f2f8fa;
+  background: #f0fcff;
+}
+
+.timeline>.time-label>span{
+  border: 1px solid #f2f8fa;
+  background: #f6f6fa;
+}
+
+.timeline>.time-label>span>.octicon{
+  margin-left: 12px;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  border-radius: 50%;
+  line-height: 30px;
+}
+
+.timeline>li>.timeline-item>.timeline-header:before{
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: -20px;
+  margin-top: -10px;
+  border-color: transparent;
+  border-right-color: #ddd;
+  border-width: 10px;
+  border-style: solid solid outset;
+}
+
+.timeline>li>.timeline-item>.timeline-header.current-user:after{
+  border-right-color: #f0fcff;
+}
+
+.timeline>li>.timeline-item>.timeline-header:after{
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: -18px;
+  margin-top: -10px;
+  border-color: transparent;
+  border-right-color: #f5f5f5;
+  border-width: 10px;
+  border-style: solid solid outset;
+}
+
+/*
 .discussion-item {
     position: relative;
     margin: 15px 0 15px 20px;
@@ -940,6 +1039,7 @@ pre.reset.discussion-item-content-text{
   padding-top: 1px;
   color: white;
 }
+*/
 
 .priority-sort-handle {
   margin-top: 3px;

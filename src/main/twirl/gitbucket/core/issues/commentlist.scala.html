@@ -7,7 +7,7 @@
 @import gitbucket.core.model.CommitComment
 @if(issue.isDefined){
   <div class="panel panel-default issue-comment-box">
-    <div class="panel-heading">
+    <div class="panel-heading @if(context.loginAccount.map(_.userName == issue.get.openedUserName).getOrElse(false)){current-user}">
       @helpers.avatar(issue.get.openedUserName, 20)
       @helpers.user(issue.get.openedUserName, styleClass="username strong")
       <span class="muted">commented @gitbucket.core.helper.html.datetimeago(issue.get.registeredDate)</span>
@@ -31,14 +31,15 @@
   </div>
 }
 @issueOrPullRequest()={ @if(issue.isDefined && issue.get.isPullRequest)( "pull request" )else( "issue" ) }
-
+<ul class="timeline">
 @comments.map {
   case comment: gitbucket.core.model.IssueComment => {
     @if(comment.action != "close" && comment.action != "reopen" && comment.action != "delete_branch"
       && comment.action != "commit" && comment.action != "refer"){
-      <div class="panel panel-default issue-comment-box" id="comment-@comment.commentId">
-        <div class="panel-heading">
-          @helpers.avatar(comment.commentedUserName, 20)
+      <li id="comment-@comment.commentId">
+      @helpers.avatar(comment.commentedUserName, 30)
+      <div class="timeline-item issue-comment-box">
+        <h3 class="timeline-header @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           <span class="muted">
             @if(comment.action == "comment"){
@@ -57,8 +58,8 @@
               <a href="#" data-comment-id="@comment.commentId"><i class="octicon octicon-x" aria-label="Remove"></i></a>
             </span>
           }
-          </div>
-        <div class="panel-body issue-content markdown-body" id="commentContent-@comment.commentId">
+          </h3>
+        <div class="timeline-body issue-content markdown-body" id="commentContent-@comment.commentId">
           @helpers.markdown(
             markdown = comment.content,
             repository = repository,
@@ -70,8 +71,10 @@
           )
         </div>
       </div>
+      </li>
     }
     @if(comment.action == "commit"){
+      <li>
       @defining({
         val (content, id) = " ([a-f0-9]{40})$".r.findFirstMatchIn(comment.content)
           .map(m => (m.before.toString -> Some(m.group(1))))
@@ -79,15 +82,15 @@
         val head = content.take(100).takeWhile(_ != '\n')
         (id, head, if(head == content){ None }else{ Some(content.drop(head.length).dropWhile(_ == '\n')) }.filter(_.nonEmpty))
       }){ case (commitId, head, rest) =>
-        <div class="discussion-item discussion-item-commit">
-          <div class="discussion-item-header">
-            <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
+        <i class="octicon octicon-bookmark"></i>
+        <div class="timeline-item">
+          <h3 class="timeline-header @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
             @helpers.avatar(comment.commentedUserName, 16)
             @helpers.user(comment.commentedUserName, styleClass="username strong")
             added a commit that referenced this @issueOrPullRequest()
             @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-          </div>
-          <div style="discussion-item-content">
+          </h3>
+          <div class="timeline-body">
             @commitId.map{ id =>
               <span class="pull-right"><a href="@context.path/@repository.owner/@repository.name/commit/@id" class="monospace">@id.substring(0, 7)</a></span>
             }
@@ -100,27 +103,30 @@
           </div>
         </div>
       }
+      </li>
     }
     @if(comment.action == "refer"){
-      <div class="discussion-item discussion-item-refer">
-        <div class="discussion-item-header">
-          <span class="discussion-item-icon"><i class="octicon octicon-bookmark"></i></span>
+      <li>
+      <i class="octicon octicon-bookmark"></i>
+      <div class="timeline-item">
+        <h3 class="timeline-header @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           referenced the @issueOrPullRequest()
           @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-        </div>
-        <div style="discussion-item-content">
+        </h3>
+        <div class="timeline-body">
           @defining(comment.content.split(":")){ case Array(issueId, rest @ _*) =>
             <strong>@helpers.issueLink(repository, issueId.toInt): @rest.mkString(":")</strong>
           }
         </div>
       </div>
+      </li>
     }
     @if(comment.action == "merge"){
-      <div class="discussion-item discussion-item-merge">
-        <div class="discussion-item-header">
-          <span class="discussion-item-icon"><i class="octicon octicon-git-merge"></i></span>
+      <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
+      <span>
+        <i class="octicon octicon-git-merge bg-purple"></i>
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           merged commit
@@ -131,47 +137,49 @@
             <code>@pullreq.map(_.userName):@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</code>
           }
           @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-        </div>
-      </div>
+      </span>
+      </li>
     }
     @if(comment.action == "close" || comment.action == "close_comment"){
-      <div class="discussion-item discussion-item-close">
-        <div class="discussion-item-header">
-          <span class="discussion-item-icon"><i class="octicon octicon-circle-slash"></i></span>
+      <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
+      <span>
+        <i class="octicon octicon-circle-slash bg-red"></i>
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           closed this @issueOrPullRequest()
           @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-        </div>
-      </div>
+        </span>
+      </li>
     }
     @if(comment.action == "reopen" || comment.action == "reopen_comment"){
-      <div class="discussion-item discussion-item-reopen">
-        <div class="discussion-item-header">
-          <span class="discussion-item-icon"><i class="octicon octicon-primitive-dot"></i></span>
+      <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
+      <span>
+        <i class="octicon octicon-primitive-dot bg-aqua"></i>
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
-          reopened the @issueOrPullRequest()
-          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-        </div>
-      </div>
+          reopened the @issueOrPullRequest() @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
+      </span>
+      </li>
     }
     @if(comment.action == "delete_branch"){
-      <div class="discussion-item discussion-item-delete_branch">
-        <div class="discussion-item-header">
-          <span class="discussion-item-icon"><i class="octicon octicon-git-branch"></i></span>
+      <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
+      <span>
+        <i class="octicon octicon-git-branch bg-gray"></i>
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           deleted the <code>@pullreq.map(_.requestBranch)</code> branch
           @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-        </div>
-      </div>
+      </span>
+      </li>
     }
   }
   case comment: CommitComment => {
+    <li class="commit-comment">
     @gitbucket.core.helper.html.commitcomment(comment, isManageable, repository, pullreq.map(_.commitIdTo))
+    </li>
   }
 }
+</ul>
 <script>
 $(function(){
 @if(issue.isDefined){
