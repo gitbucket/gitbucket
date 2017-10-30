@@ -154,7 +154,7 @@
     @if(comment.action == "reopen" || comment.action == "reopen_comment"){
       <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
       <span>
-        <i class="octicon octicon-primitive-dot bg-aqua"></i>
+        <i class="octicon octicon-primitive-dot bg-lime-active"></i>
           @helpers.avatar(comment.commentedUserName, 16)
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           reopened the @issueOrPullRequest() @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
