@@ -369,7 +369,14 @@ trait IssuesService {
 
   def deleteComment(issueId: Int, commentId: Int)(implicit s: Session): Int = {
     Issues.filter(_.issueId === issueId.bind).map(_.updatedDate).update(currentDate)
-    IssueComments.filter(_.byPrimaryKey(commentId)).delete
+    IssueComments.filter(_.byPrimaryKey(commentId)).firstOption match {
+      case Some(c) if c.action == "reopen_comment" =>
+        IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.action)).update("Reopen", "reopen")
+      case Some(c) if c.action == "close_comment" =>
+        IssueComments.filter(_.byPrimaryKey(commentId)).map(t => (t.content, t.action)).update("Close", "close")
+      case Some(_) =>
+        IssueComments.filter(_.byPrimaryKey(commentId)).delete
+    }
   }
 
   def updateClosed(owner: String, repository: String, issueId: Int, closed: Boolean)(implicit s: Session): Int = {
