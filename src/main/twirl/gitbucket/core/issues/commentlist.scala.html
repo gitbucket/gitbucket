@@ -38,12 +38,37 @@
       && comment.action != "commit" && comment.action != "refer"){
       <li id="comment-@comment.commentId">
       @helpers.avatar(comment.commentedUserName, 30)
+      @if(comment.action == "merge"){
+        <span class="action-icon">
+          <i class="octicon octicon-git-merge bg-purple"></i>
+        </span>
+      } else if(comment.action == "close_comment"){
+        <span class="action-icon">
+          <i class="octicon octicon-circle-slash bg-red"></i>
+        </span>
+      } else if(comment.action == "reopen_comment"){
+        <span class="action-icon">
+          <i class="octicon octicon-primitive-dot bg-lime-active"></i>
+        </span>
+      }
       <div class="timeline-item issue-comment-box">
         <h3 class="timeline-header @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
           @helpers.user(comment.commentedUserName, styleClass="username strong")
           <span class="muted">
             @if(comment.action == "comment"){
               commented
+            } else if(comment.action == "close_comment") {
+              closed this @issueOrPullRequest()
+            } else if(comment.action == "reopen_comment") {
+              reopened the @issueOrPullRequest()
+            } else if(comment.action == "merge") {
+              merged commit
+              <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
+              @if(pullreq.get.requestUserName == repository.owner){
+                <code>@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestBranch)</code>
+              } else {
+                <code>@pullreq.map(_.userName):@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</code>
+              }
             } else {
               referenced the @issueOrPullRequest()
             }
@@ -123,24 +148,7 @@
       </div>
       </li>
     }
-    @if(comment.action == "merge"){
-      <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
-      <span>
-        <i class="octicon octicon-git-merge bg-purple"></i>
-          @helpers.avatar(comment.commentedUserName, 16)
-          @helpers.user(comment.commentedUserName, styleClass="username strong")
-          merged commit
-          <code>@pullreq.map(_.commitIdTo.substring(0, 7))</code> into
-          @if(pullreq.get.requestUserName == repository.owner){
-            <code>@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestBranch)</code>
-          } else {
-            <code>@pullreq.map(_.userName):@pullreq.map(_.branch)</code> from <code>@pullreq.map(_.requestUserName):@pullreq.map(_.requestBranch)</code>
-          }
-          @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
-      </span>
-      </li>
-    }
-    @if(comment.action == "close" || comment.action == "close_comment"){
+    @if(comment.action == "close"){
       <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
       <span>
         <i class="octicon octicon-circle-slash bg-red"></i>
@@ -151,7 +159,7 @@
         </span>
       </li>
     }
-    @if(comment.action == "reopen" || comment.action == "reopen_comment"){
+    @if(comment.action == "reopen"){
       <li class="time-label @if(context.loginAccount.map(_.userName == comment.commentedUserName).getOrElse(false)){current-user}">
       <span>
         <i class="octicon octicon-primitive-dot bg-lime-active"></i>

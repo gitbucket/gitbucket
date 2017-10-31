@@ -879,6 +879,20 @@ li.task-list-item input.task-list-item-checkbox {
     text-align: center;
     left: 18px;
     top: 0;
+    padding-left: 6px;
+}
+
+.timeline>li>.action-icon>.octicon{
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    line-height: 30px;
+    position: absolute;
+    color: #666;
+    border-radius: 50%;
+    text-align: center;
+    left: 18px;
+    top: 40px;
 }
 
 .timeline>li>.timeline-item{
