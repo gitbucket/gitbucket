@@ -1,11 +1,12 @@
 @(value : String  = "",
   prefix: String  = "",
   style : String  = "",
+  maxValueWidth : String  = "",
   right : Boolean = false,
   filter: (String, String)  = ("",""))(body: Html)
 @defining(if(filter._1.isEmpty) "" else filter._1 + "-" + scala.util.Random.alphanumeric.take(4).mkString){ filterId =>
   <div class="btn-group" @if(style.nonEmpty){style="@style"}>
-    <button
+    <button id = "test"
         class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown">
       @if(value.isEmpty){
         <i class="octicon octicon-gear"></i>
@@ -13,7 +14,10 @@
         @if(prefix.nonEmpty){
           <span class="muted">@prefix:</span>
         }
-        <span class="strong">@value</span>
+        <span class="strong"
+              @if(maxValueWidth.nonEmpty){style="display:inline-block; vertical-align:bottom; overflow-x:hidden; max-width:@maxValueWidth; text-overflow:ellipsis"}>
+          @value
+        </span>
       }
       <span class="caret"></span>
     </button>
