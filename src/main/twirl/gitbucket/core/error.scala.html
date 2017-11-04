@@ -5,7 +5,7 @@
       <h1>@title</h1>
       @if(context.loginAccount.map{_.isAdmin}.getOrElse(false)){
         @e.map { ex =>
-          <h2>@ex.getMessage</h2>
+          <h2>@ex.toString</h2>
           <table class="table table-condensed table-striped table-hover">
             <tbody>
             @ex.getStackTrace.map{ st =>
