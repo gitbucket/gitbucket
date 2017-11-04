@@ -1,7 +1,10 @@
 package gitbucket.core.controller
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.util.Date
+
 import gitbucket.core.settings.html
-import gitbucket.core.model.{WebHook, RepositoryWebHook}
+import gitbucket.core.model.{RepositoryWebHook, WebHook}
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.util._
@@ -175,7 +178,8 @@ trait RepositorySettingsControllerBase extends ControllerBase {
       redirect(s"/${repository.owner}/${repository.name}/settings/branches")
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
-      val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name, org.joda.time.LocalDateTime.now.minusWeeks(1).toDate).toSet
+      val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name,
+        Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.of("UTC")))).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
       html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }

@@ -4,7 +4,6 @@ Category | License | Dependency | Notes
 --- | --- | --- | ---
 Apache | [         Apache License, Version 2.0       ](         http://opensource.org/licenses/apache2.0.php       ) | org.osgi # org.osgi.core # 4.3.1 | <notextile></notextile>
 Apache | [Apache 2](http://www.apache.org/licenses/LICENSE-2.0.txt) | com.googlecode.javaewah # JavaEWAH # 1.1.6 | <notextile></notextile>
-Apache | [Apache 2](http://www.apache.org/licenses/LICENSE-2.0.txt) | joda-time # joda-time # 2.9.9 | <notextile></notextile>
 Apache | [Apache 2](http://www.apache.org/licenses/LICENSE-2.0) | org.cache2k # cache2k-all # 1.0.0.CR1 | <notextile></notextile>
 Apache | [Apache 2](http://www.apache.org/licenses/LICENSE-2.0.txt) | org.objenesis # objenesis # 2.5 | <notextile></notextile>
 Apache | [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0) | org.apache.sshd # apache-sshd # 1.4.0 | <notextile></notextile>

@@ -1,23 +1,24 @@
 package gitbucket.core.api
 
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import org.joda.time.format._
+import java.time._
+import java.time.format.DateTimeFormatter
+import java.util.Date
+
+import scala.util.Try
+
 import org.json4s._
 import org.json4s.jackson.Serialization
-import java.util.Date
-import scala.util.Try
 
 object JsonFormat {
 
   case class Context(baseUrl: String, sshUrl: Option[String])
 
-  val parserISO = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  val parserISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
 
   val jsonFormats = Serialization.formats(NoTypeHints) + new CustomSerializer[Date](format =>
     (
-      { case JString(s) => Try(parserISO.parseDateTime(s)).toOption.map(_.toDate).getOrElse(throw new MappingException("Can't convert " + s + " to Date")) },
-      { case x: Date => JString(parserISO.print(new DateTime(x).withZone(DateTimeZone.UTC))) }
+      { case JString(s) => Try(Date.from(Instant.parse(s))).getOrElse(throw new MappingException("Can't convert " + s + " to Date")) },
+      { case x: Date => JString(OffsetDateTime.ofInstant(x.toInstant, ZoneId.of("UTC")).format(parserISO)) }
     )
   ) + FieldSerializer[ApiUser]() +
     FieldSerializer[ApiPullRequest]() +
