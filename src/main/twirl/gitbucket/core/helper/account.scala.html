@@ -17,6 +17,12 @@ $(function(){
         function (data) {
           return process(data.options);
         });
+    },
+    displayText: function(item) {
+      return item.label;
+    },
+    afterSelect: function(item) {
+      $('#@id').val(item.value);
     }
   });
 });
