@@ -38,7 +38,7 @@
 <script>
 $(function(){
   $('#new-priority-button').click(function(e){
-    if($('#edit-priority-area-new').size() != 0){
+    if($('#edit-priority-area-new').length != 0){
       $('div#edit-priority-area-new').remove();
       $('#new-priority-table').hide();
     } else {

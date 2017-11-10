@@ -40,7 +40,7 @@
 <script>
 $(function(){
   $('#new-label-button').click(function(e){
-    if($('#edit-label-area-new').size() != 0){
+    if($('#edit-label-area-new').length != 0){
       $('div#edit-label-area-new').remove();
       $('#new-label-table').hide();
     } else {

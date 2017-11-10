@@ -30,7 +30,7 @@
   </div>
   @if(filterId.nonEmpty) {
     <script>
-    $(window).load(function(){
+    $(window).on('load', function(){
       $('#@{filterId}-input').parent().click(function(e) {
         e.stopPropagation();
       });
