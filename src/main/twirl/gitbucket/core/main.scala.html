@@ -124,9 +124,11 @@
         $('#search').submit(function(){
           return $.trim($(this).find('input[name=query]').val()) != '';
         });
-        $(".sidebar-toggle").on('click', function(e){
-          $.get('@context.path/sidebar-collapse', { collapse: !$('body').hasClass('sidebar-collapse') });
-        });
+        @if(body.toString.contains("main-sidebar")){
+          $(".sidebar-toggle").on('click', function(e){
+            $.post('@context.path/sidebar-collapse', { collapse: !$('body').hasClass('sidebar-collapse') });
+          });
+        }
       });
     </script>
     @PluginRegistry().getJavaScript(context.request.getRequestURI).map { script =>
