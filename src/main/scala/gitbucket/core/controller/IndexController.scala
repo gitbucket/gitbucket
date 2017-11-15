@@ -75,7 +75,7 @@ trait IndexControllerBase extends ControllerBase {
     xml.feed(getRecentActivities())
   }
 
-  get("/sidebar-collapse"){
+  post("/sidebar-collapse"){
     if(params("collapse") == "true"){
       session.setAttribute("sidebar-collapse", "true")
     }  else {
