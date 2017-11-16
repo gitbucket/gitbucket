@@ -9,12 +9,11 @@ import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util._
-import gitbucket.core.util.JGitUtil._
-import io.github.gitbucket.scalatra.forms._
 import org.json4s._
 import org.scalatra._
 import org.scalatra.i18n._
 import org.scalatra.json._
+import org.scalatra.forms._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import javax.servlet.{FilterChain, ServletRequest, ServletResponse}
 
@@ -32,7 +31,7 @@ import org.slf4j.LoggerFactory
  * Provides generic features for controller implementations.
  */
 abstract class ControllerBase extends ScalatraFilter
-  with ClientSideValidationFormSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
+  with ValidationSupport with JacksonJsonSupport with I18nSupport with FlashMapSupport with Validations
   with SystemSettingsService {
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -177,7 +176,7 @@ abstract class ControllerBase extends ScalatraFilter
   protected def trim2[T](valueType: SingleValueType[T]): SingleValueType[T] = new SingleValueType[T](){
     def convert(value: String, messages: Messages): T = valueType.convert(trim(value), messages)
 
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Seq[(String, String)] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
       valueType.validate(name, trim(value), params, messages)
 
     private def trim(value: String): String = if(value == null) null else value.replace("\r\n", "").trim
@@ -315,7 +314,7 @@ trait AccountManagementControllerBase extends ControllerBase {
   }
 
   protected def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
       getAccountByMailAddress(value, true)
         .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
         .map    { _ => "Mail address is already registered." }

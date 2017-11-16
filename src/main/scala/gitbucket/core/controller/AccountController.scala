@@ -12,10 +12,10 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
-import io.github.gitbucket.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
+import org.scalatra.forms._
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
@@ -137,16 +137,17 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   private def accountWebhookEvents = new ValueType[Set[WebHook.Event]]{
-    def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = {
+    def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Set[WebHook.Event] = {
       WebHook.Event.values.flatMap { t =>
         params.get(name + "." + t.name).map(_ => t)
       }.toSet
     }
-    def validate(name: String, params: Map[String, String], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
-      Seq(name -> messages("error.required").format(name))
-    } else {
-      Nil
-    }
+    def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
+      if(convert(name, params, messages).isEmpty){
+        Seq(name -> messages("error.required").format(name))
+      } else {
+        Nil
+      }
   }
 
 
@@ -635,9 +636,9 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   private def uniqueRepository: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
       params.get("owner").flatMap { userName =>
-        getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
+        getRepositoryNamesOfUser(userName.head).find(_ == value).map(_ => "Repository already exists.")
       }
   }
 

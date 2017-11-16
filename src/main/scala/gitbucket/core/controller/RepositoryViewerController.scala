@@ -17,7 +17,7 @@ import gitbucket.core.model.{Account, CommitState, CommitStatus, WebHook}
 import gitbucket.core.service.WebHookService._
 import gitbucket.core.view
 import gitbucket.core.view.helpers
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.{ArchiveCommand, Git}
 import org.eclipse.jgit.archive.{TgzFormat, ZipFormat}

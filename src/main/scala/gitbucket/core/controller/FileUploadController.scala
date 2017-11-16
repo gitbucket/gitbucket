@@ -1,7 +1,6 @@
 package gitbucket.core.controller
 
 import gitbucket.core.model.Account
-import gitbucket.core.service.RepositoryService.RepositoryInfo
 import gitbucket.core.service.{AccountService, RepositoryService}
 import gitbucket.core.servlet.Database
 import gitbucket.core.util._

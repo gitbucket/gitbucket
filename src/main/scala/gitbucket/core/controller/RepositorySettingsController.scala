@@ -12,7 +12,7 @@ import gitbucket.core.util.JGitUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.eclipse.jgit.api.Git
@@ -429,12 +429,12 @@ trait RepositorySettingsControllerBase extends ControllerBase {
   }
 
   private def webhookEvents = new ValueType[Set[WebHook.Event]]{
-    def convert(name: String, params: Map[String, String], messages: Messages): Set[WebHook.Event] = {
+    def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Set[WebHook.Event] = {
       WebHook.Event.values.flatMap { t =>
         params.get(name + "." + t.name).map(_ => t)
       }.toSet
     }
-    def validate(name: String, params: Map[String, String], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
+    def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] = if(convert(name,params,messages).isEmpty){
       Seq(name -> messages("error.required").format(name))
     } else {
       Nil
@@ -460,10 +460,10 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Duplicate check for the rename repository name.
    */
   private def renameRepositoryName: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
       params.get("repository").filter(_ != value).flatMap { _ =>
         params.get("owner").flatMap { userName =>
-          getRepositoryNamesOfUser(userName).find(_ == value).map(_ => "Repository already exists.")
+          getRepositoryNamesOfUser(userName.head).find(_ == value).map(_ => "Repository already exists.")
         }
       }
   }
@@ -472,7 +472,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    *
    */
   private def featureOption: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
       if(Seq("DISABLE", "PRIVATE", "PUBLIC", "ALL").contains(value)) None else Some("Option is invalid.")
   }
 

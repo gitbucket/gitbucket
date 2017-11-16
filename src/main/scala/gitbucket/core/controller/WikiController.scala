@@ -10,7 +10,7 @@ import gitbucket.core.util.StringUtil._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.Directory._
-import io.github.gitbucket.scalatra.forms._
+import org.scalatra.forms._
 import org.eclipse.jgit.api.Git
 import org.scalatra.i18n.Messages
 
@@ -226,8 +226,8 @@ trait WikiControllerBase extends ControllerBase {
   })
 
   private def unique: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, String], messages: Messages): Option[String] =
-      getWikiPageList(params("owner"), params("repository")).find(_ == value).map(_ => "Page already exists.")
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
+      getWikiPageList(params("owner").head, params("repository").head).find(_ == value).map(_ => "Page already exists.")
   }
 
   private def pagename: Constraint = new Constraint(){
