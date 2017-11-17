@@ -3,7 +3,6 @@ package gitbucket.core.servlet
 import javax.servlet._
 import javax.servlet.http.HttpServletRequest
 
-import gitbucket.core.controller.MockFilterChain
 import gitbucket.core.plugin.PluginRegistry
 
 class PluginControllerFilter extends Filter {
