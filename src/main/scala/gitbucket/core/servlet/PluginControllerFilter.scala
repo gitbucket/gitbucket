@@ -3,6 +3,7 @@ package gitbucket.core.servlet
 import javax.servlet._
 import javax.servlet.http.HttpServletRequest
 
+import gitbucket.core.controller.ControllerBase
 import gitbucket.core.plugin.PluginRegistry
 
 class PluginControllerFilter extends Filter {
@@ -20,22 +21,25 @@ class PluginControllerFilter extends Filter {
   }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
-    val controllers = PluginRegistry().getControllers().filter { case (_, path) =>
-      val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI
-      val start = path.replaceFirst("/\\*$", "/")
-      (requestUri + "/").startsWith(start)
-    }
+    val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI
 
-    controllers.foreach { case (controller, _) =>
-      if(controller.config == null){
-        controller.init(filterConfig)
+    PluginRegistry().getControllers()
+      .filter { case (_, path) =>
+        val start = path.replaceFirst("/\\*$", "/")
+        (requestUri + "/").startsWith(start)
       }
-      val mockChain = new MockFilterChain()
-      controller.doFilter(request, response, mockChain)
-      if(mockChain.continue == false){
-        return ()
+      .foreach { case (controller, _) =>
+        controller match {
+          case x: ControllerBase if(x.config == null) => x.init(filterConfig)
+          case _ => ()
+        }
+        val mockChain = new MockFilterChain()
+        controller.doFilter(request, response, mockChain)
+
+        if(mockChain.continue == false){
+          return ()
+        }
       }
-    }
 
     chain.doFilter(request, response)
   }
