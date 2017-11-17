@@ -33,13 +33,14 @@ class CompositeScalatraFilter extends Filter {
     chain.doFilter(request, response)
   }
 
-  class MockFilterChain extends FilterChain {
-
-    var continue: Boolean = false
-
-    override def doFilter(request: ServletRequest, response: ServletResponse): Unit = {
-      continue = true
-    }
-  }
-
 }
+
+class MockFilterChain extends FilterChain {
+
+  var continue: Boolean = false
+
+  override def doFilter(request: ServletRequest, response: ServletResponse): Unit = {
+    continue = true
+  }
+}
+
