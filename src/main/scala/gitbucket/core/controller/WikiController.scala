@@ -227,7 +227,7 @@ trait WikiControllerBase extends ControllerBase {
 
   private def unique: Constraint = new Constraint(){
     override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
-      getWikiPageList(params("owner").head, params("repository").head).find(_ == value).map(_ => "Page already exists.")
+      getWikiPageList(params.value("owner"), params.value("repository")).find(_ == value).map(_ => "Page already exists.")
   }
 
   private def pagename: Constraint = new Constraint(){

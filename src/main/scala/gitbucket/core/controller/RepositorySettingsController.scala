@@ -460,12 +460,15 @@ trait RepositorySettingsControllerBase extends ControllerBase {
    * Duplicate check for the rename repository name.
    */
   private def renameRepositoryName: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
-      params.get("repository").filter(_ != value).flatMap { _ =>
-        params.get("owner").flatMap { userName =>
-          getRepositoryNamesOfUser(userName.head).find(_ == value).map(_ => "Repository already exists.")
-        }
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] = {
+      for {
+        repoName <- params.optionValue("repository") if repoName != value
+        userName <- params.optionValue("owner")
+        _        <- getRepositoryNamesOfUser(userName).find(_ == value)
+      } yield {
+        "Repository already exists."
       }
+    }
   }
 
   /**

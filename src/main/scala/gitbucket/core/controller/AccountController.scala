@@ -139,7 +139,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   private def accountWebhookEvents = new ValueType[Set[WebHook.Event]]{
     def convert(name: String, params: Map[String, Seq[String]], messages: Messages): Set[WebHook.Event] = {
       WebHook.Event.values.flatMap { t =>
-        params.get(name + "." + t.name).map(_ => t)
+        params.optionValue(name + "." + t.name).map(_ => t)
       }.toSet
     }
     def validate(name: String, params: Map[String, Seq[String]], messages: Messages): Seq[(String, String)] =
@@ -636,10 +636,14 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   }
 
   private def uniqueRepository: Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
-      params.get("owner").flatMap { userName =>
-        getRepositoryNamesOfUser(userName.head).find(_ == value).map(_ => "Repository already exists.")
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] = {
+      for {
+        userName <- params.optionValue("owner")
+        _        <- getRepositoryNamesOfUser(userName).find(_ == value)
+      } yield {
+        "Repository already exists."
       }
+    }
   }
 
   private def members: Constraint = new Constraint(){
