@@ -4,6 +4,7 @@ import gitbucket.core.issues.priorities.html
 import gitbucket.core.service.{RepositoryService, AccountService, IssuesService, PrioritiesService}
 import gitbucket.core.util.{ReferrerAuthenticator, WritableUsersAuthenticator}
 import gitbucket.core.util.Implicits._
+import gitbucket.core.util.SyntaxSugars._
 import org.scalatra.forms._
 import org.scalatra.i18n.Messages
 import org.scalatra.Ok
@@ -99,10 +100,10 @@ trait PrioritiesControllerBase extends ControllerBase {
 
   private def uniquePriorityName: Constraint = new Constraint(){
     override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] = {
-      val owner = params("owner").head
-      val repository = params("repository").head
-      params.get("priorityId").map { priorityId =>
-        getPriority(owner, repository, value).filter(_.priorityId != priorityId.head.toInt).map(_ => "Name has already been taken.")
+      val owner      = params.value("owner")
+      val repository = params.value("repository")
+      params.optionValue("priorityId").map { priorityId =>
+        getPriority(owner, repository, value).filter(_.priorityId != priorityId.toInt).map(_ => "Name has already been taken.")
       }.getOrElse {
         getPriority(owner, repository, value).map(_ => "Name has already been taken.")
       }

@@ -314,10 +314,11 @@ trait AccountManagementControllerBase extends ControllerBase {
   }
 
   protected def uniqueMailAddress(paramName: String = ""): Constraint = new Constraint(){
-    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] =
+    override def validate(name: String, value: String, params: Map[String, Seq[String]], messages: Messages): Option[String] = {
       getAccountByMailAddress(value, true)
-        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.get(paramName) }
+        .filter { x => if(paramName.isEmpty) true else Some(x.userName) != params.optionValue(paramName) }
         .map    { _ => "Mail address is already registered." }
+    }
   }
 
   val allReservedNames = Set("git", "admin", "upload", "api", "assets", "plugin-assets", "signin", "signout", "register", "activities.atom", "sidebar-collapse", "groups", "new")
