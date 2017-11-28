@@ -21,25 +21,27 @@ class PluginControllerFilter extends Filter {
   }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
-    val controller = PluginRegistry().getControllers().filter { case (_, path) =>
-      val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI
-      val start = path.replaceFirst("/\\*$", "/")
-      (requestUri + "/").startsWith(start)
-    }
+    val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI
 
-    val filterChainWrapper = controller.foldLeft(chain){ case (chain, (controller, _)) =>
-      new FilterChainWrapper(controller, chain)
-    }
-    filterChainWrapper.doFilter(request, response)
-  }
-
-  class FilterChainWrapper(controller: ControllerBase, chain: FilterChain) extends FilterChain {
-    override def doFilter(request: ServletRequest, response: ServletResponse): Unit = {
-      if(controller.config == null){
-        controller.init(filterConfig)
+    PluginRegistry().getControllers()
+      .filter { case (_, path) =>
+        val start = path.replaceFirst("/\\*$", "/")
+        (requestUri + "/").startsWith(start)
       }
-      controller.doFilter(request, response, chain)
-    }
+      .foreach { case (controller, _) =>
+        controller match {
+          case x: ControllerBase if(x.config == null) => x.init(filterConfig)
+          case _ => ()
+        }
+        val mockChain = new MockFilterChain()
+        controller.doFilter(request, response, mockChain)
+
+        if(mockChain.continue == false){
+          return ()
+        }
+      }
+
+    chain.doFilter(request, response)
   }
 
 }
