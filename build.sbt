@@ -101,7 +101,7 @@ javaOptions in Jetty ++= Option(System.getenv().get("JREBEL")).toSeq.flatMap { p
 
 // Exclude a war file from published artifacts
 signedArtifacts := {
-  packagedArtifacts.value.filterNot { case (artifact, file) => file.getName.endsWith(".war") }
+  signedArtifacts.value.filterNot { case (_, file) => file.getName.endsWith(".war") || file.getName.endsWith(".war.asc" }
 }
 
 // Create executable war file
