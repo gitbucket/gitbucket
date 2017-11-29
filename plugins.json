@@ -31,9 +31,9 @@
     "description": "Provides Gist feature on GitBucket.",
     "versions": [
       {
-        "version": "4.10.0",
-        "range": ">=4.15.0",
-        "file": "gitbucket-gist-plugin_2.12-4.10.0.jar"
+        "version": "4.11.0",
+        "range": ">=4.19.0",
+        "file": "gitbucket-gist-plugin-assembly-4.11.0.jar"
       }
     ],
     "default": false
@@ -44,7 +44,7 @@
     "description": "Project pages for gitbucket",
     "versions": [
       {
-        "version": "1.5.0",
+        "version": "v1.5.0",
         "range": ">=4.15.0",
         "file": "gitbucket-pages-plugin_2.12-1.5.0.jar"
       }

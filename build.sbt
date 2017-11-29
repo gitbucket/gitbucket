@@ -160,14 +160,10 @@ executableKey := {
   IO copyFile(Keys.baseDirectory.value / "plugins.json", pluginsDir / "plugins.json")
 
   val json = IO read(Keys.baseDirectory.value / "plugins.json")
-  PluginsJson.parse(json).foreach { case (plugin, version) =>
-    val url = if(plugin == "gitbucket-pages-plugin"){
-      s"https://github.com/gitbucket/${plugin}/releases/download/v${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
-    } else {
-      s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${plugin}_${scalaBinaryVersion.value}-${version}.jar"
-    }
+  PluginsJson.parse(json).foreach { case (plugin, version, file) =>
+    val url = s"https://github.com/gitbucket/${plugin}/releases/download/${version}/${file}"
     log info s"Download: ${url}"
-    IO transfer(new java.net.URL(url).openStream, pluginsDir / s"${plugin}_${scalaBinaryVersion.value}-${version}.jar")
+    IO transfer(new java.net.URL(url).openStream, pluginsDir / file)
   }
 
   // zip it up
