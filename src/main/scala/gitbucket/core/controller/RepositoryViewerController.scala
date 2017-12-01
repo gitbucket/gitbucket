@@ -321,7 +321,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
       commit      = form.commit
     )
 
-    redirect(s"/${repository.owner}/${repository.name}/blob/${form.branch}/${
+    redirect(s"/${repository.owner}/${repository.name}/blob/${urlEncode(form.branch)}/${
       if (form.path.length == 0) urlEncode(form.newFileName) else s"${form.path}/${urlEncode(form.newFileName)}"
     }")
   })
