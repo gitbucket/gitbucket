@@ -68,12 +68,12 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.18.0 - 14 Oct 2017
+What's New in 4.19.0 - 2 Dec 2017
 -------------
 
-- Form to reply to review comment
-- Display fullname in username suggestion
-- Commit hook plugins are applied to online editing
-- Improve gitbucket-ci-plugin
+- [gitbucket-maven-repository-plugin](https://github.com/takezoe/gitbucket-maven-repository-plugin) is available
+- Upgrade to Scalatra 2.6
+- Improve layout of the system settings page
+- New extension point (`sshCommandProvider`)
 
 See the [change log](CHANGELOG.md) for all of the updates.
