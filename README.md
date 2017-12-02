@@ -71,6 +71,11 @@ Support
 What's New in 4.19.x
 -------------
 
+### 4.19.2 - 3 Dec 2017
+
+- Fix routing bug in `CompositeScalatraFilter`
+- Resolve id attribute collision in the web hook editing form
+
 ### 4.19.1 - 2 Dec 2017
 
 - Update gitbucket-notifications-plugin because it had a version compatibility issue
