@@ -26,7 +26,7 @@
           <input type="text" value="@webHook.url" class="form-control" style="display: inline; width: 500px; vertical-align: middle;" disabled />
           <input type="hidden" value="@webHook.url" name="url" />
         }
-        <button class="btn btn-default" id="test">Test Hook</button>
+        <button class="btn btn-default" id="test-hook">Test Hook</button>
       </fieldset>
       <fieldset class="form-group">
         <label class="strong">Content type</label>
@@ -131,7 +131,7 @@ $(function(){
     e.preventDefault();
     $(this).tab('show');
   });
-  $('#test').click(function(e){
+  $('#test-hook').click(function(e){
     e.stopPropagation();
     e.stopImmediatePropagation();
     e.preventDefault();
