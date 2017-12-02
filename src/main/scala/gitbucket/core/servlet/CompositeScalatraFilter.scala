@@ -28,12 +28,18 @@ class CompositeScalatraFilter extends Filter {
   }
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
-    val requestUri = request.asInstanceOf[HttpServletRequest].getRequestURI
+    val contextPath = request.getServletContext.getContextPath
+    val requestPath = request.asInstanceOf[HttpServletRequest].getRequestURI.substring(contextPath.length)
+    val checkPath = if(requestPath.endsWith("/")){
+      requestPath
+    } else {
+      requestPath + "/"
+    }
 
     filters
       .filter { case (_, path) =>
         val start = path.replaceFirst("/\\*$", "/")
-        (requestUri + "/").startsWith(start)
+        checkPath.startsWith(start)
       }
       .foreach { case (filter, _) =>
         val mockChain = new MockFilterChain()
