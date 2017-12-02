@@ -68,8 +68,14 @@ Support
 - If you can't find same question and report, send it to [gitter room](https://gitter.im/gitbucket/gitbucket) before raising an issue.
 - The highest priority of GitBucket is the ease of installation and API compatibility with GitHub, so your feature request might be rejected if they go against those principles.
 
-What's New in 4.19.0 - 2 Dec 2017
+What's New in 4.19.x
 -------------
+
+## 4.19.1 - 2 Dec 2017
+
+- Update gitbucket-notifications-plugin because it had a version compatibility issue
+
+## 4.19.0 - 2 Dec 2017
 
 - [gitbucket-maven-repository-plugin](https://github.com/takezoe/gitbucket-maven-repository-plugin) is available
 - Upgrade to Scalatra 2.6
