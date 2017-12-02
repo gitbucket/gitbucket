@@ -5,9 +5,9 @@
     "description": "Provides notifications feature on GitBucket.",
     "versions": [
       {
-        "version": "1.3.0",
-        "range": ">=4.17.0",
-        "file": "gitbucket-notifications-plugin_2.12-1.3.0.jar"
+        "version": "1.4.0",
+        "range": ">=4.19.0",
+        "file": "gitbucket-notifications-plugin_2.12-1.4.0.jar"
       }
     ],
     "default": true

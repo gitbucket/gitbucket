@@ -44,5 +44,6 @@ object GitBucketCoreModule extends Module("gitbucket-core",
   new Version("4.16.0"),
   new Version("4.17.0"),
   new Version("4.18.0"),
-  new Version("4.19.0")
+  new Version("4.19.0"),
+  new Version("4.19.1")
 )
