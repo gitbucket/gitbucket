@@ -75,5 +75,6 @@ What's New in 4.19.0 - 2 Dec 2017
 - Upgrade to Scalatra 2.6
 - Improve layout of the system settings page
 - New extension point (`sshCommandProvider`)
+- Dropped [gitbucket-pages-plugin](https://github.com/gitbucket/gitbucket-pages-plugin) from bundled plugins temporary because update for Scalatra 2.6 couldn't completed before this release.
 
 See the [change log](CHANGELOG.md) for all of the updates.
