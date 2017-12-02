@@ -71,11 +71,11 @@ Support
 What's New in 4.19.x
 -------------
 
-## 4.19.1 - 2 Dec 2017
+### 4.19.1 - 2 Dec 2017
 
 - Update gitbucket-notifications-plugin because it had a version compatibility issue
 
-## 4.19.0 - 2 Dec 2017
+### 4.19.0 - 2 Dec 2017
 
 - [gitbucket-maven-repository-plugin](https://github.com/takezoe/gitbucket-maven-repository-plugin) is available
 - Upgrade to Scalatra 2.6
