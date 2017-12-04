@@ -19,18 +19,25 @@ import scala.concurrent.Future
 
 object RepositoryCreationService {
 
-  private val Creating = new ConcurrentHashMap[String, Boolean]()
+  private val Creating = new ConcurrentHashMap[String, Option[String]]()
 
   def isCreating(owner: String, repository: String): Boolean = {
-    Creating.containsKey(s"${owner}/${repository}")
+    Option(Creating.get(s"${owner}/${repository}")).map(_.isEmpty).getOrElse(false)
   }
 
   def startCreation(owner: String, repository: String): Unit = {
-    Creating.put(s"${owner}/${repository}", true)
+    Creating.put(s"${owner}/${repository}", None)
   }
 
-  def endCreation(owner: String, repository: String): Unit = {
-    Creating.remove(s"${owner}/${repository}")
+  def endCreation(owner: String, repository: String, error: Option[String]): Unit = {
+    error match {
+      case None => Creating.remove(s"${owner}/${repository}")
+      case Some(error) => Creating.put(s"${owner}/${repository}", Some(error))
+    }
+  }
+
+  def getCreationError(owner: String, repository: String): Option[String] = {
+    Option(Creating.get(s"${owner}/${repository}")).getOrElse(None)
   }
 
 }
@@ -50,6 +57,15 @@ trait RepositoryCreationService {
       Database() withTransaction { implicit session =>
         val ownerAccount = getAccountByUserName(owner).get
         val loginUserName = loginAccount.userName
+
+        val copyRepositoryDir = if (initOption == "COPY") {
+          sourceUrl.flatMap { url =>
+            val dir = Files.createTempDirectory(s"gitbucket-${owner}-${name}").toFile
+            Git.cloneRepository().setBare(true).setURI(url).setDirectory(dir).setCloneAllBranches(true).call()
+            Some(dir)
+          }
+        } else None
+
 
         // Insert to the database at first
         insertRepository(name, owner, description, isPrivate)
@@ -95,16 +111,12 @@ trait RepositoryCreationService {
           }
         }
 
-        if (initOption == "COPY") {
-          sourceUrl.foreach { url =>
-            // TODO How to feedback error in this block?
-            val dir = Files.createTempDirectory(s"gitbucket-${owner}-${name}").toFile
-
-            Git.cloneRepository().setBare(true).setURI(url).setDirectory(dir).setCloneAllBranches(true).call()
+        copyRepositoryDir.foreach { dir =>
+          try {
             using(Git.open(dir)) { git =>
               git.push().setRemote(gitdir.toURI.toString).setPushAll().setPushTags().call()
             }
-
+          } finally {
             FileUtils.deleteQuietly(dir)
           }
         }
@@ -115,8 +127,14 @@ trait RepositoryCreationService {
         // Record activity
         recordCreateRepositoryActivity(owner, name, loginUserName)
       }
-    } finally {
-      RepositoryCreationService.endCreation(owner, name)
+
+      RepositoryCreationService.endCreation(owner, name, None)
+
+    } catch {
+      case ex: Exception => {
+        ex.printStackTrace()
+        RepositoryCreationService.endCreation(owner, name, Some(ex.toString))
+      }
     }
   }
 

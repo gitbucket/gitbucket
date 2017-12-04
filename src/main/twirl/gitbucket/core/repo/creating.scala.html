@@ -16,10 +16,16 @@
 
   function checkCreating() {
     $.get('@context.path/@owner/@repository/creating', function (data) {
-      if (data == 'true') {
+      console.log(data);
+      if (data.creating == true) {
         setTimeout(checkCreating, 2000);
       } else {
-        location.href = '@context.path/@owner/@repository';
+        if (data.error) {
+          alert(data.error);
+          location.href = '@context.path/new';
+        } else {
+          location.href = '@context.path/@owner/@repository';
+        }
       }
     });
   }
