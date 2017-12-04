@@ -98,7 +98,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "description" -> trim(label("Description", optional(text()))),
     "isPrivate" -> trim(label("Repository Type", boolean())),
     "initOption" -> trim(label("Initialize option", text(required))),
-    "sourceUrl" -> trim(label("Source git repository URL", optional(text()))) // TODO required if initOption is "COPY"
+    "sourceUrl" -> trim(label("Source URL", optionalRequired(_.value("initOption") == "COPY", text())))
   )(RepositoryCreationForm.apply)
 
   val forkRepositoryForm = mapping(

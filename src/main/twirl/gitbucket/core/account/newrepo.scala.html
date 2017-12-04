@@ -81,6 +81,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
         </label>
       </fieldset>
       <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..."/>
+      <span id="error-sourceUrl" class="error"></span>
       <fieldset class="border-top form-actions">
         <input type="submit" class="btn btn-success" value="Create repository"/>
       </fieldset>
