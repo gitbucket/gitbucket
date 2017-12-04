@@ -230,7 +230,7 @@ trait PullRequestService { self: IssuesService with CommitsService =>
         helpers.date(commit1.commitTime) == view.helpers.date(commit2.commitTime)
       }
 
-      val diffs = JGitUtil.getDiffs(newGit, oldId.getName, newId.getName, true, false)
+      val diffs = JGitUtil.getDiffs(newGit, Some(oldId.getName), newId.getName, true, false)
 
       (commits, diffs)
     }

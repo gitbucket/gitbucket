@@ -76,7 +76,7 @@ trait WikiControllerBase extends ControllerBase {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, from, to, true, false).filter(_.newPath == pageName + ".md"), repository,
+      html.compare(Some(pageName), from, to, JGitUtil.getDiffs(git, Some(from), to, true, false).filter(_.newPath == pageName + ".md"), repository,
         isEditable(repository), flash.get("info"))
     }
   })
@@ -85,7 +85,7 @@ trait WikiControllerBase extends ControllerBase {
     val Array(from, to) = params("commitId").split("\\.\\.\\.")
 
     using(Git.open(getWikiRepositoryDir(repository.owner, repository.name))){ git =>
-      html.compare(None, from, to, JGitUtil.getDiffs(git, from, to, true, false), repository,
+      html.compare(None, from, to, JGitUtil.getDiffs(git, Some(from), to, true, false), repository,
         isEditable(repository), flash.get("info"))
     }
   })

@@ -655,7 +655,7 @@ trait ApiControllerBase extends ControllerBase {
       JsonFormat(ApiCommits(
         repositoryName = RepositoryName(repository),
         commitInfo     = commitInfo,
-        diffs          = JGitUtil.getDiffs(git, commitInfo.parents.head, commitInfo.id, false, true),
+        diffs          = JGitUtil.getDiffs(git, Some(commitInfo.parents.head), commitInfo.id, false, true),
         author         = getAccount(commitInfo.authorName, commitInfo.authorEmailAddress),
         committer      = getAccount(commitInfo.committerName, commitInfo.committerEmailAddress),
         commentCount   = getCommitComment(repository.owner, repository.name, sha).size
