@@ -39,7 +39,7 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
       </fieldset>
       <fieldset class="form-group">
         <label for="description" class="strong">Description (optional):</label>
-        <input type="text" name="description" id="description" class="form-control" style="width: 95%;"/>
+        <input type="text" name="description" id="description" class="form-control" />
       </fieldset>
       <fieldset class="border-top">
         <label class="radio">
@@ -58,14 +58,30 @@ isCreateRepoOptionPublic: Boolean)(implicit context: gitbucket.core.controller.C
         </label>
       </fieldset>
       <fieldset class="border-top">
-        <label for="createReadme" class="checkbox">
-          <input type="checkbox" name="createReadme" id="createReadme"/>
+        <label class="radio">
+          <input type="radio" name="initOption" value="EMPTY" checked/>
+          <span class="strong">Create an empty repository</span>
+          <div class="normal muted">
+            Create an empty repository. You have to initialize by yourself initially.
+          </div>
+        </label>
+        <label class="radio">
+          <input type="radio" name="initOption" value="README"/>
           <span class="strong">Initialize this repository with a README</span>
           <div class="normal muted">
-            This will let you immediately clone the repository to your computer. Skip this step if you’re importing an existing repository.
+            Create a repository which has README.md. You can clone the repository immediately.
+          </div>
+        </label>
+        <label class="radio">
+          <input type="radio" name="initOption" value="COPY"/>
+          <span class="strong">Copy existing git repository</span>
+          <div class="normal muted">
+            Create new repository from existing git repository.
           </div>
         </label>
       </fieldset>
+      <input type="text" class="form-control" name="sourceUrl" id="sourceUrl" disabled placeholder="Source git repository URL..."/>
+      <span id="error-sourceUrl" class="error"></span>
       <fieldset class="border-top form-actions">
         <input type="submit" class="btn btn-success" value="Create repository"/>
       </fieldset>
@@ -82,5 +98,9 @@ $('#owner-dropdown a').click(function(){
   $(this).find('i').attr('class', 'octicon octicon-check');
 
   $('#owner-dropdown span.strong').html($(this).find('span').html());
+});
+
+$('input[name=initOption]').click(function () {
+  $('#sourceUrl').prop('disabled', $('input[name=initOption]:checked').val() != 'COPY');
 });
 </script>

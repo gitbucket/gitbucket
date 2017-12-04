@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.account.html
 import gitbucket.core.helper
-import gitbucket.core.model.{AccountWebHook, GroupMember, RepositoryWebHook, RepositoryWebHookEvent, Role, WebHook, WebHookContentType}
+import gitbucket.core.model.{AccountWebHook, GroupMember, RepositoryWebHook, Role, WebHook, WebHookContentType}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
@@ -12,7 +12,6 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
-import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 import org.scalatra.forms._
@@ -87,15 +86,16 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "clearImage"  -> trim(label("Clear image" ,boolean()))
   )(EditGroupForm.apply)
 
-  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
+  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, initOption: String, sourceUrl: Option[String])
   case class ForkRepositoryForm(owner: String, name: String)
 
   val newRepositoryForm = mapping(
-    "owner"        -> trim(label("Owner"          , text(required, maxlength(100), identifier, existsAccount))),
-    "name"         -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
-    "description"  -> trim(label("Description"    , optional(text()))),
-    "isPrivate"    -> trim(label("Repository Type", boolean())),
-    "createReadme" -> trim(label("Create README"  , boolean()))
+    "owner" -> trim(label("Owner", text(required, maxlength(100), identifier, existsAccount))),
+    "name" -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
+    "description" -> trim(label("Description", optional(text()))),
+    "isPrivate" -> trim(label("Repository Type", boolean())),
+    "initOption" -> trim(label("Initialize option", text(required))),
+    "sourceUrl" -> trim(label("Source URL", optionalRequired(_.value("initOption") == "COPY", text())))
   )(RepositoryCreationForm.apply)
 
   val forkRepositoryForm = mapping(
@@ -461,7 +461,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:groupName/_editgroup")(managersOnly {
     defining(params("groupName")){ groupName =>
-      // TODO Don't use Option.get
       getAccountByUserName(groupName, true).map { account =>
         html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
       } getOrElse NotFound()
@@ -528,11 +527,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
-        // Create the repository
-        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme)
-
-        // Call hooks
-        PluginRegistry().getRepositoryHooks.foreach(_.created(form.owner, form.name))
+        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.initOption, form.sourceUrl)
       }
     }
 
@@ -566,66 +561,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       val loginUserName = loginAccount.userName
       val accountName   = form.accountName
 
-      LockUtil.lock(s"${accountName}/${repository.name}"){
-        if(getRepository(accountName, repository.name).isDefined ||
-            (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
-          // redirect to the repository if repository already exists
-          redirect(s"/${accountName}/${repository.name}")
-        } else {
-          // Insert to the database at first
-          val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
-          val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
-
-          insertRepository(
-            repositoryName       = repository.name,
-            userName             = accountName,
-            description          = repository.repository.description,
-            isPrivate            = repository.repository.isPrivate,
-            originRepositoryName = Some(originRepositoryName),
-            originUserName       = Some(originUserName),
-            parentRepositoryName = Some(repository.name),
-            parentUserName       = Some(repository.owner)
-          )
-
-          // Set default collaborators for the private fork
-          if(repository.repository.isPrivate){
-            // Copy collaborators from the source repository
-            getCollaborators(repository.owner, repository.name).foreach { case (collaborator, _) =>
-              addCollaborator(accountName, repository.name, collaborator.collaboratorName, collaborator.role)
-            }
-            // Register an owner of the source repository as a collaborator
-            addCollaborator(accountName, repository.name, repository.owner, Role.ADMIN.name)
-          }
-
-          // Insert default labels
-          insertDefaultLabels(accountName, repository.name)
-          // Insert default priorities
-          insertDefaultPriorities(accountName, repository.name)
-
-          // clone repository actually
-          JGitUtil.cloneRepository(
-            getRepositoryDir(repository.owner, repository.name),
-            FileUtil.deleteIfExists(getRepositoryDir(accountName, repository.name)))
-
-          // Create Wiki repository
-          JGitUtil.cloneRepository(getWikiRepositoryDir(repository.owner, repository.name),
-            FileUtil.deleteIfExists(getWikiRepositoryDir(accountName, repository.name)))
-
-          // Copy LFS files
-          val lfsDir = getLfsDir(repository.owner, repository.name)
-          if(lfsDir.exists){
-            FileUtils.copyDirectory(lfsDir, FileUtil.deleteIfExists(getLfsDir(accountName, repository.name)))
-          }
-
-          // Record activity
-          recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
-
-          // Call hooks
-          PluginRegistry().getRepositoryHooks.foreach(_.forked(repository.owner, accountName, repository.name))
-
-          // redirect to the repository
-          redirect(s"/${accountName}/${repository.name}")
-        }
+      if (getRepository(accountName, repository.name).isDefined ||
+        (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))) {
+        // redirect to the repository if repository already exists
+        redirect(s"/${accountName}/${repository.name}")
+      } else {
+        // fork repository asynchronously
+        forkRepository(accountName, repository, loginUserName)
+        // redirect to the repository
+        redirect(s"/${accountName}/${repository.name}")
       }
     } else BadRequest()
   })

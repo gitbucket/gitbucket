@@ -16,6 +16,8 @@ import org.eclipse.jgit.revwalk.RevWalk
 import org.scalatra.{Created, NoContent, UnprocessableEntity}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class ApiController extends ApiControllerBase
   with RepositoryService
@@ -249,7 +251,8 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       LockUtil.lock(s"${owner}/${data.name}") {
         if(getRepository(owner, data.name).isEmpty){
-          createRepository(context.loginAccount.get, owner, data.name, data.description, data.`private`, data.auto_init)
+          val f = createRepository(context.loginAccount.get, owner, data.name, data.description, data.`private`, data.auto_init)
+          Await.result(f, Duration.Inf)
           val repository = getRepository(owner, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(owner).get)))
         } else {
@@ -273,7 +276,8 @@ trait ApiControllerBase extends ControllerBase {
     } yield {
       LockUtil.lock(s"${groupName}/${data.name}") {
         if(getRepository(groupName, data.name).isEmpty){
-          createRepository(context.loginAccount.get, groupName, data.name, data.description, data.`private`, data.auto_init)
+          val f = createRepository(context.loginAccount.get, groupName, data.name, data.description, data.`private`, data.auto_init)
+          Await.result(f, Duration.Inf)
           val repository = getRepository(groupName, data.name).get
           JsonFormat(ApiRepository(repository, ApiUser(getAccountByUserName(groupName).get)))
         } else {

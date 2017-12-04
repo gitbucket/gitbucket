@@ -25,6 +25,7 @@ import org.eclipse.jgit.dircache.{DirCache, DirCacheBuilder}
 import org.eclipse.jgit.errors.MissingObjectException
 import org.eclipse.jgit.lib._
 import org.eclipse.jgit.transport.{ReceiveCommand, ReceivePack}
+import org.json4s.jackson.Serialization
 import org.scalatra._
 import org.scalatra.i18n.Messages
 
@@ -148,12 +149,29 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays the file list of the repository root and the default branch.
    */
   get("/:owner/:repository") {
-    params.get("go-get") match {
-      case Some("1") => defining(request.paths){ paths =>
-        getRepository(paths(0), paths(1)).map(gitbucket.core.html.goget(_))getOrElse NotFound()
+    val owner = params("owner")
+    val repository = params("repository")
+
+    if (RepositoryCreationService.isCreating(owner, repository)) {
+      gitbucket.core.repo.html.creating(owner, repository)
+    } else {
+      params.get("go-get") match {
+        case Some("1") => defining(request.paths) { paths =>
+          getRepository(owner, repository).map(gitbucket.core.html.goget(_)) getOrElse NotFound()
+        }
+        case _ => referrersOnly(fileList(_))
       }
-      case _ => referrersOnly(fileList(_))
     }
+  }
+
+  ajaxGet("/:owner/:repository/creating") {
+    val owner = params("owner")
+    val repository = params("repository")
+    contentType = formats("json")
+    Serialization.write(Map(
+      "creating" -> RepositoryCreationService.isCreating(owner, repository),
+      "error" -> RepositoryCreationService.getCreationError(owner, repository)
+    ))
   }
 
   /**
@@ -403,7 +421,7 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     contentType = formats("json")
     using(Git.open(getRepositoryDir(repository.owner, repository.name))){ git =>
       val last = git.log.add(git.getRepository.resolve(id)).addPath(path).setMaxCount(1).call.iterator.next.name
-      Map(
+      Serialization.write(Map(
         "root"  -> s"${context.baseUrl}/${repository.owner}/${repository.name}",
         "id"    -> id,
         "path"  -> path,
@@ -418,8 +436,9 @@ trait RepositoryViewerControllerBase extends ControllerBase {
             "prevPath" -> blame.prevPath,
             "commited" -> blame.commitTime.getTime,
             "message"  -> blame.message,
-            "lines"    -> blame.lines)
-        })
+            "lines" -> blame.lines
+          )
+        }))
     }
   })
 
