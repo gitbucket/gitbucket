@@ -2,7 +2,7 @@ package gitbucket.core.controller
 
 import gitbucket.core.account.html
 import gitbucket.core.helper
-import gitbucket.core.model.{AccountWebHook, GroupMember, RepositoryWebHook, RepositoryWebHookEvent, Role, WebHook, WebHookContentType}
+import gitbucket.core.model.{AccountWebHook, GroupMember, RepositoryWebHook, Role, WebHook, WebHookContentType}
 import gitbucket.core.plugin.PluginRegistry
 import gitbucket.core.service._
 import gitbucket.core.service.WebHookService._
@@ -16,6 +16,8 @@ import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 import org.scalatra.forms._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
@@ -462,7 +464,6 @@ trait AccountControllerBase extends AccountManagementControllerBase {
 
   get("/:groupName/_editgroup")(managersOnly {
     defining(params("groupName")){ groupName =>
-      // TODO Don't use Option.get
       getAccountByUserName(groupName, true).map { account =>
         html.editgroup(account, getGroupMembers(groupName), flash.get("info"))
       } getOrElse NotFound()
@@ -530,10 +531,11 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
         // Create the repository
-        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.initOption, form.sourceUrl)
-
-        // Call hooks
-        PluginRegistry().getRepositoryHooks.foreach(_.created(form.owner, form.name))
+        val f = createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.initOption, form.sourceUrl).map { _ =>
+          // Call hooks
+          PluginRegistry().getRepositoryHooks.foreach(_.created(form.owner, form.name))
+        }
+        //Await.result(f, Duration.Inf)
       }
     }
 

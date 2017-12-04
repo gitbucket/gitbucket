@@ -1,0 +1,26 @@
+@(owner: String, repository: String)(implicit context: gitbucket.core.controller.Context)
+@gitbucket.core.html.main("Creating...") {
+  <div class="content-wrapper main-center">
+    <div class="content body">
+      <div class="text-center">
+        <h2>Creating repository...</h2>
+        <img src="@context.path/assets/common/images/indicator-bar.gif"/>
+      </div>
+    </div>
+  </div>
+}
+<script>
+  $(function () {
+    checkCreating();
+  });
+
+  function checkCreating() {
+    $.get('@context.path/@owner/@repository/creating', function (data) {
+      if (data == 'true') {
+        setTimeout(checkCreating, 2000);
+      } else {
+        location.href = '@context.path/@owner/@repository';
+      }
+    });
+  }
+</script>

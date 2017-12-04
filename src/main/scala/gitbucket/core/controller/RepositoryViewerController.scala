@@ -148,12 +148,25 @@ trait RepositoryViewerControllerBase extends ControllerBase {
    * Displays the file list of the repository root and the default branch.
    */
   get("/:owner/:repository") {
-    params.get("go-get") match {
-      case Some("1") => defining(request.paths){ paths =>
-        getRepository(paths(0), paths(1)).map(gitbucket.core.html.goget(_))getOrElse NotFound()
+    val owner = params("owner")
+    val repository = params("repository")
+
+    if (RepositoryCreationService.isCreating(owner, repository)) {
+      gitbucket.core.repo.html.creating(owner, repository)
+    } else {
+      params.get("go-get") match {
+        case Some("1") => defining(request.paths) { paths =>
+          getRepository(owner, repository).map(gitbucket.core.html.goget(_)) getOrElse NotFound()
+        }
+        case _ => referrersOnly(fileList(_))
       }
-      case _ => referrersOnly(fileList(_))
     }
+  }
+
+  ajaxGet("/:owner/:repository/creating") {
+    val owner = params("owner")
+    val repository = params("repository")
+    RepositoryCreationService.isCreating(owner, repository)
   }
 
   /**
