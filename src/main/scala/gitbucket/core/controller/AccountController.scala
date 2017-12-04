@@ -12,12 +12,9 @@ import gitbucket.core.util.Directory._
 import gitbucket.core.util.Implicits._
 import gitbucket.core.util.StringUtil._
 import gitbucket.core.util._
-import org.apache.commons.io.FileUtils
 import org.scalatra.i18n.Messages
 import org.scalatra.BadRequest
 import org.scalatra.forms._
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class AccountController extends AccountControllerBase
   with AccountService with RepositoryService with ActivityService with WikiService with LabelsService with SshKeyService
@@ -530,12 +527,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
   post("/new", newRepositoryForm)(usersOnly { form =>
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
-        // Create the repository
-        val f = createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.initOption, form.sourceUrl).map { _ =>
-          // Call hooks
-          PluginRegistry().getRepositoryHooks.foreach(_.created(form.owner, form.name))
-        }
-        //Await.result(f, Duration.Inf)
+        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.initOption, form.sourceUrl)
       }
     }
 
@@ -569,66 +561,15 @@ trait AccountControllerBase extends AccountManagementControllerBase {
       val loginUserName = loginAccount.userName
       val accountName   = form.accountName
 
-      LockUtil.lock(s"${accountName}/${repository.name}"){
-        if(getRepository(accountName, repository.name).isDefined ||
-            (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))){
-          // redirect to the repository if repository already exists
-          redirect(s"/${accountName}/${repository.name}")
-        } else {
-          // Insert to the database at first
-          val originUserName = repository.repository.originUserName.getOrElse(repository.owner)
-          val originRepositoryName = repository.repository.originRepositoryName.getOrElse(repository.name)
-
-          insertRepository(
-            repositoryName       = repository.name,
-            userName             = accountName,
-            description          = repository.repository.description,
-            isPrivate            = repository.repository.isPrivate,
-            originRepositoryName = Some(originRepositoryName),
-            originUserName       = Some(originUserName),
-            parentRepositoryName = Some(repository.name),
-            parentUserName       = Some(repository.owner)
-          )
-
-          // Set default collaborators for the private fork
-          if(repository.repository.isPrivate){
-            // Copy collaborators from the source repository
-            getCollaborators(repository.owner, repository.name).foreach { case (collaborator, _) =>
-              addCollaborator(accountName, repository.name, collaborator.collaboratorName, collaborator.role)
-            }
-            // Register an owner of the source repository as a collaborator
-            addCollaborator(accountName, repository.name, repository.owner, Role.ADMIN.name)
-          }
-
-          // Insert default labels
-          insertDefaultLabels(accountName, repository.name)
-          // Insert default priorities
-          insertDefaultPriorities(accountName, repository.name)
-
-          // clone repository actually
-          JGitUtil.cloneRepository(
-            getRepositoryDir(repository.owner, repository.name),
-            FileUtil.deleteIfExists(getRepositoryDir(accountName, repository.name)))
-
-          // Create Wiki repository
-          JGitUtil.cloneRepository(getWikiRepositoryDir(repository.owner, repository.name),
-            FileUtil.deleteIfExists(getWikiRepositoryDir(accountName, repository.name)))
-
-          // Copy LFS files
-          val lfsDir = getLfsDir(repository.owner, repository.name)
-          if(lfsDir.exists){
-            FileUtils.copyDirectory(lfsDir, FileUtil.deleteIfExists(getLfsDir(accountName, repository.name)))
-          }
-
-          // Record activity
-          recordForkActivity(repository.owner, repository.name, loginUserName, accountName)
-
-          // Call hooks
-          PluginRegistry().getRepositoryHooks.foreach(_.forked(repository.owner, accountName, repository.name))
-
-          // redirect to the repository
-          redirect(s"/${accountName}/${repository.name}")
-        }
+      if (getRepository(accountName, repository.name).isDefined ||
+        (accountName != loginUserName && !getGroupsByUserName(loginUserName).contains(accountName))) {
+        // redirect to the repository if repository already exists
+        redirect(s"/${accountName}/${repository.name}")
+      } else {
+        // fork repository asynchronously
+        forkRepository(accountName, repository, loginUserName)
+        // redirect to the repository
+        redirect(s"/${accountName}/${repository.name}")
       }
     } else BadRequest()
   })
