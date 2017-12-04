@@ -87,15 +87,16 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     "clearImage"  -> trim(label("Clear image" ,boolean()))
   )(EditGroupForm.apply)
 
-  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
+  case class RepositoryCreationForm(owner: String, name: String, description: Option[String], isPrivate: Boolean, initOption: String, sourceUrl: Option[String])
   case class ForkRepositoryForm(owner: String, name: String)
 
   val newRepositoryForm = mapping(
-    "owner"        -> trim(label("Owner"          , text(required, maxlength(100), identifier, existsAccount))),
-    "name"         -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
-    "description"  -> trim(label("Description"    , optional(text()))),
-    "isPrivate"    -> trim(label("Repository Type", boolean())),
-    "createReadme" -> trim(label("Create README"  , boolean()))
+    "owner" -> trim(label("Owner", text(required, maxlength(100), identifier, existsAccount))),
+    "name" -> trim(label("Repository name", text(required, maxlength(100), repository, uniqueRepository))),
+    "description" -> trim(label("Description", optional(text()))),
+    "isPrivate" -> trim(label("Repository Type", boolean())),
+    "initOption" -> trim(label("Initialize option", text(required))),
+    "sourceUrl" -> trim(label("Source git repository URL", optional(text()))) // TODO required if initOption is "COPY"
   )(RepositoryCreationForm.apply)
 
   val forkRepositoryForm = mapping(
@@ -529,7 +530,7 @@ trait AccountControllerBase extends AccountManagementControllerBase {
     LockUtil.lock(s"${form.owner}/${form.name}"){
       if(getRepository(form.owner, form.name).isEmpty){
         // Create the repository
-        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.createReadme)
+        createRepository(context.loginAccount.get, form.owner, form.name, form.description, form.isPrivate, form.initOption, form.sourceUrl)
 
         // Call hooks
         PluginRegistry().getRepositoryHooks.foreach(_.created(form.owner, form.name))

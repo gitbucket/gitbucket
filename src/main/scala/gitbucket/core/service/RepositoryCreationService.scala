@@ -1,19 +1,27 @@
 package gitbucket.core.service
 
+import java.nio.file.Files
+
 import gitbucket.core.model.Profile.profile.blockingApi._
 import gitbucket.core.util.SyntaxSugars._
 import gitbucket.core.util.Directory._
 import gitbucket.core.util.JGitUtil
 import gitbucket.core.model.Account
+import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.dircache.DirCache
-import org.eclipse.jgit.lib.{FileMode, Constants}
+import org.eclipse.jgit.lib.{Constants, FileMode}
 
 trait RepositoryCreationService {
   self: AccountService with RepositoryService with LabelsService with WikiService with ActivityService with PrioritiesService =>
 
-  def createRepository(loginAccount: Account, owner: String, name: String, description: Option[String], isPrivate: Boolean, createReadme: Boolean)
-                      (implicit s: Session) {
+  def createRepository(loginAccount: Account, owner: String, name: String, description: Option[String],
+    isPrivate: Boolean, createReadme: Boolean)(implicit s: Session): Unit = {
+    createRepository(loginAccount, owner, name, description, isPrivate, if (createReadme) "README" else "EMPTY", None)
+  }
+
+  def createRepository(loginAccount: Account, owner: String, name: String, description: Option[String],
+    isPrivate: Boolean, initOption: String, sourceUrl: Option[String])(implicit s: Session): Unit = {
     val ownerAccount  = getAccountByUserName(owner).get
     val loginUserName = loginAccount.userName
 
@@ -37,7 +45,7 @@ trait RepositoryCreationService {
     val gitdir = getRepositoryDir(owner, name)
     JGitUtil.initRepository(gitdir)
 
-    if(createReadme){
+    if (initOption == "README") {
       using(Git.open(gitdir)){ git =>
         val builder  = DirCache.newInCore.builder()
         val inserter = git.getRepository.newObjectInserter()
@@ -58,6 +66,18 @@ trait RepositoryCreationService {
 
         JGitUtil.createNewCommit(git, inserter, headId, builder.getDirCache.writeTree(inserter),
           Constants.HEAD, loginAccount.fullName, loginAccount.mailAddress, "Initial commit")
+      }
+    }
+
+    if (initOption == "COPY") {
+      sourceUrl.foreach { url =>
+        val dir = Files.createTempDirectory(s"gitbucket-${owner}-${name}").toFile
+        println("Cloning to " + dir.getAbsolutePath)
+        Git.cloneRepository().setBare(true).setURI(url).setDirectory(dir).setCloneAllBranches(true).call()
+        using(Git.open(dir)) { git =>
+          git.push().setRemote(gitdir.toURI.toString).setPushAll().setPushTags().call()
+        }
+        FileUtils.deleteQuietly(dir)
       }
     }
 
