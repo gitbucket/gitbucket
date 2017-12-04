@@ -2,9 +2,15 @@
 @gitbucket.core.html.main("Creating...") {
   <div class="content-wrapper main-center">
     <div class="content body">
-      <div class="text-center">
+        <!-- Progress bar -->
+      <div class="text-center" id="progress">
         <h2>Creating repository...</h2>
         <img src="@context.path/assets/common/images/indicator-bar.gif"/>
+      </div>
+        <!-- Error message -->
+      <div id="error" style="display: none;">
+        <h1>Failed to create repository</h1>
+        <div id="errorMessage"></div>
       </div>
     </div>
   </div>
@@ -21,8 +27,9 @@
         setTimeout(checkCreating, 2000);
       } else {
         if (data.error) {
-          alert(data.error);
-          location.href = '@context.path/new';
+          $('#errorMessage').text(data.error);
+          $('#error').show();
+          $('#progress').hide();
         } else {
           location.href = '@context.path/@owner/@repository';
         }
