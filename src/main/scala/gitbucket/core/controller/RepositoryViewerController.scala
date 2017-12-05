@@ -466,15 +466,28 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     }
   })
 
-  get("/:owner/:repository/commit/:id/patch")(referrersOnly { repository =>
+  get("/:owner/:repository/patch/:id")(referrersOnly { repository =>
     try {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
-        val diff = JGitUtil.getPatch(git, params("id"))
+        val diff = JGitUtil.getPatch(git, None, params("id"))
         contentType = formats("txt")
         diff
       }
     } catch {
       case e:MissingObjectException => NotFound()
+    }
+  })
+
+  get("/:owner/:repository/patch/*...*")(referrersOnly { repository =>
+    try {
+      val Seq(fromId, toId) = multiParams("splat")
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val diff = JGitUtil.getPatch(git, Some(fromId), toId)
+        contentType = formats("txt")
+        diff
+      }
+    } catch {
+      case e: MissingObjectException => NotFound()
     }
   })
 

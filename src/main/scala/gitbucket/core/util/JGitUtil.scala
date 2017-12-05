@@ -519,13 +519,13 @@ object JGitUtil {
     }.toMap
   }
 
-  def getPatch(git: Git, id: String): String = {
+  def getPatch(git: Git, from: Option[String], to: String): String = {
     val out = new ByteArrayOutputStream()
     val df = new DiffFormatter(out)
     df.setRepository(git.getRepository)
     df.setDiffComparator(RawTextComparator.DEFAULT)
     df.setDetectRenames(true)
-    df.format(getDiffEntries(git, None, id).head)
+    df.format(getDiffEntries(git, from, to).head)
     new String(out.toByteArray, "UTF-8")
   }
 
