@@ -116,6 +116,7 @@ class FileUploadController extends ScalatraServlet with FileUploadSupport with R
     case Some(file) if(mimeTypeChcker(file.name)) =>
       defining(FileUtil.generateFileId){ fileId =>
         f(file, fileId)
+        contentType = "text/plain"
         Ok(fileId)
       }
     case _ => BadRequest()

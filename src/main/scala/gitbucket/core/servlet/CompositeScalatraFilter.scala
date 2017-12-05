@@ -36,18 +36,22 @@ class CompositeScalatraFilter extends Filter {
       requestPath + "/"
     }
 
-    filters
-      .filter { case (_, path) =>
-        val start = path.replaceFirst("/\\*$", "/")
-        checkPath.startsWith(start)
-      }
-      .foreach { case (filter, _) =>
-        val mockChain = new MockFilterChain()
-        filter.doFilter(request, response, mockChain)
-        if(mockChain.continue == false){
-          return ()
+    if(!checkPath.startsWith("/upload/") && !checkPath.startsWith("/git/") && !checkPath.startsWith("/git-lfs/") &&
+       !checkPath.startsWith("/plugin-assets/") && !checkPath.startsWith("/console/")){
+      filters
+        .filter { case (_, path) =>
+          val start = path.replaceFirst("/\\*$", "/")
+          checkPath.startsWith(start)
         }
-      }
+        .foreach { case (filter, _) =>
+          val mockChain = new MockFilterChain()
+          filter.doFilter(request, response, mockChain)
+          if(mockChain.continue == false){
+            return ()
+          }
+        }
+    }
+
 
     chain.doFilter(request, response)
   }
@@ -62,8 +66,8 @@ class MockFilterChain extends FilterChain {
   }
 }
 
-class FilterChainFilter(chain: FilterChain) extends Filter {
-  override def init(filterConfig: FilterConfig): Unit = ()
-  override def destroy(): Unit  = ()
-  override def doFilter(request: ServletRequest, response: ServletResponse, mockChain: FilterChain) = chain.doFilter(request, response)
-}
+//class FilterChainFilter(chain: FilterChain) extends Filter {
+//  override def init(filterConfig: FilterConfig): Unit = ()
+//  override def destroy(): Unit  = ()
+//  override def doFilter(request: ServletRequest, response: ServletResponse, mockChain: FilterChain) = chain.doFilter(request, response)
+//}
