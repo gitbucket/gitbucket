@@ -10,9 +10,15 @@
 @import org.eclipse.jgit.diff.DiffEntry.ChangeType
 @if(showIndex){
   <div class="pull-right" style="margin-bottom: 10px;">
+    @if(oldCommitId.isEmpty && newCommitId.isDefined) {
+      <a href="@helpers.url(repository)/patch/@newCommitId" class="btn btn-default">Patch</a>
+    }
+    @if(oldCommitId.isDefined && newCommitId.isDefined) {
+      <a href="@helpers.url(repository)/patch/@oldCommitId...@newCommitId" class="btn btn-default">Patch</a>
+    }
     <div class="btn-group" data-toggle="buttons">
-      <input type="button" id="btn-unified" class="btn btn-default btn-small active" value="Unified">
-      <input type="button" id="btn-split" class="btn btn-default btn-small" value="Split">
+      <input type="button" id="btn-unified" class="btn btn-default active" value="Unified">
+      <input type="button" id="btn-split" class="btn btn-default" value="Split">
     </div>
   </div>
   Showing <a href="javascript:void(0);" id="toggle-file-list">@diffs.size changed @helpers.plural(diffs.size, "file")</a>

@@ -451,18 +451,43 @@ trait RepositoryViewerControllerBase extends ControllerBase {
     try {
       using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
         defining(JGitUtil.getRevCommitFromId(git, git.getRepository.resolve(id))) { revCommit =>
-          JGitUtil.getDiffs(git, id, true) match {
-            case (diffs, oldCommitId) =>
-              html.commit(id, new JGitUtil.CommitInfo(revCommit),
-                JGitUtil.getBranchesOfCommit(git, revCommit.getName),
-                JGitUtil.getTagsOfCommit(git, revCommit.getName),
-                getCommitComments(repository.owner, repository.name, id, true),
-                repository, diffs, oldCommitId, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
-          }
+          val diffs = JGitUtil.getDiffs(git, None, id, true, false)
+          val oldCommitId = JGitUtil.getParentCommitId(git, id)
+
+          html.commit(id, new JGitUtil.CommitInfo(revCommit),
+            JGitUtil.getBranchesOfCommit(git, revCommit.getName),
+            JGitUtil.getTagsOfCommit(git, revCommit.getName),
+            getCommitComments(repository.owner, repository.name, id, true),
+            repository, diffs, oldCommitId, hasDeveloperRole(repository.owner, repository.name, context.loginAccount))
         }
       }
     } catch {
       case e:MissingObjectException => NotFound()
+    }
+  })
+
+  get("/:owner/:repository/patch/:id")(referrersOnly { repository =>
+    try {
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val diff = JGitUtil.getPatch(git, None, params("id"))
+        contentType = formats("txt")
+        diff
+      }
+    } catch {
+      case e:MissingObjectException => NotFound()
+    }
+  })
+
+  get("/:owner/:repository/patch/*...*")(referrersOnly { repository =>
+    try {
+      val Seq(fromId, toId) = multiParams("splat")
+      using(Git.open(getRepositoryDir(repository.owner, repository.name))) { git =>
+        val diff = JGitUtil.getPatch(git, Some(fromId), toId)
+        contentType = formats("txt")
+        diff
+      }
+    } catch {
+      case e: MissingObjectException => NotFound()
     }
   })
 

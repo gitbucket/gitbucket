@@ -35,18 +35,18 @@ case class ApiCommit(
 
 object ApiCommit{
   def apply(git: Git, repositoryName: RepositoryName, commit: CommitInfo, urlIsHtmlUrl: Boolean = false): ApiCommit = {
-    val diffs = JGitUtil.getDiffs(git, commit.id, false)
+    val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
     ApiCommit(
       id        = commit.id,
       message   = commit.fullMessage,
       timestamp = commit.commitTime,
-      added     = diffs._1.collect {
+      added     = diffs.collect {
         case x if x.changeType == DiffEntry.ChangeType.ADD    => x.newPath
       },
-      removed   = diffs._1.collect {
+      removed   = diffs.collect {
         case x if x.changeType == DiffEntry.ChangeType.DELETE => x.oldPath
       },
-      modified  = diffs._1.collect {
+      modified  = diffs.collect {
         case x if x.changeType != DiffEntry.ChangeType.ADD && x.changeType != DiffEntry.ChangeType.DELETE => x.newPath
       },
       author    = ApiPersonIdent.author(commit),

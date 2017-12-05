@@ -24,8 +24,9 @@ import java.util.function.Consumer
 
 import org.cache2k.{Cache2kBuilder, CacheEntry}
 import org.eclipse.jgit.api.errors.{InvalidRefNameException, JGitInternalException, NoHeadException, RefAlreadyExistsException}
-import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
+import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter, RawTextComparator}
 import org.eclipse.jgit.dircache.DirCacheEntry
+import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.LoggerFactory
 
 /**
@@ -518,93 +519,49 @@ object JGitUtil {
     }.toMap
   }
 
-  /**
-   * Returns the tuple of diff of the given commit and parent commit ids.
-   * DiffInfos returned from this method don't include the patch property.
-   */
-  def getDiffs(git: Git, id: String, fetchContent: Boolean): (List[DiffInfo], Option[String]) = {
-    @scala.annotation.tailrec
-    def getCommitLog(i: java.util.Iterator[RevCommit], logs: List[RevCommit]): List[RevCommit] =
-      i.hasNext match {
-        case true if(logs.size < 2) => getCommitLog(i, logs :+ i.next)
-        case _ => logs
-      }
+  def getPatch(git: Git, from: Option[String], to: String): String = {
+    val out = new ByteArrayOutputStream()
+    val df = new DiffFormatter(out)
+    df.setRepository(git.getRepository)
+    df.setDiffComparator(RawTextComparator.DEFAULT)
+    df.setDetectRenames(true)
+    df.format(getDiffEntries(git, from, to).head)
+    new String(out.toByteArray, "UTF-8")
+  }
 
+  private def getDiffEntries(git: Git, from: Option[String], to: String): Seq[DiffEntry] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
-      revWalk.markStart(revWalk.parseCommit(git.getRepository.resolve(id)))
-      val commits   = getCommitLog(revWalk.iterator, Nil)
-      val revCommit = commits(0)
+      val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
+      df.setRepository(git.getRepository)
 
-      if(commits.length >= 2){
-        // not initial commit
-        val oldCommit = if(revCommit.getParentCount >= 2) {
-          // merge commit
-          revCommit.getParents.head
-        } else {
-          commits(1)
-        }
-        (getDiffs(git, oldCommit.getName, id, fetchContent, false), Some(oldCommit.getName))
-
-      } else {
-        // initial commit
-        using(new TreeWalk(git.getRepository)){ treeWalk =>
-          treeWalk.setRecursive(true)
-          treeWalk.addTree(revCommit.getTree)
-          val buffer = new scala.collection.mutable.ListBuffer[DiffInfo]()
-          while(treeWalk.next){
-            val newIsImage = FileUtil.isImage(treeWalk.getPathString)
-            buffer.append((if(!fetchContent){
-              DiffInfo(
-                changeType  = ChangeType.ADD,
-                oldPath     = "",
-                newPath     = treeWalk.getPathString,
-                oldContent  = None,
-                newContent  = None,
-                oldIsImage  = false,
-                newIsImage  = newIsImage,
-                oldObjectId = None,
-                newObjectId = Option(treeWalk.getObjectId(0)).map(_.name),
-                oldMode     = treeWalk.getFileMode(0).toString,
-                newMode     = treeWalk.getFileMode(0).toString,
-                tooLarge    = false,
-                patch       = None
-              )
-            } else {
-              DiffInfo(
-                changeType  = ChangeType.ADD,
-                oldPath     = "",
-                newPath     = treeWalk.getPathString,
-                oldContent  = None,
-                newContent  = JGitUtil.getContentFromId(git, treeWalk.getObjectId(0), false).filter(FileUtil.isText).map(convertFromByteArray),
-                oldIsImage  = false,
-                newIsImage  = newIsImage,
-                oldObjectId = None,
-                newObjectId = Option(treeWalk.getObjectId(0)).map(_.name),
-                oldMode     = treeWalk.getFileMode(0).toString,
-                newMode     = treeWalk.getFileMode(0).toString,
-                tooLarge    = false,
-                patch       = None
-              )
-            }))
+      val toCommit = revWalk.parseCommit(git.getRepository.resolve(to))
+      from match {
+        case None => {
+          toCommit.getParentCount match {
+            case 0 => df.scan(new EmptyTreeIterator(), new CanonicalTreeParser(null, git.getRepository.newObjectReader(), toCommit.getTree)).asScala
+            case _ => df.scan(toCommit.getParent(0), toCommit.getTree).asScala
           }
-          (buffer.toList, None)
+        }
+        case Some(from) => {
+          val fromCommit = revWalk.parseCommit(git.getRepository.resolve(from))
+          df.scan(fromCommit.getTree, toCommit.getTree).asScala
         }
       }
     }
   }
 
-  def getDiffs(git: Git, from: String, to: String, fetchContent: Boolean, makePatch: Boolean): List[DiffInfo] = {
-    val reader = git.getRepository.newObjectReader
-    val oldTreeIter = new CanonicalTreeParser
-    oldTreeIter.reset(reader, git.getRepository.resolve(from + "^{tree}"))
+  def getParentCommitId(git: Git, id: String): Option[String] = {
+    using(new RevWalk(git.getRepository)){ revWalk =>
+      val commit = revWalk.parseCommit(git.getRepository.resolve(id))
+      commit.getParentCount match {
+        case 0 => None
+        case _ => Some(commit.getParent(0).getName)
+      }
+    }
+  }
 
-    val newTreeIter = new CanonicalTreeParser
-    newTreeIter.reset(reader, git.getRepository.resolve(to + "^{tree}"))
-
-    import scala.collection.JavaConverters._
-    git.getRepository.getConfig.setString("diff", null, "renames", "copies")
-
-    val diffs = git.diff.setNewTree(newTreeIter).setOldTree(oldTreeIter).call.asScala
+  def getDiffs(git: Git, from: Option[String], to: String, fetchContent: Boolean, makePatch: Boolean): List[DiffInfo] = {
+    val diffs = getDiffEntries(git, from, to)
     diffs.map { diff =>
       if(diffs.size > 100){
         DiffInfo(
@@ -639,7 +596,7 @@ object JGitUtil {
             oldMode     = diff.getOldMode.toString,
             newMode     = diff.getNewMode.toString,
             tooLarge    = false,
-            patch       = (if(makePatch) Some(makePatchFromDiffEntry(git, diff)) else None)
+            patch       = (if(makePatch) Some(makePatchFromDiffEntry(git, diff)) else None) // TODO use DiffFormatter
           )
         } else {
           DiffInfo(
@@ -655,7 +612,7 @@ object JGitUtil {
             oldMode     = diff.getOldMode.toString,
             newMode     = diff.getNewMode.toString,
             tooLarge    = false,
-            patch       = (if(makePatch) Some(makePatchFromDiffEntry(git, diff)) else None)
+            patch       = (if(makePatch) Some(makePatchFromDiffEntry(git, diff)) else None) // TODO use DiffFormatter
           )
         }
       }

@@ -347,8 +347,8 @@ class WikiCommitHook(owner: String, repository: String, pusher: String, baseUrl:
           commitIds.map { case (oldCommitId, newCommitId) =>
             val commits = using(Git.open(Directory.getWikiRepositoryDir(owner, repository))) { git =>
               JGitUtil.getCommitLog(git, oldCommitId, newCommitId).flatMap { commit =>
-                val diffs = JGitUtil.getDiffs(git, commit.id, false)
-                diffs._1.collect { case diff if diff.newPath.toLowerCase.endsWith(".md") =>
+                val diffs = JGitUtil.getDiffs(git, None, commit.id, false, false)
+                diffs.collect { case diff if diff.newPath.toLowerCase.endsWith(".md") =>
                   val action = if(diff.changeType == ChangeType.ADD) "created" else "edited"
                   val fileName = diff.newPath
                   (action, fileName, commit.id)
