@@ -26,7 +26,7 @@ import org.cache2k.{Cache2kBuilder, CacheEntry}
 import org.eclipse.jgit.api.errors.{InvalidRefNameException, JGitInternalException, NoHeadException, RefAlreadyExistsException}
 import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter, RawTextComparator}
 import org.eclipse.jgit.dircache.DirCacheEntry
-import org.eclipse.jgit.util.io.{DisabledOutputStream, NullOutputStream}
+import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.LoggerFactory
 
 /**
@@ -525,12 +525,15 @@ object JGitUtil {
     df.setRepository(git.getRepository)
     df.setDiffComparator(RawTextComparator.DEFAULT)
     df.setDetectRenames(true)
-    df.format(getDiffEntries(git, None, id, df).head)
+    df.format(getDiffEntries(git, None, id).head)
     new String(out.toByteArray, "UTF-8")
   }
 
-  private def getDiffEntries(git: Git, from: Option[String], to: String, df: DiffFormatter): Seq[DiffEntry] = {
+  private def getDiffEntries(git: Git, from: Option[String], to: String): Seq[DiffEntry] = {
     using(new RevWalk(git.getRepository)){ revWalk =>
+      val df = new DiffFormatter(DisabledOutputStream.INSTANCE)
+      df.setRepository(git.getRepository)
+
       val toCommit = revWalk.parseCommit(git.getRepository.resolve(to))
       from match {
         case None => {
@@ -558,8 +561,7 @@ object JGitUtil {
   }
 
   def getDiffs(git: Git, from: Option[String], to: String, fetchContent: Boolean, makePatch: Boolean): List[DiffInfo] = {
-    val df = new DiffFormatter(System.out)
-    val diffs = getDiffEntries(git, from, to, df)
+    val diffs = getDiffEntries(git, from, to)
     diffs.map { diff =>
       if(diffs.size > 100){
         DiffInfo(
