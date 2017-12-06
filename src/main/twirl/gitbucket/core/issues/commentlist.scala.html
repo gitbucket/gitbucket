@@ -186,11 +186,7 @@ $(function(){
       $content = $('#issueContent');
     }
 
-    $.get(url,
-    {
-      dataType : 'html'
-    },
-    function(data){
+    $.get(url, { dataType : 'html' }, function(data){
       $content.empty().html(data);
     });
     return false;
@@ -202,6 +198,7 @@ $(function(){
       function(data){
         if(data > 0) {
           $('#comment-' + id).remove();
+          // TODO remove reply comment form if there is no comment on this line!
         }
       });
     }
