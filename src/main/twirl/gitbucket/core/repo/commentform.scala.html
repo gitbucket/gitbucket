@@ -71,8 +71,19 @@
 
         // Show reply comment form
         var replyComment = $tr.prev().find('.reply-comment').closest('.not-diff').show();
-        replyComment.remove();
-        $tr.after(replyComment);
+        if(replyComment.length != 0){
+          replyComment.remove();
+          $tr.after(replyComment);
+        } else {
+          var $v = $('<div class="commit-comment-box reply-comment-box">')
+            .append($('<input type="text" class="form-control reply-comment" placeholder="Reply...">')
+              .data('filename', '@fileName')
+              .data('newline',  @newLineNumber.getOrElse("undefined"))
+              .data('oldline',  @oldLineNumber.getOrElse("undefined")));
+          var tmp = getInlineContainer();
+          tmp.children('td:last').html($v)
+          $tr.after(tmp);
+        }
 
         $('#comment-list').append(data);
         if (typeof $('#show-notes')[0] !== 'undefined' && !$('#show-notes')[0].checked) {
@@ -82,6 +93,19 @@
         $('.btn-inline-comment').removeAttr('disabled');
         $('#error-content', $form).html($.parseJSON(req.responseText).content);
       });
-    })
+    });
+
+    function getInlineContainer() {
+      console.log(window.viewType);
+      if (window.viewType == 0) {
+        if(@newLineNumber.isDefined){
+          return $('<tr class="not-diff"><td colspan="2"></td><td colspan="2" class="comment-box-container"></td></tr>');
+        }
+        if(@oldLineNumber.isDefined){
+          return $('<tr class="not-diff"><td colspan="2" class="comment-box-container"></td><td colspan="2"></td></tr>');
+        }
+      }
+      return $('<tr class="not-diff"><td colspan="3" class="comment-box-container"></td></tr>');
+    }
   </script>
 }

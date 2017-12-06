@@ -232,7 +232,6 @@ $(function(){
     var $this  = $(this);
     var $tr    = $this.closest('tr');
     var $check = $this.closest('table:not(.diff)').find('.toggle-notes');
-    //var url    = '';
     if (!$check.prop('checked')) {
       $check.prop('checked', true).trigger('change');
     }
