@@ -71,6 +71,11 @@ Support
 What's New in 4.19.x
 -------------
 
+### 4.19.3 - 9 Dec 2017
+
+- Fix file uploading bug
+- Fix reply comment form behavior in the diff view
+
 ### 4.19.2 - 3 Dec 2017
 
 - Fix routing bug in `CompositeScalatraFilter`
