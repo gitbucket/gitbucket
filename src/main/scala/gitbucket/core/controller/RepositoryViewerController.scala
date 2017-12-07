@@ -658,7 +658,8 @@ trait RepositoryViewerControllerBase extends ControllerBase {
           repository.repository.originRepositoryName.getOrElse(repository.name)),
         getForkedRepositories(
           repository.repository.originUserName.getOrElse(repository.owner),
-          repository.repository.originRepositoryName.getOrElse(repository.name)),
+          repository.repository.originRepositoryName.getOrElse(repository.name)
+        ).map { repository => (repository.userName, repository.repositoryName) },
         context.loginAccount match {
           case None => List()
           case account: Option[Account] => getGroupsByUserName(account.get.userName)

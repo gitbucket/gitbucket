@@ -333,7 +333,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         Some(forkedRepository.name)
       } else if(forkedRepository.repository.originUserName.isEmpty){
         // when ForkedRepository is the original repository
-        getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
+        getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_.userName == originOwner).map(_.repositoryName)
       } else if(Some(originOwner) == forkedRepository.repository.originUserName){
         // Original repository
         forkedRepository.repository.originRepositoryName
@@ -381,9 +381,13 @@ trait PullRequestsControllerBase extends ControllerBase {
               commits,
               diffs,
               ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
-                case (Some(userName), Some(repositoryName)) => (userName, repositoryName) :: getForkedRepositories(userName, repositoryName)
-                case _ => (forkedRepository.owner, forkedRepository.name) :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-              }).filter { case (owner, name) => hasGuestRole(owner, name, context.loginAccount) },
+                case (Some(userName), Some(repositoryName)) => getRepository(userName, repositoryName) match {
+                  case Some(originRepository) => originRepository.repository :: getForkedRepositories(userName, repositoryName)
+                  case None                   => getForkedRepositories(userName, repositoryName)
+                }
+                case _ => forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
+              }).filter { repository => isReadable(repository, context.loginAccount) }
+                .map { repository => (repository.userName, repository.repositoryName) },
               commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
               originId,
               forkedId,
@@ -419,7 +423,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         Some(forkedRepository.name)
       } else {
         forkedRepository.repository.originRepositoryName.orElse {
-          getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_._1 == originOwner).map(_._2)
+          getForkedRepositories(forkedRepository.owner, forkedRepository.name).find(_.userName == originOwner).map(_.repositoryName)
         }
       };
       originRepository <- getRepository(originOwner, originRepositoryName)

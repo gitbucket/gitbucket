@@ -443,17 +443,31 @@ trait RepositoryService { self: AccountService =>
     }
   }
 
+  def isReadable(repository: Repository, loginAccount: Option[Account])(implicit s: Session): Boolean = {
+    if(!repository.isPrivate){
+      true
+    } else {
+      loginAccount match {
+        case Some(x) if(x.isAdmin) => true
+        case Some(x) if(repository.userName == x.userName) => true
+        case Some(x) if(getGroupMembers(repository.userName).exists(_.userName == x.userName)) => true
+        case Some(x) if(getCollaboratorUserNames(repository.userName, repository.repositoryName).contains(x.userName)) => true
+        case _ => false
+      }
+    }
+  }
+
   private def getForkedCount(userName: String, repositoryName: String)(implicit s: Session): Int =
     Query(Repositories.filter { t =>
       (t.originUserName === userName.bind) && (t.originRepositoryName === repositoryName.bind)
     }.length).first
 
 
-  def getForkedRepositories(userName: String, repositoryName: String)(implicit s: Session): List[(String, String)] =
+  def getForkedRepositories(userName: String, repositoryName: String)(implicit s: Session): List[Repository] =
     Repositories.filter { t =>
       (t.originUserName === userName.bind) && (t.originRepositoryName === repositoryName.bind)
     }
-    .sortBy(_.userName asc).map(t => t.userName -> t.repositoryName).list
+    .sortBy(_.userName asc).list//.map(t => t.userName -> t.repositoryName).list
 
   private val templateExtensions = Seq("md", "markdown")
 
