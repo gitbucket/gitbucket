@@ -31,7 +31,9 @@
           $('#error').show();
           $('#progress').hide();
         } else {
-          location.href = '@context.path/@owner/@repository';
+          setTimeout(function(){
+            location.href = '@context.path/@owner/@repository';
+          }, 2000);
         }
       }
     });
