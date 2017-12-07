@@ -30,8 +30,7 @@
     </div>
   </div>
 }
-@issueOrPullRequest() = {
-@if(issue.exists(_.isPullRequest)) ("pull request")else( "issue" ) }
+@issueOrPullRequest()={ @if(issue.exists(_.isPullRequest))( "pull request" )else( "issue" ) }
 
 @comments.map {
   case comment: gitbucket.core.model.IssueComment => {
