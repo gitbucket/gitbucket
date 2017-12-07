@@ -179,7 +179,7 @@ trait RepositorySettingsControllerBase extends ControllerBase {
     } else {
       val protection = ApiBranchProtection(getProtectedBranchInfo(repository.owner, repository.name, branch))
       val lastWeeks = getRecentStatuesContexts(repository.owner, repository.name,
-        Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.of("UTC")))).toSet
+        Date.from(LocalDateTime.now.minusWeeks(1).toInstant(ZoneOffset.UTC))).toSet
       val knownContexts = (lastWeeks ++ protection.status.contexts).toSeq.sortBy(identity)
       html.branchprotection(repository, branch, protection, knownContexts, flash.get("info"))
     }
