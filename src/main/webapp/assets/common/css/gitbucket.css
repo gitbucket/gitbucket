@@ -864,81 +864,116 @@ li.task-list-item input.task-list-item-checkbox {
   vertical-align: middle;
 }
 
-.discussion-item {
-    position: relative;
-    margin: 15px 0 15px 20px;
-    padding-left: 25px;
-}
-.discussion-item-header {
-    min-height: 30px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    color: #767676;
-    line-height: 20px;
-    word-wrap: break-word;
-}
-.discussion-item-icon {
-    float: left;
-    width: 32px;
-    height: 32px;
-    margin-top: -7px;
-    margin-left: -40px;
-    line-height: 28px;
-    color: #767676;
-    text-align: center;
-    background-color: #f3f3f3;
-    border: 2px solid #fff;
+/****************************************************************************/
+/* Issue/Pull comments as timeline */
+/****************************************************************************/
+.timeline>li>.octicon{
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    line-height: 30px;
+    position: absolute;
+    color: #666;
+    background: #d2d6de;
     border-radius: 50%;
+    text-align: center;
+    left: 18px;
+    top: 0;
+    padding-left: 6px;
 }
 
-.discussion-item-content {
-  margin-left:36px;
+.timeline>li>.action-icon>.octicon{
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+    line-height: 30px;
+    position: absolute;
+    color: #666;
+    border-radius: 50%;
+    text-align: center;
+    left: 18px;
+    top: 40px;
 }
 
-.discussion-item-content-head{
-  padding-right:20px;
-  background-color: white;
-  float:left
+.timeline>li>.timeline-item{
+  border: 1px solid #ddd;
 }
 
-pre.reset.discussion-item-content-text{
-  border-left: 1px solid rgb(238, 238, 238);
-  margin: 0 0 0 5px;
-  padding-left: 25px;
+.panel-default>.panel-heading.current-user{
+  background: #f0fcff;
 }
 
-.discussion-item-commit .discussion-item-content {
-    font-size:12px;
+.timeline>li>.timeline-item{
+  margin-right: 0px;
+  margin-bottom: 0px;
 }
 
-.discussion-item-icon .octicon {
-  color: inherit;
+.timeline>li>.timeline-item>.timeline-header.current-user{
+  background: #f0fcff;
+}
+.timeline>li>.timeline-item>.timeline-header{
+  background: #f5f5f5;
+}
+.timeline>li>.timeline-item>.timeline-body{
+  margin-left: 10px;
 }
 
-.discussion-item-merge .discussion-item-icon {
-  background-color: #6e5494;
-  color: white;
-  padding-top: 1px;
-  padding-left: 3px;
+.timeline>li>.avatar{
+    font-size: 15px;
+    line-height: 30px;
+    position: absolute;
+    color: #666;
+    background: #d2d6de;
+    text-align: center;
+    left: 18px;
+    top: 0;
 }
 
-.discussion-item-close .discussion-item-icon {
-  background-color: #bd2c00;
-  color: white;
-  padding-top: 1px;
+.timeline>.time-label.current-user>span{
+  border: 1px solid #f2f8fa;
+  background: #f0fcff;
 }
 
-.discussion-item-delete_branch .discussion-item-icon {
-  padding-left: 2px;
-  padding-top: 1px;
-  background-color: #767676;
-  color: white;
+.timeline>.time-label>span{
+  border: 1px solid #f2f8fa;
+  background: #f6f6fa;
 }
 
-.discussion-item-reopen .discussion-item-icon {
-  background-color: #6cc644;
-  padding-top: 1px;
-  color: white;
+.timeline>.time-label>span>.octicon{
+  margin-left: 12px;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  border-radius: 50%;
+  line-height: 30px;
+}
+
+.timeline>li>.timeline-item>.timeline-header:before{
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: -20px;
+  margin-top: -10px;
+  border-color: transparent;
+  border-right-color: #ddd;
+  border-width: 10px;
+  border-style: solid solid outset;
+}
+
+.timeline>li>.timeline-item>.timeline-header.current-user:after{
+  border-right-color: #f0fcff;
+}
+
+.timeline>li>.timeline-item>.timeline-header:after{
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: -18px;
+  margin-top: -10px;
+  border-color: transparent;
+  border-right-color: #f5f5f5;
+  border-width: 10px;
+  border-style: solid solid outset;
 }
 
 .priority-sort-handle {

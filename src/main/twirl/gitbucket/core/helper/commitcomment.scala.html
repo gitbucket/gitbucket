@@ -3,7 +3,7 @@
   repository: gitbucket.core.service.RepositoryService.RepositoryInfo,
   latestCommitId: Option[String] = None)(implicit context: gitbucket.core.controller.Context)
 @import gitbucket.core.view.helpers
-<div class="@if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}"
+<div class="timeline-item @if(comment.fileName.isDefined && (!latestCommitId.isDefined || latestCommitId.get == comment.commitId)){inline-comment}"
     id="discussion_r@comment.commentId"
     @if(comment.fileName.isDefined){filename="@comment.fileName.get"}
     @if(comment.newLine.isDefined){newline="@comment.newLine.get"}
