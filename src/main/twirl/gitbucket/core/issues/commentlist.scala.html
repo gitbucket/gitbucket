@@ -30,7 +30,8 @@
     </div>
   </div>
 }
-@issueOrPullRequest()={ @if(issue.isDefined && issue.get.isPullRequest)( "pull request" )else( "issue" ) }
+@issueOrPullRequest() = {
+@if(issue.exists(_.isPullRequest)) ("pull request")else( "issue" ) }
 
 @comments.map {
   case comment: gitbucket.core.model.IssueComment => {
@@ -46,7 +47,7 @@
             } else {
               referenced the @issueOrPullRequest()
             }
-            <a href="@helpers.url(repository)/issues/@issue.get.issueId#comment-@comment.commentId">
+            <a href="#comment-@comment.commentId">
               @gitbucket.core.helper.html.datetimeago(comment.registeredDate)
             </a>
           </span>
