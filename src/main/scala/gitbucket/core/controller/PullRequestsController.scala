@@ -382,12 +382,11 @@ trait PullRequestsControllerBase extends ControllerBase {
               diffs,
               ((forkedRepository.repository.originUserName, forkedRepository.repository.originRepositoryName) match {
                 case (Some(userName), Some(repositoryName)) => getRepository(userName, repositoryName) match {
-                  case Some(originRepository) => originRepository.repository :: getForkedRepositories(userName, repositoryName)
-                  case None                   => getForkedRepositories(userName, repositoryName)
+                  case Some(x) => x.repository :: getForkedRepositories(userName, repositoryName)
+                  case None    => getForkedRepositories(userName, repositoryName)
                 }
                 case _ => forkedRepository.repository :: getForkedRepositories(forkedRepository.owner, forkedRepository.name)
-              }).filter { repository => isReadable(repository, context.loginAccount) }
-                .map { repository => (repository.userName, repository.repositoryName) },
+              }).map { repository => (repository.userName, repository.repositoryName) },
               commits.flatten.map(commit => getCommitComments(forkedRepository.owner, forkedRepository.name, commit.id, false)).flatten.toList,
               originId,
               forkedId,
