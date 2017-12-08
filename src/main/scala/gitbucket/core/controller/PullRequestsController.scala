@@ -502,6 +502,27 @@ trait PullRequestsControllerBase extends ControllerBase {
     }
   })
 
+  ajaxGet("/:owner/:repository/pulls/proposals")(readableUsersOnly { repository =>
+    (for {
+      parentUserName <- repository.repository.parentUserName
+      parentRepoName <- repository.repository.parentRepositoryName
+      parentRepository <- getRepository(parentUserName, parentRepoName).orElse(Some(repository))
+    } yield {
+      val branches = JGitUtil.getBranches(
+        owner         = repository.owner,
+        name          = repository.name,
+        defaultBranch = repository.repository.defaultBranch,
+        origin        = repository.repository.originUserName.isEmpty
+      )
+      .filter(x => x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0)
+      .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
+      .map(_.name)
+      .reverse
+
+      html.proposals(branches, parentRepository, repository)
+    }).getOrElse(NotFound())
+  })
+
   /**
    * Parses branch identifier and extracts owner and branch name as tuple.
    *
