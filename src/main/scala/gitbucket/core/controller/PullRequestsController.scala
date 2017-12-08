@@ -514,7 +514,7 @@ trait PullRequestsControllerBase extends ControllerBase {
         defaultBranch = repository.repository.defaultBranch,
         origin        = repository.repository.originUserName.isEmpty
       )
-      .filter(_.mergeInfo.map(_.ahead).getOrElse(0) > 0)
+      .filter(x => x.mergeInfo.map(_.ahead).getOrElse(0) > 0 && x.mergeInfo.map(_.behind).getOrElse(0) == 0)
       .sortBy(br => (br.mergeInfo.isEmpty, br.commitTime))
       .map(_.name)
       .reverse
